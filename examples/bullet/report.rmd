@@ -1,0 +1,31 @@
+---
+title: Read progress against a target in one bar
+description: A bullet chart sets the actual value, the target and the ranges that matter on one scale per row.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Only the South beat its sales goal
+
+These illustrative figures compare each region's sales with its goal. The bar is the actual value, the line across it is the target, and the shaded bands mark the ranges 60, 80 and 100.
+
+```chart
+type: bullet
+title: South is the only region above its sales target
+subtitle: Sales per region; the line marks each region's target
+data:
+  inline:
+    - {region: North, sales: 72, goal: 85}
+    - {region: South, sales: 91, goal: 80}
+    - {region: East, sales: 55, goal: 70}
+    - {region: West, sales: 64, goal: 60}
+encoding: {x: region, y: sales, target: goal}
+axes:
+  y: {label: Sales}
+style:
+  ranges: [60, 80, 100]
+```
+
+*Source: Illustrative values. West also reached its target of 60.*
+
+Use the keyboard or pointer to read each region's actual value, target and ranges.

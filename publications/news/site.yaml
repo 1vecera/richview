@@ -1,0 +1,23 @@
+title: RichView News
+description: A working notebook on evidence, systems and better decisions.
+base_url: https://news.richview.ai
+layout: broadsheet
+mode: external
+theme: paper
+accent: "#1a6dac"
+sections:
+  - id: research
+    title: Research
+    description: What the numbers can — and cannot — tell us.
+  - id: systems
+    title: Systems
+    description: How useful evidence makes its way into the world.
+  - id: fieldnotes
+    title: Field notes
+    description: Small observations from the editorial workbench.
+navigation:
+  - {label: Research, path: /sections/research}
+  - {label: Systems, path: /sections/systems}
+  - {label: Field notes, path: /sections/fieldnotes}
+  - {label: About, path: /about}
+lead: [measurement-gap, slower-is-clearer]

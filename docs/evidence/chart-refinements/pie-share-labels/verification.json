@@ -1,0 +1,127 @@
+{
+  "status": "PASS: required local checks and independent source, render, interface and frozen sibling reviews; optional annotation limitation disclosed",
+  "baseline": "b76885a66808956d7e7944b9923aacb445d72b66",
+  "source_commit": "f87fd24604fa4dcfe8e25859ab7945a0dbfedd65",
+  "before_wasm_sha256": "1127df183cd5fd089014ed7fd76858792a61693cdb157ad8fd93631aac36ade1",
+  "after_wasm_sha256": "c415bc543db946539e4d1d2b8902935ba05a4d5ca1c60deb77456a8d64f89467",
+  "browser": "Chromium 151.0.7922.173",
+  "device_scale_factor": 2,
+  "pairs": [
+    {
+      "id": "pie-share-tiny-positive",
+      "source": "phone.rmd",
+      "source_sha256": "9fced1865eab9a000d31cf638aa7090b1ba96ae1c427c818106b3dbaa9e03ab8",
+      "theme": "scientific",
+      "width": 320,
+      "motion": "reduce",
+      "before": {
+        "file": "phone-before.png",
+        "sha256": "d153a96674916ec53431bed7de691ed4d95109396dc6eb91dfc19e323d160e1d"
+      },
+      "after": {
+        "file": "phone-after.png",
+        "sha256": "17a3b41eee0bd080424227f41ef797466ae540e89fd228a37f13e7cd0bdc92a8"
+      }
+    },
+    {
+      "id": "pie-share-craft-fit-boundary",
+      "source": "fit-boundary.rmd",
+      "source_sha256": "7d77383454ee01cae3724713f4132780cdd491cda2f08da18bd1f90ebda7765b",
+      "theme": "scientific",
+      "width": 512,
+      "motion": "no-preference",
+      "before": {
+        "file": "fit-boundary-before.png",
+        "sha256": "e913e91398ba3f3f0e71d1c003eea2a63a63195277962453b4ca09b183f74f04"
+      },
+      "after": {
+        "file": "fit-boundary-after.png",
+        "sha256": "3c9eb253109fa3a2e5611a0590bfbeb0e6bbe81a0ff55e4134a96fdac1d42d86"
+      }
+    }
+  ],
+  "current_main": {
+    "matched_reports": 120,
+    "fit_boundary_reports": 10,
+    "both_sides_exact_to_historical_svg_png_native": 120,
+    "ordinary_motion_boundary_collisions": {
+      "before": 5,
+      "after": 0
+    },
+    "owner_replayed_interface_records": 12,
+    "interface_records_exact_to_independent": 12
+  },
+  "historical_broad_proof": {
+    "baseline": "159e3cbc01773c59891c984d3a485d089ac6372d",
+    "source_commit": "a1490329c90b8427e66b24693d4b06bda4eb00e7",
+    "reports": 460,
+    "measured_live_children": 460,
+    "static_empty_controls": 20,
+    "exact_control_reports_png": 200,
+    "exact_control_leaves_svg": 220,
+    "changed_leaves": 260,
+    "endpoint_strings_changed": 600,
+    "angles_order_colors_unchanged": true,
+    "independent_craft_views": 54,
+    "independent_craft_panels": 60,
+    "independent_layout_views": 24,
+    "independent_resting_exact_controls": 8,
+    "independent_interface_panels": 4,
+    "source_keyboard_rows": 8
+  },
+  "limitations": [
+    "Existing annotation overlaps remain in the broader matrix:15 live collisions and5 clipping findings; endpoint spelling changes their text, not the intersecting geometry.",
+    "Tiny sectors may still be below pointer or touch resolution; the source remains available by keyboard, Table and CSV.",
+    "Overflowing totals retain existing output; this package makes no ratio assertion for a nonfinite total.",
+    "With the frozen sibling annotation policy, five annotated fit-boundary views omit an optional note after radial-to-key reflow. Direct rendering at the actual 480px records its no-collision-free-position reason in droppedLabels; page512 native diagnostics and live glyph checks alone do not describe this omission."
+  ],
+  "history": [
+    "The first generic capture incorrectly waited for a live host on static empty charts. Partial records were retained and the corrected helper captured those20 static controls explicitly.",
+    "Independent probes retained initial grouping, export-title and tiny-target oracle failures. The final tiny-target result is compared with baseline and is not claimed newly selectable.",
+    "The initial cross-branch PNG identity assertion failed on all 120 broad before images. The sibling changes the shared figure header inset. Chart SVGs and diagnostics were exact. The final comparison requires chart/source identity across branches and complete control PNG identity within the same sibling styling.",
+    "The second cross-branch SVG assertion found the sibling annotation placement policy in five annotated boundary reports. The sibling moves the note before the refinement and omits it after radial-to-key reflow; direct rendering at the actual 480px records the documented no-collision-free-position reason. Non-annotation chart content is required to remain exact across branches. The optional annotation tradeoff remains explicit."
+  ],
+  "required_local_checks": {
+    "source_commit": "f87fd24604fa4dcfe8e25859ab7945a0dbfedd65",
+    "all_passed": true,
+    "checks": [
+      "fmt",
+      "clippy",
+      "clippy-wasm",
+      "tests",
+      "build",
+      "fixtures",
+      "editor",
+      "native",
+      "compat",
+      "types",
+      "browser",
+      "landing",
+      "cloudflare",
+      "showcase",
+      "flagship",
+      "reel",
+      "browser-api",
+      "motion-runtime",
+      "docs"
+    ]
+  },
+  "frozen_sibling": {
+    "before": "b19f92b340bf4987b5726898059ba15e9e528635",
+    "after": "faaa17e4299a03c39a900c4fc62353896568a890",
+    "before_wasm": "46551a3928a3e84250c61811deb08dcbb9be89b4e3aead3a3fd816f496fec96b",
+    "after_wasm": "980ba77a74aac347a0b88086fb01965f9c341b458ea0e4a76c4b1d3f7d03905f",
+    "matched_reports": 130,
+    "exact_chart_svg_native_live_to_standalone": 125,
+    "non_annotation_svg_exact_to_standalone": 130,
+    "exact_before_after_control_png_svg": 60,
+    "optional_note_omitted_after_key_reflow_reports": 5,
+    "verdict": "ACCEPT WITH EXPLICIT OPTIONAL-ANNOTATION LIMITATION"
+  },
+  "curated_reproduction": {
+    "images": 4,
+    "exact_png_hashes": 4,
+    "before_exit": 0,
+    "after_exit": 0
+  }
+}

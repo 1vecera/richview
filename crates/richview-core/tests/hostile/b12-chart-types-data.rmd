@@ -1,0 +1,102 @@
+---
+title: Chart data cells
+---
+
+```chart
+type: line
+title: '<script>HOSTILE_LINE_TITLE()</script>'
+data:
+  inline:
+    - { t: 2024-01-01, v: 1, g: '"><script>HOSTILE_SER()</script>' }
+    - { t: 2024-02-01, v: 2, g: '"><script>HOSTILE_SER()</script>' }
+    - { t: 2024-01-01, v: 2, g: '<img src=x onerror=HOSTILE_CAT()>' }
+    - { t: 2024-02-01, v: 3, g: '<img src=x onerror=HOSTILE_CAT()>' }
+encoding: { x: t, y: v, color: g }
+```
+
+```chart
+type: area
+title: '<script>HOSTILE_AREA_TITLE()</script>'
+data:
+  inline:
+    - { t: '<img src=x onerror=HOSTILE_CAT()>', v: 1 }
+    - { t: '"><script>HOSTILE_SER()</script>', v: 2 }
+encoding: { x: t, y: v }
+```
+
+```chart
+type: scatter
+title: '<script>HOSTILE_SCATTER_TITLE()</script>'
+data:
+  inline:
+    - { a: 1, b: 2, n: '<img src=x onerror=HOSTILE_CAT()>', s: 1 }
+    - { a: 2, b: 3, n: '"><script>HOSTILE_SER()</script>', s: 2 }
+encoding: { x: a, y: b, label: n, size: s, color: n }
+highlight: {by: n, include: ['<img src=x onerror=HOSTILE_HL()>']}
+```
+
+```chart
+type: pie
+title: '<script>HOSTILE_PIE_TITLE()</script>'
+data:
+  inline:
+    - { k: '<img src=x onerror=HOSTILE_CAT()>', v: 1 }
+    - { k: '"><script>HOSTILE_SER()</script>', v: 2 }
+encoding: { x: k, y: v }
+```
+
+```chart
+type: heatmap
+title: '<script>HOSTILE_HEATMAP_TITLE()</script>'
+data:
+  inline:
+    - { r: '<img src=x onerror=HOSTILE_CAT()>', c: '"><script>HOSTILE_SER()</script>', v: 1 }
+    - { r: '"><script>HOSTILE_SER()</script>', c: '<img src=x onerror=HOSTILE_CAT()>', v: 2 }
+encoding: { x: c, y: r, color: v }
+```
+
+```chart
+type: histogram
+title: '<script>HOSTILE_HISTOGRAM_TITLE()</script>'
+data:
+  inline:
+    - { v: 1 }
+    - { v: 2 }
+    - { v: 3 }
+encoding: { x: v }
+axes: { x: { label: '<script>HOSTILE_HIST()</script>' } }
+```
+
+```chart
+type: boxplot
+title: '<script>HOSTILE_BOXPLOT_TITLE()</script>'
+data:
+  inline:
+    - { g: '<img src=x onerror=HOSTILE_CAT()>', v: 1 }
+    - { g: '<img src=x onerror=HOSTILE_CAT()>', v: 2 }
+    - { g: '<img src=x onerror=HOSTILE_CAT()>', v: 3 }
+    - { g: '"><script>HOSTILE_SER()</script>', v: 2 }
+    - { g: '"><script>HOSTILE_SER()</script>', v: 4 }
+encoding: { x: g, y: v }
+```
+
+```chart
+type: interval
+title: '<script>HOSTILE_INTERVAL_TITLE()</script>'
+data:
+  inline:
+    - { g: '<img src=x onerror=HOSTILE_CAT()>', lo: 1, hi: 3, m: 2 }
+    - { g: '"><script>HOSTILE_SER()</script>', lo: 2, hi: 4, m: 3 }
+encoding: { x: g, y: m, lower: lo, upper: hi }
+```
+
+```chart
+type: bar
+title: '<script>HOSTILE_BAR_TITLE()</script>'
+data:
+  inline:
+    - { x: A, y: 1, f: '<img src=x onerror=HOSTILE_CAT()>' }
+    - { x: B, y: 2, f: '"><script>HOSTILE_SER()</script>' }
+encoding: { x: x, y: y, facet: f }
+```
+

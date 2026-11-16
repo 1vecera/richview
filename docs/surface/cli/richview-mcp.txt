@@ -1,0 +1,6 @@
+Serve the RichView tools to an agent over MCP (stdio)
+
+Usage: richview mcp
+
+Options:
+  -h, --help  Print help

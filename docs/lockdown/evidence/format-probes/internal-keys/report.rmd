@@ -1,0 +1,15 @@
+---
+title: Render height
+---
+
+```chart
+type: bar
+title: Tall bar
+_renderHeight: 900
+base: unknown-key
+data:
+  inline:
+    - {month: Jan, revenue: 100}
+    - {month: Feb, revenue: 140}
+encoding: {x: month, y: revenue}
+```

@@ -1,0 +1,19 @@
+{
+  "partId": "04d-features-branches",
+  "answers": {
+    "FEA-BR-01": {
+      "decision": "edit",
+      "text": "Chosen option: All four kinds.\n\nWhat Daniel asked for on 2026-10-17; four schemas and a stateful runtime in the first cut.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Yes, they enter; I said this is merged. All four kinds.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "641833f94ce415df",
+      "updatedAt": "2026-10-26T18:29:58.077Z"
+    },
+    "FEA-BR-08": {
+      "decision": "edit",
+      "text": "Chosen option: Keep tabs.\n\nSeveral views in one report; one frontmatter type, heading anchors and a small controller.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"PR 62, 63, 65, 66, 67, 68, 69 all enter; I'm now on FEA-BR-08, so all of this will enter.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "6ba577b76122ee7f",
+      "updatedAt": "2026-10-26T18:27:43.231Z"
+    }
+  }
+}

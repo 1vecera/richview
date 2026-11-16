@@ -1,0 +1,182 @@
+{
+  "status": "PASS",
+  "scope": "Existing explicit bar decals in the existing 9px legend box; full category ordinal, shared primitives, optional metadata and plot-first measurement.",
+  "base": "4fe6bec33b66642acb667fefa437577ac2f73634",
+  "source": "07667f281cae7e0b0236ee6d01436f03548d6fe2",
+  "browser": "Chromium 151.0.7922.173",
+  "artifacts": {
+    "web": "85126b7888a9a69aa7c5a1834d652ab10454ea09d71e7a54049a1e3b7df0e422",
+    "nodeCore": "9638edd00f5218c487e7427ae9cdf5cd27e46594c7d09423ac4515600a6504fb",
+    "native": "cebd9507ace87a5355dd76772543d65d516b37aa2efd870eb6890d385f6b9965"
+  },
+  "requiredChecks": {
+    "count": 19,
+    "allExit": 0,
+    "commands": {
+      "format": "cargo fmt --all --check",
+      "clippy-native": "cargo clippy --workspace --all-targets --locked -- -D warnings",
+      "clippy-wasm": "cargo clippy -p richview-web --target wasm32-unknown-unknown --locked -- -D warnings",
+      "workspace": "cargo test --workspace --locked",
+      "release-build": "npm run build",
+      "fixtures": "cargo run --release --locked -p richview-bench -- --write-fixtures --fixtures-only",
+      "editor": "node scripts/verify-editor.cjs",
+      "native": "node scripts/verify-native.mjs",
+      "compat": "node scripts/verify-compat.mjs",
+      "types": "node node_modules/typescript/bin/tsc --noEmit --strict --module nodenext --moduleResolution nodenext --target es2022 --lib es2022,dom scripts/verify-types.ts",
+      "browser": "node scripts/verify-browser.mjs",
+      "landing": "node scripts/verify-landing.mjs",
+      "cloudflare": "flock /home/vecera/tmp/richview-chart-refinement-20261011/cloudflare-check.lock node scripts/verify-cloudflare.mjs",
+      "showcase": "node scripts/verify-showcase.mjs",
+      "flagship": "node scripts/verify-flagship.mjs",
+      "reel": "node scripts/verify-reel.mjs",
+      "browser-api": "node scripts/verify-browser-api.mjs",
+      "motion-runtime": "node scripts/verify-motion-runtime.mjs",
+      "docs": "node scripts/verify-docs.mjs"
+    },
+    "records": [
+      "tmp/bar-legend/checks/rust-checks.json",
+      "tmp/bar-legend/checks/host-checks.json"
+    ],
+    "releaseLog": "tmp/bar-legend/build.log",
+    "cleanCacheLog": "tmp/bar-legend/clean-release.log"
+  },
+  "matched": {
+    "status": "PASS",
+    "configurations": 240,
+    "panels": 510,
+    "sourceInterfaces": 0,
+    "unchangedPNGs": 90,
+    "proof": "/home/vecera/tmp/richview-chart-refinement-20261011/bar-legend-craft-package-comparison.json"
+  },
+  "lifecycle": {
+    "status": "PASS",
+    "configurations": 3,
+    "panels": 87,
+    "sourceInterfaces": 24,
+    "unchangedPNGs": 0,
+    "proof": "/home/vecera/tmp/richview-chart-refinement-20261011/bar-legend-craft-interface-comparison.json",
+    "states": 78
+  },
+  "ordinaryNativeControls": {
+    "count": 22,
+    "result": "complete native render_source result byte-identical",
+    "proof": "/home/vecera/tmp/richview-chart-refinement-20261011/bar-legend-craft-native-controls.json"
+  },
+  "independent": {
+    "verdict": "ACCEPT",
+    "report": "/home/vecera/tmp/richview-chart-refinement-20261011/bar-legend-adversary-review.md",
+    "comparison": "/home/vecera/tmp/richview-chart-refinement-20261011/bar-legend-adversary-comparison.json",
+    "summary": "49 exact plots and key layouts; 12 trusted path/rect/circle inputs; native keys and four actual JavaScript-disabled SVG exports; 83 after records."
+  },
+  "sibling": {
+    "frozenPR40": "2c13ffb540d345de655302ad3989d0a8fc4bde0f",
+    "before": "3d690da0d5243f59fe707af99872b67b4d4fcbb3",
+    "product": "c6a03222cfa561b4f4532ee5e0d2109a21c396a5",
+    "testReconciliation": "3a8a956e8ecaf1e75f314ced2bfbc468bbcd65eb",
+    "web": "7425139c40a6cdbca8eb38d4430fae293be3f4752972bc7c3d1ff34735c9d493",
+    "render": {
+      "status": "PASS",
+      "configurations": 24,
+      "panels": 56,
+      "sourceInterfaces": 0,
+      "unchangedPNGs": 8,
+      "proof": "/home/vecera/tmp/richview-chart-refinement-20261011/bar-legend-craft-sibling-comparison.json"
+    },
+    "lifecycle": {
+      "status": "PASS",
+      "configurations": 3,
+      "panels": 87,
+      "sourceInterfaces": 24,
+      "unchangedPNGs": 0,
+      "proof": "/home/vecera/tmp/richview-chart-refinement-20261011/bar-legend-craft-sibling-interface-comparison.json",
+      "states": 78
+    },
+    "ordinaryNativeControls": 22,
+    "checks": {
+      "cleanRelease": 0,
+      "chartTests": 0,
+      "format": 0,
+      "wasmClippy": 0
+    },
+    "logRoot": "/home/vecera/code/richview-v3/.claude/worktrees/chart-bar-legend-sibling-20261012/tmp/bar-legend",
+    "unchangedPolicy": "Native export uses out.legend with sibling direct-label omission and 3% indent; direct-label metadata test reconciled only in disposable tree."
+  },
+  "ownership": {
+    "proof": "/home/vecera/tmp/richview-chart-refinement-20261011/bar-legend-craft-ownership-diagnose/verification.json",
+    "verdict": "PASS for exact paint state, bounds, explicit local and screen matrices, and trusted primitive input; strict diagonal PNG equality not claimed",
+    "scope": "Two opposite mixed-theme document orders; hide/show/destroy/recreate/update/resize; trusted rectangle/path/dot input; no tile IDs or resource references.",
+    "rasterLimitation": "Final explicit-matrix probe observed 44 changed diagonal edge pixels, maximum channel delta 8/255, after an unrelated view was hidden; exact paint state is preserved and no pixel tolerance or product workaround was introduced.",
+    "matrixFields": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "e",
+      "f"
+    ],
+    "rasterProof": "/home/vecera/tmp/richview-chart-refinement-20261011/bar-legend-craft-raster-difference.json",
+    "independentDisposition": "ACCEPT; explicit transforms, computed paint maps and boxes are equal, filter:none, observed difference stays on the diagonal edge."
+  },
+  "limits": [
+    "Existing six-pattern repetition at 9 and 17 categories.",
+    "Existing long unbroken key names retain exactly equal phone overflow in both native and hydrated output.",
+    "The isolated PR49 base still has the separate duplicate plot-resource issue repaired by PR52; the frozen composition includes that accepted fix."
+  ],
+  "retainedFailures": [
+    "bar-legend-craft-package-*-more-observation: scratch selector initially counted the More button as a swatch.",
+    "bar-legend-craft-package-*-overflow-observation: unchanged long-name overflow was incorrectly treated as a regression.",
+    "bar-legend-craft-interface-before-outer-facet-observation: scratch selected the stale outer facet wrapper.",
+    "bar-legend-craft-interface-*-measurement-observation: comparison included measurement-owned diagnostics attribute.",
+    "bar-legend-craft-sibling-interface-*-resource-token-observation: native/local versus live scoped resource IDs; corrected only known reference tokens.",
+    "bar-legend-craft-ownership-*-font-observation and *-settled-observation: strict diagonal raster equality failed with unchanged paint state.",
+    "bar-legend-craft-ownership-opaque-matrix-observation: JSON.stringify(DOMMatrix) yielded {}; the corrected proof records a,b,c,d,e,f explicitly.",
+    "Sibling tmp/bar-legend/unadapted-legend-test.log: line/area direct labels intentionally omit out.legend; exact test-only adapter is included."
+  ],
+  "reproduction": {
+    "helper": "capture.mjs",
+    "sourceOptions": {
+      "decals": true,
+      "palette": [
+        "oklch(0.5999 0 0)",
+        "oklch(0.5999 0 0)",
+        "oklch(0.5999 0 0)",
+        "oklch(0.5999 0 0)",
+        "oklch(0.5999 0 0)",
+        "oklch(0.5999 0 0)",
+        "oklch(0.5999 0 0)",
+        "oklch(0.5999 0 0)"
+      ]
+    },
+    "cases": [
+      {
+        "file": "six.rmd",
+        "theme": "sleek",
+        "viewport": 320,
+        "deviceScaleFactor": 2,
+        "motion": "reduce"
+      },
+      {
+        "file": "nine.rmd",
+        "theme": "scientific",
+        "viewport": 720,
+        "deviceScaleFactor": 2,
+        "motion": "reduce"
+      }
+    ],
+    "afterImages": "byte-identical from compact helper",
+    "log": "tmp/bar-legend/reproduce.log"
+  },
+  "files": {
+    "six.rmd": "542838482b457fcd886eb3e15f79aff6cb6d1d94744cd6dbd77a501ebe653939",
+    "nine.rmd": "e6913f086a65756073a1856d89ec387929915393c442e15eb1258837e23fc628",
+    "six-before.png": "66def5cd490251f1d0be33133bf25d3f53615b22561420721719c2ad036eb747",
+    "six-after.png": "a9c93706b704d58f7f3434bfc9fb7dc46fe7ffaaf7f082eee9e98404bdce9e5c",
+    "nine-before.png": "a83f7fa7076da46af174374e4cfaf19ad2045daf20074b5eb8333345ce5894f8",
+    "nine-after.png": "b680538291f71c444373504d7c23258950e19dae17dee2730a0a8702cb0f42b0"
+  },
+  "scratchRoot": "/home/vecera/tmp/richview-chart-refinement-20261011/",
+  "finalDocumentationCheck": {
+    "exit": 0,
+    "log": "tmp/bar-legend/final-docs.log"
+  }
+}

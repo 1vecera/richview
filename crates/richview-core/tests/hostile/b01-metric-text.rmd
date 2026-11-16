@@ -1,0 +1,18 @@
+---
+title: Metric text
+---
+
+```metric
+value: '<script>HOSTILE_VALUE()</script>'
+label: '"><img src=x onerror=HOSTILE_LABEL()>'
+unit: '</span><script>HOSTILE_UNIT()</script>'
+delta: 0.1
+delta_label: '<script>HOSTILE_DELTA()</script>'
+trend: up
+format: number
+```
+
+```metric
+value: '</script><script>HOSTILE_BIG()</script>'
+label: 'x'
+```

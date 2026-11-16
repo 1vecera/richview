@@ -1,0 +1,6 @@
+- Content leads. Every chart deserves an interpretation and every heading should make an evidence-backed claim.
+- Keep analytical content identical across themes.
+- Reuse the existing semantic styles and font assets; favor precise axes, units, restrained spacing and purposeful annotations.
+- Preserve data provenance and label thinning decisions.
+- Avoid generic dashboard grids, decorative gradients, glass effects, hover lifts and misleading chart scales.
+- Add chrome only when it helps someone author or understand the story.

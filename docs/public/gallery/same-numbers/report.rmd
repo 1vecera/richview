@@ -1,0 +1,61 @@
+---
+title: The same summary, four different pictures
+description: Anscombe's quartet is a reminder to look at the data.
+styles: [scientific]
+title_image:
+  src: https://images.unsplash.com/photo-1611692381152-c77b3e8f0afb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE0NDQ4fDB8MXxzZWFyY2h8MXx8eWVsbG93c3RvbmUlMjBob3QlMjBzcHJpbmclMjBhZXJpYWx8ZW58MHwwfHx8MTc5NDI0NzI5MXww&ixlib=rb-4.1.0&q=80&w=1080
+  alt: "Aerial view of a Yellowstone hot spring"
+  caption: "A Yellowstone hot spring seen from above, near Old Faithful."
+  fit: cover
+  width: 1080
+  height: 432
+  credit:
+    author: "Gary Yost"
+    author_url: https://unsplash.com/@gyostimages?utm_source=richview&utm_medium=referral
+    source: Unsplash
+    source_url: https://unsplash.com/photos/brown-sand-near-body-of-water-during-daytime-7Azj1ufiOgA?utm_source=richview&utm_medium=referral
+---
+
+Four datasets can share summary statistics and still tell very different stories. Each panel uses the observations published in Anscombe's quartet.
+
+```chart
+type: scatter
+title: A summary cannot show you the shape
+data: { csv: data/anscombe.csv }
+encoding: { x: x, y: y, facet: set }
+annotations:
+  - { kind: text, at: { x: 8, y: 13 }, text: 'y = 3.00 + 0.500x' }
+axes:
+  x: { label: x }
+  y: { label: y }
+```
+
+*Source: F. J. Anscombe, “Graphs in Statistical Analysis”, The American Statistician (1973), via the R datasets package.*
+
+## Almost the same summary
+
+The published observations are rounded, so the fitted values differ slightly. The means and x variance agree at the precision below; the small differences in y variance and correlation remain visible. Each rounded fitted relationship is y = 3.00 + 0.500x. The annotation repeats that shared rounded fit in each panel; it is not an extra set of observations.
+
+| Statistic | Set I | Set II | Set III | Set IV |
+| --- | --- | --- | --- | --- |
+| Mean x | 9.00 | 9.00 | 9.00 | 9.00 |
+| Sample variance x | 11.0 | 11.0 | 11.0 | 11.0 |
+| Mean y | 7.50 | 7.50 | 7.50 | 7.50 |
+| Sample variance y | 4.13 | 4.13 | 4.12 | 4.12 |
+| Correlation r | 0.816 | 0.816 | 0.816 | 0.817 |
+
+## A second distribution
+
+Old Faithful's waiting times and eruptions form two clusters. The observations are pairs, not a time series.
+
+```chart
+type: scatter
+title: Longer eruptions accompany longer waits
+data: { csv: data/old-faithful.csv }
+encoding: { x: waiting_min, y: eruption_min }
+axes:
+  x: { label: Waiting time, unit: min }
+  y: { label: Eruption duration, unit: min }
+```
+
+*Source: Old Faithful geyser data, [R datasets package](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/faithful.html); see Azzalini and Bowman (1990) and Härdle (1991).*

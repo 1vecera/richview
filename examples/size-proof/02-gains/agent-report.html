@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gain in life expectancy at birth by region, 1950–2019</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.55; color: #1f2933; background: #fff; margin: 0; padding: 1.5rem 1rem; }
+  main { max-width: 46rem; margin: 0 auto; }
+  h1 { font-size: 1.6rem; line-height: 1.25; margin: 0 0 .5rem; }
+  h2 { font-size: 1.15rem; margin: 2rem 0 .5rem; }
+  .sub { color: #52606d; margin: 0 0 1rem; }
+  figure { margin: 0; }
+  figcaption { font-size: .9rem; color: #52606d; margin-top: .25rem; }
+  svg { width: 100%; height: auto; display: block; }
+  svg text { font-family: inherit; fill: #1f2933; }
+  .axis { stroke: #9aa5b1; stroke-width: 1; }
+  .grid { stroke: #e4e7eb; stroke-width: 1; }
+  .tick { font-size: 12px; fill: #52606d; }
+  .bar { fill: #2a6f97; }
+  .val { font-size: 14px; font-weight: 600; }
+  .cat { font-size: 14px; }
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  caption { text-align: left; font-size: .9rem; color: #52606d; padding-bottom: .4rem; }
+  th, td { padding: .5rem .6rem; border-bottom: 1px solid #e4e7eb; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { border-bottom: 2px solid #9aa5b1; }
+  footer { margin-top: 2rem; font-size: .85rem; color: #52606d; border-top: 1px solid #e4e7eb; padding-top: .75rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Life expectancy at birth rose in every region between 1950 and 2019</h1>
+  <p class="sub">Gain in years, by region. Population-weighted regional averages; differences rounded to one decimal.</p>
+
+  <figure>
+    <svg viewBox="0 0 640 330" role="img" aria-labelledby="ct cd">
+      <title id="ct">Gain in life expectancy at birth, 1950 to 2019, by region</title>
+      <desc id="cd">Bar chart in years: Africa 22.4, Americas 16.7, Asia 29.3, Europe 14.2.</desc>
+      <!-- plot area: x 60..620, y 20..270 ; scale 0..30 years => 250px, 8.333 px/year -->
+      <g>
+        <line class="grid" x1="60" x2="620" y1="20" y2="20"/>
+        <line class="grid" x1="60" x2="620" y1="103.3" y2="103.3"/>
+        <line class="grid" x1="60" x2="620" y1="186.7" y2="186.7"/>
+        <line class="axis" x1="60" x2="620" y1="270" y2="270"/>
+        <text class="tick" x="52" y="274" text-anchor="end">0</text>
+        <text class="tick" x="52" y="190.7" text-anchor="end">10</text>
+        <text class="tick" x="52" y="107.3" text-anchor="end">20</text>
+        <text class="tick" x="52" y="24" text-anchor="end">30</text>
+        <text class="tick" x="14" y="145" transform="rotate(-90 14 145)" text-anchor="middle">Gain in life expectancy (years)</text>
+      </g>
+      <g>
+        <rect class="bar" x="85"  y="83.3"  width="90" height="186.7"/>
+        <rect class="bar" x="225" y="130.8" width="90" height="139.2"/>
+        <rect class="bar" x="365" y="25.8"  width="90" height="244.2"/>
+        <rect class="bar" x="505" y="151.7" width="90" height="118.3"/>
+        <text class="val" x="130" y="76"    text-anchor="middle">22.4</text>
+        <text class="val" x="270" y="123.5" text-anchor="middle">16.7</text>
+        <text class="val" x="410" y="18.5"  text-anchor="middle">29.3</text>
+        <text class="val" x="550" y="144.4" text-anchor="middle">14.2</text>
+        <text class="cat" x="130" y="292" text-anchor="middle">Africa</text>
+        <text class="cat" x="270" y="292" text-anchor="middle">Americas</text>
+        <text class="cat" x="410" y="292" text-anchor="middle">Asia</text>
+        <text class="cat" x="550" y="292" text-anchor="middle">Europe</text>
+      </g>
+    </svg>
+    <figcaption>Gain = life expectancy in 2019 minus life expectancy in 1950.</figcaption>
+  </figure>
+
+  <h2>Interpretation</h2>
+  <p>Life expectancy at birth was higher in 2019 than in 1950 in all four regions. Asia gained the most (29.3 years, from 45.6 to 74.9) and Europe the least (14.2 years, from 64.6 to 78.8). Africa gained 22.4 years and the Americas 16.7 years.</p>
+  <p>Regions that started lower tended to gain more. The gap between the highest and lowest regional values narrowed from 21.8 years in 1950 (Europe vs. Africa) to 13.6 years in 2019 (Europe vs. Africa). Africa still had the lowest value in 2019, at 65.2 years.</p>
+
+  <h2>Data</h2>
+  <div class="scroll">
+    <table>
+      <caption>Life expectancy at birth (years) and gain, 1950–2019</caption>
+      <thead>
+        <tr><th scope="col">Region</th><th scope="col">1950</th><th scope="col">2019</th><th scope="col">Gain</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row" style="font-weight:600">Africa</th><td>42.8</td><td>65.2</td><td>22.4</td></tr>
+        <tr><th scope="row" style="font-weight:600">Americas</th><td>60.8</td><td>77.5</td><td>16.7</td></tr>
+        <tr><th scope="row" style="font-weight:600">Asia</th><td>45.6</td><td>74.9</td><td>29.3</td></tr>
+        <tr><th scope="row" style="font-weight:600">Europe</th><td>64.6</td><td>78.8</td><td>14.2</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    Source: Gapminder, life expectancy at birth, version 15 (5 April 2026), gapminder.org, CC BY 4.0.
+    Values are population-weighted regional averages; gains are differences rounded to one decimal.
+  </footer>
+</main>
+</body>
+</html>

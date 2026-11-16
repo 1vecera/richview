@@ -1,0 +1,46 @@
+{
+ "_source": {
+  "files": [
+   "tmp/prf-probe/pages/small.html",
+   "tmp/performance/fixtures/flagship/Rendered/flagship-offline_runtime.html"
+  ],
+  "sha256": {
+   "tmp/prf-probe/pages/small.html": "201492926356611fb3eb7c3354e82d3f4ec0f09d1d863b764b47d2a8b93ab71b",
+   "tmp/performance/fixtures/flagship/Rendered/flagship-offline_runtime.html": "70036321d5cf94f1e627914b4d3b5ead29f1d6e85aad384e88247bdd5e800d64"
+  },
+  "note": "Small: tmp/prf-probe/pages/small.html (copy of the probe's rendered report); flagship: the harness's offline render"
+ },
+ "method": "byte offsets in the complete offline HTML rendered by b4db233 with --style scientific",
+ "small": {
+  "file": "tmp/prf-probe/pages/small.html",
+  "bytes": 2370813,
+  "first_style_end_byte": 167798,
+  "font_notice_script_byte": 167806,
+  "body_start_byte": 218607,
+  "runtime_module_script_byte": 233774,
+  "runtime_module_script_bytes": 2137039,
+  "font_faces": 6,
+  "font_face_bytes": 140203,
+  "font_notice_json_bytes": 50726,
+  "font_notice_families": 11,
+  "inline_images": 0,
+  "inline_image_bytes": 0,
+  "first_inline_image_byte": null
+ },
+ "flagship": {
+  "file": "tmp/performance/fixtures/flagship/Rendered/flagship-offline_runtime.html",
+  "bytes": 4351128,
+  "first_style_end_byte": 167841,
+  "font_notice_script_byte": 167849,
+  "body_start_byte": 218650,
+  "runtime_module_script_byte": 2214089,
+  "runtime_module_script_bytes": 2137039,
+  "font_faces": 6,
+  "font_face_bytes": 140203,
+  "font_notice_json_bytes": 50726,
+  "font_notice_families": 11,
+  "inline_images": 4,
+  "inline_image_bytes": 1477361,
+  "first_inline_image_byte": 218769
+ }
+}

@@ -1,0 +1,8 @@
+---
+title: Chart integrity review
+version: 0.0.1
+---
+
+```chart
+{"type":"scatter","title":"Every series control matches its marks","encoding":{"x":"position","y":"value","color":"group"},"data":{"inline":[{"position":0,"value":3,"group":true,"sample":"A0"},{"position":5,"value":4,"group":true,"sample":"A1"},{"position":10,"value":5,"group":true,"sample":"A2"},{"position":0,"value":9,"group":false,"sample":"B0"},{"position":5,"value":10,"group":false,"sample":"B1"},{"position":10,"value":11,"group":false,"sample":"B2"}]}}
+```

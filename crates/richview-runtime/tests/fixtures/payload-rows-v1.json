@@ -1,0 +1,19 @@
+{
+  "block": {
+    "type": "scatter",
+    "title": "Measured values",
+    "digits": 3,
+    "encoding": { "x": "x", "y": "y" }
+  },
+  "columns": ["x", "y"],
+  "rows": [[0, 16], [1, null], [2, 4078]],
+  "quant": {
+    "x": { "min": 100.0, "max": 102.0, "steps": 2, "resolution": 1.0 },
+    "y": { "min": 0.12, "max": 0.99, "steps": 4089 }
+  },
+  "shown": {
+    "x": [100, 101, 102],
+    "y": [0.123, null, 0.988]
+  },
+  "lang": "en"
+}

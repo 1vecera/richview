@@ -1,0 +1,86 @@
+{
+  "schema": "interface-v1",
+  "id": "core.yaml",
+  "producer": "richview-core",
+  "kind": "rust",
+  "surface": {
+    "module": "richview_core::yaml",
+    "registration": "pub mod yaml ;",
+    "exports": [
+      {
+        "name": "Node",
+        "kind": "enum",
+        "declaration": "# [ derive ( Debug , Clone , PartialEq ) ] pub enum Node",
+        "variants": [
+          "Scalar ( Value )",
+          "Map ( Vec < ( String , Node ) > )",
+          "Seq ( Vec < Node > )"
+        ]
+      },
+      {
+        "name": "Pos",
+        "kind": "struct",
+        "declaration": "# [ derive ( Debug , Clone , Copy , PartialEq , Eq ) ] pub struct Pos",
+        "publicFields": [
+          "pub line : usize",
+          "pub column : usize"
+        ],
+        "privateFields": false
+      },
+      {
+        "name": "YamlError",
+        "kind": "struct",
+        "declaration": "# [ derive ( Debug , Clone , PartialEq , Eq ) ] pub struct YamlError",
+        "publicFields": [
+          "pub code : & ' static str",
+          "pub message : String",
+          "pub pos : Pos"
+        ],
+        "privateFields": false
+      },
+      {
+        "name": "from_str",
+        "kind": "fn",
+        "declaration": "pub fn from_str ( text : & str ) - > Result < Value , YamlError >"
+      },
+      {
+        "name": "impl From < & Value > for Node",
+        "kind": "impl",
+        "types": [
+          "Node"
+        ],
+        "declaration": "impl From < & Value > for Node",
+        "members": [
+          {
+            "name": "from",
+            "kind": "fn",
+            "declaration": "fn from ( value : & Value ) - > Node",
+            "default": true
+          }
+        ]
+      },
+      {
+        "name": "impl std : : fmt : : Display for YamlError",
+        "kind": "impl",
+        "types": [
+          "YamlError"
+        ],
+        "declaration": "impl std : : fmt : : Display for YamlError",
+        "members": [
+          {
+            "name": "fmt",
+            "kind": "fn",
+            "declaration": "fn fmt ( & self , f : & mut std : : fmt : : Formatter < ' _ > ) - > std : : fmt : : Result",
+            "default": true
+          }
+        ]
+      },
+      {
+        "name": "to_string",
+        "kind": "fn",
+        "declaration": "pub fn to_string ( node : & Node ) - > String"
+      }
+    ],
+    "declarations": []
+  }
+}

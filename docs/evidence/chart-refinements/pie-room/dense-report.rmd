@@ -1,0 +1,8 @@
+---
+title: Chart refinement cases
+version: 0.0.1
+---
+
+```chart
+{"type": "pie", "title": "Every category keeps its name", "data": {"inline": [{"name": "Product segment A subscription revenue", "value": 20}, {"name": "Product segment B subscription revenue", "value": 19}, {"name": "Product segment C subscription revenue", "value": 18}, {"name": "Product segment D subscription revenue", "value": 17}, {"name": "Product segment E subscription revenue", "value": 16}, {"name": "Product segment F subscription revenue", "value": 15}, {"name": "Product segment G subscription revenue", "value": 14}, {"name": "Product segment H subscription revenue", "value": 13}, {"name": "Product segment I subscription revenue", "value": 12}, {"name": "Product segment J subscription revenue", "value": 11}, {"name": "Product segment K subscription revenue", "value": 10}, {"name": "Product segment L subscription revenue", "value": 9}, {"name": "Product segment M subscription revenue", "value": 8}, {"name": "Product segment N subscription revenue", "value": 7}, {"name": "Product segment O subscription revenue", "value": 6}, {"name": "Product segment P subscription revenue", "value": 5}, {"name": "Product segment Q subscription revenue", "value": 4}, {"name": "Product segment R subscription revenue", "value": 3}]}, "encoding": {"x": "name", "y": "value"}, "style": {"ratio": "16:9"}}
+```

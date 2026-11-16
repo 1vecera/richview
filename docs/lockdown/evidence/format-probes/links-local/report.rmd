@@ -1,0 +1,5 @@
+---
+title: Links three
+---
+
+[rooted](/docs/page.html), [missing](notes/missing.md) and [mail](mailto:a@example.com).

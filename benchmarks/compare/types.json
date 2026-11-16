@@ -1,0 +1,700 @@
+{
+	"_source": "Series type, module and documentation URL per RichView type; null means the library does not define the type, with the reason under why (ARC-64). Highcharts 13.1.1, ECharts 6.1.0.",
+	"types": {
+		"line": {
+			"highcharts": {
+				"series": "line",
+				"product": "highcharts",
+				"modules": [],
+				"doc": "https://api.highcharts.com/highcharts/series.line"
+			},
+			"echarts": {
+				"series": "line",
+				"doc": "https://echarts.apache.org/en/option.html#series-line"
+			}
+		},
+		"area": {
+			"highcharts": {
+				"series": "area",
+				"product": "highcharts",
+				"modules": [],
+				"doc": "https://api.highcharts.com/highcharts/series.area"
+			},
+			"echarts": {
+				"series": "line",
+				"doc": "https://echarts.apache.org/en/option.html#series-line.areaStyle"
+			},
+			"note": "ECharts draws an area as a line series with areaStyle"
+		},
+		"bar": {
+			"highcharts": {
+				"series": "column",
+				"product": "highcharts",
+				"modules": [],
+				"doc": "https://api.highcharts.com/highcharts/series.column"
+			},
+			"echarts": {
+				"series": "bar",
+				"doc": "https://echarts.apache.org/en/option.html#series-bar"
+			},
+			"note": "Highcharts column is the vertical bar; its bar series is the horizontal one"
+		},
+		"lollipop": {
+			"highcharts": {
+				"series": "lollipop",
+				"product": "highcharts",
+				"modules": [
+					"highcharts-more",
+					"modules/dumbbell",
+					"modules/lollipop"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.lollipop"
+			},
+			"echarts": null,
+			"why": {
+				"echarts": "no lollipop series; the documented route is custom drawing"
+			}
+		},
+		"pie": {
+			"highcharts": {
+				"series": "pie",
+				"product": "highcharts",
+				"modules": [],
+				"doc": "https://api.highcharts.com/highcharts/series.pie"
+			},
+			"echarts": {
+				"series": "pie",
+				"doc": "https://echarts.apache.org/en/option.html#series-pie"
+			}
+		},
+		"scatter": {
+			"highcharts": {
+				"series": "scatter",
+				"product": "highcharts",
+				"modules": [
+					"highcharts-more"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.scatter"
+			},
+			"echarts": {
+				"series": "scatter",
+				"doc": "https://echarts.apache.org/en/option.html#series-scatter"
+			},
+			"note": "with encoding.size the Highcharts bubble series (highcharts-more, https://api.highcharts.com/highcharts/series.bubble) replaces scatter"
+		},
+		"strip": {
+			"highcharts": {
+				"series": "scatter",
+				"product": "highcharts",
+				"modules": [],
+				"doc": "https://api.highcharts.com/highcharts/series.scatter"
+			},
+			"echarts": {
+				"series": "scatter",
+				"doc": "https://echarts.apache.org/en/option.html#series-scatter"
+			},
+			"note": "a strip of one point per observation is a scatter of the values against their index in both libraries"
+		},
+		"heatmap": {
+			"highcharts": {
+				"series": "heatmap",
+				"product": "highcharts",
+				"modules": [
+					"modules/heatmap"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.heatmap"
+			},
+			"echarts": {
+				"series": "heatmap",
+				"doc": "https://echarts.apache.org/en/option.html#series-heatmap"
+			},
+			"note": "signed values (a diverging encoding): Highcharts colorAxis min/max/stops (https://api.highcharts.com/highcharts/colorAxis.stops) with the zero-centred three-stop scale, ECharts visualMap min/max/inRange.color (https://echarts.apache.org/en/option.html#visualMap-continuous.inRange) centred on zero; unsigned data keeps each library's sequential default"
+		},
+		"histogram": {
+			"highcharts": {
+				"series": "histogram",
+				"product": "highcharts",
+				"modules": [
+					"modules/histogram-bellcurve"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.histogram"
+			},
+			"echarts": null,
+			"why": {
+				"echarts": "no histogram series in the core package; the documented route needs the separate echarts-stat extension"
+			}
+		},
+		"density": {
+			"highcharts": null,
+			"echarts": null,
+			"why": {
+				"highcharts": "bellcurve fits a normal distribution; it is not a kernel density estimate",
+				"echarts": "no density series"
+			}
+		},
+		"ecdf": {
+			"highcharts": null,
+			"echarts": null,
+			"why": {
+				"highcharts": "no cumulative-distribution series",
+				"echarts": "no cumulative-distribution series"
+			}
+		},
+		"qq": {
+			"highcharts": null,
+			"echarts": null,
+			"why": {
+				"highcharts": "no quantile-quantile series",
+				"echarts": "no quantile-quantile series"
+			}
+		},
+		"boxplot": {
+			"highcharts": {
+				"series": "boxplot",
+				"product": "highcharts",
+				"modules": [
+					"highcharts-more"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.boxplot"
+			},
+			"echarts": {
+				"series": "boxplot",
+				"doc": "https://echarts.apache.org/en/option.html#series-boxplot"
+			},
+			"note": "both libraries take precomputed five-number summaries; the adapter computes them (R-7 quartiles, 1.5 IQR fences) as the documentation requires"
+		},
+		"gauge": {
+			"highcharts": {
+				"series": "gauge",
+				"product": "highcharts",
+				"modules": [
+					"highcharts-more"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.gauge"
+			},
+			"echarts": {
+				"series": "gauge",
+				"doc": "https://echarts.apache.org/en/option.html#series-gauge"
+			}
+		},
+		"calendar": {
+			"highcharts": null,
+			"echarts": {
+				"series": "heatmap",
+				"doc": "https://echarts.apache.org/en/option.html#calendar"
+			},
+			"why": {
+				"highcharts": "no calendar coordinate system"
+			},
+			"note": "ECharts draws it as a heatmap series on the calendar component"
+		},
+		"streamgraph": {
+			"highcharts": {
+				"series": "streamgraph",
+				"product": "highcharts",
+				"modules": [
+					"modules/streamgraph"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.streamgraph"
+			},
+			"echarts": {
+				"series": "themeRiver",
+				"doc": "https://echarts.apache.org/en/option.html#series-themeRiver"
+			}
+		},
+		"ribbon": {
+			"highcharts": null,
+			"echarts": null,
+			"why": {
+				"highcharts": "no ribbon chart (Power BI type)",
+				"echarts": "no ribbon chart (Power BI type)"
+			}
+		},
+		"violin": {
+			"highcharts": null,
+			"echarts": null,
+			"why": {
+				"highcharts": "no violin series",
+				"echarts": "no violin series; only custom drawing"
+			}
+		},
+		"dotplot": {
+			"highcharts": null,
+			"echarts": null,
+			"why": {
+				"highcharts": "the dotplot series stacks one dot per count in a category; RichView bins a numeric variable as ggplot2 does",
+				"echarts": "no dotplot series"
+			}
+		},
+		"bin2d": {
+			"highcharts": null,
+			"echarts": null,
+			"why": {
+				"highcharts": "no two-dimensional binning series",
+				"echarts": "no two-dimensional binning series"
+			}
+		},
+		"hexbin": {
+			"highcharts": null,
+			"echarts": null,
+			"why": {
+				"highcharts": "no hexagonal binning series (tilemap places given hexagons only)",
+				"echarts": "no hexagonal binning series"
+			}
+		},
+		"gantt": {
+			"highcharts": {
+				"series": "gantt",
+				"product": "gantt",
+				"modules": [],
+				"doc": "https://api.highcharts.com/highcharts/series.gantt"
+			},
+			"echarts": null,
+			"why": {
+				"echarts": "no gantt series; only custom drawing"
+			}
+		},
+		"parallel": {
+			"highcharts": {
+				"series": "line",
+				"product": "highcharts",
+				"modules": [
+					"modules/parallel-coordinates"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.line"
+			},
+			"echarts": {
+				"series": "parallel",
+				"doc": "https://echarts.apache.org/en/option.html#series-parallel"
+			},
+			"note": "Highcharts turns a line chart into parallel coordinates with chart.parallelCoordinates"
+		},
+		"splom": {
+			"highcharts": null,
+			"echarts": null,
+			"why": {
+				"highcharts": "no scatter-plot-matrix series",
+				"echarts": "no scatter-plot-matrix series"
+			}
+		},
+		"sankey": {
+			"highcharts": {
+				"series": "sankey",
+				"product": "highcharts",
+				"modules": [
+					"modules/sankey"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.sankey"
+			},
+			"echarts": {
+				"series": "sankey",
+				"doc": "https://echarts.apache.org/en/option.html#series-sankey"
+			}
+		},
+		"alluvial": {
+			"highcharts": null,
+			"echarts": null,
+			"why": {
+				"highcharts": "no multi-dimension alluvial series (sankey links two columns only)",
+				"echarts": "no alluvial series"
+			}
+		},
+		"chord": {
+			"highcharts": {
+				"series": "dependencywheel",
+				"product": "highcharts",
+				"modules": [
+					"modules/sankey",
+					"modules/dependency-wheel"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.dependencywheel"
+			},
+			"echarts": {
+				"series": "chord",
+				"doc": "https://echarts.apache.org/en/option.html#series-chord"
+			}
+		},
+		"network": {
+			"highcharts": {
+				"series": "networkgraph",
+				"product": "highcharts",
+				"modules": [
+					"modules/networkgraph"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.networkgraph"
+			},
+			"echarts": {
+				"series": "graph",
+				"doc": "https://echarts.apache.org/en/option.html#series-graph"
+			}
+		},
+		"packed-bubble": {
+			"highcharts": {
+				"series": "packedbubble",
+				"product": "highcharts",
+				"modules": [
+					"highcharts-more"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.packedbubble"
+			},
+			"echarts": null,
+			"why": {
+				"echarts": "no circle-packing series; only custom drawing"
+			}
+		},
+		"wordcloud": {
+			"highcharts": {
+				"series": "wordcloud",
+				"product": "highcharts",
+				"modules": [
+					"modules/wordcloud"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.wordcloud"
+			},
+			"echarts": null,
+			"why": {
+				"echarts": "word clouds need the separate echarts-wordcloud extension"
+			}
+		},
+		"venn": {
+			"highcharts": {
+				"series": "venn",
+				"product": "highcharts",
+				"modules": [
+					"modules/venn"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.venn"
+			},
+			"echarts": null,
+			"why": {
+				"echarts": "no venn series"
+			}
+		},
+		"vector": {
+			"highcharts": {
+				"series": "vector",
+				"product": "highcharts",
+				"modules": [
+					"modules/vector"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.vector"
+			},
+			"echarts": null,
+			"why": {
+				"echarts": "no vector-field series"
+			},
+			"note": "demo https://www.highcharts.com/demo/highcharts/vector-plot and https://api.highcharts.com/highcharts/series.vector.data: points are [x, y, length, direction], rotationOrigin start, axes fixed to the grid (the series feeds length and direction into the y range); direction 0 draws an arrow pointing south and grows clockwise (checked on 13.1.1), so RichView's angle is converted"
+		},
+		"contour": {
+			"highcharts": {
+				"series": "contour",
+				"product": "highcharts",
+				"modules": [
+					"modules/coloraxis",
+					"modules/contour"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.contour"
+			},
+			"echarts": null,
+			"why": {
+				"echarts": "no contour series in the core package"
+			}
+		},
+		"flow": {
+			"highcharts": null,
+			"echarts": null,
+			"why": {
+				"highcharts": "no swim-lane flow diagram",
+				"echarts": "no swim-lane flow diagram"
+			}
+		},
+		"pivot": {
+			"highcharts": null,
+			"echarts": null,
+			"why": {
+				"highcharts": "a table, not a chart type",
+				"echarts": "a table, not a chart type"
+			}
+		},
+		"surface": {
+			"highcharts": null,
+			"echarts": null,
+			"why": {
+				"highcharts": "no surface series in highcharts-3d",
+				"echarts": "3-D needs the separate echarts-gl extension"
+			}
+		},
+		"scatter3d": {
+			"highcharts": {
+				"series": "scatter3d",
+				"product": "highcharts",
+				"modules": [
+					"highcharts-3d"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.scatter3d"
+			},
+			"echarts": null,
+			"why": {
+				"echarts": "3-D needs the separate echarts-gl extension"
+			},
+			"note": "demo https://www.highcharts.com/demo/highcharts/3d-scatter-draggable and https://api.highcharts.com/highcharts/chart.options3d: points are [x, y (vertical), z (depth)], options3d alpha, beta, depth and viewDistance as in the demo, each of the three axes given an explicit min and max; RichView's z measure is drawn up, so it is Highcharts y"
+		},
+		"bar3d": {
+			"highcharts": {
+				"series": "column",
+				"product": "highcharts",
+				"modules": [
+					"highcharts-3d"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.column"
+			},
+			"echarts": null,
+			"why": {
+				"echarts": "3-D needs the separate echarts-gl extension"
+			},
+			"note": "Highcharts draws 3-D columns through chart.options3d"
+		},
+		"interval": {
+			"highcharts": {
+				"series": "errorbar",
+				"product": "highcharts",
+				"modules": [
+					"highcharts-more"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.errorbar"
+			},
+			"echarts": null,
+			"why": {
+				"echarts": "no error-bar series in the core package; only custom drawing"
+			}
+		},
+		"waterfall": {
+			"highcharts": {
+				"series": "waterfall",
+				"product": "highcharts",
+				"modules": [
+					"highcharts-more"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.waterfall"
+			},
+			"echarts": {
+				"series": "bar",
+				"doc": "https://echarts.apache.org/en/option.html#series-bar"
+			},
+			"note": "ECharts has no waterfall series; its documentation builds one from stacked bars with a transparent base"
+		},
+		"treemap": {
+			"highcharts": {
+				"series": "treemap",
+				"product": "highcharts",
+				"modules": [
+					"modules/treemap"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.treemap"
+			},
+			"echarts": {
+				"series": "treemap",
+				"doc": "https://echarts.apache.org/en/option.html#series-treemap"
+			}
+		},
+		"funnel": {
+			"highcharts": {
+				"series": "funnel",
+				"product": "highcharts",
+				"modules": [
+					"modules/funnel"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.funnel"
+			},
+			"echarts": {
+				"series": "funnel",
+				"doc": "https://echarts.apache.org/en/option.html#series-funnel"
+			}
+		},
+		"dumbbell": {
+			"highcharts": {
+				"series": "dumbbell",
+				"product": "highcharts",
+				"modules": [
+					"highcharts-more",
+					"modules/dumbbell"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.dumbbell"
+			},
+			"echarts": null,
+			"why": {
+				"echarts": "no dumbbell series; only custom drawing"
+			}
+		},
+		"band": {
+			"highcharts": {
+				"series": "arearange",
+				"product": "highcharts",
+				"modules": [
+					"highcharts-more"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.arearange"
+			},
+			"echarts": {
+				"series": "line",
+				"doc": "https://echarts.apache.org/en/option.html#series-line"
+			},
+			"note": "ECharts has no range-area series; its documentation builds a band from two stacked lines"
+		},
+		"bullet": {
+			"highcharts": {
+				"series": "bullet",
+				"product": "highcharts",
+				"modules": [
+					"modules/bullet"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.bullet"
+			},
+			"echarts": null,
+			"why": {
+				"echarts": "no bullet series; only custom drawing"
+			}
+		},
+		"candlestick": {
+			"highcharts": {
+				"series": "candlestick",
+				"product": "highstock",
+				"modules": [],
+				"doc": "https://api.highcharts.com/highcharts/series.candlestick"
+			},
+			"echarts": {
+				"series": "candlestick",
+				"doc": "https://echarts.apache.org/en/option.html#series-candlestick"
+			}
+		},
+		"ohlc": {
+			"highcharts": {
+				"series": "ohlc",
+				"product": "highstock",
+				"modules": [],
+				"doc": "https://api.highcharts.com/highcharts/series.ohlc"
+			},
+			"echarts": null,
+			"why": {
+				"echarts": "candlestick is its only price series; no OHLC bar series"
+			}
+		},
+		"icicle": {
+			"highcharts": null,
+			"echarts": null,
+			"why": {
+				"highcharts": "no icicle series",
+				"echarts": "no icicle series"
+			}
+		},
+		"sunburst": {
+			"highcharts": {
+				"series": "sunburst",
+				"product": "highcharts",
+				"modules": [
+					"modules/sunburst"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.sunburst"
+			},
+			"echarts": {
+				"series": "sunburst",
+				"doc": "https://echarts.apache.org/en/option.html#series-sunburst"
+			}
+		},
+		"tree": {
+			"highcharts": {
+				"series": "treegraph",
+				"product": "highcharts",
+				"modules": [
+					"modules/treemap",
+					"modules/treegraph"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.treegraph"
+			},
+			"echarts": {
+				"series": "tree",
+				"doc": "https://echarts.apache.org/en/option.html#series-tree"
+			}
+		},
+		"map": {
+			"highcharts": null,
+			"echarts": null,
+			"why": {
+				"highcharts": "needs the separate @highcharts/map-collection boundary data, which the lab does not install",
+				"echarts": "needs boundary GeoJSON registered by the author; none ships with the package"
+			}
+		},
+		"radar": {
+			"highcharts": {
+				"series": "line",
+				"product": "highcharts",
+				"modules": [
+					"highcharts-more"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.line"
+			},
+			"echarts": {
+				"series": "radar",
+				"doc": "https://echarts.apache.org/en/option.html#series-radar"
+			},
+			"note": "Highcharts draws a radar as a polar line chart (chart.polar)"
+		},
+		"pareto": {
+			"highcharts": {
+				"series": "pareto",
+				"product": "highcharts",
+				"modules": [
+					"modules/pareto"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.pareto"
+			},
+			"echarts": {
+				"series": "bar",
+				"doc": "https://echarts.apache.org/en/option.html#series-bar"
+			},
+			"note": "ECharts has no pareto series; its documentation combines bars with a cumulative-share line"
+		},
+		"combo": {
+			"highcharts": {
+				"series": "column",
+				"product": "highcharts",
+				"modules": [],
+				"doc": "https://api.highcharts.com/highcharts/series.column"
+			},
+			"echarts": {
+				"series": "bar",
+				"doc": "https://echarts.apache.org/en/option.html#series-bar"
+			},
+			"note": "column plus spline on a second axis in Highcharts, bar plus line on a second axis in ECharts"
+		},
+		"rose": {
+			"highcharts": {
+				"series": "column",
+				"product": "highcharts",
+				"modules": [
+					"highcharts-more"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.column"
+			},
+			"echarts": {
+				"series": "pie",
+				"doc": "https://echarts.apache.org/en/option.html#series-pie.roseType"
+			},
+			"note": "Highcharts draws a rose as a polar column chart; ECharts as a pie with roseType"
+		},
+		"waffle": {
+			"highcharts": {
+				"series": "item",
+				"product": "highcharts",
+				"modules": [
+					"modules/item-series"
+				],
+				"doc": "https://api.highcharts.com/highcharts/series.item"
+			},
+			"echarts": null,
+			"why": {
+				"echarts": "no waffle or item series; only pictorial bars"
+			}
+		}
+	}
+}

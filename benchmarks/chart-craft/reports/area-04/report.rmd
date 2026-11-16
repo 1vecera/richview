@@ -1,0 +1,115 @@
+---
+title: "Area study 04: synthetic observations"
+version: 0.0.1
+format: rmd/1
+---
+
+```chart
+type: area
+title: 'Area study 04: synthetic observations'
+subtitle: Sparse observations without interpolation
+encoding:
+  x: x
+  y: y
+  color: series
+axes:
+  x:
+    locale: de-DE
+  y:
+    label: Measured value
+    unit: ppm
+style:
+  ratio: '16:9'
+data:
+  inline:
+  - x: '2025-11-01T00:00:00Z'
+    y: 420.5
+    series: North
+  - x: '2025-11-01T00:00:00Z'
+    y: 420.85
+    series: South
+  - x: '2025-11-01T00:00:00Z'
+    y: 421.2
+    series: Central
+  - x: '2025-11-03T00:00:00Z'
+    y: 420.5191
+    series: North
+  - x: '2025-11-03T00:00:00Z'
+    y: 420.8691
+    series: South
+  - x: '2025-11-03T00:00:00Z'
+    y: 421.2191
+    series: Central
+  - x: '2025-11-05T00:00:00Z'
+    y: 420.5378
+    series: North
+  - x: '2025-11-05T00:00:00Z'
+    y: 420.8878
+    series: South
+  - x: '2025-11-05T00:00:00Z'
+    y: 421.2378
+    series: Central
+  - x: '2025-11-07T00:00:00Z'
+    y: 420.5559
+    series: North
+  - x: '2025-11-07T00:00:00Z'
+    y: 420.9059
+    series: South
+  - x: '2025-11-07T00:00:00Z'
+    y: 421.2559
+    series: Central
+  - x: '2025-11-09T00:00:00Z'
+    y: 420.5729
+    series: North
+  - x: '2025-11-09T00:00:00Z'
+    y: 420.9229
+    series: South
+  - x: '2025-11-09T00:00:00Z'
+    y: 421.2729
+    series: Central
+  - x: '2025-11-11T00:00:00Z'
+    y: 420.5886
+    series: North
+  - x: '2025-11-11T00:00:00Z'
+    y: 420.9386
+    series: South
+  - x: '2025-11-11T00:00:00Z'
+    y: 421.2886
+    series: Central
+  - x: '2025-11-13T00:00:00Z'
+    y: 420.6027
+    series: North
+  - x: '2025-11-13T00:00:00Z'
+    y: 420.9527
+    series: South
+  - x: '2025-11-13T00:00:00Z'
+    y: 421.3027
+    series: Central
+  - x: '2025-11-15T00:00:00Z'
+    y: 420.615
+    series: North
+  - x: '2025-11-15T00:00:00Z'
+    y: 420.965
+    series: South
+  - x: '2025-11-15T00:00:00Z'
+    y: 421.315
+    series: Central
+  - x: '2025-11-17T00:00:00Z'
+    y: 420.6252
+    series: North
+  - x: '2025-11-17T00:00:00Z'
+    y: 420.9752
+    series: South
+  - x: '2025-11-17T00:00:00Z'
+    y: 421.3252
+    series: Central
+  - x: '2025-11-19T00:00:00Z'
+    y: null
+    series: North
+  - x: '2025-11-19T00:00:00Z'
+    y: null
+    series: South
+  - x: '2025-11-19T00:00:00Z'
+    y: null
+    series: Central
+```

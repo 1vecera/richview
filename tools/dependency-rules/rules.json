@@ -1,0 +1,112 @@
+{
+  "schema": "interface-v1",
+  "allowed": {
+    "richview-chart": [],
+    "richview-core": [
+      "richview-chart"
+    ],
+    "richview-share": [
+      "richview-chart",
+      "richview-core"
+    ],
+    "richview-authoring": [
+      "richview-chart",
+      "richview-core"
+    ],
+    "richview-app": [
+      "richview-chart",
+      "richview-core",
+      "richview-share"
+    ],
+    "richview-runtime": [
+      "richview-chart",
+      "richview-core"
+    ],
+    "richview-site": [
+      "richview-chart",
+      "richview-core",
+      "richview-authoring"
+    ],
+    "richview-publish-server": [
+      "richview-chart",
+      "richview-core"
+    ],
+    "richview-editor": [
+      "richview-chart",
+      "richview-core",
+      "richview-share",
+      "richview-app",
+      "richview-authoring"
+    ],
+    "richview-publish": [
+      "richview-chart",
+      "richview-core",
+      "richview-share",
+      "richview-app",
+      "richview-runtime",
+      "richview-site",
+      "richview-editor",
+      "richview-publish-server"
+    ],
+    "richview-build": [
+      "richview-chart",
+      "richview-core",
+      "richview-share",
+      "richview-app",
+      "richview-runtime",
+      "richview-site",
+      "richview-editor",
+      "richview-publish-server",
+      "richview-publish"
+    ],
+    "richview-bench": [
+      "richview-chart",
+      "richview-core",
+      "richview-share",
+      "richview-app",
+      "richview-runtime",
+      "richview-site",
+      "richview-editor",
+      "richview-publish-server",
+      "richview-publish"
+    ]
+  },
+  "pure": {
+    "richview-chart": {
+      "normal": [
+        "serde",
+        "serde_json",
+        "serde_path_to_error"
+      ],
+      "dev": [
+        "roxmltree"
+      ],
+      "build": []
+    },
+    "richview-core": {
+      "normal": [
+        "serde",
+        "serde_json",
+        "yaml-rust2",
+        "pulldown-cmark",
+        "ammonia",
+        "regex-lite",
+        "csv",
+        "url",
+        "idna_adapter",
+        "unicode-normalization",
+        "latex2mathml",
+        "sha2",
+        "base64"
+      ],
+      "dev": [
+        "regex"
+      ],
+      "build": []
+    }
+  },
+  "indirect": [
+    {"consumer":"richview-app","producer":"richview-runtime","contract":"runtime.embed-files","exception":"ARC-07"},
+    {"consumer":"richview-build","producer":"richview-runtime","contract":"runtime.embed-files"}
+  ]
+}

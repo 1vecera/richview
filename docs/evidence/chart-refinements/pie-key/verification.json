@@ -1,0 +1,139 @@
+{
+  "status": "accepted verification snapshot",
+  "base": "480af942714c16ce4c1f959c7f046344d4f8c99d",
+  "before_equivalent_tree": "dad1615876cf05dccd7241da269fbf69cbc1ec31",
+  "runtime_commit": "aa5e7bd90567e6fe75b3f65ffbd848509e155b61",
+  "browser": "151.0.7922.173",
+  "wasm_sha256": {
+    "before": "c415bc543db946539e4d1d2b8902935ba05a4d5ca1c60deb77456a8d64f89467",
+    "after": "c87b94ad834ed9cd09d537206cadcee78d07444212a280c432dc5b6f75b51553"
+  },
+  "native_cli_sha256": "19cd73ac21c0fccf22a02f7486cd1bd3c03198e5ff873c1974b5acc94da8640a",
+  "required_checks": {
+    "format": "pass",
+    "clippy-native": "pass",
+    "clippy-wasm": "pass",
+    "workspace": "pass",
+    "release": "pass",
+    "fixtures": "pass",
+    "editor": "pass",
+    "native": "pass",
+    "compat": "pass",
+    "types": "pass",
+    "browser": "pass",
+    "landing": "pass",
+    "cloudflare": "pass",
+    "showcase": "pass",
+    "flagship": "pass",
+    "reel": "pass",
+    "browser-api": "pass",
+    "motion-runtime": "pass",
+    "docs": "pass"
+  },
+  "native": {
+    "panels": 96,
+    "unchanged_sectors": 352,
+    "added_key_targets": 288,
+    "same_complete_svg_source_readouts_points_diagnostics": true
+  },
+  "resting": {
+    "identical_whole_pngs": 320,
+    "identical_direct_svgs": 295,
+    "facet_figures_checked_as_whole_png": 25,
+    "all_five_themes": true,
+    "native_and_live_findings_unchanged": true
+  },
+  "interface": {
+    "views": 55,
+    "panels": 60,
+    "pointer_targets": 575,
+    "touch_targets": 575,
+    "repeat_tap_clearings": 575,
+    "sector_picks": 165,
+    "source_rows": 245,
+    "resting_svg_source_keyboard_export_exact": true,
+    "errors": []
+  },
+  "resize_update": {
+    "setups": 4,
+    "resize_states": 36,
+    "source_update_return_sequences": 4,
+    "svg_geometry_diagnostics_identical": true,
+    "ordinary_and_reduced_motion": true,
+    "stale_key_regions_at_radial_layout": false,
+    "errors": []
+  },
+  "offline": {
+    "native_reports": 14,
+    "actual_views": 56,
+    "actual_panels": 64,
+    "complete_svg_and_diagnostics_identical": true,
+    "javascript_disabled_and_enabled": true,
+    "external_requests": [],
+    "errors": []
+  },
+  "sibling": {
+    "base": "2badd2774f188b9dadfb4c47982d8e0197e1c8f9",
+    "composition": "702d5dafef0d71725ca21afac300205067019e20",
+    "wasm_sha256": "e1f696b6c44a7fafe03a7c82404c71cd11517b8d871897fd1f015a7a5f647633",
+    "test_reconciliation": "af711d999382d368fa3ffbc24877172b399e9a8e",
+    "native_panels": 72,
+    "identical_whole_pngs": 120,
+    "direct_svgs": 105,
+    "facet_whole_pngs": 15,
+    "interface_views": 30,
+    "interface_panels": 35,
+    "checks": "chart tests, fresh release, native, API, motion and browser pass; fixture prerequisite failure retained"
+  },
+  "independent_review": {
+    "verdict": "accept",
+    "each_artifact_native_controls": 35,
+    "each_artifact_interface_states": 18,
+    "matched_sibling_annotation_reports": 16
+  },
+  "source_sha256": {
+    "tiny-source.rmd": "d2fa0bb53d432436f663e88c3b2d1c4e8f7ffb29fabf9a78ff8de254082ebc70",
+    "wrapped-source.rmd": "9c6ffcd4ea358d00cd1401757c898a9bc84a18740890c2eee63d29b870f7a3c1"
+  },
+  "image_sha256": {
+    "tiny-after.png": "07a098e5a730b82d24fd3b9d97cd49bdfbf45cdbb4eb6af40a332dc95e811712",
+    "tiny-before.png": "785b33ddb99962e08947f940f7fcc8861b7bd8c204627b9768d039601a34e2ce",
+    "wrapped-after.png": "abaf2ec9ddca5ed8dabb2113fdd3f968dab4480799af404d0ce2bb4fce48609a",
+    "wrapped-before.png": "84448235dcc7459accf7b0989b307dc10776817fffaf34bc3c6ac908038f89aa"
+  },
+  "interaction_examples": [
+    {
+      "id": "tiny",
+      "theme": "scientific",
+      "width": 320,
+      "point": {
+        "x": 254,
+        "y": 410.83123779296875
+      },
+      "readout": "Rarevalue$1.00000"
+    },
+    {
+      "id": "wrapped",
+      "theme": "brutalist",
+      "width": 720,
+      "point": {
+        "x": 462.3999938964844,
+        "y": 883.5
+      },
+      "readout": "Český úplný název segmentu R subscription observationvalue1"
+    }
+  ],
+  "limitations": [
+    "Only existing non-radial key entries gain targets; static SVG and focus order are unchanged.",
+    "Single-line targets are 22 px high; no 44 px accessibility claim.",
+    "Existing source aggregation, annotation collisions/omissions and tiny sector picking stay unchanged.",
+    "Frozen PR40 requires the included test-only metadata reconciliation."
+  ],
+  "preserved_failures": [
+    "Initial immediate key-region publication caused a sibling annotation omission; repaired before final artifacts.",
+    "Initial sibling region test assumed only Sectors; nonvacuous complete-metadata adaptation is supplied.",
+    "Sibling browser verifier initially lacked generated fixtures; generation plus scoped rerun passed.",
+    "Scratch action selector, inherited max-width, capture argument and frozen-sibling formatter assumptions were corrected without product changes."
+  ],
+  "curated_reproduction": "all four PNGs reproduced byte-identically with the bundled helper"
+}

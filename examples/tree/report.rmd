@@ -1,0 +1,35 @@
+---
+title: See how the units and teams fit together
+description: A tree draws each part as a node under the part it belongs to, so the structure reads from left to right.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Three units, eleven teams
+
+These illustrative figures give the headcount of each team. A unit that has teams under it carries no figure of its own; the chart never invents one.
+
+```chart
+type: tree
+title: Engineering has the most teams
+subtitle: Each node is a part; colour is the top-level unit
+data:
+  inline:
+    - {unit: Engineering}
+    - {unit: Platform, reports_to: Engineering}
+    - {unit: Core, reports_to: Platform, headcount: 8}
+    - {unit: Tooling, reports_to: Platform, headcount: 6}
+    - {unit: Product, reports_to: Engineering, headcount: 22}
+    - {unit: Data, reports_to: Engineering, headcount: 9}
+    - {unit: Sales}
+    - {unit: EMEA, reports_to: Sales, headcount: 12}
+    - {unit: Americas, reports_to: Sales, headcount: 16}
+    - {unit: Operations}
+    - {unit: People, reports_to: Operations, headcount: 5}
+    - {unit: Finance, reports_to: Operations, headcount: 4}
+encoding: {label: unit, parent: reports_to, y: headcount}
+```
+
+*Source: Illustrative values.*
+
+Use the keyboard or pointer to read each part's path, its headcount where given and how many parts sit under it.

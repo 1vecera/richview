@@ -1,0 +1,13 @@
+---
+title: Markdown image sources
+---
+
+![js](javascript:HOSTILE_IMG_JS())
+
+![remote](https://evil.example/HOSTILE.png)
+
+![protocol relative](//evil.example/HOSTILE.png)
+
+![unsplash](https://images.unsplash.com/photo-1559538834-8b012e20a84f)
+
+![local](media/missing.png)

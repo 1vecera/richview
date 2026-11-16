@@ -1,0 +1,284 @@
+{
+  "baseline": {
+    "head": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+    "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm_sha256": "141dd99c023fc595e987febc299f4c7ce554912fd489d3ffe768a46ce939be4e",
+    "browser": "151.0.7922.173",
+    "created_at": "2026-10-11T20:02:19.776Z"
+  },
+  "candidate": {
+    "head": "04d6b42214257f3c81e3eaee98b42b4629fd603c",
+    "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm_sha256": "46688a698d4c1875bf30975485dbe5b11935f7c23cba0bd810a2c71d2c3a07f4",
+    "browser": "151.0.7922.173",
+    "created_at": "2026-10-11T21:01:52.715Z"
+  },
+  "capture": {
+    "viewport_width": 390,
+    "theme": "scientific",
+    "device_scale_factor": 2,
+    "reduced_motion": true,
+    "interaction": "Home key on focused chart"
+  },
+  "curated": [
+    {
+      "id": "readout-currency-scientific-390",
+      "source_sha256": "0835f79336017034fc3e3e3969761d693a3b99198269343249ba1095fe4c756b",
+      "visible_svg_sha256": "564c01d5a7a38c8a88b2872d3d2e34fb5649279af381c7e720388bcfcf54a47d",
+      "before": {
+        "image": "currency-before.png",
+        "figure_dimensions": {
+          "width": 358,
+          "height": 249.25
+        },
+        "readout": {
+          "text": "First releaseRevenue340,000.00100",
+          "visible": true
+        },
+        "aria_labels": [
+          "Published measure",
+          "First release, Revenue 340,000.00100"
+        ],
+        "diagnostics": {
+          "checks": [],
+          "engine": "rust-svg",
+          "labels": 7,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "clean"
+        }
+      },
+      "after": {
+        "image": "currency-after.png",
+        "figure_dimensions": {
+          "width": 358,
+          "height": 249.25
+        },
+        "readout": {
+          "text": "First releaseRevenue$340,000.00100",
+          "visible": true
+        },
+        "aria_labels": [
+          "Published measure",
+          "First release, Revenue $340,000.00100"
+        ],
+        "diagnostics": {
+          "checks": [],
+          "engine": "rust-svg",
+          "labels": 7,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "clean"
+        }
+      }
+    },
+    {
+      "id": "readout-percent-scientific-390",
+      "source_sha256": "7e11307a05d6e9063f73d8c1533772e02a8d45367dc5f041667cd5d87d995784",
+      "visible_svg_sha256": "a3a48917ac94adb685a6361e718600923ae04b415f7c71a61eee3a3a93df3934",
+      "before": {
+        "image": "percent-before.png",
+        "figure_dimensions": {
+          "width": 358,
+          "height": 249.25
+        },
+        "readout": {
+          "text": "First releaseSuccess rate0.123400",
+          "visible": true
+        },
+        "aria_labels": [
+          "Published measure",
+          "First release, Success rate 0.123400"
+        ],
+        "diagnostics": {
+          "checks": [],
+          "engine": "rust-svg",
+          "labels": 6,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "clean"
+        }
+      },
+      "after": {
+        "image": "percent-after.png",
+        "figure_dimensions": {
+          "width": 358,
+          "height": 249.25
+        },
+        "readout": {
+          "text": "First releaseSuccess rate12.3400%",
+          "visible": true
+        },
+        "aria_labels": [
+          "Published measure",
+          "First release, Success rate 12.3400%"
+        ],
+        "diagnostics": {
+          "checks": [],
+          "engine": "rust-svg",
+          "labels": 6,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "clean"
+        }
+      }
+    },
+    {
+      "id": "heatmap-percent-scientific-390",
+      "source_sha256": "9f781758ca7f1ef346e1664df7536d6e5d25ee504f1aeaf017b7ff04fb6474ca",
+      "visible_svg_sha256": "a918182b997eb4a69a7ecdd53de28c775a91926af33f49aaa0d3496724da0fbe",
+      "before": {
+        "image": "heatmap-percent-before.png",
+        "figure_dimensions": {
+          "width": 358,
+          "height": 247.25
+        },
+        "readout": {
+          "text": "001230score0.123400series2026Team004560",
+          "visible": true
+        },
+        "diagnostics": {
+          "checks": [],
+          "engine": "rust-svg",
+          "labels": 10,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "clean"
+        }
+      },
+      "after": {
+        "image": "heatmap-percent-after.png",
+        "figure_dimensions": {
+          "width": 358,
+          "height": 247.25
+        },
+        "readout": {
+          "text": "001230Published measure12.3400%series2026Team004560",
+          "visible": true
+        },
+        "diagnostics": {
+          "checks": [],
+          "engine": "rust-svg",
+          "labels": 10,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "clean"
+        }
+      }
+    }
+  ],
+  "matrix": {
+    "matched_pairs": 75,
+    "themes": [
+      "scientific",
+      "sleek",
+      "sleek-light",
+      "brutalist",
+      "hand-drawn"
+    ],
+    "viewport_widths": [
+      320,
+      390,
+      720
+    ],
+    "capture_errors": 0,
+    "browser_errors": 0,
+    "horizontal_overflow": 0,
+    "visible_svg_unchanged": 75,
+    "svg_changes_limited_to_aria_labels": 30,
+    "svg_byte_identical": 45,
+    "controls": [
+      "temporal readout"
+    ],
+    "original_readouts_unchanged": 60,
+    "heatmap_control_now_honors_authored_color_metadata": 15
+  },
+  "interactions": {
+    "chart_viewport_cases": 21,
+    "keyboard_rows": 45,
+    "cases": [
+      "currency",
+      "literal-unit",
+      "nominal-line",
+      "percent",
+      "percent-unit",
+      "pie-currency",
+      "unavailable"
+    ],
+    "viewport_widths": [
+      320,
+      390,
+      720
+    ],
+    "pointer_and_touch_cases": [
+      "currency",
+      "percent-unit"
+    ],
+    "table_and_csv_checked": true,
+    "browser_errors": 0
+  },
+  "validation": {
+    "format": "pass",
+    "native_clippy": "pass",
+    "wasm_clippy": "pass",
+    "workspace_tests": "pass",
+    "release_build": "pass",
+    "generated_fixtures": "pass",
+    "host_checks": {
+      "editor": "pass",
+      "native": "pass",
+      "compat": "pass",
+      "types": "pass",
+      "browser": "pass",
+      "landing": "pass",
+      "cloudflare": "pass",
+      "showcase": "pass",
+      "flagship": "pass",
+      "reel": "pass",
+      "browser-api": "pass",
+      "motion-runtime": "pass",
+      "docs": "pass"
+    },
+    "capture_reproduction": "All three current after PNGs reproduce byte-identically.",
+    "heatmap_extension": "Fresh required Rust and all 13 host checks pass on source 04d6b42."
+  },
+  "heatmap_matrix": {
+    "head": "04d6b42214257f3c81e3eaee98b42b4629fd603c",
+    "wasm_sha256": "46688a698d4c1875bf30975485dbe5b11935f7c23cba0bd810a2c71d2c3a07f4",
+    "matched_views": 105,
+    "byte_identical_SVGs": 105,
+    "failures": [],
+    "warnings": [],
+    "heatmap_interactions": 42,
+    "generic_interactions": 21,
+    "heatmap_keyboard_rows": 186,
+    "fixtures": 7,
+    "themes": [
+      "scientific",
+      "sleek",
+      "sleek-light",
+      "brutalist",
+      "hand-drawn"
+    ],
+    "viewport_widths": [
+      320,
+      390,
+      720
+    ]
+  },
+  "heatmap_independent_review": {
+    "verdict": "accept",
+    "source_commit": "04d6b42214257f3c81e3eaee98b42b4629fd603c",
+    "own_matched_views": 6,
+    "native_offline_documents": 8,
+    "keyboard_rows": 18,
+    "checks": [
+      "pointer and touch",
+      "shared coordinate aliases unchanged",
+      "exact large decimal strings and exponents",
+      "Table and CSV source values",
+      "live/export cell geometry"
+    ],
+    "report_sha256": "f6e2bd26fdeaff22f9158ce35cddb270249ecf147753ce2ee02d94bc30a9d268"
+  }
+}

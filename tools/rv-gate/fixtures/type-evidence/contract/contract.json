@@ -1,0 +1,106 @@
+{
+	"step": "contract",
+	"fixtures": [
+		{
+			"id": "examples/bar",
+			"kind": "golden",
+			"ok": true,
+			"surfaces": {
+				"cli.check": {
+					"ok": true,
+					"charts": [
+						{
+							"chartId": "rv-chart-0",
+							"chartType": "bar",
+							"checks": [],
+							"failure": null,
+							"status": "clean",
+							"summary": "A summary."
+						}
+					]
+				}
+			},
+			"diffs": []
+		},
+		{
+			"id": "examples/line",
+			"kind": "golden",
+			"ok": true,
+			"surfaces": {
+				"cli.check": {
+					"ok": true,
+					"charts": [
+						{
+							"chartId": "rv-chart-0",
+							"chartType": "line",
+							"checks": [],
+							"failure": null,
+							"status": "clean",
+							"summary": "A summary."
+						},
+						{
+							"chartId": "rv-chart-1",
+							"chartType": "line",
+							"checks": [
+								{
+									"kind": "source-error",
+									"severity": "error"
+								}
+							],
+							"failure": null,
+							"status": "clean",
+							"summary": "A summary."
+						}
+					]
+				}
+			},
+			"diffs": []
+		},
+		{
+			"id": "examples/pie",
+			"kind": "golden",
+			"ok": true,
+			"surfaces": {
+				"cli.check": {
+					"ok": true,
+					"charts": [
+						{
+							"chartId": "rv-chart-0",
+							"chartType": "pie",
+							"checks": [],
+							"failure": null,
+							"status": "clean",
+							"summary": "A summary."
+						}
+					]
+				}
+			},
+			"diffs": []
+		},
+		{
+			"id": "contract/unknown-column",
+			"kind": "broken",
+			"ok": true,
+			"surfaces": {
+				"cli.check": {
+					"charts": [
+						{
+							"chartId": "rv-chart-0",
+							"chartType": "bar",
+							"checks": [
+								{
+									"kind": "empty-region",
+									"severity": "error"
+								}
+							],
+							"failure": null,
+							"status": "clean",
+							"summary": "A summary."
+						}
+					]
+				}
+			},
+			"diffs": []
+		}
+	]
+}

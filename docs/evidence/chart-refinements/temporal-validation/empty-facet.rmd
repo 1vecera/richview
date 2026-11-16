@@ -1,0 +1,8 @@
+---
+title: Calendar validation
+version: 0.0.1
+---
+
+```chart
+{"type": "line", "title": "Calendar observations with empty panel names", "encoding": {"x": "date", "y": "value", "facet": "panel"}, "data": {"inline": [{"date": "2026-01-01", "value": "10.000"}, {"date": "2026-01-02", "value": "20.500", "panel": null}, {"date": "2026-01-10", "value": 30, "panel": ""}]}}
+```

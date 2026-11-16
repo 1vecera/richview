@@ -1,0 +1,6 @@
+---
+title: Section not mapping
+styles: [s.rstyle.yaml]
+---
+
+Body.

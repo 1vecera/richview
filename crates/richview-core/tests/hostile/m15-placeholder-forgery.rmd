@@ -1,0 +1,24 @@
+---
+title: Placeholder forgery
+---
+
+<!--richview:block:0-->
+
+<!--richview:generated:0:block:0-->
+
+`<!--richview:block:0-->`
+
+```metric
+value: 7
+label: Seven
+```
+
+<!--richview:block:0-->
+
+<!--richview:block:99999999999999999999-->
+
+```callout
+kind: neutral
+body: |
+  <!--richview:block:0--> and <!--richview:block:1-->
+```

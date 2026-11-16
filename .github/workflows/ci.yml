@@ -1,0 +1,18 @@
+name: Rust product checks
+
+# Advisory only (DEL-39, ARC-50). Automatic triggers stay off until Daniel confirms a $0 budget.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-gate
+      - run: node tools/rv-gate/rv-gate.mjs pre-pr

@@ -1,0 +1,19 @@
+{
+  "partId": "04c-features-surfaces",
+  "answers": {
+    "FEA-SF-19": {
+      "decision": "edit",
+      "text": "Full, enterprise-grade roles and access control, not a basic set with a proxy in the meantime.\n\nBoth RichView servers, Cowork and Publish, have a governance section where an admin manages users, roles and who can see, edit, delete and share each report, at the level enterprises expect. They get it from the server core they share. The protection is the same wherever the server runs: hosted by RichView, in a customer's container, or on the customer's own server.\n\nThe CLI, MCP server and VS Code extension stay free of accounts. Reports are served from a separate report origin before read protection ships (ARC-15). Agents decide the technical details, such as the identity source, single sign-on and audit logging, to meet the enterprise bar.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel: 'let's use the reverse, allow full roles with expected set of quality protection that is enterprise quality… if you create your container… or you deliver it on your own server, you can as well in some governance section of the server, both on Publish and Cowork, select user roles… enterprise level' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "299ccfaa28fdac2e",
+      "updatedAt": "2026-10-26T19:27:58.606Z"
+    },
+    "FEA-SF-30": {
+      "decision": "edit",
+      "text": "The home page promises what the product will do. No hotfixes to the live page: it was never advertised, so it simply changes when the rewrite reaches `prod`.\n\n| Statement | Decision |\n| --- | --- |\n| The report menu: share, copy and protect each one; the \"private\" badge | Kept. The menu gets built (FEA-SF-18), with protection from the enterprise roles (FEA-SF-19). |\n| VS Code snippets per style | Not important; worded to match what ships. |\n| \"One shortcut to publish\" | Becomes one-click publish, which the product gets, including right-click publish in the editor (INT-83). |\n| \"The coming release includes the CLI, MCP tools, report server and extension\" | Kept: they all ship. |\n| Open source | \"RichView is open source and MIT licensed.\" (INT-37) |\n| \"Versions are immutable; the latest address points to the current one.\" | Kept, and made true (TYP-64, TYP-96). |\n| Style names | Name the styles that ship, taken from core (STY-05, DEL-18). |\n| Release updates and the consent text | Kept: subscribers get release updates. |\n| The flagship verdict quote | Removed; the section links the report (INT-45). |\n| The Hacker News dots caption | Shown only while the page renders the dots (STY-44). |",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel: 'the first one menu we will create… we do not care about live page because I didn't advertise the live page anywhere… We do not care about snippets… Right-click publish. One shortcut to publish should be one-click publish… CLI, MCP, report server and extension we have, so keep it on the webpage. RichView is open source and MIT licensed… immutable versions make sense to me… the style counts… Releases… you will get them. So this is good' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "2d0841445f7f3d6a",
+      "updatedAt": "2026-10-26T19:32:48.904Z"
+    }
+  }
+}

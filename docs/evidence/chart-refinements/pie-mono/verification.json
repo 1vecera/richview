@@ -1,0 +1,222 @@
+{
+  "status": "PASS",
+  "browser": "151.0.7922.173",
+  "base_main": "480af942714c16ce4c1f959c7f046344d4f8c99d",
+  "stack_base": "54f722b856475cb6373034f7c9734f2cf353c2b5",
+  "builds": {
+    "before": {
+      "source": "54f722b856475cb6373034f7c9734f2cf353c2b5",
+      "wasm": "7b59e7860bba1afd576c1fbf1a40484643db2ce87ebc50945b41bbe3460441cb",
+      "core_wasm": "1680a0f2534c77e7058c34dc905383ea77b10341ff913a43e3af13ce600d2fa6",
+      "native_cli": "c3bc7b271d10a82a337f1cd0c0a112c2a81c893294fd6193e01ecd6b9aab39f6"
+    },
+    "after": {
+      "source": "afe449a0a8ac7b7bc950ec7cfbdbfaa2cd31185a",
+      "wasm": "ac101c019f504d68defad6c623214b11a21572120a065aa0f300554ef175b02b",
+      "core_wasm": "1dc75a85379ff9d4e9cd07e2b7e7f8e4bd0b666d741a3e103933048651be3d5c",
+      "native_cli": "9cfb9068f59772651e09b7830c71237541055777f7ddabcb1d1a4943f6466736"
+    }
+  },
+  "cases": [
+    {
+      "name": "six",
+      "source": "six.rmd",
+      "fixture": "pie-mono-six-equal",
+      "width": 320,
+      "theme": "sleek",
+      "motion": "reduce",
+      "style": {
+        "chart": {
+          "decals": true,
+          "palette": [
+            "oklch(0.5999 0 0)",
+            "oklch(0.5999 0 0)",
+            "oklch(0.5999 0 0)",
+            "oklch(0.5999 0 0)",
+            "oklch(0.5999 0 0)",
+            "oklch(0.5999 0 0)",
+            "oklch(0.5999 0 0)",
+            "oklch(0.5999 0 0)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "seventeen",
+      "source": "seventeen.rmd",
+      "fixture": "pie-mono-seventeen-equal",
+      "width": 720,
+      "theme": "hand-drawn",
+      "motion": "reduce",
+      "style": {
+        "chart": {
+          "decals": true,
+          "palette": [
+            "oklch(0.3 0 0)",
+            "oklch(0.6 0 0)",
+            "oklch(0.45 0 0)",
+            "oklch(0.7 0 0)"
+          ]
+        }
+      }
+    }
+  ],
+  "files": {
+    "six.rmd": "23468c439201a180b6570c5fa2e56088d9bf92fb6c1cfd107454d680b59c499f",
+    "six-before.png": "ae96b5a9e15f5b5ed4b8863a208e6c64b9f39b3d2803d5a8609fc131953b28e0",
+    "six-after.png": "47f9f008fc6acc1974633639a003d6db9050ef3af45eb9fa9d9e739db8462a58",
+    "seventeen.rmd": "63000362e683659fbc2ab7177454890eb0584609349ee48f63780c8df5f19867",
+    "seventeen-before.png": "d643473b1b251cf2e7eaf0d93bb5c194ed8c84734ac9c01f9ef79ee5cfac7a29",
+    "seventeen-after.png": "bc35bc0304f6bde604c5f16aa609fc6b87b83452f3b56ce9c5e2e9f31d1bff61",
+    "capture.mjs": "d8c490c8ff69c8143e5dbbdc674dd61ca31a12331131851f0ca401cb01645cbe"
+  },
+  "required_checks": {
+    "release": 0,
+    "format": 0,
+    "clippy-native": 0,
+    "clippy-wasm": 0,
+    "workspace": 0,
+    "fixtures": 0,
+    "editor": 0,
+    "native": 0,
+    "compat": 0,
+    "types": 0,
+    "browser": 0,
+    "landing": 0,
+    "cloudflare": 0,
+    "showcase": 0,
+    "flagship": 0,
+    "reel": 0,
+    "browser-api": 0,
+    "motion-runtime": 0,
+    "docs": 0
+  },
+  "comparisons": {
+    "render": {
+      "records": 200,
+      "states": 400,
+      "panels": 410,
+      "checks_exact": 210,
+      "full_control_svg_exact": 100,
+      "full_control_png_exact": 100,
+      "changed_pattern_svgs": 310,
+      "status": "PASS"
+    },
+    "interface": {
+      "records": 24,
+      "svgs": 27,
+      "source_panels": 27,
+      "keyboard_rows": 129,
+      "key_targets": 348,
+      "sector_targets": 108,
+      "gaps": 42,
+      "exports": 27,
+      "status": "PASS"
+    },
+    "lifecycle": {
+      "records": 8,
+      "states": 80,
+      "svgs": 152,
+      "exports": 16,
+      "status": "PASS"
+    },
+    "offline": {
+      "records": 64,
+      "states": 128,
+      "svgs": 144,
+      "external_requests": 0,
+      "status": "PASS"
+    },
+    "sibling": {
+      "records": 36,
+      "states": 72,
+      "panels": 76,
+      "checks_exact": 40,
+      "full_control_svg_exact": 8,
+      "full_control_png_exact": 8,
+      "changed_pattern_svgs": 68,
+      "status": "PASS"
+    },
+    "sibling-interface": {
+      "records": 24,
+      "svgs": 27,
+      "source_panels": 27,
+      "keyboard_rows": 129,
+      "key_targets": 348,
+      "sector_targets": 108,
+      "gaps": 42,
+      "exports": 27,
+      "status": "PASS"
+    }
+  },
+  "scope": "Only explicit decal pie pattern definitions and sector/key fills; all source, geometry, labels, annotations, diagnostics and existing interaction remain unchanged.",
+  "limitations": [
+    "Six existing hatch shapes repeat; they are not unique category identifiers.",
+    "Tiny sectors and 9 px key swatches may show only part of a tile; 17 categories are visibly busier.",
+    "Grayscale colors and Hand-drawn theme alone do not enable decals.",
+    "Current main key rows retain their existing noninteractive behavior; the separate accepted pie-key composition checks added targets."
+  ],
+  "scratch_root": "/home/vecera/tmp/richview-chart-refinement-20261011",
+  "composition": {
+    "frozen_sibling": "2c13ffb540d345de655302ad3989d0a8fc4bde0f",
+    "before": "2b8c5a394bfd9b7e18d6ad515566217d6fad4b6a",
+    "after": "d14a2129ab42195c55b7360453c0e378872790f1",
+    "source_delta": "afe449a0a8ac7b7bc950ec7cfbdbfaa2cd31185a",
+    "test_adaptations": [
+      "82d4b9e090337b7d0d53eb7aac757f0b20edde84",
+      "af711d999382d368fa3ffbc24877172b399e9a8e"
+    ],
+    "new_test_adaptation": false,
+    "builds": {
+      "before": {
+        "wasm": "9ed3ff231b4867fc82995ba35faa1e5b23a92fad9e92eff6f0421a1e98038285",
+        "core_wasm": "2e75dfdf67bf449021b998cc9353d6f2eb973f0b9f7df8df40cc5c0c94bfb23e",
+        "native_cli": "5c1fab2e7bd627a07cbcc190afaaaf3016f68d3e81ab34ead116b46b94c9bc05"
+      },
+      "after": {
+        "wasm": "9ea98e7cc58ebe96d396477b36704000d6164f77d1b1ca76b355e8eb21fce723",
+        "core_wasm": "f9bfc8f17dc27cb39476cc4a1c50173354133882649d1a5d5dddd42f3ff29ace",
+        "native_cli": "b6dba9d955ca5d372c2a1789132140cf1a0412de673955345ab287f1b3d09044"
+      }
+    },
+    "checks": {
+      "release": 0,
+      "format": 0,
+      "clippy-native": 0,
+      "clippy-wasm": 0,
+      "workspace": 0,
+      "fixtures": 0,
+      "editor": 0,
+      "native": 0,
+      "compat": 0,
+      "types": 0,
+      "browser": 0,
+      "browser-api": 0,
+      "motion-runtime": 0,
+      "docs": 0
+    }
+  },
+  "independent_review": {
+    "verdict": "ACCEPT",
+    "report": "pie-mono-independent-review.md",
+    "source_and_composition": true,
+    "direct_native_outputs": 96,
+    "live_states": 64,
+    "live_leaf_panels": 68,
+    "sampled_pointer_touch_targets": 14,
+    "source_rows_per_pair": 14
+  },
+  "reproduction": {
+    "before": "PASS",
+    "after": "PASS",
+    "four_pngs_byte_exact": true
+  },
+  "retained_failures": [
+    "Focused test initially compared the existing decal flag as if unchanged; only the oracle changed.",
+    "Original custom palette fixture supplied a source chart.style.palette array, which the schema rejects; fresh controls pass a real resolved style palette.",
+    "Original offline scratch capture read before embedded runtime readiness; corrected runs wait for actual marks and settlement.",
+    "Copied lifecycle scratch oracle required a gradient after changing to a pie; corrected runs assert pattern presence.",
+    "Independent setup failures retained: deferred measurement attribute, overlapping duplicate containers and inherited report chrome in interaction-only captures."
+  ],
+  "required_checks_note": "Values are process exit codes. Exact commands and original logs remain in tmp/pie-mono/checks; 19 gates include the fresh release build."
+}

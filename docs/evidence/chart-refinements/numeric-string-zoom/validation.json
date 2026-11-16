@@ -1,0 +1,177 @@
+{
+  "base_commit": "bb8b112c121eae1ec70d810df1b5e6a2070c9c4e",
+  "code_commit": "7d3fc01a2dc8e72cb0f37c347efd242c45d4872b",
+  "build_product_diff_sha256": "afc9cd7e4b17ee309c6d462b27d27431bf9e7796a0b10862de5ebf23b8112d3b",
+  "before_wasm_sha256": "1f278570318a19163969089bf4b8f1f694efe5b0f9b3ba04b2897912851458be",
+  "after_wasm_sha256": "ee8fd99df6e03efe12cbd918a2b349837f4c8e969a18ce6571d78a50c7871723",
+  "browser": "151.0.7922.173",
+  "device_scale": 2,
+  "captured_at": "2026-10-11T22:04:50.893Z",
+  "source_sha256": "2f3a8e4b7027dff434f063b9a11bca2bf693dc988a778bd066166fea00092e65",
+  "percent_source_sha256": "5c967048ca50e26c2de818789277b46ad7f511045b25fac51f284b6b7ed6ec35",
+  "images": [
+    {
+      "file": "before-scientific-390.png",
+      "sha256": "0c71a2d4d9b6db678c6c2261292618e0afbe6ebcc3ca03b879f75eef9ee70019",
+      "case": "scatter-mixed-interior",
+      "theme": "scientific",
+      "viewport_width": 390,
+      "png_width": 716,
+      "png_height": 656,
+      "svg_viewbox": "0 0 358 268.5",
+      "window": [
+        2.5,
+        7.5
+      ],
+      "visible_points": 0,
+      "source": "source.rmd",
+      "source_sha256": "2f3a8e4b7027dff434f063b9a11bca2bf693dc988a778bd066166fea00092e65"
+    },
+    {
+      "file": "after-scientific-390.png",
+      "sha256": "0aac5e1aff440e6f48fa9314241c56f0dcbd5c058694cdcf4d8ac445fadab541",
+      "case": "scatter-mixed-interior",
+      "theme": "scientific",
+      "viewport_width": 390,
+      "png_width": 716,
+      "png_height": 656,
+      "svg_viewbox": "0 0 358 268.5",
+      "window": [
+        2.5,
+        7.5
+      ],
+      "visible_points": 2,
+      "source": "source.rmd",
+      "source_sha256": "2f3a8e4b7027dff434f063b9a11bca2bf693dc988a778bd066166fea00092e65"
+    },
+    {
+      "file": "before-sleek-320.png",
+      "sha256": "de10f3ac145790cfbe7b497092a96bf9d0fb156756e8ead79fa87162718c2c5a",
+      "case": "scatter-percent-strings",
+      "theme": "sleek",
+      "viewport_width": 320,
+      "png_width": 576,
+      "png_height": 608,
+      "svg_viewbox": "0 0 288 216",
+      "window": [
+        0.000125,
+        0.00017500000000000003
+      ],
+      "visible_points": 0,
+      "source": "percent-source.rmd",
+      "source_sha256": "5c967048ca50e26c2de818789277b46ad7f511045b25fac51f284b6b7ed6ec35"
+    },
+    {
+      "file": "after-sleek-320.png",
+      "sha256": "76a4e1127a730142c242c218f8128493fc7b79e50d63f8b1e8429a10f481f13c",
+      "case": "scatter-percent-strings",
+      "theme": "sleek",
+      "viewport_width": 320,
+      "png_width": 576,
+      "png_height": 608,
+      "svg_viewbox": "0 0 288 216",
+      "window": [
+        0.000125,
+        0.00017500000000000003
+      ],
+      "visible_points": 2,
+      "source": "percent-source.rmd",
+      "source_sha256": "5c967048ca50e26c2de818789277b46ad7f511045b25fac51f284b6b7ed6ec35"
+    }
+  ],
+  "verification": {
+    "native_sources": 51,
+    "native_svg_frames": 102,
+    "native_frames_and_check_statuses_identical": true,
+    "reduced_motion_matched_views": 246,
+    "normal_motion_settled_views": 90,
+    "themes": [
+      "scientific",
+      "sleek",
+      "brutalist",
+      "sleek-light",
+      "hand-drawn"
+    ],
+    "viewport_widths": [
+      320,
+      390,
+      720
+    ],
+    "states": 1132,
+    "source_table_csv_and_svg_exports": 703,
+    "keyboard_readouts": 1271,
+    "pointer_readouts": 414,
+    "original_row_readouts_individually_matched": 617,
+    "resting_reset_svgs_byte_identical": true,
+    "numeric_string_mixed_zoom_geometry_equal": true,
+    "expected_source_error_states": 205,
+    "valid_case_page_errors": 0,
+    "added_glyph_or_overflow_issues": 0,
+    "active_animations_after_settle": 0,
+    "transition_probe_states": 19,
+    "failures": []
+  },
+  "required_local_checks": {
+    "release_build": "pass",
+    "fmt": "pass",
+    "diff": "pass",
+    "clippy-native": "pass",
+    "clippy-wasm": "pass",
+    "workspace-tests": "pass",
+    "fixtures": "pass",
+    "editor": "pass",
+    "native": "pass",
+    "compat": "pass",
+    "types": "pass",
+    "browser": "pass",
+    "landing": "pass",
+    "cloudflare": "pass",
+    "showcase": "pass",
+    "flagship": "pass",
+    "reel": "pass",
+    "browser-api": "pass",
+    "motion-runtime": "pass",
+    "docs": "pass"
+  },
+  "independent_review": {
+    "status": "accepted",
+    "source_commit": "7d3fc01a2dc8e72cb0f37c347efd242c45d4872b",
+    "current_main_native_results_equal": 72,
+    "current_main_public_composition_records": 22,
+    "conditions": "Brutalist 320 reduced motion and Scientific 720 ordinary motion; zero/missing/invalid bubble selections, exact source Table/CSV, existing readouts, SVG export/reset, root/direct-SVG errors and nominal → duplicate-calendar → nominal clearing."
+  },
+  "limits": [
+    {
+      "case": "scatter-large-finite",
+      "source_equal": true,
+      "all_svg_equal": true,
+      "before_page_errors": 28,
+      "after_page_errors": 28,
+      "numeric_window_disabled": true
+    },
+    {
+      "case": "line/area crossing-only windows",
+      "unchanged": "No clipping neighbors or synthesized endpoints are added when the selected window contains no source observation."
+    },
+    {
+      "case": "readout text",
+      "unchanged": "Readouts use original rows with existing formatting. Generic line/area X headings retain numeric source strings; scatter applies axes.x formatting. Full Table and CSV preserve source values."
+    },
+    {
+      "case": "source diagnostics",
+      "unchanged": "Native missing-size warnings remain separate from browser glyph checks and retained source errors. Failed calendar sources retain the explicit source errors already on current main."
+    }
+  ],
+  "capture_notes": [
+    "Settled captures await Rust motion, two animation frames and all actual finite DOM animations; no product styling or animation override was used.",
+    "Expected source errors are compared separately; clean means no additional glyph/overflow issue, not that intentionally invalid fixtures become valid.",
+    "The separate extreme-coordinate control retains its 28 existing browser errors on both builds and is excluded from clean-case counts.",
+    "The original reviewed package remains in history-3c07128 and local review/numeric-string-3c-frozen at 5951fcc2834bad0ad40d82b7b4f9caf3b9ecd608."
+  ],
+  "tracked_product_files": {
+    "richview-chart/src/rmd_render.rs": "80367e98523a940145475d7129973b6470d00793c0f15dd1e3770e6a5a838235",
+    "crates/richview-web/src/browser/charts.rs": "af46ed9f81947a99f019fb1dfc205a58b57ccc2971cb8fafdb532cc259a930f2",
+    "scripts/verify-browser.mjs": "d108e683697c0dce5138f88401c4df3b3bb621a464500c2c40797dae123d28fb",
+    "docs/RMD-SPEC.md": "fa8d21b75dad0501461c699e3545efaac6e74a4572beb822b464774c4843c3e3"
+  }
+}

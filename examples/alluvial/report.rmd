@@ -1,0 +1,43 @@
+---
+title: Follow users from their plan to whether they stay
+description: An alluvial diagram follows the same rows through several categories, so you can see which routes lead to which outcome.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Referral users stay, ad users leave
+
+These illustrative figures follow 1,045 users from their plan, through the channel that brought them, to whether they stayed. Each ribbon keeps the colour of the plan its users started on, so a route can be followed across all three columns.
+
+```chart
+type: alluvial
+title: Referred users stay more often than users who came from ads
+subtitle: Users by plan, acquisition channel and outcome, synthetic
+data:
+  inline:
+    - {plan: Free, channel: Search, outcome: Stayed, users: 120}
+    - {plan: Free, channel: Search, outcome: Left, users: 180}
+    - {plan: Free, channel: Ads, outcome: Stayed, users: 60}
+    - {plan: Free, channel: Ads, outcome: Left, users: 140}
+    - {plan: Free, channel: Referral, outcome: Stayed, users: 70}
+    - {plan: Free, channel: Referral, outcome: Left, users: 30}
+    - {plan: Basic, channel: Search, outcome: Stayed, users: 90}
+    - {plan: Basic, channel: Search, outcome: Left, users: 40}
+    - {plan: Basic, channel: Ads, outcome: Stayed, users: 50}
+    - {plan: Basic, channel: Ads, outcome: Left, users: 50}
+    - {plan: Basic, channel: Referral, outcome: Stayed, users: 60}
+    - {plan: Basic, channel: Referral, outcome: Left, users: 10}
+    - {plan: Pro, channel: Search, outcome: Stayed, users: 50}
+    - {plan: Pro, channel: Search, outcome: Left, users: 10}
+    - {plan: Pro, channel: Ads, outcome: Stayed, users: 20}
+    - {plan: Pro, channel: Ads, outcome: Left, users: 15}
+    - {plan: Pro, channel: Referral, outcome: Stayed, users: 45}
+    - {plan: Pro, channel: Referral, outcome: Left, users: 5}
+encoding: {dimensions: [plan, channel, outcome], y: users}
+axes:
+  y: {label: Users}
+```
+
+*Source: Illustrative values.*
+
+Use the keyboard or pointer to read the users on each route and category, and the share each takes of its neighbours.

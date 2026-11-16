@@ -1,0 +1,369 @@
+---
+title: Every chart type and rich block in one report
+description: A synthetic fixture for the RichView lockdown. It exercises all nine chart types, every rich block and one deliberately invalid fence, so each builtin style can be compared on the same evidence.
+version: 0.0.1
+author: RichView lockdown fixture
+date: 2026-10-21
+---
+
+All values below are synthetic. They exist only to show how the renderer at commit `b4db233` draws each element.
+
+## Charts
+
+### Line
+
+```chart
+type: line
+title: The Team plan overtook Solo in June
+subtitle: Active workspaces by plan, synthetic, January to December 2025
+data:
+  inline:
+    - {month: 2025-01, plan: Solo, workspaces: 120}
+    - {month: 2025-02, plan: Solo, workspaces: 132}
+    - {month: 2025-03, plan: Solo, workspaces: 140}
+    - {month: 2025-04, plan: Solo, workspaces: 151}
+    - {month: 2025-05, plan: Solo, workspaces: 158}
+    - {month: 2025-06, plan: Solo, workspaces: 160}
+    - {month: 2025-07, plan: Solo, workspaces: 163}
+    - {month: 2025-08, plan: Solo, workspaces: 165}
+    - {month: 2025-09, plan: Solo, workspaces: 170}
+    - {month: 2025-10, plan: Solo, workspaces: 171}
+    - {month: 2025-11, plan: Solo, workspaces: 175}
+    - {month: 2025-12, plan: Solo, workspaces: 178}
+    - {month: 2025-01, plan: Team, workspaces: 60}
+    - {month: 2025-02, plan: Team, workspaces: 78}
+    - {month: 2025-03, plan: Team, workspaces: 97}
+    - {month: 2025-04, plan: Team, workspaces: 118}
+    - {month: 2025-05, plan: Team, workspaces: 139}
+    - {month: 2025-06, plan: Team, workspaces: 162}
+    - {month: 2025-07, plan: Team, workspaces: 181}
+    - {month: 2025-08, plan: Team, workspaces: 204}
+    - {month: 2025-09, plan: Team, workspaces: 222}
+    - {month: 2025-10, plan: Team, workspaces: 245}
+    - {month: 2025-11, plan: Team, workspaces: 262}
+    - {month: 2025-12, plan: Team, workspaces: 280}
+encoding: {x: month, y: workspaces, color: plan}
+axes:
+  y: {label: Active workspaces}
+```
+
+### Bar
+
+```chart
+type: bar
+title: Support load fell in every region except APAC
+subtitle: Tickets per 1,000 accounts, synthetic, 2024 and 2025
+data:
+  inline:
+    - {region: North America, year: '2024', tickets: 42}
+    - {region: North America, year: '2025', tickets: 35}
+    - {region: Europe, year: '2024', tickets: 38}
+    - {region: Europe, year: '2025', tickets: 31}
+    - {region: APAC, year: '2024', tickets: 29}
+    - {region: APAC, year: '2025', tickets: 33}
+    - {region: Latin America, year: '2024', tickets: 47}
+    - {region: Latin America, year: '2025', tickets: 40}
+    - {region: Middle East and Africa, year: '2024', tickets: 51}
+    - {region: Middle East and Africa, year: '2025', tickets: 44}
+encoding: {x: region, y: tickets, color: year}
+axes:
+  y: {label: 'Tickets per 1,000 accounts'}
+```
+
+*Source: synthetic fixture data generated for the lockdown, 21 October 2026.*
+
+### Scatter
+
+```chart
+type: scatter
+title: Larger accounts adopt more features
+subtitle: Seats against features adopted; bubble area is annual contract value; synthetic
+data:
+  inline:
+    - {account: Alder, seats: 12, features: 4, acv: 9}
+    - {account: Birch, seats: 25, features: 6, acv: 21}
+    - {account: Cedar, seats: 40, features: 9, acv: 30}
+    - {account: Dogwood, seats: 55, features: 8, acv: 44}
+    - {account: Elm, seats: 80, features: 12, acv: 70}
+    - {account: Fir, seats: 95, features: 11, acv: 62}
+    - {account: Ginkgo, seats: 130, features: 15, acv: 120}
+    - {account: Hazel, seats: 160, features: 14, acv: 98}
+    - {account: Ivy, seats: 210, features: 18, acv: 180}
+    - {account: Juniper, seats: 260, features: 17, acv: 150}
+    - {account: Kapok, seats: 320, features: 21, acv: 260}
+    - {account: Larch, seats: 400, features: 22, acv: 310}
+encoding: {x: seats, y: features, size: acv, label: account}
+axes:
+  x: {label: Seats}
+  y: {label: Features adopted}
+```
+
+### Area
+
+```chart
+type: area
+title: Hot storage grew fastest after the March launch
+subtitle: Stored terabytes by tier, synthetic, 2025
+data:
+  inline:
+    - {month: 2025-01, tier: Hot, terabytes: 14}
+    - {month: 2025-02, tier: Hot, terabytes: 15}
+    - {month: 2025-03, tier: Hot, terabytes: 17}
+    - {month: 2025-04, tier: Hot, terabytes: 23}
+    - {month: 2025-05, tier: Hot, terabytes: 29}
+    - {month: 2025-06, tier: Hot, terabytes: 34}
+    - {month: 2025-07, tier: Hot, terabytes: 38}
+    - {month: 2025-08, tier: Hot, terabytes: 43}
+    - {month: 2025-09, tier: Hot, terabytes: 47}
+    - {month: 2025-01, tier: Archive, terabytes: 31}
+    - {month: 2025-02, tier: Archive, terabytes: 32}
+    - {month: 2025-03, tier: Archive, terabytes: 33}
+    - {month: 2025-04, tier: Archive, terabytes: 33}
+    - {month: 2025-05, tier: Archive, terabytes: 35}
+    - {month: 2025-06, tier: Archive, terabytes: 36}
+    - {month: 2025-07, tier: Archive, terabytes: 36}
+    - {month: 2025-08, tier: Archive, terabytes: 38}
+    - {month: 2025-09, tier: Archive, terabytes: 39}
+encoding: {x: month, y: terabytes, color: tier}
+axes:
+  y: {label: Stored terabytes}
+```
+
+### Pie
+
+```chart
+type: pie
+title: Search brings in two in five sign-ups
+subtitle: Sign-ups by first touch, synthetic, third quarter of 2025
+data:
+  inline:
+    - {channel: Search, signups: 412}
+    - {channel: Referral, signups: 238}
+    - {channel: Direct, signups: 190}
+    - {channel: Social, signups: 121}
+    - {channel: Events, signups: 64}
+encoding: {x: channel, y: signups}
+```
+
+### Heatmap
+
+```chart
+type: heatmap
+title: Deploys cluster on Tuesday and Wednesday mornings
+subtitle: Production deploys by weekday and start hour, synthetic, last twelve weeks
+data:
+  inline:
+    - {hour: '08:00', weekday: Mon, deploys: 3}
+    - {hour: '10:00', weekday: Mon, deploys: 6}
+    - {hour: '12:00', weekday: Mon, deploys: 4}
+    - {hour: '14:00', weekday: Mon, deploys: 5}
+    - {hour: '16:00', weekday: Mon, deploys: 2}
+    - {hour: '08:00', weekday: Tue, deploys: 9}
+    - {hour: '10:00', weekday: Tue, deploys: 14}
+    - {hour: '12:00', weekday: Tue, deploys: 7}
+    - {hour: '14:00', weekday: Tue, deploys: 6}
+    - {hour: '16:00', weekday: Tue, deploys: 3}
+    - {hour: '08:00', weekday: Wed, deploys: 8}
+    - {hour: '10:00', weekday: Wed, deploys: 12}
+    - {hour: '12:00', weekday: Wed, deploys: 6}
+    - {hour: '14:00', weekday: Wed, deploys: 5}
+    - {hour: '16:00', weekday: Wed, deploys: 2}
+    - {hour: '08:00', weekday: Thu, deploys: 4}
+    - {hour: '10:00', weekday: Thu, deploys: 7}
+    - {hour: '12:00', weekday: Thu, deploys: 5}
+    - {hour: '14:00', weekday: Thu, deploys: 4}
+    - {hour: '16:00', weekday: Thu, deploys: 1}
+    - {hour: '08:00', weekday: Fri, deploys: 2}
+    - {hour: '10:00', weekday: Fri, deploys: 3}
+    - {hour: '12:00', weekday: Fri, deploys: 2}
+    - {hour: '14:00', weekday: Fri, deploys: 1}
+    - {hour: '16:00', weekday: Fri, deploys: 0}
+encoding: {x: hour, y: weekday, color: deploys}
+axes:
+  color: {label: Deploys}
+```
+
+### Histogram
+
+```chart
+type: histogram
+title: Seven in eight API calls finish within 300 ms
+subtitle: Response time of 240 sampled calls, synthetic
+data: {csv: data/latency.csv}
+encoding: {x: ms}
+binning: {count: 12}
+axes:
+  x: {label: Response time (ms)}
+  y: {label: Calls}
+```
+
+### Box plot
+
+```chart
+type: boxplot
+title: Enterprise onboarding takes longest and varies most
+subtitle: Days from contract to first report by segment, synthetic, 105 accounts
+data: {csv: data/onboarding.csv}
+encoding: {x: segment, y: days}
+axes:
+  y: {label: Days to first report}
+```
+
+### Interval
+
+```chart
+type: interval
+title: Only the redesign test clears the 2% target
+subtitle: Conversion uplift with authored 90% ranges, synthetic
+data:
+  inline:
+    - {test: Redesign, low: 0.021, high: 0.058, uplift: 0.039}
+    - {test: Pricing page, low: -0.012, high: 0.031, uplift: 0.009}
+    - {test: Onboarding email, low: -0.004, high: 0.026, uplift: 0.011}
+    - {test: Checkout copy, low: -0.020, high: 0.015, uplift: -0.003}
+encoding: {x: test, y: uplift, lower: low, upper: high}
+axes:
+  y: {label: Conversion uplift, format: percent}
+annotations:
+  - {kind: line, at: {y: 0.02}, text: Target}
+```
+
+## Rich blocks
+
+### Table
+
+```table
+data:
+  inline:
+    - {plan: Solo, region: Europe, accounts: 1840, revenue: 412000, churn: 0.031}
+    - {plan: Solo, region: North America, accounts: 2210, revenue: 538000, churn: 0.028}
+    - {plan: Team, region: Europe, accounts: 640, revenue: 905000, churn: 0.019}
+    - {plan: Team, region: North America, accounts: 810, revenue: 1214000, churn: 0.017}
+    - {plan: Team, region: APAC, accounts: 300, revenue: 388000, churn: 0.024}
+    - {plan: Enterprise, region: Europe, accounts: 42, revenue: 1630000, churn: 0.008}
+    - {plan: Enterprise, region: North America, accounts: 57, revenue: 2275000, churn: 0.006}
+    - {plan: Enterprise, region: APAC, accounts: 18, revenue: 590000, churn: 0.011}
+columns:
+  - {key: plan, label: Plan}
+  - {key: region, label: Region}
+  - {key: accounts, label: Accounts, format: number, align: right}
+  - {key: revenue, label: Revenue, format: currency, align: right}
+  - {key: churn, label: Monthly churn, format: percent, align: right}
+sort: {key: revenue, dir: desc}
+max_rows: 5
+total: true
+```
+
+*Note: five rows show by default; the remaining three sit behind the disclosure.*
+
+### Metrics
+
+```big
+value: 4234567
+label: Q3 revenue
+format: currency_compact
+delta: 0.18
+delta_label: vs Q2
+trend: up
+```
+
+```metric
+value: 12480
+label: Active workspaces
+format: number_compact
+delta: 0.004
+delta_label: vs Q2
+trend: flat
+```
+
+```metric
+value: 0.87
+label: Support satisfaction
+format: percent
+delta: -0.03
+delta_label: vs Q2
+trend: down
+```
+
+### Callouts
+
+```callout
+kind: up
+title: Retention improved.
+body: Twelve-month retention rose to 91% after the onboarding change.
+```
+
+```callout
+kind: down
+title: Margin slipped.
+body: Hosting costs grew faster than revenue in September.
+```
+
+```callout
+kind: neutral
+title: Method.
+body: Every figure in this fixture is synthetic and exists only to exercise the renderer.
+```
+
+```callout
+kind: hold
+title: Sample size caveat.
+body: Only twelve weeks of post-launch data are available.
+```
+
+### Image
+
+```image
+src: media/fixture-image.png
+alt: A generated placeholder with a sand-to-indigo gradient and the words Fixture image.
+caption: Generated placeholder image, 1600 × 900 px, embedded from the report folder.
+width: 1600
+height: 900
+fit: contain
+```
+
+### Embed
+
+```embed
+url: https://www.youtube.com/embed/aqz-KE-bpKQ
+caption: Big Buck Bunny (Blender Foundation, CC BY 3.0) in an allowlisted third-party player.
+```
+
+An embed from a host outside the allowlist renders a notice instead of an iframe:
+
+```embed
+url: https://example.com/widget
+caption: This host is not on the default allowlist.
+```
+
+### Audio
+
+```audio
+src: media/tone.mp3
+title: Generated 440 Hz test tone
+caption: Three-second generated test tone, embedded from the report folder.
+```
+
+### Video
+
+```video
+src: media/clip.mp4
+poster: media/poster.png
+title: Generated test pattern
+caption: Four-second generated FFmpeg test pattern with a poster frame.
+width: 640
+height: 360
+```
+
+## An invalid block
+
+The next fence is deliberately invalid: `donut` is not a chart type. RichView keeps the source visible and records a diagnostic instead of dropping the block.
+
+```chart
+type: donut
+title: An unsupported chart type stays visible as source
+data:
+  inline:
+    - {slice: A, value: 1}
+encoding: {x: slice, y: value}
+```

@@ -1,0 +1,17 @@
+$ richview mcp  <<< initialize {protocolVersion: '2025-06-18'}   # response, pretty-printed
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+    "capabilities": {
+      "resources": {},
+      "tools": {}
+    },
+    "instructions": "Use richview_learn to load the authoring contract. Edit source, render, then inspect geometry with richview_check.",
+    "protocolVersion": "2025-06-18",
+    "serverInfo": {
+      "name": "richview",
+      "version": "3.0.0-alpha.0"
+    }
+  }
+}

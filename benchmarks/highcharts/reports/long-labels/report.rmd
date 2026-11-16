@@ -1,0 +1,44 @@
+---
+title: Quarterly revenue by business unit
+format: rmd/1
+---
+
+```chart
+type: bar
+title: Quarterly revenue by business unit
+subtitle: Long category names and signed values
+encoding:
+  x: unit
+  y: revenue
+  color: quarter
+axes:
+  y:
+    label: Revenue
+    unit: CZK
+data:
+  inline:
+  - unit: Home entertainment subscriptions
+    quarter: Q1
+    revenue: 128400
+  - unit: Home entertainment subscriptions
+    quarter: Q2
+    revenue: 140400
+  - unit: Sports and live broadcasting
+    quarter: Q1
+    revenue: 183500
+  - unit: Sports and live broadcasting
+    quarter: Q2
+    revenue: 195500
+  - unit: Independent creator partnerships
+    quarter: Q1
+    revenue: -24300
+  - unit: Independent creator partnerships
+    quarter: Q2
+    revenue: -12300
+  - unit: International distribution
+    quarter: Q1
+    revenue: 92500
+  - unit: International distribution
+    quarter: Q2
+    revenue: 104500
+```

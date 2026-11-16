@@ -1,0 +1,4 @@
+connectors:
+  local-duckdb:
+    kind: duckdb
+    database: data/warehouse.duckdb

@@ -1,0 +1,5 @@
+'</style><script>HOSTILE_SECTION()</script>':
+  bg: '</style><script>HOSTILE_V()</script>'
+extra: '</script><script>HOSTILE_EXTRA()</script>'
+tokens:
+  bg: '#101010'

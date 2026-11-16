@@ -1,0 +1,32 @@
+---
+title: Show the whole range a measurement moved through
+description: A band draws the lower and upper values you supply across time, with an optional centre line.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Spring days swing about ten degrees
+
+These illustrative readings give each day's low, high and mean. The chart draws the bounds exactly as supplied and calculates no interval.
+
+```chart
+type: band
+title: Daily highs and lows drift upward through March
+subtitle: Degrees Celsius; the line is the daily mean
+data:
+  inline:
+    - {day: 2025-03-01, low: 6.1, high: 15.2, mean: 10.4}
+    - {day: 2025-03-02, low: 7.0, high: 16.8, mean: 11.9}
+    - {day: 2025-03-03, low: 7.9, high: 17.5, mean: 12.6}
+    - {day: 2025-03-04, low: 8.3, high: 18.2, mean: 13.1}
+    - {day: 2025-03-05, low: 8.8, high: 18.9, mean: 13.7}
+    - {day: 2025-03-06, low: 9.4, high: 19.6, mean: 14.2}
+    - {day: 2025-03-07, low: 9.1, high: 19.1, mean: 13.9}
+encoding: {x: day, lower: low, upper: high, y: mean}
+axes:
+  y: {label: Temperature, unit: °C}
+```
+
+*Source: Illustrative values. Bounds are authored, not estimated.*
+
+Use the keyboard or pointer to read each day's bounds.

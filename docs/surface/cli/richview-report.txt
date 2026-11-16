@@ -1,0 +1,13 @@
+Delete, pin, unpin or regenerate a stored report on a server
+
+Usage: richview report <COMMAND>
+
+Commands:
+  delete      Delete a version for good; its address answers 410 and it can never be published again
+  pin         Make a version the one the report address serves
+  unpin       Serve the highest release version again
+  regenerate  Re-render a stored version with this engine and say whether the HTML changes; stores nothing
+  help        Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help  Print help

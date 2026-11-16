@@ -1,0 +1,34 @@
+---
+title: A bin's count follows the filter
+---
+
+# A bin's count follows the filter
+
+South is read with its own rows: the bars of 3, 2 and 1 stand over readouts of 3, 2 and 1. A value of 9.996 shows as "10" at three digits, yet lies in the first bin.
+
+```chart
+type: histogram
+title: Values by region on fixed edges
+data:
+  inline:
+    - {region: North, v: 1}
+    - {region: North, v: 2}
+    - {region: North, v: 9.996}
+    - {region: North, v: 11}
+    - {region: North, v: 30}
+    - {region: South, v: 1}
+    - {region: South, v: 2}
+    - {region: South, v: 9.996}
+    - {region: South, v: 11}
+    - {region: South, v: 12}
+    - {region: South, v: 25}
+encoding: {x: v}
+binning: {edges: [0, 10, 20, 30]}
+controls:
+  - kind: filter
+    id: region
+    field: region
+    label: Region
+    options: [North, South]
+    initial: North
+```

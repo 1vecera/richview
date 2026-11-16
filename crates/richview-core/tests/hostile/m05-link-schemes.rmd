@@ -1,0 +1,23 @@
+---
+title: Link schemes
+---
+
+[js](javascript:HOSTILE_JS()) [mixed](JaVaScRiPt:HOSTILE_MIXED()) [tab](java	script:HOSTILE_TAB()) [entity](&#106;avascript:HOSTILE_ENTITY())
+
+[data](data:text/html;base64,PHNjcmlwdD5IT1NUSUxFPC9zY3JpcHQ+) [vbs](vbscript:HOSTILE_VBS()) [file](file:///etc/passwd) [about](about:blank) [blob](blob:https://evil.example/HOSTILE)
+
+[space]( javascript:HOSTILE_SPACE()) [upper](JAVASCRIPT:HOSTILE_UPPER()) [colon](java&colon;script:HOSTILE_COLON())
+
+<javascript:HOSTILE_AUTOLINK()>
+
+[ref link][evil]
+
+[![image in link](data:image/png;base64,AAAA)](javascript:HOSTILE_IMGLINK())
+
+[title](https://example.org/ok "x\" onmouseover=\"HOSTILE_TITLE()")
+
+[quote](https://example.org/a"onmouseover="HOSTILE_QUOTE())
+
+Allowed: [https](https://example.org/ok) [mailto](mailto:a@example.org) [tel](tel:+420123456789) [anchor](#section) and https://example.org/bare.
+
+[evil]: javascript:HOSTILE_REFERENCE()

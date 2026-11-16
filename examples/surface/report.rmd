@@ -1,0 +1,76 @@
+---
+title: Show how one result varies over two inputs
+description: A surface chart draws a measure over two numeric inputs as a mesh seen from an angle, coloured by its height, so the reader sees where it peaks.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Yield peaks in the middle of the field
+
+These illustrative yields come from a complete grid of water and nitrogen levels, so RichView draws the mesh as given. Rows that do not fill a grid are interpolated onto one and the readout says so. The default view looks from 35 degrees round and 28 degrees above; `style.azimuth` and `style.elevation` change it.
+
+```chart
+type: surface
+title: Yield peaks at moderate water and 80 kg of nitrogen
+subtitle: Crop yield by water and nitrogen, illustrative figures
+data:
+  inline:
+    - {water: 100, nitrogen: 0, yield: 2.2}
+    - {water: 100, nitrogen: 20, yield: 2.5}
+    - {water: 100, nitrogen: 40, yield: 2.8}
+    - {water: 100, nitrogen: 60, yield: 3.1}
+    - {water: 100, nitrogen: 80, yield: 3.3}
+    - {water: 100, nitrogen: 100, yield: 3.1}
+    - {water: 100, nitrogen: 120, yield: 2.8}
+    - {water: 150, nitrogen: 0, yield: 2.5}
+    - {water: 150, nitrogen: 20, yield: 3.1}
+    - {water: 150, nitrogen: 40, yield: 3.9}
+    - {water: 150, nitrogen: 60, yield: 4.7}
+    - {water: 150, nitrogen: 80, yield: 5.0}
+    - {water: 150, nitrogen: 100, yield: 4.7}
+    - {water: 150, nitrogen: 120, yield: 3.9}
+    - {water: 200, nitrogen: 0, yield: 2.9}
+    - {water: 200, nitrogen: 20, yield: 3.9}
+    - {water: 200, nitrogen: 40, yield: 5.2}
+    - {water: 200, nitrogen: 60, yield: 6.5}
+    - {water: 200, nitrogen: 80, yield: 7.0}
+    - {water: 200, nitrogen: 100, yield: 6.5}
+    - {water: 200, nitrogen: 120, yield: 5.2}
+    - {water: 250, nitrogen: 0, yield: 3.0}
+    - {water: 250, nitrogen: 20, yield: 4.2}
+    - {water: 250, nitrogen: 40, yield: 5.8}
+    - {water: 250, nitrogen: 60, yield: 7.4}
+    - {water: 250, nitrogen: 80, yield: 8.0}
+    - {water: 250, nitrogen: 100, yield: 7.4}
+    - {water: 250, nitrogen: 120, yield: 5.8}
+    - {water: 300, nitrogen: 0, yield: 2.9}
+    - {water: 300, nitrogen: 20, yield: 3.9}
+    - {water: 300, nitrogen: 40, yield: 5.2}
+    - {water: 300, nitrogen: 60, yield: 6.5}
+    - {water: 300, nitrogen: 80, yield: 7.0}
+    - {water: 300, nitrogen: 100, yield: 6.5}
+    - {water: 300, nitrogen: 120, yield: 5.2}
+    - {water: 350, nitrogen: 0, yield: 2.5}
+    - {water: 350, nitrogen: 20, yield: 3.1}
+    - {water: 350, nitrogen: 40, yield: 3.9}
+    - {water: 350, nitrogen: 60, yield: 4.7}
+    - {water: 350, nitrogen: 80, yield: 5.0}
+    - {water: 350, nitrogen: 100, yield: 4.7}
+    - {water: 350, nitrogen: 120, yield: 3.9}
+    - {water: 400, nitrogen: 0, yield: 2.2}
+    - {water: 400, nitrogen: 20, yield: 2.5}
+    - {water: 400, nitrogen: 40, yield: 2.8}
+    - {water: 400, nitrogen: 60, yield: 3.1}
+    - {water: 400, nitrogen: 80, yield: 3.3}
+    - {water: 400, nitrogen: 100, yield: 3.1}
+    - {water: 400, nitrogen: 120, yield: 2.8}
+encoding: {x: water, y: nitrogen, z: yield}
+axes:
+  x: {label: Water (mm)}
+  y: {label: Nitrogen (kg/ha)}
+  color: {label: Yield (t/ha)}
+```
+
+*Source: Illustrative figures.*
+
+Use the keyboard or pointer to read the water, nitrogen and mean yield of each cell.

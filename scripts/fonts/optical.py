@@ -1,0 +1,125 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["fonttools==4.65.0", "brotli==1.2.0"]
+# ///
+"""Derive compact native optical estimates from the already-pinned bundled WOFF2 faces.
+
+No downloads. Browser glyph measurements remain a separate, font-settled source of truth.
+uv run scripts/fonts/optical.py [--check]
+"""
+from __future__ import annotations
+
+import argparse
+import base64
+import hashlib
+import io
+import json
+import re
+import struct
+from pathlib import Path
+
+from fontTools.pens.boundsPen import BoundsPen
+from fontTools.ttLib import TTFont
+
+WANTED = {
+    "Space Grotesk": 600, "RichView Serif": 600, "Big Shoulders": 800,
+    "Patrick Hand": 400, "Newsreader": 600, "Geist Mono": 400,
+    "RichView Code": 400, "Space Mono": 400, "RichView Mono": 400,
+}
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2])
+    parser.add_argument("--out", type=Path)
+    parser.add_argument("--check", action="store_true")
+    args = parser.parse_args()
+    root = args.root.resolve()
+    destination = (args.out or root).resolve()
+    faces = {}
+    # A face with a unicode-range lends its family the script digits or signs it lacks
+    # (scripts/fonts/build.py); browsers draw the characters of that range from it.
+    lent: dict[str, list[bytes]] = {}
+    # CSS `ch` is the advance of "0" in the element's face; body text sets the regular weight.
+    zeros = {}
+    for source in sorted((root / "crates/richview-core/assets").glob("fonts-*.css")):
+        for block in re.findall(r"@font-face\s*\{([^}]+)\}", source.read_text()):
+            def value(key: str) -> str:
+                match = re.search(rf"(?:^|;)\s*{key}\s*:\s*([^;]+)", block)
+                return match.group(1).strip().strip('\"\'') if match else ""
+            family = value("font-family")
+            borrowed = bool(value("unicode-range"))
+            if value("font-style") == "normal" and value("font-weight") == "400" and family not in zeros and not borrowed:
+                regular = TTFont(io.BytesIO(base64.b64decode(re.search(r"base64,([A-Za-z0-9+/=]+)", block).group(1))))
+                zero = regular.getBestCmap().get(0x30)
+                if zero:
+                    zeros[family] = round(regular["hmtx"][zero][0] / regular["head"].unitsPerEm * 10000)
+            if family not in WANTED or value("font-style") != "normal" or value("font-weight") != str(WANTED[family]):
+                continue
+            encoded = re.search(r"base64,([A-Za-z0-9+/=]+)", block).group(1)
+            payload = base64.b64decode(encoded)
+            if borrowed:
+                lent.setdefault(family, []).append(payload)
+                continue
+            if family in faces:
+                assert faces[family][0] == payload, f"Ambiguous bundled face: {family}"
+            faces[family] = (payload, source.relative_to(root).as_posix())
+    assert faces.keys() == WANTED.keys(), f"Missing faces: {WANTED.keys() - faces.keys()}"
+    binary = bytearray()
+    records = []
+    for family, weight in WANTED.items():
+        payload, source = faces[family]
+        font = TTFont(io.BytesIO(payload))
+        units = font["head"].unitsPerEm
+        # Unicode scalar to signed left bearing and unsigned advance in 1/10000 em, each in the
+        # face that draws it: a lent face's own characters replace the family's.
+        metrics = {}
+        for face in [font] + [TTFont(io.BytesIO(payload)) for payload in lent.get(family, [])]:
+            glyphs = face.getGlyphSet()
+            for codepoint, name in face.getBestCmap().items():
+                pen = BoundsPen(glyphs)
+                glyphs[name].draw(pen)
+                left = pen.bounds[0] if pen.bounds else 0
+                em = face["head"].unitsPerEm
+                metrics[codepoint] = (round(left / em * 10000), round(face["hmtx"][name][0] / em * 10000))
+        start = len(binary) // 8
+        for codepoint, (left, advance) in sorted(metrics.items()):
+            binary.extend(struct.pack("<IhH", codepoint, left, advance))
+        count = len(binary) // 8 - start
+        # Vertical metrics as browsers lay out a line: typographic ones when the face asks for
+        # them (OS/2 fsSelection bit 7), otherwise hhea; in 1/10000 em, descent positive.
+        os2, hhea = font["OS/2"], font["hhea"]
+        if os2.fsSelection & (1 << 7):
+            ascent, descent = os2.sTypoAscender, -os2.sTypoDescender
+        else:
+            ascent, descent = hhea.ascent, -hhea.descent
+        vertical = (round(ascent / units * 10000), round(descent / units * 10000))
+        digest = hashlib.sha256(payload).hexdigest()
+        for borrowed in lent.get(family, []):
+            digest += f", lent {hashlib.sha256(borrowed).hexdigest()}"
+        records.append((family, weight, start, count, vertical, source, digest))
+    rust = ["// Generated by scripts/fonts/optical.py from bundled font outlines; do not edit.",
+            "// Font licences and pinned provenance: crates/richview-core/assets/font-manifest.json.",
+            'pub(crate) const DATA: &[u8] = include_bytes!("../assets/optical-fonts.bin");',
+            "// Family, available face weight, first record, record count, ascent and descent in 1/10000 em.",
+            "pub(crate) const FACES: &[(&str, u16, usize, usize, u16, u16)] = &["]
+    for family, weight, start, count, (ascent, descent), source, digest in records:
+        rust.extend([f"    // {source}; WOFF2 SHA-256 {digest}", f"    ({json.dumps(family)}, {weight}, {start}, {count}, {ascent}, {descent}),"])
+    rust.append("];")
+    rust.extend(["// Family and the advance of \"0\" at the regular weight in 1/10000 em, for `ch` lengths.",
+                 "pub(crate) const ZERO: &[(&str, u16)] = &["])
+    rust.extend(f"    ({json.dumps(family)}, {advance})," for family, advance in sorted(zeros.items()))
+    rust.append("];")
+    outputs = {"richview-chart/assets/optical-fonts.bin": bytes(binary), "richview-chart/src/optical_metrics.rs": ("\n".join(rust) + "\n").encode()}
+    for relative, data in outputs.items():
+        path = destination / relative
+        if args.check:
+            assert path.read_bytes() == data, f"Stale optical estimates: {relative}"
+        else:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(data)
+    print(json.dumps({"faces": len(records), "glyphs": len(binary)//8, "bytes": len(binary), "sha256": hashlib.sha256(binary).hexdigest()}))
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,56 @@
+{
+ "_source": {
+  "files": [
+   "tmp/prf-probe/preset-pacing-webkit.json"
+  ],
+  "sha256": {
+   "tmp/prf-probe/preset-pacing-webkit.json": "2b60faaacc697b8ffa483eb617ccf3069354ee9bf06d795fa2332ec9c67d6df4"
+  },
+  "note": "tmp/prf-probe/preset-pacing-webkit.mjs (script in the ignored tmp/prf-probe/), b4db233 dist/web, Claw Mini, 2026-10-21"
+ },
+ "data": {
+  "browser": "26.6",
+  "load_before": [
+   2.2109375,
+   2.3349609375,
+   2.6416015625
+  ],
+  "runs": [
+   {
+    "chart": "keeling",
+    "cpu": 1,
+    "rust_frames": 228,
+    "rust_ms_p50": 1,
+    "rust_ms_p95": 3,
+    "rust_ms_max": 5,
+    "raf_interval_p50": 17,
+    "raf_interval_p95": 18,
+    "raf_interval_max": 31,
+    "intervals_over_25ms": 1,
+    "raf_samples": 395,
+    "loaf_over_50": 0,
+    "loaf_max": 0
+   },
+   {
+    "chart": "grid",
+    "cpu": 1,
+    "rust_frames": 229,
+    "rust_ms_p50": 3,
+    "rust_ms_p95": 6,
+    "rust_ms_max": 13,
+    "raf_interval_p50": 17,
+    "raf_interval_p95": 18,
+    "raf_interval_max": 38,
+    "intervals_over_25ms": 1,
+    "raf_samples": 396,
+    "loaf_over_50": 0,
+    "loaf_max": 0
+   }
+  ],
+  "load_after": [
+   2.13134765625,
+   2.3115234375,
+   2.6259765625
+  ]
+ }
+}

@@ -1,0 +1,27 @@
+# Studio exploration "Soft Magazine" (v18-soft-magazine), Experimental.
+# Converted from richview-universe/richview-design-system studio/variants.js @ 8c6a8e0.
+# Tokens and layout live here; the variant's signature rules ship as CSS beside it.
+tokens:
+  scheme: light
+  size-base: "17px"
+  line-base: "1.7"
+  bg: "oklch(0.98 0.012 55)"
+  bg-elev: "oklch(0.96 0.016 55)"
+  bg-chart: "oklch(0.97 0.014 55)"
+  ink: "oklch(0.25 0.018 45)"
+  ink-soft: "oklch(0.48 0.014 45)"
+  ink-faint: "oklch(0.6350 0.012 45.0)"
+  rule: "oklch(0.90 0.012 50)"
+  rule-soft: "oklch(0.94 0.010 50)"
+  accent: "oklch(0.5752 0.1539 13.31)"
+  accent-soft: "oklch(0.5752 0.1539 13.31 / 0.102)"
+  link: "oklch(0.5552 0.1539 13.31)"
+  up: "oklch(0.5250 0.1 150.0)"
+  down: "oklch(0.5550 0.1539 13.31)"
+  hold: "oklch(0.5400 0.11 70.0)"
+  font-text: '"Fraunces", Georgia, serif'
+  font-display: '"Fraunces", serif'
+  font-ui: '"Inter", sans-serif'
+  font-mono: '"JetBrains Mono", monospace'
+  radius-s: "14px"
+  radius-m: "14px"

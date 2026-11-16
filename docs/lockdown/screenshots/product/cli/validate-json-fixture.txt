@@ -1,0 +1,16 @@
+$ richview validate fixture/report.rmd --format json   # the lockdown fixture; JSON pretty-printed
+{
+  "blocks": 22,
+  "diagnostics": [
+    {
+      "code": "block.schema",
+      "level": "error",
+      "line": 362,
+      "message": "chart.type: expected line, bar, scatter, area, pie, heatmap, histogram, boxplot or interval",
+      "path": "chart.type",
+      "tag": "chart"
+    }
+  ],
+  "ok": false
+}
+(exit 1)

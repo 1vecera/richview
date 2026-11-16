@@ -1,0 +1,52 @@
+---
+title: A Gapminder-style scatter with time playback and a region filter
+description: A fictional dataset modelled on Hans Rosling's famous scatter chart, demonstrating RichView's playback and filter controls on a non-time-axis chart. Every observation is invented for this authoring example.
+version: 0.0.1
+slug: playable-gapminder
+styles: [scientific]
+---
+
+## How the chart reads
+
+A scatter chart with four reader-driven dimensions in one authored block: income on x, life expectancy on y, population on bubble size, and region on colour. Playback animates year as a categorical frame; a region button filters the visible bubbles. The chart's mark identity is preserved across frames: Europe always carries the same colour, Asia the same, Americas the same, so your eye follows a region through the century rather than reading a new chart each tick.
+
+```chart
+type: scatter
+title: Income, life expectancy and population — a fictional snapshot across the century
+subtitle: Values are invented for this authoring example; not an economic forecast.
+data:
+  csv: data/gapminder.csv
+encoding:
+  x: income
+  y: life
+  size: pop
+  color: region
+axes:
+  x:
+    label: GDP per capita (international dollars, invented)
+    unit: $
+  y:
+    label: Life expectancy at birth
+    unit: years
+controls:
+  - kind: playback
+    id: year
+    field: year
+    label: Year
+    speed: 900
+    loop: true
+    initial: "2000"
+  - kind: filter
+    id: region
+    field: region
+    label: Region
+    options: [Europe, Asia, Americas, Africa]
+    initial: Europe
+    as: buttons
+```
+
+## How the controls behave
+
+- The playback dimension holds the chart at the selected year, resolving to a row filter on the `year` column. Mark identity by region is preserved as the frame advances, so a reader can follow one region through the series without losing its colour.
+- The region button group filters the visible rows one-of; it reads cleanly without a dashboard-wide picker.
+- Reduced motion is a hard floor: when the reader's system prefers reduced motion the chart renders the end-of-playback frame and the scrubber stays usable, but auto-play does not start and inter-frame transitions are stepped rather than tweened.

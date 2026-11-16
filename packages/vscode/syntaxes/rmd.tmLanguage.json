@@ -1,0 +1,36 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Rich Markdown",
+  "scopeName": "text.rmd",
+  "patterns": [
+    { "include": "#frontmatter" },
+    { "include": "#richBlock" },
+    { "include": "text.html.markdown" }
+  ],
+  "repository": {
+    "frontmatter": {
+      "begin": "\\A-{3}\\s*$",
+      "end": "^-{3}\\s*$",
+      "name": "meta.frontmatter.rmd",
+      "patterns": [
+        { "include": "source.yaml" }
+      ]
+    },
+    "richBlock": {
+      "begin": "^(```)(chart|table|metric|callout|image|embed|scrolly|audio|video)\\s*$",
+      "beginCaptures": {
+        "1": { "name": "punctuation.definition.markdown" },
+        "2": { "name": "entity.name.tag.rmd" }
+      },
+      "end": "^(```)\\s*$",
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.markdown" }
+      },
+      "name": "meta.rich-block.rmd",
+      "contentName": "meta.embedded.block.yaml",
+      "patterns": [
+        { "include": "source.yaml" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,41 @@
+---
+title: The support backlog fell by 30% in four weeks
+description: Synthetic support data demonstrates a complete report with inline source rows.
+version: 0.0.1
+slug: support-backlog-demo
+styles: [scientific]
+---
+
+# Resolution capacity caught up
+
+The open support backlog fell from **180 to 126 tickets** over four weeks. These synthetic rows illustrate a bounded analysis result.
+
+```chart
+type: line
+title: The open backlog fell by 30%
+subtitle: End-of-week open tickets, illustrative data
+data:
+  inline:
+    - { week: "Week 1", open: 180 }
+    - { week: "Week 2", open: 168 }
+    - { week: "Week 3", open: 145 }
+    - { week: "Week 4", open: 126 }
+encoding: { x: week, y: open }
+axes:
+  y: { label: Open tickets }
+```
+
+```metric
+value: 126
+label: Open tickets at the end of Week 4
+delta: -0.30
+delta_label: vs Week 1
+trend: down
+```
+
+```callout
+kind: neutral
+title: Source and limits
+body: |
+  These are synthetic demonstration rows, not a live service metric. Replace the inline rows with a verified analysis result before using the report to make decisions.
+```

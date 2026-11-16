@@ -1,0 +1,35 @@
+---
+title: See where energy comes from and where it goes
+description: A sankey diagram draws each flow as a ribbon as wide as its value, so the largest routes from sources to uses stand out.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Power takes most of the supply
+
+These illustrative figures follow four energy sources through power generation and heating to the three places that use them. Each ribbon is as wide as its flow, and a node is as tall as the larger of what enters and leaves it.
+
+```chart
+type: sankey
+title: Coal and gas feed most of the power that homes and industry use
+subtitle: Energy flows in TWh, synthetic
+data:
+  inline:
+    - {from: Coal, to: Power, twh: 35}
+    - {from: Gas, to: Power, twh: 30}
+    - {from: Gas, to: Heat, twh: 25}
+    - {from: Wind, to: Power, twh: 20}
+    - {from: Solar, to: Power, twh: 10}
+    - {from: Power, to: Homes, twh: 45}
+    - {from: Power, to: Industry, twh: 40}
+    - {from: Power, to: Losses, twh: 10}
+    - {from: Heat, to: Homes, twh: 15}
+    - {from: Heat, to: Industry, twh: 10}
+encoding: {source: from, target: to, y: twh}
+axes:
+  y: {label: TWh}
+```
+
+*Source: Illustrative values.*
+
+Use the keyboard or pointer to read the size of each flow and node, and the share it takes of what leaves its source and what enters its target.

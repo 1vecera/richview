@@ -1,0 +1,137 @@
+{
+  "before": {
+    "head": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+    "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm_sha256": "141dd99c023fc595e987febc299f4c7ce554912fd489d3ffe768a46ce939be4e",
+    "browser": "151.0.7922.173",
+    "created_at": "2026-10-11T20:02:22.987Z",
+    "cases": [
+      {
+        "id": "percent-small-bars-scientific-390",
+        "image": "small-bars-before.png",
+        "source_sha256": "161fe3a041108886fc50b77738b5a94bf4040fc3412c389e2f2b4eef7ad85ddb",
+        "page_errors": [],
+        "width": 390,
+        "box": {
+          "width": 358,
+          "height": 274.25
+        },
+        "diagnostics": {
+          "checks": [],
+          "engine": "rust-svg",
+          "labels": 8,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "clean"
+        }
+      },
+      {
+        "id": "percent-small-line-scientific-320",
+        "image": "phone-line-before.png",
+        "source_sha256": "4d751377ed24b710e01607e07a6ad6bc4b1ca3ad1c0f3b05df5333d7fc8418d6",
+        "page_errors": [],
+        "width": 320,
+        "box": {
+          "width": 288,
+          "height": 308.25
+        },
+        "diagnostics": {
+          "checks": [],
+          "engine": "rust-svg",
+          "labels": 9,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "clean"
+        }
+      }
+    ]
+  },
+  "after": {
+    "head": "f3453317bc5b830c8d08f7a892a4bc86026c7c6d",
+    "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm_sha256": "fd913e5115eb4e74b8f232cfe265f77dea6fceb1fdf20ba96f92073a62a1a841",
+    "browser": "151.0.7922.173",
+    "created_at": "2026-10-11T20:04:59.445Z",
+    "cases": [
+      {
+        "id": "percent-small-bars-scientific-390",
+        "image": "small-bars-after.png",
+        "source_sha256": "161fe3a041108886fc50b77738b5a94bf4040fc3412c389e2f2b4eef7ad85ddb",
+        "page_errors": [],
+        "width": 390,
+        "box": {
+          "width": 358,
+          "height": 274.25
+        },
+        "diagnostics": {
+          "checks": [],
+          "engine": "rust-svg",
+          "labels": 8,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "clean"
+        }
+      },
+      {
+        "id": "percent-small-line-scientific-320",
+        "image": "phone-line-after.png",
+        "source_sha256": "4d751377ed24b710e01607e07a6ad6bc4b1ca3ad1c0f3b05df5333d7fc8418d6",
+        "page_errors": [],
+        "width": 320,
+        "box": {
+          "width": 288,
+          "height": 308.25
+        },
+        "diagnostics": {
+          "checks": [],
+          "engine": "rust-svg",
+          "labels": 9,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "clean"
+        }
+      }
+    ]
+  },
+  "matrix": {
+    "matched_pairs": 120,
+    "themes": [
+      "scientific",
+      "sleek",
+      "sleek-light",
+      "brutalist",
+      "hand-drawn"
+    ],
+    "viewport_widths": [
+      320,
+      390,
+      720
+    ],
+    "capture_errors": 0,
+    "browser_errors": 0,
+    "horizontal_overflow": 0
+  },
+  "validation": {
+    "format": "pass",
+    "native_clippy": "pass",
+    "wasm_clippy": "pass",
+    "workspace_tests": "pass",
+    "release_build": "pass",
+    "generated_fixtures": "pass",
+    "host_checks": {
+      "editor": "pass",
+      "native": "pass",
+      "compat": "pass",
+      "types": "pass",
+      "browser": "pass",
+      "landing": "pass",
+      "cloudflare": "pass",
+      "showcase": "pass",
+      "flagship": "pass",
+      "reel": "pass",
+      "browser-api": "pass",
+      "motion-runtime": "pass",
+      "docs": "pass"
+    }
+  }
+}

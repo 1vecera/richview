@@ -1,0 +1,2877 @@
+{
+  "id": "04b-features-report",
+  "order": 5,
+  "title": "Features: report rendering",
+  "status": "ready",
+  "summary": "This part settles what authors and readers get when RichView renders a report: the document shell, header and link-preview tags, Markdown prose, every block except charts (table, metric, callout, image, audio, video, embed), how failures show in drafts, styles and the `theme` option as authors meet them, motion and the readiness hook, the self-contained file and `Rendered/` folder, data and media embedding, supported browsers, browser print, PDF and other outputs, accessibility and language. Charts are part 04a, CLI, server, MCP and editor surfaces 04c, branch-only features 04d, field types 05 and style tokens 06; items here point to them instead of repeating them. Behaviour was read at `b4db233` (2026-10-16) and checked with the release build and headless Chromium on 2026-10-21 and 2026-10-22; new captures are in `docs/lockdown/screenshots/report-rendering/`. Fixture figures come from `docs/lockdown/screenshots/product/fixture/source/` rendered with its four media files (image, tone, clip and poster), which are not kept beside it; without them `generate` stops with four `report.asset.missing` errors.\n\nThe decisions that change the most:\n\n- **`theme` (FEA-RP-33)**: the light/dark override goes. Today it breaks chart contrast while `check` reports clean, and on a server that also hosts the showcase it silently restyles the report. ARC-06, INT-56 and TYP-69 still assume it.\n- **Failures in drafts (FEA-RP-29 to FEA-RP-31, FEA-RP-57, FEA-RP-58)**: a broken block, missing file or broken link fails only its element with a notice in place, misspelled tags and unreadable frontmatter are flagged, and the in-report report card goes, which part 04c already follows. Today one missing image or linked file aborts the whole render.\n- **PDF (FEA-RP-43, FEA-RP-44)**: PDF export stays, enters `dev` only with its pagination fixtures passing, and refuses reports with errors. Today’s fixture PDF splits its metrics across two pages and ends with a page holding only the colophon.\n- **Leaner Markdown (FEA-RP-05, FEA-RP-12 to FEA-RP-14, FEA-RP-53)**: prolog, wikilinks, pull quotes and raw HTML leave, HTML comments, which today ship in the published file, are dropped, and rich blocks sit only at the top level.\n- **Weight (FEA-RP-38)**: the 2.1 MB runtime is embedded only when a report has a chart or table block; a one-paragraph report weighs 2.37 MB today.\n- **Against Daniel’s own requests**: FEA-RP-35 keeps report text still, reversing his 2026-06-27 request for “beautiful soft animations of chart and texts”.\n- **S27-616’s outputs (FEA-RP-42, FEA-RP-46 to FEA-RP-48)**: following Daniel’s INT-31 answer, hosted media arrive through pinned asset references, scrollytelling is built as an element inside a report, and the carousel PDF and per-output markers are dropped.\n- **Accessibility and privacy (FEA-RP-49, FEA-RP-55, FEA-RP-56)**: WCAG 2.2 AA becomes the standard, checked by the dev gate’s accessibility audit (DEL-58), audio and video gain captions and transcripts, and embeds load only when the reader asks.\n\nAnswer each card: **accept** keeps the proposal as the rewrite’s rule (where options are listed, the proposal is the recommended option; FEA-RP-24 keeps today’s layout because no evidence settles it), **edit** replaces it with your text, **reject** drops the feature or rule from the rewrite, and **defer** leaves it open. A card that removes or adds a format field names the part 05 item it changes under conflicts; answer both the same way. Part 08's cross-part contradiction cards (OPN-50 to OPN-68) decide conflicts involving this part's cards and should be answered first.",
+  "items": [
+    {
+      "id": "FEA-RP-01",
+      "kind": "rule",
+      "importance": "important",
+      "refId": "F-REPRODUCIBLE-RENDER",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Document and header",
+      "title": "The source stays canonical; renders are reproducible",
+      "question": "Do renders leave the `.rmd`, its data and style files untouched, and give byte-identical HTML for identical inputs?",
+      "why": "Git-native publishing (INT-22), the visual gate (DEL-28) and review diffs compare outputs. Daniel's INT-13 answer makes trust in the output the target: the same source renders consistently, to a high standard, every time. A renderer that edits sources, or stamps times and paths into the HTML, would break the plain-text contract (INT-04) and make every diff noisy.",
+      "proposed": "Rendering reads the report folder and writes only under `Rendered/`; it never rewrites the `.rmd`, its data or its style files. The same source, inputs, styles and RichView build produce byte-identical HTML and the same PDF pages. Nothing time-, machine- or path-dependent enters the HTML: generated ids are positional, and drawn marks such as pencil strokes stay seeded.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's INT-13 answer: RichView maximizes trust in the output; the same source renders consistently and to a high standard every time",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-13)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "The flagship example rendered from two folder paths gave identical SHA-256 90397af1…; its source folder was unchanged afterwards",
+          "ref": "Release build at b4db233 (target/release/richview) on examples/openai-vs-anthropic, lockdown probe",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Three renders of the lockdown fixture (scientific), from two folder paths and with the screenshot run’s four media files, gave identical SHA-256 4a58de72…; those files are not kept beside the source",
+          "ref": "docs/lockdown/screenshots/product/fixture/source/report.rmd",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Spec: source, style and data are preserved by export",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/docs/RMD-SPEC.md#L235",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Pencil strokes are drawn from a fixed seed and repeat in every render",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/docs/public/styles.md#L69",
+          "date": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "id": "FEA-RP-02",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-CORE-HTML-DOCUMENT",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Document and header",
+      "title": "HTML document shell",
+      "question": "Is this the document every report renders into?",
+      "why": "Today the shell carries a charset, a viewport, the title and `<meta name=\"generator\" content=\"richview/3.0.0-alpha.0\">`, and `lang` is always `en`. This card adds the report language (TYP-08), the Content Security Policy that ARC-15 requires in exported files, a colour-scheme hint, and a generator tag naming the build commit, because the commit identifies every build, while the public meaning of version numbers is open now that Daniel's INT-71 answer lists the extension and offers builds from `prod` (DEL-41). Link-preview tags are FEA-RP-51.",
+      "proposed": "Every report is one HTML5 document: `<html lang>` from `lang` (TYP-08); charset and viewport; `<title>` from the title; the Content Security Policy `<meta>` of ARC-15; `<meta name=\"color-scheme\">` naming the active style’s scheme, `dark` or `light`; and `<meta name=\"generator\">` naming RichView and its build commit. The body is one `<article>` with `<header>`, `<main>` and `<footer>`. All CSS sits in one `<style>`; the only scripts are inert JSON payloads and the report runtime (ARC-13).",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's INT-71 answer: an install prompt and a shell script, a source build once the source is public, builds from `prod`, the VS Code extension on the Marketplace and Open VSX; agent plugins later",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-71)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Document template: fixed `lang=\"en\"`, viewport, title, generator, article/header/main/footer",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L352-L355",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Font notices and runtime are the scripts a report carries",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L395-L447",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Probe: a one-paragraph report’s `<head>` holds only charset, viewport, title and `richview/3.0.0-alpha.0`",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "The CSP `<meta>` follows ARC-15; if ARC-15 is rejected, it goes."
+    },
+    {
+      "id": "FEA-RP-51",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "F-LINK-PREVIEW-META",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Document and header",
+      "title": "Link-preview and search tags",
+      "question": "Should a report carry a description and Open Graph tags, so a shared link shows its title and deck?",
+      "why": "Today a report carries no `<meta name=\"description\">` and no Open Graph tags, so a link pasted into a chat, an email or a post shows a bare address or the page title, and search results quote arbitrary text. `description` already holds the deck (FEA-RP-04), and TYP-07 would require it to publish.",
+      "proposed": "`<meta name=\"description\">` and `og:description` carry `description`, `og:title` carries the title, and `og:type` is `article`. A report without a description carries neither description tag. A story at an address on a host also carries `og:image`, its alt text and `twitter:card` `summary_large_image`, pointing at the thumbnail its host renders (FEA-SF-55, INT-07). A self-contained file opened from disk has no absolute address and carries no `og:image`. The self-contained file a host offers for download is the embedded-mode render and carries no `og:` tags either. A story shared only with signed-in readers serves no title, description or image to anyone who is not signed in, so a link preview never reveals a private story (INT-07, OPN-54).",
+      "options": [
+        {
+          "label": "Tags from title and description",
+          "detail": "No new field; the preview always repeats the visible deck."
+        },
+        {
+          "label": "Separate `summary` field for previews",
+          "detail": "Preview text can differ from the deck; one more field to write and keep true."
+        },
+        {
+          "label": "No tags (today)",
+          "detail": "Shared links show no summary."
+        }
+      ],
+      "recommendation": "Tags from title and description: agents already write the deck, and a preview that matches the page sets the right expectation.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Daniel's INT-07 answer: a story shared only with signed-in readers shows its title and image only to them, so a link preview never reveals a private story",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-07)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Document template without description or Open Graph tags",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L352-L355",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Probe: a one-paragraph report’s `<head>` holds only charset, viewport, title and generator",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "If TYP-07 makes `description` required to publish, every published report carries both description tags. Daniel’s INT-07 answer gives every story a thumbnail; FEA-SF-55 decides what it shows."
+    },
+    {
+      "id": "FEA-RP-03",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-REPORT-HEADER",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Document and header",
+      "title": "Report header",
+      "question": "Is this the header: optional image, title, deck and byline, with the header image named like any other image?",
+      "why": "Today a path-only `title_image` takes the report title as its alt text, so screen readers hear the title twice; the header image accepts three alias keys; and the date prints exactly as typed.",
+      "proposed": "The header shows, in order: the optional header image, the title as the page’s only `<h1>`, the deck (FEA-RP-04) and a byline with author and date. The header image follows the image block (T-BLOCK-IMAGE): `alt` is required, `\"\"` marks it decorative, and the title is never reused as alt text; a bare path is treated as decorative and warns that `alt` is missing. The date shows in the report language’s long form (FEA-RP-50). Drafts without a title show “Untitled report”. Choosing, cropping and crediting the image: FEA-RP-52.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Header image: `title_image`, `title-image` or `image`; a string gets `alt` = title",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L248-L267",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Title, lede, subtitle and byline (author, date as written)",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L269-L293",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Flagship uses the mapping form with a long alt and a caption",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/examples/openai-vs-anthropic/report.rmd#L18-L25",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "TYP-06 keeps only `title_image` (aliases removed); this item adds the decorative rule for the path form. INT-75 wants the flagship’s header to follow the active style, which an image file cannot (FEA-RP-52)."
+    },
+    {
+      "id": "FEA-RP-52",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "F-HERO-IMAGERY",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Document and header",
+      "title": "Header imagery: choice, crop and credit",
+      "question": "How do authors choose, crop and credit a header image, and what may it claim?",
+      "why": "S27-616 asks for illustrative header imagery “as a normal choice for most reports, with author control over selection, replacement, crop and omission”, and S27-637 for a visible attribution that matches each image’s licence. FEA-RP-03 fixes only the header’s order and alt text, and INT-75 only the flagship’s graphic. Today `title_image` takes the image fields, cropping does not work (`fit` has no visible effect, FEA-RP-26), the credit sits in the caption by convention, and nothing checks that a header graphic’s figures are sourced in the report (the flagship’s header is a chart image whose figures the body repeats with sources).",
+      "proposed": "A header image stays optional and is chosen, replaced or removed through `title_image` alone; `richview learn` presents a credited header image as a normal choice for most reports. It crops like an image block: `width` and `height` set its aspect ratio and `fit: cover` fills that box (FEA-RP-26). Its credit goes in the `credit` field that Daniel's FEA-RP-62 answer gives image blocks and `title_image` (author, author_url, source, source_url), printed under the image in small type, and `caption` describes the image; `richview check` notes (`info`) a header image with neither credit nor caption and warns on an `images.unsplash.com` photo without a credit (FEA-RP-62). `richview image search` and `richview image use` find a photo. Header imagery is one of the tools RichView gives authors (Daniel's INT-77 answer); RichView does not judge whether an image suits the story. A header image may illustrate or summarise, but it states no figure the report does not source; a header graphic that must follow the active style is drawn by the renderer from the report’s data (INT-75), not supplied as an image file.",
+      "options": [
+        {
+          "label": "Credit in the caption",
+          "detail": "No new field; the flagship already credits its header this way, but Daniel's FEA-RP-62 answer makes `credit` a field."
+        },
+        {
+          "label": "A `credit` field",
+          "detail": "Daniel's FEA-RP-62 answer: the credit prints apart from the caption and can feed a sources ledger; TYP-29 gains the field."
+        }
+      ],
+      "recommendation": "A `credit` field: Daniel's FEA-RP-62 answer makes the credit a field, not caption text, and FEA-RP-52 follows it.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Daniel's INT-77 answer: header imagery is one of the tools RichView gives authors; RichView makes no judgment of a story's quality beyond syntax-level analysis",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-77)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Daniel's FEA-RP-62 answer: image blocks and `title_image` take an optional `credit` field; the credit is a field, not caption text",
+          "ref": "docs/lockdown/answers/04b-features-report.json (FEA-RP-62)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "“Restore illustrative header/hero imagery as a normal choice for most reports, with author control over selection, replacement, crop and omission”",
+          "ref": "S27-616",
+          "date": "2026-10-10"
+        },
+        {
+          "label": "“All new images carry a visible attribution + a row in the sources ledger”",
+          "ref": "S27-637",
+          "date": "2026-10-13"
+        },
+        {
+          "label": "The flagship’s header image carries its licence and sources in `caption`",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/examples/openai-vs-anthropic/report.rmd#L18-L25",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Header image rendered as an image block",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L248-L267",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "Daniel's FEA-RP-62 answer (Unsplash photos with attribution) makes `credit` a field of image blocks and `title_image`; this card follows it, so TYP-29 gains the field. INT-75 needs the flagship’s header to follow the active style, which an embedded image file cannot do; no card yet says how a report asks the renderer to draw such a header. Cropping turns TYP-29’s `width` and `height` from size hints into the displayed ratio (FEA-RP-26)."
+    },
+    {
+      "id": "FEA-RP-62",
+      "kind": "decision",
+      "importance": "key",
+      "refId": "F-UNSPLASH-IMAGES",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Document and header",
+      "confidence": "stated",
+      "title": "Unsplash photos with attribution",
+      "question": "Can authors and agents find an Unsplash photo, place it in a report or a RichView News story, and credit it as Unsplash requires?",
+      "why": "Daniel said on 2026-10-26 that he definitely wants Unsplash in RichView. PR #102 (`feat/unsplash-images`, into `dev`) builds it.",
+      "proposed": "Yes, as PR #102 builds it. Image blocks and `title_image` take an optional `credit` (author, author_url, source, source_url) that renders as “Photo by <author> on Unsplash” with links, and an `images.unsplash.com` photo without a credit gets a warning. `richview image search <query>` and `richview image use <id> [--as block|title-image]`, plus the MCP tools `richview_image_search` and `richview_image_use`, find a photo and return paste-ready YAML; `use` registers the download once, search never does. Photos are hotlinked from `images.unsplash.com`. The key comes only from `UNSPLASH_ACCESS_KEY` and never appears in sources, output or agent context. In RichView News, `publish.cover` may be a hotlinked Unsplash URL with a required `cover_credit`, shown on the story header, the front-page lead and list rows. The credit is a field, not caption text, so FEA-RP-52 follows its `credit` option.",
+      "options": [
+        {
+          "label": "Unsplash with a credit field, as in PR #102",
+          "detail": "Daniel's stated wish.",
+          "recommended": true,
+          "chosen": false
+        }
+      ],
+      "recommendation": "Unsplash with a credit field, as in PR #102: Daniel asked for it.",
+      "conflicts": "FEA-RP-52 recommends credit in the caption; this card makes `credit` a field (TYP-29 gains it). Hotlinking adds `images.unsplash.com` to the News gateway's `img-src`.",
+      "sources": [
+        {
+          "label": "Daniel: the sibling session is “adding Unsplash to RichView, which I definitely want”",
+          "ref": "Daniel, review chat",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "PR #102: Unsplash photos with attribution in Rich Markdown, the CLI/MCP and RichView News",
+          "ref": "https://github.com/1vecera/richview/pull/102",
+          "date": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "id": "FEA-RP-04",
+      "kind": "decision",
+      "importance": "important",
+      "refId": "F-HEADER-DECK",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Document and header",
+      "title": "One deck under the title",
+      "question": "Should the header carry one deck, `description`, instead of a lede plus a frontmatter `subtitle`?",
+      "why": "Today `description` prints as the lede, a grey paragraph under the title, and frontmatter `subtitle` prints after it in the same style, so two decks compete under the title. One example (`boxplot`) uses a frontmatter subtitle, and it has no description.",
+      "proposed": "The header has one deck: `description`, set under the title. Frontmatter `subtitle` leaves the format: the migration (INT-51) moves it into `description` when that is empty and otherwise flags it for the author to merge. Chart `subtitle` is unaffected.",
+      "options": [
+        {
+          "label": "One deck",
+          "detail": "Cleaner header; one example migrates. `description` becomes the visible deck and the link-preview text (FEA-RP-51) and, if TYP-07 is accepted, is required to publish: every published report then shows a deck, and its preview text always matches it."
+        },
+        {
+          "label": "Both, subtitle first",
+          "detail": "Title, subtitle, lede: keeps every field; three stacked lines under the title."
+        },
+        {
+          "label": "Keep as is",
+          "detail": "Subtitle after the lede, in the same style."
+        }
+      ],
+      "recommendation": "One deck: one field for one job, and if TYP-07 is accepted, publishing already requires `description`, so a second deck is always redundant.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Lede then subtitle, same markup class pattern",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L273-L279",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Lede and subtitle share one rule set",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/assets/report.css#L92-L99",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Spec: the deck is `description` or `subtitle`",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/docs/RMD-SPEC.md#L351",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Only frontmatter subtitle among the examples, without description",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/examples/boxplot/report.rmd#L1-L5",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "TYP-06 keeps `subtitle` (“optional, after the lede”); accepting this item removes that field there."
+    },
+    {
+      "id": "FEA-RP-05",
+      "kind": "decision",
+      "importance": "important",
+      "refId": "F-PROLOG",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Document and header",
+      "title": "Frontmatter `prolog`",
+      "question": "Keep `prolog`, a Markdown string in frontmatter rendered before the body at 1.1× size?",
+      "why": "No example, template or doc page uses it, and it does what the body’s first paragraph does; keeping it means a second Markdown context inside YAML with its own image and link resolution.",
+      "proposed": "Drop `prolog`. The opening text is the body’s first paragraph. The migration (INT-51) moves an existing prolog to the top of the body.",
+      "options": [
+        {
+          "label": "Drop",
+          "detail": "One Markdown context; no visible loss."
+        },
+        {
+          "label": "Keep",
+          "detail": "Frontmatter-only intro text; one more field for agents to learn."
+        }
+      ],
+      "recommendation": "Drop: unused, and duplicative.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Prolog rendered as a section before the body",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L228-L235",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Prolog styling: 1.1em within the measure",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L950",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "`git grep '^prolog:'` over examples, assets, docs/public and skill finds nothing",
+          "ref": "git grep at b4db233",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "TYP-06 keeps `prolog`."
+    },
+    {
+      "id": "FEA-RP-06",
+      "kind": "decision",
+      "importance": "key",
+      "refId": "F-COLOPHON",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Document and header",
+      "title": "“Made with RichView” colophon",
+      "question": "Does every report end with the “Made with RichView” link to richview.ai, and can it be switched off?",
+      "why": "It is the only RichView branding inside a report and travels with every shared file and PDF. Client reports may need to be unbranded (June positioning research named a PDF and white-label export gap for agency deliverables), and in today’s fixture PDF the colophon sits alone on the last page.",
+      "proposed": "Reports end with a small colophon, “Made with RichView”, with “RichView” linking to https://richview.ai, under a rule. A style file switches it off with `colophon: hide` (STY-04), so a house style for client work stays unbranded. In print it always shares a page with the last block (FEA-RP-43).",
+      "options": [
+        {
+          "label": "On, a style can switch it off",
+          "detail": "Brand by default; white-label through a house style."
+        },
+        {
+          "label": "Always on",
+          "detail": "Maximum reach; client work carries RichView branding."
+        },
+        {
+          "label": "Off by default",
+          "detail": "Neutral output; loses the only in-report pointer to RichView."
+        }
+      ],
+      "recommendation": "On, a style can switch it off: branding is a house decision, not a per-report toggle.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Footer markup: “Made with RichView” link",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L353",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Print rule meant to keep the colophon with the last block",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/assets/print.css#L17",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Fixture PDF: page 9 of 9 holds only the colophon",
+          "ref": "docs/lockdown/screenshots/report-rendering/pdf-scientific-all-pages.jpg",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "“PDF / white-label export gap. Agency client deliverables often demand PDF and custom branding”",
+          "ref": "Daniel's notes: Positioning, ICP & licensing (2026-06-09), line 112",
+          "date": "2026-06-09"
+        }
+      ],
+      "conflicts": "STY-04 defines `colophon: hide`, default `show`, and assumes the recommended option; if Daniel picks “Always on” or “Off by default”, STY-04 changes with it.",
+      "images": [
+        "docs/lockdown/screenshots/report-rendering/pdf-scientific-all-pages.jpg"
+      ]
+    },
+    {
+      "id": "FEA-RP-07",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-CORE-MARKDOWN",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Markdown",
+      "title": "CommonMark and GFM prose",
+      "question": "Is this the prose RichView renders: CommonMark plus GFM tables, strikethrough and task lists, and definition lists?",
+      "why": "Agents write ordinary Markdown; anything beyond it must earn its place. Footnotes, math, source notes, smart punctuation, links, images, raw HTML and headings are decided in their own items.",
+      "proposed": "Body Markdown renders as CommonMark with GFM tables (column alignment kept; right-aligned columns use tabular figures), strikethrough, task lists shown as disabled checkboxes, and definition lists. Markdown tables scroll inside their own box on narrow screens and print in full. The same rules apply inside callout bodies.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Parser options: tables, strikethrough, task lists, footnotes, definition lists, math",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/markdown.rs#L11-L16",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Table alignment becomes `num` and `center` classes",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/markdown.rs#L89-L99",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Probe render: task list as disabled checkboxes, `<dl>`, aligned table",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        }
+      ]
+    },
+    {
+      "id": "FEA-RP-08",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-SMART-PUNCTUATION",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Markdown",
+      "title": "Smart punctuation",
+      "question": "Keep automatic curly quotes, dashes and ellipses in prose?",
+      "why": "Agents type straight quotes and double hyphens; typographic punctuation is part of the editorial look. Today the quote style is English in every report.",
+      "proposed": "Prose gets curly quotes and apostrophes, `--` as an en dash, `---` as an em dash and `...` as an ellipsis, never inside code, math, URLs or command flags such as `--style`; `-->` stays an arrow. Quote marks follow the report language (TYP-08). Dollar amounts such as `$13.07bn vs ~$4.6bn` stay text, never math.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Typesetting rules",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/markdown.rs#L331-L384",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Currency spans are escaped before math parsing",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/markdown.rs#L440-L472",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Probe: “Quoted” text, it’s the ’90s – … — …, `--style` and `-->` unchanged, `$13.07bn vs ~$4.6bn` literal",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        }
+      ]
+    },
+    {
+      "id": "FEA-RP-09",
+      "kind": "feature",
+      "importance": "key",
+      "refId": "F-CORE-SOURCE-NOTES",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Markdown",
+      "title": "Source notes under blocks",
+      "question": "Keep the rule that an italic “Source:” or “Note:” paragraph directly after a block becomes that block’s note, and should a chart or table without one be flagged?",
+      "why": "Traceability is a guarantee RichView keeps (INT-11: every chart and figure can show where its data came from). The flagship uses 18 such notes, linking each to its CSV; nothing tells an agent when a chart has none.",
+      "proposed": "A wholly italic paragraph that starts with `Source:`, `Sources:`, `Note:` or `Notes:` and directly follows a rich block is that block’s note: set roman at the small size under the block, its label styled by the style, kept on the same page in print. Elsewhere it is ordinary italic text. `richview check` warns `block.source` for a chart or table without a source note; synthetic data says so in its note.",
+      "options": [
+        {
+          "label": "Keep and warn when missing",
+          "detail": "Keeps INT-11’s traceability guarantee through the agent loop; synthetic examples add one line each."
+        },
+        {
+          "label": "Keep as is",
+          "detail": "No nudge; sources stay optional."
+        }
+      ],
+      "recommendation": "Keep and warn when missing: the cheapest way to keep INT-11’s traceability guarantee. Daniel's INT-13 answer already says a chart needs its source note and that `richview check` warns when it is missing.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's INT-13 answer: a chart needs a source note under it; `richview check` warns when the note is missing",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-13)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Daniel's INT-11 answer: truthfulness is not a maximized target; stories stay traceable and editable; author-chosen smoothing is allowed",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-11)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Source-note detection and markup",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/markdown.rs#L386-L438",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Print keeps a block with its note",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/assets/print.css#L16-L17",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Flagship source note linking its local CSV",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/examples/openai-vs-anthropic/report.rmd#L82",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "`block.source` is a new diagnostic code; TYP-55’s catalogue gains it only if this card is accepted. Cross-part contradiction: answer OPN-58 first; it decides this card's conflict."
+    },
+    {
+      "id": "FEA-RP-10",
+      "kind": "decision",
+      "importance": "important",
+      "refId": "F-FOOTNOTES",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Markdown",
+      "title": "Footnotes",
+      "question": "Do footnotes render where they are written (today) or as endnotes with links back?",
+      "why": "Today a definition renders where it is written, with a bare id (`1`) that can collide with other ids, and nothing links back to the reference. The margin-column layout that floats definitions beside the text is off in every builtin, and no example uses footnotes.",
+      "proposed": "A footnote reference is a superscript number in source order, linking to a numbered endnote in a “Notes” section at the end of the body; each note links back to its reference. Ids are namespaced (`rv-fn-1`, `rv-fnref-1`). Print and PDF keep the notes at the end.",
+      "options": [
+        {
+          "label": "Endnotes with backlinks",
+          "detail": "The convention readers expect; safe ids."
+        },
+        {
+          "label": "Where written (today)",
+          "detail": "Supports margin notes beside the text; no backlinks."
+        },
+        {
+          "label": "Drop footnotes",
+          "detail": "Smallest; method notes move into prose or source notes."
+        }
+      ],
+      "recommendation": "Endnotes with backlinks.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Probe: `<a href=\"#1\">` and `<div class=\"footnote-definition\" id=\"1\">` placed where written",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Footnote and margin-column CSS",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L949-L954",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "`margin-column: false` in sleek (likewise every builtin)",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/assets/sleek.rstyle.yaml#L48",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "STY-32 drops the margin column (today a float of footnotes into a 22% column at 1100 px and wider, switched off in every builtin, `render.rs:954`) and cites this card’s endnotes, so the two cards agree. STY-32’s “Keep for sidenotes” would need footnotes to stay where written."
+    },
+    {
+      "id": "FEA-RP-11",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "F-MATH",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Markdown",
+      "title": "TeX math as MathML",
+      "question": "Keep `$…$` and `$$…$$` math, rendered to native MathML?",
+      "why": "Method sections sometimes need a formula, and MathML renders natively without a script. No example uses it; a malformed span such as `$\\frac{1$` stays literal text without the diagnostic the spec promises.",
+      "proposed": "Keep. `$…$` renders inline and `$$…$$` as a display formula, both as MathML; wide display formulas scroll horizontally. TeX that cannot be converted, including an unbalanced span, shows as code and warns `markdown.math` at its line. Currency stays text (FEA-RP-08).",
+      "options": [
+        {
+          "label": "Keep",
+          "detail": "Small, script-free, occasionally essential."
+        },
+        {
+          "label": "Drop",
+          "detail": "One dependency fewer; formulas become images or code."
+        }
+      ],
+      "recommendation": "Keep.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "MathML conversion and `markdown.math` warning",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/markdown.rs#L474-L494",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Spec: visible diagnostics for unsupported expressions",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/docs/RMD-SPEC.md#L333",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Probe: `$\\frac{1$` rendered literally with no diagnostic",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        }
+      ]
+    },
+    {
+      "id": "FEA-RP-12",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "F-WIKILINKS",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Markdown",
+      "title": "Wikilinks `[[Report]]`",
+      "question": "Keep `[[Target]]` and `[[Target|label]]` links that point to `/r/<slug>`?",
+      "why": "They resolve only when a RichView server serves the report at its root; in an offline file or under another path they are broken links. Slugs keep non-ASCII letters (`/r/průzkum-žluťoučkého-koně`), and no example uses them.",
+      "proposed": "Drop wikilinks. Links between reports are ordinary Markdown links to a published URL. A `[[…]]` in source renders as its label text and warns `markdown.wikilink` with the target.",
+      "options": [
+        {
+          "label": "Drop",
+          "detail": "One link syntax; nothing breaks offline."
+        },
+        {
+          "label": "Keep, resolve at publish",
+          "detail": "Publishing rewrites them to absolute URLs; offline they render as text."
+        },
+        {
+          "label": "Keep as is",
+          "detail": "Broken outside the server."
+        }
+      ],
+      "recommendation": "Drop: unused, broken offline, and URLs belong to publishing (part 04c).",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Wikilinks become `/r/<slug>` links",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/markdown.rs#L496-L529",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Slug keeps any Unicode letter",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/markdown.rs#L531-L546",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Probe: `[[Průzkum žluťoučkého koně]]` → `/r/průzkum-žluťoučkého-koně`",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "TYP-34 lists `[[Target]]` until this card is answered, and TYP-55 adds `markdown.wikilink` only if it is accepted."
+    },
+    {
+      "id": "FEA-RP-13",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "F-PULL-QUOTE",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Markdown",
+      "title": "Pull quotes `> [!quote] Author`",
+      "question": "Keep the `[!quote]` block-quote marker?",
+      "why": "The marker is recognised at the start of any paragraph, not only in block quotes: the rest of that line becomes a small mono `<cite>` line, inside the quote’s first paragraph when it opens a block quote. Nothing makes it a pull quote (no size, rule or placement), and no example uses it.",
+      "proposed": "Drop `[!quote]`. A quotation is a Markdown block quote, with its attribution as the last line (`— Name`). The marker renders as text and warns `markdown.quote`, pointing to that form.",
+      "options": [
+        {
+          "label": "Drop",
+          "detail": "Block quotes cover it."
+        },
+        {
+          "label": "Make it a real pull quote",
+          "detail": "Large display type set by each style (part 06); one more component."
+        },
+        {
+          "label": "Keep as is",
+          "detail": "An attribution line with no pull-quote treatment."
+        }
+      ],
+      "recommendation": "Drop: nothing asks for it, and a real pull quote is a design element every style would have to own.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Marker becomes a `<cite>` line",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/markdown.rs#L497-L503",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Only styling: small mono block",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L953",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Probe: `[!quote] Plain Name …` in a plain paragraph became `<p><cite class=\"rv-pullquote__author\">…</cite></p>`; in a block quote the cite sat inside its first paragraph",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "TYP-34 lists the marker until this card is answered, and TYP-55 adds `markdown.quote` only if it is accepted."
+    },
+    {
+      "id": "FEA-RP-14",
+      "kind": "decision",
+      "importance": "important",
+      "refId": "F-RAW-HTML",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Markdown",
+      "title": "Raw HTML and comments in Markdown",
+      "question": "What happens to HTML, including comments, typed into the Markdown body?",
+      "why": "Today raw HTML passes ammonia’s broad default allowlist plus `input`, MathML and definition lists, with `class` and `id` kept, so source can imitate RichView components (`class=\"rv-chart\"`) and inject headings, figures, tables and remote images: `<img src=\"https://…\">` survives with only an `assets.external-reference` info. `<script>`, `<iframe>`, `javascript:`, `onerror=` and `onload=` warn `security.html`; `onclick`, other event attributes and `style` vanish without a warning. HTML comments are copied into the published file: `<!-- private note: do not publish -->` ships with status clean. No example uses raw HTML.",
+      "proposed": "Raw HTML never renders. Each tag is removed with a `security.html` warning at its line naming the Markdown alternative; its text stays as text. HTML comments are dropped silently and never reach output. Entities such as `&nbsp;` still work, and sub- and superscripts use Unicode (m², CO₂).",
+      "options": [
+        {
+          "label": "Remove all, with warnings",
+          "detail": "One rule for agents; nothing for hostile source to reuse (INT-28)."
+        },
+        {
+          "label": "Tiny allowlist",
+          "detail": "`sub`, `sup`, `kbd`, `abbr`, `br`, `details` without attributes; ARC-13 then keeps one sanitizer without `class` or `id`."
+        },
+        {
+          "label": "Keep today’s subset",
+          "detail": "Broad, class and id kept; comments published."
+        }
+      ],
+      "recommendation": "Remove all, with warnings; comments never ship under any option.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "`security.html` only for script, iframe, `javascript:`, `onerror` and `onload`; info for a remote `<img>`",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/markdown.rs#L199-L218",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Sanitizer: ammonia defaults plus `input`, MathML and definition lists; keeps comments, `class` and `id`",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/markdown.rs#L228-L290",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Probe: `<span class=\"rv-chart\" id=\"rv-chart-0\">` survived; `style` and `onclick` removed without warning",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Probe: raw `<h1 id>`, `<figure class=\"rv-image\">`, `<table>` and a remote `<img src=\"https://…\">` survived with `ok: true` and one `assets.external-reference` info; `onerror` warned `security.html`",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Probe: both HTML comments present in Rendered/report.html, status clean",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "INT-28 rules out raw HTML from source. ARC-13 follows this card, and TYP-34 leaves its raw-HTML row to it."
+    },
+    {
+      "id": "FEA-RP-15",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-LINKS",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Markdown",
+      "title": "Links",
+      "question": "Which links render, and how do links to files in the report folder behave, including missing ones?",
+      "why": "The flagship links each source note to its CSV in the report folder, so those files must travel with the HTML. Today a link with another scheme (`ftp:`, `javascript:`) becomes `href=\"#\"` with a `security.link` warning that has no line. Every link target without a colon, other than a `#` anchor, is treated as a report file: a root-relative link (`/about`), a `//host` link or a link to a file missing from the folder stops native `generate` with `report.asset.escape` or `report.asset.missing`, without a line and without writing HTML. Bare URLs in prose are not linked.",
+      "proposed": "Links render for `http`, `https`, `mailto` and `tel`, and for report-relative paths to files inside the folder (T-REPORT-FOLDER). A relative link points to a copy beside the HTML in `Rendered/` (FEA-RP-40) and prints as text in PDF. A relative link whose file is missing or outside the folder, `/`-rooted paths included, renders as its text with an error at its line, and the draft is still written (FEA-RP-30). Other schemes and `//host` URLs render as their text with a `security.link` warning at the link’s line. Bare `http(s)` URLs in prose link as in GFM. Links open in the same tab with `rel=\"noopener noreferrer\"`.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Allowed link schemes",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/markdown.rs#L548-L560",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Unsafe schemes become `#` with a `security.link` warning without a line",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/markdown.rs#L108-L118",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Link targets without a colon are checked as report files",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/folder.rs#L73-L85",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Probe: `[ftp](ftp://…)` and `[js](javascript:alert(1))` gave two `security.link` warnings without lines and `href=\"#\"`",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Probe: `[about](/about)` and `[host](//example.com/x)` stopped `generate` with `report.asset.escape`, `[missing](notes/missing.txt)` with `report.asset.missing`; no line, no HTML",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "PDF: local links print as text with `export.local-link`",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-app/src/export_pdf.rs#L714-L724",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Probe: bare `https://example.org/path` and `www.example.org` stay text; `<https://example.com>` links",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "TYP-39 makes escaping and missing paths errors at the referencing line; this card adds that the link keeps its text and the draft is still written."
+    },
+    {
+      "id": "FEA-RP-16",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-MARKDOWN-IMAGES",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Markdown",
+      "title": "Images in Markdown",
+      "question": "Keep `![alt](path)` images in prose and callouts beside the image block?",
+      "why": "They embed like image blocks but render as a bare `<img>` inside a paragraph, without caption or size hints, and nothing caps their width: a 1600 px image renders 1600 px wide inside a 512 px measure, so the page scrolls sideways at 1440 and at 390 px. A missing file aborts the whole render today (FEA-RP-30).",
+      "proposed": "Keep. A Markdown image is an inline picture embedded from the report folder, never wider than the measure, with the bracket text as `alt`; empty brackets mark it decorative. Figures that need a caption, fit or size use the image block. Remote images follow TYP-40.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Markdown images resolved from report data and embedded",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/markdown.rs#L131-L188",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Probe: `<img src=\"data:…\" alt=\"alt text\">` inside a paragraph",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Probe: a 1600×900 Markdown image rendered 1600 px wide in a 512 px paragraph; the page grew to 1,904 px at 1440 and 1,616 px at 390 (headless Chromium)",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-22"
+        }
+      ]
+    },
+    {
+      "id": "FEA-RP-17",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "F-CODE-BLOCKS",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Markdown",
+      "title": "Code blocks",
+      "question": "How do ordinary fenced code blocks render: plain, in the style’s mono face, or highlighted?",
+      "why": "Only inline code gets the style’s mono face; `pre code` falls back to the browser’s default monospace, so the fixture PDF reports 137 glyphs drawn in Menlo (`export.font-fallback`). A highlighter for Rich Markdown, YAML and shell exists, but only the site uses it.",
+      "proposed": "Fenced code blocks, including unknown tags such as `sql` or `mermaid`, render as plain preformatted text in the style’s mono face at the small size, scrolling horizontally on screen and wrapping on paper. Reports apply no syntax highlighting, and diagram languages are not executed.",
+      "options": [
+        {
+          "label": "Plain, style mono face",
+          "detail": "Fixes the font fallback; no colour decisions per style."
+        },
+        {
+          "label": "Highlight known languages",
+          "detail": "Reuse the site highlighter for rmd, YAML and shell; every style must define code colours."
+        },
+        {
+          "label": "Keep as is",
+          "detail": "Browser monospace; PDF depends on the printing machine’s fonts."
+        }
+      ],
+      "recommendation": "Plain, style mono face: reports are data stories, and code is rare.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Mono face only for `code:not(pre code)`; `pre` sets a font the inner `code` does not inherit",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/assets/report.css#L125-L132",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Fixture PDF: `export.font-fallback`, 137 glyphs in Menlo",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Highlighter used by the docs build and homepage only",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-build/src/main.rs#L358",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "`evidence/product.md` (F-CORE-CODE-HIGHLIGHT) lists highlighting as a core feature; no report path calls it."
+    },
+    {
+      "id": "FEA-RP-18",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-HEADINGS",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Markdown",
+      "title": "Headings, outline and section anchors",
+      "question": "Should the title be the only `<h1>`, and should every heading get a stable anchor?",
+      "why": "Body `#` headings render as a second `<h1>`; four examples and the `richview init` template open with one. Headings have no ids, so no section can be linked.",
+      "proposed": "The title is the page’s only `<h1>`. Body headings are normalized so the top level used renders as `<h2>`: a body that uses `#` shifts every level down by one, and a body that starts at `##`, like the flagship, keeps its levels. Each heading gets an id from its text (ASCII slug, numbered when repeated, never clashing with RichView ids), so `report.html#method` works; no visible anchor glyph. Author-written `{#id}` stays outside the format (TYP-34).",
+      "options": [
+        {
+          "label": "Normalize body levels",
+          "detail": "Natural Markdown stays correct; one top level; the flagship is unchanged."
+        },
+        {
+          "label": "Keep `#` as `<h1>`, warn",
+          "detail": "Authors fix their own levels."
+        },
+        {
+          "label": "Keep as is",
+          "detail": "Two `<h1>` in four examples."
+        }
+      ],
+      "recommendation": "Normalize body levels.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "`richview init` template: frontmatter title plus body `# My report`",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-app/src/cli.rs#L588-L597",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Example with title and a body `#` heading",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/examples/hello-world/report.rmd#L2-L11",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Probe: `<h2>Prose and punctuation</h2>` without id",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        }
+      ]
+    },
+    {
+      "id": "FEA-RP-53",
+      "kind": "decision",
+      "importance": "important",
+      "refId": "F-NESTED-BLOCKS",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Markdown",
+      "title": "Rich blocks inside callouts, lists and quotes",
+      "question": "May a rich block sit inside a callout body, a list item or a block quote?",
+      "why": "No card decides it, and today each case fails differently. A `table` fence in a callout body renders as a YAML code block and the report stays `clean`. A rich fence in a list item or block quote is lifted out and rendered after it, splitting the list or quote in two. An inner fence as long as the callout’s own fence closes the callout early, so the text after it becomes a stray code block. No tracked `.rmd` nests a rich block.",
+      "proposed": "Rich blocks sit only at the top level of the body. A rich fence inside a callout body, a list item or a block quote is `block.nested` (error) at its line and renders the not-rendered notice with its source (FEA-RP-29), telling the author to move the block out. The spec and `richview learn` say that a code fence inside a callout body needs the callout’s own fence to be longer.",
+      "options": [
+        {
+          "label": "Top level only",
+          "detail": "One layout rule; a misplaced block is an error at its line, never silent."
+        },
+        {
+          "label": "Render them nested",
+          "detail": "Tables in callouts and charts in lists work; measures, print rules and diagnostics must be defined for every nesting."
+        },
+        {
+          "label": "As today",
+          "detail": "Callouts show YAML as code; lists and quotes split."
+        }
+      ],
+      "recommendation": "Top level only: nothing uses nesting, and an error at the line tells the agent exactly what to fix.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Rich fences are found among all CommonMark code blocks, including those in list items and block quotes",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/parser.rs#L90-L118",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Callout bodies go through Markdown, where fences become code",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L212-L232",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Probe: a `table` fence in a callout body rendered as `<pre><code class=\"language-table\">`, status clean",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Probe: a `table` fence in a list item rendered between two lists, one in a block quote between two quotes; an inner fence as long as the callout’s closed it early",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "`git grep` over tracked `.rmd` and `.md` files at b4db233 finds no indented or quoted rich fence",
+          "ref": "git grep at b4db233",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "TYP-01 defines a rich fence by its info string alone; accepting adds the top-level rule there and `block.nested` to TYP-55’s catalogue. Cross-part contradiction: answer OPN-58 first; it decides this card's conflict."
+    },
+    {
+      "id": "FEA-RP-19",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-CORE-TABLE",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Rich blocks: tables and metrics",
+      "title": "Table block rendering",
+      "question": "Is this how a table block renders?",
+      "why": "Today numeric columns align left unless the author sets `format` or `align`, columns taken from the data come out in alphabetical order (inline keys `a, n, m` render as `a, m, n`), and rows beyond `max_rows` move into a second table, with its own column widths, placed after the totals row.",
+      "proposed": "A table block renders one semantic `<table>`: header cells with `scope=\"col\"`, columns in source order (TYP-25), values formatted per column (T-VALUE-FORMAT), numeric columns right-aligned with tabular figures unless `align` says otherwise, ISO dates and identifiers kept on one line, and a cell holding one whole URL shown as its host and linked. Rows beyond `max_rows` sit in a native disclosure labelled “Showing N of M rows” (TYP-24) directly below, continuing the same columns; the total row comes after all rows. Print shows every row with headers repeated. A table wider than its box scrolls inside it; its width follows STY-30 and TYP-89 (FEA-RP-26).\n\nDaniel's FEA-CH-01 answer asks for much better tables, with the best styling, as normal tables and pivot tables. This card is the normal table; how it looks in each style is STY-61's and each style's design review (STY-01).\n\nOpen item: specify the pivot table: how it is authored, how it aggregates and how it renders.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's FEA-CH-01 answer: the richest chart library, at least every ggplot2, Plotly, ECharts, Highcharts and Power BI type; plus map and flow elements and much better normal and pivot tables",
+          "ref": "docs/lockdown/answers/04a-features-chart.json (FEA-CH-01)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Table rendering, overflow `<details>` with a second table after `<tfoot>`",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L354-L471",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Right alignment only with `align: right` or a number format",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L545-L558",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Cell types: URL host link, date and id tokens",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L577-L611",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Probe: inline keys `a, n, m` rendered as columns `a, m, n`; the numeric column `n` left-aligned; overflow summary “Showing 1 of 2 rows · Show remaining rows”",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-22"
+        }
+      ],
+      "images": [
+        "docs/lockdown/screenshots/product/fixture/fixture-scientific-desktop-full.jpg"
+      ]
+    },
+    {
+      "id": "FEA-RP-20",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "F-TABLE-TITLE",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Rich blocks: tables and metrics",
+      "title": "Table title and accessible name",
+      "question": "Should a table block take an optional `title`, rendered as its caption and accessible name?",
+      "why": "Charts state their claim in a required title; tables have none, so a screen reader announces an unnamed table and the reader gets no claim. One table already sets `title` (`benchmarks/chart-regression/report.rmd:178`), and today it is ignored without a diagnostic.",
+      "proposed": "A table block accepts an optional `title`, rendered as `<caption>` in the chart-title style and used as the table’s accessible name. `richview check` notes (`info`) a table without one.",
+      "options": [
+        {
+          "label": "Optional `title` as caption",
+          "detail": "Same claim-first habit as charts; one optional field."
+        },
+        {
+          "label": "Name from the preceding heading",
+          "detail": "No new field; wrong when the heading covers more than the table."
+        },
+        {
+          "label": "No name",
+          "detail": "Today."
+        }
+      ],
+      "recommendation": "Optional `title` as caption.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Table markup has no `<caption>` or label",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L468-L470",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Chart titles state the claim and are required",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/docs/RMD-SPEC.md#L77",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "A table block with `title: Fixed review comments`, ignored today",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/benchmarks/chart-regression/report.rmd#L178",
+          "date": "2026-10-11"
+        }
+      ],
+      "conflicts": "TYP-24 has a `title` row only if this card is accepted; otherwise the benchmark’s `title` is an unknown key (TYP-10)."
+    },
+    {
+      "id": "FEA-RP-21",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "F-TABLE-TOTALS",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Rich blocks: tables and metrics",
+      "title": "Table totals",
+      "question": "What does `total` sum?",
+      "why": "`total: true` sums every column whose cells are all numbers, rates included: the fixture’s “Monthly churn” total reads 14.4%. A numeric first column such as a year is summed too (`2024` and `2025` print `4049.0`), so “Total” disappears, and sums of columns without a format print raw floats (`6.0`, `3.0`).",
+      "proposed": "`total` takes a list of columns to sum (`total: [accounts, revenue]`) or `true`, which sums every numeric column except `percent` ones and warns `table.total` naming any it skipped. `true` cannot tell an average, price or index formatted as `number` or `currency` from a count, so those tables need the list form. Each sum uses its column’s format, the first column reads “Total”, and the row follows all rows, hidden ones included. Averages and rates are never implied.",
+      "options": [
+        {
+          "label": "List, plus a safe `true`",
+          "detail": "Explicit when it matters; existing sources keep working without summing percent-formatted rates, but averages and prices formatted as numbers are still summed."
+        },
+        {
+          "label": "List only",
+          "detail": "No guessing; every existing `total: true` needs a migration."
+        },
+        {
+          "label": "Keep sum-all",
+          "detail": "Today: rates and indices get summed."
+        }
+      ],
+      "recommendation": "List, plus a safe `true`.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Totals sum every all-numeric column over all rows",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L428-L450",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Fixture total of the churn-rate column reads 14.4%",
+          "ref": "docs/lockdown/screenshots/INDEX.md:462",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Probe: unformatted totals print `6.0` and `3.0`",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Probe: with `total: true`, a `year` first column summed to `4049.0` and no cell read “Total”",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "TYP-24 defines `total` as a boolean that sums every all-numeric column; accepting this changes the field there. Cross-part contradiction: answer OPN-58 first; it decides this card's conflict."
+    },
+    {
+      "id": "FEA-RP-22",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-WEB-TABLE-SORT",
+      "component": "C-RICHVIEW-WEB",
+      "group": "Rich blocks: tables and metrics",
+      "title": "Sorting a table",
+      "question": "Keep reader sorting by column header, and how should it behave?",
+      "why": "Today a sort replaces the whole table element, so keyboard focus drops to the page and an opened overflow closes; the cycle never returns to the author’s order; and without the runtime the header buttons do nothing.",
+      "proposed": "Keep. Once the runtime runs, each header becomes a button; activating it sorts ascending, then descending, then back to the author’s order, announced through `aria-sort`. Rows reorder in place: focus stays on the header, and the overflow state and total stay. Numbers sort numerically, dates chronologically, text by the report language, empty cells last. Static HTML has plain headers, so no button is dead before the runtime starts.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Click handler re-renders and replaces the `.rv-table` element",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-web/src/browser/authoring.rs#L1283-L1316",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Static HTML already contains the sort buttons",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L419-L427",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Sort arrows and focus ring",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L948",
+          "date": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "id": "FEA-RP-54",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "F-TABLE-CELL-TEXT",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Rich blocks: tables and metrics",
+      "title": "Markdown in table-block cells",
+      "question": "Do table-block cells render inline Markdown, or show their values as written?",
+      "why": "Table-block cells are escaped text: `**Bold** and [link](https://example.com)` shows its raw syntax with no diagnostic, while the same text in a GFM table in prose is formatted. Booleans print as `true` and `false`. Data values can contain Markdown characters, so parsing Markdown in cells would change what they show: `__init__` would turn bold and `5*3*2` would lose its asterisks. FEA-RP-19, TYP-24 and TYP-91 leave this open.",
+      "proposed": "Cells show their values as written: no Markdown is parsed, so text stays as the source has it and numbers change only by the author's precision (FEA-CH-37). A cell holding one whole URL still links (FEA-RP-19), and booleans print as `true` and `false`. Formatted text belongs in a GFM table in prose. `richview check` notes (`info`) inline-data cells that contain Markdown emphasis or link syntax.",
+      "options": [
+        {
+          "label": "Values as written",
+          "detail": "Data unchanged apart from the author's precision; formatted text goes in prose tables; one info note catches the agent habit."
+        },
+        {
+          "label": "Inline Markdown in inline data only",
+          "detail": "Authored rows can carry emphasis and links while CSV and JSON stay unchanged; two rules for one block."
+        },
+        {
+          "label": "Inline Markdown everywhere",
+          "detail": "Matches GFM tables; values containing `*` or `_` can change."
+        }
+      ],
+      "recommendation": "Values as written: a table block is a data view, so its cells must not change on their way to the page beyond the precision the author chose (FEA-CH-37).",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's FEA-CH-37 answer: three significant digits by default, four at most with a scale word; readers never get more precision than the author chose, in readouts, tooltips, Table, CSV or exports; authors set precision per chart or element; no publish warning",
+          "ref": "docs/lockdown/answers/04a-features-chart.json (FEA-CH-37)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's FEA-CH-01 answer: the richest chart library, at least every ggplot2, Plotly, ECharts, Highcharts and Power BI type; plus map and flow elements and much better normal and pivot tables",
+          "ref": "docs/lockdown/answers/04a-features-chart.json (FEA-CH-01)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's INT-11 answer: truthfulness is not a maximized target; stories stay traceable and editable; author-chosen smoothing is allowed",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-11)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Cells are escaped text; only whole URLs, dates and ids get special treatment",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L577-L611",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Probe: the cell `**Bold** and [link](https://example.com)` printed literally and booleans as `true`/`false`, status clean; the same text in a GFM table rendered bold with a link",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "The info note is a new code, `table.markdown`, for TYP-55’s catalogue. Daniel's FEA-CH-01 answer asks for much better tables with the best styling: under this card a table whose authored cells need emphasis or links moves to a GFM table in prose (FEA-RP-07), which then needs the same table styling, or the option “Inline Markdown in inline data only” applies. Cross-part contradiction: answer OPN-58 first; it decides this card's conflict."
+    },
+    {
+      "id": "FEA-RP-23",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-CORE-BIG-NUMBER",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Rich blocks: tables and metrics",
+      "title": "Metric stat line",
+      "question": "Is this how a `metric` renders?",
+      "why": "Today a zero delta prints “0.0%” in the trend’s colour, the delta colour defaults to neutral rather than its sign, and `percent` with unit `%` prints `68.2%%` (TYP-27 fixes the value rules, TYP-88 the trend default).",
+      "proposed": "A metric renders as a stat line: the value in the display face at the style’s `h1` type size, smaller than the title, with tabular figures in every style, Brutalist and Hand-drawn through RichView's tabular-figure variants of Big Shoulders and Patrick Hand (OPN-62), then the label, then the delta with `delta_label`. The delta prints its sign (`+4.0%`, `−2.0%`, `0.0%`) and takes the `trend` colour, which defaults to the sign if TYP-88 is accepted; the sign and words carry the meaning, never colour alone. Values never animate. Each style’s frame (rule, bracket, knockout or underline) is STY-33’s.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's OPN-62 answer: tabular figures wherever the font can; proportional figures only where alignment isn't needed and the font has no tabular set; RichView makes tabular-figure variants of Big Shoulders and Patrick Hand under the SIL Open Font License, named as any Reserved Font Name rule requires",
+          "ref": "docs/lockdown/answers/08-open-work.json (OPN-62)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Metric rendering; delta colour defaults to `flat`",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L296-L338",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Stat line CSS",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/assets/report.css#L171-L186",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Probe: `68.2%%` and a zero delta coloured `down`",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "STY-33 proposes a filled knockout block for Brutalist, the one exception to type under rules, and names the first variant `rule` where TYP-48 says `card`. Settled by OPN-62 for the figures: tabular in every style, through RichView's variants of Big Shoulders and Patrick Hand. Cross-part contradiction: answer OPN-61 first; it decides the variant's name.",
+      "images": [
+        "docs/lockdown/screenshots/product/fixture/fixture-scientific-desktop-full.jpg"
+      ]
+    },
+    {
+      "id": "FEA-RP-24",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "F-METRIC-ROW",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Rich blocks: tables and metrics",
+      "title": "Consecutive metrics",
+      "question": "Do consecutive metric blocks stay stacked, or form one row of figures on wide screens?",
+      "why": "Each metric is its own block, so three metrics stack into three ruled lines. In the fixture PDF the group splits: the first metric ends page 6 and the other two open page 7. A row would read as one set of key figures and can stay within the measure and its left edge (INT-60). No evidence records Daniel’s preference.",
+      "proposed": "Consecutive metrics stack as separate stat lines, each under its own rule, at every width.",
+      "options": [
+        {
+          "label": "Stacked (today)",
+          "detail": "One reading spine; long pages when there are many figures."
+        },
+        {
+          "label": "Row on wide screens",
+          "detail": "Metrics with no text between them share one row within the measure while each value fits on one line; stacked on phones and paper."
+        }
+      ],
+      "recommendation": "Stacked (today): this is a visual call no evidence settles, so the proposal keeps today’s layout.",
+      "confidence": "unknown",
+      "sources": [
+        {
+          "label": "Each metric is its own `rv-big` block",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L334-L337",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Fixture in scientific: three metrics stacked",
+          "ref": "docs/lockdown/screenshots/product/fixture/fixture-scientific-desktop-full.jpg",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Fixture PDF: the first metric ends page 6, the other two open page 7",
+          "ref": "docs/lockdown/screenshots/report-rendering/pdf-scientific-all-pages.jpg",
+          "date": "2026-10-21"
+        }
+      ],
+      "images": [
+        "docs/lockdown/screenshots/product/fixture/fixture-scientific-desktop-full.jpg",
+        "docs/lockdown/screenshots/report-rendering/pdf-scientific-all-pages.jpg"
+      ]
+    },
+    {
+      "id": "FEA-RP-25",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-CORE-CALLOUT",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Rich blocks: callouts, media and embeds",
+      "title": "Callout",
+      "question": "Is this how a callout renders, and how does a reader tell its kind?",
+      "why": "The kind (`up`, `down`, `neutral`, `hold`) shows only as the title’s colour. A callout without a title shows no kind at all, and in hand-drawn, where up and down share one ink, the kind is invisible by design (“kinds read from their signs and words, not from colour”).",
+      "proposed": "A callout renders as an aside under one rule within the reading column: an optional run-in title in the display face, coloured by kind, then the Markdown body. The title’s words carry the meaning; colour only reinforces it. A non-neutral callout without a title warns `callout.title` (“name the finding; colour alone is not read”). No icon, fill or side bar.",
+      "options": [
+        {
+          "label": "Words carry the kind",
+          "detail": "Title warning; no added chrome."
+        },
+        {
+          "label": "Printed kind label",
+          "detail": "A word such as “Upside” or “Risk” before the title; more chrome, English-only strings."
+        },
+        {
+          "label": "Colour only (today)",
+          "detail": "Kind lost without a title and in hand-drawn."
+        }
+      ],
+      "recommendation": "Words carry the kind.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Callout markup: kind only as a class",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L212-L232",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Only the title is coloured by kind",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/assets/report.css#L187-L200",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Hand-drawn: up and down share one ink",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/assets/hand-drawn.rstyle.yaml#L29-L31",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "`evidence/product.md` (F-CORE-CALLOUT) says `title` is required and `kind` defaults to `neutral`; the code requires `kind` and `body` and makes `title` optional (TYP-28). STY-13 keeps Hand-drawn’s pencil bracket beside callouts as the one exception to “no side bar”. `callout.title` is a new code; TYP-55’s catalogue gains it only if this card is accepted. Cross-part contradiction: answer OPN-58 first; it decides this card's conflict.",
+      "images": [
+        "docs/lockdown/screenshots/product/fixture/fixture-scientific-desktop-full.jpg"
+      ]
+    },
+    {
+      "id": "FEA-RP-26",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-CORE-MEDIA",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Rich blocks: callouts, media and embeds",
+      "title": "Image block",
+      "question": "Is this how an image block renders, including cropping and images wider than the text?",
+      "why": "Images stay inside the measure: CSS for full-width images exists, but no source field switches it on, while INT-60 allows wider artwork as an explicit author choice. `fit` has no visible effect today: once the image decodes, its own aspect ratio replaces the one `width` and `height` declare, so `fit: cover` never crops.",
+      "proposed": "An image renders as a `<figure>`: the embedded image at most the measure wide, `width` and `height` setting its aspect ratio and reserving its space before it decodes, `fit` placing the image in that box (`cover` crops, `contain` letterboxes, `fill` stretches), and the caption as `<figcaption>` in small type aligned to the measure’s edge. Without `width` and `height` the image keeps its own ratio. `wide: true` lets an image take the report width (TYP-89); nothing else widens it. On paper, images load eagerly and never exceed 60% of the page height.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Image figure markup",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L738-L748",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "`rv-image--full` and `rv-embed--full` CSS that no renderer emits",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/assets/report.css#L106-L112",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Print limits figures to 60% of the page",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/assets/print.css#L41",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Probe: a 1600×900 image with `width: 800`, `height: 200` and `fit: cover` rendered 800×450 as a header image and 512×288 as a block (headless Chromium, 1440 px)",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "TYP-89 and STY-30 give `wide` to the same five blocks (chart, table, image, video and embed); FEA-RP-19, FEA-RP-27 and FEA-RP-28 follow that list. TYP-29 calls `width` and `height` size hints; this card makes them the displayed ratio. FEA-BR-18 and STY-30 reject PR #67’s report-wide `layout.measure-wide-blocks`."
+    },
+    {
+      "id": "FEA-RP-27",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-MEDIA-PLAYERS",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Rich blocks: callouts, media and embeds",
+      "title": "Audio and video",
+      "question": "Is this how audio and video render on screen?",
+      "why": "Both sit 40 px right of the measure (the browser’s default figure margin), and each embeds its file twice: in `<source>` and again in a “Download” fallback link inside the player. Neither can carry captions or a transcript (FEA-RP-55).",
+      "proposed": "Audio and video render as figures at the measure, flush with its left edge: native controls, `preload=\"metadata\"`, `title` as the accessible name, an optional caption, and for video the poster and intrinsic size. Each file is embedded once, with no fallback download link. Nothing autoplays or loops. Widening follows FEA-RP-26, captions and transcripts FEA-RP-55, and paper renditions FEA-RP-45.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Players with the source repeated in a download link",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L749-L760",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Block margins set for chart, table, image and embed only",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/assets/report.css#L158",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Audio and video offset 40 px in all five fixture pages",
+          "ref": "docs/lockdown/screenshots/INDEX.md:461",
+          "date": "2026-10-21"
+        }
+      ],
+      "images": [
+        "docs/lockdown/screenshots/product/fixture/fixture-sleek-desktop-full.jpg"
+      ]
+    },
+    {
+      "id": "FEA-RP-55",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "F-MEDIA-CAPTIONS",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Rich blocks: callouts, media and embeds",
+      "title": "Captions and transcripts for audio and video",
+      "question": "How does an author give audio and video the captions and transcripts that WCAG 2.2 AA asks for?",
+      "why": "FEA-RP-49 commits reports to WCAG 2.2 AA, which asks prerecorded audio for a transcript (success criterion 1.2.1) and prerecorded video for captions (1.2.2) and audio description (1.2.3, 1.2.5). Today the audio and video blocks have no field for captions or a transcript, and the players carry no `<track>`. No example uses audio or video.",
+      "proposed": "Video takes an optional `captions` field: a report-relative WebVTT file, embedded as a `<track kind=\"captions\">` in the report language. Audio and video take an optional `transcript` field: a report-relative Markdown or text file, rendered under the player in a native disclosure and printed in full on paper. `richview check` notes (`info`) a video without captions and any audio or video without a transcript. Audio description cannot come from a field: a video whose picture carries information its soundtrack does not needs a version that narrates it.",
+      "options": [
+        {
+          "label": "`captions` and `transcript` fields",
+          "detail": "Audio and captioned video can meet WCAG 2.2 AA; audio description stays in the author’s video; two fields and a WebVTT check to build."
+        },
+        {
+          "label": "Transcript in prose",
+          "detail": "No new fields; the author writes the transcript as text after the player, and video stays uncaptioned."
+        },
+        {
+          "label": "Exclude media from the standard",
+          "detail": "No work; a report with audio or video cannot claim WCAG 2.2 AA."
+        }
+      ],
+      "recommendation": "`captions` and `transcript` fields: the standard FEA-RP-49 sets needs them, and the disclosure keeps long transcripts out of the reading flow.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Players emit `<source>` and a download link, no `<track>`",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L749-L760",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "WCAG 2.2 guideline 1.2, time-based media: success criteria 1.2.1 to 1.2.5",
+          "ref": "https://www.w3.org/TR/WCAG22/#time-based-media",
+          "date": "2023-10-05"
+        }
+      ],
+      "conflicts": "TYP-30 and TYP-31 have no `captions` or `transcript` field; accepting adds them there. The disclosure’s label is one more built-in string (FEA-RP-60)."
+    },
+    {
+      "id": "FEA-RP-28",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-CORE-EMBED",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Rich blocks: callouts, media and embeds",
+      "title": "Embedded pages",
+      "question": "Is this how an embed renders, allowed or blocked?",
+      "why": "An embed is the only remote content the format intends (a raw HTML `<img>` with a remote URL also loads today, FEA-RP-14). A blocked embed prints a bare “Embed blocked: host” line with only a warning, and publishing stops only on errors, so a report with a wrong host can be published.",
+      "proposed": "An allowed embed renders as a figure at the measure: a sandboxed iframe (ARC-14) at `height` pixels, titled and captioned by `caption`; when it loads is FEA-RP-56. A blocked URL renders the not-rendered notice (FEA-RP-29) naming the host and the fix, as an error (TYP-32), so publish refuses it. Without network the frame shows the browser’s offline page; paper prints a link card (FEA-RP-45). Widening follows FEA-RP-26.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Allowlist, blocked notice and `security.embed` warning",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L789-L833",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Sandbox and iframe markup",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L856-L869",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Publish stops only on `error` diagnostics",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-app/src/cli.rs#L548-L550",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Fixture: allowed YouTube frame and “Embed blocked: example.com”",
+          "ref": "docs/lockdown/screenshots/product/fixture/fixture-sleek-desktop-full.jpg",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "ARC-14 leaves the blocked embed’s level to TYP-32, which makes it an error; this card follows TYP-32.",
+      "images": [
+        "docs/lockdown/screenshots/product/fixture/fixture-sleek-desktop-full.jpg"
+      ]
+    },
+    {
+      "id": "FEA-RP-56",
+      "kind": "decision",
+      "importance": "important",
+      "refId": "F-EMBED-LOADING",
+      "component": "C-RICHVIEW-WEB",
+      "group": "Rich blocks: callouts, media and embeds",
+      "title": "When an embed loads",
+      "question": "May an embed contact its third-party host before the reader asks, or does it load only on request?",
+      "why": "An allowed embed is a lazy iframe: it loads from YouTube, Vimeo, GitHub Gist or CodePen as soon as the reader scrolls near it, so reading a report contacts those hosts before the reader chooses to play anything, and offline the frame shows the browser’s error page. No card decides it; ARC-14 keeps lazy loading.",
+      "proposed": "An embed loads only when the reader asks. Until then it shows a card with the caption, the host’s name, a “Load from <host>” button and a link to the embedded page; the button loads the sandboxed frame (ARC-14) in place of the card. Without scripts, offline or on paper, the card’s link still leads to the page (FEA-RP-45).",
+      "options": [
+        {
+          "label": "Load on request",
+          "detail": "No third-party request until the reader acts; one click and a placeholder for every embed."
+        },
+        {
+          "label": "Load as the reader scrolls (today)",
+          "detail": "Players appear ready; every reader’s browser contacts the host."
+        }
+      ],
+      "recommendation": "Load on request: a report should not contact third parties on the reader’s behalf, and the card doubles as the offline and paper rendition.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Embed iframe with `loading=\"lazy\"` and no request step",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L856-L869",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Default hosts: YouTube, youtube-nocookie, Vimeo, GitHub Gist, CodePen",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L800-L808",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "ARC-14 lists lazy loading in the embed policy; accepting this card replaces it with loading on request. The button and card labels are built-in strings (FEA-RP-60)."
+    },
+    {
+      "id": "FEA-RP-29",
+      "kind": "feature",
+      "importance": "important",
+      "refId": "F-NOT-RENDERED",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Failures in drafts",
+      "title": "What a failed block looks like in a draft",
+      "question": "How does a block that failed (invalid YAML or schema, blocked source, missing input) appear in the rendered draft?",
+      "why": "Today an invalid fence shows as its raw YAML in a code block with nothing marking it as broken, a blocked embed or image prints a one-line text, and a missing input renders nothing because the whole render stops. A reader of a shared draft cannot tell a failed chart from intended code.",
+      "proposed": "Every block that fails renders, in place, a one-line notice (`Chart not rendered: <message> (line N)`), followed by its source in a code block when the source is the problem. The notice uses the report’s ink and rule, not an alarm colour, and matches the diagnostic returned with it. The draft is written (TYP-54); publish and PDF refuse it (FEA-RP-44), so readers of finished reports never see a notice. A chart that validates but cannot be drawn follows FEA-CH-18.",
+      "options": [
+        {
+          "label": "Notice plus source",
+          "detail": "The author sees what broke where it broke."
+        },
+        {
+          "label": "Source only (today)",
+          "detail": "Looks like intended code."
+        },
+        {
+          "label": "Placeholder without source",
+          "detail": "Cleaner page; the author must open diagnostics to see the YAML."
+        }
+      ],
+      "recommendation": "Notice plus source.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Invalid fences stay as their source text",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/parser.rs#L123-L174",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Blocked media notice",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L661-L674",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Fixture: invalid `type: donut` fence shown as plain code",
+          "ref": "docs/lockdown/screenshots/product/fixture/fixture-invalid-block-default.jpg",
+          "date": "2026-10-21"
+        }
+      ],
+      "images": [
+        "docs/lockdown/screenshots/product/fixture/fixture-invalid-block-default.jpg"
+      ]
+    },
+    {
+      "id": "FEA-RP-57",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "F-NEAR-MISS-TAG",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Failures in drafts",
+      "title": "Misspelled rich fence tags",
+      "question": "Should a fence whose tag is close to a rich tag (`tabel`, `charts`) be flagged, or stay an ordinary code block as today?",
+      "why": "A fence tagged `tabel` or `charts` renders as a plain YAML code listing and the report reports `clean`: the same silent failure FEA-RP-29 fixes for invalid fences, where a reader cannot tell a failed table from intended code. TYP-09 treats every unknown info string as ordinary code and gives only the retired `big` its own error.",
+      "proposed": "A fence whose info string differs from a rich tag by one letter, a swapped pair of letters or a plural `s` warns `block.unknown-tag` at its line, naming the nearest tag (“`tabel` is not a rich tag; did you mean `table`?”). It still renders as an ordinary code block. Other info strings (`python`, `mermaid`) stay silent.",
+      "options": [
+        {
+          "label": "Warn and keep as code",
+          "detail": "Status turns `issues`; a real code fence that happens to resemble a tag still publishes."
+        },
+        {
+          "label": "Error with the not-rendered notice",
+          "detail": "Publish refuses; a deliberate `charts` code fence must be renamed."
+        },
+        {
+          "label": "Silent (today)",
+          "detail": "The typo reaches readers as a YAML listing."
+        }
+      ],
+      "recommendation": "Warn and keep as code: the agent sees the typo in `check` and the JSON, and no legitimate code fence is ever blocked.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Only exact rich tags become blocks",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/parser.rs#L94-L104",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Probe: `tabel` and `charts` fences rendered as `<pre><code class=\"language-tabel\">` and `language-charts`, status clean",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "TYP-09 makes any other info string an ordinary code block without a diagnostic; accepting adds this warning there and `block.unknown-tag` to TYP-55’s catalogue. Cross-part contradiction: answer OPN-58 first; it decides this card's conflict."
+    },
+    {
+      "id": "FEA-RP-58",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "F-FRONTMATTER-FAILURE",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Failures in drafts",
+      "title": "A draft whose frontmatter cannot be read",
+      "question": "When closed frontmatter is not valid YAML, does the draft render silently as an untitled report in the default style, or say so?",
+      "why": "TYP-01 makes unreadable frontmatter a warning that drops every field. A probe with an unclosed quote rendered “Untitled report” in the default style with `lang=\"en\"` and `ok: true`, silently losing the title, styles, language and description. TYP-54 defines an error as anything not rendered as authored.",
+      "proposed": "Unreadable frontmatter is an error (`frontmatter.yaml`) at the line the YAML reader names. The draft still renders its body, with the not-rendered notice (“Frontmatter not read: …”) in place of the title block, and publish refuses (TYP-54).",
+      "options": [
+        {
+          "label": "Error with a notice",
+          "detail": "The author sees why the title and style vanished; publish refuses."
+        },
+        {
+          "label": "Warning, as TYP-01 proposes",
+          "detail": "The draft renders as an untitled default-style report; status `issues` is the only sign."
+        }
+      ],
+      "recommendation": "Error with a notice: a report that lost its title, style and language is not rendered as authored.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Closed but invalid frontmatter warns at line 1 and is cut from the body",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/parser.rs#L48-L87",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Probe: frontmatter with an unclosed quote gave `frontmatter.yaml` (warning, line 1), `<title>Untitled report</title>`, `lang=\"en\"` and `ok: true`",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "TYP-01 makes closed but unreadable frontmatter a warning at line 1, and TYP-55 lists `frontmatter.yaml` as a warning; accepting changes both. Unclosed frontmatter (`frontmatter.unclosed`) stays as TYP-01 says: the text renders as Markdown. Cross-part contradiction: answer OPN-67 first; it decides this card's conflict."
+    },
+    {
+      "id": "FEA-RP-30",
+      "kind": "rule",
+      "importance": "important",
+      "refId": "F-PARTIAL-RENDER",
+      "component": "C-APP-RESOLVER",
+      "group": "Failures in drafts",
+      "title": "A missing input fails only its element",
+      "question": "Should a missing data, media or style file, or a link to a missing file, stop the whole render, or only the element that needs it?",
+      "why": "Today one missing CSV, image or linked file aborts native `generate`: no HTML is written and the diagnostics carry no line, while an invalid fence only affects its own block. Core aborts too: when chart or table data is unresolved, `render` returns errors for the whole report, so partial rendering is new in every host.",
+      "proposed": "A missing, unreadable or oversized input fails only its element: a block that needs it shows the not-rendered notice (FEA-RP-29), a missing Markdown or header image shows its alt text, a relative link to a missing or outside file shows its text (FEA-RP-15), and a missing style file is skipped; each gives an error at the referencing line. The draft is still written and the command exits 1 (TYP-54); publish refuses. Only an unusable folder root or output path and the limits on the source, the combined inputs and the output HTML (TYP-43) stop the render.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Missing CSV for a table and a chart: two `report.asset.missing` errors without lines; no `Rendered/` written",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Missing image block and Markdown image: same result",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Probe: `[missing](notes/missing.txt)` and `[x](missing.csv)` stopped `generate` with `report.asset.missing` at `source.link`, no line, no HTML",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Core also aborts the whole render on unresolved data: `render` returns `Err` once chart or table resolution adds a `data.*` error",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L137-L144",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Contract test: an unresolved table CSV makes `core_render` fail with `data.unresolved`",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/tests/contracts.rs#L398-L425",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "TYP-39 puts escape and absence errors at the referencing line, and TYP-40 already fails a remote media file on its own element. S27-578 asks for hard failures with “no silent fallback or partial successful render” for missing, shared or escaping report roots; those still stop the render, and a draft with errors exits 1, so it never counts as a successful render."
+    },
+    {
+      "id": "FEA-RP-31",
+      "kind": "decision",
+      "importance": "important",
+      "refId": "F-CORE-REPORT-CARD",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Failures in drafts",
+      "title": "Render report card inside the report",
+      "question": "Keep the optional “Render report card” aside that prints diagnostics at the top of the report?",
+      "why": "June’s D4 promised a visual report card; it was demoted, and the vNext study retired it. Today it misleads: it appears only when the report has charts, its headline counts errors and warnings while the ledger lists every info line (2 findings, 15 lines in the fixture), and its status class never matches the CSS, so the status rule is never coloured. It appears through `generate --report-card` and in the VS Code preview, which always requests it; `serve` does not show it.",
+      "proposed": "Drop the in-report card. Report HTML carries only the inline notices of failed blocks (FEA-RP-29), so a preview shows exactly the file readers get. Findings are shown outside the report: in CLI and MCP JSON, in VS Code’s Problems panel and preview title (FEA-SF-24, FEA-SF-23), in a banner over the `serve` preview like the one FEA-SF-08 shows for failed renders, and in the playground’s diagnostics beside the source (FEA-SF-34). `--report-card` and the `reportCard` option are removed.",
+      "options": [
+        {
+          "label": "Drop",
+          "detail": "Previews equal the exported file; part 04c shows findings in each surface’s own chrome."
+        },
+        {
+          "label": "Preview only",
+          "detail": "The card, fixed, renders in `serve` and the VS Code preview and never in exported or published HTML; previews then differ from the file readers get."
+        },
+        {
+          "label": "Keep, fixed",
+          "detail": "Consistent counts, every report, matching classes; still opt-in on `generate`."
+        },
+        {
+          "label": "Keep as is",
+          "detail": "Misleading counts; absent from chartless reports."
+        }
+      ],
+      "recommendation": "Drop: what an author previews should be what readers get, and agents and editors already receive structured findings.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Card only when `report_card` is set and charts exist",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L236-L241",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Headline counts errors and warnings; ledger lists all; class `rv-report-card--<status>`",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L857-L886",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "CSS defines only `rv-report-card--rule-*` status classes",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/assets/report.css#L205-L233",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Editor previews always request the card",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-editor/src/main.rs#L186",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "`serve` renders its preview without the card",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-app/src/server.rs#L549-L566",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "D4 report card shipped 2026-06-09, later demoted",
+          "ref": "docs/lockdown/evidence/history-prs.md:170",
+          "date": "2026-06-09"
+        }
+      ],
+      "conflicts": "Part 04c follows this card: FEA-SF-05 has no `--report-card`, and FEA-SF-08 and FEA-SF-23 show findings in a banner outside the report. TYP-98 still returns the card from `richview/preview` and TYP-71 keeps `reportCard`; STY-17 drops the card’s style rules with it. “Preview only” would put the card back into FEA-SF-08 and FEA-SF-23 and keep TYP-98 as written. OPN-39 sends D4 to INT-18 and this card. INT-18’s self-checking charts are unaffected: they report through `check`.",
+      "images": [
+        "docs/lockdown/screenshots/product/fixture/fixture-report-card-default.jpg"
+      ]
+    },
+    {
+      "id": "FEA-RP-32",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-CORE-STYLE-CASCADE",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Styles, theme and print",
+      "title": "Styles as the author meets them",
+      "question": "Is this the author’s experience of styling: a finished default with no file, builtins by name, and local style files layered in order?",
+      "why": "S27-578 requires a finished report with no style file (STY-06, STY-17), and the theme-switch proof (DEL-17) requires every element to follow the active style; styles failing to reach charts took seven rounds of fixes in 2026 (INT-56).",
+      "proposed": "Without `styles` or `--style`, a report renders in the default builtin (STY-06). Authors list builtins or report-relative `.rstyle.yaml` files in `styles` (TYP-45); `--style` appends to that list, and later entries win value by value (TYP-44). Every element follows the resulting style: text, charts, tables, metrics, callouts, media, print and PDF. Switching style never changes content, data or order. What a bad value does is TYP-44’s.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Cascade resolution",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/style.rs#L201-L264",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Spec: optional styling YAML",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/docs/RMD-SPEC.md#L249-L264",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "“Styling YAML must remain optional: a report without it still renders using the default style”",
+          "ref": "S27-578",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "Seven rounds of styles not reaching charts",
+          "ref": "docs/lockdown/evidence/history-prs.md:352",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "TYP-44 recommends that a bad leaf skips only itself with a warning and offers dec-18’s error as an option; this card follows whichever is chosen."
+    },
+    {
+      "id": "FEA-RP-33",
+      "kind": "decision",
+      "importance": "key",
+      "refId": "F-THEME-OPTION",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Styles, theme and print",
+      "title": "`theme: light|dark` and `--theme`",
+      "question": "Can a report force its style into light or dark (`theme`, `--theme`), or is each style one fixed colour scheme, with Sleek for dark and Air for light?",
+      "why": "It predates per-style colour schemes. With `auto` it does nothing: the style’s colours always win. With `light` or `dark` it overrides seven page tokens but not chart ink or semantic colours, so scientific + dark draws chart text at 1.11:1 and sleek + light at 1.05:1 while `check` reports clean. It also makes the runtime fetch `/showcase/themes.json`: from disk that logs two errors, and on an origin that serves the showcase, such as the native server’s `/r/<slug>`, the report is restyled into the showcase’s brutalist treatment.",
+      "proposed": "Remove `theme` and `--theme`. A style is one complete colour scheme (STY-20); dark and light are separate builtins, Sleek and Air (`sleek`, `air`; STY-05, STY-07), chosen through `styles`. Reports do not follow the reader’s system light/dark preference. The migration (INT-51) drops `theme: auto` and turns `light`/`dark` into a warning that names the matching builtin, such as `sleek`, if one exists.",
+      "options": [
+        {
+          "label": "Remove",
+          "detail": "One way to choose colours; no hidden overrides."
+        },
+        {
+          "label": "Keep as the scheme switch, if styles pair schemes",
+          "detail": "Meaningful only if STY-20 makes every style pair light and dark; then `auto` follows the reader and `light` or `dark` forces one."
+        },
+        {
+          "label": "Keep as is",
+          "detail": "Broken contrast, runtime fetch, silent restyle."
+        }
+      ],
+      "recommendation": "Remove: no example sets light or dark, each builtin is designed as one scheme, and STY-20 recommends one scheme per style.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's STY-05 answer: Sleek, Air, Scientific, Brutalist, Hand-drawn; studio themes kept as extended themes",
+          "ref": "docs/lockdown/answers/06-styles.json (STY-05)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "`data-theme` written only for light and dark",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L295-L307",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "TS-era dark and light tokens on `html[data-theme]`",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/assets/report.css#L31-L62",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Runtime treats any `[data-theme]` as showcase buttons and fetches `/showcase/themes.json`, default brutalist",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-web/src/browser/authoring.rs#L947-L992",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Server serves `/r/<slug>` and the site, showcase included, from one origin",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-app/src/server.rs#L81-L86",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Measured contrast 1.11:1 and 1.05:1; `check` clean",
+          "ref": "docs/lockdown/evidence/styles-design.md:266-269",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Probe: sleek + `theme: dark` served next to `/showcase/` renders brutalist on light paper with white chart text",
+          "ref": "docs/lockdown/screenshots/report-rendering/theme-dark-sleek-showcase-origin-1440.jpg",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "`docs/RMD-SPEC.md:44` calls `theme` a colour-scheme hint that leaves style colours alone, and `docs/public/styles.md:7` a hint, not a replacement for a style; the code overrides seven tokens. TYP-06 and TYP-71 list `theme` until this card is answered, TYP-69 keeps a `theme` tool option, and ARC-06 puts theme switching in the report runtime; accepting removes all of these, and INT-56’s clause on chart contrast under an explicit light or dark theme falls away. FEA-SF-01, FEA-SF-05 and FEA-SF-23 already drop `--theme` and `richview.previewTheme`. dec-21 kept `theme`. STY-20 decides whether any style pairs light and dark.",
+      "images": [
+        "docs/lockdown/screenshots/report-rendering/theme-dark-sleek-showcase-origin-1440.jpg",
+        "docs/lockdown/screenshots/report-rendering/theme-dark-sleek-file-1440.jpg",
+        "docs/lockdown/screenshots/styles-design/defect-theme-dark-scientific-1440.png"
+      ]
+    },
+    {
+      "id": "FEA-RP-34",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-REPORT-PRINT",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Styles, theme and print",
+      "title": "Printing from the browser",
+      "question": "Is this what a reader gets from the browser’s Print?",
+      "why": "Readers print without the CLI; every report carries the paper rules the PDF also uses. Today browser print keeps the live audio and video players and embed frames, because only PDF output swaps in printable stand-ins.",
+      "proposed": "Every report carries one print stylesheet, shared with PDF. Paper colours and the 80% type scale are STY-21’s (light paper; Sleek prints as Air), and charts print as FEA-CH-67 specifies. The stylesheet prints one column in source order, every table row with headers repeated, link cells with their address, headings kept with what follows, and figures, metrics and callouts kept whole. Audio, video and embeds print the same stand-ins as PDF (FEA-RP-45).",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's STY-06 answer: Sleek is the default everywhere; print and PDF use Air",
+          "ref": "docs/lockdown/answers/06-styles.json (STY-06)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's STY-14 answer: rich style files; whatever differs between styles is changeable, mechanics such as page width are not; agents get safe and experimental guidance",
+          "ref": "docs/lockdown/answers/06-styles.json (STY-14)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's INT-31 answer: charts render with WebGL by default; only PDF export converts to vector, and may be slow",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Print stylesheet",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/assets/print.css#L1-L47",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Dark builtins print with sleek-light; 80% type scale",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/style.rs#L870-L952",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "`beforeprint` and print media settle every chart",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-web/src/browser.rs#L458-L467",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Print settlement fix (“Settle removed chart transitions immediately when printing”)",
+          "ref": "PR #61",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Spec: browser Print is a best-effort path; stand-ins are PDF-only",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/docs/public/publishing.md#L32",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "STY-21 prints Sleek as Air (Daniel's STY-06 answer); because Daniel's STY-14 answer lets style files set page colours, STY-21 also prints a cascade still dark after the swap with Air’s surfaces and inks and warns `style.print-dark`, a code TYP-55 does not list. `docs/public/publishing.md:32` calls browser print a best-effort path with stand-ins in PDF only; this card brings the stand-ins to browser print. Cross-part contradiction: answer OPN-58 first; it decides this card's conflict.\n\nUnder Daniel's INT-31 answer only PDF export converts charts to vector, so what browser Print shows for a WebGL chart is FEA-CH-67's open question; this stylesheet stays shared with PDF for everything else."
+    },
+    {
+      "id": "FEA-RP-35",
+      "kind": "decision",
+      "importance": "key",
+      "refId": "F-CORE-MOTION",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Motion and readiness",
+      "title": "What moves in a report",
+      "question": "Which parts of a report move: chart data only, or also the blocks of text as they enter?",
+      "why": "On 2026-06-27 Daniel asked for “beautiful soft animations of chart and texts”, and the TypeScript renderer of July faded text and charts up. Commit `4167940` (2026-10-11, merged with PR #22 for S27-616) removed “the load-time text and chart fades”; charts keep their own entrances (FEA-CH-51), and MOTION.md now says report text never animates. The lockdown evidence records no later statement from Daniel asking for still text. The vNext study proposed one text motion, a staggered fade-up. Daniel's INT-12 answer (2026-10-27) now sets the bar for all motion: delightful and smooth, the whimsical quality of Studio Ghibli meeting the polish of Apple's website animations, with motion that explains structure or change and gives pleasure counted as craft.",
+      "proposed": "Report motion serves the bar of Daniel's INT-12 answer: delightful and smooth, in the spirit of Studio Ghibli's whimsy and Apple's website polish. Chart data moves as FEA-CH-51 and FEA-CH-52 specify. Blocks below the first screen (titles, prose, metrics, callouts, tables, media) enter once with one soft fade-up of about 300 ms as they come into view. Blocks that come into view together stagger by at most four steps, so a long run of blocks never waits on its own entrance. The runtime applies it, so the first screen, print, PDF and a report without scripts show every word at rest (FEA-RP-39); an entrance never delays reading and never repeats when the reader scrolls back. Under reduced motion nothing animates (FEA-RP-36). Scrollytelling figures move as FEA-RP-48 says. All of it passes INT-61's phone-smoothness floor and the filmstrip evidence (DEL-30); a style that switches motion off (TYP-49, STY-15) renders everything settled. Any further motion a style adds is part of that style's design review (STY-01), judged by a review agent (INT-12, DEL-68).",
+      "options": [
+        {
+          "label": "Charts only",
+          "detail": "Text reads at once and needs no tuning per phone; reverses Daniel’s 2026-06-27 request for text motion and leaves report text without the delight INT-12 asks for."
+        },
+        {
+          "label": "Charts plus soft block entrances",
+          "detail": "What Daniel asked for in June and what INT-12's direction invites: blocks below the first screen fade up once as they enter (about 300 ms); must pass the phone smoothness bar (INT-61) and filmstrip evidence (DEL-30)."
+        },
+        {
+          "label": "No motion",
+          "detail": "Charts also render settled; drops the chart entrances of FEA-CH-51."
+        }
+      ],
+      "recommendation": "Charts plus soft block entrances: Daniel's INT-12 answer asks for delightful, smooth motion and counts motion that gives pleasure as craft, and his 2026-06-27 request asked for soft text entrances. The jumpy phone scroll he reported on 2026-10-18 (S27-653) is what INT-61's floor and the filmstrip evidence guard against, so an entrance ships only when it passes them.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's INT-12 answer: animation is delightful and smooth, the whimsical quality of Studio Ghibli meets the polish of Apple's website animations; motion that explains structure or change and gives pleasure belongs to the craft (floor INT-61, controls INT-59)",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-12)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "“Report text, headings, metrics and callouts never animate”",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/docs/MOTION.md#L7",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Contract test: report HTML carries no `@keyframes`, `rv-text-reveal` or `rv-chart-reveal`, and keeps the reduced-motion floor",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/tests/contracts.rs#L985-L993",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "2026-06-27 feedback quoted in the commit: “We need interactivity and motion — antislop motion — beautiful soft animations of chart and texts”",
+          "ref": "5ceb7d4 (commit message)",
+          "date": "2026-07-07"
+        },
+        {
+          "label": "“Remove the load-time text and chart fades”",
+          "ref": "commit 4167940, merged with PR #22",
+          "date": "2026-10-11"
+        },
+        {
+          "label": "vNext study: one report motion, a staggered text fade-up (design-system STUDY.md:284-289)",
+          "ref": "docs/lockdown/evidence/styles-design.md:257",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "The 2026-06-27 feedback asked for text animation; MOTION.md (October) forbids it, and the change came with the S27-616 work (`4167940`) without a recorded statement by Daniel asking for it. The showcase still declares `rv-fade-up` animations with no keyframes (dead CSS, `assets/showcase/themes.css:182-201`). STY-45 leaves motion inside reports to this card. The earlier recommendation (charts only, because a text fade “explains neither” structure nor change) read INT-12 more narrowly than Daniel's 2026-10-27 wording, which also counts motion that gives pleasure; FEA-CH-51 points here for how text enters."
+    },
+    {
+      "id": "FEA-RP-36",
+      "kind": "rule",
+      "importance": "important",
+      "refId": "F-REDUCED-MOTION",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Motion and readiness",
+      "title": "Reduced-motion floor",
+      "question": "Is reduced motion a hard floor that shows every chart settled on the first frame?",
+      "why": "TYP-49 leaves the floor to this part, and FEA-CH-54 settles how charts behave under it. A reader who asks the system for less motion must never see an entrance, tween or scroll-triggered change anywhere in the page.",
+      "proposed": "Reduced motion is a floor for the whole report, not only charts (FEA-CH-54). When the reader’s system asks for it, nothing in the page animates or transitions: no chart entrance or glide, block entrance (FEA-RP-35), expanded-view transition, disclosure or scroll effect, and a CSS floor stops any animation a style or later component adds. Charts render with WebGL (Daniel's INT-31 answer), which CSS cannot stop, so the WebGL renderer reads the preference itself and draws only settled frames under it. The runtime follows a change of the preference while the page is open. The reduced-motion frame equals the settled frame (DEL-30).",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's INT-31 answer: charts render with WebGL by default; only PDF export converts to vector, and may be slow",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "CSS floor for `prefers-reduced-motion: reduce`",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/style.rs#L969-L971",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Runtime follows preference changes",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-web/src/browser.rs#L469-L472",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Chart keyframes apply only without a reduced-motion preference",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/richview-chart/src/motion.rs#L188-L222",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Spec",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/docs/MOTION.md#L63-L65",
+          "date": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "id": "FEA-RP-37",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-WEB-SETTLE-HOOK",
+      "component": "C-WEB-WASM-API",
+      "group": "Motion and readiness",
+      "title": "Settled state and `window.__richview`",
+      "question": "Keep the readiness API that tells printers, capture tools and tests when a report is at rest?",
+      "why": "PDF export (ARC-30), the visual gate (DEL-27) and screenshot tools wait on it instead of guessing with timeouts; PR #61 fixed charts printing mid-transition.",
+      "proposed": "Every report exposes `window.__richview`, whose shape TYP-97 fixes: `output` (`report` or `pdf`), `settled()` and `pending()`. Calling `settled()` mounts every remaining chart in its settled state and resolves once fonts, mounts, paints and entrances are done, or rejects after 30 s naming what is pending; in a report without a chart or table it resolves once fonts are loaded (FEA-RP-38). `beforeprint` and print media settle every chart synchronously. What “settled” means for a chart is FEA-CH-54. The hook is a contract for tools, not for authors.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Settle hook",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-web/src/browser.rs#L385-L425",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Spec: settled state and exports",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/docs/MOTION.md#L67-L79",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Fixture PDF settled in 240 ms; file:// fixture mounted and settled 9 charts in 279 ms",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "TYP-97 types the API; this card fixes when it resolves. Today only reports that embed the runtime define the hook."
+    },
+    {
+      "id": "FEA-RP-38",
+      "kind": "feature",
+      "importance": "important",
+      "refId": "F-SELF-CONTAINED-HTML",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Output, data and media",
+      "title": "One self-contained file that works offline",
+      "question": "Does every exported report stay one HTML file that opens from disk without network, and what does it embed?",
+      "why": "The offline single file is the artifact (INT-04). A one-paragraph report weighs 2.37 MB today: 2.14 MB is the chart runtime, embedded even with no chart or table, plus 178 KB of CSS with fonts and 51 KB of notices for eleven font families. Tools that wait for a report to settle need `window.__richview`, which only the runtime defines today.",
+      "proposed": "Every exported report is one HTML file that opens from disk, offline, in the browsers FEA-RP-59 names. Inline: styles, the faces the style uses and the notices for those faces only, block data, local media and, only when the report has a chart or table block, the report runtime (ARC-06, PRF-31). A report without either carries a minimal report runtime holding only the readiness hook (FEA-RP-37) and, when it has embeds, their loader (FEA-RP-56), so `window.__richview` exists in every report. Embeds and hosted assets referenced through pinned asset references (TYP-41, FEA-RP-42) are the only network use, and the render metadata of a report with either records `offline: false` (TYP-32). Nothing is fetched at runtime: no showcase themes, chart specs or fonts. A report host serves the same report with the report runtime linked from the host instead of inlined, and offers the self-contained file as a download (INT-04, ARC-06, PRF-31).",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's ARC-05 answer: all in on WebGL for high performance with many points; recent Safari, Firefox and Chrome must work; without JavaScript or WebGL the chart's frame shows a notice; no snapshot, image or table fallback",
+          "ref": "docs/lockdown/answers/03-architecture.json (ARC-05)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's INT-31 answer: charts render with WebGL by default; only PDF export converts to vector, and may be slow",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's INT-31 answer: the rewrite builds the core plus RichView Cowork and Publish (News is a Publish instance), scrollytelling, uploads and a managed hosting service; the LinkedIn carousel is dropped",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's INT-04 answer: self-contained by default; served from a server, the report automatically links the runtime and stays small",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-04)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "One-paragraph report: 2,366,333 bytes, runtime 2,137,024, style 177,939, notices 50,788",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Fixture opened from file:// made zero network requests and settled 9 charts",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Notices for all eleven bundled families, whatever the style",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L395-L447",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Runtime script embedding",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L888-L940",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Report runtime also fetches `[data-spec]` slots",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-web/src/browser.rs#L481-L516",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "ARC-06 and PRF-31 embed the full report runtime in every exported report and link it on a host; this card leaves it out of reports without a chart or table, which needs a minimal build of that runtime. PRF-32 budgets HTML weight excluding the runtime; Daniel's INT-31 answer brings uploads and hosted data and media into the rewrite (TYP-41): a report that references a hosted asset no longer opens completely offline, and what the file holds for that asset is open (FEA-RP-42). Cross-part contradiction: answer OPN-53 first; it decides this card's conflict.\n\nDaniel's INT-31 answer puts the WebGL renderer, its shaders and whatever text data it needs inline as well. His ARC-05 answer requires it to work in recent Safari, Firefox and Chrome, including from a file opened from disk; that is not proven yet, nor in the VS Code preview (DEL-74, FEA-SF-23). Where WebGL is unavailable, each chart's frame shows a notice; the file embeds no snapshot or image of its charts."
+    },
+    {
+      "id": "FEA-RP-59",
+      "kind": "rule",
+      "importance": "important",
+      "refId": "F-BROWSER-SUPPORT",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Output, data and media",
+      "title": "Browsers a report supports",
+      "question": "Which browsers must a report work in, and when may it use newer browser features?",
+      "why": "Nothing states a floor: FEA-RP-38 said only “a current browser”. Today’s report HTML depends on module scripts with top-level `await`, `DecompressionStream`, container queries and `:has()`, all Baseline widely available, and on `::details-content`, newly available since 2025-09-16 (Chrome 131, Safari 18.4, Firefox 143), which print uses to show folded table rows. PRF-24 sets timing budgets per engine, not functional support, and ARC-30 pins Chromium 131 or later for PDF only.",
+      "proposed": "Reports work in every browser that supports the features Baseline lists as widely available on the day of each `prod` merge: current Chrome, Edge, Firefox and Safari on desktop, Android and iOS. A newer feature is allowed only as an enhancement whose fallback keeps the content complete and readable (FEA-RP-39); folded table rows must print without `::details-content`. WebGL2 is the one exception: charts need it, and recent Safari, Firefox and Chrome must draw them (ARC-05); where a browser offers no WebGL context or loses it, each chart's frame shows a notice and the rest of the report reads normally. The WebGL smoke in all three engines and the WebKit and Firefox loops run in the release run on `pre-prod` for every batch that touches report HTML, CSS or the runtime (DEL-74, DEL-81), and again on each candidate (DEL-24, DEL-33); they are the check.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's DEL-81 answer: long suites, browsers among them, run per `pre-prod` batch in the release run; the fast gate in `dev` is unit tests only",
+          "ref": "docs/lockdown/answers/02-delivery.json (DEL-81)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Daniel's DEL-71 answer: the prod gate is no special suite; it re-runs the full set of tests that already run in `dev` on the frozen candidate; tiers grow from ultra-fast checks after agent steps, to more before a PR, more before merging into `dev`, and everything before `prod`; adversarial reviews and visual polish happen in `dev`",
+          "ref": "docs/lockdown/answers/02-delivery.json (DEL-71)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's ARC-05 answer: all in on WebGL for high performance with many points; recent Safari, Firefox and Chrome must work; without JavaScript or WebGL the chart's frame shows a notice; no snapshot, image or table fallback",
+          "ref": "docs/lockdown/answers/03-architecture.json (ARC-05)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's INT-31 answer: charts render with WebGL by default; only PDF export converts to vector, and may be slow",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Chromium: automatic SwiftShader fallback for WebGL is deprecated; without a usable GPU, WebGL context creation fails unless `--enable-unsafe-swiftshader` is passed; “Chromium and other browsers do not guarantee WebGL availability”",
+          "ref": "https://chromium.googlesource.com/chromium/src/+/main/docs/gpu/swiftshader.md",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Runtime module script with top-level `await` and `DecompressionStream`",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L925-L937",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Static chart frames chosen with container queries",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L739-L745",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "`:has()` keeps a source note snug under its block on screen",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/assets/report.css#L164",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Print uses `:has()` for keeps and `::details-content` to show folded table rows",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/assets/print.css#L16-L30",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "`::details-content`: Baseline newly available since 2025-09-16",
+          "ref": "https://web-platform-dx.github.io/web-features-explorer/features/details-content/",
+          "date": "2025-09-16"
+        },
+        {
+          "label": "`:has()` widely available since 2026-06-19; container queries since 2025-08-14; compression streams since 2025-11-09",
+          "ref": "https://web-platform-dx.github.io/web-features-explorer/features/has/",
+          "date": "2026-06-19"
+        }
+      ],
+      "conflicts": "The WebKit and Firefox loops run per `pre-prod` batch, not on every `dev` merge, so a feature that fails there surfaces when its batch is released, not when it merges (DEL-81, DEL-71); Firefox is missing on Claw Mini today, and DEL-33 installs it in setup.\n\nDaniel's INT-31 answer makes WebGL the default chart rendering. WebGL2 is widely available, but no browser guarantees a context: Chromium creates none without a usable GPU unless started with a software-rendering flag, and contexts can be lost. Daniel's ARC-05 answer says what those readers see: the chart's frame and a notice. WebGPU, which `wgpu` can target (ARC-18), could only be an enhancement under this rule until Baseline lists it as widely available."
+    },
+    {
+      "id": "FEA-RP-39",
+      "kind": "rule",
+      "importance": "important",
+      "refId": "F-READABLE-WITHOUT-SCRIPTS",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Output, data and media",
+      "title": "Readable before and without scripts",
+      "question": "Must a report read completely before its runtime starts and with scripts disabled, and what stands in for its charts?",
+      "why": "INT-07 promises legible text and tables with scripts disabled, and a chart frame with a notice where JavaScript or WebGL is unavailable, and the runtime is megabytes to decode before any interaction. Chart frames are FEA-CH-64 and ARC-05.",
+      "proposed": "Before the runtime starts, or with scripts disabled, a report shows all text, every table row (overflow behind its native disclosure), metrics, callouts and media, with the report’s fonts already applied, and every chart's figure keeps its final box, title, subtitle, caption and source note. Charts render only with WebGL (Daniel's INT-31 and ARC-05 answers): without JavaScript or WebGL, each chart's box shows a short notice that the chart cannot be displayed, and no vector snapshot, image or data table stands in for it. Readers without scripts get the notice from the HTML; the runtime shows it when WebGL is unavailable or a context cannot be restored. An exported file carries its faces inline. A hosted page links its font files from the host’s content-hashed, same-host routes (INT-04, ARC-24) through `@font-face` rules in its inline styles and preloads them from the document head, so CSS, not the runtime, loads them: they apply before the runtime starts, and the page reads the same with scripts disabled. Controls that need the runtime (sort buttons, chart actions) appear only once it runs, so none is dead. Mounting the runtime shifts layout no more than part 07 allows.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's INT-07 answer: text and tables stay legible with scripts disabled; where JavaScript or WebGL is unavailable each chart's frame keeps its title, caption and source note and shows a notice",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-07)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Daniel's ARC-05 answer: all in on WebGL for high performance with many points; recent Safari, Firefox and Chrome must work; without JavaScript or WebGL the chart's frame shows a notice; no snapshot, image or table fallback",
+          "ref": "docs/lockdown/answers/03-architecture.json (ARC-05)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's INT-31 answer: charts render with WebGL by default; only PDF export converts to vector, and may be slow",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's INT-04 answer: self-contained by default; served from a server, the report automatically links the runtime and stays small",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-04)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Inline faces use `font-display: block`",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/docs/RMD-SPEC.md#L349",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Overflow rows in a native `<details>`",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L451-L459",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Sort buttons present in static HTML",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L419-L427",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "This card promised static chart SVGs before and without scripts. Daniel's INT-31 answer dropped them as the default, and his ARC-05 answer settles what replaces them: the frame and a notice. INT-07, DEL-57 and FEA-BR-09's tab panels follow. A reader with scripts disabled gets every word and table but no chart."
+    },
+    {
+      "id": "FEA-RP-40",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-APP-EXPORT-RENDERED",
+      "component": "C-APP-RESOLVER",
+      "group": "Output, data and media",
+      "title": "The `Rendered/` folder",
+      "question": "What does `Rendered/` hold after a render?",
+      "why": "Today `generate` copies every data and media file into `Rendered/` although each is already inside the HTML: the fixture leaves 0.5 MB of copies beside a 3.5 MB file.",
+      "proposed": "`Rendered/` holds what TYP-42 defines: the self-contained `<source basename>.html` (or `.pdf`) and copies of the files that relative Markdown links point to, at the same relative paths; data, styles and media used by blocks are embedded, not copied. For the author, the folder can be moved, zipped or attached whole and still works offline, and sharing only the HTML loses only the linked downloads.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Export copies every resolved data key and report resource",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-app/src/resolver.rs#L624-L673",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Fresh fixture copy: `Rendered/` gained data/*.csv and media/* (six files)",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Spec documents copying every referenced local file",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/docs/RMD-SPEC.md#L235",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "“Generated output belongs in a subfolder named `Rendered`”; “Verify the generated artifact itself”",
+          "ref": "S27-578",
+          "date": "2026-10-04"
+        }
+      ],
+      "conflicts": "RMD-SPEC:235 documents today’s copying of every referenced file. TYP-42 decides the contract and TYP-36 the embedded columns; this card adds no rule of its own."
+    },
+    {
+      "id": "FEA-RP-41",
+      "kind": "feature",
+      "importance": "important",
+      "refId": "F-BLOCK-LOCAL-DATA",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Output, data and media",
+      "title": "Data next to the block that uses it",
+      "question": "Is block-local data, inline or one CSV or JSON file in the report folder, the only way data reaches a report?",
+      "why": "Daniel decided on 2026-10-04 that data lives in the chart or table that consumes it (S27-579). This item records the author’s experience; the types are TYP-35 to TYP-38.",
+      "proposed": "Each chart or table names its own data: a few rows inline in the block, one CSV or JSON file in the report folder, a URL, or SQL against a connector on a RichView server (OPN-63); exported data in the report folder stays the default (INT-24). Several blocks may read the same file. The rendered report embeds only the fields each block uses (TYP-36), and the reader’s Table and CSV views show those fields for every row. The core never queries data (INT-08). A SQL source runs on a RichView server, Cowork or Publish, local or hosted, through a connector the author has been granted; the server holds the credentials and stores the result as a snapshot (ARC-23, FEA-BR-16). A self-contained HTML file never queries live data; a URL source is the one exception: the file downloads the data from that address when it opens, so it follows what the URL serves, with no warning (OPN-63). There is no header data.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's INT-08 answer: RichView is not a BI tool and the core never queries data; on a RichView server a report can link datasets through the server's connectors (OPN-63)",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-08)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Daniel's OPN-63 answer: live data connectors are standard on every RichView server, Cowork and Publish, local and hosted; RichView builds the connector core and PR #66's work enters it; named people manage connectors and access is granted per person (FEA-SF-19); a report can use SQL where it would link a CSV; offline HTML never queries live data except a URL data source, which it downloads, with no warning; credentials stay in the server's configuration (ARC-23); engines and adapters are the agents' call",
+          "ref": "docs/lockdown/answers/08-open-work.json (OPN-63)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's INT-24 answer: exported data by default; live connectors are a secondary path that belongs to RichView Publish, using a third-party connector engine",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-24)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Header data is a hard error",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/parser.rs#L264-L266",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Inline, CSV and JSON resolution per block",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L7-L45",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Data lives in the consuming block",
+          "ref": "S27-579",
+          "date": "2026-10-04"
+        }
+      ],
+      "conflicts": "Settled by OPN-63: SQL and URL sources join inline, CSV and JSON data, and data still lives in the block that uses it (S27-579). Whether the CLI asks a local RichView server to resolve a SQL source or declines it is the agents' choice; neither makes the core query data (INT-08)."
+    },
+    {
+      "id": "FEA-RP-42",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-APP-RESOLVE-MEDIA",
+      "component": "C-APP-RESOLVER",
+      "group": "Output, data and media",
+      "title": "Media embedded from the report folder",
+      "question": "Do images, audio, video and posters travel inside the HTML, unless the author references a hosted copy?",
+      "why": "Embedding keeps the file self-contained but makes media reports heavy: base64 adds a third, and audio and video are embedded twice today. Remote media by plain URL are an error (TYP-40); pinned asset references to hosted data and media are in the rewrite (TYP-41, INT-31).",
+      "proposed": "Every image, audio file, video, poster and header image comes from the report folder, or for image, audio and video sources from a safe `data:` URI (TYP-29 to TYP-31), and is embedded once, as base64, in the HTML. A dataset over its own limit fails only its block (FEA-RP-30); exceeding the limits on the combined inputs, the source or the output HTML (TYP-43) stops the render with an error naming the largest files. Media too large to travel inline are uploaded, to RichView's managed hosting or the author's own store, and referenced through a pinned asset reference (TYP-41, FEA-SF-50): renders and checks read the verified local copy the upload keeps and never fetch (ARC-11), and the published page links the hosted file, which the reader's browser loads. Open: what the self-contained file and the PDF hold for a hosted asset (a link, the poster or a still, or the file itself under a size limit), since INT-04 makes self-contained the default.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's INT-31 answer: the rewrite builds the core plus RichView Cowork and Publish (News is a Publish instance), scrollytelling, uploads and a managed hosting service; the LinkedIn carousel is dropped",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Resolver embeds local media, posters and Markdown images",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-app/src/resolver.rs#L70-L184",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Audio and video sources repeated in fallback links",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L749-L760",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "`asset put` references are not consumed by report sources",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/docs/public/publishing.md#L59",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "S27-616 (2026-10-10) asks for externally hosted video, pictures and audio “so authors do not have to embed large payloads inside reports”; Daniel's INT-31 answer brings that in through pinned asset references (TYP-41); TYP-40 and TYP-42 follow TYP-41."
+    },
+    {
+      "id": "FEA-RP-43",
+      "kind": "feature",
+      "importance": "key",
+      "refId": "F-EXPORT-PDF",
+      "component": "C-APP-PDF-EXPORT",
+      "group": "PDF and other outputs",
+      "title": "PDF export",
+      "question": "Does RichView keep exporting reports to PDF (`generate --to pdf`), and what must every PDF get right on the page?",
+      "why": "Daniel’s 2026-10-10 product brief asks for a readable report PDF (S27-616), and INT-04 names it the print output. The export works (fixture: 9 A4 pages, about 490 KB, 0.8 to 3.1 s, tagged with an outline) but misses the bar: the colophon sits alone on page 9, the metrics split across pages 6 and 7, keep-together rules leave pages half empty, and code prints in a system font. PR #22 left eleven pagination findings open, and `verify-exports.mjs` did not run in the lockdown checks. ARC-30 leaves both the keep decision and this bar to this card.",
+      "proposed": "Keep. `richview generate <report> --to pdf` prints through a local Chromium-family browser (ARC-30) to A4 or Letter: charts settled, network blocked, light paper, running title and page numbers from page 2, tags and an outline. Charts reach the PDF as vector output (Daniel's INT-31 answer): the report is rendered for PDF (`output: pdf`, TYP-71) with every chart drawn by the engine's vector renderer from its geometry model at its print width, so printing needs no WebGL. The conversion may take time; the export does not have to be instant (PRF-16). This card is the only definition of the pagination bar: no chart, figure, metric, callout or table row split (a table may break between rows and repeats its header); no heading last on a page; no page holding only the colophon or a source note; no bottom gap over a quarter page: when the next chart or figure does not fit in the space left, the text that follows it flows up to fill the page and the figure floats to the top of the next page, as LaTeX floats figures, so reading order may change around a figure (Daniel's choice, 2026-10-27); a gap over a quarter page is accepted only where the next block opens a new section and does not fit in the space left (Daniel, 2026-10-27, option 3 for the section-boundary cases). Floats keep their order, as in LaTeX: when several figures follow one another and the first does not fit, they float together, in order, and the text after them in the same section flows up to fill the page. Sections are float barriers: a figure never floats past the start of the next section, so when an unbreakable figure, or a run of figures, ends its section and does not fit, the page ends with that gap, as at any section boundary; every glyph in an embedded face; every chart drawn as vector paths and text, never as a raster image. The bar is a set of fixture tests: PDF export is accepted into `pre-prod` only with them passing, and the release run (DEL-81) runs them for every batch that touches PDF, page layout, styles, fonts or charts, and again on each prod candidate (DEL-71). The fast gate in `dev` does not run them.",
+      "options": [
+        {
+          "label": "Keep with the pagination gate",
+          "detail": "Prints the report's layout with its charts as vector output from the same geometry model; needs a local browser, but no WebGL in it."
+        },
+        {
+          "label": "Browser print only",
+          "detail": "Smallest; no page box, stand-ins or isolation."
+        },
+        {
+          "label": "Native PDF writer",
+          "detail": "No browser; a second layout engine for text and fonts, while the charts' vector output comes from the engine either way."
+        }
+      ],
+      "recommendation": "Keep with the pagination gate.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's DEL-81 answer: the fast gate in `dev` is unit tests only; the release agent runs the long suites (end-to-end, browsers, visual, data integrity, PDF) on `pre-prod` for what a batch affects",
+          "ref": "docs/lockdown/answers/02-delivery.json (DEL-81)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Daniel chose option 3 for S27-732: keep the quarter-page bar and let text after a chart flow up before it, as LaTeX floats figures",
+          "ref": "Daniel, review chat",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Daniel's DEL-71 answer: the prod gate is no special suite; it re-runs the full set of tests that already run in `dev` on the frozen candidate; tiers grow from ultra-fast checks after agent steps, to more before a PR, more before merging into `dev`, and everything before `prod`; adversarial reviews and visual polish happen in `dev`",
+          "ref": "docs/lockdown/answers/02-delivery.json (DEL-71)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's INT-31 answer: charts render with WebGL by default; only PDF export converts to vector, and may be slow",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Fixture PDF: 9 pages, 495,481 bytes, settled in 240 ms, `export.font-fallback`",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Fresh fixture exports through Chrome 155: 9 pages, 489,269 to 495,790 bytes, 0.8 to 3.1 s wall time over six runs (the first after a pause is slowest); page 9 holds only the colophon and the metrics split across pages 6 and 7",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "PDF driver: headless browser over a CDP pipe, tagged PDF with outline",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-app/src/export_pdf.rs#L771-L777",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Page box: margins, running title, page counter",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L813-L836",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Eleven pagination findings open",
+          "ref": "PR #22",
+          "date": "2026-10-11"
+        },
+        {
+          "label": "Daniel’s product brief, readable report PDF: “A well-composed document with comfortable text, intentional page breaks, … and no clipping or accidental blank gaps”",
+          "ref": "S27-616",
+          "date": "2026-10-10"
+        },
+        {
+          "label": "`verify-exports.mjs` not run (qpdf missing)",
+          "ref": "docs/lockdown/evidence/checks-performance.md:127",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "`docs/public/publishing.md:28` accepts that “Large figures can leave white space at a page boundary”; the quarter-page bar above does not. Daniel's DEL-81 answer moves long suites, PDF among them, out of the `dev` gate into the release run on `pre-prod`; each fixture adds about 1 to 3 s there. FEA-SF-06 and FEA-SF-62 run the pagination fixtures in the prod-candidate gate (DEL-33), which re-runs what already ran in the release run (DEL-71). FEA-RP-49 relies on this card for tagged PDFs. Cross-part contradiction: answer OPN-52 first; it decides this card's conflict.\n\nDaniel's INT-31 answer lets PDF export be slow, so today's 0.8 to 3.1 s, with charts already SVG, no longer bounds it; the vector conversion's time is unmeasured (PRF-16), and each fixture's cost in the release run rises with it (OPN-52).",
+      "images": [
+        "docs/lockdown/screenshots/report-rendering/pdf-scientific-all-pages.jpg"
+      ]
+    },
+    {
+      "id": "FEA-RP-44",
+      "kind": "decision",
+      "importance": "important",
+      "refId": "F-PDF-ERRORS",
+      "component": "C-APP-PDF-EXPORT",
+      "group": "PDF and other outputs",
+      "title": "PDF of a report with errors",
+      "question": "Should `--to pdf` write a PDF when the report has an error?",
+      "why": "Today it exits 1 but still writes the PDF, printing the invalid fence as YAML on page 8. A PDF is the format most likely to be forwarded, and nothing on it says it is a broken draft.",
+      "proposed": "PDF export refuses while any error remains: it exits 1, lists the errors and writes nothing, leaving an existing PDF in place. Drafts with errors are reviewed in HTML, which marks them (FEA-RP-29). Warnings do not block a PDF.",
+      "options": [
+        {
+          "label": "Refuse on errors",
+          "detail": "No broken PDF leaves the machine."
+        },
+        {
+          "label": "Write with marked errors",
+          "detail": "Draft PDFs for review; the marks can still be forwarded."
+        },
+        {
+          "label": "Write as today",
+          "detail": "Exit 1, but a clean-looking PDF."
+        }
+      ],
+      "recommendation": "Refuse on errors: a PDF leaves the author’s control once sent.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Fixture PDF: `ok: false`, exit 1, file written with the invalid fence printed",
+          "ref": "Release build at b4db233 (target/release/richview), lockdown probe",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "TYP-54 writes drafts with block errors; this item makes PDF the exception.",
+      "images": [
+        "docs/lockdown/screenshots/report-rendering/pdf-scientific-all-pages.jpg"
+      ]
+    },
+    {
+      "id": "FEA-RP-45",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-CORE-PDF-OPTIONS",
+      "component": "C-RICHVIEW-CORE",
+      "group": "PDF and other outputs",
+      "title": "Media, embeds and links on paper",
+      "question": "Is this what content that cannot play or load becomes on paper?",
+      "why": "Paper cannot play or fetch anything, so each element needs a still that keeps its reference. Today these stand-ins exist only in PDF output.",
+      "proposed": "On paper, from PDF or browser print: an image prints at most 60% of the page height; a video prints its poster with caption and file name, or a one-line card and an `export.video-poster` warning when it has no poster; audio prints one line with its caption (or its title when it has none) and file name; an embed prints a link card with caption and URL; a report-folder link prints as text with an `export.local-link` note; a table link cell prints its full address. Charts print as FEA-CH-67 specifies.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Video poster or text card, audio card from the caption, else the label",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L714-L733",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Embed link card in PDF output",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L835-L839",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Print rules for link cells and media cards",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/assets/print.css#L32-L46",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Fixture PDF page 8: embed card, blocked notice, audio line and video poster",
+          "ref": "docs/lockdown/screenshots/report-rendering/pdf-scientific-all-pages.jpg",
+          "date": "2026-10-21"
+        }
+      ],
+      "images": [
+        "docs/lockdown/screenshots/report-rendering/pdf-scientific-all-pages.jpg"
+      ]
+    },
+    {
+      "id": "FEA-RP-46",
+      "kind": "decision",
+      "importance": "important",
+      "refId": "F-EXPORT-CAROUSEL",
+      "component": "C-APP-PDF-EXPORT",
+      "group": "PDF and other outputs",
+      "title": "LinkedIn carousel PDF",
+      "question": "Should RichView compose a separate portrait carousel PDF from a report?",
+      "why": "S27-616 asked for one; Daniel's INT-31 answer drops it and his INT-77 answer repeats the drop. Nothing exists: the spec states no carousel output is implemented. A carousel needs slide boundaries, phone-legible charts and author control, which is a second layout system.",
+      "proposed": "Dropped (Daniel's INT-31 and INT-77 answers). RichView composes no carousel PDF: the outputs are the report HTML and its A4 or Letter PDF. Per-output markers leave with it (FEA-RP-47). A carousel returns only as a new request with its own lockdown item.",
+      "options": [
+        {
+          "label": "Drop",
+          "detail": "Daniel's INT-31 and INT-77 answers; closes the request, and the outputs stay the report HTML and its PDF."
+        },
+        {
+          "label": "Defer",
+          "detail": "The earlier proposal: a carousel returns as its own item after the flagship bar (INT-68); contradicts Daniel's answer."
+        },
+        {
+          "label": "Build in the first cut",
+          "detail": "A second layout system before the report meets the bar."
+        }
+      ],
+      "recommendation": "Drop: Daniel's INT-31 and INT-77 answers drop the LinkedIn carousel output.",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "Daniel's INT-77 answer: the LinkedIn carousel is dropped",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-77)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Daniel's INT-31 answer: the rewrite builds the core plus RichView Cowork and Publish (News is a Publish instance), scrollytelling, uploads and a managed hosting service; the LinkedIn carousel is dropped",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Carousel PDF requested",
+          "ref": "S27-616",
+          "date": "2026-10-10"
+        },
+        {
+          "label": "“No `outputs.*` frontmatter, carousel or story output is implemented”",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/docs/RMD-SPEC.md#L243",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "S27-616 (2026-10-10) asked for a carousel PDF; Daniel's INT-31 answer closes that request. INT-77 records the drop."
+    },
+    {
+      "id": "FEA-RP-47",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "F-OUTPUT-MARKERS",
+      "component": "C-RICHVIEW-CORE",
+      "group": "PDF and other outputs",
+      "title": "Per-output markers",
+      "question": "Should source markers choose what appears in each output and hide chosen metadata?",
+      "why": "S27-616 asks for documented markers; they only matter once outputs differ in content, and none do.",
+      "proposed": "Dropped with the carousel (FEA-RP-46). Every output shows the same content and differs only in rendition (FEA-RP-45): the report HTML and its PDF are the only outputs, and scrollytelling is an element inside a report, not an output (FEA-RP-48), so there is nothing to select between. Markers return only with a future output that needs different content, as part of that output's own card.",
+      "options": [
+        {
+          "label": "Drop",
+          "detail": "HTML and PDF show the same content, and the carousel that needed markers is dropped."
+        },
+        {
+          "label": "Defer",
+          "detail": "The earlier proposal: markers wait for the carousel, which Daniel's INT-31 answer drops."
+        },
+        {
+          "label": "Build now",
+          "detail": "Syntax without a use."
+        }
+      ],
+      "recommendation": "Drop: the carousel was their only use, and Daniel's INT-31 answer drops it.",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "Daniel's INT-31 answer: the rewrite builds the core plus RichView Cowork and Publish (News is a Publish instance), scrollytelling, uploads and a managed hosting service; the LinkedIn carousel is dropped",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Output markers requested",
+          "ref": "S27-616",
+          "date": "2026-10-10"
+        },
+        {
+          "label": "Not implemented",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/docs/RMD-SPEC.md#L243",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "S27-616 asked for documented markers beside the carousel. Daniel's INT-31 answer drops the carousel and does not mention markers, so this card proposes dropping them rather than deferring them."
+    },
+    {
+      "id": "FEA-RP-48",
+      "kind": "decision",
+      "importance": "key",
+      "refId": "F-SCROLLY-STORY",
+      "component": "C-RICHVIEW-CORE",
+      "group": "PDF and other outputs",
+      "title": "Scrollytelling element",
+      "question": "Is scrollytelling one element inside a report, a sticky figure beside narrative steps that move it, readable without its runtime, in print and in PDF?",
+      "why": "S27-616 asked for a scroll-driven story (one large chart, narrative steps, zoom and annotation), and MOTION.md already times story steps, but nothing renders it. Daniel's INT-31 answer builds it as one more element inside a broader report, not as a separate output. It is the most motion-heavy element and has to pass INT-61 on real phones.",
+      "proposed": "Built in the rewrite as one element inside a report, not a separate output (INT-31). A scrollytelling block holds one figure, a chart or an image, and an ordered list of narrative steps. On wide screens the figure stays in view beside the steps; on phones it stays above them. As a step scrolls into view, the figure moves to that step's state: for a chart a filter, highlighted series, zoom range or annotation; for an image a crop or highlight. The rest of the report flows around the block as usual, and a report may hold several. Only the figure moves; step text stays at rest, and transitions pass INT-61's motion floor on real phones. With reduced motion the figure changes state without transitions. In print and in PDF the block renders as a sequence of figures, one per step, each with its step text (FEA-RP-45), so nothing in it needs scrolling to be read. Without JavaScript or WebGL the step text still reads in order and the figure's frame shows ARC-05's notice; no static figures are built for it (FEA-RP-39). Every step state is rendered and checked like any chart (FEA-BR-33). A step names its chart state in the state model of the authored chart controls that Daniel's FEA-BR-01 answer brings into the first cut (TYP-77): a playback frame and a filter, metric or variant option, plus highlighted series, zoom range or annotation. Open: the fence tag and its fields (a part 05 type follows, OPN-67).",
+      "options": [
+        {
+          "label": "Build as an element in the first cut",
+          "detail": "Daniel's INT-31 answer: one more element in a broader report; needs a step state model and filmstrip evidence on phones."
+        },
+        {
+          "label": "Separate story output",
+          "detail": "S27-616's framing: a scroll-driven story as its own output; a second layout system beside the report, which Daniel's answer does not ask for."
+        },
+        {
+          "label": "Defer",
+          "detail": "The earlier proposal; contradicts Daniel's answer that it will be built."
+        }
+      ],
+      "recommendation": "Build as an element in the first cut: it is Daniel's INT-31 answer, and as an element it reuses the report's layout, checks and print rules instead of adding an output.",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "Daniel's INT-77 answer: RichView gives authors the right tools, among them the scrollytelling element; beyond syntax-level analysis it makes no judgment of a story's quality",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-77)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Daniel's FEA-BR-01 answer: authored chart controls enter the first cut, all four kinds: playback, filter, metric and variant",
+          "ref": "docs/lockdown/answers/04d-features-branches.json (FEA-BR-01)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's ARC-05 answer: all in on WebGL for high performance with many points; recent Safari, Firefox and Chrome must work; without JavaScript or WebGL the chart's frame shows a notice; no snapshot, image or table fallback",
+          "ref": "docs/lockdown/answers/03-architecture.json (ARC-05)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's INT-31 answer: the rewrite builds the core plus RichView Cowork and Publish (News is a Publish instance), scrollytelling, uploads and a managed hosting service; the LinkedIn carousel is dropped",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Scrollytelling output requested",
+          "ref": "S27-616",
+          "date": "2026-10-10"
+        },
+        {
+          "label": "Story-step timings specified",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/docs/MOTION.md#L51-L61",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Not implemented",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/docs/RMD-SPEC.md#L243",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "S27-616 asked for a separate optional output; Daniel's INT-31 answer makes it an element inside a report instead. INT-77 now records it as an element and as one of the tools RichView gives authors: RichView checks a step's syntax and state (FEA-BR-33), not whether the story argues well. The element adds a rich fence tag beyond today's six (TYP-09), so part 05 gains its type. Its steps share the chart-state model of the authored chart controls (FEA-BR-01, TYP-77), which are now in the first cut. Daniel's ARC-05 answer drops the static figures this card promised readers without scripts; they get the frame's notice instead."
+    },
+    {
+      "id": "FEA-RP-49",
+      "kind": "rule",
+      "importance": "key",
+      "refId": "F-A11Y-FLOOR",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Accessibility and language",
+      "title": "Accessibility standard and its check",
+      "question": "Which accessibility standard does report output meet, and how is it checked?",
+      "why": "INT-07 promises keyboard use, accessible names and reduced motion, but names no standard, and no automated accessibility check runs on reports. The defects in this part (`lang` fixed to English, a second `<h1>`, colour-only callout kinds, unnamed tables, focus lost on sort) all pass today’s gates.",
+      "proposed": "Report HTML meets WCAG 2.2 AA in every builtin style at 390 and 1440 px: text and mark contrast at STY-25’s floors, and every control reachable by keyboard and visibly focused. The release run checks it with DEL-58’s automated audit (axe-core or equivalent) and keyboard pass over the every-block fixture (DEL-27) for each batch that touches report output (DEL-81); any violation fails the batch, and the release agent fixes forward. A recorded screen-reader pass over the same fixture runs on each frozen candidate (DEL-33, DEL-58). PDF tags and outline are FEA-RP-43’s; captions and transcripts for audio and video are FEA-RP-55’s.",
+      "options": [
+        {
+          "label": "WCAG 2.2 AA with an automated gate",
+          "detail": "Catches these defects cheaply; some false positives to triage; one more release-run step (DEL-58)."
+        },
+        {
+          "label": "Best effort",
+          "detail": "No standard and no gate, as today."
+        }
+      ],
+      "recommendation": "WCAG 2.2 AA with an automated gate.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Daniel's DEL-81 answer: long suites run per `pre-prod` batch in the release run; the fast gate in `dev` is unit tests only",
+          "ref": "docs/lockdown/answers/02-delivery.json (DEL-81)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Daniel's INT-31 answer: charts render with WebGL by default; only PDF export converts to vector, and may be slow",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "No WCAG or axe check over reports in the repository",
+          "ref": "git grep -i 'wcag|axe-core' at b4db233",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "PDF requested tagged with an outline",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-app/src/export_pdf.rs#L776",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "“The export requests PDF tags and bookmarks, but those alone do not certify accessibility”",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/docs/public/publishing.md#L30",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "DEL-58’s audit is not built and its duration is not measured; it runs in the release run, not in the fast gate (DEL-81). DEL-58 keeps the screen-reader pass a standing gap until an agent can drive VoiceOver reliably. WCAG 2.2 AA’s criteria for prerecorded audio and video (1.2.1 to 1.2.3 and 1.2.5) are FEA-RP-55’s.\n\nDaniel's INT-31 answer draws charts into WebGL canvases, which expose no marks to assistive technology or to the audit; how charts meet WCAG 2.2 AA is FEA-CH-55's open question (a generated ARIA layer, the Table, or both)."
+    },
+    {
+      "id": "FEA-RP-50",
+      "kind": "feature",
+      "importance": "detail",
+      "refId": "F-REPORT-LOCALE",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Accessibility and language",
+      "title": "Language of the rendered report",
+      "question": "What does the report language change on the page, and does the byline date follow it?",
+      "why": "Every report is `lang=\"en\"` with English quotes and separators, and the byline prints the date exactly as typed (`2026-10-21`). TYP-08 adds `lang` and fixes what it sets.",
+      "proposed": "The report language sets `<html lang>`, quote marks, number formats and the chart axis locale as TYP-08 defines. The byline date shows the language’s long form (“21 October 2026”, “21. října 2026”) with the ISO value in `datetime`. RichView’s own strings follow FEA-RP-60.",
+      "options": [
+        {
+          "label": "Format dates by language",
+          "detail": "Reads as editorial text."
+        },
+        {
+          "label": "Show dates as written",
+          "detail": "Author controls the form; ISO dates read as machine output."
+        }
+      ],
+      "recommendation": "Format dates by language.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Date printed as written inside `<time>`",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L284-L290",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "`<html lang=\"en\">` fixed",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L353",
+          "date": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "id": "FEA-RP-60",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "F-BUILTIN-STRINGS",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Accessibility and language",
+      "title": "RichView’s own words in a report",
+      "question": "Do the few strings RichView writes into a report follow the report language, or stay English?",
+      "why": "RichView writes its own words into reports: today “Total”, “Showing N of M rows · Show remaining rows”, “Sort by …”, “Untitled report”, “Made with RichView”, media and embed labels (“Embedded content”, “Video”, “Audio”) and the chart actions; this part adds “Notes” (FEA-RP-10), the not-rendered notice (FEA-RP-29) and embed and transcript labels (FEA-RP-55, FEA-RP-56). TYP-08 keeps reader UI strings English, so a Czech report, whose locale `cs-CZ` is supported, mixes Czech text with English labels.",
+      "proposed": "These strings stay English in the first cut, whatever `lang` says.",
+      "options": [
+        {
+          "label": "English in the first cut",
+          "detail": "No translation work; non-English reports carry a few English labels."
+        },
+        {
+          "label": "Localize for the supported locales",
+          "detail": "English, Czech, German and Japanese strings (TYP-08’s locales); every new string needs four translations and a check."
+        }
+      ],
+      "recommendation": "English in the first cut: TYP-08 makes the same call for reader UI, and the strings are few.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's ARC-05 answer: all in on WebGL for high performance with many points; recent Safari, Firefox and Chrome must work; without JavaScript or WebGL the chart's frame shows a notice; no snapshot, image or table fallback",
+          "ref": "docs/lockdown/answers/03-architecture.json (ARC-05)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "“Sort by …”, “Total” and “Showing … rows · Show remaining rows”",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L425-L455",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "“Video” and “Audio” labels on paper",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L716-L717",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "“Embedded content”, the default embed caption",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L850-L853",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "“Untitled report”",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L246",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "“Made with RichView” and fixed `lang=\"en\"`",
+          "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L353",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "TYP-08 keeps reader UI strings English; choosing to localize changes it too. Daniel's ARC-05 answer adds one string: the notice a chart's frame shows without JavaScript or WebGL."
+    },
+    {
+      "id": "FEA-RP-61",
+      "kind": "gate",
+      "importance": "important",
+      "refId": "G-PDF-STYLES",
+      "group": "PDF and other outputs",
+      "title": "PDF in every style, drawn from the same model",
+      "question": "Does PDF export get checked in every style, and against the page?",
+      "why": "DEL-17's theme-switch proof excludes the PDF, so a style that breaks on paper passes. Under your ARC-05 and INT-31 answers the page draws WebGL and the PDF draws vectors, two renderers of one model.",
+      "proposed": "The pagination fixtures (FEA-RP-43) run in each builtin's paper form (STY-21; Sleek prints as Air, STY-06). For each chart, the PDF's vector drawing comes from the same geometry model as the page (compared by model hash), and a raster of the PDF chart matches the model's mark positions within one device pixel at its print width. Text extracted with Poppler shows the same values as the page at the author's precision (DEL-52, FEA-CH-37), and the style's fonts and colours reach the PDF.",
+      "options": [
+        {
+          "label": "Every style, with page parity",
+          "detail": "Closes DEL-17's PDF gap; more fixture time at a slow export (PRF-16)."
+        },
+        {
+          "label": "One style",
+          "detail": "As today's fixtures imply; other styles on paper are unproven."
+        }
+      ],
+      "recommendation": "Every style, with page parity.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Daniel's DEL-81 answer: long suites (PDF among them) run per `pre-prod` batch in the release run; the fast gate in `dev` is unit tests only",
+          "ref": "docs/lockdown/answers/02-delivery.json (DEL-81)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Verification audit after Daniel's 26 Oct answers (gap closed by this card)",
+          "ref": "docs/lockdown/VERIFICATION-AUDIT.md",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "FEA-RP-43 card",
+          "ref": "docs/lockdown/parts/04b-features-report.json FEA-RP-43",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "DEL-17 card",
+          "ref": "docs/lockdown/parts/02-delivery.json DEL-17",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's STY-06 answer",
+          "ref": "docs/lockdown/answers/06-styles.json STY-06",
+          "date": "2026-10-26"
+        }
+      ],
+      "conflicts": "OPN-52 asks where the pagination fixtures run; under Daniel's DEL-81 answer they run in the release run on `pre-prod`, not in the `dev` gate. Five styles multiply their cost, unmeasured since the vector conversion is slow (PRF-16); if that makes the release run too slow, the other styles run at the candidate."
+    }
+  ]
+}

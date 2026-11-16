@@ -1,0 +1,2657 @@
+/*
+ * Homepage. One static scroll, top to bottom: the hero with the prompt to paste into an agent, the problem
+ * and the better way, the live example, the brand and its styles, the best elements, the ecosystem and the
+ * close. Every section is readable as HTML; the Rust site runtime adds the Copy button, the live example,
+ * the style pages and Vee's small clips. Colours come from the site tokens (/site.css).
+ *
+ * The look: one sheet of eggshell paper, headlines in Bricolage Grotesque set large and tight, the
+ * interface in Geist, and the work itself at full size. RichView's own colour is the brand blue; Vee
+ * writes by hand (Caveat) and paints with a brush (Caveat Brush). Colour fields are rare and mean
+ * something: the example company's green under its report, and RichView's blue at the close.
+ */
+
+body[data-homepage] {
+	--gutter: clamp(1.25rem, 4.4vw, 4.5rem);
+	--measure: 1440px;
+	--radius-sheet: 12px;
+	--shadow-float: 0 2px 8px oklch(0 0 0 / 0.12);
+	--on-blue: #fff;
+}
+/* The page's own tokens stay inside main, so the header and footer read the site's (STY-46). */
+body[data-homepage] main {
+	--font-display: "Bricolage Grotesque", "Geist", ui-sans-serif, system-ui, sans-serif;
+	--ink-strong: #15130f;
+	--rule-soft: color-mix(in srgb, var(--rule) 62%, var(--paper));
+	/* The close's field: the brand blue itself; paper-white type reads on it at 5.2:1. */
+	--night: var(--blue);
+	--night-ink: #faf9f6;
+	/* Secondary text on the blue: still 4.6:1. */
+	--night-soft: #e6ecf3;
+	/* The example company's green, the same as its logo bar. */
+	--company: #0b4a37;
+	/* Vee's four paints: the hero chart's lines. They colour small things only, as paint would. */
+	--paint-1: #d4553a;
+	--paint-2: #b4649a;
+	--paint-3: #2a9683;
+	--paint-4: #2a62c9;
+	/* Content runs to the measure; a section's colour runs to the edges. */
+	--pad-x: max(var(--gutter), (100% - var(--measure)) / 2);
+	--ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ------------------------------------------------------------------ shared rhythm */
+
+body[data-homepage] main {
+	position: relative;
+	z-index: 3;
+	max-width: none;
+	margin: 0;
+	padding: 0;
+}
+body[data-homepage] main > section {
+	padding-inline: var(--pad-x);
+	scroll-margin-top: var(--nav-h);
+}
+body[data-homepage] main :is(h1, h2, h3) {
+	margin: 0;
+	font-family: var(--font-display);
+	font-weight: 600;
+	color: var(--ink-strong);
+	text-wrap: balance;
+}
+body[data-homepage] main h2 {
+	font-size: clamp(2.45rem, 5.3vw, 5.1rem);
+	line-height: 0.96;
+	letter-spacing: -0.04em;
+}
+body[data-homepage] main h3 {
+	font-size: clamp(1.45rem, 2vw, 1.95rem);
+	line-height: 1.05;
+	letter-spacing: -0.028em;
+}
+body[data-homepage] p {
+	max-width: 68ch;
+}
+.statement {
+	margin: 0;
+	font: 600 clamp(1.9rem, 3.6vw, 3.5rem) / 1.06 var(--font-display);
+	letter-spacing: -0.035em;
+	color: var(--ink-strong);
+	text-wrap: balance;
+}
+.statement em {
+	font-style: normal;
+	color: var(--blue);
+}
+.section-head {
+	padding-top: 0;
+}
+.section-lede {
+	color: var(--soft);
+	font-size: 1.12rem;
+	margin: 1rem 0 0;
+}
+.small {
+	font-size: 0.82rem;
+	color: var(--soft);
+}
+body[data-homepage] code {
+	font-family: var(--font-mono);
+	font-size: 0.86em;
+	color: var(--ink);
+	background: var(--paper-2);
+	border: 1px solid color-mix(in srgb, var(--rule) 80%, transparent);
+	border-radius: 4px;
+	padding: 0.04em 0.32em;
+}
+body[data-homepage] pre code {
+	background: none;
+	border: 0;
+	padding: 0;
+	font-size: inherit;
+}
+body[data-homepage] ::selection {
+	background: color-mix(in srgb, var(--blue) 22%, transparent);
+}
+
+/* ------------------------------------------------------------------ pills: the page's two buttons */
+
+/* The primary action is the brand blue, filled; the second is drawn in ink. Both are full pills and
+   answer the pointer with colour only (STY-45). */
+.pill,
+.prompt__copy {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5em;
+	min-height: 2.75rem;
+	padding: 0.62rem 1.3rem;
+	border-radius: 999px;
+	font: 600 0.98rem / 1.2 var(--font-ui);
+	letter-spacing: -0.005em;
+	text-decoration: none;
+	white-space: nowrap;
+	cursor: pointer;
+	transition:
+		background-color 160ms var(--ease-out),
+		color 160ms var(--ease-out),
+		border-color 160ms var(--ease-out);
+}
+.pill--line {
+	color: var(--ink);
+	background: transparent;
+	border: 1.5px solid color-mix(in srgb, var(--ink) 78%, transparent);
+}
+.pill--line:hover {
+	color: var(--paper);
+	background: var(--ink);
+	border-color: var(--ink);
+}
+.prompt__copy {
+	border: 0;
+	color: var(--on-blue);
+	background: var(--blue);
+	min-width: 6.25rem;
+}
+.prompt__copy:hover {
+	background: var(--blue-ink);
+}
+.prompt__copy[data-state="copied"] {
+	background: var(--ink);
+}
+.pill:focus-visible,
+.prompt__copy:focus-visible {
+	outline: 2px solid var(--blue);
+	outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------ hero */
+
+/* The first screen (W4, S27-959): the headline across the top in one line, and under it the painting
+   agent's scene, a 16:9 frame sized so the line and the scene fill the screen together. The scene's top
+   left is calm paper, so the words and the two actions sit there, kept clear of where the agent walks
+   (the left two fifths of the frame) and above the chart's painted title (the top two fifths). Where
+   the screen is too short or too narrow for that, the words stand around the scene instead. */
+.hero {
+	--fs: clamp(3.1rem, min(9.25vw, 15.5svh), 9.6rem);
+	--h1-block: calc(var(--fs) * 0.92 + 2.5rem);
+	/* The scene runs a little past the fold, so its calm paper holds the words on a laptop's screen too;
+	   only the chart's axis waits below. */
+	--scene-w: min(100%, (100svh - var(--nav-h) - var(--h1-block) + 7svh) * 16 / 9);
+	padding-top: var(--nav-h);
+	padding-inline: 0 !important;
+}
+.hero h1 {
+	padding: 1.25rem var(--pad-x) 1.25rem;
+	font-size: var(--fs);
+	line-height: 0.92;
+	letter-spacing: -0.04em;
+	white-space: nowrap;
+}
+.hero h1 em {
+	font-style: normal;
+	color: var(--blue);
+}
+.hero__lead {
+	white-space: nowrap;
+}
+/* One load beat, then stillness: the line rises a little as it appears, the blue word a moment after. */
+@media (prefers-reduced-motion: no-preference) {
+	.hero h1 > * {
+		display: inline-block;
+		animation: rv-rise 760ms var(--ease-soft) both;
+	}
+	.hero h1 em {
+		animation-delay: 110ms;
+	}
+	.hero__copy {
+		animation: rv-fade 620ms var(--ease-out) 260ms both;
+	}
+}
+@keyframes rv-rise {
+	from {
+		opacity: 0;
+		transform: translateY(0.16em);
+	}
+}
+@keyframes rv-fade {
+	from {
+		opacity: 0;
+	}
+}
+.hero__stage {
+	position: relative;
+}
+.hero__scene {
+	margin: 0 0 0 auto;
+	width: var(--scene-w);
+	min-width: 0;
+}
+.hero__copy {
+	position: absolute;
+	z-index: 1;
+	top: 0.2rem;
+	left: var(--pad-x);
+	width: min(44rem, calc(100% - 0.57 * var(--scene-w) - var(--pad-x)));
+	display: grid;
+	grid-template-columns: max-content max-content 1fr;
+	grid-template-areas:
+		"sub sub sub"
+		"label label label"
+		"note note note"
+		"copy try .";
+	align-items: center;
+	column-gap: 0.65rem;
+}
+.hero__copy .prompt,
+.hero__copy .prompt__box {
+	display: contents;
+}
+.hero__sub {
+	grid-area: sub;
+	margin: 0 0 0.85rem;
+	max-width: 30em !important;
+	font: 400 clamp(1rem, 1.25vw, 1.18rem) / 1.42 var(--font-ui);
+	color: var(--soft);
+	text-wrap: pretty;
+}
+.hero .prompt__label {
+	grid-area: label;
+	margin: 0 0 0.4rem;
+}
+.hero .prompt__text {
+	grid-area: note;
+	margin: 0 0 0.85rem;
+	padding-block: 0.55rem 0.65rem;
+}
+.hero .prompt__copy {
+	grid-area: copy;
+}
+.hero__try {
+	grid-area: try;
+	margin: 0;
+}
+
+/* The still, and the clip over it once it plays: the same frame at the start, so the clip's arrival
+   never shows. The frame's edges fade into the page, so the video's paper, a level or two off the
+   page's once decoded, never meets it at a seam. */
+.hero__frame {
+	position: relative;
+	aspect-ratio: 16 / 9;
+	-webkit-mask-image: linear-gradient(to right, transparent, #000 4%, #000 97%, transparent),
+		linear-gradient(to bottom, transparent, #000 3%, #000 94%, transparent);
+	-webkit-mask-composite: source-in;
+	mask-image: linear-gradient(to right, transparent, #000 4%, #000 97%, transparent),
+		linear-gradient(to bottom, transparent, #000 3%, #000 94%, transparent);
+	mask-composite: intersect;
+}
+.hero__still,
+.hero__clip {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+.hero__clip {
+	pointer-events: none;
+}
+/* iOS draws a play button over a clip it will not start (Low Power Mode); the still is enough. */
+.hero__clip::-webkit-media-controls,
+.hero__clip::-webkit-media-controls-start-playback-button {
+	display: none !important;
+	-webkit-appearance: none;
+}
+/* The chart's title and region names, painted on the scene's paper with the robot's own brush (Daniel, 9 Nov):
+   the face is Caveat Brush, each text is thickened with a round stroke in its colour, and one SVG filter per cut
+   (in index.html) wobbles the edge, softens it like wet paint, darkens the rim and breaks it with faint
+   dry-brush streaks. Sizes are in the clip's pixels; colours are the painted lines' own, deepened a little to
+   stay legible on white. The title and its sub sit left of everywhere the robot stands or walks during the
+   clip, in every frame of both cuts, with at least 100 of the clip's pixels of paper between: two lines in
+   the wide cut, three short ones in the phone cut, where the robot takes the middle of the sheet. */
+.hero__marks {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	overflow: visible;
+	font-family: "Caveat Brush", var(--font-ui);
+}
+.hero__marks--tall {
+	display: none;
+}
+.hero__mark {
+	fill: var(--paint);
+	stroke: var(--paint);
+	stroke-width: 1.0px;
+	stroke-linejoin: round;
+	stroke-linecap: round;
+	paint-order: stroke;
+}
+.hero__mark-title {
+	--paint: #262a36;
+	font-size: 69px;
+	stroke-width: 1.2px;
+}
+.hero__mark-sub {
+	--paint: #5d6170;
+	font-size: 30px;
+	stroke-width: 0.6px;
+}
+.hero__mark-label {
+	font-size: 50px;
+	stroke-width: 1.1px;
+}
+.hero__mark-label--europe { --paint: #d4553a; }
+.hero__mark-label--americas { --paint: #b4649a; }
+.hero__mark-label--asia { --paint: #2a9683; }
+.hero__mark-label--africa { --paint: #2a62c9; }
+/* The data credit stays for the licence and the curious: quiet, under the scene's right edge. */
+.hero__scene figcaption {
+	margin: -1.6rem var(--pad-x) 0 0;
+	position: relative;
+	text-align: right;
+	font: 400 0.7rem / 1.4 var(--font-ui);
+	color: color-mix(in srgb, var(--soft) 55%, transparent);
+}
+/* With reduced motion the still is the scene; no clip loads (its sources ask for motion). */
+@media (prefers-reduced-motion: reduce) {
+	.hero__clip {
+		display: none;
+	}
+}
+
+/* Where the words cannot sit in the scene's calm paper (narrower or shorter screens), they stand around
+   it: the line, what RichView is and the way to try it above the scene, the prompt under it. */
+@media (max-width: 1279px), (max-height: 739px) {
+	.hero {
+		display: grid;
+		grid-template-columns: max-content 1fr;
+		grid-template-areas:
+			"h1 h1"
+			"sub sub"
+			"try try"
+			"scene scene"
+			"label label"
+			"note note"
+			"copy copy";
+		align-items: start;
+		padding-inline: var(--pad-x) !important;
+		padding-bottom: clamp(1rem, 4vh, 2.5rem);
+	}
+	.hero h1 {
+		grid-area: h1;
+		padding: clamp(1.25rem, 4vh, 2.25rem) 0 0.9rem;
+	}
+	.hero__stage,
+	.hero__copy,
+	.hero__copy .prompt,
+	.hero__copy .prompt__box {
+		display: contents;
+	}
+	.hero__sub {
+		margin-bottom: 1.1rem;
+	}
+	.hero__scene {
+		grid-area: scene;
+		width: calc(100% + 2 * var(--pad-x));
+		margin: 1.1rem calc(-1 * var(--pad-x)) 0;
+	}
+	.hero__scene figcaption {
+		margin-right: var(--pad-x);
+	}
+	.hero .prompt__label {
+		margin-top: 1.4rem;
+	}
+	.hero .prompt__copy {
+		justify-self: start;
+	}
+}
+/* Short wide screens keep the one-line headline, and the scene as large as the screen allows, centred. */
+@media (min-width: 1280px) and (max-height: 739px) {
+	.hero {
+		--fs: clamp(3.1rem, 8.6vw, 9.6rem);
+	}
+	.hero__scene {
+		width: min(100% + 2 * var(--pad-x), (100svh - var(--nav-h)) * 16 / 9);
+		justify-self: center;
+		margin-inline: 0;
+	}
+}
+/* Narrow screens: the headline in two lines, the lead words kept together. */
+@media (max-width: 1099px) {
+	.hero {
+		--fs: clamp(2.75rem, 12.9vw, 6.6rem);
+	}
+	.hero h1 {
+		white-space: normal;
+		line-height: 0.94;
+	}
+	.hero h1 em {
+		display: inline-block;
+	}
+}
+/* Phones: the portrait cut, which keeps the painter and the 1960 dip large. */
+@media (max-width: 699px) {
+	.hero__frame {
+		aspect-ratio: 3 / 4;
+	}
+	.hero__marks--wide {
+		display: none;
+	}
+	.hero__marks--tall {
+		display: block;
+	}
+	.hero__marks--tall .hero__mark-title {
+		font-size: 44px;
+		stroke-width: 1.2px;
+	}
+	.hero__marks--tall .hero__mark-sub {
+		font-size: 21px;
+		stroke-width: 0.5px;
+	}
+	.hero__marks--tall .hero__mark-label {
+		font-size: 43px;
+		stroke-width: 1.0px;
+	}
+	.hero__scene figcaption {
+		margin-top: -1.2rem;
+	}
+}
+
+/* ------------------------------------------------------------------ the prompt: Vee's note to your agent */
+
+/* The words to paste into a coding agent, written out by hand on a note, with a Copy button. The same
+   prompt opens the page and closes it. Without scripts the words stay plain text, and a click selects
+   them whole. */
+.prompt__label {
+	margin: 0 0 0.5rem;
+	font: 600 0.95rem / 1.3 var(--font-ui);
+	color: var(--ink);
+}
+.prompt__text {
+	margin: 0;
+	padding: 0.7rem 1.05rem 0.8rem;
+	border: 1px solid var(--rule);
+	border-radius: 12px;
+	background: var(--panel);
+	color: var(--ink);
+	/* Set by hand, as a note to the agent (Daniel, 9 Nov). */
+	font: 500 clamp(1.08rem, 1.3vw, 1.24rem) / 1.3 "Caveat", var(--font-ui);
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+	user-select: all;
+	rotate: -0.6deg;
+}
+body[data-homepage] .prompt__text code {
+	font: inherit;
+	color: inherit;
+}
+/* The status line is for screen readers; the button says "Copied" to everyone else. */
+.prompt__status {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+@media (scripting: none) {
+	.prompt__copy {
+		display: none;
+	}
+}
+
+/* ------------------------------------------------------------------ live example */
+
+.demo {
+	padding-top: clamp(5rem, 13vh, 9rem);
+	padding-bottom: clamp(3.5rem, 9vh, 6rem);
+}
+.demo__head {
+	margin-bottom: clamp(2.6rem, 6.5vh, 4.25rem);
+}
+.demo__stage {
+	display: grid;
+	grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+	gap: clamp(1.25rem, 2.6vw, 2.5rem);
+	align-items: stretch;
+	transform: translateY(calc(var(--demo-rise, 0) * 1px));
+}
+.sheet {
+	position: relative;
+	min-width: 0;
+	border-radius: var(--radius-sheet);
+}
+.sheet--source {
+	background: var(--panel);
+	border: 1px solid color-mix(in srgb, var(--rule) 75%, transparent);
+	box-shadow: var(--shadow-float);
+}
+.sheet--report {
+	display: flex;
+	flex-direction: column;
+	background: var(--panel);
+	border: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
+	box-shadow: var(--shadow-float);
+}
+.sheet__bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 0.7rem 1rem 0.6rem 1.1rem;
+	border-bottom: 1px solid color-mix(in srgb, var(--rule) 70%, transparent);
+	font: 400 0.8rem / 1.3 var(--font-mono);
+	color: var(--soft);
+}
+.sheet__bar .dim {
+	color: var(--faint);
+}
+.sheet__bar a {
+	color: var(--blue-ink);
+	text-decoration: none;
+	font-family: var(--font-ui);
+	font-weight: 600;
+}
+.sheet__bar a:hover {
+	text-decoration: underline;
+}
+.sheet__hint {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	font: 600 0.76rem / 1 var(--font-ui);
+	color: var(--blue-ink);
+	background: color-mix(in srgb, var(--blue) 10%, transparent);
+	border-radius: 999px;
+	padding: 0.34rem 0.65rem;
+}
+.sheet__hint::before {
+	content: "";
+	width: 0.42rem;
+	height: 0.42rem;
+	border-radius: 50%;
+	background: var(--blue);
+}
+.tabs {
+	display: flex;
+	gap: 0.25rem;
+	min-width: 0;
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+.tab {
+	font: inherit;
+	color: var(--soft);
+	background: none;
+	border: 0;
+	border-radius: 4px;
+	padding: 0.38rem 0.6rem;
+	cursor: pointer;
+	white-space: nowrap;
+}
+.tab small {
+	font-size: 0.7rem;
+	color: var(--faint);
+}
+.tab[aria-selected="true"] {
+	color: var(--ink);
+	background: var(--panel);
+	box-shadow: 0 1px 0 color-mix(in srgb, var(--rule) 80%, transparent);
+}
+.tab:hover {
+	color: var(--ink);
+}
+.demo .tab:disabled,
+.demo .quiet:disabled {
+	opacity: 0.5;
+	cursor: wait;
+}
+/* Until the engine starts (S27-927), the pending line takes the status line's place in the foot:
+   no report shows yet, so "pre-rendered" would not be true. It says the editor is not ready, then
+   that it is starting, with the tiny chart that marks loading, or that it failed. */
+#demo-pending[hidden],
+#demo-pending:not([hidden]) + #demo-status,
+.demo-pending__starting,
+.demo-pending__failed,
+#demo[aria-busy="true"] .demo-pending__idle,
+#demo[data-engine-failed] .demo-pending__idle {
+	display: none;
+}
+#demo[aria-busy="true"] .demo-pending__starting,
+#demo[data-engine-failed] .demo-pending__failed {
+	display: inline;
+}
+#demo[data-engine-failed] #demo-pending {
+	color: var(--ink);
+}
+#demo[data-engine-failed] #demo-pending i {
+	background: #c23b2b;
+}
+/* After a failure the help's invitation to edit has nothing to answer it. */
+#demo[data-engine-failed] #demo-help {
+	display: none;
+}
+/* Without JavaScript the editor never starts and the pre-rendered report shows (`<noscript>`): the
+   status line stays, and the line that says the editor needs JavaScript replaces the help. */
+@media (scripting: none) {
+	#demo-pending,
+	#demo-help {
+		display: none;
+	}
+	#demo-pending:not([hidden]) + #demo-status {
+		display: flex;
+	}
+}
+
+/* Editable source: a transparent text area over highlighted, identical text. */
+.code {
+	--code-font: 400 13px / 22px var(--font-mono);
+	--code-pad: 16px;
+	--code-gutter: 46px;
+	position: relative;
+	height: clamp(340px, 56vh, 520px);
+	overflow: hidden;
+}
+.code__input,
+.code__hl,
+.code__mirror {
+	position: absolute;
+	inset: 0;
+	margin: 0;
+	padding: var(--code-pad) var(--code-pad) var(--code-pad) var(--code-gutter);
+	font: var(--code-font);
+	tab-size: 2;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+	letter-spacing: 0;
+	font-variant-ligatures: none;
+	border: 0;
+}
+.code__input {
+	display: block;
+	width: 100%;
+	height: 100%;
+	resize: none;
+	overflow: auto;
+	background: transparent;
+	color: var(--ink);
+	caret-color: var(--blue);
+	outline: none;
+}
+.code__input:focus-visible {
+	box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--blue) 45%, transparent);
+	border-radius: 4px;
+}
+.code__hl {
+	overflow: hidden;
+	pointer-events: none;
+	color: var(--ink);
+	display: none;
+}
+.code.is-live .code__hl {
+	display: block;
+}
+.code.is-live .code__input {
+	color: transparent;
+	-webkit-text-fill-color: transparent;
+}
+.code.is-live .code__input::selection {
+	background: color-mix(in srgb, var(--blue) 26%, transparent);
+	-webkit-text-fill-color: transparent;
+}
+html:not(.js) .code__input {
+	padding-left: var(--code-pad);
+}
+.code__hl .hl-flash {
+	background: color-mix(in srgb, var(--blue) 18%, transparent);
+	border-radius: 4px;
+}
+
+.sheet__foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 0.7rem 1rem 0.2rem 1.1rem;
+	border-top: 1px solid color-mix(in srgb, var(--rule) 70%, transparent);
+}
+.demo-status {
+	display: flex;
+	align-items: center;
+	gap: 0.55rem;
+	margin: 0;
+	min-height: 1.6em;
+	font-size: 0.84rem;
+	color: var(--soft);
+}
+.demo-status i {
+	flex: none;
+	width: 0.6rem;
+	height: 0.6rem;
+	border-radius: 50%;
+	background: var(--faint);
+}
+.demo-status[data-state="live"] i { background: var(--ok); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 18%, transparent); }
+.demo-status[data-state="warn"] i { background: #c98a12; }
+.demo-status[data-state="error"] i { background: #c23b2b; }
+.demo-status[data-state="error"] { color: var(--ink); }
+/* A tiny chart is the loading indicator. */
+.demo-status[data-state="pending"] i,
+#demo[aria-busy="true"] #demo-pending i {
+	width: 0.9rem;
+	border-radius: 1px;
+	background:
+		linear-gradient(var(--blue), var(--blue)) 0 100% / 3px 40% no-repeat,
+		linear-gradient(var(--blue), var(--blue)) 50% 100% / 3px 70% no-repeat,
+		linear-gradient(var(--blue), var(--blue)) 100% 100% / 3px 100% no-repeat;
+	animation: rv-bars 0.8s var(--ease-move) infinite alternate;
+}
+@keyframes rv-bars {
+	from { background-size: 3px 30%, 3px 90%, 3px 50%; }
+	to { background-size: 3px 90%, 3px 40%, 3px 100%; }
+}
+.quiet {
+	font: 600 0.8rem / 1 var(--font-ui);
+	color: var(--soft);
+	background: var(--panel);
+	border: 1px solid var(--rule);
+	border-radius: 999px;
+	padding: 0.5rem 0.85rem;
+	cursor: pointer;
+	white-space: nowrap;
+}
+.quiet:hover {
+	color: var(--ink);
+	border-color: var(--ink);
+}
+.diagnostics {
+	margin: 0.5rem 1.1rem 0;
+	padding: 0.6rem 0.8rem;
+	list-style: none;
+	border-radius: 12px;
+	background: color-mix(in srgb, #c23b2b 7%, var(--panel));
+	border: 1px solid color-mix(in srgb, #c23b2b 25%, transparent);
+	font: 400 0.76rem / 1.5 var(--font-mono);
+	color: var(--ink);
+	max-height: 7.5rem;
+	overflow: auto;
+}
+.diagnostics[data-level="warning"] {
+	background: color-mix(in srgb, #c98a12 8%, var(--panel));
+	border-color: color-mix(in srgb, #c98a12 30%, transparent);
+}
+.diagnostics b {
+	color: var(--soft);
+	font-weight: 600;
+	margin-right: 0.4em;
+}
+.sheet__help {
+	margin: 0;
+	padding: 0.45rem 1.1rem 0.9rem;
+	font-size: 0.78rem;
+	color: var(--faint);
+}
+
+/* The editor's tools: a chart-type picker and buttons that add a block. They sit under the file tabs in
+   the source's own ink, small and without fills, so the report stays the loudest thing on the page. */
+.tools {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.35rem 0.15rem;
+	padding: 0.45rem 0.7rem;
+	border-bottom: 1px solid color-mix(in srgb, var(--rule) 70%, transparent);
+	font: 400 0.78rem / 1.3 var(--font-ui);
+	color: var(--soft);
+}
+.tools[hidden],
+html:not(.js) .tools {
+	display: none;
+}
+.tools__group {
+	display: contents;
+}
+.tools__label {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+.tools__select {
+	font: 600 0.78rem / 1 var(--font-ui);
+	color: var(--ink);
+	background: transparent;
+	border: 1px solid var(--rule);
+	border-radius: 999px;
+	padding: 0.38rem 0.45rem;
+	cursor: pointer;
+}
+.tools__select:disabled,
+.tools__add:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+.demo[aria-busy="true"] .tools__select,
+.demo[aria-busy="true"] .tools__add {
+	cursor: wait;
+}
+/* The count of fitting types is the picker's description; it shows only to say what the last action did. */
+.tools__note {
+	order: 9;
+	flex-basis: 100%;
+	color: var(--faint);
+}
+.tools__note:not([data-said]) {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+/* What the last action did takes the note's place until the next edit: a block added below the report's fold
+   shows nothing there. */
+.tools__note[data-said] {
+	color: var(--soft);
+}
+.tools__add {
+	font: 600 0.78rem / 1 var(--font-ui);
+	color: var(--soft);
+	background: none;
+	border: 1px solid transparent;
+	border-radius: 999px;
+	padding: 0.4rem 0.38rem;
+	cursor: pointer;
+	white-space: nowrap;
+	transition: background 150ms var(--ease-out), color 150ms var(--ease-out);
+}
+.tools__add:enabled:hover,
+.tools__select:enabled:hover {
+	color: var(--ink);
+	border-color: var(--ink);
+}
+.tools__select:focus-visible,
+.tools__add:focus-visible {
+	outline: 2px solid var(--blue);
+	outline-offset: 2px;
+}
+@media (max-width: 640px) {
+	.tools {
+		padding-inline: 0.6rem;
+		gap: 0.3rem 0.2rem;
+	}
+	/* The count gives way to the picker on a phone; the picker's own list says what fits. */
+	.tools__note:not([data-said]) {
+		display: none;
+	}
+}
+/* The pinned stage of story builds fills the screen, so the tools' two rows come out of the editor's height. */
+@media (min-width: 1101px) {
+	.demo[data-mode="pinned"] .code {
+		height: clamp(260px, calc(56vh - 5rem), 520px);
+	}
+}
+
+/* Floating theme control over the report sheet. */
+/* The live example's style pills sit in the report sheet's bar, so the source and the report start
+   level (Daniel, 4 Nov). */
+.sheet--report .sheet__bar {
+	flex-wrap: wrap;
+	padding-block: 0.45rem;
+}
+.themes {
+	display: flex;
+	align-items: center;
+	gap: 0.3rem;
+	white-space: nowrap;
+}
+.themes__label {
+	font: 600 0.76rem / 1 var(--font-ui);
+	color: var(--faint);
+	margin-right: 0.2rem;
+}
+.themes__group {
+	display: flex;
+	gap: 0.2rem;
+}
+.themes__group button {
+	font: 600 0.82rem / 1 var(--font-ui);
+	color: var(--soft);
+	background: none;
+	border: 0;
+	border-radius: 999px;
+	padding: 0.45rem 0.7rem;
+	cursor: pointer;
+	transition: background 150ms var(--ease-out), color 150ms var(--ease-out);
+}
+.themes__group button:hover {
+	color: var(--ink);
+	background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.themes__group button[aria-checked="true"] {
+	color: var(--paper);
+	background: var(--ink);
+}
+/* The active pill's check is the page's own vector, drawn in the pill's ink: no face has to carry a
+   check glyph. */
+.themes__group button[aria-checked="true"]::before {
+	content: "";
+	display: inline-block;
+	width: 0.85em;
+	height: 0.85em;
+	margin-right: 0.3em;
+	vertical-align: -0.1em;
+	background: currentColor;
+	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.2 8.6l3.1 3.1 6.5-6.9' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.2 8.6l3.1 3.1 6.5-6.9' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.themes__more select {
+	font: 600 0.8rem / 1 var(--font-ui);
+	color: var(--soft);
+	background: var(--paper-2);
+	border: 1px solid transparent;
+	border-radius: 999px;
+	padding: 0.5rem 0.7rem;
+	cursor: pointer;
+}
+.themes__more select.is-chosen {
+	color: var(--paper);
+	background: var(--ink);
+}
+html:not(.js) .themes {
+	display: none;
+}
+
+.report-viewport {
+	position: relative;
+	flex: 1 1 auto;
+	min-height: clamp(440px, 64vh, 600px);
+	overflow: hidden;
+	border-radius: 0 0 var(--radius-sheet) var(--radius-sheet);
+	background: var(--paper-2);
+}
+.report-viewport iframe {
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: block;
+	width: 117.647%;
+	height: 117.647%;
+	transform: scale(0.85);
+	transform-origin: top left;
+	border: 0;
+	background: transparent;
+	transition: opacity 200ms var(--ease-out);
+}
+.report-viewport iframe[hidden] {
+	display: none;
+}
+/* Until the live report loads, the empty pane offers the pre-rendered report on its own page, a
+   quiet link at its centre (B1); after a failure it is the way to the report, so it takes the ink. */
+#demo-fallback {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	margin: 0;
+	padding: 1rem;
+	font-size: 0.84rem;
+}
+#demo-fallback[hidden] {
+	display: none;
+}
+#demo-fallback a {
+	color: var(--soft);
+	text-decoration: underline;
+	text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.3em;
+	transition:
+		color 150ms var(--ease-out),
+		text-decoration-color 150ms var(--ease-out);
+}
+#demo-fallback a:hover,
+#demo[data-engine-failed] #demo-fallback a {
+	color: var(--ink);
+	text-decoration-color: currentColor;
+}
+.report-viewport iframe[data-buffer="next"] {
+	opacity: 0;
+	pointer-events: none;
+}
+.report-veil {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	padding: 1rem;
+	background: var(--paper);
+}
+.report-veil[hidden] {
+	display: none;
+}
+.report-veil span {
+	max-width: 30rem;
+	padding: 0.65rem 0.9rem;
+	border-radius: 12px;
+	background: var(--panel);
+	border: 1px solid color-mix(in srgb, #c23b2b 35%, transparent);
+	font-size: 0.86rem;
+}
+
+@media (max-width: 1100px) {
+	.demo__stage {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 2.8rem;
+	}
+	}
+
+/* ------------------------------------------------------------------ phones */
+
+@media (max-width: 640px) {
+	.demo__head {
+		display: block;
+	}
+	.code {
+		height: 360px;
+		--code-font: 400 12px / 20px var(--font-mono);
+		--code-gutter: 38px;
+		--code-pad: 12px;
+	}
+	.themes__label {
+		display: none;
+	}
+	.themes__group button {
+		padding: 0.5rem 0.62rem;
+		font-size: 0.8rem;
+	}
+	.sheet__bar {
+		padding-left: 0.8rem;
+		padding-right: 0.8rem;
+	}
+	.sheet__hint {
+		display: none;
+	}
+	.report-viewport {
+		height: 540px;
+	}
+	.report-viewport iframe {
+		width: 133.333%;
+		height: 133.333%;
+		transform: scale(0.75);
+	}
+	.diagnostics {
+		margin-left: 0.8rem;
+		margin-right: 0.8rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.demo-status[data-state="pending"] i,
+	#demo[aria-busy="true"] #demo-pending i {
+		animation: none;
+	}
+}
+
+body[data-homepage] .btn--primary,
+body[data-homepage] .btn--primary:hover {
+	color: var(--on-blue);
+}
+
+/* Five style pills do not fit one row beside the bar's label on a narrow tablet: they wrap under it. */
+@media (max-width: 720px) {
+	.themes,
+	.themes__group {
+		flex-wrap: wrap;
+	}
+}
+/* On a phone the pills take the bar alone, as STY-08's one row: wrapped under the label, they took three
+   rows of the report's height (lead, S27-930). Set tighter, the row fits from 360 px; on a narrower
+   screen it scrolls sideways. The padding keeps a pill's focus ring inside the scrolling row. */
+@media (max-width: 480px) {
+	.sheet--report .sheet__bar {
+		flex-wrap: nowrap;
+		padding-inline: 0.45rem;
+	}
+	.sheet--report .sheet__bar > span:first-child {
+		display: none;
+	}
+	.themes {
+		flex: 1 1 auto;
+		min-width: 0;
+		margin: -5px;
+		padding: 5px;
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+	.themes::-webkit-scrollbar {
+		display: none;
+	}
+	.themes,
+	.themes__group {
+		flex-wrap: nowrap;
+		gap: 0;
+	}
+	.themes__group button {
+		flex: none;
+		padding: 0.5rem 0.38rem;
+		font-size: 0.72rem;
+	}
+}
+@media (max-width: 374px) {
+	.themes__group button {
+		padding-inline: 0.32rem;
+		font-size: 0.68rem;
+	}
+}
+
+/* ------------------------------------------------------------------ voices (scene 3, S27-926) */
+
+/* The page's colours cross to the style on screen with a short fade; faces change at once under
+   it. The blocks for each style come from core's tokens (/landing/voices.css). */
+@property --paper { syntax: "<color>"; inherits: true; initial-value: #faf9f6; }
+@property --paper-2 { syntax: "<color>"; inherits: true; initial-value: #f2eee7; }
+@property --panel { syntax: "<color>"; inherits: true; initial-value: #fffefb; }
+@property --ink { syntax: "<color>"; inherits: true; initial-value: #1f1c19; }
+@property --soft { syntax: "<color>"; inherits: true; initial-value: #5e5750; }
+@property --faint { syntax: "<color>"; inherits: true; initial-value: #706960; }
+@property --rule { syntax: "<color>"; inherits: true; initial-value: #ddd5c9; }
+@property --blue { syntax: "<color>"; inherits: true; initial-value: #1a6dac; }
+@property --blue-ink { syntax: "<color>"; inherits: true; initial-value: #155a8f; }
+:root {
+	transition-property: --paper, --paper-2, --panel, --ink, --soft, --faint, --rule, --blue, --blue-ink;
+	transition-duration: 450ms;
+	transition-timing-function: var(--ease-move);
+}
+/* Scientific's and brutalist's faint ink is drawn for report furniture and sets text at only 3.5:1 on
+   their paper, so under those two voices the page's faint text is the style's soft ink with a fifth of
+   its paper: 4.8:1 or more on both papers (S27-949). The styles themselves, which reports use, keep
+   their tokens. html: outranks the generated voice blocks, which come later. */
+html:root:is([data-voice="scientific"], [data-voice="brutalist"]) {
+	--faint: color-mix(in oklab, var(--soft) 80%, var(--paper));
+}
+:root[data-voice] :is(.voices, .voices ~ *, .foot) {
+	font-family: var(--font-ui);
+}
+
+/* Five pages side by side: the scene with reduced motion, on the static landing and before the
+   site runtime starts. Each shows its report's first screen, laid out at a report's width and
+   drawn at a third of it. */
+.voices__rail {
+	display: none;
+}
+.voices__pages {
+	display: grid;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: clamp(0.75rem, 1.4vw, 1.4rem);
+}
+.voices__sheet {
+	margin: 0;
+	min-width: 0;
+	filter: drop-shadow(var(--shadow-float));
+}
+.voices__page {
+	position: relative;
+	aspect-ratio: 4 / 5;
+	overflow: hidden;
+	border-radius: var(--r-panel);
+	-webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 3rem), transparent);
+	mask-image: linear-gradient(to bottom, #000 calc(100% - 3rem), transparent);
+}
+/* Each page is drawn at half size, so its chart's title and labels stay sharp and readable. The frame
+   is twice its holder's width, so scaling it by half fits the whole report to the page. */
+.voices__page iframe {
+	display: block;
+	width: 200%;
+	height: 200%;
+	border: 0;
+	transform: scale(0.5);
+	transform-origin: 0 0;
+	pointer-events: none;
+}
+/* Each page is opened at the report's first chart (the page's address ends in its id, see chrome.rs), so a
+   tile shows the whole chart and not only the header photo. The frame stands 30 px (10 px drawn) lower,
+   so the chart's title has a little paper above it; the page's paper fills the strip. */
+.voices:not([data-mode="pinned"]) .voices__page iframe {
+	margin-top: 24px;
+}
+/* A page waits on its style's paper until its report has drawn, so the notice a chart shows before
+   its runtime starts never appears. */
+html.js .voices__sheet:not([data-ready]) iframe {
+	opacity: 0;
+}
+.voices__sheet[data-ready] iframe {
+	transition: opacity 300ms var(--ease-out);
+}
+/* The style's name stands under its page, in that style's own display face, as on the style buttons. */
+.voices__sheet figcaption {
+	margin-top: 0.9rem;
+	font: 600 clamp(1.15rem, 1.5vw, 1.4rem) / 1.2 var(--font-display);
+	letter-spacing: -0.02em;
+	color: var(--ink);
+}
+.voices__sheet[data-voice="sleek"] figcaption,
+.voices__sheet[data-voice="air"] figcaption {
+	font-family: "Space Grotesk", var(--font-ui);
+}
+.voices__sheet[data-voice="scientific"] figcaption {
+	font-family: "RichView Serif", Georgia, serif;
+	font-weight: 400;
+	letter-spacing: 0;
+}
+.voices__sheet[data-voice="brutalist"] figcaption {
+	font-family: "Big Shoulders", "Arial Narrow", sans-serif;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+.voices__sheet[data-voice="hand-drawn"] figcaption {
+	font-family: "Patrick Hand", var(--font-ui);
+	font-weight: 400;
+	letter-spacing: 0;
+}
+
+/* Pinned: the stage holds while the reader scrolls the track, and each style's page rises over
+   the last, which settles back 4 % and dims 12 % (the site runtime sets --rise and --under). */
+.voices[data-mode="pinned"] {
+	--voices-travel: 300svh;
+}
+.voices[data-mode="pinned"] .voices__track {
+	height: calc(100svh - var(--nav-h) + var(--voices-travel));
+}
+.voices[data-mode="pinned"] .voices__stage {
+	position: sticky;
+	top: var(--nav-h);
+	height: calc(100svh - var(--nav-h));
+	display: grid;
+	grid-template-columns: 8rem minmax(0, 1fr) 8rem;
+	align-items: center;
+	overflow: clip;
+}
+.voices[data-mode="pinned"] .voices__rail {
+	display: grid;
+	gap: 0.7rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	font: 400 0.8rem / 1.2 var(--font-mono);
+	color: var(--faint);
+}
+.voices__rail li {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	transition: color 200ms var(--ease-out);
+}
+.voices__rail li::before {
+	content: "";
+	width: 0.4rem;
+	height: 0.4rem;
+	border-radius: 50%;
+	background: currentColor;
+	opacity: 0.4;
+}
+.voices__rail li[aria-current] {
+	color: var(--ink);
+}
+.voices__rail li[aria-current]::before {
+	background: var(--blue);
+	opacity: 1;
+}
+.voices[data-mode="pinned"] .voices__pages {
+	position: relative;
+	display: block;
+	justify-self: center;
+	width: min(100%, 56rem, calc((100svh - var(--nav-h) - 22rem) * 2));
+	height: calc(100svh - var(--nav-h) - 2.5rem);
+}
+.voices[data-mode="pinned"] .voices__sheet {
+	position: absolute;
+	inset: 0;
+	transform: translate3d(0, calc((1 - var(--rise, 0)) * 112%), 0) scale(calc(1 - 0.04 * var(--under, 0)));
+	transform-origin: 50% 0;
+	will-change: transform;
+	filter: none;
+}
+/* A moving sheet's filter is drawn again on every frame, and at 1440 it alone made Chromium miss
+   most frames of the scene (S27-930, PRF-27). Pinned, the one soft shadow is a box shadow, painted
+   once with the sheet, on a box that ends where the page's foot starts to fade, so it fades out
+   there as the filter's did. */
+.voices[data-mode="pinned"] .voices__sheet::before {
+	content: "";
+	position: absolute;
+	inset: 0 0 2.5rem;
+	border-radius: var(--r-panel);
+	box-shadow: var(--shadow-float);
+}
+.voices[data-mode="pinned"] .voices__page {
+	aspect-ratio: auto;
+	height: 100%;
+}
+.voices[data-mode="pinned"] .voices__page::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: oklch(0.2 0 0);
+	opacity: calc(0.12 * var(--under, 0));
+	pointer-events: none;
+	will-change: opacity;
+}
+.voices[data-mode="pinned"] .voices__page iframe {
+	width: 100%;
+	height: 100%;
+	transform: none;
+}
+.voices[data-mode="pinned"] .voices__sheet figcaption {
+	display: none;
+}
+
+@media (max-width: 899px) {
+	/* On a phone the pages are a row to swipe, each most of the screen wide. */
+	.voices:not([data-mode="pinned"]) .voices__pages {
+		grid-template-columns: none;
+		grid-auto-flow: column;
+		grid-auto-columns: min(72%, 19rem);
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+		scroll-padding-inline: var(--pad-x);
+		margin-inline: calc(-1 * var(--pad-x));
+		padding: 0 var(--pad-x) 0.75rem;
+		scrollbar-width: none;
+	}
+	.voices:not([data-mode="pinned"]) .voices__pages::-webkit-scrollbar {
+		display: none;
+	}
+	.voices__sheet {
+		scroll-snap-align: start;
+	}
+	.voices[data-mode="pinned"] {
+		--voices-travel: 160svh;
+	}
+	.voices[data-mode="pinned"] .voices__stage {
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-rows: auto minmax(0, 1fr);
+		align-items: stretch;
+		gap: 0.75rem;
+		padding-block: 0.75rem;
+	}
+	.voices[data-mode="pinned"] .voices__rail {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.4rem 0.9rem;
+		font-size: 0.72rem;
+	}
+	.voices[data-mode="pinned"] .voices__pages {
+		width: 100%;
+		height: 100%;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	:root {
+		transition: none;
+	}
+	.voices__sheet[data-ready] iframe {
+		transition: none;
+	}
+}
+
+/* ------------------------------------------------------------------ scene 2 (W3, S27-931) */
+
+/* Pinned, in story builds only: the stage holds while the reader scrolls the track, and the scroll
+   writes the anchor report. The source dims the lines not yet written and lights the block being
+   written, a thin wire joins that block to the one it makes, and the report beside it shows each
+   block as its source block completes. The site runtime sets --lit-y, --lit-h, --lit-a and
+   --veil-y, draws the wire and styles the report's blocks; the first edit hands the example to
+   the live frame (data-handed). */
+.demo[data-mode="pinned"] {
+	--demo-travel: 200svh;
+}
+.demo[data-mode="pinned"] .demo__track {
+	height: calc(100svh - var(--nav-h) + var(--demo-travel));
+}
+.demo[data-mode="pinned"] .demo__pin {
+	position: sticky;
+	top: var(--nav-h);
+	height: calc(100svh - var(--nav-h));
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+.demo[data-mode="pinned"] .demo__head {
+	margin-bottom: 0.9rem;
+}
+.demo__stage {
+	position: relative;
+}
+.code__lit,
+.code__veil {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	pointer-events: none;
+}
+.code__lit {
+	height: var(--lit-h, 0px);
+	transform: translateY(var(--lit-y, 0px));
+	background: color-mix(in srgb, var(--blue) 9%, transparent);
+	box-shadow: inset 2px 0 0 color-mix(in srgb, var(--blue) 55%, transparent);
+	opacity: var(--lit-a, 0);
+	transition: opacity 180ms var(--ease-out);
+}
+.code__veil {
+	bottom: 0;
+	transform: translateY(var(--veil-y, 0px));
+	background: color-mix(in srgb, var(--panel) 66%, transparent);
+}
+.demo[data-handed] .code__lit,
+.demo[data-handed] .code__veil,
+.demo[data-handed] .demo__wire {
+	display: none;
+}
+.report-viewport .demo__reveal {
+	pointer-events: none;
+}
+/* Under the scene's report the live frames take no pointer either, so a hover or click over the
+   report the reader sees lands in nothing they cannot see; the hand-over clears it (S27-942). */
+.report-viewport[data-covered] > iframe:not(.demo__reveal) {
+	pointer-events: none;
+}
+/* The scene's report waits on the paper until it has drawn. */
+.report-viewport .demo__reveal:not([data-ready]) {
+	opacity: 0;
+}
+.demo__wire {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+	pointer-events: none;
+}
+.demo__wire path {
+	fill: none;
+	stroke: color-mix(in srgb, var(--blue) 40%, transparent);
+	stroke-width: 1;
+}
+.demo__turn {
+	position: absolute;
+	z-index: 2;
+	right: 0.75rem;
+	bottom: 0.75rem;
+	margin: 0;
+	padding: 0.35rem 0.7rem;
+	border-radius: 999px;
+	background: var(--ink);
+	color: var(--paper);
+	font: 500 0.8rem / 1.2 var(--font-ui);
+	opacity: 0;
+	transform: translateY(6px);
+	transition: opacity 240ms var(--ease-out), transform 240ms var(--ease-out);
+	pointer-events: none;
+}
+.demo[data-turn] .demo__turn {
+	opacity: 1;
+	transform: none;
+}
+/* One column: the source above the report and no wire. The two sheets share what the heading leaves
+   of the pinned screen, the editor 45 % and the report 55 %, so the scene fits a phone of any height
+   without either one's bottom edge falling off the screen. */
+@media (max-width: 1100px) {
+	.demo[data-mode="pinned"] {
+		--demo-travel: 120svh;
+	}
+	.demo[data-mode="pinned"] .sheet__help,
+	.demo__wire {
+		display: none;
+	}
+	.demo[data-mode="pinned"] .demo__pin {
+		box-sizing: border-box;
+		justify-content: flex-start;
+		padding-block: 0.75rem;
+	}
+	.demo[data-mode="pinned"] .demo__stage {
+		flex: 1 1 auto;
+		min-height: 0;
+		gap: 0.75rem;
+		grid-template-rows: minmax(0, 0.45fr) minmax(0, 0.55fr);
+	}
+	.demo[data-mode="pinned"] .sheet--source {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+	}
+	.demo[data-mode="pinned"] .code {
+		flex: 1 1 auto;
+		min-height: 0;
+		height: auto;
+	}
+	.demo[data-mode="pinned"] .report-viewport {
+		flex: 1 1 auto;
+		min-height: 0;
+		height: auto;
+	}
+}
+
+/* ------------------------------------------------------------------ the problem and the better way */
+
+/* The turn of the page: the problem in a quieter ink, the better way in full ink and the brand blue. */
+.problem {
+	padding-top: clamp(4.5rem, 13vh, 9.5rem);
+	padding-bottom: clamp(3.5rem, 9vh, 6.5rem);
+}
+body[data-homepage] .problem h2 {
+	max-width: 22em;
+	font: 400 clamp(1.75rem, 3.45vw, 3.35rem) / 1.1 var(--font-display);
+	letter-spacing: -0.03em;
+	color: var(--soft);
+	text-wrap: pretty;
+}
+.problem .statement {
+	max-width: none !important;
+	margin-top: 0.5em;
+	font-size: clamp(1.75rem, 3.45vw, 3.35rem);
+}
+/* The same report twice: the HTML an agent writes, a long and heavy page of markup, and the source you
+   keep, short and clear. The cards are paper on paper (STY-48): the first is the paper's own darker
+   shade and fades out as the markup runs on; the second is ink. */
+.proof {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: clamp(1rem, 2vw, 1.75rem);
+	align-items: stretch;
+	margin-top: clamp(2.5rem, 7vh, 4.5rem);
+}
+.proof__card {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	margin: 0;
+	padding: clamp(1.2rem, 2vw, 1.7rem) clamp(1.2rem, 2vw, 1.8rem) clamp(1.2rem, 2vw, 1.6rem);
+	border-radius: 12px;
+}
+.proof__card figcaption {
+	font: 600 0.92rem / 1.3 var(--font-ui);
+}
+.proof__card--agent {
+	background: var(--paper-2);
+	color: var(--ink);
+}
+.proof__card--git {
+	background: var(--ink-strong, #15130f);
+	color: var(--paper);
+}
+/* What each file is, large, with who holds it under it. The sizes' own slots (`data-size`) stay hidden
+   and take no rule that would show them. */
+.proof__lead {
+	margin: 0.75rem 0 0;
+	font: 600 clamp(1.55rem, 2.4vw, 2.3rem) / 1.04 var(--font-display);
+	letter-spacing: -0.032em;
+}
+.proof__note {
+	margin: 0.35rem 0 0;
+	font-size: 0.98rem;
+	color: var(--soft);
+}
+.proof__card--git .proof__note,
+.proof__card--git .proof__excerpt {
+	color: color-mix(in srgb, var(--paper) 70%, var(--ink));
+}
+.proof__excerpt {
+	margin: 1.5rem 0 0.6rem;
+	font: 600 0.78rem / 1.2 var(--font-ui);
+	color: var(--soft);
+}
+body[data-homepage] .proof__code code {
+	color: inherit;
+}
+.proof__code {
+	margin: 0;
+	overflow: hidden;
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+/* Both cards are as long as each other (Daniel, 9 Nov). The agent's markup is small, dense and grey, and
+   runs out of the card; the source is set larger and reads in full. */
+.proof__code {
+	height: 17.5rem;
+}
+.proof__card--agent .proof__code {
+	font: 400 0.72rem / 1.55 var(--font-mono);
+	color: color-mix(in srgb, var(--soft) 88%, var(--paper-2));
+	-webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
+	mask-image: linear-gradient(to bottom, #000 55%, transparent);
+}
+.proof__card--git .proof__code {
+	font: 400 0.84rem / 1.62 var(--font-mono);
+	color: var(--paper);
+}
+/* On the ink card the syntax colours are the page's own, lifted toward paper. */
+.proof__card--git :is(.hl-key, .hl-link, .hl-tag) {
+	color: color-mix(in oklab, var(--hl-key) 42%, var(--paper));
+}
+.proof__card--git :is(.hl-str, .hl-inline, .hl-url, .hl-val, .hl-code) {
+	color: color-mix(in oklab, var(--hl-str) 42%, var(--paper));
+}
+.proof__card--git :is(.hl-num, .hl-bool, .hl-info, .hl-flag, .hl-heading, .hl-strong) {
+	color: color-mix(in oklab, var(--hl-num) 42%, var(--paper));
+}
+.proof__card--git :is(.hl-punc, .hl-fm, .hl-fence, .hl-mark, .hl-esc, .hl-comment) {
+	color: color-mix(in oklab, var(--paper) 58%, var(--ink));
+}
+
+/* ------------------------------------------------------------------ Vee's small clips */
+
+/* Vee appears three more times below the first screen: typing by the editor, dipping a brush beside the
+   example company's report and waving at the close. Each clip is square, transparent where the browser
+   can draw it and laid on the site's paper where it cannot (Safari), so each one stands on paper. The
+   site runtime gives a slot its clip as the reader comes near and plays it once; the still in the slot
+   is what a reader without scripts, or with reduced motion, sees. A slot without a clip holds no space. */
+.pip-slot {
+	position: absolute;
+	aspect-ratio: 1;
+	pointer-events: none;
+}
+.pip-slot:empty {
+	display: none;
+}
+.pip-slot picture,
+.pip-slot video {
+	position: absolute;
+	inset: 0;
+}
+/* The clip's edges fade, like the hero's, so the paper it is laid on for Safari, a level off the page's
+   once decoded, never meets the page at a seam. The still fades the same way. */
+.pip-slot img,
+.pip-slot video {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	-webkit-mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent),
+		linear-gradient(to bottom, transparent, #000 7%, #000 93%, transparent);
+	-webkit-mask-composite: source-in;
+	mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent),
+		linear-gradient(to bottom, transparent, #000 7%, #000 93%, transparent);
+	mask-composite: intersect;
+}
+/* The clip takes the still's place from its first frame, which is the same picture. */
+.pip-slot video {
+	opacity: 0;
+}
+.pip-slot[data-shown] video {
+	opacity: 1;
+}
+.pip-slot[data-shown] picture {
+	visibility: hidden;
+}
+/* Vee's blink. A routine over, Vee holds its last frame and blinks at the moments that matter: when the routine
+   ends, when Vee comes back into view, and every few seconds for as long as it stays (homepage.rs makes this layer,
+   says where the eyes are, sets data-blink and times the blinks). The layer is an SVG in the frame's own pixels, over the
+   clip, so the eyes land where the clip's eyes are at any size. It holds a crop of the eyes cut from the same
+   render as the held frame: four heights of them side by side in one strip, closing, shut, opening, nearly open.
+   The strip steps through a window of one height in 160 ms; the crop's edge fades into the frame under it.
+   Nothing is made, and nothing loads, with reduced motion or without scripts. */
+.vee-eyes {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	opacity: 0;
+}
+.vee-eyes[data-blink] {
+	opacity: 1;
+}
+.vee-eyes[data-blink] image {
+	transform-box: fill-box;
+	animation: vee-blink 160ms step-end 1 forwards;
+}
+@keyframes vee-blink {
+	0% {
+		transform: translateX(0);
+	}
+	25% {
+		transform: translateX(-25%);
+	}
+	56.25% {
+		transform: translateX(-50%);
+	}
+	78.125%,
+	100% {
+		transform: translateX(-75%);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.vee-eyes {
+		display: none;
+	}
+}
+/* By the editor: perched on the source sheet's top edge at its right, the little desk's feet on it. */
+.pip-slot[data-pip="typing"] {
+	--size: clamp(6.6rem, 9.5vw, 9rem);
+	top: calc(-0.95 * var(--size));
+	right: 0.6rem;
+	width: var(--size);
+}
+.demo:has(.pip-slot:not(:empty)) .demo__head {
+	margin-bottom: clamp(6.25rem, 10.5vw, 9.25rem);
+}
+
+/* ------------------------------------------------------------------ your brand */
+
+.voices {
+	padding-top: clamp(5rem, 13vh, 9rem);
+	padding-bottom: clamp(3.5rem, 9vh, 6rem);
+}
+.voices__head {
+	display: grid;
+	grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+	align-items: end;
+	gap: 0.8rem clamp(1.5rem, 4vw, 4rem);
+	margin-bottom: clamp(1.8rem, 4.5vh, 3rem);
+}
+.voices__head p {
+	margin: 0 0 0.35rem;
+	max-width: 32em !important;
+	font-size: clamp(1.05rem, 1.3vw, 1.22rem);
+	line-height: 1.45;
+	color: var(--soft);
+}
+
+/* The example company's brand: its style file, set on a card, and the report it makes, on the
+   company's own green. The report is a real render of the page's example report with that style (the
+   build's own CLI, captured as an image); the company, its name and its logo are placeholders. */
+.brand {
+	position: relative;
+	display: grid;
+	grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+	align-items: start;
+	gap: clamp(1.5rem, 4vw, 4rem);
+	margin: 0;
+	padding: clamp(1.5rem, 3.6vw, 3.5rem) clamp(1.25rem, 3.6vw, 3.5rem) 0;
+	border-radius: 12px;
+	/* The company's green, as a soft tint: a company shows itself in a slim bar, not a block (Daniel, 9 Nov). */
+	background: color-mix(in oklch, var(--company) 15%, var(--paper));
+	color: var(--ink);
+	overflow: hidden;
+}
+.brand__file {
+	position: relative;
+	align-self: center;
+	display: grid;
+	gap: 0.9rem;
+	margin: 0 0 clamp(1.5rem, 3.6vw, 3.5rem);
+	padding: 1.25rem 1.3rem 1.3rem;
+	border-radius: 12px;
+	/* The page's own paper, so Vee's clip, laid on that paper where it cannot be transparent, sits on it
+	   without an edge. */
+	background: var(--paper);
+	color: var(--ink);
+}
+.brand__name {
+	margin: 0;
+	font: 600 0.92rem / 1.3 var(--font-ui);
+	color: var(--soft);
+}
+.brand__name code {
+	font-size: 0.92em;
+}
+.brand__file pre.hl {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	font: 400 clamp(0.72rem, 0.86vw, 0.82rem) / 1.65 var(--font-mono);
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+	overflow: visible;
+}
+.brand__chips {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.45rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	font: 400 0.8rem / 1.2 var(--font-ui);
+	color: var(--soft);
+}
+.brand__chips li {
+	width: 2rem;
+	height: 2rem;
+	border-radius: 50%;
+	background: var(--chip);
+}
+.brand__chips li:first-child {
+	margin-right: 0.3rem;
+}
+.brand__note {
+	margin: 0;
+	font-size: 0.86rem;
+	line-height: 1.45;
+	color: var(--soft);
+	max-width: 30em !important;
+}
+.brand__page {
+	position: relative;
+	align-self: end;
+	margin: 0;
+	border-radius: 12px 12px 0 0;
+	overflow: hidden;
+	box-shadow: 0 0 0 1px color-mix(in oklch, var(--company) 16%, transparent);
+}
+.brand__page img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+/* Dipping a brush: inside the style file's card, at its lower right, beside the palette. */
+.pip-slot[data-pip="brush"] {
+	right: 0.5rem;
+	bottom: 0.4rem;
+	width: clamp(7.5rem, 10.5vw, 10rem);
+}
+.brand__file:has(.pip-slot:not(:empty)) {
+	padding-right: clamp(8rem, 11vw, 10.5rem);
+	min-height: clamp(18rem, 26vw, 24rem);
+}
+.brand__file:has(.pip-slot:not(:empty)) pre.hl {
+	margin-right: calc(-1 * clamp(8rem, 11vw, 10.5rem) + 1.3rem);
+}
+.brand-slot:empty {
+	display: none;
+}
+
+/* ------------------------------------------------------------------ prebuilt styles */
+
+body[data-homepage] .voices__label {
+	margin: clamp(3rem, 7vh, 4.5rem) 0 clamp(1rem, 2.4vh, 1.4rem);
+	font: 600 clamp(1.45rem, 2vw, 1.95rem) / 1.05 var(--font-display);
+	letter-spacing: -0.028em;
+	color: var(--ink-strong);
+}
+
+/* ------------------------------------------------------------------ the best elements */
+
+/* The elements of the format, named, each with a specimen made from the page's example: its data, its
+   numbers and its words. The specimens are drawn by the site, in the page's paints; the reports draw
+   the real ones in each style. Cells share hairlines, like a specimen sheet. */
+.best {
+	padding-top: clamp(5rem, 13vh, 9rem);
+	padding-bottom: clamp(3.5rem, 9vh, 6rem);
+}
+.elements {
+	display: grid;
+	grid-template-columns: repeat(12, minmax(0, 1fr));
+	margin: clamp(2rem, 5vh, 3.25rem) 0 0;
+	padding: 0;
+	list-style: none;
+	border-top: 1px solid var(--rule);
+	border-left: 1px solid var(--rule);
+}
+.element {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+	min-width: 0;
+	padding: clamp(1.2rem, 2vw, 1.75rem);
+	border-right: 1px solid var(--rule);
+	border-bottom: 1px solid var(--rule);
+}
+.element > p {
+	margin: 0;
+	font-size: 0.95rem;
+	line-height: 1.5;
+	color: var(--soft);
+	max-width: 34em !important;
+}
+.element__spec {
+	padding-top: 0.9rem;
+}
+.element--charts .element__spec {
+	margin-top: auto;
+}
+.element--charts { grid-column: span 7; grid-row: span 2; }
+.element--metrics { grid-column: span 5; }
+.element--callouts { grid-column: span 5; }
+.element--tables { grid-column: span 5; }
+.element--images { grid-column: span 4; }
+.element--type { grid-column: span 3; }
+.element--colour { grid-column: span 5; }
+.element--more { grid-column: span 7; }
+
+/* Charts: the example's four regions, 1950 to 2019, in Vee's four paints. */
+.spec-chart {
+	display: block;
+	width: 100%;
+	height: auto;
+	overflow: visible;
+}
+.spec-chart .grid {
+	stroke: var(--rule);
+	stroke-width: 1;
+}
+.spec-chart .tick {
+	fill: var(--faint);
+	font: 400 11px / 1 var(--font-ui);
+	font-variant-numeric: tabular-nums;
+}
+.spec-chart .series {
+	fill: none;
+	stroke-width: 2.6;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+.spec-chart .name {
+	font: 600 12px / 1 var(--font-ui);
+}
+.spec-chart .note {
+	fill: var(--soft);
+	font: 400 11px / 1 var(--font-ui);
+}
+.spec-chart .series--europe { stroke: #d4553a; }
+.spec-chart .series--americas { stroke: #b4649a; }
+.spec-chart .series--asia { stroke: #2a9683; }
+.spec-chart .series--africa { stroke: #2a62c9; }
+.spec-chart .name--europe { fill: #c24a30; }
+.spec-chart .name--americas { fill: #9c4f84; }
+.spec-chart .name--asia { fill: #1f7f6e; }
+.spec-chart .name--africa { fill: #2457b4; }
+.spec-chart__source {
+	margin: 0.6rem 0 0;
+	font-size: 0.78rem;
+	color: var(--faint);
+}
+
+/* Metrics: one number, large, with what it counts and how it moved. */
+.spec-metric {
+	display: grid;
+	gap: 0.2rem;
+	padding-top: 0.85rem;
+	border-top: 2px solid var(--ink);
+}
+.spec-metric b {
+	font: 600 clamp(3rem, 5vw, 4.4rem) / 0.95 var(--font-display);
+	letter-spacing: -0.04em;
+	font-variant-numeric: lining-nums tabular-nums;
+	color: var(--ink-strong);
+}
+.spec-metric span {
+	font-size: 0.9rem;
+	color: var(--soft);
+}
+.spec-metric .up {
+	color: var(--ok);
+	font-variant-numeric: tabular-nums;
+}
+
+/* Callouts: an aside under one rule, its title running into the text in the display face. */
+.spec-callout {
+	margin: 0;
+	padding-top: 0.75rem;
+	border-top: 1px solid var(--ink);
+	font-size: 1rem;
+	line-height: 1.5;
+	color: var(--ink);
+}
+.spec-callout b {
+	font: 600 1.05rem / 1.3 var(--font-display);
+	letter-spacing: -0.015em;
+	color: #a2610d;
+}
+
+/* Tables: the exact values, with tabular figures. */
+.spec-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.9rem;
+	font-variant-numeric: tabular-nums;
+}
+.spec-table caption {
+	text-align: left;
+	padding-bottom: 0.5rem;
+	font-weight: 600;
+	font-size: 0.86rem;
+}
+.spec-table th,
+.spec-table td {
+	padding: 0.42rem 0.4rem;
+	border-bottom: 1px solid var(--rule-soft);
+	text-align: right;
+}
+.spec-table th:first-child,
+.spec-table td:first-child {
+	text-align: left;
+	padding-left: 0;
+}
+.spec-table thead th {
+	font-weight: 600;
+	color: var(--soft);
+	border-bottom: 1px solid var(--ink);
+}
+
+/* Images: a credited photo, its credit under it. */
+.spec-image {
+	margin: 0;
+}
+.spec-image img {
+	display: block;
+	width: 100%;
+	aspect-ratio: 5 / 2;
+	object-fit: cover;
+	border-radius: 4px;
+	background: #7b6c5b;
+}
+.spec-image figcaption {
+	margin-top: 0.45rem;
+	font-size: 0.78rem;
+	color: var(--faint);
+}
+.spec-image a {
+	color: inherit;
+}
+
+/* Typography: the punctuation a typesetter would set. */
+.spec-type {
+	margin: 0;
+	font: 400 clamp(1.6rem, 2.3vw, 2.1rem) / 1.18 var(--font-display);
+	letter-spacing: -0.02em;
+	color: var(--ink-strong);
+}
+.spec-type sup {
+	font-size: 0.55em;
+	color: var(--blue);
+}
+
+/* Colour: each style's paper, ink and accent, as the build reads them from the styles. */
+.spec-colour {
+	display: grid;
+	gap: 0.55rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.spec-colour li {
+	display: grid;
+	grid-template-columns: 6.5rem repeat(3, 1.6rem);
+	align-items: center;
+	gap: 0.35rem;
+	font-size: 0.86rem;
+	color: var(--soft);
+}
+/* Three soft tints of the style's accent, mixed toward the page's paper. */
+.spec-colour i {
+	width: 1.6rem;
+	height: 1.6rem;
+	border-radius: 50%;
+	background: color-mix(in oklch, var(--chip) 22%, var(--paper));
+}
+.spec-colour i:nth-of-type(2) {
+	background: color-mix(in oklch, var(--chip) 42%, var(--paper));
+}
+.spec-colour i:nth-of-type(3) {
+	background: color-mix(in oklch, var(--chip) 64%, var(--paper));
+}
+
+/* And more: the rest of the vocabulary, as a run of words. */
+.element--more {
+	justify-content: center;
+}
+.spec-more {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+/* The rest of the vocabulary as stickers in Vee's paints, softened toward the paper. */
+.spec-more li {
+	--paint: var(--paint-1);
+	padding: 0.42rem 0.9rem;
+	border-radius: 999px;
+	background: color-mix(in oklch, var(--paint) 16%, var(--paper));
+	font: 500 0.92rem / 1.2 var(--font-ui);
+	color: color-mix(in oklch, var(--paint) 55%, var(--ink-strong));
+}
+.spec-more li:nth-child(4n + 2) { --paint: var(--paint-2); }
+.spec-more li:nth-child(4n + 3) { --paint: var(--paint-3); }
+.spec-more li:nth-child(4n + 4) { --paint: var(--paint-4); }
+.best__more {
+	margin: 1.6rem 0 0;
+}
+.best__more a {
+	color: var(--blue-ink);
+	font-weight: 600;
+	text-underline-offset: 0.22em;
+}
+
+
+/* The real hosted reports list accompanies the invitation where it fits. */
+.hosted__capture {
+	display: none;
+}
+@media (min-width: 900px) {
+	.hosted {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		gap: clamp(2rem, 4vw, 4rem);
+		align-items: center;
+	}
+	.hosted__capture {
+		display: block;
+		position: relative;
+		aspect-ratio: 1088 / 460;
+		overflow: hidden;
+		border: 1px solid var(--rule);
+		border-radius: var(--radius-sheet);
+		background: var(--paper);
+	}
+	.hosted__capture img {
+		position: absolute;
+		width: 117.647%;
+		max-width: none;
+		height: auto;
+		left: -8.824%;
+		top: -35.87%;
+	}
+}
+
+/* ------------------------------------------------------------------ the ecosystem */
+
+/* Five pieces on one line, as a reader meets them: what the agent writes, what renders it, what styles
+   it, where it is edited and where it is shared. */
+.ecosystem {
+	padding-top: clamp(5rem, 13vh, 9rem);
+	padding-bottom: clamp(4rem, 10vh, 7rem);
+}
+.eco {
+	position: relative;
+	display: grid;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: clamp(1rem, 2vw, 2rem);
+	margin: clamp(2.5rem, 6vh, 4rem) 0 0;
+	padding: 0;
+	list-style: none;
+}
+/* The line the pieces sit on. */
+.eco::before {
+	content: "";
+	position: absolute;
+	top: 0.45rem;
+	left: 0.45rem;
+	right: 0;
+	height: 1.5px;
+	background: var(--ink);
+}
+.eco__card {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 0.7rem;
+	min-width: 0;
+	padding-top: 2.2rem;
+	color: var(--ink);
+}
+/* Each stop on the line is a dab of one of Vee's paints; the first, which links, is the brand blue. */
+.eco__card::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 0.95rem;
+	height: 0.95rem;
+	border-radius: 50%;
+	background: var(--dab, var(--paint-1));
+}
+.eco__card:nth-child(3)::before { --dab: var(--paint-2); }
+.eco__card:nth-child(4)::before { --dab: var(--paint-3); }
+.eco__card:nth-child(5)::before { --dab: var(--paint-4); }
+.eco__card--link::before {
+	--dab: var(--blue);
+}
+body[data-homepage] .eco__card h3 {
+	font-size: clamp(1.35rem, 1.75vw, 1.75rem);
+	line-height: 1.05;
+	letter-spacing: -0.028em;
+}
+.eco__card p {
+	margin: 0;
+	color: var(--soft);
+	font-size: 0.95rem;
+	line-height: 1.5;
+}
+/* The Rich Markdown piece leads up to the elements: its whole face is the link. */
+.eco__card--link h3 a {
+	color: var(--blue-ink);
+	text-decoration: none;
+}
+.eco__card--link h3 a::after {
+	content: "";
+	position: absolute;
+	inset: -0.5rem;
+	border-radius: 12px;
+}
+.eco__card--link h3 a:focus-visible {
+	outline: none;
+}
+.eco__card--link h3 a:focus-visible::after {
+	outline: 2px solid var(--blue);
+	outline-offset: 2px;
+}
+.eco__visual {
+	margin-top: auto;
+	padding-top: 0.6rem;
+}
+.eco pre.hl {
+	margin: auto 0 0;
+	padding: 0.75rem 0.85rem;
+	overflow: hidden;
+	border: 0;
+	border-radius: 12px;
+	background: var(--paper-2);
+	font: 400 0.72rem / 1.6 var(--font-mono);
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+.eco__visual--tiles {
+	display: grid;
+	gap: 0.6rem;
+}
+.eco__visual--tiles pre.hl {
+	margin: 0;
+}
+.mini-chart {
+	height: 8rem;
+	display: flex;
+	align-items: flex-end;
+	gap: 0.7rem;
+	padding: 1.2rem 0.2rem 0;
+	border-bottom: 1.5px solid var(--ink);
+}
+.mini-chart i {
+	position: relative;
+	flex: 1;
+	height: var(--h);
+	min-height: 3px;
+	background: var(--blue);
+	border-radius: 4px 4px 0 0;
+}
+.mini-chart em {
+	position: absolute;
+	left: 50%;
+	bottom: 100%;
+	transform: translate(-50%, -0.3rem);
+	font: 600 0.72rem / 1 var(--font-ui);
+	font-style: normal;
+	color: var(--ink);
+	font-variant-numeric: tabular-nums;
+}
+.theme-tiles {
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	gap: 0.4rem;
+}
+.tile {
+	display: grid;
+	place-items: center;
+	aspect-ratio: 1;
+	font-style: normal;
+	font-size: 1.05rem;
+	background: var(--tile-bg);
+	color: var(--tile-ink);
+	font-family: var(--tile-font);
+	font-weight: 600;
+	border: 1px solid var(--tile-rule);
+	border-radius: var(--tile-radius);
+	box-shadow: inset 0 -3px 0 var(--tile-accent);
+}
+.versions {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: grid;
+	gap: 0.4rem;
+	font-size: 0.8rem;
+}
+.versions li {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.55rem 0.7rem;
+	border-radius: 12px;
+	background: var(--paper-2);
+}
+.versions li:first-child {
+	background: color-mix(in srgb, var(--blue) 12%, var(--paper));
+}
+.versions li span {
+	font: 600 0.72rem / 1 var(--font-ui);
+	color: var(--blue-ink);
+}
+.versions code {
+	border: 0 !important;
+	background: none !important;
+	padding: 0 !important;
+	font-size: 0.76rem;
+	overflow-wrap: anywhere;
+}
+.split {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.4rem;
+	height: 8rem;
+}
+.split span {
+	display: flex;
+	flex-direction: column;
+	gap: 0.45rem;
+	padding: 0.7rem;
+	border-radius: 12px;
+	background: var(--paper-2);
+}
+.split__src i {
+	height: 0.4rem;
+	border-radius: 4px;
+	background: color-mix(in srgb, var(--soft) 35%, transparent);
+}
+.split__src i:nth-child(2) { width: 70%; }
+.split__src i:nth-child(4) { width: 55%; }
+.split__src i.hi { background: var(--blue); width: 85%; }
+.split__view {
+	flex-direction: row !important;
+	align-items: flex-end;
+	gap: 0.35rem !important;
+}
+.split__view i {
+	flex: 1;
+	background: var(--blue);
+	border-radius: 2px 2px 0 0;
+}
+.split__view i:nth-child(1) { height: 10%; }
+.split__view i:nth-child(2) { height: 30%; }
+.split__view i:nth-child(3) { height: 60%; }
+.split__view i:nth-child(4) { height: 92%; }
+pre.hl {
+	margin: 0.6rem 0 0;
+	padding: 1.05rem 1.2rem;
+	border-radius: 12px;
+	background: var(--panel);
+	border: 1px solid color-mix(in srgb, var(--rule) 80%, transparent);
+	font: 400 0.84rem / 1.7 var(--font-mono);
+	overflow: auto;
+	white-space: pre;
+}
+
+/* ------------------------------------------------------------------ the close */
+
+/* RichView's own colour, once: the close on the brand blue. The prompt sits on a sheet of the page's
+   paper, where Vee waves. */
+.close {
+	position: relative;
+	padding-top: clamp(5rem, 14vh, 9.5rem);
+	padding-bottom: clamp(4.5rem, 12vh, 8rem);
+	background: var(--night);
+	color: var(--night-ink);
+}
+body[data-homepage] .close h2 {
+	max-width: 13em;
+	color: var(--night-ink);
+}
+.close__note {
+	margin: 1.1rem 0 0;
+	color: var(--night-soft);
+	font-size: clamp(1.05rem, 1.35vw, 1.25rem);
+}
+.close__sheet {
+	position: relative;
+	max-width: 50rem;
+	margin-top: clamp(2.2rem, 5vh, 3.25rem);
+	padding: clamp(1.25rem, 2.4vw, 1.9rem);
+	border-radius: 12px;
+	/* The page's own paper, so Vee's clip, laid on that paper where it cannot be transparent, sits on it
+	   without an edge. */
+	background: var(--paper);
+	color: var(--ink);
+}
+.close .prompt__box {
+	display: grid;
+	justify-items: start;
+	gap: 1rem;
+}
+.close .prompt__text {
+	max-width: 30em;
+	padding: 0;
+	border: 0;
+	background: none;
+	rotate: none;
+	font-size: clamp(1.3rem, 1.9vw, 1.65rem);
+	line-height: 1.28;
+}
+/* Waving: inside the sheet, at its lower right. */
+.pip-slot[data-pip="wave"] {
+	right: clamp(0.4rem, 1.4vw, 1.2rem);
+	bottom: 0.4rem;
+	width: clamp(8rem, 12vw, 11rem);
+}
+.close__sheet:has(.pip-slot:not(:empty)) {
+	padding-bottom: clamp(8rem, 11vw, 10.5rem);
+}
+@media (min-width: 1100px) {
+	.close {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr);
+		column-gap: clamp(2.5rem, 5vw, 5.5rem);
+		align-items: start;
+	}
+	.close > :not(.close__sheet) {
+		grid-column: 1;
+	}
+	.close__sheet {
+		grid-column: 2;
+		grid-row: 1 / span 4;
+		align-self: center;
+		margin-top: 0;
+	}
+	.close__sheet:has(.pip-slot:not(:empty)) {
+		padding-bottom: clamp(1.25rem, 2.4vw, 1.9rem);
+		padding-right: clamp(9rem, 12vw, 11.5rem);
+	}
+}
+.updates {
+	max-width: 34rem;
+	margin-top: clamp(2.2rem, 5vh, 3.25rem);
+}
+.close :focus-visible {
+	outline-color: var(--night-ink);
+}
+.updates__label {
+	display: block;
+	font: 600 1.05rem / 1.3 var(--font-ui);
+	color: var(--night-ink);
+}
+.updates__terms {
+	margin: 0;
+	font-size: 0.86rem;
+	color: var(--night-soft);
+}
+.updates__terms a {
+	color: var(--night-ink);
+	text-underline-offset: 0.2em;
+}
+.updates__input {
+	display: flex;
+	gap: 0.5rem;
+	margin: 0.6rem 0 0.7rem;
+	padding: 0.35rem;
+	border: 1.5px solid transparent;
+	border-radius: 999px;
+	background: var(--paper);
+	transition: border-color 150ms var(--ease-out);
+}
+.updates__input:focus-within {
+	border-color: var(--night-ink);
+}
+.updates__input input {
+	flex: 1;
+	min-width: 0;
+	padding: 0.7rem 0.9rem;
+	border: 0;
+	background: transparent;
+	color: var(--ink);
+	font: inherit;
+	font-size: 1.02rem;
+	outline: none;
+}
+.updates__input .btn {
+	flex: none;
+	border: 0;
+	cursor: pointer;
+	background: var(--ink);
+	color: var(--paper);
+}
+.updates__input .btn:hover {
+	background: var(--ink-strong);
+}
+.updates button:disabled {
+	opacity: 0.6;
+	cursor: wait;
+}
+.close #interest-status {
+	color: var(--night-ink);
+}
+.close__open {
+	margin: clamp(1.6rem, 4vh, 2.4rem) 0 0;
+	color: var(--night-soft);
+	font-size: 0.95rem;
+}
+.honeypot {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+}
+#interest-status {
+	min-height: 1.6em;
+	margin: 1rem 0 0;
+	color: var(--blue-ink);
+	font-weight: 600;
+}
+body[data-homepage] .foot {
+	max-width: var(--measure);
+	margin: 0 auto;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem 2rem;
+	align-items: baseline;
+	background: transparent;
+}
+html:not(.js) .rv-field {
+	display: none;
+}
+
+/* ------------------------------------------------------------------ narrower screens */
+
+@media (max-width: 1199px) {
+	.element--charts { grid-column: span 12; grid-row: auto; }
+	.element--metrics,
+	.element--callouts,
+	.element--tables,
+	.element--images,
+	.element--type,
+	.element--colour { grid-column: span 6; }
+	.element--more { grid-column: span 12; }
+	.eco {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		row-gap: 3rem;
+	}
+	.eco::before {
+		display: none;
+	}
+}
+@media (max-width: 899px) {
+	.voices__head {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.brand {
+		grid-template-columns: minmax(0, 1fr);
+		padding-top: 1.25rem;
+	}
+	.brand__file {
+		margin-bottom: 0;
+	}
+	.proof {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.proof__code {
+		height: 15rem;
+	}
+}
+@media (max-width: 699px) {
+	.elements {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.element--charts,
+	.element--metrics,
+	.element--callouts,
+	.element--tables,
+	.element--images,
+	.element--type,
+	.element--colour,
+	.element--more { grid-column: auto; }
+	.eco {
+		grid-template-columns: minmax(0, 1fr);
+		row-gap: 2.5rem;
+		padding-left: 2rem;
+	}
+	.eco::before {
+		display: block;
+		top: 0.45rem;
+		bottom: 0;
+		left: 0.45rem;
+		right: auto;
+		width: 1.5px;
+		height: auto;
+	}
+	.eco__card {
+		padding-top: 0;
+	}
+	.eco__card::before {
+		left: -2rem;
+		top: 0.3rem;
+	}
+	.updates__input {
+		flex-direction: column;
+		border-radius: 12px;
+	}
+	.updates__input .btn {
+		justify-content: center;
+	}
+	.brand__file:has(.pip-slot:not(:empty)) {
+		min-height: 0;
+		padding-right: 1.3rem;
+		padding-bottom: 8.5rem;
+	}
+	.brand__file:has(.pip-slot:not(:empty)) pre.hl {
+		margin-right: 0;
+	}
+}
+@media (max-width: 480px) {
+	.close .prompt__text {
+		font-size: 1.22rem;
+	}
+}

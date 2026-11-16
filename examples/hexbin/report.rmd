@@ -1,0 +1,166 @@
+---
+title: Where the taxi rides cluster
+description: A hexbin chart counts observations in hexagons, so a crowded scatter plot shows where its points pile up.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Two kinds of ride
+
+These illustrative taxi rides are too many to read as separate points. Each hexagon counts the rides whose distance and fare fall inside it; darker hexagons hold more.
+
+```chart
+type: hexbin
+title: Longer rides cost more
+subtitle: Distance and fare of 140 rides
+data:
+  inline:
+    - {distance: 23.9, fare: 39.2}
+    - {distance: 16.2, fare: 24.0}
+    - {distance: 21.9, fare: 42.1}
+    - {distance: 22.1, fare: 22.2}
+    - {distance: 16.3, fare: 29.8}
+    - {distance: 24.8, fare: 30.1}
+    - {distance: 18.4, fare: 28.6}
+    - {distance: 21.0, fare: 25.1}
+    - {distance: 20.2, fare: 32.0}
+    - {distance: 28.2, fare: 29.8}
+    - {distance: 24.9, fare: 23.2}
+    - {distance: 24.4, fare: 31.3}
+    - {distance: 17.5, fare: 30.1}
+    - {distance: 24.6, fare: 28.0}
+    - {distance: 25.2, fare: 40.7}
+    - {distance: 28.1, fare: 41.3}
+    - {distance: 13.9, fare: 32.6}
+    - {distance: 16.8, fare: 36.7}
+    - {distance: 20.5, fare: 31.8}
+    - {distance: 22.4, fare: 26.2}
+    - {distance: 20.6, fare: 25.3}
+    - {distance: 30.4, fare: 27.1}
+    - {distance: 20.3, fare: 18.1}
+    - {distance: 12.9, fare: 24.5}
+    - {distance: 24.1, fare: 35.5}
+    - {distance: 21.6, fare: 25.8}
+    - {distance: 29.3, fare: 23.2}
+    - {distance: 16.0, fare: 33.6}
+    - {distance: 15.3, fare: 32.1}
+    - {distance: 24.9, fare: 29.8}
+    - {distance: 22.2, fare: 30.5}
+    - {distance: 16.9, fare: 8.4}
+    - {distance: 14.2, fare: 30.2}
+    - {distance: 12.1, fare: 26.4}
+    - {distance: 21.2, fare: 39.4}
+    - {distance: 13.5, fare: 26.6}
+    - {distance: 21.3, fare: 33.9}
+    - {distance: 13.4, fare: 43.1}
+    - {distance: 16.2, fare: 37.8}
+    - {distance: 19.2, fare: 33.1}
+    - {distance: 28.4, fare: 35.1}
+    - {distance: 20.8, fare: 23.3}
+    - {distance: 16.9, fare: 20.4}
+    - {distance: 30.1, fare: 19.5}
+    - {distance: 7.5, fare: 41.6}
+    - {distance: 26.5, fare: 27.8}
+    - {distance: 24.3, fare: 24.6}
+    - {distance: 17.3, fare: 33.7}
+    - {distance: 22.1, fare: 27.1}
+    - {distance: 28.2, fare: 35.3}
+    - {distance: 20.9, fare: 22.0}
+    - {distance: 20.9, fare: 28.0}
+    - {distance: 19.8, fare: 35.8}
+    - {distance: 17.3, fare: 32.1}
+    - {distance: 24.1, fare: 32.7}
+    - {distance: 31.5, fare: 18.1}
+    - {distance: 19.9, fare: 22.0}
+    - {distance: 19.8, fare: 47.7}
+    - {distance: 12.0, fare: 28.2}
+    - {distance: 23.4, fare: 30.9}
+    - {distance: 24.7, fare: 19.4}
+    - {distance: 25.0, fare: 23.6}
+    - {distance: 14.1, fare: 34.1}
+    - {distance: 22.5, fare: 25.1}
+    - {distance: 16.1, fare: 28.8}
+    - {distance: 20.1, fare: 29.0}
+    - {distance: 15.1, fare: 14.0}
+    - {distance: 26.6, fare: 31.4}
+    - {distance: 14.0, fare: 19.3}
+    - {distance: 16.7, fare: 27.3}
+    - {distance: 9.5, fare: 39.9}
+    - {distance: 22.2, fare: 27.9}
+    - {distance: 21.8, fare: 31.7}
+    - {distance: 25.4, fare: 31.2}
+    - {distance: 26.4, fare: 40.9}
+    - {distance: 18.5, fare: 27.0}
+    - {distance: 15.7, fare: 28.5}
+    - {distance: 16.5, fare: 30.2}
+    - {distance: 21.6, fare: 33.9}
+    - {distance: 14.3, fare: 37.6}
+    - {distance: 48.0, fare: 54.4}
+    - {distance: 46.5, fare: 43.2}
+    - {distance: 51.9, fare: 44.5}
+    - {distance: 57.8, fare: 55.3}
+    - {distance: 61.0, fare: 59.0}
+    - {distance: 55.0, fare: 63.4}
+    - {distance: 49.8, fare: 64.3}
+    - {distance: 49.2, fare: 56.6}
+    - {distance: 45.4, fare: 58.3}
+    - {distance: 54.8, fare: 52.1}
+    - {distance: 41.2, fare: 54.9}
+    - {distance: 53.0, fare: 54.1}
+    - {distance: 43.3, fare: 50.8}
+    - {distance: 48.2, fare: 39.4}
+    - {distance: 46.0, fare: 63.6}
+    - {distance: 41.1, fare: 53.8}
+    - {distance: 61.8, fare: 59.3}
+    - {distance: 56.5, fare: 54.2}
+    - {distance: 40.8, fare: 72.3}
+    - {distance: 52.2, fare: 56.5}
+    - {distance: 61.5, fare: 59.9}
+    - {distance: 50.5, fare: 48.5}
+    - {distance: 49.0, fare: 54.2}
+    - {distance: 45.3, fare: 49.9}
+    - {distance: 43.1, fare: 54.3}
+    - {distance: 45.9, fare: 57.5}
+    - {distance: 57.1, fare: 56.9}
+    - {distance: 50.2, fare: 64.4}
+    - {distance: 54.6, fare: 46.2}
+    - {distance: 45.1, fare: 56.2}
+    - {distance: 43.9, fare: 59.6}
+    - {distance: 37.8, fare: 43.6}
+    - {distance: 56.9, fare: 58.5}
+    - {distance: 38.9, fare: 55.5}
+    - {distance: 59.4, fare: 48.4}
+    - {distance: 41.8, fare: 47.8}
+    - {distance: 43.2, fare: 44.7}
+    - {distance: 46.7, fare: 46.4}
+    - {distance: 50.5, fare: 68.4}
+    - {distance: 42.7, fare: 60.4}
+    - {distance: 58.2, fare: 41.2}
+    - {distance: 50.8, fare: 55.0}
+    - {distance: 47.7, fare: 59.8}
+    - {distance: 47.0, fare: 57.1}
+    - {distance: 47.3, fare: 54.2}
+    - {distance: 44.6, fare: 68.6}
+    - {distance: 49.6, fare: 48.3}
+    - {distance: 63.6, fare: 64.4}
+    - {distance: 48.6, fare: 51.1}
+    - {distance: 44.9, fare: 62.4}
+    - {distance: 47.7, fare: 50.8}
+    - {distance: 55.9, fare: 53.4}
+    - {distance: 49.6, fare: 66.6}
+    - {distance: 56.0, fare: 62.5}
+    - {distance: 52.9, fare: 62.7}
+    - {distance: 48.8, fare: 60.8}
+    - {distance: 57.3, fare: 52.6}
+    - {distance: 41.1, fare: 58.2}
+    - {distance: 49.2, fare: 58.6}
+    - {distance: 45.8, fare: 58.2}
+encoding: {x: distance, y: fare}
+axes:
+  x: {label: Distance (km)}
+  y: {label: Fare (EUR)}
+```
+
+*Source: Illustrative values.*
+
+Use the keyboard or pointer to read the centre of a hexagon and how many rides fall in it.

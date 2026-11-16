@@ -1,0 +1,55 @@
+---
+title: Longer lives
+description: Life expectancy at birth in Gapminder's four world regions, 1950 to 2019.
+version: 1.0.0
+author: RichView example
+date: 2026-11-07
+styles: [sleek, report.rstyle.yaml]
+title_image:
+  src: https://images.unsplash.com/photo-1658909913848-1680f5d1af61?ixid=M3wxMTE0NDQ4fDB8MXxhbGx8fHx8fHx8fHwxNzk0MjMzMTAzfA&ixlib=rb-4.1.0&w=1920&q=80&fm=jpg&fit=max
+  alt: A small child's hand holding the finger of an older person's weathered hand
+  fit: cover
+  credit:
+    author: Loume Visser
+    author_url: https://unsplash.com/@loumevisser?utm_source=richview&utm_medium=referral
+    source: Unsplash
+    source_url: https://unsplash.com/?utm_source=richview&utm_medium=referral
+---
+
+```chart
+type: line
+title: Every region gained at least 14 years
+subtitle: The years a newborn could expect to live, by world region
+data:
+  csv: data/life-expectancy-by-region.csv
+encoding: { x: year, y: life, color: region }
+axes:
+  x: { format: year }
+  y: { label: Years, min: 40 }
+style: { ratio: "2:1" }
+annotations:
+  - { kind: point, at: { x: 1960, y: 40.7 }, text: "Famine in China, 1959–61" }
+```
+
+*Source: Gapminder, life expectancy at birth, version 15 (5 April 2026), regional averages weighted by population; gapminder.org, CC BY 4.0.*
+
+A newborn in Asia could expect to live 46 years in 1950 and 75 years in 2019: a gain of 29 years, the most of any region. Africa gained 22 years, the Americas 17 and Europe, which started highest, 14. The world as a whole went from 52 to 74 years. The sharp dip in Asia around 1960 is the Great Chinese Famine of 1959–61.
+
+Gapminder's regions are wide: its Asia includes Australia and the Pacific Islands, and its Europe all of Russia and Central Asia.
+
+```table
+title: Years gained, 1950 to 2019
+data:
+  inline:
+    - { region: Asia, start: 45.6, end: 74.9, gain: 29.3 }
+    - { region: Africa, start: 42.8, end: 65.2, gain: 22.4 }
+    - { region: Americas, start: 60.8, end: 77.5, gain: 16.7 }
+    - { region: Europe, start: 64.6, end: 78.8, gain: 14.2 }
+columns:
+  - { key: region, label: Region }
+  - { key: start, label: "1950", align: right }
+  - { key: end, label: "2019", align: right }
+  - { key: gain, label: Years gained, align: right }
+```
+
+*Source: the chart's Gapminder data, at one decimal.*

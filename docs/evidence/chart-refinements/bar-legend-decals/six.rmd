@@ -1,0 +1,8 @@
+---
+title: Monochrome bar legend audit
+version: 0.0.1
+---
+
+```chart
+{"type":"bar","title":"Hatches identify each series","encoding":{"x":"period","y":"value","color":"series"},"style":{"orientation":"vertical"},"data":{"inline":[{"period":"Q1","series":"North","value":2},{"period":"Q1","series":"South","value":3},{"period":"Q1","series":"Central","value":4},{"period":"Q1","series":"East","value":5},{"period":"Q1","series":"West","value":6},{"period":"Q1","series":"Other","value":7},{"period":"Q2","series":"North","value":2.4},{"period":"Q2","series":"South","value":3.5999999999999996},{"period":"Q2","series":"Central","value":4.8},{"period":"Q2","series":"East","value":6},{"period":"Q2","series":"West","value":7.199999999999999},{"period":"Q2","series":"Other","value":8.4}]}}
+```

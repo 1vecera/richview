@@ -1,0 +1,49 @@
+Write the self-contained report, or a PDF, into the report folder's Rendered/
+
+Usage: richview generate [OPTIONS] <INPUT>
+
+Arguments:
+  <INPUT>
+          The report's `.rmd`, saved in its own folder (a folder holding one `.rmd` also works)
+
+Options:
+      --style <STYLES>
+          Style (a builtin name or a file in the report folder) replacing the source's `styles` for this call; repeatable
+
+      --connectors <CONNECTORS>
+          Trusted `connectors.toml` binding the names in `report.connectors.yaml` to data sources
+          
+          [env: RICHVIEW_CONNECTORS=]
+
+  -o, --output <OUTPUT>
+          File name inside Rendered/; a name ending in .pdf implies --to pdf
+
+      --to <TO>
+          Write the interactive report (default) or a PDF printed by a local Chromium-family browser
+
+          Possible values:
+          - report: The interactive HTML report
+          - pdf:    A PDF printed by a local Chromium-family browser
+
+      --page <PAGE>
+          Paper size of a PDF
+          
+          [default: a4]
+          [possible values: a4, letter]
+
+      --browser <BROWSER>
+          Chromium, Google Chrome or Microsoft Edge executable for PDF output (or RICHVIEW_BROWSER)
+
+      --settle-timeout <SETTLE_TIMEOUT>
+          Seconds a PDF waits for fonts and charts to settle
+          
+          [default: 30]
+
+      --format <FORMAT>
+          `pretty` for people, `json` for agents
+          
+          [default: pretty]
+          [possible values: pretty, json]
+
+  -h, --help
+          Print help (see a summary with '-h')

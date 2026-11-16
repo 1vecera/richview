@@ -1,0 +1,1566 @@
+/* The rules a report preview frame carries: each frame inlines this part of the file and only this
+   part (see previews.rs), so keep it short. A thumbnail shows the chart across the whole frame. */
+body.docs-preview .rv-report {
+	display: block;
+	width: 100%;
+	max-width: none;
+	margin: 0;
+	padding: 1.25rem 1.5rem 1rem;
+}
+body.docs-preview .rv-report__body,
+body.docs-preview .rv-report__body > *,
+body.docs-preview .rv-keep > * {
+	width: 100%;
+	max-width: none;
+	margin-left: 0;
+	margin-right: 0;
+}
+body.docs-preview .rv-report__footer { display: none; }
+/* The frame is shown at about a third of its size: the loading chart keeps a readable size. */
+body.docs-preview .rv-chart__frame::before { transform: scale(2); }
+/* docs-preview-end */
+
+/*
+ * Documentation pages: the one site look (STY-46) from assets/site.css, set the way the home page
+ * sets it. Headlines are Bricolage Grotesque 600, set tight; the interface and the text are Geist;
+ * the sheet is eggshell paper without grain; RichView's blue marks the current page, the links and
+ * the one primary pill. Light only (STY-47), opaque (STY-48), headings not eyebrows (STY-49), three
+ * radii (STY-66). The report engine ships its own inline CSS, so everything below the marker is
+ * scoped under body.docs-page to win by specificity. Reports shown inside the docs, in frames or on
+ * the page, keep their own styles: the docs frame them and never recolour them.
+ */
+/* ------------------------------------------------------------------ tokens */
+
+html {
+	scroll-padding-top: calc(var(--nav-h) + 1.5rem);
+}
+body.docs-page {
+	margin: 0;
+	background: var(--paper);
+	color: var(--ink);
+	font: 400 1.0625rem / 1.7 var(--font-ui);
+	-webkit-font-smoothing: antialiased;
+	overflow-x: hidden;
+	/* The home page's rhythm: the same gutter and the same two display tokens. The header and the
+	   footer sit inside the body, so they line up with the home page's. */
+	--gutter: clamp(1.25rem, 4.4vw, 4.5rem);
+	--font-display: "Bricolage Grotesque", "Geist", ui-sans-serif, system-ui, sans-serif;
+	--ink-strong: oklch(18.8% 0.009 84.6);
+	--rule-soft: color-mix(in oklch, var(--rule) 62%, var(--paper));
+	--wash: color-mix(in oklch, var(--blue) 9%, var(--paper));
+	/* Vee's paints, as on the home page: small marks only. */
+	--paint-1: oklch(61.1% 0.166 33.7);
+	--paint-3: oklch(60.8% 0.100 178.3);
+	--paint-4: oklch(51.9% 0.171 261.3);
+	/* The three columns: contents, a reading measure, this page's headings. */
+	--docs-side: 16rem;
+	--docs-toc: 13rem;
+	--docs-gap: 3rem;
+	--docs-measure: 68ch;
+	--docs-cols: var(--docs-side) minmax(0, var(--docs-measure)) var(--docs-toc);
+}
+body.docs-page *,
+body.docs-page *::before,
+body.docs-page *::after {
+	box-sizing: border-box;
+}
+body.docs-page ::selection {
+	background: color-mix(in oklch, var(--blue) 22%, transparent);
+}
+body.docs-page a {
+	color: var(--blue);
+	text-underline-offset: 0.2em;
+	text-decoration-thickness: 1px;
+	text-decoration-color: color-mix(in oklch, var(--blue) 45%, transparent);
+	transition: color 150ms var(--ease-out), text-decoration-color 150ms var(--ease-out);
+}
+body.docs-page a:hover {
+	color: var(--blue-ink);
+	text-decoration-color: currentColor;
+}
+/* The header and footer are the site's, the same on every page (STY-46). */
+body.docs-page .nav__brand {
+	color: var(--ink);
+	text-decoration: none;
+}
+body.docs-page .nav__links a {
+	color: var(--soft);
+	text-decoration: none;
+}
+body.docs-page .nav__links a:hover,
+body.docs-page .nav__links a:focus-visible,
+body.docs-page .nav__links a[aria-current="page"] {
+	color: var(--ink);
+}
+body.docs-page .foot a {
+	color: var(--soft);
+}
+body.docs-page kbd {
+	font: 500 0.72rem / 1 var(--font-ui);
+	letter-spacing: 0;
+}
+
+/* Disclosures keep their own marker out of the way and draw one chevron. */
+body.docs-page summary {
+	cursor: pointer;
+}
+body.docs-page summary::-webkit-details-marker {
+	display: none;
+}
+body.docs-page summary::marker {
+	content: "";
+}
+
+/* ------------------------------------------------------------------ search */
+
+/* One field, in the contents column: the row repeats the page grid so the field sits over the
+   contents. The label stays for assistive technology; the shortcut reads inside the field. */
+.docs-search {
+	position: relative;
+	display: grid;
+	grid-template-columns: var(--docs-cols);
+	column-gap: var(--docs-gap);
+	justify-content: center;
+	max-width: 100%;
+	margin: 0 auto;
+	padding: 1.25rem var(--gutter) 0;
+}
+.docs-search > * {
+	grid-column: 1 / 2;
+	grid-row: 1 / 2;
+	min-width: 0;
+}
+.docs-search label {
+	position: absolute;
+	inset: 0 0.6rem 0 auto;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	font-size: 0;
+	pointer-events: none;
+}
+.docs-search kbd {
+	padding: 0.18rem 0.45rem;
+	font-size: 0.68rem;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-pill);
+	background: var(--paper-2);
+	color: var(--faint);
+	white-space: nowrap;
+}
+.docs-search input {
+	display: block;
+	width: 100%;
+	min-height: 2.5rem;
+	margin: 0;
+	padding: 0.5rem 4.7rem 0.5rem 1rem;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-pill);
+	background: var(--panel);
+	color: var(--ink);
+	font: 400 0.85rem / 1.3 var(--font-ui);
+	-webkit-appearance: none;
+	appearance: none;
+	transition: border-color 150ms var(--ease-out);
+}
+.docs-search input::placeholder {
+	color: var(--faint);
+	opacity: 1;
+}
+.docs-search input:hover {
+	border-color: color-mix(in oklch, var(--ink) 40%, var(--rule));
+}
+.docs-search input:focus-visible {
+	border-color: var(--blue);
+	outline-offset: 2px;
+	border-radius: var(--r-pill);
+}
+.docs-search input::-webkit-search-cancel-button {
+	display: none;
+}
+/* Results open as a panel under the field and never push the page. */
+.docs-search [data-docs-search-results] {
+	position: absolute;
+	top: calc(100% + 0.4rem);
+	left: 0;
+	z-index: 12;
+	width: min(24rem, calc(100vw - 2 * var(--gutter)));
+	max-height: min(26rem, 70vh);
+	overflow-y: auto;
+	margin: 0;
+	padding: 0.4rem;
+	list-style: none;
+	border: 1px solid color-mix(in oklch, var(--ink) 30%, var(--rule));
+	border-radius: var(--r-panel);
+	background: var(--panel);
+	color: var(--soft);
+	font-size: 0.9rem;
+	line-height: 1.4;
+}
+.docs-search [data-docs-search-results]:empty {
+	display: none;
+}
+.docs-search [data-docs-search-results]:not(:has(li)) {
+	padding: 0.75rem 0.9rem;
+}
+body.docs-page .docs-search [data-docs-search-results] a {
+	display: block;
+	padding: 0.5rem 0.9rem;
+	border-radius: var(--r-pill);
+	color: var(--ink);
+	text-decoration: none;
+}
+body.docs-page .docs-search [data-docs-search-results] a:hover,
+body.docs-page .docs-search [data-docs-search-results] a:focus-visible {
+	background: var(--wash);
+	color: var(--blue-ink);
+}
+body.docs-page .docs-search [data-docs-search-results] a:focus-visible {
+	outline-offset: -2px;
+}
+@media (hover: none) {
+	.docs-search kbd {
+		display: none;
+	}
+	.docs-search input {
+		padding-right: 1.1rem;
+	}
+}
+
+/* ------------------------------------------------------------------ layout */
+
+.docs-layout {
+	display: grid;
+	grid-template-columns: var(--docs-cols);
+	column-gap: var(--docs-gap);
+	justify-content: center;
+	max-width: 100%;
+	margin: 0 auto;
+	padding: 2.25rem var(--gutter) 5rem;
+}
+.docs-layout > * {
+	min-width: 0;
+}
+.docs-sidebar,
+.docs-toc {
+	position: sticky;
+	top: calc(var(--nav-h) + 1.5rem);
+	align-self: start;
+	max-height: calc(100vh - var(--nav-h) - 3rem);
+	overflow-y: auto;
+	scrollbar-width: thin;
+	scrollbar-color: var(--rule) transparent;
+}
+.docs-sidebar {
+	margin: 0 -0.75rem;
+	padding: 0 0.75rem;
+}
+/* The galleries use the room the reading measure leaves: they run across the page's headings
+   column too, and give up that column's list (the page has few headings). */
+.docs-layout:has(.docs-featured-grid, .docs-report-grid, .docs-type-grid) > .rv-report {
+	grid-column: 2 / -1;
+}
+.docs-layout:has(.docs-featured-grid, .docs-report-grid, .docs-type-grid) > .docs-toc {
+	display: none;
+}
+
+/* ------------------------------------------------------------------ navigation */
+
+.docs-nav {
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+	margin: 0 -0.75rem;
+	padding-bottom: 1rem;
+}
+.docs-nav__group {
+	margin: 1.6rem 0.75rem 0.3rem;
+	color: var(--ink);
+	font: 600 0.8125rem / 1.4 var(--font-ui);
+	letter-spacing: 0;
+	text-transform: none;
+}
+.docs-nav__group:first-child {
+	margin-top: 0;
+}
+body.docs-page .docs-nav a,
+body.docs-page .docs-mobile-menu nav a {
+	padding: 0.32rem 0.75rem;
+	color: var(--soft);
+	font-size: 0.9rem;
+	line-height: 1.4;
+	text-decoration: none;
+	border-radius: var(--r-pill);
+	transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out);
+}
+body.docs-page .docs-nav a:hover,
+body.docs-page .docs-mobile-menu nav a:hover {
+	background: var(--paper-2);
+	color: var(--ink);
+}
+body.docs-page .docs-nav a:focus-visible,
+body.docs-page .docs-nav summary:focus-visible {
+	outline-offset: -2px;
+	border-radius: var(--r-pill);
+}
+body.docs-page .docs-nav a[aria-current="page"],
+body.docs-page .docs-mobile-menu nav a[aria-current="page"] {
+	background: var(--wash);
+	color: var(--blue-ink);
+	font-weight: 600;
+}
+.docs-chart-types > summary {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0.32rem 0.75rem;
+	color: var(--soft);
+	font-size: 0.9rem;
+	line-height: 1.4;
+	border-radius: var(--r-pill);
+	transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out);
+}
+.docs-chart-types > summary:hover {
+	background: var(--paper-2);
+	color: var(--ink);
+}
+.docs-chart-types > summary::after,
+.docs-toc details > summary::after,
+.docs-feedback > summary::before {
+	content: "";
+	flex: none;
+	width: 0.42rem;
+	height: 0.42rem;
+	border-right: 1.5px solid currentColor;
+	border-bottom: 1.5px solid currentColor;
+	transform: rotate(-45deg);
+	transition: transform 150ms var(--ease-out);
+}
+.docs-chart-types[open] > summary::after,
+.docs-toc details[open] > summary::after,
+.docs-feedback[open] > summary::before {
+	transform: rotate(45deg);
+}
+.docs-nav__sub {
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+	margin: 0.15rem 0 0.35rem 1rem;
+	padding-left: 0.25rem;
+	border-left: 1px solid var(--rule);
+}
+.docs-sidebar__note {
+	margin: 1.5rem 0 0;
+	padding-top: 1rem;
+	border-top: 1px solid var(--rule);
+	font-size: 0.8125rem;
+	color: var(--faint);
+}
+.docs-toc nav {
+	display: flex;
+	flex-direction: column;
+	gap: 0.55rem;
+	padding-left: 1rem;
+	border-left: 1px solid var(--rule);
+}
+body.docs-page .docs-toc nav a {
+	color: var(--soft);
+	font-size: 0.8125rem;
+	line-height: 1.45;
+	text-decoration: none;
+}
+body.docs-page .docs-toc nav a:hover {
+	color: var(--blue-ink);
+}
+.docs-toc details > summary {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	color: var(--soft);
+	font-size: 0.8125rem;
+	line-height: 1.45;
+}
+.docs-toc details > summary:hover {
+	color: var(--ink);
+}
+.docs-toc details[open] > summary {
+	margin-bottom: 0.55rem;
+}
+.docs-toc details[open] {
+	display: flex;
+	flex-direction: column;
+	gap: 0.55rem;
+}
+body.docs-page .docs-source-link {
+	display: block;
+	margin-top: 1.5rem;
+	font-size: 0.8125rem;
+	color: var(--soft);
+	text-decoration: none;
+}
+body.docs-page .docs-source-link:hover {
+	color: var(--blue-ink);
+}
+.docs-mobile-menu {
+	display: none;
+	position: relative;
+	padding: 0.75rem var(--gutter) 0;
+	font-size: 0.9rem;
+}
+.docs-mobile-menu > summary {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.6rem;
+	padding: 0.5rem 1.05rem;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-pill);
+	background: var(--panel);
+	color: var(--ink);
+	font-weight: 600;
+	transition: border-color 150ms var(--ease-out);
+}
+.docs-mobile-menu > summary:hover {
+	border-color: color-mix(in oklch, var(--ink) 40%, var(--rule));
+}
+.docs-mobile-menu > summary::after {
+	content: "";
+	width: 0.42rem;
+	height: 0.42rem;
+	border-right: 1.5px solid currentColor;
+	border-bottom: 1.5px solid currentColor;
+	transform: rotate(45deg) translate(-1px, -1px);
+	transition: transform 150ms var(--ease-out);
+}
+.docs-mobile-menu[open] > summary::after {
+	transform: rotate(-135deg) translate(-1px, -1px);
+}
+.docs-mobile-menu > .docs-nav {
+	max-height: 70vh;
+	margin: 0.6rem 0 0;
+	padding: 0.9rem 0.6rem 0.5rem;
+	overflow-y: auto;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-panel);
+	background: var(--panel);
+}
+.docs-mobile-menu .docs-nav__group:first-child {
+	margin-top: 0;
+}
+.docs-mobile-menu .docs-sidebar__note {
+	display: none;
+}
+
+/* ------------------------------------------------------------------ the page */
+
+body.docs-page .rv-report {
+	display: block;
+	width: auto;
+	max-width: none;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
+	background: transparent;
+	font-family: var(--font-ui);
+	color: var(--ink);
+}
+body.docs-page .rv-report__header {
+	max-width: none;
+	margin: 0 0 2.75rem;
+	padding: 0;
+	border: 0;
+	text-align: left;
+}
+body.docs-page .rv-report__title {
+	max-width: 20ch;
+	margin: 0 0 1.1rem;
+	font: 600 clamp(2.5rem, 1.35rem + 3.1vw, 3.6rem) / 1 var(--font-display);
+	letter-spacing: -0.04em;
+	text-transform: none;
+	text-wrap: balance;
+	color: var(--ink-strong);
+}
+body.docs-page .rv-report__lede {
+	max-width: 44ch;
+	margin: 0;
+	color: var(--soft);
+	font: 400 1.25rem / 1.5 var(--font-ui);
+	font-style: normal;
+	text-wrap: pretty;
+}
+/* The home page of the docs is the one place that sets its title as large as the landing does. */
+.docs-layout:has(.docs-doors) .rv-report__title {
+	max-width: none;
+	font-size: clamp(2.9rem, 1.4rem + 4.6vw, 4.9rem);
+	line-height: 0.96;
+}
+body.docs-page .rv-report__body {
+	max-width: none;
+	min-width: 0;
+	font: 400 1.0625rem / 1.7 var(--font-ui);
+	color: var(--ink);
+	overflow-wrap: break-word;
+}
+/* The engine centres every block of the body on its own measure; the docs keep them on the left
+   spine of the column. Blocks stay on the reading measure, and the grids, frames and strips the
+   docs add use the column. */
+body.docs-page .rv-report__body > *,
+body.docs-page .rv-report__body .rv-keep > * {
+	max-width: var(--docs-measure);
+	margin-inline: 0;
+}
+body.docs-page .rv-report__body > :is(.docs-doors, .docs-featured-grid, .docs-report-grid, .docs-type-grid, .docs-report-preview, .docs-styles) {
+	max-width: none;
+}
+/* Text keeps the reading measure; figures, frames and grids use the column. */
+body.docs-page .rv-report__body :is(p, ul, ol, blockquote, dl):not(.rv-chart__readout *) {
+	max-width: var(--docs-measure);
+	margin: 0 0 1.15rem;
+}
+body.docs-page .rv-report__body > :first-child {
+	margin-top: 0;
+}
+body.docs-page .rv-report__body li {
+	margin: 0 0 0.4rem;
+	padding-left: 0.2rem;
+}
+body.docs-page .rv-report__body li::marker {
+	color: var(--faint);
+}
+body.docs-page .rv-report__body li > :is(ul, ol) {
+	margin: 0.4rem 0 0.6rem;
+}
+body.docs-page .rv-report__body :is(h2, h3, h4) {
+	max-width: var(--docs-measure);
+	color: var(--ink-strong);
+	text-wrap: balance;
+	text-transform: none;
+	scroll-margin-top: calc(var(--nav-h) + 1.5rem);
+}
+body.docs-page .rv-report__body h2 {
+	margin: 3.75rem 0 1rem;
+	padding: 0;
+	border: 0;
+	font: 600 clamp(1.7rem, 1.25rem + 1.3vw, 2.2rem) / 1.08 var(--font-display);
+	letter-spacing: -0.035em;
+}
+body.docs-page .rv-report__body h3 {
+	margin: 2.4rem 0 0.6rem;
+	font: 600 1.3rem / 1.2 var(--font-display);
+	letter-spacing: -0.025em;
+}
+body.docs-page .rv-report__body h4 {
+	margin: 1.8rem 0 0.4rem;
+	font: 600 1rem / 1.4 var(--font-ui);
+	letter-spacing: 0;
+}
+body.docs-page .rv-report__body :is(h2, h3, h4) + * {
+	margin-top: 0;
+}
+body.docs-page .rv-report__body strong {
+	font-weight: 600;
+	color: var(--ink-strong);
+}
+body.docs-page .rv-report__body :where(a) {
+	color: var(--blue);
+	text-decoration-thickness: 1px;
+	text-decoration-color: color-mix(in oklch, var(--blue) 45%, transparent);
+}
+body.docs-page .rv-report__body :where(a):hover {
+	color: var(--blue-ink);
+	text-decoration-color: currentColor;
+}
+body.docs-page .rv-report__body hr {
+	margin: 3rem 0;
+	border: 0;
+	border-top: 1px solid var(--rule);
+}
+body.docs-page .rv-report__body :where(img, svg) {
+	max-width: 100%;
+}
+body.docs-page .rv-report__body img {
+	height: auto;
+}
+body.docs-page .rv-report__body figure {
+	margin-left: 0;
+	margin-right: 0;
+}
+body.docs-page .rv-report__body .rv-chart {
+	min-width: 0;
+	overflow: hidden;
+}
+/* A chart the page shows is set on a sheet of its own, so it reads as the specimen the text is
+   about; the chart inside keeps the style it was made in. */
+body.docs-page .rv-report__body > .rv-chart,
+body.docs-page .rv-report__body > .rv-keep:has(> .rv-chart) {
+	margin: 2rem 0 2.25rem;
+	padding: 1.25rem 1.5rem 1.1rem;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-panel);
+	background: var(--panel);
+}
+/* The engine gives a chart and its source note a box that generates none on screen; the sheet
+   needs the box. */
+body.docs-page .rv-report__body > .rv-keep:has(> .rv-chart) {
+	display: flow-root;
+}
+body.docs-page .rv-report__body > .rv-keep > .rv-chart {
+	margin-top: 0;
+}
+body.docs-page .rv-report__body > .rv-keep > .rv-source {
+	margin-bottom: 0;
+}
+body.docs-page .rv-report__body blockquote {
+	padding: 1.1rem 1.35rem;
+	border: 0;
+	border-radius: var(--r-panel);
+	background: var(--paper-2);
+	color: var(--soft);
+	font-style: normal;
+}
+body.docs-page .rv-report__body blockquote > :last-child {
+	margin-bottom: 0;
+}
+body.docs-page .rv-report__body blockquote > * {
+	font-size: 1rem;
+}
+/* A heading reached by a link or a search result is marked, not jumped past. */
+body.docs-page .rv-report__body :is(h2, h3, h4):target {
+	text-decoration: underline;
+	text-decoration-color: var(--blue);
+	text-decoration-thickness: 3px;
+	text-underline-offset: 0.18em;
+}
+body.docs-page .rv-report__body code[id]:target {
+	background: var(--wash);
+	border-color: var(--blue);
+}
+
+/* Tables: the engine's scroll frame is the frame. A table fills it, wraps its words, and keeps a code
+   whole (it may break after a dot). When a table is wider than the frame it scrolls inside it, and
+   a soft edge on the frame shows which side has more. */
+body.docs-page .rv-report__body .rv-table-scroll {
+	max-width: 100%;
+	margin: 1.5rem 0 2rem;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-panel);
+	background:
+		linear-gradient(to right, var(--panel), var(--panel)) left center / 1.25rem 100% no-repeat local,
+		linear-gradient(to left, var(--panel), var(--panel)) right center / 1.25rem 100% no-repeat local,
+		linear-gradient(to right, color-mix(in oklch, var(--ink) 13%, transparent), transparent) left center / 0.8rem 100% no-repeat scroll,
+		linear-gradient(to left, color-mix(in oklch, var(--ink) 13%, transparent), transparent) right center / 0.8rem 100% no-repeat scroll,
+		var(--panel);
+	scrollbar-width: thin;
+	scrollbar-color: var(--rule) transparent;
+}
+body.docs-page .rv-report__body .rv-table-scroll > table {
+	width: 100%;
+	min-width: 100%;
+	max-width: none;
+	margin: 0;
+	border-collapse: collapse;
+	font-size: 0.9rem;
+	line-height: 1.5;
+	background: none;
+}
+body.docs-page .rv-report__body .rv-table-scroll :is(th, td) {
+	min-width: 5rem;
+	padding: 0.7rem 1rem;
+	border-bottom: 1px solid var(--rule-soft);
+	background: none;
+	text-align: left;
+	vertical-align: top;
+	white-space: normal;
+}
+body.docs-page .rv-report__body .rv-table-scroll tbody tr:last-child :is(th, td) {
+	border-bottom: 0;
+}
+body.docs-page .rv-report__body .rv-table-scroll th {
+	border-bottom-color: var(--rule);
+	color: var(--soft);
+	font: 600 0.8125rem / 1.4 var(--font-ui);
+	letter-spacing: 0;
+	text-transform: none;
+}
+body.docs-page .rv-report__body .rv-table-scroll td {
+	color: var(--soft);
+}
+body.docs-page .rv-report__body .rv-table-scroll td:first-child {
+	color: var(--ink);
+	font-weight: 600;
+}
+body.docs-page .rv-report__body .rv-table-scroll td code {
+	white-space: normal;
+	overflow-wrap: normal;
+	font-weight: 400;
+}
+body.docs-page .rv-report__footer {
+	max-width: var(--docs-measure);
+	margin: 2.5rem 0 0;
+	padding: 0;
+	border: 0;
+	color: var(--faint);
+	font: 400 0.8125rem / 1.5 var(--font-ui);
+}
+body.docs-page .rv-report__footer a {
+	color: var(--soft);
+}
+
+/* ------------------------------------------------------------------ pills */
+
+/* The home page's two pills: the primary action is the brand blue, filled; the second is drawn in
+   ink. Both are full pills and answer the pointer with colour only (STY-45). */
+.docs-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75rem;
+	margin-top: 1.75rem;
+}
+body.docs-page .docs-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5em;
+	min-height: 2.6rem;
+	padding: 0.5rem 1.2rem;
+	border: 1.5px solid var(--blue);
+	border-radius: var(--r-pill);
+	background: var(--blue);
+	color: oklch(100% 0 0);
+	font: 600 0.95rem / 1.2 var(--font-ui);
+	letter-spacing: -0.005em;
+	text-decoration: none;
+	white-space: nowrap;
+	cursor: pointer;
+	transition: background-color 160ms var(--ease-out), border-color 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+body.docs-page .docs-button:hover {
+	background: var(--blue-ink);
+	border-color: var(--blue-ink);
+	color: oklch(100% 0 0);
+}
+body.docs-page .docs-button--secondary {
+	background: transparent;
+	color: var(--ink);
+	border-color: color-mix(in oklch, var(--ink) 78%, transparent);
+}
+body.docs-page .docs-button--secondary:hover {
+	background: var(--ink);
+	border-color: var(--ink);
+	color: var(--paper);
+}
+body.docs-page .docs-button:focus-visible {
+	outline-offset: 3px;
+	border-radius: var(--r-pill);
+}
+body.docs-page .docs-actions > a:not(.docs-button) {
+	padding: 0.4rem 0.35rem;
+	color: var(--ink);
+	font-size: 0.95rem;
+	font-weight: 500;
+	text-decoration-color: color-mix(in oklch, var(--ink) 40%, transparent);
+}
+body.docs-page .docs-actions > a:not(.docs-button):hover {
+	color: var(--blue-ink);
+}
+
+/* ------------------------------------------------------------------ code */
+
+body.docs-page .rv-report__body code {
+	font-family: var(--font-mono);
+	font-size: 0.86em;
+	padding: 0.06em 0.32em;
+	background: var(--paper-2);
+	border: 1px solid color-mix(in oklch, var(--rule) 80%, transparent);
+	border-radius: 4px;
+	color: var(--ink);
+	/* A token moves whole to the next line and is cut only when it is longer than the line. */
+	white-space: normal;
+	overflow-wrap: break-word;
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+body.docs-page .rv-report__body .docs-inline-command {
+	color: var(--ink);
+}
+body.docs-page .rv-report__body .docs-code {
+	margin: 1.5rem 0 2rem;
+	min-width: 0;
+	max-width: var(--docs-measure);
+	overflow: hidden;
+	border: 0;
+	border-radius: var(--r-panel);
+	background: var(--paper-2);
+	box-shadow: none;
+}
+.docs-code figcaption {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 0.55rem 0.75rem 0.45rem 1.25rem;
+	border-bottom: 1px solid color-mix(in oklch, var(--rule) 70%, transparent);
+	color: var(--soft);
+	font: 500 0.78rem / 1.5 var(--font-ui);
+	letter-spacing: 0;
+	text-transform: none;
+}
+.docs-code__hint {
+	color: var(--soft);
+	font-family: var(--font-mono);
+}
+body.docs-page .rv-report__body pre {
+	display: block;
+	width: 100%;
+	max-width: 100%;
+	overflow-x: auto;
+	margin: 0;
+	padding: 1.1rem 1.25rem 1.2rem;
+	background: transparent;
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
+	color: var(--ink);
+	font: 400 0.8125rem / 1.75 var(--font-mono);
+	white-space: pre;
+	tab-size: 2;
+	overflow-wrap: normal;
+	scrollbar-width: thin;
+	scrollbar-color: var(--rule) transparent;
+}
+body.docs-page .rv-report__body pre:focus-visible {
+	outline-offset: -3px;
+	border-radius: var(--r-panel);
+}
+body.docs-page .rv-report__body pre code {
+	font: inherit;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: none;
+	color: inherit;
+	white-space: pre;
+	overflow-wrap: normal;
+}
+body.docs-page .rv-report__body pre span {
+	font-family: inherit;
+}
+body.docs-page .docs-code pre:has(> code.language-sh),
+body.docs-page .docs-code pre:has(> code.language-bash),
+body.docs-page .docs-code pre code.language-sh,
+body.docs-page .docs-code pre code.language-bash,
+body.docs-page .docs-code.docs-code--prose pre,
+body.docs-page .docs-code.docs-code--prose pre code {
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+/* The copy buttons are small pills, in the weight of the page's second pill. */
+.docs-code button {
+	padding: 0.25rem 0.8rem;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-pill);
+	background: var(--panel);
+	color: var(--ink);
+	font: 600 0.75rem / 1.3 var(--font-ui);
+	cursor: pointer;
+	transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out);
+}
+.docs-code button:hover {
+	border-color: var(--ink);
+	background: var(--ink);
+	color: var(--paper);
+}
+.docs-code button:focus-visible {
+	border-radius: var(--r-pill);
+}
+html:not(.js) [data-copy-code] {
+	display: none;
+}
+
+/* The one code palette of the site (STY-59), as site.css sets it. */
+body.docs-page .hl-key,
+body.docs-page .hl-link,
+body.docs-page .hl-cmd {
+	color: var(--hl-key);
+}
+body.docs-page .hl-str,
+body.docs-page .hl-val,
+body.docs-page .hl-esc,
+body.docs-page .hl-inline,
+body.docs-page .hl-code,
+body.docs-page .hl-var {
+	color: var(--hl-str);
+}
+body.docs-page .hl-num,
+body.docs-page .hl-bool,
+body.docs-page .hl-url {
+	color: var(--hl-num);
+}
+body.docs-page .hl-punc,
+body.docs-page .hl-fm,
+body.docs-page .hl-fence,
+body.docs-page .hl-comment,
+body.docs-page .hl-info,
+body.docs-page .hl-mark {
+	color: var(--hl-punc);
+}
+body.docs-page .hl-tag {
+	color: var(--hl-tag);
+}
+body.docs-page .hl-flag {
+	color: var(--hl-flag);
+}
+body.docs-page .hl-heading {
+	color: var(--hl-key);
+}
+body.docs-page .hl-heading,
+body.docs-page .hl-strong,
+body.docs-page .hl-cmd {
+	font-weight: 600;
+}
+body.docs-page .hl-em,
+body.docs-page .hl-comment {
+	font-style: italic;
+}
+body.docs-page .hl-link,
+body.docs-page .hl-url {
+	text-decoration: none;
+}
+
+/* ------------------------------------------------------------------ the three doors, and the galleries */
+
+/* The home page sets its elements as a specimen sheet: cells that share hairlines. The docs doors,
+   the reports and the featured charts are set the same way, so a chart is the first thing a cell
+   shows. */
+.docs-doors,
+.docs-featured-grid,
+.docs-report-grid {
+	display: grid;
+	margin: 2rem 0 3.5rem;
+	border-top: 1px solid var(--rule);
+	border-left: 1px solid var(--rule);
+}
+.docs-doors,
+.docs-featured-grid {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.docs-report-grid {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+/* The flagship leads the reports across the whole grid. */
+.docs-report-grid > .docs-chart-card--flagship {
+	grid-column: 1 / -1;
+}
+body.docs-page .docs-doors a {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 0.45rem;
+	min-width: 0;
+	padding: 1.4rem 1.5rem 1.5rem;
+	border-right: 1px solid var(--rule);
+	border-bottom: 1px solid var(--rule);
+	color: var(--soft);
+	font-size: 0.95rem;
+	line-height: 1.5;
+	text-decoration: none;
+	transition: background-color 160ms var(--ease-out);
+}
+body.docs-page .docs-doors a:hover {
+	background: var(--panel);
+	color: var(--soft);
+}
+body.docs-page .docs-doors a:focus-visible {
+	outline-offset: -3px;
+	border-radius: 0;
+}
+.docs-doors strong {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	color: var(--ink-strong);
+	font: 600 1.5rem / 1.05 var(--font-display);
+	letter-spacing: -0.03em;
+}
+.docs-doors strong::before {
+	content: "";
+	flex: none;
+	width: 0.7rem;
+	height: 0.7rem;
+	border-radius: 50%;
+	background: var(--paint-4);
+}
+.docs-doors a:nth-child(1) strong::before {
+	background: var(--paint-1);
+}
+.docs-doors a:nth-child(2) strong::before {
+	background: var(--paint-3);
+}
+.docs-doors strong::after {
+	content: "→";
+	content: "→" / "";
+	margin-left: auto;
+	color: var(--faint);
+	font: 400 1.1rem / 1 var(--font-ui);
+	transition: color 160ms var(--ease-out);
+}
+.docs-doors a:hover strong::after {
+	color: var(--blue);
+}
+.docs-chart-card {
+	display: flex;
+	min-width: 0;
+	border-right: 1px solid var(--rule);
+	border-bottom: 1px solid var(--rule);
+}
+body.docs-page .docs-chart-card__link {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	min-width: 0;
+	padding: 1.1rem 1.1rem 1.25rem;
+	color: var(--soft);
+	text-decoration: none;
+	transition: background-color 160ms var(--ease-out);
+}
+body.docs-page .docs-chart-card__link:hover {
+	background: var(--panel);
+	color: var(--soft);
+}
+body.docs-page .docs-chart-card__link:focus-visible {
+	outline-offset: -3px;
+	border-radius: 0;
+}
+/* The frame reads on paper whatever the report inside wears, dark or light. */
+.docs-thumbnail {
+	position: relative;
+	aspect-ratio: 1000 / 620;
+	overflow: hidden;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-panel);
+	background: var(--paper-2);
+}
+/* The flagship's card shows the cover the report opens with, whole. */
+.docs-thumbnail--cover {
+	aspect-ratio: 1200 / 630;
+}
+.docs-thumbnail--cover img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+.docs-thumbnail iframe,
+.docs-report-preview .docs-report-preview__viewport iframe {
+	width: 1000px;
+	height: 750px;
+	max-width: none;
+	border: 0;
+	transform-origin: top left;
+	visibility: hidden;
+}
+.docs-thumbnail iframe {
+	pointer-events: none;
+}
+/* Preview frames load progressively (preview_frames.rs): a frame shows once it is scaled and
+   loaded, and until then its box shows the tiny chart that marks loading (STY-45), fading in only
+   when loading takes longer than 300 ms. */
+.docs-thumbnail iframe[data-docs-scaled][data-docs-state="loaded"],
+.docs-report-preview .docs-report-preview__viewport iframe[data-docs-scaled][data-docs-state="loaded"] {
+	visibility: visible;
+}
+.docs-report-preview__viewport {
+	position: relative;
+}
+.docs-thumbnail:has(> iframe[data-docs-preview]:not([data-docs-state="loaded"]))::before,
+.docs-report-preview__viewport:has(> iframe[data-docs-preview]:not([data-docs-state="loaded"]))::before {
+	content: "";
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 22px;
+	height: 18px;
+	margin: -9px 0 0 -11px;
+	color: var(--soft);
+	background:
+		linear-gradient(currentColor, currentColor) 0 100% / 4px 40% no-repeat,
+		linear-gradient(currentColor, currentColor) 50% 100% / 4px 70% no-repeat,
+		linear-gradient(currentColor, currentColor) 100% 100% / 4px 100% no-repeat;
+	opacity: 0;
+	pointer-events: none;
+	animation: docs-loading-in 200ms var(--ease-out) 300ms forwards, docs-loading 0.8s var(--ease-move) 300ms infinite alternate;
+}
+@keyframes docs-loading-in {
+	to { opacity: 0.6; }
+}
+@keyframes docs-loading {
+	from { background-size: 4px 30%, 4px 90%, 4px 50%; }
+	to { background-size: 4px 90%, 4px 40%, 4px 100%; }
+}
+body.docs-page .rv-report__body .docs-chart-card h3 {
+	max-width: none;
+	margin: 1rem 0 0;
+	color: var(--ink-strong);
+	font: 600 1.2rem / 1.15 var(--font-display);
+	letter-spacing: -0.025em;
+	text-wrap: balance;
+	transition: color 160ms var(--ease-out);
+}
+body.docs-page .rv-report__body .docs-chart-card__link:hover h3 {
+	color: var(--blue-ink);
+}
+body.docs-page .rv-report__body .docs-chart-card p {
+	max-width: none;
+	margin: 0.4rem 0 0;
+	font-size: 0.875rem;
+	line-height: 1.45;
+}
+body.docs-page .rv-report__body .docs-chart-card h3 + p {
+	padding-bottom: 0.9rem;
+}
+body.docs-page .rv-report__body .docs-chart-card p.docs-chart-card__style {
+	align-self: flex-start;
+	margin: auto 0 0;
+	padding: 0.18rem 0.7rem;
+	border-radius: var(--r-pill);
+	background: var(--paper-2);
+	color: var(--soft);
+	font: 600 0.72rem / 1.4 var(--font-ui);
+}
+
+/* ------------------------------------------------------------------ the pager */
+
+.docs-pager {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 1rem;
+	max-width: var(--docs-measure);
+	margin-top: 4rem;
+}
+body.docs-page .docs-pager a {
+	display: flex;
+	flex-direction: column;
+	gap: 0.3rem;
+	padding: 1.1rem 1.25rem 1.2rem;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-panel);
+	text-decoration: none;
+	color: var(--ink-strong);
+	font: 600 1.15rem / 1.2 var(--font-display);
+	letter-spacing: -0.02em;
+	transition: border-color 160ms var(--ease-out), background-color 160ms var(--ease-out);
+}
+body.docs-page .docs-pager a:hover {
+	background: var(--panel);
+	border-color: var(--blue);
+	color: var(--blue-ink);
+}
+body.docs-page .docs-pager a:focus-visible {
+	outline-offset: 3px;
+	border-radius: var(--r-panel);
+}
+.docs-pager a > span {
+	color: var(--soft);
+	font: 400 0.8125rem / 1.4 var(--font-ui);
+	letter-spacing: 0;
+}
+.docs-pager a:last-child:not(:first-child) {
+	text-align: right;
+}
+.docs-pager strong {
+	font-weight: inherit;
+}
+/* The arrow of the previous page leads its title. */
+.docs-pager a:first-child > strong {
+	display: flex;
+	gap: 0.4rem;
+}
+.docs-pager a:first-child > strong > span {
+	order: -1;
+}
+
+/* ------------------------------------------------------------------ live reports in frames */
+
+/* The example in each builtin style: links that load a pre-rendered report into the frame. Each
+   style's name is set in that style's own face, as on the home page (STY-08). The Brutalist name
+   keeps its case: the site check reads the visible label. */
+.docs-styles {
+	margin: 2.5rem 0;
+}
+.docs-styles__label {
+	max-width: none !important;
+	margin: 0 0 0.7rem !important;
+	color: var(--ink-strong);
+	font: 600 1.05rem / 1.3 var(--font-display);
+	letter-spacing: -0.015em;
+}
+.docs-styles__links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	margin-bottom: 0.9rem;
+}
+body.docs-page .docs-styles__links a {
+	display: inline-flex;
+	align-items: center;
+	min-height: 2.25rem;
+	padding: 0.3rem 1rem;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-pill);
+	color: var(--soft);
+	text-decoration: none;
+	font: 500 0.9rem / 1.2 var(--font-ui);
+	transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out);
+}
+body.docs-page .docs-styles__links a:hover {
+	border-color: var(--ink);
+	color: var(--ink);
+}
+body.docs-page .docs-styles__links a[aria-current="true"] {
+	background: var(--ink);
+	border-color: var(--ink);
+	color: var(--paper);
+}
+body.docs-page .docs-styles__links a:focus-visible {
+	outline-offset: 3px;
+	border-radius: var(--r-pill);
+}
+body.docs-page .docs-styles__links a[data-style-link="sleek"],
+body.docs-page .docs-styles__links a[data-style-link="air"] {
+	font-family: "Space Grotesk", var(--font-ui);
+	font-weight: 600;
+}
+body.docs-page .docs-styles__links a[data-style-link="scientific"] {
+	font-family: "RichView Serif", Georgia, serif;
+	font-weight: 400;
+	font-size: 0.95rem;
+}
+body.docs-page .docs-styles__links a[data-style-link="brutalist"] {
+	font-family: "Big Shoulders", "Arial Narrow", sans-serif;
+	font-weight: 800;
+	font-size: 1rem;
+	letter-spacing: 0.02em;
+}
+body.docs-page .docs-styles__links a[data-style-link="hand-drawn"] {
+	font-family: "Patrick Hand", var(--font-ui);
+	font-weight: 400;
+	font-size: 1.02rem;
+}
+.docs-styles__frame {
+	display: block;
+	width: 100%;
+	height: 46rem;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-panel);
+	background: var(--panel);
+}
+html:not(.js) .docs-styles,
+.docs-styles__frame[hidden] {
+	display: none;
+}
+@keyframes docs-fade {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+.docs-styles__frame.is-swapped {
+	animation: docs-fade 200ms var(--ease-out);
+}
+
+/* Live gallery exports keep each report's own typography, palette and interactions; the page
+   frames them. */
+.docs-report-preview {
+	margin: 1.75rem 0 4rem;
+}
+.docs-report-preview__viewport {
+	aspect-ratio: 1000 / 750;
+	overflow: hidden;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-panel);
+	background: var(--paper-2);
+}
+.docs-report-preview iframe {
+	display: block;
+	width: 100%;
+	height: 64rem;
+	border: 0;
+	background: var(--paper);
+}
+.docs-report-preview .docs-actions {
+	margin-top: 1.1rem;
+}
+.docs-type-preview iframe {
+	display: block;
+	width: 100%;
+	height: 34rem;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-panel);
+	background: var(--paper);
+}
+
+/* The five style specimens form one strip that scrolls sideways and snaps. */
+.docs-type-grid {
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: min(21rem, 84%);
+	gap: 1.25rem;
+	margin: 1.5rem 0 2.5rem;
+	padding-bottom: 1rem;
+	overflow-x: auto;
+	scroll-snap-type: x proximity;
+	scrollbar-width: thin;
+	scrollbar-color: var(--rule) transparent;
+}
+.docs-type-preview {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	min-width: 0;
+	margin: 0;
+	scroll-snap-align: start;
+}
+.docs-type-preview h3,
+body.docs-page .rv-report__body .docs-type-preview h3 {
+	margin: 0;
+	font: 600 1.3rem / 1.2 var(--font-display);
+	letter-spacing: -0.025em;
+}
+.docs-type-preview a {
+	font-size: 0.9rem;
+}
+
+/* ------------------------------------------------------------------ feedback: one quiet line */
+
+.docs-feedback {
+	max-width: var(--docs-measure);
+	margin-top: 4rem;
+	padding-top: 1.25rem;
+	border-top: 1px solid var(--rule);
+}
+.docs-feedback > summary {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	width: fit-content;
+	color: var(--soft);
+	font-size: 0.9rem;
+	line-height: 1.4;
+	transition: color 150ms var(--ease-out);
+}
+.docs-feedback > summary:hover {
+	color: var(--ink);
+}
+.docs-feedback > summary::before {
+	transform: rotate(-45deg);
+}
+.docs-feedback[open] > summary::before {
+	transform: rotate(45deg);
+}
+body.docs-page .docs-feedback__form:not([hidden]) {
+	display: grid;
+	gap: 1rem;
+	margin-top: 1.25rem;
+}
+.docs-feedback label {
+	display: grid;
+	gap: 0.4rem;
+	font: 600 0.875rem / 1.5 var(--font-ui);
+}
+.docs-feedback input,
+.docs-feedback textarea {
+	width: 100%;
+	min-width: 0;
+	padding: 0.65rem 0.9rem;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-panel);
+	background: var(--panel);
+	color: var(--ink);
+	font: 400 1rem / 1.5 var(--font-ui);
+	transition: border-color 150ms var(--ease-out);
+}
+.docs-feedback input:hover,
+.docs-feedback textarea:hover {
+	border-color: color-mix(in oklch, var(--ink) 40%, var(--rule));
+}
+.docs-feedback input:focus-visible,
+.docs-feedback textarea:focus-visible {
+	border-color: var(--blue);
+	outline-offset: 2px;
+	border-radius: var(--r-panel);
+}
+.docs-feedback textarea {
+	resize: vertical;
+}
+.docs-feedback input[readonly] {
+	color: var(--soft);
+	background: var(--paper-2);
+}
+.docs-feedback__trap {
+	display: none;
+}
+.docs-feedback [data-feedback-status] {
+	margin: 0;
+	color: var(--soft);
+	font-size: 0.9rem;
+}
+.docs-feedback .docs-actions {
+	margin-top: 0;
+}
+.docs-feedback noscript p {
+	color: var(--soft);
+	font-size: 0.9rem;
+}
+
+/* ------------------------------------------------------------------ responsive */
+
+@media (max-width: 1099px) {
+	body.docs-page {
+		--docs-cols: var(--docs-side) minmax(0, var(--docs-measure));
+		--docs-gap: 2.5rem;
+	}
+	.docs-toc {
+		display: none;
+	}
+}
+@media (max-width: 899px) {
+	.docs-search {
+		display: block;
+		position: relative;
+		padding-top: 1rem;
+	}
+	.docs-search label {
+		inset: 1rem calc(var(--gutter) + 0.95rem) 0 auto;
+		height: 2.5rem;
+	}
+	.docs-search [data-docs-search-results] {
+		top: calc(100% + 0.4rem);
+		left: var(--gutter);
+		width: min(28rem, calc(100vw - 2 * var(--gutter)));
+	}
+	.docs-layout {
+		display: block;
+		padding-top: 2rem;
+		padding-bottom: 3.5rem;
+	}
+	.docs-layout > .docs-sidebar {
+		display: none;
+	}
+	.docs-mobile-menu {
+		display: block;
+	}
+	.docs-featured-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+@media (max-width: 599px) {
+	body.docs-page {
+		font-size: 1rem;
+	}
+	body.docs-page .rv-report__body {
+		font-size: 1rem;
+	}
+	body.docs-page .rv-report__header {
+		margin-bottom: 2rem;
+	}
+	body.docs-page .rv-report__lede {
+		font-size: 1.0625rem;
+	}
+	body.docs-page .rv-report__body h2 {
+		margin-top: 3rem;
+	}
+	body.docs-page .rv-report__body > .rv-chart,
+	body.docs-page .rv-report__body > .rv-keep:has(> .rv-chart) {
+		padding: 0.9rem 0.75rem 0.8rem;
+	}
+	body.docs-page .docs-button {
+		font-size: 0.9rem;
+		padding: 0.5rem 1rem;
+	}
+	body.docs-page .rv-report__body pre {
+		padding: 1rem;
+		font-size: 0.75rem;
+	}
+	.docs-code figcaption {
+		padding: 0.5rem 0.6rem 0.4rem 1rem;
+	}
+	/* On a phone a table takes the room its words need, up to a width that still reads, and
+	   scrolls inside its frame beyond that; a short table fits without scrolling. */
+	body.docs-page .rv-report__body .rv-table-scroll > table {
+		width: max-content;
+		min-width: 100%;
+		max-width: 42rem;
+	}
+	body.docs-page .rv-report__body .rv-table-scroll :is(th, td) {
+		padding: 0.55rem 0.7rem;
+		min-width: 3.25rem;
+	}
+	body.docs-page .rv-report__body .rv-table-scroll > table {
+		font-size: 0.86rem;
+	}
+	.docs-doors,
+	.docs-featured-grid,
+	.docs-report-grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.docs-doors {
+		margin-bottom: 2.5rem;
+	}
+	.docs-styles__frame {
+		height: 40rem;
+	}
+	.docs-report-preview iframe {
+		height: 52rem;
+	}
+	.docs-pager {
+		grid-template-columns: 1fr;
+	}
+	.docs-pager a:last-child:not(:first-child) {
+		text-align: left;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	body.docs-page * {
+		transition: none !important;
+		scroll-behavior: auto !important;
+	}
+	.docs-styles__frame.is-swapped {
+		animation: none;
+	}
+	.docs-thumbnail::before,
+	.docs-report-preview__viewport::before {
+		animation-iteration-count: 1, 0 !important;
+	}
+}
+@media print {
+	.nav,
+	.docs-search,
+	.docs-sidebar,
+	.docs-toc,
+	.docs-mobile-menu,
+	.docs-pager,
+	.docs-feedback {
+		display: none;
+	}
+	.docs-layout {
+		display: block;
+		padding: 0;
+	}
+	body.docs-page .rv-report__body pre {
+		white-space: pre-wrap;
+	}
+	body.docs-page .rv-report__body > .rv-chart,
+	body.docs-page .rv-report__body > .rv-keep:has(> .rv-chart) {
+		padding: 0;
+		border: 0;
+		background: none;
+	}
+	body.docs-page .rv-report__body > .rv-keep:has(> .rv-chart) {
+		display: contents;
+	}
+}

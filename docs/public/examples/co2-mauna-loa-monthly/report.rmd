@@ -1,0 +1,28 @@
+---
+title: CO₂ rises through the seasonal cycle
+description: Monthly observations at Mauna Loa, from the frozen NOAA and Scripps record.
+styles: [scientific]
+---
+
+The monthly means rise over the long run while moving up and down within each year. Zoom into a few years to separate the seasonal cycle from that longer change.
+
+```chart
+type: line
+title: The seasonal cycle sits on a long-term rise in CO₂
+data: { csv: data.csv }
+encoding: { x: month, y: monthly_mean, detail: [note] }
+axes:
+  y: { label: CO₂ mole fraction, unit: ppm, digits: 5 }
+```
+
+*Source: [NOAA Global Monitoring Laboratory](https://gml.noaa.gov/ccgg/trends/data.html), [monthly CSV](https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_mm_mlo.csv), retrieved 2 October 2026. Lan, Tans and Thoning, NOAA GML; Keeling, Scripps Institution of Oceanography. Values are mole fractions in dry air. The CSV also retains the seasonally adjusted series, days measured and provenance notes.*
+
+## Work with this example
+
+Keep `report.rmd` and the [CSV observations](data.csv) together in one folder. The snapshot stays fixed when the upstream record is revised.
+
+```sh
+richview generate report.rmd
+```
+
+Use the keyboard or pointer to inspect observations. The chart's Table and CSV actions show the fields used here; the CSV above retains every original column.

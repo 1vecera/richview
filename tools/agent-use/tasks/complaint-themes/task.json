@@ -1,0 +1,99 @@
+{
+	"id": "complaint-themes",
+	"title": "What users complain about, by product",
+	"origin": "flagship evidence: examples/openai-vs-anthropic/data/charts/app-reviews.csv and hn-topics.csv",
+	"brief": "Our product lead, Marta, is preparing next quarter's roadmap for an AI assistant and asked for a one-page evidence brief on what users of the two leading assistants complain about, so we can decide where to compete.\n\nYou have two small tables in data/. app-reviews.csv gives, for Claude and ChatGPT, the share of the app's low-star app-store reviews that mention each topic, with the number of low-star reviews behind each app. hn-topics.csv gives, for Anthropic and OpenAI, the share of negative Hacker News comments on each topic. These two files carry no source ids; name them as \"App-store low-star review sample (RichView flagship example)\" and \"Hacker News negative-comment sample (RichView flagship example)\".\n\nThe question: on which topics do the two products differ most, and does the picture agree between app reviews and Hacker News? Marta wants three numbers in the report: the topic with the widest gap between the two apps in the app reviews and that gap in percentage points; the same for Hacker News; and how many more low-star reviews Claude has than ChatGPT.\n\nAudience: Marta and two engineers, five minutes of reading. Use at least three different chart types, include a table of every topic with both sources side by side, and name the data source under every chart.",
+	"checks": {
+		"chartTypes": {
+			"minDistinct": 3
+		},
+		"tables": {
+			"min": 1
+		},
+		"sources": true,
+		"figures": [
+			{
+				"id": "review-gap",
+				"describe": "widest app-review gap (Refusals, Claude minus ChatGPT, points)",
+				"key": "refusals",
+				"compute": {
+					"op": "diff",
+					"a": {
+						"file": "data/app-reviews.csv",
+						"where": {
+							"topic": "Refusals",
+							"app": "Claude"
+						},
+						"column": "share_of_low_star_pct"
+					},
+					"b": {
+						"file": "data/app-reviews.csv",
+						"where": {
+							"topic": "Refusals",
+							"app": "ChatGPT"
+						},
+						"column": "share_of_low_star_pct"
+					}
+				},
+				"tolerance": {
+					"absolute": 0.06
+				}
+			},
+			{
+				"id": "hn-gap",
+				"describe": "widest Hacker News gap (Coding, Anthropic minus OpenAI, points)",
+				"key": "coding",
+				"compute": {
+					"op": "diff",
+					"a": {
+						"file": "data/hn-topics.csv",
+						"where": {
+							"topic": "Coding",
+							"company": "Anthropic"
+						},
+						"column": "share_of_negative_pct"
+					},
+					"b": {
+						"file": "data/hn-topics.csv",
+						"where": {
+							"topic": "Coding",
+							"company": "OpenAI"
+						},
+						"column": "share_of_negative_pct"
+					}
+				},
+				"tolerance": {
+					"absolute": 0.06
+				}
+			},
+			{
+				"id": "review-count-gap",
+				"describe": "Claude low-star reviews minus ChatGPT's",
+				"compute": {
+					"op": "diff",
+					"a": {
+						"file": "data/app-reviews.csv",
+						"where": {
+							"app": "Claude",
+							"topic": "Quality"
+						},
+						"column": "low_star_reviews",
+						"agg": "first"
+					},
+					"b": {
+						"file": "data/app-reviews.csv",
+						"where": {
+							"app": "ChatGPT",
+							"topic": "Quality"
+						},
+						"column": "low_star_reviews",
+						"agg": "first"
+					}
+				},
+				"tolerance": {
+					"relative": 0
+				}
+			}
+		]
+	}
+}

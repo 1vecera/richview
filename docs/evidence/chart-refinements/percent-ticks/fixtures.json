@@ -1,0 +1,34 @@
+[
+  {
+    "id": "percent-x-precision-0",
+    "source": "---\ntitle: Precision inspection\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"scatter\", \"title\": \"Percent X precision at scale 1e-0\", \"data\": {\"inline\": [{\"x\": -1.2e-06, \"y\": 0.00014}, {\"x\": 1.6e-06, \"y\": 0.00012}, {\"x\": 2.4e-06, \"y\": 0.00016}]}, \"encoding\": {\"x\": \"x\", \"y\": \"y\"}, \"axes\": {\"x\": {\"label\": \"Probability change\", \"format\": \"percent\"}, \"y\": {\"label\": \"Failure rate\", \"format\": \"percent\"}}}\n```\n"
+  },
+  {
+    "id": "percent-x-precision-3",
+    "source": "---\ntitle: Precision inspection\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"scatter\", \"title\": \"Percent X precision at scale 1e-3\", \"data\": {\"inline\": [{\"x\": -1.2e-09, \"y\": 0.00014}, {\"x\": 1.5999999999999999e-09, \"y\": 0.00012}, {\"x\": 2.4e-09, \"y\": 0.00016}]}, \"encoding\": {\"x\": \"x\", \"y\": \"y\"}, \"axes\": {\"x\": {\"label\": \"Probability change\", \"format\": \"percent\"}, \"y\": {\"label\": \"Failure rate\", \"format\": \"percent\"}}}\n```\n"
+  },
+  {
+    "id": "percent-x-precision-4",
+    "source": "---\ntitle: Precision inspection\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"scatter\", \"title\": \"Percent X precision at scale 1e-4\", \"data\": {\"inline\": [{\"x\": -1.2e-10, \"y\": 0.00014}, {\"x\": 1.6e-10, \"y\": 0.00012}, {\"x\": 2.4e-10, \"y\": 0.00016}]}, \"encoding\": {\"x\": \"x\", \"y\": \"y\"}, \"axes\": {\"x\": {\"label\": \"Probability change\", \"format\": \"percent\"}, \"y\": {\"label\": \"Failure rate\", \"format\": \"percent\"}}}\n```\n"
+  },
+  {
+    "id": "percent-small-bars",
+    "source": "---\ntitle: Chart refinement cases\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"bar\", \"title\": \"Small failure rates stay distinguishable\", \"data\": {\"inline\": [{\"name\": \"First release\", \"value\": 0.00012}, {\"name\": \"Second release\", \"value\": 0.00016}]}, \"encoding\": {\"x\": \"name\", \"y\": \"value\"}, \"axes\": {\"y\": {\"label\": \"Failure rate\", \"format\": \"percent\"}}}\n```\n"
+  },
+  {
+    "id": "percent-small-line",
+    "source": "---\ntitle: Chart refinement cases\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"line\", \"title\": \"Failure rate across three days\", \"data\": {\"inline\": [{\"date\": \"2026-01-01\", \"value\": 0.00012}, {\"date\": \"2026-01-02\", \"value\": 0.00016}, {\"date\": \"2026-01-03\", \"value\": 0.00014}]}, \"encoding\": {\"x\": \"date\", \"y\": \"value\"}, \"axes\": {\"y\": {\"label\": \"Failure rate\", \"format\": \"percent\"}}}\n```\n"
+  },
+  {
+    "id": "percent-ordinary",
+    "source": "---\ntitle: Chart refinement cases\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"bar\", \"title\": \"Ordinary shares\", \"data\": {\"inline\": [{\"name\": \"First release\", \"value\": 0.12}, {\"name\": \"Second release\", \"value\": 0.76}]}, \"encoding\": {\"x\": \"name\", \"y\": \"value\"}, \"axes\": {\"y\": {\"label\": \"Share\", \"format\": \"percent\"}}}\n```\n"
+  },
+  {
+    "id": "percent-literal-suffix",
+    "source": "---\ntitle: Chart refinement cases\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"bar\", \"title\": \"Values authored as percentage points\", \"data\": {\"inline\": [{\"name\": \"First release\", \"value\": 12}, {\"name\": \"Second release\", \"value\": 76}]}, \"encoding\": {\"x\": \"name\", \"y\": \"value\"}, \"axes\": {\"y\": {\"label\": \"Share\", \"suffix\": \"%\"}}}\n```\n"
+  },
+  {
+    "id": "percent-x-large",
+    "source": "---\ntitle: Precision inspection\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"scatter\", \"title\": \"Large percentage labels keep their space\", \"data\": {\"inline\": [{\"x\": -120000000.0, \"y\": 0.00014}, {\"x\": 160000000.0, \"y\": 0.00012}, {\"x\": 240000000.0, \"y\": 0.00016}]}, \"encoding\": {\"x\": \"x\", \"y\": \"y\"}, \"axes\": {\"x\": {\"label\": \"Probability change\", \"format\": \"percent\"}, \"y\": {\"label\": \"Failure rate\", \"format\": \"percent\"}}}\n```\n"
+  }
+]

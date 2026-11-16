@@ -1,0 +1,26 @@
+---
+title: Chart text
+---
+
+```chart
+type: bar
+title: '<script>HOSTILE_CTITLE()</script> "quoted" & </script>'
+subtitle: '"><img src=x onerror=HOSTILE_CSUB()> </style>'
+data:
+  inline:
+    - { '<script>HOSTILE_XKEY()</script>': '<b onclick=HOSTILE_CAT1()>A</b>', 'y"><img src=x>': 1, 'series</script>': '<script>HOSTILE_SER1()</script>' }
+    - { '<script>HOSTILE_XKEY()</script>': '"><script>HOSTILE_CAT2()</script>', 'y"><img src=x>': 2, 'series</script>': '"><img src=x onerror=HOSTILE_SER2()>' }
+    - { '<script>HOSTILE_XKEY()</script>': 'C', 'y"><img src=x>': 3, 'series</script>': '<script>HOSTILE_SER1()</script>' }
+encoding: { x: '<script>HOSTILE_XKEY()</script>', y: 'y"><img src=x>', color: 'series</script>' }
+axes:
+  x: { label: '<script>HOSTILE_XLABEL()</script>', format: '"><script>HOSTILE_XFORMAT()</script>', suffix: '</script><script>HOSTILE_XSUFFIX()</script>' }
+  y: { label: '"><img src=x onerror=HOSTILE_YLABEL()>', format: currency, suffix: '<script>HOSTILE_YSUFFIX()</script>' }
+  color: { label: '<script>HOSTILE_CLABEL()</script>', suffix: '"><script>' }
+annotations:
+  - { kind: point, at: { x: A, y: 1 }, text: '<script>HOSTILE_ANN1()</script>' }
+  - { kind: line, at: { y: 2 }, text: '"><img src=x onerror=HOSTILE_ANN2()>' }
+  - { kind: range, from: { x: A }, to: { x: C }, text: '</script><script>HOSTILE_ANN3()</script>' }
+  - { kind: band, from: { y: 1 }, to: { y: 2 }, text: '<b onclick=HOSTILE_ANN4()>band</b> & "q"' }
+  - { kind: text, at: { x: C, y: 3 }, text: "it's <script>HOSTILE_ANN5()</script>", rotate: 10 }
+style: { ratio: '"><script>HOSTILE_RATIO()</script>', palette: sleek, curve: monotone }
+```

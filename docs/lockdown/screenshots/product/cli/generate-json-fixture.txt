@@ -1,0 +1,799 @@
+$ richview generate fixture/report.rmd --style sleek --format json   # the lockdown fixture with one invalid block; JSON pretty-printed
+{
+  "blocks": 22,
+  "diagnostics": [
+    {
+      "code": "block.schema",
+      "level": "error",
+      "line": 362,
+      "message": "chart.type: expected line, bar, scatter, area, pie, heatmap, histogram, boxplot or interval",
+      "path": "chart.type",
+      "tag": "chart"
+    },
+    {
+      "code": "chart.font-bounds-estimated",
+      "level": "info",
+      "line": 15,
+      "message": "Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser",
+      "path": "rv-chart-0",
+      "tag": "chart"
+    },
+    {
+      "code": "chart.font-bounds-estimated",
+      "level": "info",
+      "line": 52,
+      "message": "Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser",
+      "path": "rv-chart-1",
+      "tag": "chart"
+    },
+    {
+      "code": "chart.font-bounds-estimated",
+      "level": "info",
+      "line": 77,
+      "message": "Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser",
+      "path": "rv-chart-2",
+      "tag": "chart"
+    },
+    {
+      "code": "chart.font-bounds-estimated",
+      "level": "info",
+      "line": 103,
+      "message": "Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser",
+      "path": "rv-chart-3",
+      "tag": "chart"
+    },
+    {
+      "code": "chart.font-bounds-estimated",
+      "level": "info",
+      "line": 134,
+      "message": "Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser",
+      "path": "rv-chart-4",
+      "tag": "chart"
+    },
+    {
+      "code": "chart.font-bounds-estimated",
+      "level": "info",
+      "line": 150,
+      "message": "Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser",
+      "path": "rv-chart-5",
+      "tag": "chart"
+    },
+    {
+      "code": "chart.binning",
+      "details": {
+        "accepted": 240,
+        "counts": [
+          24,
+          69,
+          63,
+          40,
+          20,
+          13,
+          7,
+          2,
+          1,
+          0,
+          0,
+          1
+        ],
+        "edges": [
+          61.7,
+          113.59166666666667,
+          165.48333333333332,
+          217.375,
+          269.26666666666665,
+          321.1583333333333,
+          373.04999999999995,
+          424.94166666666666,
+          476.83333333333326,
+          528.725,
+          580.6166666666667,
+          632.5083333333333,
+          684.4
+        ],
+        "excluded": 0,
+        "groupCounts": [
+          [
+            {
+              "count": 24,
+              "group": ""
+            }
+          ],
+          [
+            {
+              "count": 69,
+              "group": ""
+            }
+          ],
+          [
+            {
+              "count": 63,
+              "group": ""
+            }
+          ],
+          [
+            {
+              "count": 40,
+              "group": ""
+            }
+          ],
+          [
+            {
+              "count": 20,
+              "group": ""
+            }
+          ],
+          [
+            {
+              "count": 13,
+              "group": ""
+            }
+          ],
+          [
+            {
+              "count": 7,
+              "group": ""
+            }
+          ],
+          [
+            {
+              "count": 2,
+              "group": ""
+            }
+          ],
+          [
+            {
+              "count": 1,
+              "group": ""
+            }
+          ],
+          [],
+          [],
+          [
+            {
+              "count": 1,
+              "group": ""
+            }
+          ]
+        ],
+        "kind": "binning",
+        "measure": "count",
+        "message": "Histogram intervals are lower-inclusive and upper-exclusive; the final upper edge is included. Measures use accepted visible observations in this panel.",
+        "severity": "info"
+      },
+      "level": "info",
+      "line": 188,
+      "message": "Histogram intervals are lower-inclusive and upper-exclusive; the final upper edge is included. Measures use accepted visible observations in this panel.",
+      "path": "rv-chart-6",
+      "tag": "chart"
+    },
+    {
+      "code": "chart.font-bounds-estimated",
+      "level": "info",
+      "line": 188,
+      "message": "Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser",
+      "path": "rv-chart-6",
+      "tag": "chart"
+    },
+    {
+      "code": "chart.boxplot-summary",
+      "details": {
+        "accepted": 105,
+        "boxes": 4,
+        "excluded": 0,
+        "kind": "boxplot-summary",
+        "message": "R-7 quartiles. Whiskers reach observed values within inclusive 1.5-IQR fences. Potential outliers are retained observations, not errors.",
+        "outliers": 1,
+        "quantile": "R-7",
+        "severity": "info",
+        "whisker": "1.5 IQR"
+      },
+      "level": "info",
+      "line": 202,
+      "message": "R-7 quartiles. Whiskers reach observed values within inclusive 1.5-IQR fences. Potential outliers are retained observations, not errors.",
+      "path": "rv-chart-7",
+      "tag": "chart"
+    },
+    {
+      "code": "chart.font-bounds-estimated",
+      "level": "info",
+      "line": 202,
+      "message": "Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser",
+      "path": "rv-chart-7",
+      "tag": "chart"
+    },
+    {
+      "code": "chart.interval-summary",
+      "details": {
+        "accepted": 4,
+        "collapsed": 0,
+        "excluded": 0,
+        "kind": "interval-summary",
+        "message": "Authored lower and upper bounds; optional estimates are supplied values. No statistical meaning is inferred.",
+        "severity": "info"
+      },
+      "level": "info",
+      "line": 214,
+      "message": "Authored lower and upper bounds; optional estimates are supplied values. No statistical meaning is inferred.",
+      "path": "rv-chart-8",
+      "tag": "chart"
+    },
+    {
+      "code": "chart.font-bounds-estimated",
+      "level": "info",
+      "line": 214,
+      "message": "Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser",
+      "path": "rv-chart-8",
+      "tag": "chart"
+    },
+    {
+      "code": "assets.network-dependent",
+      "level": "info",
+      "line": 327,
+      "message": "Embedded content from 'www.youtube.com' requires network access",
+      "path": "embed.url",
+      "tag": "embed"
+    },
+    {
+      "code": "security.embed",
+      "level": "warning",
+      "line": 334,
+      "message": "Embed blocked: host 'example.com' is not allowed or URL is not HTTPS",
+      "path": "embed.url",
+      "tag": "embed"
+    }
+  ],
+  "interactive": true,
+  "ok": false,
+  "output": "<scratch>/fixture/Rendered/report.html",
+  "renderDiagnostics": {
+    "charts": [
+      {
+        "chartId": "rv-chart-0",
+        "chartType": "line",
+        "checks": [],
+        "dimensions": {
+          "height": 360.0,
+          "width": 720.0
+        },
+        "droppedLabels": [],
+        "engine": "rust-svg",
+        "fontBounds": "estimated height; SVG textLength-constrained width",
+        "geometryMeasured": true,
+        "measured": false,
+        "measurement": "emitted mark geometry; label height is estimated, browser separately measures actual glyph bounds",
+        "sourceLine": 15,
+        "status": "clean"
+      },
+      {
+        "chartId": "rv-chart-1",
+        "chartType": "bar",
+        "checks": [],
+        "dimensions": {
+          "height": 405.0,
+          "width": 720.0
+        },
+        "droppedLabels": [],
+        "engine": "rust-svg",
+        "fontBounds": "estimated height; SVG textLength-constrained width",
+        "geometryMeasured": true,
+        "measured": false,
+        "measurement": "emitted mark geometry; label height is estimated, browser separately measures actual glyph bounds",
+        "sourceLine": 52,
+        "status": "clean"
+      },
+      {
+        "chartId": "rv-chart-2",
+        "chartType": "scatter",
+        "checks": [],
+        "dimensions": {
+          "height": 594.0,
+          "width": 720.0
+        },
+        "droppedLabels": [],
+        "engine": "rust-svg",
+        "fontBounds": "estimated height; SVG textLength-constrained width",
+        "geometryMeasured": true,
+        "measured": false,
+        "measurement": "emitted mark geometry; label height is estimated, browser separately measures actual glyph bounds",
+        "sourceLine": 77,
+        "status": "clean"
+      },
+      {
+        "chartId": "rv-chart-3",
+        "chartType": "area",
+        "checks": [],
+        "dimensions": {
+          "height": 360.0,
+          "width": 720.0
+        },
+        "droppedLabels": [],
+        "engine": "rust-svg",
+        "fontBounds": "estimated height; SVG textLength-constrained width",
+        "geometryMeasured": true,
+        "measured": false,
+        "measurement": "emitted mark geometry; label height is estimated, browser separately measures actual glyph bounds",
+        "sourceLine": 103,
+        "status": "clean"
+      },
+      {
+        "chartId": "rv-chart-4",
+        "chartType": "pie",
+        "checks": [],
+        "dimensions": {
+          "height": 720.0,
+          "width": 720.0
+        },
+        "droppedLabels": [],
+        "engine": "rust-svg",
+        "fontBounds": "estimated height; SVG textLength-constrained width",
+        "geometryMeasured": true,
+        "measured": false,
+        "measurement": "emitted mark geometry; label height is estimated, browser separately measures actual glyph bounds",
+        "sourceLine": 134,
+        "status": "clean"
+      },
+      {
+        "chartId": "rv-chart-5",
+        "chartType": "heatmap",
+        "checks": [],
+        "dimensions": {
+          "height": 403.0,
+          "width": 720.0
+        },
+        "droppedLabels": [],
+        "engine": "rust-svg",
+        "fontBounds": "estimated height; SVG textLength-constrained width",
+        "geometryMeasured": true,
+        "measured": false,
+        "measurement": "emitted mark geometry; label height is estimated, browser separately measures actual glyph bounds",
+        "sourceLine": 150,
+        "status": "clean"
+      },
+      {
+        "chartId": "rv-chart-6",
+        "chartType": "histogram",
+        "checks": [
+          {
+            "accepted": 240,
+            "counts": [
+              24,
+              69,
+              63,
+              40,
+              20,
+              13,
+              7,
+              2,
+              1,
+              0,
+              0,
+              1
+            ],
+            "edges": [
+              61.7,
+              113.59166666666667,
+              165.48333333333332,
+              217.375,
+              269.26666666666665,
+              321.1583333333333,
+              373.04999999999995,
+              424.94166666666666,
+              476.83333333333326,
+              528.725,
+              580.6166666666667,
+              632.5083333333333,
+              684.4
+            ],
+            "excluded": 0,
+            "groupCounts": [
+              [
+                {
+                  "count": 24,
+                  "group": ""
+                }
+              ],
+              [
+                {
+                  "count": 69,
+                  "group": ""
+                }
+              ],
+              [
+                {
+                  "count": 63,
+                  "group": ""
+                }
+              ],
+              [
+                {
+                  "count": 40,
+                  "group": ""
+                }
+              ],
+              [
+                {
+                  "count": 20,
+                  "group": ""
+                }
+              ],
+              [
+                {
+                  "count": 13,
+                  "group": ""
+                }
+              ],
+              [
+                {
+                  "count": 7,
+                  "group": ""
+                }
+              ],
+              [
+                {
+                  "count": 2,
+                  "group": ""
+                }
+              ],
+              [
+                {
+                  "count": 1,
+                  "group": ""
+                }
+              ],
+              [],
+              [],
+              [
+                {
+                  "count": 1,
+                  "group": ""
+                }
+              ]
+            ],
+            "kind": "binning",
+            "measure": "count",
+            "message": "Histogram intervals are lower-inclusive and upper-exclusive; the final upper edge is included. Measures use accepted visible observations in this panel.",
+            "severity": "info"
+          }
+        ],
+        "dimensions": {
+          "height": 423.0,
+          "width": 720.0
+        },
+        "droppedLabels": [],
+        "engine": "rust-svg",
+        "fontBounds": "estimated height; SVG textLength-constrained width",
+        "geometryMeasured": true,
+        "measured": false,
+        "measurement": "emitted mark geometry; label height is estimated, browser separately measures actual glyph bounds",
+        "sourceLine": 188,
+        "status": "clean"
+      },
+      {
+        "chartId": "rv-chart-7",
+        "chartType": "boxplot",
+        "checks": [
+          {
+            "accepted": 105,
+            "boxes": 4,
+            "excluded": 0,
+            "kind": "boxplot-summary",
+            "message": "R-7 quartiles. Whiskers reach observed values within inclusive 1.5-IQR fences. Potential outliers are retained observations, not errors.",
+            "outliers": 1,
+            "quantile": "R-7",
+            "severity": "info",
+            "whisker": "1.5 IQR"
+          }
+        ],
+        "dimensions": {
+          "height": 423.0,
+          "width": 720.0
+        },
+        "droppedLabels": [],
+        "engine": "rust-svg",
+        "fontBounds": "estimated height; SVG textLength-constrained width",
+        "geometryMeasured": true,
+        "measured": false,
+        "measurement": "emitted mark geometry; label height is estimated, browser separately measures actual glyph bounds",
+        "sourceLine": 202,
+        "status": "clean"
+      },
+      {
+        "chartId": "rv-chart-8",
+        "chartType": "interval",
+        "checks": [
+          {
+            "accepted": 4,
+            "collapsed": 0,
+            "excluded": 0,
+            "kind": "interval-summary",
+            "message": "Authored lower and upper bounds; optional estimates are supplied values. No statistical meaning is inferred.",
+            "severity": "info"
+          }
+        ],
+        "dimensions": {
+          "height": 423.0,
+          "width": 720.0
+        },
+        "droppedLabels": [],
+        "engine": "rust-svg",
+        "fontBounds": "estimated height; SVG textLength-constrained width",
+        "geometryMeasured": true,
+        "measured": false,
+        "measurement": "emitted mark geometry; label height is estimated, browser separately measures actual glyph bounds",
+        "sourceLine": 214,
+        "status": "clean"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "block.schema",
+        "level": "error",
+        "line": 362,
+        "message": "chart.type: expected line, bar, scatter, area, pie, heatmap, histogram, boxplot or interval",
+        "path": "chart.type",
+        "tag": "chart"
+      },
+      {
+        "code": "chart.font-bounds-estimated",
+        "level": "info",
+        "line": 15,
+        "message": "Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser",
+        "path": "rv-chart-0",
+        "tag": "chart"
+      },
+      {
+        "code": "chart.font-bounds-estimated",
+        "level": "info",
+        "line": 52,
+        "message": "Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser",
+        "path": "rv-chart-1",
+        "tag": "chart"
+      },
+      {
+        "code": "chart.font-bounds-estimated",
+        "level": "info",
+        "line": 77,
+        "message": "Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser",
+        "path": "rv-chart-2",
+        "tag": "chart"
+      },
+      {
+        "code": "chart.font-bounds-estimated",
+        "level": "info",
+        "line": 103,
+        "message": "Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser",
+        "path": "rv-chart-3",
+        "tag": "chart"
+      },
+      {
+        "code": "chart.font-bounds-estimated",
+        "level": "info",
+        "line": 134,
+        "message": "Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser",
+        "path": "rv-chart-4",
+        "tag": "chart"
+      },
+      {
+        "code": "chart.font-bounds-estimated",
+        "level": "info",
+        "line": 150,
+        "message": "Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser",
+        "path": "rv-chart-5",
+        "tag": "chart"
+      },
+      {
+        "code": "chart.binning",
+        "details": {
+          "accepted": 240,
+          "counts": [
+            24,
+            69,
+            63,
+            40,
+            20,
+            13,
+            7,
+            2,
+            1,
+            0,
+            0,
+            1
+          ],
+          "edges": [
+            61.7,
+            113.59166666666667,
+            165.48333333333332,
+            217.375,
+            269.26666666666665,
+            321.1583333333333,
+            373.04999999999995,
+            424.94166666666666,
+            476.83333333333326,
+            528.725,
+            580.6166666666667,
+            632.5083333333333,
+            684.4
+          ],
+          "excluded": 0,
+          "groupCounts": [
+            [
+              {
+                "count": 24,
+                "group": ""
+              }
+            ],
+            [
+              {
+                "count": 69,
+                "group": ""
+              }
+            ],
+            [
+              {
+                "count": 63,
+                "group": ""
+              }
+            ],
+            [
+              {
+                "count": 40,
+                "group": ""
+              }
+            ],
+            [
+              {
+                "count": 20,
+                "group": ""
+              }
+            ],
+            [
+              {
+                "count": 13,
+                "group": ""
+              }
+            ],
+            [
+              {
+                "count": 7,
+                "group": ""
+              }
+            ],
+            [
+              {
+                "count": 2,
+                "group": ""
+              }
+            ],
+            [
+              {
+                "count": 1,
+                "group": ""
+              }
+            ],
+            [],
+            [],
+            [
+              {
+                "count": 1,
+                "group": ""
+              }
+            ]
+          ],
+          "kind": "binning",
+          "measure": "count",
+          "message": "Histogram intervals are lower-inclusive and upper-exclusive; the final upper edge is included. Measures use accepted visible observations in this panel.",
+          "severity": "info"
+        },
+        "level": "info",
+        "line": 188,
+        "message": "Histogram intervals are lower-inclusive and upper-exclusive; the final upper edge is included. Measures use accepted visible observations in this panel.",
+        "path": "rv-chart-6",
+        "tag": "chart"
+      },
+      {
+        "code": "chart.font-bounds-estimated",
+        "level": "info",
+        "line": 188,
+        "message": "Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser",
+        "path": "rv-chart-6",
+        "tag": "chart"
+      },
+      {
+        "code": "chart.boxplot-summary",
+        "details": {
+          "accepted": 105,
+          "boxes": 4,
+          "excluded": 0,
+          "kind": "boxplot-summary",
+          "message": "R-7 quartiles. Whiskers reach observed values within inclusive 1.5-IQR fences. Potential outliers are retained observations, not errors.",
+          "outliers": 1,
+          "quantile": "R-7",
+          "severity": "info",
+          "whisker": "1.5 IQR"
+        },
+        "level": "info",
+        "line": 202,
+        "message": "R-7 quartiles. Whiskers reach observed values within inclusive 1.5-IQR fences. Potential outliers are retained observations, not errors.",
+        "path": "rv-chart-7",
+        "tag": "chart"
+      },
+      {
+        "code": "chart.font-bounds-estimated",
+        "level": "info",
+        "line": 202,
+        "message": "Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser",
+        "path": "rv-chart-7",
+        "tag": "chart"
+      },
+      {
+        "code": "chart.interval-summary",
+        "details": {
+          "accepted": 4,
+          "collapsed": 0,
+          "excluded": 0,
+          "kind": "interval-summary",
+          "message": "Authored lower and upper bounds; optional estimates are supplied values. No statistical meaning is inferred.",
+          "severity": "info"
+        },
+        "level": "info",
+        "line": 214,
+        "message": "Authored lower and upper bounds; optional estimates are supplied values. No statistical meaning is inferred.",
+        "path": "rv-chart-8",
+        "tag": "chart"
+      },
+      {
+        "code": "chart.font-bounds-estimated",
+        "level": "info",
+        "line": 214,
+        "message": "Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser",
+        "path": "rv-chart-8",
+        "tag": "chart"
+      },
+      {
+        "code": "assets.network-dependent",
+        "level": "info",
+        "line": 327,
+        "message": "Embedded content from 'www.youtube.com' requires network access",
+        "path": "embed.url",
+        "tag": "embed"
+      },
+      {
+        "code": "security.embed",
+        "level": "warning",
+        "line": 334,
+        "message": "Embed blocked: host 'example.com' is not allowed or URL is not HTTPS",
+        "path": "embed.url",
+        "tag": "embed"
+      }
+    ],
+    "parse": [
+      {
+        "code": "block.schema",
+        "level": "error",
+        "line": 362,
+        "message": "chart.type: expected line, bar, scatter, area, pie, heatmap, histogram, boxplot or interval",
+        "path": "chart.type",
+        "tag": "chart"
+      },
+      {
+        "code": "assets.network-dependent",
+        "level": "info",
+        "line": 327,
+        "message": "Embedded content from 'www.youtube.com' requires network access",
+        "path": "embed.url",
+        "tag": "embed"
+      },
+      {
+        "code": "security.embed",
+        "level": "warning",
+        "line": 334,
+        "message": "Embed blocked: host 'example.com' is not allowed or URL is not HTTPS",
+        "path": "embed.url",
+        "tag": "embed"
+      }
+    ],
+    "status": "issues"
+  }
+}
+(exit 1)

@@ -1,0 +1,37 @@
+benchmark,lab,lead_days,window_days,best_score,best_model
+SWE-bench Verified,OpenAI,54,365,0.8057851239669421,gpt-5.5-pre-release_xhigh
+SWE-bench Verified,Anthropic,311,365,0.8347107438016529,claude-opus-4-7_max
+SWE-bench Verified,Google,0,365,0.7933884297520661,gemini-3.5-flash_high
+SWE-bench Verified,Other,0,365,0.787,glm-5.2_max
+Terminal-Bench,OpenAI,258,365,0.847191011236,gpt-5.5_unknown
+Terminal-Bench,Anthropic,14,365,0.8022471910110001,claude-opus-4-7_unknown
+Terminal-Bench,Google,93,365,0.8022471910110001,gemini-3.1-pro-preview
+Terminal-Bench,Other,0,365,0.573033707865,grok-4-20
+METR time horizon,OpenAI,104,365,352.249302,gpt-5.2-2025-12-11_high
+METR time horizon,Anthropic,255,365,1044.780145,claude-mythos-preview-early
+METR time horizon,Google,6,365,384.147435,gemini-3.1-pro-preview
+METR time horizon,Other,0,365,110.075251,grok-4-0709
+GDPval,OpenAI,294,365,0.49700000000000005,gpt-5.2-2025-12-11_none
+GDPval,Anthropic,71,365,0.455,claude-opus-4-5-20251101
+GDPval,Google,0,365,0.40299999999999997,gemini-3-pro-preview
+GDPval,Other,0,365,0.21100000000000002,grok-4-0709_high
+OSWorld,OpenAI,0,365,23.0,o3-2025-04-16_medium
+OSWorld,Anthropic,365,365,72.1,claude-sonnet-4-6
+OSWorld,Google,0,365,,
+OSWorld,Other,0,365,63.3,kimi-k2.5
+GPQA Diamond,OpenAI,194,365,0.9577020202020202,gpt-6-astra_max
+GPQA Diamond,Anthropic,0,365,0.9558080808080808,claude-sonnet-5-5_max
+GPQA Diamond,Google,128,365,0.9539141414141414,gemini-3.8-flash_high
+GPQA Diamond,Other,43,365,0.9400252525252525,grok-4.6_high
+FrontierMath,OpenAI,342,365,0.524,gpt-5.5-pro-pre-release_high
+FrontierMath,Anthropic,28,365,0.4724137931034483,claude-opus-4-8_max
+FrontierMath,Google,23,365,0.3896551724137931,gemini-3.5-flash_high
+FrontierMath,Other,0,365,0.39,muse-spark
+Humanity's Last Exam,OpenAI,76,365,0.5479999999999999,gpt-6-astra_unknown
+Humanity's Last Exam,Anthropic,2,365,0.465,claude-fable-5-1_xhigh
+Humanity's Last Exam,Google,287,365,0.4644,gemini-3.1-pro-preview
+Humanity's Last Exam,Other,0,365,0.4056,muse-spark
+ARC-AGI-2,OpenAI,229,365,0.9500000000000001,gpt-6-astra_max
+ARC-AGI-2,Anthropic,54,365,0.925,claude-opus-5-5_xhigh
+ARC-AGI-2,Google,76,365,0.8458333333333333,gemini-3.7-flash_high
+ARC-AGI-2,Other,6,365,0.6708333333333333,grok-4.6_xhigh

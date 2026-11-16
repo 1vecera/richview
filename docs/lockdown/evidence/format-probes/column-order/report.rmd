@@ -1,0 +1,13 @@
+---
+title: Order
+---
+
+```table
+data:
+  inline:
+    - {zeta: 1, alpha: 2, mid: 3}
+```
+
+```table
+data: {csv: data/rows.csv}
+```

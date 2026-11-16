@@ -1,0 +1,39 @@
+---
+title: Compare values across two categories as bars in depth
+description: A 3-D bar chart sets a value for every pair of two categories as a box on a grid, so the reader can compare across both at once.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Online leads in three of four regions
+
+These illustrative revenues give every region a figure per channel. The bars stand on a grid, the regions along the front and the channels in depth, and each bar shows the three faces that face the viewer. The default view looks from 35 degrees round and 28 degrees above; `style.azimuth` and `style.elevation` change it.
+
+```chart
+type: bar3d
+title: Online leads every region except the South
+subtitle: Revenue by region and channel, illustrative figures
+data:
+  inline:
+    - {region: North, channel: Online, revenue: 52}
+    - {region: North, channel: Retail, revenue: 38}
+    - {region: North, channel: Partner, revenue: 21}
+    - {region: South, channel: Online, revenue: 31}
+    - {region: South, channel: Retail, revenue: 44}
+    - {region: South, channel: Partner, revenue: 18}
+    - {region: East, channel: Online, revenue: 47}
+    - {region: East, channel: Retail, revenue: 35}
+    - {region: East, channel: Partner, revenue: 26}
+    - {region: West, channel: Online, revenue: 58}
+    - {region: West, channel: Retail, revenue: 41}
+    - {region: West, channel: Partner, revenue: 30}
+encoding: {x: region, y: revenue, color: channel}
+axes:
+  x: {label: Region}
+  y: {label: Revenue (EUR m)}
+  color: {label: Channel}
+```
+
+*Source: Illustrative figures.*
+
+Use the keyboard or pointer to read the value of each bar.

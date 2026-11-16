@@ -1,0 +1,1860 @@
+{
+	"about": "Tests deleted or skipped on dev without a PR body to list them (DEL-36, DEL-81): each with its reason and the commit that retired it. The release run's retired-tests step reads this file with the commits' own ## Retired tests sections.",
+	"tests": [
+		{
+			"test": "crates/richview-core/tests/contracts.rs::raw_html_images_escape_the_report_folder_like_markdown_images",
+			"reason": "Raw HTML never renders now: tags are removed with a security.html warning, so a raw <img> cannot reach the report folder check; the hostile corpus covers raw HTML in every sink.",
+			"commit": "64bc442"
+		},
+		{
+			"test": "crates/richview-core/tests/hostile.rs (skip added)",
+			"reason": "The ignored test is `dump`, a manual helper that prints each case's findings for writing the corpus index; it checks nothing.",
+			"commit": "afc6cd3"
+		},
+		{
+			"test": "tools/rv-gate/test/gate.test.mjs::the pre-push hook refuses prod, dev, main and candidate pushes unless the gate marks them",
+			"reason": "Renamed for DEL-81: the same test now says the hook lets agents push dev and refuses pre-prod, prod, main and candidates.",
+			"commit": "e8aa9e1"
+		},
+		{
+			"test": "crates/richview-core/tests/contracts.rs::title_image_prolog_audio_video_and_sandboxed_embeds_are_supported",
+			"reason": "Renamed to title_image_audio_video_and_sandboxed_embeds_are_supported: `prolog` is dropped from the format (FEA-RP-05), so the test no longer sets or asserts it; its title image, audio, video and sandboxed embed assertions are unchanged. Prolog's absence from the output is asserted in tests/shell.rs::description_feeds_the_deck_and_the_preview_tags_and_nothing_else_does.",
+			"commit": "3ba765c"
+		},
+		{
+			"test": "crates/richview-core/tests/contracts.rs (assertions removed)",
+			"reason": "The `data-theme` attribute, the in-report `Render report card` and the `prolog` markup are gone from report HTML (FEA-RP-31, 33, 05); compatibility_export_..., reports_without_tabs_... and pdf_output_... now assert their absence, and the font-notice test asserts one notice per face the style embeds (FEA-RP-38).",
+			"commit": "3ba765c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::public navigation, search and feeds never disclose draft or member metadata",
+			"reason": "Ported to Rust; the server's rules no longer exist in JavaScript. crates/richview-publish-server/tests/routes.rs::public_navigation_search_and_feeds_never_disclose_draft_or_member_metadata, syndication_is_public_even_for_an_editor_and_dates_items_for_rss, pages_are_never_syndicated_and_the_member_edition_has_no_feed.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::member entitlement protects content bytes, assets and old releases",
+			"reason": "crates/richview-publish-server/tests/routes.rs::member_entitlement_protects_content_bytes_assets_and_old_releases.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::only scoped editors may view previews, including draft data",
+			"reason": "crates/richview-publish-server/tests/routes.rs::only_scoped_editors_may_view_previews_including_drafts.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::internal edition requires membership at the first route",
+			"reason": "crates/richview-publish-server/tests/routes.rs::the_internal_edition_requires_membership_at_the_first_route.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::a wholly internal publication protects its root and public-labelled item bytes",
+			"reason": "crates/richview-publish-server/tests/routes.rs::a_wholly_internal_publication_protects_its_root_and_public_labelled_bytes.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::an urgent hide survives a Git outage and denies all hosted routes immediately",
+			"reason": "crates/richview-publish-server/tests/desk.rs::an_urgent_hide_survives_a_git_outage (hide recorded before Git, 202, still in force while Git is down) and routes.rs::an_urgent_hide_denies_every_route_at_once (every delivery route refuses).",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::readers cannot edit; editors cannot grant roles or restore",
+			"reason": "crates/richview-publish-server/tests/desk.rs::readers_cannot_edit_and_editors_cannot_grant_roles_or_restore.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::a restored old release cannot weaken a current audience or resurrect deletions",
+			"reason": "crates/richview-publish-server/tests/routes.rs::an_old_release_cannot_weaken_a_current_audience_or_resurrect_a_deletion and publishing.rs::activation_rebuilds_floors_and_keeps_deleted_items_deleted.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::rollback increments generation and retains hides and access floors",
+			"reason": "crates/richview-publish-server/tests/publishing.rs::rollback_pauses_publication_and_keeps_hides_and_floors and routes.rs::rollback_keeps_hides_and_access_floors.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::an older activation finishing after a newer release cannot win",
+			"reason": "crates/richview-publish-server/tests/publishing.rs::a_stale_activation_loses.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::failed builds leave the last good release live",
+			"reason": "crates/richview-publish-server/tests/publishing.rs::a_failed_build_leaves_the_last_good_release_live.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::an approved Git PR cannot smuggle an unreviewed base into a release",
+			"reason": "crates/richview-publish-server/tests/publishing.rs::an_approved_merge_with_an_unreviewed_base_cannot_be_published and activation_needs_the_current_branch_head_and_an_independent_approval.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::browser publishing holds branch drift before and during a merge",
+			"reason": "crates/richview-publish-server/tests/desk.rs::branch_drift_during_a_merge_holds_the_commit and an_approved_head_publishes_once_the_branch_is_live_again.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::rollback pauses automatic activation until a super editor explicitly resumes",
+			"reason": "crates/richview-publish-server/tests/publishing.rs::rollback_pauses_publication_and_keeps_hides_and_floors and desk.rs::resume_retry_and_audit.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::source editor preserves body and rejects duplicate YAML keys",
+			"reason": "crates/richview-publish-server/tests/desk.rs::an_invalid_source_is_refused_with_the_core_diagnostics_before_git (duplicate key refused with yaml.duplicate-key and a line) and edits_keep_the_stable_identity_and_patterns; the body is kept by an_authors_valid_edit_becomes_an_attributed_pull_request. The editor is now the core's parse and render, not a JavaScript YAML document.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::the public entry point strips a forged internal identity header",
+			"reason": "cloudflare/publish/test/adapter.test.mjs::the public gateway strips a forged identity header.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::editorial administration cannot forge delivery artifacts or elevate the publisher",
+			"reason": "crates/richview-publish-server/tests/publishing.rs::a_publisher_cannot_be_elevated_and_an_editor_cannot_forge_delivery and desk.rs::roles_guard_the_publisher_the_identity_and_the_scope.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::cross-site writes and platform-origin bypasses fail closed",
+			"reason": "cloudflare/publish/test/adapter.test.mjs::cross-site and cross-origin writes fail closed (runs the Rust dispatcher in Wasm) and ::an unknown host is refused.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::an administrator can retire its own entitlement only after an owner is assigned",
+			"reason": "crates/richview-publish-server/tests/desk.rs::self_demotion_only_disables_your_own_access_with_another_owner_assigned.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::reader delivery survives unrelated build activity but stops on a concurrent withdrawal",
+			"reason": "cloudflare/publish/test/adapter.test.mjs::a read that raced a withdrawal or role change is repeated under the new ledger (the host replays a read when the access revision moved); build activity changes no access revision (build and stage writes in crates/richview-publish-server/tests/publishing.rs leave `access_revision` alone, see a_failed_build_leaves_the_last_good_release_live).",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::known account aliases cannot approve, publish or restore their own actions",
+			"reason": "crates/richview-publish-server/tests/desk.rs::authors_contributors_and_aliases_cannot_approve and foundation.rs::aliases_of_one_github_login_are_one_actor.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::fonts are fixed public immutable paths and nothing else",
+			"reason": "cloudflare/publish/test/adapter.test.mjs::fonts are fixed public immutable paths and nothing else.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::pages allow same-origin fonts and keep every other policy",
+			"reason": "crates/richview-publish-server/tests/routes.rs::pages_allow_same_origin_fonts_and_keep_every_other_policy.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::the front page shows one lead, a dateline and only figures the reader may see",
+			"reason": "crates/richview-publish-server/tests/routes.rs::the_front_page_shows_one_lead_a_dateline_and_only_figures_the_reader_may_see.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::related stories and archive months are assembled per reader",
+			"reason": "crates/richview-publish-server/tests/routes.rs::related_stories_and_archive_months_are_assembled_per_reader.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::previews and member routes keep report runtimes on the shared root path",
+			"reason": "crates/richview-publish-server/tests/routes.rs::previews_and_member_routes_keep_report_runtimes_on_the_shared_root_path.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::pages allow Unsplash photos; a report frame allows them only when its HTML uses one",
+			"reason": "crates/richview-publish-server/tests/routes.rs::a_report_frame_allows_unsplash_only_when_its_html_uses_a_photo and pages_allow_same_origin_fonts_and_keep_every_other_policy.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/gateway.test.mjs::preview and release rewriting leaves hotlinked photos and their credits alone",
+			"reason": "crates/richview-publish-server/tests/routes.rs::rewriting_leaves_hotlinked_photos_and_their_credits_alone.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/repository.test.mjs::an edit rejects an outdated inspected branch before writing any Git object",
+			"reason": "crates/richview-publish-server/tests/desk.rs::an_edit_refuses_a_public_repository_and_a_moved_branch (the moved branch is refused and the fake Git host records no write).",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/repository.test.mjs::Git publication requires a mapped independent super editor and current-head approval",
+			"reason": "crates/richview-publish-server/tests/publishing.rs::activation_needs_the_current_branch_head_and_an_independent_approval (reviews are read from the Git host: approval of the exact head by a mapped super editor other than the author) and desk.rs::an_approval_is_bound_to_the_exact_head_and_a_successful_preview, a_changed_role_voids_an_approval_and_publishing_needs_an_independent_head.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/repository.test.mjs::a public canonical repository rejects browser drafts before any Git write",
+			"reason": "crates/richview-publish-server/tests/desk.rs::an_edit_refuses_a_public_repository_and_a_moved_branch and publishing.rs::nonpublic_sources_need_a_private_repository.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "cloudflare/publish/test/repository.test.mjs::a concurrent PR edit is rejected by a non-forced Git ref update",
+			"reason": "crates/richview-publish-server/tests/desk.rs::a_concurrent_pull_request_edit_is_rejected_and_the_ref_update_is_never_forced: an edit opened at an older head is refused with no Git write, and the fake Git host refuses any ref update that is not sent with force:false.",
+			"commit": "5a84d5c"
+		},
+		{
+			"test": "crates/richview-app/tests/native_contract.rs::legacy_version_shapes_publish_and_resolve_without_path_escape",
+			"reason": "Renamed strict_semver_versions_publish_and_resolve_without_path_escape: leading-zero and padded versions are invalid under TYP-62's strict SemVer, so the test publishes strict versions and still checks path escape.",
+			"commit": "ead344f"
+		},
+		{
+			"test": "crates/richview-app/tests/native_contract.rs::storage_pruning_keeps_latest_and_concurrent_publication_is_idempotent",
+			"reason": "Renamed storage_keeps_every_version_and_concurrent_publication_is_idempotent: TYP-64 removes the 50-version pruning, so the test asserts every version is kept; concurrent idempotence is unchanged.",
+			"commit": "ead344f"
+		},
+		{
+			"test": "crates/richview-publish/src/build.rs::tests::dashboard_treatment_keeps_each_chart_with_its_source",
+			"reason": "The behaviour is removed by FEA-BR-30: dashboard_treatment no longer exists because Publish publishes reports and static pages only.",
+			"commit": "2d59b32"
+		},
+		{
+			"test": "crates/richview-publish/src/build.rs::tests::dashboards_group_metrics_and_keep_headings_with_their_charts",
+			"reason": "The behaviour is removed by FEA-BR-30: metric_strips and the dashboard layout are gone with kind: dashboard.",
+			"commit": "2d59b32"
+		},
+		{
+			"test": "crates/richview-publish/tests/build.rs::a_dashboard_without_a_snapshot_renders_its_report_with_a_dashboard_layout",
+			"reason": "The behaviour is removed by FEA-BR-30: a dashboard kind is now refused, covered by a_dashboard_kind_or_snapshot_is_refused_because_publish_has_reports_and_pages_only.",
+			"commit": "2d59b32"
+		},
+		{
+			"test": "crates/richview-publish/tests/build.rs::snapshot_chart_images_carry_their_own_styles",
+			"reason": "The behaviour is removed by FEA-BR-30: the dashboard snapshot builder and the example-trading-desk item it built are gone.",
+			"commit": "2d59b32"
+		},
+		{
+			"test": "crates/richview-app/tests/installed_assets.rs::installed_generate_mcp_serve_and_both_server_entrypoints_find_packaged_assets",
+			"reason": "The binary embeds the report runtime (ARC-07) and the richview-server binary and --public-dir are gone, so there are no packaged assets to find; the editor LSP test and native_contract cover generate, MCP and serve.",
+			"commit": "S27-745"
+		},
+		{
+			"test": "crates/richview-app/tests/installed_assets.rs::checkout_environment_and_explicit_paths_keep_their_precedence",
+			"reason": "RICHVIEW_PUBLIC_DIR and --public-dir no longer exist (ARC-07), so there is no precedence to keep.",
+			"commit": "S27-745"
+		},
+		{
+			"test": "crates/richview-app/tests/native_contract.rs::static_aliases_and_canonical_host_are_preserved",
+			"reason": "The report host no longer serves the site or redirects to therichview.com (the site is its own host); replaced by the_report_host_serves_reports_only.",
+			"commit": "S27-745"
+		},
+		{
+			"test": "crates/richview-app/tests/native_contract.rs::runtime_cors_is_narrow_and_http_compression_preserves_content",
+			"reason": "The report host serves no static runtime files now; the runtime is embedded in each report.",
+			"commit": "S27-745"
+		},
+		{
+			"test": "crates/richview-app/tests/native_contract.rs::trusted_public_origin_directory_index_and_real_http_publish_client",
+			"reason": "Directory index and the public-origin static routes left the report host; publishing over HTTP is covered by identity.rs.",
+			"commit": "S27-745"
+		},
+		{
+			"test": "crates/richview-app/tests/native_contract.rs::precompressed_runtime_keeps_its_gzip_bytes_for_every_accept_encoding",
+			"reason": "The report host no longer serves the precompressed runtime file.",
+			"commit": "S27-745"
+		},
+		{
+			"test": "crates/richview-editor/src/main.rs::chart_snippets_compile_as_actual_source",
+			"reason": "Moved unchanged to crates/richview-editor/tests/snippets.rs: main.rs is now the LSP entry point.",
+			"commit": "S27-745"
+		},
+		{
+			"test": "crates/richview-editor/src/main.rs::no_file_or_remote_write_is_implicit_in_preview",
+			"reason": "Replaced by crates/richview-editor/tests/lsp.rs::preview_renders_the_open_text_and_unsaved_documents_get_a_save_message; publish needs a server and token (richview/publish).",
+			"commit": "S27-745"
+		},
+		{
+			"test": "crates/richview-editor/src/main.rs::trusted_editor_runtime_is_external_only_for_preview",
+			"reason": "Moved to crates/richview-editor/tests/lsp.rs::the_trusted_editor_runtime_is_external_only_for_preview, which keeps the runtime URL assertions over real LSP.",
+			"commit": "S27-745"
+		},
+		{
+			"test": "crates/richview-core/tests/hostile/f02-prolog.rmd (case removed)",
+			"reason": "`prolog` leaves the format (FEA-RP-05), so frontmatter prolog Markdown is no longer a sink; the same Markdown sanitising is exercised by the body and callout cases of the corpus.",
+			"commit": "S27-746"
+		},
+		{
+			"test": "crates/richview-core/tests/contracts.rs (tabs tests rewritten)",
+			"reason": "Tabs stack every panel under its label until the runtime builds the tab row (FEA-BR-09): the tests tabs_split_..., tabs_without_a_runtime_..., tabs_export_active_... and invalid_tabs_... now assert the static panel markup and the print rules instead of server-built nav buttons, `hidden` panels and the noscript style.",
+			"commit": "S27-746"
+		},
+		{
+			"test": "crates/richview-core/tests/contracts.rs (failed blocks)",
+			"reason": "A rich fence that fails shows a notice with its source (FEA-RP-29) and is kept in Document.failed instead of staying in the body as a code block; commonmark/provenance, schema-diagnostics, unsplash and header_and_unresolved_data tests assert the notice, `failed` and the per-block data failure (FEA-RP-30) instead of fenced code and a whole-render error.",
+			"commit": "S27-746"
+		},
+		{
+			"test": "crates/richview-core/tests/contracts.rs::wikilinks_point_at_the_shared_slug_of_their_target",
+			"reason": "Wikilinks are dropped (FEA-RP-12, assumed: drop): [[Target|label]] renders as its label and warns markdown.wikilink; tests/markdown_ext.rs covers it.",
+			"commit": "S27-745"
+		},
+		{
+			"test": "crates/richview-core/tests/hostile.rs::a_remote_markdown_image_stops_the_render_before_anything_is_shown",
+			"reason": "FEA-RP-30: a remote Markdown image no longer stops the render; replaced by a_remote_markdown_image_fails_alone_and_its_alt_text_stays.",
+			"commit": "99b7c38"
+		},
+		{
+			"test": "crates/richview-core/tests/csv_decimal_source.rs::resolved_content_controls_numeric_text_semantics_without_retyping_json_strings",
+			"reason": "Renamed to the_source_key_controls_numeric_text_semantics_and_json_strings_stay_text: it fed JSON content through a csv: key, which TYP-92 refuses.",
+			"commit": "S27-734"
+		},
+		{
+			"test": "scripts/verify-browser-api.mjs",
+			"reason": "Checked the deleted @richview/core and @richview/charts packages (FEA-SF-49); nothing ships them now.",
+			"commit": "S27-738"
+		},
+		{
+			"test": "scripts/verify-compat.mjs",
+			"reason": "Checked the deleted @richview/core and @richview/charts packages (FEA-SF-49); nothing ships them now.",
+			"commit": "S27-738"
+		},
+		{
+			"test": "cloudflare/publish/test/adapter.test.mjs::bodies are refused outside the publishing and desk APIs and above 20 MiB, before they are read",
+			"reason": "Renamed and extended to the 405/401/411/413 body pre-check.",
+			"commit": "S27-655"
+		},
+		{
+			"test": "crates/richview-publish-server/tests/desk.rs::another_editor_makes_an_editors_private_item_public",
+			"reason": "Renamed an_editor_makes_their_own_private_item_public_and_so_may_another_in_scope: the author may make their own private item public.",
+			"commit": "S27-655"
+		},
+		{
+			"test": "crates/richview-publish-server/tests/publishing.rs::an_editors_own_change_lands_private_and_a_second_approval_makes_it_public",
+			"reason": "Rewritten for publish-event semantics: only a newly published story lands private (OPN-54).",
+			"commit": "S27-655"
+		},
+		{
+			"test": "crates/richview-web/src/reel.rs::sourced_frames_seek_independently_and_cover_every_scene",
+			"reason": "The reel leaves the site (FEA-SF-45): its video is rendered once from ed81559 and not merged, so the reel's code and its unit tests go.",
+			"commit": "9777667"
+		},
+		{
+			"test": "crates/richview-web/src/reel.rs::picture_and_sound_share_the_beat_clock",
+			"reason": "The reel leaves the site (FEA-SF-45): its video is rendered once from ed81559 and not merged, so the reel's code and its unit tests go.",
+			"commit": "9777667"
+		},
+		{
+			"test": "crates/richview-web/src/reel_audio.rs::every_shared_cue_has_a_finite_audible_voice",
+			"reason": "The reel leaves the site (FEA-SF-45): its video is rendered once from ed81559 and not merged, so the reel's code and its unit tests go.",
+			"commit": "9777667"
+		},
+		{
+			"test": "crates/richview-web/src/reel_audio.rs::soundtrack_is_exact_length_deterministic_stereo_and_unclipped",
+			"reason": "The reel leaves the site (FEA-SF-45): its video is rendered once from ed81559 and not merged, so the reel's code and its unit tests go.",
+			"commit": "9777667"
+		},
+		{
+			"test": "crates/richview-web/src/reel_audio.rs::wav_header_describes_the_encoded_pcm",
+			"reason": "The reel leaves the site (FEA-SF-45): its video is rendered once from ed81559 and not merged, so the reel's code and its unit tests go.",
+			"commit": "9777667"
+		},
+		{
+			"test": "scripts/verify-reel.mjs",
+			"reason": "The reel's browser suite, retired with the reel (FEA-SF-45).",
+			"commit": "9777667"
+		},
+		{
+			"test": "scripts/verify-galleries.mjs",
+			"reason": "The old chart gallery and typography pages leave the site (FEA-SF-46's route map, OPN-19); the specimen stays a golden input, rendered by the golden step.",
+			"commit": "9777667"
+		},
+		{
+			"test": "scripts/verify-showcase.mjs",
+			"reason": "Checked the old token-injection showcase page, which the route map removes (FEA-SF-46); the styles showcase is covered by the chromium suites.",
+			"commit": "9777667"
+		},
+		{
+			"test": "scripts/verify-types.ts",
+			"reason": "Type test of the npm bindings, which leave with ARC-42 and OPN-19.",
+			"commit": "9777667"
+		},
+		{
+			"test": "crates/richview-share/src/lib.rs::one_merged_face_is_loaded_so_czech_titles_have_their_glyphs",
+			"reason": "Replaced by every_bundled_face_is_loaded_once_and_has_its_name: the crate now bundles six faces, one per family; Czech coverage is in czech_titles_render_in_every_style_with_a_fallback_for_missing_glyphs.",
+			"commit": "S27-655"
+		},
+		{
+			"test": "crates/richview-share/src/lib.rs::a_czech_title_renders",
+			"reason": "Moved to src/tests.rs as czech_titles_render_in_every_style_with_a_fallback_for_missing_glyphs, which runs every style.",
+			"commit": "S27-655"
+		},
+		{
+			"test": "crates/richview-share/src/lib.rs::every_lead_renders_a_1200_by_630_png",
+			"reason": "Moved to src/tests.rs as every_style_and_lead_renders_a_1200_by_630_png, which runs every style.",
+			"commit": "S27-655"
+		},
+		{
+			"test": "crates/richview-share/src/lib.rs::the_same_card_gives_the_same_bytes_and_a_lead_changes_them",
+			"reason": "Moved to src/tests.rs as the_same_card_gives_the_same_bytes_in_every_style_and_the_styles_differ; the dark flag it varied is gone (the style decides).",
+			"commit": "S27-655"
+		},
+		{
+			"test": "crates/richview-share/src/lib.rs::titles_wrap_cut_long_words_and_end_in_an_ellipsis",
+			"reason": "Moved to src/tests.rs as titles_wrap_by_measured_width_cut_long_words_and_end_in_an_ellipsis: wrapping now measures the face's advances instead of counting monospace columns.",
+			"commit": "S27-655"
+		},
+		{
+			"test": "crates/richview-core/tests/print_a11y.rs::display_math_keeps_its_math_layout_so_fractions_and_roots_stay_composed",
+			"reason": "Replaced by display_math_scrolls_in_its_own_box_and_keeps_the_browsers_math_layout: the formula now scrolls in an rv-math box and keeps the browser's own math layout instead of an author display rule.",
+			"commit": "09f16139"
+		},
+		{
+			"test": "crates/richview-runtime/src/payload.rs::the_summary_is_the_embedded_one_not_a_grid_layout",
+			"reason": "The runtime summary override is removed (review 1g should-fix 1): it made engines-smoke compare core with itself; the label comparison catches grid text again.",
+			"commit": "09f16139"
+		},
+		{
+			"test": "crates/richview-runtime/src/payload.rs::a_legend_toggle_leaves_the_other_marks_on_their_embedded_text",
+			"reason": "Replaced by a_legend_toggle_and_a_zoom_still_read_shown_values: embedded readouts now apply only to the untouched initial state, and every other state reads the shown-rows layout, which the new test asserts.",
+			"commit": "S27-752"
+		},
+		{
+			"test": "crates/richview-core/tests/style_rules.rs::chart_chrome_is_light_gridlines_hairline_zero_line_firmer_swatches_small",
+			"reason": "Judged CHART_CSS and FIGURE_CSS, the removed painter's stylesheet, which no report ships; STY-40 is now checked on the geometry (richview-chart tests/chart_chrome.rs), on the shipped legend CSS (legend_swatches_are_small_and_a_hidden_series_strikes_through) and on the runtime's dimming (richview-runtime src/mesh.rs).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "crates/richview-core/tests/style_rules.rs::area_fills_are_fifteen_percent",
+			"reason": "Judged CHART_CSS and FIGURE_CSS, the removed painter's stylesheet, which no report ships; STY-40 is now checked on the geometry (richview-chart tests/chart_chrome.rs), on the shipped legend CSS (legend_swatches_are_small_and_a_hidden_series_strikes_through) and on the runtime's dimming (richview-runtime src/mesh.rs).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/aggregate.rs::columns_keep_range_and_mean_and_skip_missing",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/binning.rs::unequal_interval_density_integrates_to_one_and_mass_stays_explicit",
+			"reason": "Tested `ordinate`, the removed painter's histogram height; the live histogram's density areas are tested in tests/histogram_contract.rs.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/binning.rs::density_avoids_intermediate_overflow_and_reports_unrepresentable_heights",
+			"reason": "Tested `ordinate`, the removed painter's histogram height; the live histogram's density areas are tested in tests/histogram_contract.rs.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/category.rs::balanced_wraps_break_at_spaces_or_hyphens_and_never_inside_a_word",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/category.rs::period_names_read_as_periods_in_reader_form",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/category.rs::one_line_then_two_lines_then_periods_then_horizontal_bars",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/category.rs::quarters_thin_to_years_and_nominal_axes_report_what_they_drop",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/category.rs::end_labels_move_inward_rather_than_past_the_edge",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/category.rs::horizontal_names_take_a_gutter_or_a_line_of_their_own",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/chart.rs::unknown_fields_name_their_json_pointer",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/chart.rs::missing_columns_list_what_exists",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/chart.rs::honest_defaults_are_enforced",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/chart.rs::stacks_reject_negative_values",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/controls.rs::resolve_without_controls_is_identity",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/controls.rs::metric_swap_replaces_field_and_axis_coherently",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/controls.rs::unknown_metric_value_leaves_spec_unchanged",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/controls.rs::playback_on_time_field_sets_view_end_and_clears_last_preset",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/controls.rs::initial_state_prefers_declared_initials_and_falls_back_sensibly",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/controls.rs::filter_keeps_only_matching_rows_and_preserves_header_and_order",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/controls.rs::filter_with_unknown_value_leaves_data_unchanged",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/controls.rs::filter_with_matching_value_but_no_rows_returns_header_only",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/controls.rs::filter_on_missing_column_leaves_data_unchanged",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/controls.rs::playback_on_non_time_field_filters_rows_to_the_current_frame",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/data.rs::parses_quotes_comments_and_crlf",
+			"reason": "Tested the legacy table parser (`parse_csv`, column and missing-marker handling) that only the removed calendar engine called; the live reader's number rules are tested in tests/numeric_safety_contract.rs and tests/decimal_numbers.rs.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/data.rs::rejects_ragged_rows_with_line_numbers",
+			"reason": "Tested the legacy table parser (`parse_csv`, column and missing-marker handling) that only the removed calendar engine called; the live reader's number rules are tested in tests/numeric_safety_contract.rs and tests/decimal_numbers.rs.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/data.rs::sorts_time_and_rejects_duplicates",
+			"reason": "Tested the legacy table parser (`parse_csv`, column and missing-marker handling) that only the removed calendar engine called; the live reader's number rules are tested in tests/numeric_safety_contract.rs and tests/decimal_numbers.rs.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/data.rs::missing_markers_and_source_precision",
+			"reason": "Tested the legacy table parser (`parse_csv`, column and missing-marker handling) that only the removed calendar engine called; the live reader's number rules are tested in tests/numeric_safety_contract.rs and tests/decimal_numbers.rs.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/data.rs::json_rows_and_columns_keep_number_spelling",
+			"reason": "Tested the legacy table parser (`parse_csv`, column and missing-marker handling) that only the removed calendar engine called; the live reader's number rules are tested in tests/numeric_safety_contract.rs and tests/decimal_numbers.rs.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/decimate.rs::keeps_extremes_of_every_column",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/decimate.rs::gaps_and_missing_values_break_runs",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/format.rs::fixed_precision_is_bounded_without_losing_subnormal_values",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/format.rs::scientific_axes_keep_shared_magnitude_and_explicit_unit_scope",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/format.rs::scientific_axes_distinguish_supported_small_and_large_steps",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/format.rs::scientific_axis_units_convert_once_and_preserve_ordinary_policy",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/format.rs::scientific_formatting_handles_finite_extremes_without_scale_claims",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/format.rs::axis_precision_and_units_share_the_span_with_plain_zero",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/format.rs::axis_ticks_remain_distinct_and_source_text_keeps_exact_precision",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/format.rs::display_units_scale_without_losing_tight_range_distinctions",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/format.rs::end_values_follow_the_axis_magnitude_at_three_significant_digits",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/format.rs::groups_thousands_and_handles_signs",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/format.rs::units_attach_by_convention",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/format.rs::decimals_follow_source_and_scale",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/interaction.rs::bars_answer_for_their_whole_slot_but_not_outside_the_plot",
+			"reason": "Tested the removed engine's hover hit test (`hover_target`) and zoom and animation state machine (`Interaction`); the live engine's pointer and keyboard targets are `hit` (FEA-CH-39), and zoom is the runtime's.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/interaction.rs::a_missing_category_leaves_its_slot_empty",
+			"reason": "Tested the removed engine's hover hit test (`hover_target`) and zoom and animation state machine (`Interaction`); the live engine's pointer and keyboard targets are `hit` (FEA-CH-39), and zoom is the runtime's.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/interaction.rs::horizontal_bars_use_row_slots",
+			"reason": "Tested the removed engine's hover hit test (`hover_target`) and zoom and animation state machine (`Interaction`); the live engine's pointer and keyboard targets are `hit` (FEA-CH-39), and zoom is the runtime's.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/interaction.rs::overlapping_marks_choose_the_nearest_centre_not_the_last_drawn",
+			"reason": "Tested the removed engine's hover hit test (`hover_target`) and zoom and animation state machine (`Interaction`); the live engine's pointer and keyboard targets are `hit` (FEA-CH-39), and zoom is the runtime's.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/interaction.rs::scatter_points_answer_within_their_radius_and_a_small_reach",
+			"reason": "Tested the removed engine's hover hit test (`hover_target`) and zoom and animation state machine (`Interaction`); the live engine's pointer and keyboard targets are `hit` (FEA-CH-39), and zoom is the runtime's.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/interaction.rs::lines_pick_the_nearest_x_inside_the_plot_only",
+			"reason": "Tested the removed engine's hover hit test (`hover_target`) and zoom and animation state machine (`Interaction`); the live engine's pointer and keyboard targets are `hit` (FEA-CH-39), and zoom is the runtime's.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/interaction.rs::heatmap_cells_cover_only_their_own_gutters",
+			"reason": "Tested the removed engine's hover hit test (`hover_target`) and zoom and animation state machine (`Interaction`); the live engine's pointer and keyboard targets are `hit` (FEA-CH-39), and zoom is the runtime's.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/interaction.rs::an_active_pie_slice_keeps_the_readout_while_displaced",
+			"reason": "Tested the removed engine's hover hit test (`hover_target`) and zoom and animation state machine (`Interaction`); the live engine's pointer and keyboard targets are `hit` (FEA-CH-39), and zoom is the runtime's.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/interaction.rs::rendered_bars_have_no_holes_inside_the_plot",
+			"reason": "Tested the removed engine's hover hit test (`hover_target`) and zoom and animation state machine (`Interaction`); the live engine's pointer and keyboard targets are `hit` (FEA-CH-39), and zoom is the runtime's.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/interaction.rs::zoom_keeps_pointer_time_and_clamps_extent",
+			"reason": "Tested the removed engine's hover hit test (`hover_target`) and zoom and animation state machine (`Interaction`); the live engine's pointer and keyboard targets are `hit` (FEA-CH-39), and zoom is the runtime's.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/interaction.rs::interrupted_animation_starts_at_rendered_window",
+			"reason": "Tested the removed engine's hover hit test (`hover_target`) and zoom and animation state machine (`Interaction`); the live engine's pointer and keyboard targets are `hit` (FEA-CH-39), and zoom is the runtime's.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/interaction.rs::the_navigator_appears_only_for_a_partial_view_or_on_request",
+			"reason": "Tested the removed engine's hover hit test (`hover_target`) and zoom and animation state machine (`Interaction`); the live engine's pointer and keyboard targets are `hit` (FEA-CH-39), and zoom is the runtime's.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/interaction.rs::motion_preference_and_last_series_are_respected",
+			"reason": "Tested the removed engine's hover hit test (`hover_target`) and zoom and animation state machine (`Interaction`); the live engine's pointer and keyboard targets are `hit` (FEA-CH-39), and zoom is the runtime's.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/labels.rs::crowded_labels_never_overlap_marks_or_each_other",
+			"reason": "Tested `place_near`, a label placer only the removed painter called; `place_column` keeps its tests.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/motion.rs::out_starts_moving_at_once_and_settles_without_overshoot",
+			"reason": "Tested the removed painter's entrance timing (`out`, `Entrance`, `stagger`, `fan`, `in_view`, `is_tap` and its CSS curve); the live timing is `Profile`, tested here, and the runtime's mesh.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/motion.rs::the_css_curve_matches_the_rust_curve",
+			"reason": "Tested the removed painter's entrance timing (`out`, `Entrance`, `stagger`, `fan`, `in_view`, `is_tap` and its CSS curve); the live timing is `Profile`, tested here, and the runtime's mesh.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/motion.rs::bars_start_forty_ms_apart_and_the_stagger_is_capped",
+			"reason": "Tested the removed painter's entrance timing (`out`, `Entrance`, `stagger`, `fan`, `in_view`, `is_tap` and its CSS curve); the live timing is `Profile`, tested here, and the runtime's mesh.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/motion.rs::points_wait_for_their_x_position_and_dense_charts_fade",
+			"reason": "Tested the removed painter's entrance timing (`out`, `Entrance`, `stagger`, `fan`, `in_view`, `is_tap` and its CSS curve); the live timing is `Profile`, tested here, and the runtime's mesh.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/motion.rs::labels_follow_their_marks",
+			"reason": "Tested the removed painter's entrance timing (`out`, `Entrance`, `stagger`, `fan`, `in_view`, `is_tap` and its CSS curve); the live timing is `Profile`, tested here, and the runtime's mesh.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/motion.rs::a_pie_fans_out_from_twelve_o_clock_in_proportion",
+			"reason": "Tested the removed painter's entrance timing (`out`, `Entrance`, `stagger`, `fan`, `in_view`, `is_tap` and its CSS curve); the live timing is `Profile`, tested here, and the runtime's mesh.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/motion.rs::a_chart_enters_at_half_of_itself_or_half_of_a_screen",
+			"reason": "Tested the removed painter's entrance timing (`out`, `Entrance`, `stagger`, `fan`, `in_view`, `is_tap` and its CSS curve); the live timing is `Profile`, tested here, and the runtime's mesh.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/motion.rs::a_tap_is_short_and_still",
+			"reason": "Tested the removed painter's entrance timing (`out`, `Entrance`, `stagger`, `fan`, `in_view`, `is_tap` and its CSS curve); the live timing is `Profile`, tested here, and the runtime's mesh.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/optical.rs::pinned_outlines_and_constrained_advances_keep_estimates_honest",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/optical.rs::first_line_ink_includes_the_stroke_and_respects_empty_runs",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/path.rs::curves_preserve_extrema_flat_runs_and_interval_ranges",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/path.rs::writes_compact_tenths",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/render.rs::line_obstacles_stay_within_their_budget_for_dense_charts",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/render.rs::band_labels_never_cover_a_drawn_line",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/render.rs::short_phone_plots_try_direct_names_before_a_legend",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/render.rs::end_labels_are_one_line_and_leaders_start_outside_the_plot",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/render.rs::a_series_that_ends_early_names_its_period_and_draws_nothing_in_the_gap",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/render.rs::hidden_series_keep_their_label_as_the_toggle",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/render.rs::narrow_charts_use_direct_names_and_fall_back_only_when_they_do_not_fit",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd.rs::pivots_long_rows_into_series_and_keeps_gaps",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd.rs::refuses_non_time_series",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd.rs::source_series_names_do_not_collide_with_pivot_columns",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_controls.rs::resolve_without_controls_is_identity_and_borrows_inputs",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_controls.rs::categorical_playback_and_filter_together_yield_one_point",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_controls.rs::metric_swap_rewrites_encoding_y_and_axis_suffix_from_unit",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_controls.rs::initial_state_prefers_declared_initials_and_first_option_fallbacks",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_controls.rs::variant_overlays_the_chosen_chart_and_preserves_outer_controls",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_controls.rs::variant_initial_state_defaults_to_the_authored_initial_then_first_option",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_controls.rs::unknown_filter_column_leaves_data_unchanged",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::year_format_prints_integers_without_k_m_abbreviation",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::numeric_zoom_extent_matches_number_and_string_geometry",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::numeric_viewport_keeps_crossing_paths_without_outside_observations",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::numeric_viewport_preserves_gaps_and_compact_original_row_identity",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::numeric_viewport_bounds_dense_output_and_keeps_oriented_area_reentries",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::numeric_viewport_clipped_y_rows_keep_keyboard_values_without_hidden_hits",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::numeric_viewport_markers_match_full_path_rounding_and_budget",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::numeric_zoom_respects_categories_calendar_precedence_and_degenerate_extents",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::a_valid_numeric_window_keeps_selected_year_strings_on_numeric_coordinates",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::pie_annotation_aliases_require_presence_and_preserve_explicit_targets",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::zero_bars_keep_source_targets_without_filled_length",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::repeated_bar_observations_reject_the_panel_and_preserve_source_interfaces",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::bar_conflicts_use_existing_category_identity_and_only_drawable_numeric_rows",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::repeated_bar_validation_stays_local_to_facets_and_chart_type",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::category_colored_bars_use_one_slot_and_keep_hidden_category_palette_ordinals",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::category_identity_preserves_source_aliases_and_first_seen_order",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::pie_labels_keep_full_names_and_shares_without_consuming_the_disk",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::pie_preserves_radial_labels_and_full_circle_when_other_shares_are_zero",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::pie_key_inspects_the_existing_aggregate_without_expanding_sectors",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::filled_mark_hit_testing_preserves_row_identity_and_rejects_empty_space",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::tooltip_readout_uses_units_without_rounding_source_text",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::heatmap_readouts_use_color_units_without_reformatting_coordinate_names",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::monochrome_bars_own_their_patterns_and_preserve_data_geometry",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::pie_decals_pair_sector_and_key_without_changing_source_or_geometry",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::monochrome_lines_have_distinct_bounded_shapes_and_xml_safe_temporal_exports",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::scatter_padding_keeps_bubbles_clear_of_ticks_without_distorting_the_scale",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::bubble_areas_follow_size_without_a_unit_dependent_floor",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::zero_bubbles_keep_zero_area_and_unavailable_sizes_keep_source_rows",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::bubble_sizes_remain_finite_and_ignore_undrawable_rows",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::runtime_preserves_explicit_palette_and_numeric_theme_styles",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::hand_drawn_palette_cycles_for_all_series_and_legend_fallbacks",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::report_svg_leaves_header_and_legend_to_the_figure_and_keeps_a_readable_plot",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::single_axis_bounds_outside_the_data_keep_an_increasing_scale",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::value_axes_keep_about_one_tick_per_52_px_of_plot",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::series_are_told_apart_by_colour_not_automatic_dashes",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::exports_compose_title_dek_and_legend_above_the_unchanged_chart",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::all_six_contracts_render_and_escape",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::categorical_annotations_and_facets_are_not_dropped",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::temporal_annotations_keep_y_threshold_and_exact_calendar",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::area_gaps_close_independently_and_dense_numeric_extrema_survive",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::heatmap_uses_a_numeric_scale_and_cells_own_their_values",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::heatmap_missing_cells_keep_source_identity_without_inventing_observations",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::missing_heatmap_cells_cannot_cover_repeated_normalized_coordinates",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::repeated_numeric_heatmap_cells_reject_arbitrary_winners_and_keep_source_details",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::repeated_numeric_heatmap_cells_reject_only_the_affected_facet",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::all_missing_heatmap_cells_keep_the_error_without_a_numeric_key",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::heatmaps_keep_zero_neutral_and_show_sign_by_hue",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::more_than_eight_temporal_series_keep_exact_calendar_and_gaps",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::invalid_temporal_data_keeps_source_errors_and_rows_instead_of_becoming_categories",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::temporal_failure_is_local_to_its_facet_and_shared_dates_between_series_stay_valid",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::empty_facet_values_do_not_turn_calendar_observations_into_categories",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::temporal_facets_have_independent_runtime_and_nonoverlapping_rows",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::repeated_percent_units_match_format_only_axis_and_key_labels",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::annotations_retain_all_coordinates_and_percent_format_preserves_values",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::pie_notes_fit_after_slice_labels_and_disclose_crowded_omissions",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::crowded_scatter_selects_names_without_losing_observations",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::bar_rules_follow_marks_and_leave_every_bar_footprint_clear",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/rmd_render.rs::direct_labels_keep_periods_and_fall_back_for_full_long_values",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/time.rs::compact_calendar_labels_follow_explicit_culture_without_changing_instants",
+			"reason": "Tested the removed calendar engine's labels and range presets (`Locale`, `label`, `preset_window`); live calendar ticks are tested in src/axis.rs.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/time.rs::presets_are_calendar_aware",
+			"reason": "Tested the removed calendar engine's labels and range presets (`Locale`, `label`, `preset_window`); live calendar ticks are tested in src/axis.rs.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/time.rs::labels_match_precision",
+			"reason": "Tested the removed calendar engine's labels and range presets (`Locale`, `label`, `preset_window`); live calendar ticks are tested in src/axis.rs.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/transform.rs::yoy_matches_published_cpi_headline",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/transform.rs::yoy_skips_missing_months_instead_of_shifting",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/src/transform.rs::rebase_uses_last_observation_at_or_before",
+			"reason": "Tested the legacy JSON-spec engine and painter that S27-703 removes; no product path reached it, since every chart draws from the geometry model (ARC-18).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/annotation_lines.rs::band_labels_avoid_source_lines_when_space_exists",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/annotation_lines.rs::band_labels_are_never_dropped_for_a_crowded_plot",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/bar_legend_decals.rs::bar_keys_match_original_parent_hatches_in_html_and_exports",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/bar_legend_decals.rs::decal_metadata_is_explicit_and_keeps_normalized_source_membership",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/bar_paint_contract.rs::signed_bars_round_only_the_value_end_and_keep_a_visible_continuous_baseline",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/boxplot_contract.rs::boxes_use_r7_quartiles_observed_whiskers_and_exact_source_outliers",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's quartiles, whiskers and outliers and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/boxplot_contract.rs::exclusions_and_singletons_are_disclosed_without_discarding_source_rows",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's quartiles, whiskers and outliers and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/boxplot_contract.rs::category_and_group_summaries_are_separate_and_original_source_order_is_preserved",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's quartiles, whiskers and outliers and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/boxplot_contract.rs::vertical_and_horizontal_inspection_regions_select_their_displayed_summaries",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's quartiles, whiskers and outliers and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/boxplot_contract.rs::empty_and_extreme_distributions_remain_finite_and_keep_runtime_source",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's quartiles, whiskers and outliers and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/boxplot_contract.rs::static_and_live_boxplot_geometry_and_inspection_match_in_every_orientation",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's quartiles, whiskers and outliers and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/boxplot_contract.rs::authored_value_bounds_clip_marks_but_retain_exact_summary_and_unit_readouts",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's quartiles, whiskers and outliers and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/boxplot_contract.rs::annotations_retain_category_and_value_meaning_after_horizontal_projection",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's quartiles, whiskers and outliers and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/boxplot_contract.rs::facet_children_retain_parent_palette_and_source_outliers_after_filtering",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's quartiles, whiskers and outliers and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/boxplot_contract.rs::invalid_boxplot_options_fail_consistently_without_drawing_misleading_marks",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's quartiles, whiskers and outliers and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/bubble_key.rs::bubble_reference_exposes_local_scale_without_becoming_an_observation",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/bubble_key.rs::bubble_reference_keeps_complete_field_names_and_exact_finite_scale_values",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/calendar_label_diagnostics.rs::calendar_diagnostics_follow_shifted_endpoint_labels",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/calendar_label_diagnostics.rs::calendar_value_labels_fit_inside_the_native_frame",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/end_labels.rs::end_labels_are_a_coloured_name_without_a_dot",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/end_labels.rs::one_group_gets_neither_a_direct_label_nor_a_legend",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/end_labels.rs::monochrome_line_legends_repeat_each_series_marker_shape",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/examples.rs::keeling_full_record_and_zoomed_views",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/examples.rs::cpi_year_over_year_matches_bls_and_keeps_the_shutdown_gap",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/examples.rs::grid_week_stacks_and_full_year_aggregates",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/examples.rs::narrow_widths_keep_direct_identity_when_it_fits",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/examples.rs::flat_series_still_get_a_readable_scale",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/facet_colors.rs::facet_runtime_keeps_parent_paint_and_child_observations",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/facet_colors.rs::stale_or_malformed_facet_scope_does_not_change_other_series_contracts",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/heatmap_cell_values.rs::heatmap_cells_distinguish_tiny_signed_values_from_actual_zero",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/heatmap_cell_values.rs::heatmap_cell_units_convert_once_and_keep_the_existing_fit_limit",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/heatmap_cell_values.rs::expanded_cell_values_yield_only_to_emitted_annotation_ink",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/heatmap_contrast.rs::heatmap_foregrounds_follow_their_cells_and_keep_a_standalone_fallback",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/heatmap_coordinates.rs::invisible_heatmap_values_do_not_set_colors_or_change_source_targets",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/heatmap_coordinates.rs::unlocated_only_heatmaps_explain_coordinates_without_a_false_numeric_scale",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/heatmap_coordinates.rs::coordinate_errors_preserve_missing_cells_and_other_heatmap_errors",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/histogram_contract.rs::static_histograms_preserve_interactive_geometry_inspection_and_pattern_resources",
+			"reason": "Drove the removed painter (`render_rmd_chart`); the file keeps its live density and edge tests and adds the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/histogram_contract.rs::automatic_histogram_bins_preserve_observations_and_exact_boundaries",
+			"reason": "Drove the removed painter (`render_rmd_chart`); the file keeps its live density and edge tests and adds the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/histogram_contract.rs::unequal_width_density_uses_interval_area_and_keeps_original_rows",
+			"reason": "Drove the removed painter (`render_rmd_chart`); the file keeps its live density and edge tests and adds the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/histogram_contract.rs::excluded_values_are_disclosed_without_mutating_the_source",
+			"reason": "Drove the removed painter (`render_rmd_chart`); the file keeps its live density and edge tests and adds the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/histogram_contract.rs::facet_and_visibility_changes_keep_common_edges_and_color_identity",
+			"reason": "Drove the removed painter (`render_rmd_chart`); the file keeps its live density and edge tests and adds the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/histogram_contract.rs::constant_empty_and_extreme_histograms_never_invent_density_values",
+			"reason": "Drove the removed painter (`render_rmd_chart`); the file keeps its live density and edge tests and adds the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/histogram_contract.rs::unsupported_histogram_options_produce_actionable_diagnostics",
+			"reason": "Drove the removed painter (`render_rmd_chart`); the file keeps its live density and edge tests and adds the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/histogram_contract.rs::histogram_measure_readouts_honor_authored_units_without_reformatting_record_counts",
+			"reason": "Drove the removed painter (`render_rmd_chart`); the file keeps its live density and edge tests and adds the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/histogram_contract.rs::many_groups_emit_only_observed_segments_and_keep_empty_intervals_inspectable",
+			"reason": "Drove the removed painter (`render_rmd_chart`); the file keeps its live density and edge tests and adds the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/histogram_contract.rs::histogram_annotations_use_source_x_and_the_named_derived_measure",
+			"reason": "Drove the removed painter (`render_rmd_chart`); the file keeps its live density and edge tests and adds the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/ink_alignment_contract.rs::font_corrections_preserve_every_other_rendered_node_and_exact_inspection",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/ink_alignment_contract.rs::a_padded_scatter_domain_keeps_distinct_first_and_second_tick_labels",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/ink_alignment_contract.rs::leading_gaps_align_to_visible_marker_strokes_including_isolated_observations",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/ink_alignment_contract.rs::a_clipped_marker_cannot_pull_the_title_outside_the_numeric_window",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/input_validation.rs::malformed_timezones_return_source_diagnostics",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/input_validation.rs::unix_timestamps_are_finite_exact_millisecond_coordinates",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/input_validation.rs::large_ranges_cover_the_data_and_unrepresentable_gaps_are_diagnosed",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/input_validation.rs::chart_json_requires_one_complete_document",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/input_validation.rs::csv_headers_cannot_select_ambiguous_or_unnamed_values",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/input_validation.rs::scientific_observations_keep_their_precision_in_source_readouts",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/input_validation.rs::axis_options_cannot_overflow_scaled_data_or_request_unbounded_readouts",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/interval_contract.rs::authored_bounds_and_estimate_use_their_actual_coordinates_in_both_orientations",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's intervals and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/interval_contract.rs::source_readouts_keep_exact_bounds_units_optional_estimates_and_metadata",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's intervals and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/interval_contract.rs::missing_values_are_disclosed_and_original_rows_remain_available",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's intervals and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/interval_contract.rs::reversed_bounds_invalid_numbers_and_duplicate_intervals_are_actionable_source_errors",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's intervals and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/interval_contract.rs::sub_ulp_bounds_are_checked_exactly_and_positive_collapsed_ranges_are_disclosed",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's intervals and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/interval_contract.rs::clipping_never_invents_endpoint_caps_and_an_estimate_may_lie_outside_its_range",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's intervals and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/interval_contract.rs::facets_validate_original_row_paths_and_keep_duplicate_pairs_separate",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's intervals and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/interval_contract.rs::extreme_empty_and_constant_ranges_keep_finite_geometry",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's intervals and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/interval_contract.rs::static_and_live_ranges_share_geometry_and_monochrome_group_identity",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's intervals and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/interval_contract.rs::annotations_keep_categorical_x_and_value_y_meaning_when_turned",
+			"reason": "Drove the removed painter (`render_rmd_chart`, `hit_test`); the file now tests the live engine's intervals and the shared contract.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/monotone_interpolation.rs::smoothing_defaults_and_theme_overrides_preserve_observations_on_every_axis",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/monotone_interpolation.rs::smoothing_does_not_bridge_missing_observations",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numeric_safety_contract.rs::source_underflow_identifies_the_original_row_after_time_sorting",
+			"reason": "Drove the removed painter's stacks, rebases and source errors (`Chart::from_json`, `render_rmd_chart`); the live reader's underflow and missing-marker rules stay tested in this file.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numeric_safety_contract.rs::display_scaling_must_not_turn_a_finite_nonzero_value_into_zero",
+			"reason": "Drove the removed painter's stacks, rebases and source errors (`Chart::from_json`, `render_rmd_chart`); the live reader's underflow and missing-marker rules stay tested in this file.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numeric_safety_contract.rs::raw_stack_totals_must_fit_the_supported_numeric_range",
+			"reason": "Drove the removed painter's stacks, rebases and source errors (`Chart::from_json`, `render_rmd_chart`); the live reader's underflow and missing-marker rules stay tested in this file.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numeric_safety_contract.rs::sparse_transformed_stack_overflow_is_a_gap_with_original_values",
+			"reason": "Drove the removed painter's stacks, rebases and source errors (`Chart::from_json`, `render_rmd_chart`); the live reader's underflow and missing-marker rules stay tested in this file.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numeric_safety_contract.rs::dense_transformed_stack_overflow_is_a_gap_with_original_values",
+			"reason": "Drove the removed painter's stacks, rebases and source errors (`Chart::from_json`, `render_rmd_chart`); the live reader's underflow and missing-marker rules stay tested in this file.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numeric_safety_contract.rs::each_numeric_source_channel_reports_underflow_and_retains_original_data",
+			"reason": "Drove the removed painter's stacks, rebases and source errors (`Chart::from_json`, `render_rmd_chart`); the live reader's underflow and missing-marker rules stay tested in this file.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numeric_safety_contract.rs::grouped_temporal_underflow_identifies_the_original_row_before_pivoting",
+			"reason": "Drove the removed painter's stacks, rebases and source errors (`Chart::from_json`, `render_rmd_chart`); the live reader's underflow and missing-marker rules stay tested in this file.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numeric_safety_contract.rs::categorical_labels_and_unused_metadata_keep_their_source_meaning",
+			"reason": "Drove the removed painter's stacks, rebases and source errors (`Chart::from_json`, `render_rmd_chart`); the live reader's underflow and missing-marker rules stay tested in this file.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numeric_safety_contract.rs::underflow_is_local_to_its_facet_and_good_panels_remain_inspectable",
+			"reason": "Drove the removed painter's stacks, rebases and source errors (`Chart::from_json`, `render_rmd_chart`); the live reader's underflow and missing-marker rules stay tested in this file.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numeric_safety_contract.rs::missing_stack_members_remain_missing_instead_of_becoming_an_overflow",
+			"reason": "Drove the removed painter's stacks, rebases and source errors (`Chart::from_json`, `render_rmd_chart`); the live reader's underflow and missing-marker rules stay tested in this file.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numeric_safety_contract.rs::a_nonzero_rebased_index_must_not_underflow_to_a_defined_zero",
+			"reason": "Drove the removed painter's stacks, rebases and source errors (`Chart::from_json`, `render_rmd_chart`); the live reader's underflow and missing-marker rules stay tested in this file.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numeric_zoom.rs::zoom_windows_remain_increasing_within_extents_at_every_floating_point_scale",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numeric_zoom.rs::invalid_numeric_windows_are_rejected_without_inventing_an_extent",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numerical_ranges.rs::extreme_finite_cartesian_observations_keep_order_and_inspection_targets",
+			"reason": "Drove the removed painter and calendar engine at the numeric limits (`render_rmd_chart`, `Engine`); the scale test of an overflowing span stays.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numerical_ranges.rs::temporal_frames_retain_finite_domains_at_the_numeric_limits",
+			"reason": "Drove the removed painter and calendar engine at the numeric limits (`render_rmd_chart`, `Engine`); the scale test of an overflowing span stays.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numerical_ranges.rs::subnormal_quarter_steps_retain_their_last_significant_decimal",
+			"reason": "Drove the removed painter and calendar engine at the numeric limits (`render_rmd_chart`, `Engine`); the scale test of an overflowing span stays.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numerical_ranges.rs::dense_temporal_means_stay_inside_the_finite_observation_range",
+			"reason": "Drove the removed painter and calendar engine at the numeric limits (`render_rmd_chart`, `Engine`); the scale test of an overflowing span stays.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numerical_ranges.rs::pie_shares_do_not_disappear_when_the_total_overflows",
+			"reason": "Drove the removed painter and calendar engine at the numeric limits (`render_rmd_chart`, `Engine`); the scale test of an overflowing span stays.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numerical_ranges.rs::changing_heatmap_units_to_subnormal_values_preserves_relative_color_strength",
+			"reason": "Drove the removed painter and calendar engine at the numeric limits (`render_rmd_chart`, `Engine`); the scale test of an overflowing span stays.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/numerical_ranges.rs::an_unrepresentable_category_sum_has_an_explicit_source_error",
+			"reason": "Drove the removed painter and calendar engine at the numeric limits (`render_rmd_chart`, `Engine`); the scale test of an overflowing span stays.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/percent_labels.rs::percent_ticks_keep_small_rates_and_fractional_steps_visible",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/percent_labels.rs::small_percentages_have_distinct_ticks_in_categorical_temporal_and_numeric_charts",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/percent_labels.rs::precise_percentages_fit_without_crowding_the_horizontal_axis",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/pie_share_labels.rs::pie_labels_distinguish_rounded_endpoints_from_genuine_zero_and_full_shares",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/pie_share_labels.rs::pie_share_labels_follow_aggregated_categories_and_preserve_source_errors",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/readout_formats.rs::percentage_conversion_keeps_exact_decimal_and_scientific_precision",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/readout_formats.rs::generic_readouts_honor_formats_without_rounding_or_redecorating_units",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/readout_formats.rs::nominal_categories_and_heatmap_axes_do_not_acquire_numeric_formats",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/scatter_highlight.rs::default_labels_are_sparse_prefer_isolated_points_and_never_use_leaders",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/scatter_highlight.rs::an_ordinary_label_that_needs_a_leader_is_dropped_with_that_reason",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/scatter_highlight.rs::the_ordinary_pass_is_capped",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/scatter_highlight.rs::a_forced_highlight_keeps_its_name_and_a_leader_when_the_point_is_crowded",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/scatter_highlight.rs::include_matching_is_case_insensitive",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/scatter_highlight.rs::priority_decides_which_highlight_gets_the_contested_position",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/scatter_highlight.rs::a_highlighted_isolated_point_is_labelled_once",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/scatter_highlight.rs::every_highlight_is_named_on_a_phone_width_crowd",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/scatter_highlight.rs::an_unmatched_highlight_is_reported",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/scatter_highlight.rs::a_repeated_priority_entry_labels_its_point_once",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/scatter_zero_padding.rs::unused_percentage_padding_returns_to_the_plot_without_changing_values_or_circle_sizes",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/scatter_zero_padding.rs::only_drawable_marks_can_allow_a_trim_and_zero_targets_keep_their_margin",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/step_interpolation.rs::held_values_use_the_authored_transition_on_numeric_category_and_calendar_axes",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/step_interpolation.rs::step_curves_never_bridge_nulls_or_create_source_rows",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/step_interpolation.rs::numeric_step_zoom_uses_the_crossing_interval_without_inventing_readouts",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/step_interpolation.rs::repeated_and_reversed_numeric_coordinates_preserve_authored_step_order",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/step_interpolation.rs::facet_children_retain_their_curve_and_original_rows_when_rendered_independently",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/step_interpolation.rs::dense_calendar_steps_keep_the_disclosed_envelope_and_exact_observation_readout",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/svg_export.rs::composed_panels_keep_their_geometry_and_use_the_tallest_export_in_each_row",
+			"reason": "Tested `compose_panels`, the removed painter's multi-panel export; resource namespacing keeps its test.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/svg_export.rs::exported_resources_are_unique_without_rewriting_caption_text",
+			"reason": "Tested `compose_panels`, the removed painter's multi-panel export; resource namespacing keeps its test.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/temporal_exact_readouts.rs::default_readouts_match_independent_decimal_arithmetic_across_source_forms",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/temporal_exact_readouts.rs::a_more_precise_source_row_does_not_expose_binary_tails_in_other_rows",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/temporal_exact_readouts.rs::explicit_rounding_and_currency_percentage_policies_remain_intentional",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/temporal_exact_readouts.rs::original_readouts_do_not_replace_computed_stack_totals",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/temporal_exact_readouts.rs::original_readouts_follow_public_chart_edits_before_the_first_frame",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/temporal_exact_readouts.rs::each_pane_uses_its_own_decimal_scale_and_unit",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/temporal_source_export.rs::csv_export_keeps_original_bytes_after_sorting_scaling_and_transforming_a_chart",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/temporal_source_export.rs::structured_data_export_retains_source_order_extra_columns_and_quoted_field_contents",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/temporal_table_precision.rs::table_cells_retain_published_precision_instead_of_compact_axis_label_rounding",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/temporal_table_precision.rs::full_precision_tables_keep_missing_values_and_existing_display_formats",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/temporal_transform_ranges.rs::rebase_preserves_a_finite_ratio_when_multiplying_the_level_first_would_overflow",
+			"reason": "Tested the removed calendar engine's rebase and year-over-year transforms; the chart block has no transforms (TYP-86 records reader rebase as unproved).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/temporal_transform_ranges.rs::a_rebased_chart_draws_and_reports_the_defined_index_without_changing_source_levels",
+			"reason": "Tested the removed calendar engine's rebase and year-over-year transforms; the chart block has no transforms (TYP-86 records reader rebase as unproved).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/temporal_transform_ranges.rs::unrepresentable_transforms_are_undefined_with_no_marker_and_keep_the_original_observation",
+			"reason": "Tested the removed calendar engine's rebase and year-over-year transforms; the chart block has no transforms (TYP-86 records reader rebase as unproved).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/temporal_transform_ranges.rs::navigator_geometry_retains_large_and_small_changes_in_sparse_and_dense_views",
+			"reason": "Tested the removed calendar engine's rebase and year-over-year transforms; the chart block has no transforms (TYP-86 records reader rebase as unproved).",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/year_axis.rs::integer_year_columns_print_plain_years_on_ticks_and_in_the_readout",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/year_axis.rs::year_field_names_match_case_insensitively_and_other_names_keep_their_format",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/year_axis.rs::an_explicit_format_or_suffix_disables_automatic_years",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/year_axis.rs::short_year_spans_use_unique_whole_year_ticks",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/year_axis.rs::zoomed_year_windows_keep_whole_year_ticks_without_changing_plotted_rows",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/year_axis.rs::a_single_series_is_named_by_the_chart_title_not_a_label_or_legend",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "richview-chart/tests/year_axis.rs::an_explicit_year_format_keeps_fractional_values_exact",
+			"reason": "Drove the removed JSON-spec painter or calendar engine (`render_rmd_chart`, `Chart::from_json`, `Engine`); the live engine's behaviour for each type is tested in tests/<type>_contract.rs and the geometry suites.",
+			"commit": "S27-703"
+		},
+		{
+			"test": "crates/richview-build/src/chrome.rs::tests::header_has_the_three_links_and_no_signup",
+			"reason": "Renamed to the_header_has_the_docs_the_gallery_and_the_repository_and_no_signup: the agent-first home page's header carries Docs, Gallery and a GitHub mark, and the flagship report moved to the footer; the test asserts those links, their order and that there is still no signup.",
+			"commit": "e10fabbd"
+		},
+		{
+			"test": "crates/richview-build/src/chrome.rs::tests::the_motto_stands_beside_the_mark_and_is_not_a_link",
+			"reason": "Replaced by the_header_has_no_motto: the motto became the home page's headline (Let your agent present.), so the header drops it and the test asserts it is gone.",
+			"commit": "e10fabbd"
+		}
+	]
+}

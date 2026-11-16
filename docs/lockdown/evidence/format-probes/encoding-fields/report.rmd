@@ -1,0 +1,31 @@
+---
+title: Encoding
+---
+
+```chart
+type: bar
+title: Missing y
+data:
+  inline:
+    - {month: Jan, revenue: 100}
+encoding: {x: month}
+```
+
+```chart
+type: line
+title: Nonexistent field
+data:
+  inline:
+    - {month: 1, revenue: 100}
+    - {month: 2, revenue: 120}
+encoding: {x: month, y: nosuchfield}
+```
+
+```table
+data:
+  inline:
+    - {a: 1}
+columns:
+  - key: nope
+sort: {key: alsonope}
+```

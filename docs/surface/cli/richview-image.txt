@@ -1,0 +1,11 @@
+Search Unsplash and place a credited photo in a report
+
+Usage: richview image <COMMAND>
+
+Commands:
+  search  Search Unsplash and list candidate photos (does not register a download)
+  use     Choose a photo: register the download once and print the YAML with its credit
+  help    Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help  Print help

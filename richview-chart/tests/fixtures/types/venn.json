@@ -1,0 +1,12 @@
+{
+ "spec": {"type": "venn", "title": "Web and email readers overlap the most", "encoding": {"sets": "channel", "y": "readers"}, "axes": {"y": {"label": "Readers"}}},
+ "rows": [
+  {"channel": "Email", "readers": 620},
+  {"channel": "App", "readers": 480},
+  {"channel": "Web", "readers": 540},
+  {"channel": "Email&App", "readers": 180},
+  {"channel": "Email&Web", "readers": 210},
+  {"channel": "App&Web", "readers": 150},
+  {"channel": "Email&App&Web", "readers": 70}
+ ]
+}

@@ -1,0 +1,754 @@
+{
+  "schema": "interface-v1",
+  "id": "core.root",
+  "producer": "richview-core",
+  "kind": "root-inventory",
+  "surface": {
+    "exports": [
+      {
+        "name": "ASSET_FINDINGS",
+        "kind": "use",
+        "declaration": "pub use folder : : ASSET_FINDINGS ;"
+      },
+      {
+        "name": "AssetRef",
+        "kind": "use",
+        "declaration": "pub use asset : : AssetRef ;"
+      },
+      {
+        "name": "AssetUse",
+        "kind": "use",
+        "declaration": "pub use asset : : AssetUse ;"
+      },
+      {
+        "name": "CHART_TYPES",
+        "kind": "use",
+        "declaration": "pub use authoring : : CHART_TYPES ;"
+      },
+      {
+        "name": "HighlightLanguage",
+        "kind": "use",
+        "declaration": "pub use highlight : : HighlightLanguage ;"
+      },
+      {
+        "name": "PublishRequest",
+        "kind": "use",
+        "declaration": "pub use compat : : PublishRequest ;"
+      },
+      {
+        "name": "RICH_TAGS",
+        "kind": "use",
+        "declaration": "pub use parser : : RICH_TAGS ;"
+      },
+      {
+        "name": "ResolvedStyle",
+        "kind": "use",
+        "declaration": "pub use style : : ResolvedStyle ;"
+      },
+      {
+        "name": "SLUG_GRAMMAR",
+        "kind": "use",
+        "declaration": "pub use identity : : SLUG_GRAMMAR ;"
+      },
+      {
+        "name": "StyleGrammar",
+        "kind": "use",
+        "declaration": "pub use style : : Grammar as StyleGrammar ;"
+      },
+      {
+        "name": "StyleLeaf",
+        "kind": "use",
+        "declaration": "pub use style : : Leaf as StyleLeaf ;"
+      },
+      {
+        "name": "StyleMark",
+        "kind": "use",
+        "declaration": "pub use style : : Mark as StyleMark ;"
+      },
+      {
+        "name": "Visibility",
+        "kind": "use",
+        "declaration": "pub use asset : : Visibility ;"
+      },
+      {
+        "name": "authoring_fields",
+        "kind": "use",
+        "declaration": "pub use authoring : : authoring_fields ;"
+      },
+      {
+        "name": "authoring_keys",
+        "kind": "use",
+        "declaration": "pub use authoring : : authoring_keys ;"
+      },
+      {
+        "name": "authoring_values",
+        "kind": "use",
+        "declaration": "pub use authoring : : authoring_values ;"
+      },
+      {
+        "name": "brand_font_files",
+        "kind": "use",
+        "declaration": "pub use style : : brand_font_files ;"
+      },
+      {
+        "name": "builtin_style_names",
+        "kind": "use",
+        "declaration": "pub use style : : builtin_style_names ;"
+      },
+      {
+        "name": "builtin_style_source",
+        "kind": "use",
+        "declaration": "pub use style : : builtin_style_source ;"
+      },
+      {
+        "name": "bundled_font_catalog",
+        "kind": "use",
+        "declaration": "pub use style : : bundled_font_catalog ;",
+        "attributes": "# [ cfg ( not ( target_arch = \"wasm32\" ) ) ]"
+      },
+      {
+        "name": "create_publish_request",
+        "kind": "use",
+        "declaration": "pub use compat : : create_publish_request ;"
+      },
+      {
+        "name": "custom_properties_to_css",
+        "kind": "use",
+        "declaration": "pub use style : : custom_properties_to_css ;"
+      },
+      {
+        "name": "document",
+        "kind": "mod",
+        "declaration": "pub mod document ;"
+      },
+      {
+        "name": "highlight_html",
+        "kind": "use",
+        "declaration": "pub use highlight : : highlight_html ;"
+      },
+      {
+        "name": "image_color",
+        "kind": "use",
+        "declaration": "pub use blocks : : image_color ;"
+      },
+      {
+        "name": "is_loopback",
+        "kind": "use",
+        "declaration": "pub use asset : : is_loopback ;"
+      },
+      {
+        "name": "is_retired_style_name",
+        "kind": "use",
+        "declaration": "pub use style : : is_retired_style_name ;"
+      },
+      {
+        "name": "is_style_name",
+        "kind": "use",
+        "declaration": "pub use style : : is_style_name ;"
+      },
+      {
+        "name": "media_type_for_extension",
+        "kind": "use",
+        "declaration": "pub use asset : : media_type_for_extension ;"
+      },
+      {
+        "name": "parse_schema",
+        "kind": "use",
+        "declaration": "pub use compat : : parse_schema ;"
+      },
+      {
+        "name": "primary_style",
+        "kind": "use",
+        "declaration": "pub use authoring : : primary_style ;"
+      },
+      {
+        "name": "provide_font_catalog",
+        "kind": "use",
+        "declaration": "pub use style : : provide_font_catalog ;",
+        "attributes": "# [ cfg ( target_arch = \"wasm32\" ) ]"
+      },
+      {
+        "name": "registry",
+        "kind": "mod",
+        "declaration": "pub mod registry ;"
+      },
+      {
+        "name": "render_compat",
+        "kind": "use",
+        "declaration": "pub use render : : render_compat ;"
+      },
+      {
+        "name": "render_table",
+        "kind": "use",
+        "declaration": "pub use blocks : : render_table ;"
+      },
+      {
+        "name": "resolve_styles",
+        "kind": "use",
+        "declaration": "pub use style : : resolve_styles ;"
+      },
+      {
+        "name": "resolve_styles_compat",
+        "kind": "use",
+        "declaration": "pub use style : : resolve_styles_compat ;"
+      },
+      {
+        "name": "slug_problem",
+        "kind": "use",
+        "declaration": "pub use identity : : slug_problem ;"
+      },
+      {
+        "name": "spec",
+        "kind": "mod",
+        "declaration": "pub mod spec ;"
+      },
+      {
+        "name": "style_checks",
+        "kind": "use",
+        "declaration": "pub use style : : checks as style_checks ;"
+      },
+      {
+        "name": "style_vocabulary",
+        "kind": "use",
+        "declaration": "pub use style : : style_vocabulary ;"
+      },
+      {
+        "name": "unsplash_image_url",
+        "kind": "use",
+        "declaration": "pub use folder : : unsplash_image_url ;"
+      },
+      {
+        "name": "version_problem",
+        "kind": "use",
+        "declaration": "pub use identity : : version_problem ;"
+      },
+      {
+        "name": "with_primary_style",
+        "kind": "use",
+        "declaration": "pub use authoring : : with_primary_style ;"
+      },
+      {
+        "name": "yaml",
+        "kind": "mod",
+        "declaration": "pub mod yaml ;"
+      }
+    ],
+    "declarations": [
+      {
+        "source": "crates/richview-core/src/asset.rs",
+        "items": [
+          "AssetRef",
+          "AssetUse",
+          "Visibility",
+          "is_loopback",
+          "media_type_for_extension"
+        ],
+        "definitions": [
+          {
+            "name": "AssetRef",
+            "kind": "struct",
+            "declaration": "# [ derive ( Debug , Clone , PartialEq , Serialize , Deserialize ) ] pub struct AssetRef",
+            "publicFields": [
+              "pub url : String",
+              "pub bytes : u64",
+              "pub sha256 : String",
+              "# [ serde ( rename = \"type\" ) ] pub media_type : String",
+              "pub visibility : Visibility",
+              "# [ serde ( default , skip_serializing_if = \"Option::is_none\" ) ] pub duration : Option < f64 >",
+              "# [ serde ( default , skip_serializing_if = \"Option::is_none\" ) ] pub width : Option < u32 >",
+              "# [ serde ( default , skip_serializing_if = \"Option::is_none\" ) ] pub height : Option < u32 >"
+            ],
+            "privateFields": false
+          },
+          {
+            "name": "AssetUse",
+            "kind": "enum",
+            "declaration": "# [ derive ( Debug , Clone , Copy , PartialEq , Eq , Hash , Serialize , Deserialize ) ] # [ serde ( rename_all = \"lowercase\" ) ] pub enum AssetUse",
+            "variants": [
+              "Data",
+              "Image",
+              "Video",
+              "Audio"
+            ]
+          },
+          {
+            "name": "Visibility",
+            "kind": "enum",
+            "declaration": "# [ derive ( Debug , Clone , Copy , PartialEq , Eq , Hash , Serialize , Deserialize ) ] # [ serde ( rename_all = \"lowercase\" ) ] pub enum Visibility",
+            "variants": [
+              "Public",
+              "Private"
+            ]
+          },
+          {
+            "name": "impl AssetRef",
+            "kind": "impl",
+            "types": [
+              "AssetRef"
+            ],
+            "declaration": "impl AssetRef",
+            "members": [
+              {
+                "name": "parse",
+                "kind": "fn",
+                "declaration": "pub fn parse ( value : & Value , usage : AssetUse , path : & str , diagnostics : & mut Vec < Diagnostic > , ) - > Option < Self >"
+              },
+              {
+                "name": "validate",
+                "kind": "fn",
+                "declaration": "pub fn validate ( & self , usage : AssetUse ) - > Vec < Diagnostic >"
+              }
+            ]
+          },
+          {
+            "name": "impl AssetUse",
+            "kind": "impl",
+            "types": [
+              "AssetUse"
+            ],
+            "declaration": "impl AssetUse",
+            "members": [
+              {
+                "name": "ALL",
+                "kind": "const",
+                "declaration": "pub const ALL : [ Self ; 4 ] = [ Self : : Data , Self : : Image , Self : : Video , Self : : Audio ]"
+              },
+              {
+                "name": "name",
+                "kind": "fn",
+                "declaration": "pub fn name ( self ) - > & ' static str"
+              },
+              {
+                "name": "of_type",
+                "kind": "fn",
+                "declaration": "pub fn of_type ( media_type : & str ) - > Option < Self >"
+              },
+              {
+                "name": "types",
+                "kind": "fn",
+                "declaration": "pub fn types ( self ) - > & ' static [ & ' static str ]"
+              }
+            ]
+          },
+          {
+            "name": "is_loopback",
+            "kind": "fn",
+            "declaration": "pub fn is_loopback ( url : & url : : Url ) - > bool"
+          },
+          {
+            "name": "media_type_for_extension",
+            "kind": "fn",
+            "declaration": "pub fn media_type_for_extension ( extension : & str ) - > Option < & ' static str >"
+          }
+        ]
+      },
+      {
+        "source": "crates/richview-core/src/authoring.rs",
+        "items": [
+          "CHART_TYPES",
+          "authoring_fields",
+          "authoring_keys",
+          "authoring_values",
+          "primary_style",
+          "with_primary_style"
+        ],
+        "definitions": [
+          {
+            "name": "CHART_TYPES",
+            "kind": "const",
+            "declaration": "pub const CHART_TYPES : & [ & str ] = & CHART_TYPE_NAMES"
+          },
+          {
+            "name": "authoring_fields",
+            "kind": "fn",
+            "declaration": "pub fn authoring_fields ( block : & RichBlock , frontmatter : & Value , options : & RenderOptions , ) - > Vec < String >"
+          },
+          {
+            "name": "authoring_keys",
+            "kind": "fn",
+            "declaration": "pub fn authoring_keys ( tag : & str , path : & [ & str ] ) - > Option < & ' static [ & ' static str ] >"
+          },
+          {
+            "name": "authoring_values",
+            "kind": "fn",
+            "declaration": "pub fn authoring_values ( tag : & str , path : & [ & str ] ) - > & ' static [ & ' static str ]"
+          },
+          {
+            "name": "primary_style",
+            "kind": "fn",
+            "declaration": "pub fn primary_style ( source : & str ) - > Option < String >"
+          },
+          {
+            "name": "with_primary_style",
+            "kind": "fn",
+            "declaration": "pub fn with_primary_style ( source : & str , style : & str ) - > Option < String >"
+          }
+        ]
+      },
+      {
+        "source": "crates/richview-core/src/blocks.rs",
+        "items": [
+          "image_color",
+          "render_table"
+        ],
+        "definitions": [
+          {
+            "name": "image_color",
+            "kind": "fn",
+            "declaration": "pub fn image_color ( value : & str ) - > bool"
+          },
+          {
+            "name": "render_table",
+            "kind": "fn",
+            "declaration": "pub fn render_table ( table : & Value ) - > String"
+          }
+        ]
+      },
+      {
+        "source": "crates/richview-core/src/compat.rs",
+        "items": [
+          "PublishRequest",
+          "create_publish_request",
+          "parse_schema"
+        ],
+        "definitions": [
+          {
+            "name": "PublishRequest",
+            "kind": "struct",
+            "declaration": "# [ derive ( Debug , Clone , PartialEq , Eq , serde : : Serialize ) ] pub struct PublishRequest",
+            "publicFields": [
+              "pub slug : String",
+              "pub source : String"
+            ],
+            "privateFields": false
+          },
+          {
+            "name": "create_publish_request",
+            "kind": "fn",
+            "declaration": "pub fn create_publish_request ( source : & str , slug_override : Option < & str > , ) - > Result < PublishRequest , Vec < Diagnostic > >"
+          },
+          {
+            "name": "parse_schema",
+            "kind": "fn",
+            "declaration": "pub fn parse_schema ( name : & str , mut value : Value ) - > Result < Value , Vec < Diagnostic > >"
+          }
+        ]
+      },
+      {
+        "source": "crates/richview-core/src/folder.rs",
+        "items": [
+          "ASSET_FINDINGS",
+          "unsplash_image_url"
+        ],
+        "definitions": [
+          {
+            "name": "ASSET_FINDINGS",
+            "kind": "const",
+            "declaration": "pub const ASSET_FINDINGS : [ & str ; 3 ] = [ \"report.asset.missing\" , \"report.asset.escape\" , \"report.asset.remote\" , ]"
+          },
+          {
+            "name": "unsplash_image_url",
+            "kind": "fn",
+            "declaration": "pub fn unsplash_image_url ( path : & str ) - > bool"
+          }
+        ]
+      },
+      {
+        "source": "crates/richview-core/src/highlight.rs",
+        "items": [
+          "HighlightLanguage",
+          "highlight_html"
+        ],
+        "definitions": [
+          {
+            "name": "HighlightLanguage",
+            "kind": "enum",
+            "declaration": "# [ derive ( Clone , Copy , Debug , PartialEq , Eq ) ] pub enum HighlightLanguage",
+            "variants": [
+              "RichMarkdown",
+              "Yaml",
+              "Shell",
+              "Plain"
+            ]
+          },
+          {
+            "name": "highlight_html",
+            "kind": "fn",
+            "declaration": "pub fn highlight_html ( source : & str , language : HighlightLanguage ) - > String"
+          },
+          {
+            "name": "impl HighlightLanguage",
+            "kind": "impl",
+            "types": [
+              "HighlightLanguage"
+            ],
+            "declaration": "impl HighlightLanguage",
+            "members": [
+              {
+                "name": "from_name",
+                "kind": "fn",
+                "declaration": "pub fn from_name ( name : & str ) - > Self"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "source": "crates/richview-core/src/identity.rs",
+        "items": [
+          "SLUG_GRAMMAR",
+          "slug_problem",
+          "version_problem"
+        ],
+        "definitions": [
+          {
+            "name": "SLUG_GRAMMAR",
+            "kind": "const",
+            "declaration": "pub const SLUG_GRAMMAR : & str = \"1-80 characters of a-z, 0-9 and hyphen, with no leading, trailing or double hyphen\""
+          },
+          {
+            "name": "slug_problem",
+            "kind": "fn",
+            "declaration": "pub fn slug_problem ( slug : & str ) - > Option < String >"
+          },
+          {
+            "name": "version_problem",
+            "kind": "fn",
+            "declaration": "pub fn version_problem ( version : & str ) - > Option < String >"
+          }
+        ]
+      },
+      {
+        "source": "crates/richview-core/src/parser.rs",
+        "items": [
+          "RICH_TAGS"
+        ],
+        "definitions": [
+          {
+            "name": "RICH_TAGS",
+            "kind": "const",
+            "declaration": "pub const RICH_TAGS : & [ & str ] = & TAG_NAMES"
+          }
+        ]
+      },
+      {
+        "source": "crates/richview-core/src/render.rs",
+        "items": [
+          "render_compat"
+        ],
+        "definitions": [
+          {
+            "name": "render_compat",
+            "kind": "fn",
+            "declaration": "pub fn render_compat ( source : & str , legacy_options : & Value ) - > Result < Value , Vec < Diagnostic > >"
+          }
+        ]
+      },
+      {
+        "source": "crates/richview-core/src/style.rs",
+        "items": [
+          "ResolvedStyle",
+          "brand_font_files",
+          "builtin_style_names",
+          "builtin_style_source",
+          "custom_properties_to_css",
+          "is_retired_style_name",
+          "resolve_styles",
+          "resolve_styles_compat",
+          "bundled_font_catalog",
+          "provide_font_catalog"
+        ],
+        "definitions": [
+          {
+            "name": "ResolvedStyle",
+            "kind": "struct",
+            "declaration": "# [ derive ( Debug , Clone , Serialize , Deserialize ) ] pub struct ResolvedStyle",
+            "publicFields": [
+              "pub scheme : String",
+              "pub document : Value",
+              "pub custom_properties : BTreeMap < String , String >",
+              "pub chart : Value",
+              "pub css : String",
+              "pub font_css : String"
+            ],
+            "privateFields": false
+          },
+          {
+            "name": "brand_font_files",
+            "kind": "fn",
+            "declaration": "pub fn brand_font_files ( style : & ResolvedStyle ) - > Vec < String >"
+          },
+          {
+            "name": "builtin_style_names",
+            "kind": "fn",
+            "declaration": "pub fn builtin_style_names ( ) - > & ' static [ & ' static str ]"
+          },
+          {
+            "name": "builtin_style_source",
+            "kind": "fn",
+            "declaration": "pub fn builtin_style_source ( name : & str ) - > Option < & ' static str >"
+          },
+          {
+            "name": "bundled_font_catalog",
+            "kind": "fn",
+            "declaration": "# [ cfg ( not ( target_arch = \"wasm32\" ) ) ] pub fn bundled_font_catalog ( ) - > String"
+          },
+          {
+            "name": "custom_properties_to_css",
+            "kind": "fn",
+            "declaration": "pub fn custom_properties_to_css ( props : & Value ) - > Result < String , Vec < Diagnostic > >"
+          },
+          {
+            "name": "is_retired_style_name",
+            "kind": "fn",
+            "declaration": "pub fn is_retired_style_name ( name : & str ) - > bool"
+          },
+          {
+            "name": "provide_font_catalog",
+            "kind": "fn",
+            "declaration": "# [ cfg ( target_arch = \"wasm32\" ) ] pub fn provide_font_catalog ( css : String ) - > bool"
+          },
+          {
+            "name": "resolve_styles",
+            "kind": "fn",
+            "declaration": "pub fn resolve_styles ( refs : & [ String ] , diagnostics : & mut Vec < Diagnostic > ) - > ResolvedStyle"
+          },
+          {
+            "name": "resolve_styles_compat",
+            "kind": "fn",
+            "declaration": "pub fn resolve_styles_compat ( refs : & Value , diagnostics : & mut Vec < Diagnostic > , ) - > Result < Value , Vec < Diagnostic > >"
+          }
+        ]
+      },
+      {
+        "source": "crates/richview-core/src/style/vocabulary.rs",
+        "items": [
+          "Leaf",
+          "Mark",
+          "Grammar",
+          "leaves"
+        ],
+        "definitions": [
+          {
+            "name": "Grammar",
+            "kind": "enum",
+            "declaration": "# [ derive ( Debug , Clone , Copy , PartialEq ) ] pub enum Grammar",
+            "variants": [
+              "Colour",
+              "Font",
+              "Dimension",
+              "Shadow",
+              "Number ( f64 , f64 )",
+              "Boolean",
+              "Enum ( & ' static [ & ' static str ] )",
+              "Weight",
+              "LetterSpacing",
+              "Palette",
+              "Colours ( usize )",
+              "FontSetting",
+              "Builtin",
+              "BrandColour",
+              "BrandName",
+              "BrandLogo"
+            ]
+          },
+          {
+            "name": "Leaf",
+            "kind": "struct",
+            "declaration": "# [ derive ( Debug , Clone , Serialize ) ] pub struct Leaf",
+            "publicFields": [
+              "pub path : String",
+              "# [ serde ( skip ) ] pub grammar : Grammar",
+              "pub mark : Mark",
+              "pub about : & ' static str"
+            ],
+            "privateFields": false
+          },
+          {
+            "name": "Mark",
+            "kind": "enum",
+            "declaration": "# [ derive ( Debug , Clone , Copy , PartialEq , Eq , Serialize ) ] pub enum Mark",
+            "variants": [
+              "Safe",
+              "Experimental",
+              "Internal"
+            ]
+          },
+          {
+            "name": "leaves",
+            "kind": "fn",
+            "declaration": "pub fn leaves ( ) - > & ' static [ Leaf ]"
+          }
+        ]
+      },
+      {
+        "source": "crates/richview-core/src/style/checks.rs",
+        "items": [
+          "contrast",
+          "type_scale",
+          "weights",
+          "fonts",
+          "GlyphScan",
+          "glyphs",
+          "palette",
+          "ramps",
+          "style_findings"
+        ],
+        "definitions": [
+          {
+            "name": "GlyphScan",
+            "kind": "struct",
+            "declaration": "pub struct GlyphScan < ' a >",
+            "publicFields": [
+              "pub text : & ' a str",
+              "pub first_line : usize",
+              "pub role : & ' a str",
+              "pub markdown : bool"
+            ],
+            "privateFields": false
+          },
+          {
+            "name": "contrast",
+            "kind": "fn",
+            "declaration": "pub fn contrast ( style : & ResolvedStyle ) - > Vec < Diagnostic >"
+          },
+          {
+            "name": "fonts",
+            "kind": "fn",
+            "declaration": "pub fn fonts ( style : & ResolvedStyle ) - > Vec < Diagnostic >"
+          },
+          {
+            "name": "glyphs",
+            "kind": "fn",
+            "declaration": "pub fn glyphs ( style : & ResolvedStyle , scans : & [ GlyphScan ] ) - > Vec < Diagnostic >"
+          },
+          {
+            "name": "palette",
+            "kind": "fn",
+            "declaration": "pub fn palette ( style : & ResolvedStyle ) - > Vec < String >"
+          },
+          {
+            "name": "ramps",
+            "kind": "fn",
+            "declaration": "pub fn ramps ( style : & ResolvedStyle ) - > Vec < String >"
+          },
+          {
+            "name": "style_findings",
+            "kind": "fn",
+            "declaration": "pub fn style_findings ( style : & ResolvedStyle ) - > Vec < Diagnostic >"
+          },
+          {
+            "name": "type_scale",
+            "kind": "fn",
+            "declaration": "pub fn type_scale ( style : & ResolvedStyle ) - > Vec < Diagnostic >"
+          },
+          {
+            "name": "weights",
+            "kind": "fn",
+            "declaration": "pub fn weights ( style : & ResolvedStyle ) - > Vec < Diagnostic >"
+          }
+        ]
+      }
+    ]
+  }
+}

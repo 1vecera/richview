@@ -1,0 +1,45 @@
+---
+title: Heatmap cell precision
+version: 0.0.1
+---
+
+```chart
+{
+  "type": "heatmap",
+  "title": "Read the cell values",
+  "encoding": {
+    "x": "category",
+    "y": "period",
+    "color": "value"
+  },
+  "data": {
+    "inline": [
+      {
+        "category": "A",
+        "period": "Now",
+        "value": 1e-12
+      },
+      {
+        "category": "B",
+        "period": "Now",
+        "value": 2e-12
+      },
+      {
+        "category": "C",
+        "period": "Now",
+        "value": 3e-12
+      }
+    ]
+  },
+  "annotations": [
+    {
+      "kind": "point",
+      "at": {
+        "x": "A",
+        "y": "Now"
+      },
+      "text": "First observation"
+    }
+  ]
+}
+```

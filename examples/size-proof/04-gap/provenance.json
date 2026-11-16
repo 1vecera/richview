@@ -1,0 +1,90 @@
+{
+  "date_utc": "2026-11-08",
+  "agent": "Claude Code 2.1.319",
+  "sessions": [
+    {
+      "started_utc": "2026-11-08T19:09:22.411Z",
+      "last_written_utc": "2026-11-08T19:10:07.321Z",
+      "prompt_file": "prompt.txt",
+      "prompt_sha256": "6191ad79698eefdd492a0d5f0f7614f1b691c19c529cf1e5c8de698d66057746",
+      "requested_model": "sonnet",
+      "reported_model": [
+        "claude-sonnet-5-5"
+      ],
+      "session_id": "03253084-197a-4b69-8869-34bec527db5d",
+      "command": "clauth start --isolated personal -p --model sonnet --permission-mode acceptEdits --output-format json \"$(cat prompt.txt)\" > session.json 2> session.stderr",
+      "exit_code": 0,
+      "outcome": "Agent could not write report.html: shell commands were denied.",
+      "permission_denials": [
+        {
+          "tool": "Bash",
+          "command_sha256": "18c530fa37f49d6bd742af9a3c110aa2013f5aedb79d03809a81db8db30e459b",
+          "summary": "Shell command to write and run a Python generator in /tmp"
+        },
+        {
+          "tool": "Bash",
+          "command_sha256": "afddc9e7468048be3f15cea5404333ea44d416ec7952c30eb8545db75ed14711",
+          "summary": "ls /tmp/gapgen; uv run python -I /tmp/gapgen/gen.py data.csv report.html; grep -o '<tr><td>' report.html | wc -l; grep -o 'https\\?://[^\"< ]*' report.html; ls"
+        },
+        {
+          "tool": "Bash",
+          "command_sha256": "7f127dae23a77234e8919d6401b5fc634211216b78bfda06fb46f818414ec32f",
+          "summary": "ls /tmp/gapgen"
+        },
+        {
+          "tool": "Bash",
+          "command_sha256": "095daa96aed3a09009d7bbde628355ac2c36c7902e0f533ff9b4a1faa4e68c82",
+          "summary": "uv run python -I tmp/gen.py data.csv report.html"
+        },
+        {
+          "tool": "Bash",
+          "command_sha256": "c5d458be4b1fccbc30b23f5ed30363dd31cba7873cca150863e98665c7889ecd",
+          "summary": "python3 -I tmp/gen.py data.csv report.html"
+        }
+      ]
+    },
+    {
+      "started_utc": "2026-11-08T19:10:59.717Z",
+      "last_written_utc": "2026-11-08T19:10:59.717Z",
+      "prompt_file": "followup.txt",
+      "prompt_sha256": "df6eaa597a39b335c1ffdfeca98d47a4d5593506572d53109fb3b66d0fc4735a",
+      "requested_model": "sonnet",
+      "reported_model": null,
+      "session_id": "03253084-197a-4b69-8869-34bec527db5d",
+      "command": "clauth start --isolated personal -p --resume 03253084-197a-4b69-8869-34bec527db5d --model sonnet --permission-mode acceptEdits --output-format json \"$(cat followup.txt)\" > followup-session.json 2> followup-session.stderr",
+      "exit_code": 1,
+      "outcome": "Resume failed: isolated runtime could not find that conversation.",
+      "permission_denials": []
+    },
+    {
+      "started_utc": "2026-11-08T19:11:17.422Z",
+      "last_written_utc": "2026-11-08T19:11:56.636Z",
+      "prompt_file": "followup2.txt",
+      "prompt_sha256": "df6eaa597a39b335c1ffdfeca98d47a4d5593506572d53109fb3b66d0fc4735a",
+      "requested_model": "sonnet",
+      "reported_model": [
+        "claude-sonnet-5-5"
+      ],
+      "session_id": "03253084-197a-4b69-8869-34bec527db5d",
+      "command": "clauth start personal -p --resume 03253084-197a-4b69-8869-34bec527db5d --model sonnet --permission-mode acceptEdits --output-format json \"$(cat followup.txt)\" > followup2-session.json 2> followup2-session.stderr",
+      "exit_code": 0,
+      "outcome": "Resumed the same session and wrote report.html directly.",
+      "permission_denials": [],
+      "prompt_note": "The original command read followup.txt; followup2.txt is a byte-identical copy of that same input."
+    }
+  ],
+  "report_last_written_utc": "2026-11-08T19:11:49.768Z",
+  "post_generation_repairs": "None. The agent authored the final report; it has not been modified after its session.",
+  "source_snapshot_sha256": "fc4c21802abf26f80bbd95fa2097a58cd220c0831aa54ac6602286d4426e13b9",
+  "file_sha256": {
+    "prompt.txt": "6191ad79698eefdd492a0d5f0f7614f1b691c19c529cf1e5c8de698d66057746",
+    "followup.txt": "df6eaa597a39b335c1ffdfeca98d47a4d5593506572d53109fb3b66d0fc4735a",
+    "data.csv": "e9f49f1a93cd7e4f5b99055dc72a457cd136f095d60de240bb28769b7ac0f518",
+    "report.html": "4d5fd3ade24073f993dc555afe83d4520c613ec7a6618ef1caa1e2e02a2d207c",
+    "followup2.txt": "df6eaa597a39b335c1ffdfeca98d47a4d5593506572d53109fb3b66d0fc4735a"
+  },
+  "checks": {
+    "browser": "Chromium headless opened the local file with no page errors or external resource requests.",
+    "table": "Compared all 70 displayed rows and all four numeric columns to data.csv; all matched."
+  }
+}

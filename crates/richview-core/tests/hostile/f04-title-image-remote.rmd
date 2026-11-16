@@ -1,0 +1,6 @@
+---
+title: Remote title image
+title_image: 'https://evil.example/HOSTILE.png'
+---
+
+Body.

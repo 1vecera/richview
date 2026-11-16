@@ -1,0 +1,20 @@
+---
+title: HTML comments
+---
+
+Before. <!-- private note HOSTILE_COMMENT inline --> After.
+
+<!-- private note HOSTILE_COMMENT block -->
+
+<!--
+  a multi-line private note
+  HOSTILE_COMMENT multiline
+-->
+
+<!-- unterminated HOSTILE_COMMENT unterminated
+
+```callout
+kind: neutral
+body: |
+  Callout <!-- private note HOSTILE_COMMENT callout --> text.
+```

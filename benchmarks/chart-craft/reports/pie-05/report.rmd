@@ -1,0 +1,35 @@
+---
+title: "Pie study 05: synthetic observations"
+version: 0.0.1
+format: rmd/1
+---
+
+```chart
+type: pie
+title: 'Pie study 05: synthetic observations'
+subtitle: Dense samples and changing units
+encoding:
+  x: x
+  y: y
+axes:
+  y:
+    unit: subscribers
+style:
+  ratio: '16:9'
+data:
+  inline:
+  - x: Subscriptions
+    y: 56
+  - x: Events
+    y: 74
+  - x: Commercial
+    y: 104
+  - x: Research
+    y: 146
+  - x: Local projects
+    y: 200
+  - x: Licensing
+    y: 266
+  - x: Training
+    y: 344
+```

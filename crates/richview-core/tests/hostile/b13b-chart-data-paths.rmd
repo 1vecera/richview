@@ -1,0 +1,17 @@
+---
+title: Chart data paths
+---
+
+```chart
+type: bar
+title: Escaping csv
+data: { csv: '../../etc/passwd' }
+encoding: { x: x, y: y }
+```
+
+```chart
+type: bar
+title: Remote json
+data: { json: 'https://evil.example/HOSTILE.json' }
+encoding: { x: x, y: y }
+```

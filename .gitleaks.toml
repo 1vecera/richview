@@ -1,0 +1,19 @@
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+
+# Deliberate test-only operator token in the hosted startup test.
+[[rules.allowlists]]
+condition = "AND"
+regexTarget = "line"
+paths = ['''(^|/)crates/richview-app/tests/hosted_startup\.rs$''']
+regexes = ['''^\s*let token = concat!\("test-operator-token-", "0123456789abcdef"\);\s*$''']
+
+# SHA-256 of a browser test log in the checked-in validation evidence.
+[[rules.allowlists]]
+condition = "AND"
+regexTarget = "line"
+paths = ['''(^|/)docs/evidence/chart-refinements/duplicate-bars/validation\.json$''']
+regexes = ['''^\s*"browser-api\.log": "bcdbbb32b31e1a3f77195554a37deb8f2147399a65d153669814aa1d481c136b",\s*$''']

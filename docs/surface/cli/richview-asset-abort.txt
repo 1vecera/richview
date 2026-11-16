@@ -1,0 +1,12 @@
+Abort journaled multipart uploads (all, or those whose SHA-256 starts with a prefix)
+
+Usage: richview asset abort [OPTIONS] [SHA256]...
+
+Arguments:
+  [SHA256]...  
+
+Options:
+      --to <STORE>       Only uploads to this store profile
+      --stores <FILE>    Store profiles file [default: $RICHVIEW_STORES, then $XDG_CONFIG_HOME/richview/stores.yaml]
+      --format <FORMAT>  [default: pretty] [possible values: pretty, json]
+  -h, --help             Print help

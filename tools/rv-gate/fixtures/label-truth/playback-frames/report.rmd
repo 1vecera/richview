@@ -1,0 +1,48 @@
+---
+title: Playback frames
+---
+
+# Playback frames
+
+Each chart is read at another frame and at its first; the texts on the chart must be that frame's values.
+
+```chart
+type: bar
+title: Values by year
+data:
+  inline:
+    - {c: A, y: 7, year: "2000"}
+    - {c: B, y: 3, year: "2000"}
+    - {c: C, y: 47, year: "2000"}
+    - {c: A, y: 8, year: "2001"}
+    - {c: B, y: 2.95, year: "2001"}
+    - {c: C, y: 50, year: "2001"}
+encoding: {x: c, y: y}
+controls:
+  - kind: playback
+    id: year
+    field: year
+    label: Year
+```
+
+```chart
+type: bar
+title: Stacked totals by year
+stack: true
+data:
+  inline:
+    - {year: "2000", k: A, s: P, v: 1.5}
+    - {year: "2000", k: A, s: Q, v: 2.5}
+    - {year: "2000", k: B, s: P, v: 2}
+    - {year: "2000", k: B, s: Q, v: 8}
+    - {year: "2001", k: A, s: P, v: 10}
+    - {year: "2001", k: A, s: Q, v: 20}
+    - {year: "2001", k: B, s: P, v: 30}
+    - {year: "2001", k: B, s: Q, v: 40}
+encoding: {x: k, y: v, color: s}
+controls:
+  - kind: playback
+    id: year
+    field: year
+    label: Year
+```

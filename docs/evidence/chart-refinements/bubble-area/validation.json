@@ -1,0 +1,295 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-10-11T20:07:33.376Z",
+  "validated_at": "2026-10-11T20:40:22.396800+00:00",
+  "browser": "151.0.7922.173",
+  "device_scale_factor": 2,
+  "reduced_motion": "reduce",
+  "capture": "Actual figure including report controls; no image edits or synthetic styles.",
+  "pairs": [
+    {
+      "fixture": "small-units.rmd",
+      "source_sha256": "f5afdf9a3a8e6ce3b1d12d1e17abc24c10a11902a9aa27d1dc53079b05a73f96",
+      "theme": "scientific",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "before": {
+        "image": "small-units-before.png",
+        "image_sha256": "590927417f0f3b9f29ec7138fad669851a541118c58a57866775014a274b0f35",
+        "figure_css_px": {
+          "width": 358,
+          "height": 326.75
+        },
+        "source_commit": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+        "wasm_sha256": "141dd99c023fc595e987febc299f4c7ce554912fd489d3ffe768a46ce939be4e"
+      },
+      "after": {
+        "image": "small-units-after.png",
+        "image_sha256": "88b102405c6194d52fa635fd39523b09e01cbb45dd5207861b0ec1edc507c97d",
+        "figure_css_px": {
+          "width": 358,
+          "height": 326.75
+        },
+        "source_commit": "e49646493c0d5e7d031f3f3486efcc9c8d9b24d2",
+        "wasm_sha256": "6c28351e7c92d9843d20afff6f0764ca2ddf836072ba34aad64f327390670558"
+      },
+      "reproduction_png_bytes_match": true
+    },
+    {
+      "fixture": "all-zero.rmd",
+      "source_sha256": "791a175f0f05ef0d778fa3262f05a4c98b9eda850f08b67d5a8f752351ce1937",
+      "theme": "sleek",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "before": {
+        "image": "all-zero-before.png",
+        "image_sha256": "f260984601ffc32d66fe10becf62146ac592c313e39703f7ed07c908a3fbddb5",
+        "figure_css_px": {
+          "width": 288,
+          "height": 303.25
+        },
+        "source_commit": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+        "wasm_sha256": "141dd99c023fc595e987febc299f4c7ce554912fd489d3ffe768a46ce939be4e"
+      },
+      "after": {
+        "image": "all-zero-after.png",
+        "image_sha256": "cd1ee1ca30eff45418f74df6644ea827c9613fdcb93f4706d4b8ed7fad3d367b",
+        "figure_css_px": {
+          "width": 288,
+          "height": 303.25
+        },
+        "source_commit": "e49646493c0d5e7d031f3f3486efcc9c8d9b24d2",
+        "wasm_sha256": "6c28351e7c92d9843d20afff6f0764ca2ddf836072ba34aad64f327390670558"
+      },
+      "reproduction_png_bytes_match": true
+    },
+    {
+      "fixture": "wrapped-empty.rmd",
+      "source_sha256": "d91c5ba608b6b02537275a1a0b959ab9f26401b64412ff8a669ce959c8f907a0",
+      "theme": "brutalist",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "reproduction_png_bytes_match": true,
+      "before": {
+        "image": "wrapped-empty-before.png",
+        "image_sha256": "86bd629516157c5c90ba541254429ef0cc7f59b9f618608c76720a11fde5b1b7",
+        "figure_css_px": {
+          "width": 288,
+          "height": 250.75
+        },
+        "source_commit": "86541c1bcea366acc088096d66b054595afcccf5",
+        "wasm_sha256": "76b6f758e9ff523acfb28e0922c15af834f22c05486862e7b948a81654a0c699"
+      },
+      "after": {
+        "image": "wrapped-empty-after.png",
+        "image_sha256": "84c86fbd9367a4c6e470c6c6d025e7c03c0b0b5ce28903e24279836c2d47a149",
+        "figure_css_px": {
+          "width": 288,
+          "height": 250.75
+        },
+        "source_commit": "e49646493c0d5e7d031f3f3486efcc9c8d9b24d2",
+        "wasm_sha256": "6c28351e7c92d9843d20afff6f0764ca2ddf836072ba34aad64f327390670558"
+      }
+    }
+  ],
+  "validation": {
+    "required_checks": {
+      "status": "passed",
+      "commands": [
+        "cargo fmt --all --check",
+        "cargo clippy --workspace --all-targets --locked -- -D warnings",
+        "cargo clippy -p richview-web --target wasm32-unknown-unknown --locked -- -D warnings",
+        "cargo test --workspace --locked",
+        "cargo run --release --locked -p richview-build",
+        "node scripts/verify-editor.cjs",
+        "node scripts/verify-native.mjs",
+        "node scripts/verify-compat.mjs",
+        "tsc --noEmit --strict --module nodenext --moduleResolution nodenext --target es2022 --lib es2022,dom scripts/verify-types.ts",
+        "node scripts/verify-browser.mjs",
+        "node scripts/verify-landing.mjs",
+        "node scripts/verify-cloudflare.mjs (local only)",
+        "node scripts/verify-showcase.mjs",
+        "node scripts/verify-flagship.mjs",
+        "node scripts/verify-reel.mjs",
+        "node scripts/verify-browser-api.mjs",
+        "node scripts/verify-motion-runtime.mjs",
+        "node scripts/verify-docs.mjs"
+      ],
+      "source_commit": "e49646493c0d5e7d031f3f3486efcc9c8d9b24d2",
+      "rechecked_after_note_spacing": true
+    },
+    "chart_tests": {
+      "unit": 100,
+      "fixture": 5,
+      "doc": 1
+    },
+    "visual_matrix": {
+      "cases": 7,
+      "widths": [
+        320,
+        390,
+        720
+      ],
+      "themes": [
+        "sleek",
+        "scientific",
+        "brutalist",
+        "sleek-light",
+        "hand-drawn"
+      ],
+      "captures": 105,
+      "console_or_page_errors": 0,
+      "horizontal_overflow": 0,
+      "positive_and_surviving_mixed_coordinates_unchanged": true
+    },
+    "live_interaction": {
+      "cases": 24,
+      "widths": [
+        320,
+        390,
+        720
+      ],
+      "status": "passed",
+      "covers": [
+        "native/runtime/exported SVG radii",
+        "keyboard source row identity",
+        "zero/invalid pointer behavior",
+        "exact source numeric strings and missing values",
+        "Table/CSV retention",
+        "empty-state notes"
+      ],
+      "motion_preferences": [
+        "reduce",
+        "no-preference"
+      ]
+    },
+    "independent_review": {
+      "verdict": "accept",
+      "additional_captures": 20,
+      "cases": [
+        "generic-title zero/unavailable/mixed empty",
+        "excluded empty-color maximum",
+        "tiny positive quantities"
+      ],
+      "motion": "normal, settled",
+      "themes": [
+        "scientific",
+        "hand-drawn"
+      ],
+      "widths": [
+        320,
+        720
+      ]
+    },
+    "wrapped_note_followup": {
+      "source_commit": "e49646493c0d5e7d031f3f3486efcc9c8d9b24d2",
+      "change": "18 px leading and matching centered offset only; quantitative geometry unchanged",
+      "discovery": "Combined first-five Brutalist320 note glyph boxes were17px tall on16px baselines; the matched narrow note matrix reproduced9 collisions across3 message states and3 title variants.",
+      "actual_views": 135,
+      "matched_phone_views": 45,
+      "widths": [
+        320,
+        390,
+        720
+      ],
+      "themes": [
+        "sleek",
+        "scientific",
+        "brutalist",
+        "sleek-light",
+        "hand-drawn"
+      ],
+      "glyph_checks": [],
+      "browser_errors": [],
+      "horizontal_overflow": 0,
+      "active_animations": 0,
+      "quantitative_svg_axis_text_figure_bounds_and_note_centers_unchanged": true,
+      "wrapped_brutalist_glyph_gap_px": 1,
+      "native_live_export_checks": 12,
+      "motion_preferences": [
+        "reduce",
+        "no-preference"
+      ],
+      "required_checks": "passed",
+      "independent_review": {
+        "verdict": "accept",
+        "source_commit": "e49646493c0d5e7d031f3f3486efcc9c8d9b24d2",
+        "normal_motion_phone_views": 45,
+        "all_five_themes": true,
+        "quantitative_svg_figure_bounds_source_unchanged": true
+      },
+      "required_host_checks": [
+        {
+          "id": "fixtures",
+          "exit": 0
+        },
+        {
+          "id": "editor",
+          "exit": 0
+        },
+        {
+          "id": "native",
+          "exit": 0
+        },
+        {
+          "id": "compat",
+          "exit": 0
+        },
+        {
+          "id": "types",
+          "exit": 0
+        },
+        {
+          "id": "browser",
+          "exit": 0
+        },
+        {
+          "id": "landing",
+          "exit": 0
+        },
+        {
+          "id": "cloudflare",
+          "exit": 0
+        },
+        {
+          "id": "showcase",
+          "exit": 0
+        },
+        {
+          "id": "flagship",
+          "exit": 0
+        },
+        {
+          "id": "reel",
+          "exit": 0
+        },
+        {
+          "id": "browser-api",
+          "exit": 0
+        },
+        {
+          "id": "motion-runtime",
+          "exit": 0
+        },
+        {
+          "id": "docs",
+          "exit": 0
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "Negative/nonnumeric sizes now intentionally emit error diagnostics.",
+    "Zero and very small quantities have no minimum filled disk; zero keeps the existing 4 px picking tolerance.",
+    "Absent fields stay absent in exact-source readout; omitted marks keep the existing keyboard fallback anchor."
+  ],
+  "production_commit": "e49646493c0d5e7d031f3f3486efcc9c8d9b24d2",
+  "prior_production_commit": "81b544393f943b3bce8e72a92b33761e62bda1f4",
+  "reproduced_at": "2026-10-11T20:36:26.481408+00:00"
+}

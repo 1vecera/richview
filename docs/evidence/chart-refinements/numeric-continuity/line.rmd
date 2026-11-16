@@ -1,0 +1,27 @@
+---
+title: Observed trend
+version: 0.0.1
+---
+
+```chart
+{
+  "type": "line",
+  "title": "Observed trend",
+  "encoding": {
+    "x": "x",
+    "y": "value"
+  },
+  "data": {
+    "inline": [
+      {
+        "x": 0,
+        "value": "10.000"
+      },
+      {
+        "x": 10,
+        "value": "90.000"
+      }
+    ]
+  }
+}
+```

@@ -1,0 +1,49 @@
+---
+title: "Read the receipt behind the dashboard"
+description: "A source panel should explain where an answer came from and when it was last refreshed."
+version: 1.0.0
+styles: [scientific]
+publish:
+  id: "reading-a-receipt"
+  slug: "reading-a-receipt"
+  summary: "A source panel should explain where an answer came from and when it was last refreshed."
+  byline: "RichView Example Desk"
+  section: "fieldnotes"
+  tags: ["example", "method"]
+  published: "2026-10-14T09:00:00Z"
+  updated: "2026-10-18T09:00:00Z"
+  state: "published"
+  audience: "public"
+  figure: {value: "84 of 100", label: "Queries in the batch that returned a complete answer", as_of: "Illustrative batch"}
+  kind: "report"
+  aliases: []
+  corrections: []
+---
+
+**Example material · Synthetic observations · 18 October 2026**
+
+## A chart with a memory
+
+An analytical result becomes easier to trust when the reader can find its query, source and capture time. Those details are part of the answer, even when they sit behind a small disclosure control.
+
+This invented mix of query outcomes is an example of the context an operator might inspect. It is not a report about a deployed service.
+
+```chart
+type: bar
+title: "Queries in an illustrative batch"
+data:
+  inline:
+    - {category: "Complete", value: 84}
+    - {category: "Empty", value: 9}
+    - {category: "Unavailable", value: 7}
+encoding: {x: category, y: value}
+axes:
+  x: {label: Category}
+  y: {label: "Queries in an illustrative batch"}
+```
+
+*Source: Synthetic demonstration of 100 imaginary query receipts.*
+
+## What to take away
+
+A receipt belongs to one published answer: it preserves where the answer came from and when, it does not turn a saved result into a live connection, and it contains no service credentials.

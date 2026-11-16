@@ -1,0 +1,44 @@
+{
+  "schema": "interface-v1",
+  "id": "runtime.embed-files",
+  "producer": "richview-runtime",
+  "kind": "entries",
+  "surface": {
+    "entries": [
+      "richview_runtime.js",
+      "richview_runtime_bg.wasm.gz"
+    ],
+    "bindings": [
+      {
+        "consumer": "richview-app",
+        "source": "crates/richview-app/build.rs",
+        "entry": "richview_runtime.js"
+      },
+      {
+        "consumer": "richview-app",
+        "source": "crates/richview-app/build.rs",
+        "entry": "richview_runtime_bg.wasm.gz"
+      },
+      {
+        "consumer": "richview-build",
+        "source": "crates/richview-build/src/main.rs",
+        "entry": "richview_runtime.js"
+      },
+      {
+        "consumer": "richview-build",
+        "source": "crates/richview-build/src/main.rs",
+        "entry": "richview_runtime_bg.wasm.gz"
+      },
+      {
+        "consumer": "richview-build",
+        "source": "crates/richview-build/src/runtime.rs",
+        "entry": "richview_runtime.js"
+      },
+      {
+        "consumer": "richview-build",
+        "source": "crates/richview-build/src/runtime.rs",
+        "entry": "richview_runtime_bg.wasm.gz"
+      }
+    ]
+  }
+}

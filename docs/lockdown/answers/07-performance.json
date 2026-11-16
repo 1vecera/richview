@@ -1,0 +1,12 @@
+{
+  "partId": "07-performance",
+  "answers": {
+    "PRF-31": {
+      "decision": "edit",
+      "text": "Size: the report runtime (ARC-06) may be up to 2 MiB after gzip -9 of the built module and its JavaScript; the 512 KiB budget was artificial. Delivery (embedded in exports, shared from a content-hashed URL on a host) is not part of this answer and stays built as proposed until Daniel decides it.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-28: \"the report budghet is artifical, raise it to 2mb\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "2f5fe48bf948c3fe",
+      "updatedAt": "2026-10-28T12:44:05.187Z"
+    }
+  }
+}

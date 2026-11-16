@@ -1,0 +1,8 @@
+---
+title: Monochrome bar legend audit
+version: 0.0.1
+---
+
+```chart
+{"type":"bar","title":"Nine series repeat six hatches","encoding":{"x":"period","y":"value","color":"series"},"style":{"orientation":"vertical"},"data":{"inline":[{"period":"Q1","series":"Series 1","value":1},{"period":"Q1","series":"Series 2","value":2},{"period":"Q1","series":"Series 3","value":3},{"period":"Q1","series":"Series 4","value":4},{"period":"Q1","series":"Series 5","value":5},{"period":"Q1","series":"Series 6","value":6},{"period":"Q1","series":"Series 7","value":7},{"period":"Q1","series":"Series 8","value":8},{"period":"Q1","series":"Series 9","value":9}]}}
+```

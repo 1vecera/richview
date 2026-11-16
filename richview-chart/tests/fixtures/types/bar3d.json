@@ -1,0 +1,17 @@
+{
+ "spec": {"type": "bar3d", "title": "Online leads every region except the South", "encoding": {"x": "region", "y": "revenue", "color": "channel"}, "axes": {"x": {"label": "Region"}, "y": {"label": "Revenue (EUR m)"}, "color": {"label": "Channel"}}},
+ "rows": [
+  {"region": "North", "channel": "Online", "revenue": 52},
+  {"region": "North", "channel": "Retail", "revenue": 38},
+  {"region": "North", "channel": "Partner", "revenue": 21},
+  {"region": "South", "channel": "Online", "revenue": 31},
+  {"region": "South", "channel": "Retail", "revenue": 44},
+  {"region": "South", "channel": "Partner", "revenue": 18},
+  {"region": "East", "channel": "Online", "revenue": 47},
+  {"region": "East", "channel": "Retail", "revenue": 35},
+  {"region": "East", "channel": "Partner", "revenue": 26},
+  {"region": "West", "channel": "Online", "revenue": 58},
+  {"region": "West", "channel": "Retail", "revenue": 41},
+  {"region": "West", "channel": "Partner", "revenue": 30}
+ ]
+}

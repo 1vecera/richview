@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Playground — RichView</title>
+<meta name="description" content="Edit Rich Markdown and watch the report render in your browser. Nothing is uploaded or stored.">
+<link rel="icon" href="/landing/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/bricolage-grotesque-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/site.css">
+<link rel="stylesheet" href="/landing/editor.css">
+<link rel="stylesheet" href="/playground.css">
+</head>
+<body data-richview-page="playground">
+<a class="skip" href="#main">Skip to content</a>
+<!-- rv-site-header -->
+<main id="main" class="pg">
+<header class="pg__head">
+<h1>Playground</h1>
+<p class="pg__lede">Edit Rich Markdown and watch the report render in your browser. Nothing is uploaded or stored.</p>
+</header>
+<div class="pg__bar">
+<div class="themes__group" id="playground-styles" role="radiogroup" aria-label="Style">
+<!-- rv-style-pills-unchosen -->
+</div>
+<div class="pg__actions" role="group" aria-label="Report actions">
+<button type="button" id="validate">Check</button><button type="button" id="copy-source">Copy source</button><button type="button" id="copy-link">Copy link</button><button type="button" id="download-source">Download .rmd</button><button type="button" id="download-html">Download report</button>
+</div>
+</div>
+<p id="pg-status" class="pg__status" role="status" aria-live="polite"></p>
+<div class="pg__panes">
+<section class="pg__source sheet--source"><label for="source"><span class="pg__file">report.rmd</span> Rich Markdown source</label><div class="pg__code" data-language="rmd"><pre class="code__hl" aria-hidden="true"><code></code></pre><textarea id="source" spellcheck="false" aria-label="Rich Markdown source">---
+title: Revenue rose through the first quarter
+description: A small example you can change, inspect and reuse.
+version: 0.0.1
+styles: [scientific]
+---
+
+## What moved
+
+These demonstration values make the chart easy to inspect. Change the source and the report updates.
+
+```chart
+type: line
+title: Revenue rose after February
+data:
+  inline:
+    - month: 2026-01
+      revenue: 100
+    - month: 2026-02
+      revenue: 140
+    - month: 2026-03
+      revenue: 185
+encoding: { x: month, y: revenue }
+axes:
+  y: { label: Revenue, unit: K }
+```
+
+*Source: demonstration values, invented for this example.*
+</textarea></div><pre id="diagnostics" role="status" aria-live="polite"></pre></section>
+<section class="pg__preview sheet--report"><p class="pg__frame-bar" aria-hidden="true">Rendered report <span>&#183; HTML</span></p><iframe id="preview" title="Generated report" sandbox="allow-scripts"></iframe></section>
+</div>
+</main>
+<!-- rv-site-footer -->
+<script src="/richview_site.js"></script><script src="/bootstrap.js"></script>
+</body></html>

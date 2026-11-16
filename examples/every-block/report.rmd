@@ -1,0 +1,1916 @@
+---
+title: Every block and chart type in one report
+description: A synthetic fixture that uses every rich fence tag and every chart type the format has, so each builtin style, the gate and the visual and accessibility checks run on the same evidence.
+version: 0.0.1
+slug: every-block
+author: RichView
+date: 2026-10-28
+title_image:
+  src: media/fixture-image.png
+  alt: A generated placeholder with a sand-to-indigo gradient and the words Fixture image.
+  caption: Generated placeholder, shown in the report header.
+---
+
+All values below are synthetic. They exist only to exercise the renderer: prose with a footnote[^note], a link to [the table](#table), a task list and display math, then every chart type and every rich block.
+
+[^note]: Synthetic data; no figure here describes a real product.
+
+- [x] Every rich fence tag appears at least once
+- [ ] Nothing here is a real measurement
+
+Term
+: A definition list item, for the prose styles.
+
+$$\bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i$$
+
+## Charts
+
+### Line
+
+```chart
+type: line
+title: The Team plan overtook Solo in June
+subtitle: Active workspaces by plan, synthetic, January to December 2025
+data:
+  inline:
+    - {month: 2025-01, plan: Solo, workspaces: 120}
+    - {month: 2025-02, plan: Solo, workspaces: 132}
+    - {month: 2025-03, plan: Solo, workspaces: 140}
+    - {month: 2025-04, plan: Solo, workspaces: 151}
+    - {month: 2025-05, plan: Solo, workspaces: 158}
+    - {month: 2025-06, plan: Solo, workspaces: 160}
+    - {month: 2025-07, plan: Solo, workspaces: 163}
+    - {month: 2025-08, plan: Solo, workspaces: 165}
+    - {month: 2025-09, plan: Solo, workspaces: 170}
+    - {month: 2025-10, plan: Solo, workspaces: 171}
+    - {month: 2025-11, plan: Solo, workspaces: 175}
+    - {month: 2025-12, plan: Solo, workspaces: 178}
+    - {month: 2025-01, plan: Team, workspaces: 60}
+    - {month: 2025-02, plan: Team, workspaces: 78}
+    - {month: 2025-03, plan: Team, workspaces: 97}
+    - {month: 2025-04, plan: Team, workspaces: 118}
+    - {month: 2025-05, plan: Team, workspaces: 139}
+    - {month: 2025-06, plan: Team, workspaces: 162}
+    - {month: 2025-07, plan: Team, workspaces: 181}
+    - {month: 2025-08, plan: Team, workspaces: 204}
+    - {month: 2025-09, plan: Team, workspaces: 222}
+    - {month: 2025-10, plan: Team, workspaces: 245}
+    - {month: 2025-11, plan: Team, workspaces: 262}
+    - {month: 2025-12, plan: Team, workspaces: 280}
+encoding: {x: month, y: workspaces, color: plan}
+axes:
+  y: {label: Active workspaces}
+```
+
+### Bar
+
+```chart
+type: bar
+title: Support load fell in every region except APAC
+subtitle: Tickets per 1,000 accounts, synthetic, 2024 and 2025
+data:
+  inline:
+    - {region: North America, year: '2024', tickets: 42}
+    - {region: North America, year: '2025', tickets: 35}
+    - {region: Europe, year: '2024', tickets: 38}
+    - {region: Europe, year: '2025', tickets: 31}
+    - {region: APAC, year: '2024', tickets: 29}
+    - {region: APAC, year: '2025', tickets: 33}
+    - {region: Latin America, year: '2024', tickets: 47}
+    - {region: Latin America, year: '2025', tickets: 40}
+    - {region: Middle East and Africa, year: '2024', tickets: 51}
+    - {region: Middle East and Africa, year: '2025', tickets: 44}
+encoding: {x: region, y: tickets, color: year}
+axes:
+  y: {label: 'Tickets per 1,000 accounts'}
+```
+
+*Source: synthetic fixture data generated for the lockdown, 21 October 2026.*
+
+### Scatter
+
+```chart
+type: scatter
+title: Larger accounts adopt more features
+subtitle: Seats against features adopted; bubble area is annual contract value; synthetic
+data:
+  inline:
+    - {account: Alder, seats: 12, features: 4, acv: 9}
+    - {account: Birch, seats: 25, features: 6, acv: 21}
+    - {account: Cedar, seats: 40, features: 9, acv: 30}
+    - {account: Dogwood, seats: 55, features: 8, acv: 44}
+    - {account: Elm, seats: 80, features: 12, acv: 70}
+    - {account: Fir, seats: 95, features: 11, acv: 62}
+    - {account: Ginkgo, seats: 130, features: 15, acv: 120}
+    - {account: Hazel, seats: 160, features: 14, acv: 98}
+    - {account: Ivy, seats: 210, features: 18, acv: 180}
+    - {account: Juniper, seats: 260, features: 17, acv: 150}
+    - {account: Kapok, seats: 320, features: 21, acv: 260}
+    - {account: Larch, seats: 400, features: 22, acv: 310}
+encoding: {x: seats, y: features, size: acv, label: account}
+axes:
+  x: {label: Seats}
+  y: {label: Features adopted}
+```
+
+### Area
+
+```chart
+type: area
+title: Hot storage grew fastest after the March launch
+subtitle: Stored terabytes by tier, synthetic, 2025
+data:
+  inline:
+    - {month: 2025-01, tier: Hot, terabytes: 14}
+    - {month: 2025-02, tier: Hot, terabytes: 15}
+    - {month: 2025-03, tier: Hot, terabytes: 17}
+    - {month: 2025-04, tier: Hot, terabytes: 23}
+    - {month: 2025-05, tier: Hot, terabytes: 29}
+    - {month: 2025-06, tier: Hot, terabytes: 34}
+    - {month: 2025-07, tier: Hot, terabytes: 38}
+    - {month: 2025-08, tier: Hot, terabytes: 43}
+    - {month: 2025-09, tier: Hot, terabytes: 47}
+    - {month: 2025-01, tier: Archive, terabytes: 31}
+    - {month: 2025-02, tier: Archive, terabytes: 32}
+    - {month: 2025-03, tier: Archive, terabytes: 33}
+    - {month: 2025-04, tier: Archive, terabytes: 33}
+    - {month: 2025-05, tier: Archive, terabytes: 35}
+    - {month: 2025-06, tier: Archive, terabytes: 36}
+    - {month: 2025-07, tier: Archive, terabytes: 36}
+    - {month: 2025-08, tier: Archive, terabytes: 38}
+    - {month: 2025-09, tier: Archive, terabytes: 39}
+encoding: {x: month, y: terabytes, color: tier}
+axes:
+  y: {label: Stored terabytes}
+```
+
+### Pie
+
+```chart
+type: pie
+title: Search brings in two in five sign-ups
+subtitle: Sign-ups by first touch, synthetic, third quarter of 2025
+data:
+  inline:
+    - {channel: Search, signups: 412}
+    - {channel: Referral, signups: 238}
+    - {channel: Direct, signups: 190}
+    - {channel: Social, signups: 121}
+    - {channel: Events, signups: 64}
+encoding: {x: channel, y: signups}
+```
+
+### Heatmap
+
+```chart
+type: heatmap
+title: Deploys cluster on Tuesday and Wednesday mornings
+subtitle: Production deploys by weekday and start hour, synthetic, last twelve weeks
+data:
+  inline:
+    - {hour: '08:00', weekday: Mon, deploys: 3}
+    - {hour: '10:00', weekday: Mon, deploys: 6}
+    - {hour: '12:00', weekday: Mon, deploys: 4}
+    - {hour: '14:00', weekday: Mon, deploys: 5}
+    - {hour: '16:00', weekday: Mon, deploys: 2}
+    - {hour: '08:00', weekday: Tue, deploys: 9}
+    - {hour: '10:00', weekday: Tue, deploys: 14}
+    - {hour: '12:00', weekday: Tue, deploys: 7}
+    - {hour: '14:00', weekday: Tue, deploys: 6}
+    - {hour: '16:00', weekday: Tue, deploys: 3}
+    - {hour: '08:00', weekday: Wed, deploys: 8}
+    - {hour: '10:00', weekday: Wed, deploys: 12}
+    - {hour: '12:00', weekday: Wed, deploys: 6}
+    - {hour: '14:00', weekday: Wed, deploys: 5}
+    - {hour: '16:00', weekday: Wed, deploys: 2}
+    - {hour: '08:00', weekday: Thu, deploys: 4}
+    - {hour: '10:00', weekday: Thu, deploys: 7}
+    - {hour: '12:00', weekday: Thu, deploys: 5}
+    - {hour: '14:00', weekday: Thu, deploys: 4}
+    - {hour: '16:00', weekday: Thu, deploys: 1}
+    - {hour: '08:00', weekday: Fri, deploys: 2}
+    - {hour: '10:00', weekday: Fri, deploys: 3}
+    - {hour: '12:00', weekday: Fri, deploys: 2}
+    - {hour: '14:00', weekday: Fri, deploys: 1}
+    - {hour: '16:00', weekday: Fri, deploys: 0}
+encoding: {x: hour, y: weekday, color: deploys}
+axes:
+  color: {label: Deploys}
+```
+
+### Heatmap with negative values
+
+```chart
+type: heatmap
+title: Deploy counts fell on Tuesday afternoons and around midday on Wednesdays
+subtitle: Change in production deploys against the previous quarter, by weekday and start hour, synthetic
+data:
+  inline:
+    - {hour: '08:00', weekday: Mon, change: 2}
+    - {hour: '10:00', weekday: Mon, change: -3}
+    - {hour: '12:00', weekday: Mon, change: 1}
+    - {hour: '14:00', weekday: Mon, change: -1}
+    - {hour: '08:00', weekday: Tue, change: 6}
+    - {hour: '10:00', weekday: Tue, change: 4}
+    - {hour: '12:00', weekday: Tue, change: -2}
+    - {hour: '14:00', weekday: Tue, change: -5}
+    - {hour: '08:00', weekday: Wed, change: 3}
+    - {hour: '10:00', weekday: Wed, change: -4}
+    - {hour: '12:00', weekday: Wed, change: -6}
+    - {hour: '14:00', weekday: Wed, change: 2}
+    - {hour: '08:00', weekday: Thu, change: -1}
+    - {hour: '10:00', weekday: Thu, change: 2}
+    - {hour: '12:00', weekday: Thu, change: 5}
+    - {hour: '14:00', weekday: Thu, change: -2}
+encoding: {x: hour, y: weekday, color: change}
+axes:
+  color: {label: Change in deploys}
+```
+
+### Histogram
+
+```chart
+type: histogram
+title: Seven in eight API calls finish within 300 ms
+subtitle: Response time of 240 sampled calls, synthetic
+data: {csv: data/latency.csv}
+encoding: {x: ms}
+binning: {count: 12}
+axes:
+  x: {label: Response time (ms)}
+  y: {label: Calls}
+```
+
+### Density
+
+```chart
+type: density
+title: Response times bunch near 190 ms
+subtitle: Smoothed distribution of 240 sampled calls, synthetic
+data: {csv: data/latency.csv}
+encoding: {x: ms}
+axes:
+  x: {label: Response time (ms)}
+```
+
+### Cumulative distribution
+
+```chart
+type: ecdf
+title: Seven in eight calls finish within 300 ms
+subtitle: Share of 240 sampled calls at or under each time, synthetic
+data: {csv: data/latency.csv}
+encoding: {x: ms}
+axes:
+  x: {label: Response time (ms)}
+```
+
+### Quantile plot
+
+```chart
+type: qq
+title: Response times run heavier than normal in the tail
+subtitle: Sample quantiles against a normal distribution, synthetic
+data: {csv: data/latency.csv}
+encoding: {y: ms}
+```
+
+### Strip plot
+
+```chart
+type: strip
+title: Each call as one point
+subtitle: Response time per sampled call, synthetic
+data: {csv: data/latency.csv}
+encoding: {x: call, y: ms}
+axes:
+  y: {label: Response time (ms)}
+```
+
+### Box plot
+
+```chart
+type: boxplot
+title: Enterprise onboarding takes longest and varies most
+subtitle: Days from contract to first report by segment, synthetic, 105 accounts
+data: {csv: data/onboarding.csv}
+encoding: {x: segment, y: days}
+axes:
+  y: {label: Days to first report}
+```
+
+### Gauge
+
+```chart
+type: gauge
+title: Customer satisfaction is fair, short of good
+subtitle: Survey score out of 100
+data:
+  inline:
+    - {measure: Satisfaction, score: 72}
+encoding: {x: measure, y: score}
+axes:
+  y: {label: Score}
+style:
+  min: 0
+  max: 100
+  bands:
+    - {to: 50, label: Poor}
+    - {to: 75, label: Fair}
+    - {to: 100, label: Good}
+```
+
+### Calendar
+
+```chart
+type: calendar
+title: Commits come in bursts and stop on Sundays
+subtitle: Commits per day, 10 February to 20 March 2025
+data:
+  inline:
+    - {day: 2025-02-10, commits: 3}
+    - {day: 2025-02-11, commits: 8}
+    - {day: 2025-02-12, commits: 1}
+    - {day: 2025-02-13, commits: 6}
+    - {day: 2025-02-14, commits: 11}
+    - {day: 2025-02-15, commits: 4}
+    - {day: 2025-02-17, commits: 2}
+    - {day: 2025-02-18, commits: 7}
+    - {day: 2025-02-19, commits: 0}
+    - {day: 2025-02-20, commits: 5}
+    - {day: 2025-02-21, commits: 10}
+    - {day: 2025-02-22, commits: 3}
+    - {day: 2025-02-24, commits: 1}
+    - {day: 2025-02-25, commits: 6}
+    - {day: 2025-02-26, commits: 11}
+    - {day: 2025-02-27, commits: 4}
+    - {day: 2025-02-28, commits: 9}
+    - {day: 2025-03-01, commits: 2}
+    - {day: 2025-03-03, commits: 0}
+    - {day: 2025-03-04, commits: 5}
+    - {day: 2025-03-05, commits: 10}
+    - {day: 2025-03-06, commits: 3}
+    - {day: 2025-03-07, commits: 8}
+    - {day: 2025-03-08, commits: 1}
+    - {day: 2025-03-10, commits: 11}
+    - {day: 2025-03-11, commits: 4}
+    - {day: 2025-03-12, commits: 9}
+    - {day: 2025-03-13, commits: 2}
+    - {day: 2025-03-14, commits: 7}
+    - {day: 2025-03-15, commits: 0}
+    - {day: 2025-03-17, commits: 10}
+    - {day: 2025-03-18, commits: 3}
+    - {day: 2025-03-19, commits: 8}
+    - {day: 2025-03-20, commits: 1}
+encoding: {x: day, y: commits}
+axes:
+  y: {label: Commits}
+```
+
+### Streamgraph
+
+```chart
+type: streamgraph
+title: Pop swells in summer while rock fades
+subtitle: Hours listened per month and genre
+data:
+  inline:
+    - {month: 2025-01, genre: Rock, hours: 40}
+    - {month: 2025-02, genre: Rock, hours: 49}
+    - {month: 2025-03, genre: Rock, hours: 55}
+    - {month: 2025-04, genre: Rock, hours: 58}
+    - {month: 2025-05, genre: Rock, hours: 56}
+    - {month: 2025-06, genre: Rock, hours: 51}
+    - {month: 2025-07, genre: Rock, hours: 43}
+    - {month: 2025-08, genre: Rock, hours: 34}
+    - {month: 2025-09, genre: Rock, hours: 26}
+    - {month: 2025-10, genre: Rock, hours: 22}
+    - {month: 2025-11, genre: Rock, hours: 23}
+    - {month: 2025-12, genre: Rock, hours: 27}
+    - {month: 2025-01, genre: Jazz, hours: 36}
+    - {month: 2025-02, genre: Jazz, hours: 31}
+    - {month: 2025-03, genre: Jazz, hours: 25}
+    - {month: 2025-04, genre: Jazz, hours: 20}
+    - {month: 2025-05, genre: Jazz, hours: 16}
+    - {month: 2025-06, genre: Jazz, hours: 14}
+    - {month: 2025-07, genre: Jazz, hours: 15}
+    - {month: 2025-08, genre: Jazz, hours: 19}
+    - {month: 2025-09, genre: Jazz, hours: 25}
+    - {month: 2025-10, genre: Jazz, hours: 31}
+    - {month: 2025-11, genre: Jazz, hours: 36}
+    - {month: 2025-12, genre: Jazz, hours: 38}
+    - {month: 2025-01, genre: Pop, hours: 16}
+    - {month: 2025-02, genre: Pop, hours: 12}
+    - {month: 2025-03, genre: Pop, hours: 13}
+    - {month: 2025-04, genre: Pop, hours: 19}
+    - {month: 2025-05, genre: Pop, hours: 28}
+    - {month: 2025-06, genre: Pop, hours: 38}
+    - {month: 2025-07, genre: Pop, hours: 47}
+    - {month: 2025-08, genre: Pop, hours: 51}
+    - {month: 2025-09, genre: Pop, hours: 51}
+    - {month: 2025-10, genre: Pop, hours: 47}
+    - {month: 2025-11, genre: Pop, hours: 38}
+    - {month: 2025-12, genre: Pop, hours: 29}
+encoding: {x: month, y: hours, color: genre}
+axes:
+  y: {label: Hours listened}
+```
+
+### Ribbon
+
+```chart
+type: ribbon
+title: South overtakes North in March and East follows in April
+subtitle: Sales per month and region, ranked in each month
+data:
+  inline:
+    - {month: Jan, region: North, sales: 50}
+    - {month: Feb, region: North, sales: 48}
+    - {month: Mar, region: North, sales: 44}
+    - {month: Apr, region: North, sales: 39}
+    - {month: May, region: North, sales: 35}
+    - {month: Jan, region: South, sales: 42}
+    - {month: Feb, region: South, sales: 47}
+    - {month: Mar, region: South, sales: 51}
+    - {month: Apr, region: South, sales: 55}
+    - {month: May, region: South, sales: 58}
+    - {month: Jan, region: East, sales: 35}
+    - {month: Feb, region: East, sales: 33}
+    - {month: Mar, region: East, sales: 38}
+    - {month: Apr, region: East, sales: 46}
+    - {month: May, region: East, sales: 52}
+    - {month: Jan, region: West, sales: 20}
+    - {month: Feb, region: West, sales: 28}
+    - {month: Mar, region: West, sales: 30}
+    - {month: Apr, region: West, sales: 32}
+    - {month: May, region: West, sales: 41}
+encoding: {x: month, y: sales, color: region}
+axes:
+  y: {label: Sales}
+```
+
+### Violin
+
+```chart
+type: violin
+title: Premium customers rate us higher and less evenly
+subtitle: Satisfaction score by plan, eight customers each
+data:
+  inline:
+    - {plan: Standard, score: 41}
+    - {plan: Standard, score: 47}
+    - {plan: Standard, score: 50}
+    - {plan: Standard, score: 52}
+    - {plan: Standard, score: 53}
+    - {plan: Standard, score: 55}
+    - {plan: Standard, score: 58}
+    - {plan: Standard, score: 63}
+    - {plan: Flex, score: 52}
+    - {plan: Flex, score: 57}
+    - {plan: Flex, score: 60}
+    - {plan: Flex, score: 61}
+    - {plan: Flex, score: 62}
+    - {plan: Flex, score: 64}
+    - {plan: Flex, score: 66}
+    - {plan: Flex, score: 70}
+    - {plan: Premium, score: 49}
+    - {plan: Premium, score: 60}
+    - {plan: Premium, score: 68}
+    - {plan: Premium, score: 74}
+    - {plan: Premium, score: 77}
+    - {plan: Premium, score: 82}
+    - {plan: Premium, score: 90}
+    - {plan: Premium, score: 94}
+encoding: {x: plan, y: score}
+axes:
+  y: {label: Satisfaction score}
+```
+
+### Dot plot
+
+```chart
+type: dotplot
+title: Trams run to time, buses wander
+subtitle: Journey time by route, 18 trips each
+data:
+  inline:
+    - {route: Tram, minutes: 14.2}
+    - {route: Tram, minutes: 17.1}
+    - {route: Tram, minutes: 11.7}
+    - {route: Tram, minutes: 16.5}
+    - {route: Tram, minutes: 13.4}
+    - {route: Tram, minutes: 13.3}
+    - {route: Tram, minutes: 18.7}
+    - {route: Tram, minutes: 14.4}
+    - {route: Tram, minutes: 13.9}
+    - {route: Tram, minutes: 15.8}
+    - {route: Tram, minutes: 16.8}
+    - {route: Tram, minutes: 13.9}
+    - {route: Tram, minutes: 15.5}
+    - {route: Tram, minutes: 11.6}
+    - {route: Tram, minutes: 13.1}
+    - {route: Tram, minutes: 12.9}
+    - {route: Tram, minutes: 10.7}
+    - {route: Tram, minutes: 10.2}
+    - {route: Bus, minutes: 12.7}
+    - {route: Bus, minutes: 18.9}
+    - {route: Bus, minutes: 19.2}
+    - {route: Bus, minutes: 18.6}
+    - {route: Bus, minutes: 20.3}
+    - {route: Bus, minutes: 14.0}
+    - {route: Bus, minutes: 19.6}
+    - {route: Bus, minutes: 21.1}
+    - {route: Bus, minutes: 23.4}
+    - {route: Bus, minutes: 16.2}
+    - {route: Bus, minutes: 18.2}
+    - {route: Bus, minutes: 10.9}
+    - {route: Bus, minutes: 17.7}
+    - {route: Bus, minutes: 10.1}
+    - {route: Bus, minutes: 13.6}
+    - {route: Bus, minutes: 25.0}
+    - {route: Bus, minutes: 10.1}
+    - {route: Bus, minutes: 23.6}
+encoding: {x: minutes, color: route}
+axes:
+  x: {label: Journey time (minutes)}
+  y: {label: Trips}
+```
+
+### Binned heatmap
+
+```chart
+type: bin2d
+title: Larger flats cost more
+subtitle: Floor area and price of 120 listings
+data:
+  inline:
+    - {area: 20.2, price: 42.3}
+    - {area: 38.0, price: 36.9}
+    - {area: 19.4, price: 39.6}
+    - {area: 33.8, price: 46.6}
+    - {area: 20.3, price: 32.2}
+    - {area: 35.6, price: 42.8}
+    - {area: 42.3, price: 45.9}
+    - {area: 29.2, price: 38.4}
+    - {area: 50.6, price: 38.3}
+    - {area: 23.7, price: 33.2}
+    - {area: 30.8, price: 40.9}
+    - {area: 27.2, price: 39.6}
+    - {area: 32.2, price: 44.2}
+    - {area: 38.8, price: 41.3}
+    - {area: 15.7, price: 44.2}
+    - {area: 18.6, price: 39.0}
+    - {area: 18.2, price: 40.0}
+    - {area: 23.8, price: 41.3}
+    - {area: 56.4, price: 39.7}
+    - {area: 36.7, price: 32.1}
+    - {area: 27.7, price: 44.0}
+    - {area: 29.3, price: 42.2}
+    - {area: 30.8, price: 34.0}
+    - {area: 34.5, price: 35.1}
+    - {area: 45.0, price: 37.0}
+    - {area: 35.5, price: 40.0}
+    - {area: 37.6, price: 36.4}
+    - {area: 38.0, price: 39.3}
+    - {area: 40.1, price: 43.7}
+    - {area: 31.1, price: 35.3}
+    - {area: 36.1, price: 42.8}
+    - {area: 43.1, price: 37.7}
+    - {area: 34.4, price: 43.0}
+    - {area: 32.3, price: 41.3}
+    - {area: 31.5, price: 36.4}
+    - {area: 21.9, price: 37.6}
+    - {area: 34.7, price: 49.1}
+    - {area: 37.8, price: 46.3}
+    - {area: 36.2, price: 44.2}
+    - {area: 31.5, price: 44.6}
+    - {area: 44.2, price: 38.0}
+    - {area: 24.4, price: 51.8}
+    - {area: 32.0, price: 45.8}
+    - {area: 37.0, price: 33.2}
+    - {area: 49.5, price: 50.7}
+    - {area: 31.4, price: 44.5}
+    - {area: 31.0, price: 34.7}
+    - {area: 29.1, price: 42.2}
+    - {area: 38.9, price: 44.3}
+    - {area: 30.5, price: 48.1}
+    - {area: 23.9, price: 44.8}
+    - {area: 38.9, price: 38.2}
+    - {area: 15.7, price: 34.6}
+    - {area: 31.9, price: 43.2}
+    - {area: 42.4, price: 34.0}
+    - {area: 30.0, price: 43.9}
+    - {area: 28.7, price: 25.8}
+    - {area: 36.5, price: 53.9}
+    - {area: 38.0, price: 34.5}
+    - {area: 26.7, price: 41.3}
+    - {area: 49.9, price: 43.7}
+    - {area: 30.9, price: 49.3}
+    - {area: 29.3, price: 51.2}
+    - {area: 24.5, price: 37.2}
+    - {area: 35.8, price: 48.5}
+    - {area: 35.2, price: 41.8}
+    - {area: 15.4, price: 35.7}
+    - {area: 25.1, price: 36.8}
+    - {area: 34.7, price: 38.0}
+    - {area: 36.3, price: 40.5}
+    - {area: 59.0, price: 72.9}
+    - {area: 65.9, price: 78.9}
+    - {area: 57.7, price: 70.1}
+    - {area: 49.7, price: 84.8}
+    - {area: 75.1, price: 70.6}
+    - {area: 57.7, price: 62.1}
+    - {area: 63.5, price: 73.7}
+    - {area: 81.6, price: 74.0}
+    - {area: 55.0, price: 52.4}
+    - {area: 74.7, price: 73.5}
+    - {area: 47.5, price: 73.4}
+    - {area: 47.5, price: 99.8}
+    - {area: 72.1, price: 76.6}
+    - {area: 60.4, price: 54.9}
+    - {area: 60.9, price: 59.6}
+    - {area: 67.4, price: 54.9}
+    - {area: 53.8, price: 81.8}
+    - {area: 76.8, price: 62.6}
+    - {area: 48.2, price: 79.0}
+    - {area: 69.7, price: 64.1}
+    - {area: 55.8, price: 66.4}
+    - {area: 51.3, price: 66.6}
+    - {area: 73.3, price: 77.5}
+    - {area: 80.5, price: 71.3}
+    - {area: 60.8, price: 64.1}
+    - {area: 60.9, price: 61.5}
+    - {area: 46.0, price: 77.6}
+    - {area: 75.0, price: 78.7}
+    - {area: 74.0, price: 74.0}
+    - {area: 55.5, price: 72.7}
+    - {area: 58.6, price: 63.1}
+    - {area: 46.8, price: 60.1}
+    - {area: 62.0, price: 73.2}
+    - {area: 57.7, price: 83.4}
+    - {area: 63.6, price: 76.7}
+    - {area: 73.0, price: 65.4}
+    - {area: 44.3, price: 78.0}
+    - {area: 55.8, price: 82.5}
+    - {area: 65.0, price: 80.1}
+    - {area: 68.9, price: 55.4}
+    - {area: 68.5, price: 66.6}
+    - {area: 55.2, price: 68.5}
+    - {area: 68.9, price: 79.1}
+    - {area: 71.1, price: 58.7}
+    - {area: 56.7, price: 53.0}
+    - {area: 61.1, price: 76.8}
+    - {area: 55.1, price: 74.0}
+    - {area: 64.1, price: 80.1}
+    - {area: 54.6, price: 65.4}
+    - {area: 55.1, price: 86.0}
+encoding: {x: area, y: price}
+axes:
+  x: {label: Floor area (m2)}
+  y: {label: Price (thousand EUR)}
+```
+
+### Hexagonal bins
+
+```chart
+type: hexbin
+title: Longer rides cost more
+subtitle: Distance and fare of 140 rides
+data:
+  inline:
+    - {distance: 23.9, fare: 39.2}
+    - {distance: 16.2, fare: 24.0}
+    - {distance: 21.9, fare: 42.1}
+    - {distance: 22.1, fare: 22.2}
+    - {distance: 16.3, fare: 29.8}
+    - {distance: 24.8, fare: 30.1}
+    - {distance: 18.4, fare: 28.6}
+    - {distance: 21.0, fare: 25.1}
+    - {distance: 20.2, fare: 32.0}
+    - {distance: 28.2, fare: 29.8}
+    - {distance: 24.9, fare: 23.2}
+    - {distance: 24.4, fare: 31.3}
+    - {distance: 17.5, fare: 30.1}
+    - {distance: 24.6, fare: 28.0}
+    - {distance: 25.2, fare: 40.7}
+    - {distance: 28.1, fare: 41.3}
+    - {distance: 13.9, fare: 32.6}
+    - {distance: 16.8, fare: 36.7}
+    - {distance: 20.5, fare: 31.8}
+    - {distance: 22.4, fare: 26.2}
+    - {distance: 20.6, fare: 25.3}
+    - {distance: 30.4, fare: 27.1}
+    - {distance: 20.3, fare: 18.1}
+    - {distance: 12.9, fare: 24.5}
+    - {distance: 24.1, fare: 35.5}
+    - {distance: 21.6, fare: 25.8}
+    - {distance: 29.3, fare: 23.2}
+    - {distance: 16.0, fare: 33.6}
+    - {distance: 15.3, fare: 32.1}
+    - {distance: 24.9, fare: 29.8}
+    - {distance: 22.2, fare: 30.5}
+    - {distance: 16.9, fare: 8.4}
+    - {distance: 14.2, fare: 30.2}
+    - {distance: 12.1, fare: 26.4}
+    - {distance: 21.2, fare: 39.4}
+    - {distance: 13.5, fare: 26.6}
+    - {distance: 21.3, fare: 33.9}
+    - {distance: 13.4, fare: 43.1}
+    - {distance: 16.2, fare: 37.8}
+    - {distance: 19.2, fare: 33.1}
+    - {distance: 28.4, fare: 35.1}
+    - {distance: 20.8, fare: 23.3}
+    - {distance: 16.9, fare: 20.4}
+    - {distance: 30.1, fare: 19.5}
+    - {distance: 7.5, fare: 41.6}
+    - {distance: 26.5, fare: 27.8}
+    - {distance: 24.3, fare: 24.6}
+    - {distance: 17.3, fare: 33.7}
+    - {distance: 22.1, fare: 27.1}
+    - {distance: 28.2, fare: 35.3}
+    - {distance: 20.9, fare: 22.0}
+    - {distance: 20.9, fare: 28.0}
+    - {distance: 19.8, fare: 35.8}
+    - {distance: 17.3, fare: 32.1}
+    - {distance: 24.1, fare: 32.7}
+    - {distance: 31.5, fare: 18.1}
+    - {distance: 19.9, fare: 22.0}
+    - {distance: 19.8, fare: 47.7}
+    - {distance: 12.0, fare: 28.2}
+    - {distance: 23.4, fare: 30.9}
+    - {distance: 24.7, fare: 19.4}
+    - {distance: 25.0, fare: 23.6}
+    - {distance: 14.1, fare: 34.1}
+    - {distance: 22.5, fare: 25.1}
+    - {distance: 16.1, fare: 28.8}
+    - {distance: 20.1, fare: 29.0}
+    - {distance: 15.1, fare: 14.0}
+    - {distance: 26.6, fare: 31.4}
+    - {distance: 14.0, fare: 19.3}
+    - {distance: 16.7, fare: 27.3}
+    - {distance: 9.5, fare: 39.9}
+    - {distance: 22.2, fare: 27.9}
+    - {distance: 21.8, fare: 31.7}
+    - {distance: 25.4, fare: 31.2}
+    - {distance: 26.4, fare: 40.9}
+    - {distance: 18.5, fare: 27.0}
+    - {distance: 15.7, fare: 28.5}
+    - {distance: 16.5, fare: 30.2}
+    - {distance: 21.6, fare: 33.9}
+    - {distance: 14.3, fare: 37.6}
+    - {distance: 48.0, fare: 54.4}
+    - {distance: 46.5, fare: 43.2}
+    - {distance: 51.9, fare: 44.5}
+    - {distance: 57.8, fare: 55.3}
+    - {distance: 61.0, fare: 59.0}
+    - {distance: 55.0, fare: 63.4}
+    - {distance: 49.8, fare: 64.3}
+    - {distance: 49.2, fare: 56.6}
+    - {distance: 45.4, fare: 58.3}
+    - {distance: 54.8, fare: 52.1}
+    - {distance: 41.2, fare: 54.9}
+    - {distance: 53.0, fare: 54.1}
+    - {distance: 43.3, fare: 50.8}
+    - {distance: 48.2, fare: 39.4}
+    - {distance: 46.0, fare: 63.6}
+    - {distance: 41.1, fare: 53.8}
+    - {distance: 61.8, fare: 59.3}
+    - {distance: 56.5, fare: 54.2}
+    - {distance: 40.8, fare: 72.3}
+    - {distance: 52.2, fare: 56.5}
+    - {distance: 61.5, fare: 59.9}
+    - {distance: 50.5, fare: 48.5}
+    - {distance: 49.0, fare: 54.2}
+    - {distance: 45.3, fare: 49.9}
+    - {distance: 43.1, fare: 54.3}
+    - {distance: 45.9, fare: 57.5}
+    - {distance: 57.1, fare: 56.9}
+    - {distance: 50.2, fare: 64.4}
+    - {distance: 54.6, fare: 46.2}
+    - {distance: 45.1, fare: 56.2}
+    - {distance: 43.9, fare: 59.6}
+    - {distance: 37.8, fare: 43.6}
+    - {distance: 56.9, fare: 58.5}
+    - {distance: 38.9, fare: 55.5}
+    - {distance: 59.4, fare: 48.4}
+    - {distance: 41.8, fare: 47.8}
+    - {distance: 43.2, fare: 44.7}
+    - {distance: 46.7, fare: 46.4}
+    - {distance: 50.5, fare: 68.4}
+    - {distance: 42.7, fare: 60.4}
+    - {distance: 58.2, fare: 41.2}
+    - {distance: 50.8, fare: 55.0}
+    - {distance: 47.7, fare: 59.8}
+    - {distance: 47.0, fare: 57.1}
+    - {distance: 47.3, fare: 54.2}
+    - {distance: 44.6, fare: 68.6}
+    - {distance: 49.6, fare: 48.3}
+    - {distance: 63.6, fare: 64.4}
+    - {distance: 48.6, fare: 51.1}
+    - {distance: 44.9, fare: 62.4}
+    - {distance: 47.7, fare: 50.8}
+    - {distance: 55.9, fare: 53.4}
+    - {distance: 49.6, fare: 66.6}
+    - {distance: 56.0, fare: 62.5}
+    - {distance: 52.9, fare: 62.7}
+    - {distance: 48.8, fare: 60.8}
+    - {distance: 57.3, fare: 52.6}
+    - {distance: 41.1, fare: 58.2}
+    - {distance: 49.2, fare: 58.6}
+    - {distance: 45.8, fare: 58.2}
+encoding: {x: distance, y: fare}
+axes:
+  x: {label: Distance (km)}
+  y: {label: Fare (EUR)}
+```
+
+### Gantt
+
+```chart
+type: gantt
+title: The build overlaps the design and the launch lands on 1 July
+subtitle: Planned tasks by phase, synthetic dates
+data:
+  inline:
+    - {task: Research, phase: Plan, start: 2026-01-05, end: 2026-02-13}
+    - {task: Wireframes, phase: Plan, start: 2026-02-02, end: 2026-03-06}
+    - {task: Prototype, phase: Build, start: 2026-03-02, end: 2026-04-10}
+    - {task: Build API, phase: Build, start: 2026-03-16, end: 2026-05-29}
+    - {task: Build app, phase: Build, start: 2026-04-13, end: 2026-06-19}
+    - {task: Docs, phase: Ship, start: 2026-05-18, end: 2026-06-12}
+    - {task: Testing, phase: Ship, start: 2026-06-01, end: 2026-06-26}
+    - {task: Launch, phase: Ship, start: 2026-07-01, end: 2026-07-01}
+encoding: {label: task, start: start, end: end, color: phase}
+```
+
+### Parallel coordinates
+
+```chart
+type: parallel
+title: Sports cars trade mileage for power and speed
+subtitle: Nine cars on four measures, synthetic values
+data:
+  inline:
+    - {model: Mini, class: Small, mpg: 38, power: 85, weight: 1050, accel: 12.5}
+    - {model: Zip, class: Small, mpg: 42, power: 75, weight: 980, accel: 13.8}
+    - {model: Kei, class: Small, mpg: 35, power: 95, weight: 1120, accel: 11.9}
+    - {model: Estate, class: Family, mpg: 28, power: 140, weight: 1550, accel: 9.5}
+    - {model: Tourer, class: Family, mpg: 31, power: 125, weight: 1480, accel: 10.2}
+    - {model: Sedan, class: Family, mpg: 26, power: 160, weight: 1700, accel: 8.8}
+    - {model: Coupe, class: Sport, mpg: 19, power: 330, weight: 1450, accel: 4.8}
+    - {model: Roadster, class: Sport, mpg: 22, power: 280, weight: 1380, accel: 5.4}
+    - {model: GT, class: Sport, mpg: 17, power: 410, weight: 1500, accel: 3.9}
+encoding:
+  dimensions: [mpg, power, weight, accel]
+  label: model
+  color: class
+```
+
+### Scatterplot matrix
+
+```chart
+type: splom
+title: Gentoo penguins are heavier, with longer flippers and shallower bills
+subtitle: Twelve penguins, synthetic values
+data:
+  inline:
+    - {species: Adelie, bill: 39, flipper: 181, mass: 3750, depth: 18.7}
+    - {species: Adelie, bill: 40, flipper: 186, mass: 3800, depth: 18.0}
+    - {species: Adelie, bill: 38, flipper: 190, mass: 3250, depth: 17.4}
+    - {species: Adelie, bill: 36, flipper: 195, mass: 3450, depth: 19.3}
+    - {species: Chinstrap, bill: 46, flipper: 192, mass: 3500, depth: 17.9}
+    - {species: Chinstrap, bill: 50, flipper: 196, mass: 3900, depth: 19.5}
+    - {species: Chinstrap, bill: 49, flipper: 193, mass: 3650, depth: 19.1}
+    - {species: Chinstrap, bill: 51, flipper: 195, mass: 3750, depth: 18.7}
+    - {species: Gentoo, bill: 46, flipper: 211, mass: 4500, depth: 13.7}
+    - {species: Gentoo, bill: 48, flipper: 222, mass: 5400, depth: 14.3}
+    - {species: Gentoo, bill: 50, flipper: 230, mass: 5700, depth: 15.2}
+    - {species: Gentoo, bill: 47, flipper: 215, mass: 4750, depth: 14.5}
+encoding:
+  dimensions: [bill, flipper, mass, depth]
+  color: species
+```
+
+### Sankey
+
+```chart
+type: sankey
+title: Coal and gas feed most of the power that homes and industry use
+subtitle: Energy flows in TWh, synthetic
+data:
+  inline:
+    - {from: Coal, to: Power, twh: 35}
+    - {from: Gas, to: Power, twh: 30}
+    - {from: Gas, to: Heat, twh: 25}
+    - {from: Wind, to: Power, twh: 20}
+    - {from: Solar, to: Power, twh: 10}
+    - {from: Power, to: Homes, twh: 45}
+    - {from: Power, to: Industry, twh: 40}
+    - {from: Power, to: Losses, twh: 10}
+    - {from: Heat, to: Homes, twh: 15}
+    - {from: Heat, to: Industry, twh: 10}
+encoding: {source: from, target: to, y: twh}
+axes:
+  y: {label: TWh}
+```
+
+### Alluvial
+
+```chart
+type: alluvial
+title: Referred users stay more often than users who came from ads
+subtitle: Users by plan, acquisition channel and outcome, synthetic
+data:
+  inline:
+    - {plan: Free, channel: Search, outcome: Stayed, users: 120}
+    - {plan: Free, channel: Search, outcome: Left, users: 180}
+    - {plan: Free, channel: Ads, outcome: Stayed, users: 60}
+    - {plan: Free, channel: Ads, outcome: Left, users: 140}
+    - {plan: Free, channel: Referral, outcome: Stayed, users: 70}
+    - {plan: Free, channel: Referral, outcome: Left, users: 30}
+    - {plan: Basic, channel: Search, outcome: Stayed, users: 90}
+    - {plan: Basic, channel: Search, outcome: Left, users: 40}
+    - {plan: Basic, channel: Ads, outcome: Stayed, users: 50}
+    - {plan: Basic, channel: Ads, outcome: Left, users: 50}
+    - {plan: Basic, channel: Referral, outcome: Stayed, users: 60}
+    - {plan: Basic, channel: Referral, outcome: Left, users: 10}
+    - {plan: Pro, channel: Search, outcome: Stayed, users: 50}
+    - {plan: Pro, channel: Search, outcome: Left, users: 10}
+    - {plan: Pro, channel: Ads, outcome: Stayed, users: 20}
+    - {plan: Pro, channel: Ads, outcome: Left, users: 15}
+    - {plan: Pro, channel: Referral, outcome: Stayed, users: 45}
+    - {plan: Pro, channel: Referral, outcome: Left, users: 5}
+encoding: {dimensions: [plan, channel, outcome], y: users}
+axes:
+  y: {label: Users}
+```
+
+### Chord
+
+```chart
+type: chord
+title: Europe, Asia and the Americas dominate trade between five regions
+subtitle: Exports in bn USD from one region to another, synthetic
+data:
+  inline:
+    - {from: Europe, to: Asia, bn: 40}
+    - {from: Europe, to: Americas, bn: 55}
+    - {from: Europe, to: Africa, bn: 20}
+    - {from: Asia, to: Europe, bn: 35}
+    - {from: Asia, to: Americas, bn: 60}
+    - {from: Asia, to: Oceania, bn: 25}
+    - {from: Americas, to: Europe, bn: 45}
+    - {from: Americas, to: Asia, bn: 30}
+    - {from: Americas, to: Africa, bn: 10}
+    - {from: Africa, to: Europe, bn: 15}
+    - {from: Africa, to: Asia, bn: 12}
+    - {from: Oceania, to: Asia, bn: 18}
+    - {from: Oceania, to: Americas, bn: 8}
+encoding: {source: from, target: to, y: bn}
+axes:
+  y: {label: bn USD}
+```
+
+### Network
+
+```chart
+type: network
+title: Dee and Gus link the most people in the team
+subtitle: Messages sent between colleagues, synthetic
+data:
+  inline:
+    - {from: Ada, to: Ben, msgs: 12}
+    - {from: Ada, to: Cai, msgs: 8}
+    - {from: Ada, to: Dee, msgs: 15}
+    - {from: Ben, to: Cai, msgs: 5}
+    - {from: Ben, to: Eli, msgs: 9}
+    - {from: Cai, to: Dee, msgs: 6}
+    - {from: Dee, to: Fay, msgs: 11}
+    - {from: Eli, to: Fay, msgs: 4}
+    - {from: Fay, to: Gus, msgs: 7}
+    - {from: Gus, to: Hana, msgs: 10}
+    - {from: Hana, to: Ivo, msgs: 3}
+    - {from: Ivo, to: Jo, msgs: 6}
+    - {from: Gus, to: Ivo, msgs: 2}
+    - {from: Dee, to: Gus, msgs: 5}
+    - {from: Kim, to: Lee, msgs: 9}
+encoding: {source: from, target: to, y: msgs}
+axes:
+  y: {label: Messages}
+```
+
+### Packed bubble
+
+```chart
+type: packed-bubble
+title: Hosting and the two apps take a third of the spend
+subtitle: Yearly spend by item in thousands of euros, illustrative figures
+data:
+  inline:
+    - {item: Cloud hosting, spend: 420, area: Operations}
+    - {item: Support, spend: 310, area: Operations}
+    - {item: Security, spend: 180, area: Operations}
+    - {item: Monitoring, spend: 90, area: Operations}
+    - {item: Mobile app, spend: 380, area: Product}
+    - {item: Web app, spend: 340, area: Product}
+    - {item: Search, spend: 150, area: Product}
+    - {item: Design, spend: 120, area: Product}
+    - {item: Ads, spend: 260, area: Sales}
+    - {item: Events, spend: 200, area: Sales}
+    - {item: Partners, spend: 140, area: Sales}
+    - {item: Hiring, spend: 230, area: People}
+    - {item: Training, spend: 80, area: People}
+    - {item: Legal, spend: 110, area: Admin}
+    - {item: Audit, spend: 60, area: Admin}
+    - {item: Rent, spend: 270, area: Admin}
+encoding: {label: item, y: spend, color: area}
+axes:
+  y: {label: Spend (k EUR)}
+```
+
+### Wordcloud
+
+```chart
+type: wordcloud
+title: Dashboards and forecasts lead what readers ask for
+subtitle: Requests per topic over one quarter, illustrative counts
+data:
+  inline:
+    - {topic: dashboards, requests: 48}
+    - {topic: forecast, requests: 41}
+    - {topic: churn, requests: 36}
+    - {topic: revenue, requests: 33}
+    - {topic: cohort, requests: 28}
+    - {topic: funnel, requests: 25}
+    - {topic: margin, requests: 22}
+    - {topic: retention, requests: 20}
+    - {topic: pricing, requests: 18}
+    - {topic: segment, requests: 16}
+    - {topic: anomaly, requests: 14}
+    - {topic: budget, requests: 12}
+    - {topic: trend, requests: 11}
+    - {topic: pipeline, requests: 10}
+    - {topic: ratio, requests: 9}
+    - {topic: outlier, requests: 8}
+    - {topic: survey, requests: 7}
+    - {topic: lift, requests: 6}
+    - {topic: mix, requests: 5}
+    - {topic: drift, requests: 4}
+encoding: {label: topic, y: requests}
+axes:
+  y: {label: Requests}
+```
+
+### Venn
+
+```chart
+type: venn
+title: Web and email readers overlap the most
+subtitle: Readers by channel, a row for each set and each overlap, illustrative counts
+data:
+  inline:
+    - {channel: Email, readers: 620}
+    - {channel: App, readers: 480}
+    - {channel: Web, readers: 540}
+    - {channel: "Email & App", readers: 180}
+    - {channel: "Email & Web", readers: 210}
+    - {channel: "App & Web", readers: 150}
+    - {channel: "Email & App & Web", readers: 70}
+encoding: {sets: channel, y: readers}
+axes:
+  y: {label: Readers}
+```
+
+### Vector
+
+```chart
+type: vector
+title: The wind swings from east to north as it strengthens
+subtitle: Wind at a 5 km grid, direction in degrees counter-clockwise from east, illustrative values
+data:
+  inline:
+    - {east: 0, north: 0, direction: 10, speed: 2.0}
+    - {east: 5, north: 0, direction: 24, speed: 2.8}
+    - {east: 10, north: 0, direction: 38, speed: 3.6}
+    - {east: 15, north: 0, direction: 52, speed: 4.4}
+    - {east: 20, north: 0, direction: 66, speed: 5.2}
+    - {east: 25, north: 0, direction: 80, speed: 6.0}
+    - {east: 0, north: 5, direction: 4, speed: 2.4}
+    - {east: 5, north: 5, direction: 18, speed: 3.5}
+    - {east: 10, north: 5, direction: 32, speed: 4.6}
+    - {east: 15, north: 5, direction: 46, speed: 4.8}
+    - {east: 20, north: 5, direction: 60, speed: 5.9}
+    - {east: 25, north: 5, direction: 74, speed: 7.0}
+    - {east: 0, north: 10, direction: -2, speed: 2.8}
+    - {east: 5, north: 10, direction: 12, speed: 4.2}
+    - {east: 10, north: 10, direction: 26, speed: 4.7}
+    - {east: 15, north: 10, direction: 40, speed: 5.2}
+    - {east: 20, north: 10, direction: 54, speed: 6.6}
+    - {east: 25, north: 10, direction: 68, speed: 7.1}
+    - {east: 0, north: 15, direction: -8, speed: 3.2}
+    - {east: 5, north: 15, direction: 6, speed: 4.0}
+    - {east: 10, north: 15, direction: 20, speed: 4.8}
+    - {east: 15, north: 15, direction: 34, speed: 5.6}
+    - {east: 20, north: 15, direction: 48, speed: 6.4}
+    - {east: 25, north: 15, direction: 62, speed: 7.2}
+encoding: {x: east, y: north, angle: direction, size: speed}
+axes:
+  x: {label: East (km)}
+  y: {label: North (km)}
+  color: {label: Wind speed (m/s)}
+```
+
+### Contour
+
+```chart
+type: contour
+title: Two hills rise above the valley floor
+subtitle: Height on a 1 km grid, illustrative values
+data:
+  inline:
+    - {east: 0, north: 0, height: 13.6}
+    - {east: 1, north: 0, height: 17.9}
+    - {east: 2, north: 0, height: 24.2}
+    - {east: 3, north: 0, height: 29.7}
+    - {east: 4, north: 0, height: 30.9}
+    - {east: 5, north: 0, height: 27.9}
+    - {east: 6, north: 0, height: 24.2}
+    - {east: 7, north: 0, height: 22.4}
+    - {east: 8, north: 0, height: 22.4}
+    - {east: 9, north: 0, height: 23.3}
+    - {east: 10, north: 0, height: 24.2}
+    - {east: 0, north: 1, height: 15.3}
+    - {east: 1, north: 1, height: 23.0}
+    - {east: 2, north: 1, height: 34.7}
+    - {east: 3, north: 1, height: 44.8}
+    - {east: 4, north: 1, height: 46.1}
+    - {east: 5, north: 1, height: 38.8}
+    - {east: 6, north: 1, height: 30.1}
+    - {east: 7, north: 1, height: 25.5}
+    - {east: 8, north: 1, height: 24.5}
+    - {east: 9, north: 1, height: 24.7}
+    - {east: 10, north: 1, height: 25.1}
+    - {east: 0, north: 2, height: 16.7}
+    - {east: 1, north: 2, height: 27.3}
+    - {east: 2, north: 2, height: 43.6}
+    - {east: 3, north: 2, height: 57.7}
+    - {east: 4, north: 2, height: 59.3}
+    - {east: 5, north: 2, height: 48.7}
+    - {east: 6, north: 2, height: 36.7}
+    - {east: 7, north: 2, height: 30.8}
+    - {east: 8, north: 2, height: 29.4}
+    - {east: 9, north: 2, height: 28.6}
+    - {east: 10, north: 2, height: 27.5}
+    - {east: 0, north: 3, height: 16.7}
+    - {east: 1, north: 3, height: 27.3}
+    - {east: 2, north: 3, height: 43.6}
+    - {east: 3, north: 3, height: 57.8}
+    - {east: 4, north: 3, height: 59.9}
+    - {east: 5, north: 3, height: 50.6}
+    - {east: 6, north: 3, height: 41.2}
+    - {east: 7, north: 3, height: 38.2}
+    - {east: 8, north: 3, height: 38.1}
+    - {east: 9, north: 3, height: 36.0}
+    - {east: 10, north: 3, height: 31.9}
+    - {east: 0, north: 4, height: 15.3}
+    - {east: 1, north: 4, height: 23.0}
+    - {east: 2, north: 4, height: 34.8}
+    - {east: 3, north: 4, height: 45.2}
+    - {east: 4, north: 4, height: 47.8}
+    - {east: 5, north: 4, height: 44.0}
+    - {east: 6, north: 4, height: 42.0}
+    - {east: 7, north: 4, height: 45.2}
+    - {east: 8, north: 4, height: 47.8}
+    - {east: 9, north: 4, height: 44.4}
+    - {east: 10, north: 4, height: 37.1}
+    - {east: 0, north: 5, height: 13.6}
+    - {east: 1, north: 5, height: 17.9}
+    - {east: 2, north: 5, height: 24.3}
+    - {east: 3, north: 5, height: 30.2}
+    - {east: 4, north: 5, height: 33.0}
+    - {east: 5, north: 5, height: 34.5}
+    - {east: 6, north: 5, height: 39.3}
+    - {east: 7, north: 5, height: 47.4}
+    - {east: 8, north: 5, height: 52.0}
+    - {east: 9, north: 5, height: 48.3}
+    - {east: 10, north: 5, height: 39.4}
+    - {east: 0, north: 6, height: 12.5}
+    - {east: 1, north: 6, height: 14.8}
+    - {east: 2, north: 6, height: 17.8}
+    - {east: 3, north: 6, height: 20.7}
+    - {east: 4, north: 6, height: 23.3}
+    - {east: 5, north: 6, height: 27.0}
+    - {east: 6, north: 6, height: 33.8}
+    - {east: 7, north: 6, height: 42.4}
+    - {east: 8, north: 6, height: 47.1}
+    - {east: 9, north: 6, height: 44.3}
+    - {east: 10, north: 6, height: 37.0}
+    - {east: 0, north: 7, height: 12.1}
+    - {east: 1, north: 7, height: 13.6}
+    - {east: 2, north: 7, height: 15.2}
+    - {east: 3, north: 7, height: 16.9}
+    - {east: 4, north: 7, height: 19.0}
+    - {east: 5, north: 7, height: 22.2}
+    - {east: 6, north: 7, height: 27.5}
+    - {east: 7, north: 7, height: 33.6}
+    - {east: 8, north: 7, height: 37.0}
+    - {east: 9, north: 7, height: 35.8}
+    - {east: 10, north: 7, height: 31.9}
+encoding: {x: east, y: north, z: height}
+axes:
+  x: {label: East (km)}
+  y: {label: North (km)}
+  color: {label: Height (m)}
+```
+
+### Flow
+
+```chart
+type: flow
+title: A support request takes one of three paths to close
+subtitle: Steps in columns by order, in the lane of the team that owns them
+data:
+  inline:
+    - {step: Request, lane: Customer}
+    - {step: Triage, lane: Support}
+    - {step: Fix, lane: Support}
+    - {step: Invoice, lane: Billing}
+    - {step: Refund, lane: Billing}
+    - {step: Pay, lane: Customer}
+    - {step: Close, lane: Support}
+    - {from: Request, to: Triage, note: new}
+    - {from: Triage, to: Fix, note: bug}
+    - {from: Triage, to: Invoice, note: bill}
+    - {from: Triage, to: Refund, note: ask}
+    - {from: Fix, to: Close}
+    - {from: Invoice, to: Pay}
+    - {from: Pay, to: Close, note: paid}
+    - {from: Request, to: Close, note: spam}
+encoding: {label: step, source: from, target: to, lane: lane, y: note}
+```
+
+### Pivot
+
+```chart
+type: pivot
+title: The West sells the most and every region grows into Q4
+subtitle: Sales by region and quarter, synthetic figures
+data:
+  inline:
+    - {region: North, quarter: Q1, sales: 120}
+    - {region: North, quarter: Q2, sales: 135}
+    - {region: North, quarter: Q3, sales: 150}
+    - {region: North, quarter: Q4, sales: 190}
+    - {region: South, quarter: Q1, sales: 95}
+    - {region: South, quarter: Q2, sales: 110}
+    - {region: South, quarter: Q3, sales: 105}
+    - {region: South, quarter: Q4, sales: 140}
+    - {region: West, quarter: Q1, sales: 150}
+    - {region: West, quarter: Q2, sales: 140}
+    - {region: West, quarter: Q3, sales: 160}
+    - {region: West, quarter: Q4, sales: 210}
+encoding: {rows: region, columns: quarter, values: sales}
+```
+
+### Surface
+
+```chart
+type: surface
+title: Yield peaks at moderate water and 80 kg of nitrogen
+subtitle: Crop yield by water and nitrogen, synthetic figures
+data:
+  inline:
+    - {water: 100, nitrogen: 0, yield: 2.2}
+    - {water: 100, nitrogen: 40, yield: 2.8}
+    - {water: 100, nitrogen: 80, yield: 3.3}
+    - {water: 100, nitrogen: 120, yield: 2.8}
+    - {water: 200, nitrogen: 0, yield: 2.9}
+    - {water: 200, nitrogen: 40, yield: 5.2}
+    - {water: 200, nitrogen: 80, yield: 7.0}
+    - {water: 200, nitrogen: 120, yield: 5.2}
+    - {water: 300, nitrogen: 0, yield: 2.9}
+    - {water: 300, nitrogen: 40, yield: 5.2}
+    - {water: 300, nitrogen: 80, yield: 7.0}
+    - {water: 300, nitrogen: 120, yield: 5.2}
+    - {water: 400, nitrogen: 0, yield: 2.2}
+    - {water: 400, nitrogen: 40, yield: 2.8}
+    - {water: 400, nitrogen: 80, yield: 3.3}
+    - {water: 400, nitrogen: 120, yield: 2.8}
+encoding: {x: water, y: nitrogen, z: yield}
+axes:
+  x: {label: Water (mm)}
+  y: {label: Nitrogen (kg/ha)}
+  color: {label: Yield (t/ha)}
+```
+
+### Scatter3d
+
+```chart
+type: scatter3d
+title: Gentoo penguins stand apart in bill depth and flipper length
+subtitle: Three measurements of 18 penguins, synthetic figures
+data:
+  inline:
+    - {species: Adelie, bill_length: 38.3, bill_depth: 18.8, flipper: 189}
+    - {species: Adelie, bill_length: 40.9, bill_depth: 18.5, flipper: 192}
+    - {species: Adelie, bill_length: 35.4, bill_depth: 16.7, flipper: 186}
+    - {species: Adelie, bill_length: 39.4, bill_depth: 18.7, flipper: 187}
+    - {species: Adelie, bill_length: 38.1, bill_depth: 18.2, flipper: 193}
+    - {species: Adelie, bill_length: 37.2, bill_depth: 18.5, flipper: 192}
+    - {species: Chinstrap, bill_length: 48.6, bill_depth: 17.7, flipper: 198}
+    - {species: Chinstrap, bill_length: 51.7, bill_depth: 18.7, flipper: 197}
+    - {species: Chinstrap, bill_length: 46.9, bill_depth: 17.9, flipper: 202}
+    - {species: Chinstrap, bill_length: 45.0, bill_depth: 16.1, flipper: 198}
+    - {species: Chinstrap, bill_length: 49.3, bill_depth: 18.8, flipper: 204}
+    - {species: Chinstrap, bill_length: 50.7, bill_depth: 18.9, flipper: 186}
+    - {species: Gentoo, bill_length: 44.9, bill_depth: 16.4, flipper: 220}
+    - {species: Gentoo, bill_length: 46.2, bill_depth: 14.6, flipper: 222}
+    - {species: Gentoo, bill_length: 44.7, bill_depth: 14.9, flipper: 216}
+    - {species: Gentoo, bill_length: 45.9, bill_depth: 15.6, flipper: 223}
+    - {species: Gentoo, bill_length: 47.1, bill_depth: 15.2, flipper: 220}
+    - {species: Gentoo, bill_length: 46.6, bill_depth: 14.7, flipper: 217}
+encoding: {x: bill_length, y: bill_depth, z: flipper, color: species}
+axes:
+  x: {label: Bill length (mm)}
+  y: {label: Bill depth (mm)}
+  color: {label: Flipper (mm)}
+```
+
+### Bar3d
+
+```chart
+type: bar3d
+title: Online leads every region except the South
+subtitle: Revenue by region and channel, synthetic figures
+data:
+  inline:
+    - {region: North, channel: Online, revenue: 52}
+    - {region: North, channel: Retail, revenue: 38}
+    - {region: North, channel: Partner, revenue: 21}
+    - {region: South, channel: Online, revenue: 31}
+    - {region: South, channel: Retail, revenue: 44}
+    - {region: South, channel: Partner, revenue: 18}
+    - {region: East, channel: Online, revenue: 47}
+    - {region: East, channel: Retail, revenue: 35}
+    - {region: East, channel: Partner, revenue: 26}
+    - {region: West, channel: Online, revenue: 58}
+    - {region: West, channel: Retail, revenue: 41}
+    - {region: West, channel: Partner, revenue: 30}
+encoding: {x: region, y: revenue, color: channel}
+axes:
+  x: {label: Region}
+  y: {label: Revenue (EUR m)}
+  color: {label: Channel}
+```
+
+### Interval
+
+```chart
+type: interval
+title: Only the redesign test clears the 2% target
+subtitle: Conversion uplift with authored 90% ranges, synthetic
+data:
+  inline:
+    - {test: Redesign, low: 0.021, high: 0.058, uplift: 0.039}
+    - {test: Pricing page, low: -0.012, high: 0.031, uplift: 0.009}
+    - {test: Onboarding email, low: -0.004, high: 0.026, uplift: 0.011}
+    - {test: Checkout copy, low: -0.020, high: 0.015, uplift: -0.003}
+encoding: {x: test, y: uplift, lower: low, upper: high}
+axes:
+  y: {label: Conversion uplift, format: percent}
+annotations:
+  - {kind: line, at: {y: 0.02}, text: Target}
+```
+
+### Waterfall
+
+```chart
+type: waterfall
+title: Profit is three quarters of revenue after a grant
+subtitle: Thousands of dollars; each bar starts where the last one ended
+data:
+  inline:
+    - step: Sales
+      amount: 120
+      kind: start
+    - step: Costs
+      amount: -45.5
+    - step: Tax
+      amount: -14.5
+    - step: Grant
+      amount: 30
+    - step: Profit
+      amount: 90
+      kind: total
+encoding: {x: step, y: amount, measure: kind}
+axes:
+  y: {label: Amount, unit: k}
+```
+
+### Treemap
+
+```chart
+type: treemap
+title: Engineering is the largest group, then sales
+subtitle: Thousands of dollars; area is budget, colour is the top-level group
+data:
+  inline:
+    - {part: Engineering}
+    - {part: Platform, group: Engineering, budget: 420}
+    - {part: Product, group: Engineering, budget: 310}
+    - {part: Sales}
+    - {part: EMEA, group: Sales, budget: 240}
+    - {part: Americas, group: Sales, budget: 260}
+encoding: {label: part, parent: group, y: budget}
+axes:
+  y: {unit: k}
+```
+
+### Funnel
+
+```chart
+type: funnel
+title: Four in ten visitors sign up and one in twenty subscribes
+subtitle: Users at each stage, from the first visit to a paid subscription
+data:
+  inline:
+    - stage: Visited
+      users: 12000
+    - stage: Signed up
+      users: 4800
+    - stage: Activated
+      users: 2900
+    - stage: Subscribed
+      users: 640
+encoding: {x: stage, y: users}
+axes:
+  y: {label: Users}
+```
+
+### Dumbbell
+
+```chart
+type: dumbbell
+title: Three of four teams scored higher after training
+subtitle: Score per team; hollow dot before, filled dot after
+data:
+  inline:
+    - {team: Alpha, before: 62, after: 78}
+    - {team: Beta, before: 55, after: 51}
+    - {team: Gamma, before: 70, after: 88}
+    - {team: Delta, before: 48, after: 66}
+encoding: {x: team, lower: before, upper: after}
+axes:
+  y: {label: Score}
+```
+
+### Band
+
+```chart
+type: band
+title: Daily highs and lows drift upward through March
+subtitle: Degrees Celsius; the line is the daily mean
+data:
+  inline:
+    - {day: 2025-03-01, low: 6.1, high: 15.2, mean: 10.4}
+    - {day: 2025-03-02, low: 7.0, high: 16.8, mean: 11.9}
+    - {day: 2025-03-03, low: 7.9, high: 17.5, mean: 12.6}
+    - {day: 2025-03-04, low: 8.3, high: 18.2, mean: 13.1}
+    - {day: 2025-03-05, low: 8.8, high: 18.9, mean: 13.7}
+    - {day: 2025-03-06, low: 9.4, high: 19.6, mean: 14.2}
+    - {day: 2025-03-07, low: 9.1, high: 19.1, mean: 13.9}
+encoding: {x: day, lower: low, upper: high, y: mean}
+axes:
+  y: {label: Temperature, unit: °C}
+```
+
+### Bullet
+
+```chart
+type: bullet
+title: South is the only region above its sales target
+subtitle: Sales per region; the line marks each region's target
+data:
+  inline:
+    - {region: North, sales: 72, goal: 85}
+    - {region: South, sales: 91, goal: 80}
+    - {region: East, sales: 55, goal: 70}
+    - {region: West, sales: 64, goal: 60}
+encoding: {x: region, y: sales, target: goal}
+axes:
+  y: {label: Sales}
+style:
+  ranges: [60, 80, 100]
+```
+
+### Candlestick
+
+```chart
+type: candlestick
+title: Prices climbed from 101 to 105 despite two dips
+digits: 4
+subtitle: Daily open, high, low and close in dollars
+data:
+  inline:
+    - {day: '2026-03-02', open: 101.2, high: 103.8, low: 100.4, close: 103.1}
+    - {day: '2026-03-03', open: 103.1, high: 104.6, low: 102.2, close: 102.6}
+    - {day: '2026-03-04', open: 102.6, high: 102.9, low: 99.8, close: 100.3}
+    - {day: '2026-03-05', open: 100.3, high: 101.7, low: 99.5, close: 101.4}
+    - {day: '2026-03-06', open: 101.4, high: 104.2, low: 101.1, close: 103.9}
+    - {day: '2026-03-09', open: 103.9, high: 106.0, low: 103.5, close: 105.2}
+    - {day: '2026-03-10', open: 105.2, high: 105.8, low: 102.9, close: 103.4}
+    - {day: '2026-03-11', open: 103.4, high: 104.1, low: 102.0, close: 103.8}
+    - {day: '2026-03-12', open: 103.8, high: 107.1, low: 103.6, close: 106.5}
+    - {day: '2026-03-13', open: 106.5, high: 107.4, low: 105.1, close: 105.3}
+encoding: {x: day, open: open, high: high, low: low, close: close}
+axes:
+  y: {label: Price, unit: '$'}
+```
+
+### OHLC
+
+```chart
+type: ohlc
+title: Prices climbed from 101 to 105 despite two dips
+digits: 4
+subtitle: Daily open, high, low and close in dollars
+data:
+  inline:
+    - {day: '2026-03-02', open: 101.2, high: 103.8, low: 100.4, close: 103.1}
+    - {day: '2026-03-03', open: 103.1, high: 104.6, low: 102.2, close: 102.6}
+    - {day: '2026-03-04', open: 102.6, high: 102.9, low: 99.8, close: 100.3}
+    - {day: '2026-03-05', open: 100.3, high: 101.7, low: 99.5, close: 101.4}
+    - {day: '2026-03-06', open: 101.4, high: 104.2, low: 101.1, close: 103.9}
+    - {day: '2026-03-09', open: 103.9, high: 106.0, low: 103.5, close: 105.2}
+    - {day: '2026-03-10', open: 105.2, high: 105.8, low: 102.9, close: 103.4}
+    - {day: '2026-03-11', open: 103.4, high: 104.1, low: 102.0, close: 103.8}
+    - {day: '2026-03-12', open: 103.8, high: 107.1, low: 103.6, close: 106.5}
+    - {day: '2026-03-13', open: 106.5, high: 107.4, low: 105.1, close: 105.3}
+encoding: {x: day, open: open, high: high, low: low, close: close}
+axes:
+  y: {label: Price, unit: '$'}
+```
+
+### Icicle
+
+```chart
+type: icicle
+title: Engineering is the largest group, then sales
+subtitle: Thousands of dollars; width is budget, colour is the top-level group
+data:
+  inline:
+    - {part: Engineering}
+    - {part: Platform, group: Engineering, budget: 420}
+    - {part: Product, group: Engineering, budget: 310}
+    - {part: Sales}
+    - {part: EMEA, group: Sales, budget: 240}
+    - {part: Americas, group: Sales, budget: 260}
+encoding: {label: part, parent: group, y: budget}
+axes:
+  y: {unit: k}
+```
+
+### Sunburst
+
+```chart
+type: sunburst
+title: Engineering is the largest group, then sales
+subtitle: Thousands of dollars; angle is budget, colour is the top-level group
+data:
+  inline:
+    - {part: Engineering}
+    - {part: Platform, group: Engineering, budget: 420}
+    - {part: Product, group: Engineering, budget: 310}
+    - {part: Sales}
+    - {part: EMEA, group: Sales, budget: 240}
+    - {part: Americas, group: Sales, budget: 260}
+encoding: {label: part, parent: group, y: budget}
+axes:
+  y: {unit: k}
+```
+
+### Tree
+
+```chart
+type: tree
+title: Engineering has the most teams
+subtitle: Each node is a part; colour is the top-level unit
+data:
+  inline:
+    - {unit: Engineering}
+    - {unit: Platform, reports_to: Engineering, headcount: 14}
+    - {unit: Product, reports_to: Engineering, headcount: 22}
+    - {unit: Sales}
+    - {unit: EMEA, reports_to: Sales, headcount: 12}
+    - {unit: Americas, reports_to: Sales, headcount: 16}
+encoding: {label: unit, parent: reports_to, y: headcount}
+```
+
+### Map
+
+```chart
+type: map
+title: Broadband reaches nine in ten households in much of Europe
+subtitle: Share of households; darker is higher
+data:
+  inline:
+    - {country: Czechia, share: 91}
+    - {country: Germany, share: 92}
+    - {country: France, share: 86}
+    - {country: Poland, share: 88}
+    - {country: Spain, share: 96}
+    - {country: Italy, share: 85}
+    - {country: Norway, share: 98}
+    - {country: Turkey, share: 90}
+    - {country: Egypt, share: 74}
+    - {country: India, share: 52}
+encoding: {region: country, y: share}
+axes:
+  y: {label: Households with broadband, unit: "%"}
+```
+
+### Radar
+
+```chart
+type: radar
+title: Beta is steadier and cheaper, Alpha is faster
+subtitle: Score per skill and team
+data:
+  inline:
+    - {skill: Speed, team: Alpha, score: 80}
+    - {skill: Reliability, team: Alpha, score: 65}
+    - {skill: Cost, team: Alpha, score: 40}
+    - {skill: Docs, team: Alpha, score: 70}
+    - {skill: Community support, team: Alpha, score: 55}
+    - {skill: Speed, team: Beta, score: 50}
+    - {skill: Reliability, team: Beta, score: 90}
+    - {skill: Cost, team: Beta, score: 75}
+    - {skill: Docs, team: Beta, score: 45}
+    - {skill: Community support, team: Beta, score: 85}
+encoding: {x: skill, y: score, color: team}
+axes:
+  y: {label: Score}
+```
+
+### Pareto
+
+```chart
+type: pareto
+title: Misalignment and discolouration cause 71 percent of defects
+subtitle: Defects per cause, with the running share of the total
+data:
+  inline:
+    - cause: Scratches
+      defects: 18
+    - cause: Misalignment
+      defects: 52
+    - cause: Cracks
+      defects: 9
+    - cause: Discolouration
+      defects: 31
+    - cause: Other
+      defects: 6
+encoding: {x: cause, y: defects}
+axes:
+  y: {label: Defects}
+```
+
+### Combo
+
+```chart
+type: combo
+title: Revenue grew by half and the margin gained nine points
+subtitle: Revenue in thousands of dollars, margin in percent
+data:
+  inline:
+    - quarter: Q1
+      revenue: 120
+      margin: 18
+    - quarter: Q2
+      revenue: 150
+      margin: 22
+    - quarter: Q3
+      revenue: 135
+      margin: 20
+    - quarter: Q4
+      revenue: 180
+      margin: 27
+encoding: {x: quarter, y: revenue, line: margin}
+axes:
+  y: {label: Revenue, unit: $}
+  y2: {label: Margin, unit: "%"}
+```
+
+### Rose
+
+```chart
+type: rose
+title: Rain peaks in July
+subtitle: Rainfall per month
+data:
+  inline:
+    - {month: Jan, mm: 30}
+    - {month: Feb, mm: 25}
+    - {month: Mar, mm: 40}
+    - {month: Apr, mm: 55}
+    - {month: May, mm: 80}
+    - {month: Jun, mm: 95}
+    - {month: Jul, mm: 110}
+    - {month: Aug, mm: 100}
+    - {month: Sep, mm: 70}
+    - {month: Oct, mm: 50}
+    - {month: Nov, mm: 45}
+    - {month: Dec, mm: 35}
+encoding: {x: month, y: mm}
+axes:
+  y: {label: Rainfall (mm)}
+```
+
+### Waffle
+
+```chart
+type: waffle
+title: Cars carry four in ten trips
+subtitle: Each square is 1% of the trips
+data:
+  inline:
+    - {mode: Car, trips: 412}
+    - {mode: Train, trips: 236}
+    - {mode: Bicycle, trips: 118}
+    - {mode: Walking, trips: 97}
+    - {mode: Bus, trips: 61}
+encoding: {x: mode, y: trips}
+axes:
+  y: {label: Trips}
+```
+
+### Lollipop
+
+```chart
+type: lollipop
+title: North grew while South lost orders
+subtitle: Orders per region and year
+data:
+  inline:
+    - {region: North, year: "2025", orders: 120}
+    - {region: North, year: "2026", orders: 150}
+    - {region: South, year: "2025", orders: 90}
+    - {region: South, year: "2026", orders: 70}
+    - {region: East, year: "2025", orders: -20}
+    - {region: East, year: "2026", orders: 45}
+    - {region: West, year: "2025", orders: 60}
+    - {region: West, year: "2026", orders: 65}
+encoding: {x: region, y: orders, color: year}
+axes:
+  y: {label: Orders}
+```
+
+## Rich blocks
+
+### Table
+
+```table
+data:
+  inline:
+    - {plan: Solo, region: Europe, accounts: 1840, revenue: 412000, churn: 0.031}
+    - {plan: Solo, region: North America, accounts: 2210, revenue: 538000, churn: 0.028}
+    - {plan: Team, region: Europe, accounts: 640, revenue: 905000, churn: 0.019}
+    - {plan: Team, region: North America, accounts: 810, revenue: 1214000, churn: 0.017}
+    - {plan: Team, region: APAC, accounts: 300, revenue: 388000, churn: 0.024}
+    - {plan: Enterprise, region: Europe, accounts: 42, revenue: 1630000, churn: 0.008}
+    - {plan: Enterprise, region: North America, accounts: 57, revenue: 2275000, churn: 0.006}
+    - {plan: Enterprise, region: APAC, accounts: 18, revenue: 590000, churn: 0.011}
+columns:
+  - {key: plan, label: Plan}
+  - {key: region, label: Region}
+  - {key: accounts, label: Accounts, format: number, align: right}
+  - {key: revenue, label: Revenue, format: number, unit: "$", align: right}
+sort: {key: revenue, dir: desc}
+max_rows: 5
+total: true
+```
+
+*Note: five rows show by default; the remaining three sit behind the disclosure.*
+
+### Metrics
+
+```metric
+value: 4234567
+label: Q3 revenue
+unit: "€"
+format: number_compact
+delta: 0.18
+delta_label: vs Q2
+trend: up
+```
+
+```metric
+value: 12480
+label: Active workspaces
+format: number_compact
+delta: 0.004
+delta_label: vs Q2
+trend: flat
+```
+
+```metric
+value: 0.87
+label: Support satisfaction
+format: percent
+delta: -0.03
+delta_label: vs Q2
+trend: down
+```
+
+### Callouts
+
+```callout
+kind: up
+title: Retention improved.
+body: Twelve-month retention rose to 91% after the onboarding change.
+```
+
+```callout
+kind: down
+title: Margin slipped.
+body: Hosting costs grew faster than revenue in September.
+```
+
+```callout
+kind: neutral
+title: Method.
+body: Every figure in this fixture is synthetic and exists only to exercise the renderer.
+```
+
+```callout
+kind: hold
+title: Sample size caveat.
+body: Only twelve weeks of post-launch data are available.
+```
+
+### Quote
+
+> A report that cannot be read twice was not written for the reader. State the claim first, show the evidence once, and let the numbers carry the rest.
+
+### Code
+
+```python
+def share(parts: dict[str, float]) -> dict[str, float]:
+    total = sum(parts.values())
+    return {name: value / total for name, value in parts.items()}
+```
+
+### Image
+
+```image
+src: media/fixture-image.png
+alt: A generated placeholder with a sand-to-indigo gradient and the words Fixture image.
+caption: Generated placeholder image, 1600 × 900 px, embedded from the report folder.
+width: 1600
+height: 900
+fit: contain
+```
+
+### Embed
+
+```embed
+url: https://www.youtube.com/embed/aqz-KE-bpKQ
+caption: Big Buck Bunny (Blender Foundation, CC BY 3.0) in an allowlisted third-party player.
+```
+
+### Audio
+
+```audio
+src: media/tone.mp3
+title: Generated 440 Hz test tone
+caption: Two-second generated test tone, embedded from the report folder.
+```
+
+### Video
+
+```video
+src: media/clip.mp4
+poster: media/poster.png
+title: Generated test pattern
+caption: Two-second generated FFmpeg test pattern with a poster frame.
+width: 640
+height: 360
+```
+
+### Scrolly
+
+```scrolly
+title: One image, three views
+image:
+  src: media/fixture-image.png
+  alt: A generated placeholder with a sand-to-indigo gradient and the words Fixture image.
+steps:
+  - title: The whole image
+    text: The figure starts with the full placeholder in view.
+  - title: The left half
+    text: The next step zooms into the left half.
+    view: {x: 0.25, y: 0.5, zoom: 2}
+  - title: A highlighted box
+    text: The last step marks a box on the image.
+    highlight: {x: 0.3, y: 0.3, w: 0.4, h: 0.4}
+```

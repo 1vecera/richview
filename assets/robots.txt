@@ -1,0 +1,4 @@
+# Every crawler may fetch every page (FEA-SF-61).
+User-agent: *
+Allow: /
+Content-Signal: search=yes, ai-input=yes, ai-train=yes

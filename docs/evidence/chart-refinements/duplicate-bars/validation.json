@@ -1,0 +1,269 @@
+{
+  "base": {
+    "commit": "b76885a66808956d7e7944b9923aacb445d72b66",
+    "wasm_sha256": "1127df183cd5fd089014ed7fd76858792a61693cdb157ad8fd93631aac36ade1",
+    "native_sha256": "d59eb63ac7a780fc84837632bddbbf90afac228203fd16f1b77e0ab20aeb5213"
+  },
+  "candidate": {
+    "source_commit": "c461b99234b9bac84a1b2a26e609baa44f29bfe3",
+    "captured_source_diff_sha256": "3bc454b8d40d05de8e462b2a8b185ce0d51e32769d04951c6149c4f0aced155c",
+    "wasm_sha256": "0493141b13c7df1f2c947a6d20d865ad1df870c40a35b7097fbff8ce56bbd1d4",
+    "native_sha256": "c5f457809ed4ba7c4cbc6b5e81c61b3b6920ab6c12956d5b7cc7880105f7642c",
+    "chart_source_sha256": "bd16dec33dddb1d39b996e7fc2cf7ed51cfa45b047b8a2ce1fe5f02f838ac024"
+  },
+  "capture": {
+    "browser": "151.0.7922.173",
+    "headless": true,
+    "device_scale_factor": 2,
+    "created_at": "2026-10-11T23:51:42.612Z",
+    "themes": [
+      "scientific",
+      "brutalist",
+      "sleek",
+      "sleek-light",
+      "hand-drawn"
+    ],
+    "viewports": [
+      320,
+      390,
+      720
+    ],
+    "native_widths": [
+      240,
+      320,
+      390,
+      720
+    ],
+    "motion": [
+      "reduce",
+      "no-preference"
+    ],
+    "images": [
+      {
+        "case": "duplicate-10-90-vertical",
+        "source": "vertical.rmd",
+        "source_sha256": "92eee058b5d3899d3a3620ba8feb5c6e50e4096e14be768923f12278d1fb7401",
+        "theme": "scientific",
+        "viewport": 390,
+        "motion": "reduce",
+        "actual_viewbox": "0 0 358 201.375",
+        "before_png": "vertical-before.png",
+        "before_sha256": "8f5dd47bca16f48e28b12bb8b867330e92ebd15fac36e6b453d8f7fd76842381",
+        "after_png": "vertical-after.png",
+        "after_sha256": "8c6abfd4e77b3dcfb01b9a5aeecb413c6c3328cf35bd3fc147ad52801b3c31ab"
+      },
+      {
+        "case": "duplicate-10-90-horizontal",
+        "source": "horizontal.rmd",
+        "source_sha256": "5e6912c5d7a2c2142da3e4997cd32dc2727acbe91ae725c4f16e86b3da4c331c",
+        "theme": "sleek",
+        "viewport": 320,
+        "motion": "no-preference",
+        "actual_viewbox": "0 0 288 192",
+        "before_png": "horizontal-before.png",
+        "before_sha256": "bd9aca0ffca2b3c0d818bcf9ee119804eb0ee0e02443208db272c2910cf47db5",
+        "after_png": "horizontal-after.png",
+        "after_sha256": "814fa7bc041f3a39c9963f69570aa7340679e85620c31f4878cd2ee58ae0f889"
+      }
+    ]
+  },
+  "results": {
+    "native_cases": 26,
+    "native_rejected": 14,
+    "matched_reports": 85,
+    "rejected_reports": 63,
+    "exact_browser_controls": 22,
+    "facet_leaves": 8,
+    "exact_facet_neighbors": 4,
+    "owner_interface_states": 73,
+    "compared_interface_states": 38,
+    "browser_source_rows": 325,
+    "browser_keyboard_rows": 325,
+    "native_render_pairs": 520,
+    "full_native_results_exact": 240,
+    "native_rejections": 280,
+    "minimum_note_fit": {
+      "themes": 5,
+      "width": 240,
+      "height": 48,
+      "requested_height": 24,
+      "pass": true
+    },
+    "reviewer": {
+      "verdict": "ACCEPT",
+      "independent_matched_reports": 24,
+      "independent_leaf_views": 28,
+      "independent_interface_states": 24
+    },
+    "required_checks": [
+      {
+        "name": "fmt",
+        "exit": 0
+      },
+      {
+        "name": "clippy-native",
+        "exit": 0
+      },
+      {
+        "name": "clippy-wasm",
+        "exit": 0
+      },
+      {
+        "name": "workspace-tests",
+        "exit": 0
+      },
+      {
+        "name": "release-build",
+        "exit": 0,
+        "log_sha256": "4e419a0ac89249f1409dd36639ed2f5dc5a88511bcfc62ddddf0286f31671208",
+        "provenance": "Fresh build log and author-recorded exec session50713 exit0; artifact behavior independently verified."
+      },
+      {
+        "name": "fixtures",
+        "exit": 0
+      },
+      {
+        "name": "editor",
+        "exit": 0
+      },
+      {
+        "name": "native",
+        "exit": 0
+      },
+      {
+        "name": "compat",
+        "exit": 0
+      },
+      {
+        "name": "types",
+        "exit": 0
+      },
+      {
+        "name": "browser",
+        "exit": 0
+      },
+      {
+        "name": "landing",
+        "exit": 0
+      },
+      {
+        "name": "cloudflare",
+        "exit": 0
+      },
+      {
+        "name": "showcase",
+        "exit": 0
+      },
+      {
+        "name": "flagship",
+        "exit": 0
+      },
+      {
+        "name": "reel",
+        "exit": 0
+      },
+      {
+        "name": "browser-api",
+        "exit": 0
+      },
+      {
+        "name": "motion-runtime",
+        "exit": 0
+      },
+      {
+        "name": "docs",
+        "exit": 0
+      }
+    ],
+    "all_required_pass": true,
+    "extra_checks": [
+      {
+        "name": "diff",
+        "exit": 0
+      }
+    ],
+    "curated_png_reproduction": {
+      "before_exit": 0,
+      "after_exit": 0,
+      "exact_hashes": 4
+    }
+  },
+  "compatibility": {
+    "status": "ACCEPT",
+    "base": "b19f92b340bf4987b5726898059ba15e9e528635",
+    "base_wasm_sha256": "46551a3928a3e84250c61811deb08dcbb9be89b4e3aead3a3fd816f496fec96b",
+    "composition": "1cdf9d246705f299511bca4777b61e3cfb3692a3",
+    "wasm_sha256": "da249f68770aca6315b1eed31a08924d776489647b91c17a6974cde12f31b4bc",
+    "native_sha256": "40ec412b607ada1120052237ffc66962f191a5a7dec01540c02f609e5fc91103",
+    "source_resolution": "Only adjacent test insertions conflicted; both tests retained. Product source applied without conflict.",
+    "fresh_artifact": "Native and Wasm chart/core/web dependencies explicitly cleaned and recompiled; direct SVG smoke verifies rejected empty marks and retained segmented baselines with 2px zero marks.",
+    "summary": {
+      "native_cases": 560,
+      "native_rejected": 280,
+      "matched_reports": 32,
+      "rejected_reports": 16,
+      "exact_browser_controls": 16,
+      "facet_leaves": 8,
+      "exact_facet_neighbors": 4,
+      "owner_interface_states": 79,
+      "compared_interface_states": 44,
+      "browser_source_rows": 124,
+      "browser_keyboard_rows": 124
+    },
+    "checks": {
+      "bar_tests": 8,
+      "browser_api_exit": 0,
+      "motion_runtime_exit": 0
+    },
+    "existing_policy": "Frozen sibling permits hiding all multi-series groups; the matched composition preserves that policy. Main last-series guard remains covered independently.",
+    "scratch": "/home/vecera/code/richview-v3/.claude/worktrees/chart-duplicate-bars-sibling-20261012/tmp/bar-duplicate-sibling-owner",
+    "proof_files": {
+      "comparison.json": "4c3a6c263b03d3f7cd5168226c837cac028d48dbd78dfa1baed07d932baa43dd",
+      "native-parity/comparison.json": "7848f6d22279ff141f47727c9759317186f6361c2851cc3cf405dd4ef4d005cc",
+      "artifact-smoke.json": "7d397712b9d3fa58a3ca60e0ccaa4cafb5eca895ed489425d4b1aa32126f4c50",
+      "build.log": "d80f705fafef934bea7a89ab67f7ba95651463bd810dfd5d53d294abb4160e43",
+      "chart-tests.log": "c2bf45755b9870768f31847254a71d7adc87c0856552216d1cc96e6587ad411d",
+      "browser-api.log": "bcdbbb32b31e1a3f77195554a37deb8f2147399a65d153669814aa1d481c136b",
+      "motion-runtime.log": "7ef5b8ca1ddd659671afa84dbd1c676493273a6ca76f3825826cdd834006c49d",
+      "interfaces-after-matched/verification.json": "3f368c9f4ca28610544a72a2c557e85173d15909816f3b981c77b7a0e30a1dbf"
+    },
+    "independent_review": {
+      "verdict": "ACCEPT",
+      "matched_report_pairs": 6,
+      "interface_states": 28,
+      "controls": "Three exact controls and the valid facet neighbor; typed hide/restore, source/export/pointer/touch/update and existing sibling all-hidden behavior."
+    }
+  },
+  "provenance": {
+    "scratch": "tmp/duplicate-bars/",
+    "historical_audit": "/home/vecera/tmp/richview-chart-refinement-20261011/bar-duplicate-audit-20261011T231113Z",
+    "historical_audit_base": "159e3cbc01773c59891c984d3a485d089ac6372d",
+    "independent_review": "/home/vecera/tmp/richview-chart-refinement-20261011/bar-duplicate-independent-plan-review.md",
+    "proof_files": {
+      "comparison.json": "37ff8c42a6885e37a8d77b9b9bf65e215228f3dbce4941dc1b4fd3a9b1d41bf8",
+      "native-parity/comparison.json": "5b245c9eebf8ac8d2dead29bd074de59512837a258fa77f5777e061454694df5",
+      "checks/all-checks.json": "1012187936208aacbbdc69541422db64c1627df5dcf0fe8f5d6a51f99f330abc",
+      "before-core/manifest.json": "289de68223acf0e21b466929c98fa51be27012e9bde007fd73b6dd3cfb0c2f11",
+      "after-core/manifest.json": "d38edf23bc2e591c9d21b72b72212a7210d714223c56fa464f2c96fae7fa6d82",
+      "before-matrix/manifest.json": "f16bdf36e415e08682107d6ee11b5b92b076b9c6b0cb13d85e81a107ddb0d687",
+      "after-matrix/manifest.json": "6ce00cc906ae802a89b3e36c3fa98a2ca9ab94a80b4e211ce859ecd07d31f140",
+      "before-facets/manifest.json": "bf5c2aca940c33bfc1d39140c97e0307249e052c8a48e4de4cd8b7aad9cd5d71",
+      "after-facets/manifest.json": "9a76a176b426618bb92574dc8d31c573a00ec692c95da177a06f47ca0e70d28a",
+      "interfaces-before-corrected/verification.json": "1dbb7556c5af612e0cdad040897454e85ebc80788a9ba5fa7579886df88f6c8a",
+      "interfaces-after-corrected/verification.json": "3eb83526b68c3ee8bbb4ff92a9f586e9016668af02476ce14fbf5482fb67d88b",
+      "readme-reproduction.json": "f3cc3c99488a0d15dd727b7eef9937e4c6b105c0e6f59ad4d2d248772d69da4f"
+    },
+    "independent_review_sha256": "524a1c3db91c4d06d82fd5c7b3c2f5858b53167f24b766a25647ee3eba7fdc75"
+  },
+  "limitations": [
+    "Equal, repeated-zero and opposite-sign finite observations now intentionally reject the affected bar panel.",
+    "Native nonnumeric warnings are preserved; the existing browser mechanism carries source errors rather than every native warning.",
+    "Table/CSV preserve exact source representations; readout formatting follows the existing policy.",
+    "Headless Chromium with emulated touch was used; no physical-device or screen-reader test was performed."
+  ],
+  "retained_setup_failures": [
+    "The first focused test mistakenly reused a rejected-view height of 24 px for an unrelated valid control; only the control height was corrected.",
+    "The first public-interface probe compared SVG before measure_chart added a diagnostic attribute; the scratch snapshot order was corrected.",
+    "The first comparison script mistook exported SVG stylesheet .rv-bar text for a bar mark; the scratch assertion now checks mark elements."
+  ]
+}

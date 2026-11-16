@@ -1,0 +1,46 @@
+---
+title: "A withdrawn example"
+description: "Safe synthetic hidden fixture used to exercise delivery denial."
+version: 1.0.0
+styles: [scientific]
+publish:
+  id: "withdrawn-example"
+  slug: "withdrawn-example"
+  summary: "Safe synthetic hidden fixture used to exercise delivery denial."
+  byline: "RichView Example Desk"
+  section: "fieldnotes"
+  tags: ["example", "method"]
+  published: "2026-10-10T09:00:00Z"
+  updated: "2026-10-18T09:00:00Z"
+  state: "hidden"
+  audience: "public"
+  kind: "report"
+  aliases: []
+  corrections: []
+---
+
+**Example material · Synthetic observations · 18 October 2026**
+
+## Withdrawn before publication
+
+This example must not be readable through supported public routes.
+
+The state is explicit in Git. Runtime urgent hides provide an additional immediate gate.
+
+```chart
+type: bar
+title: "Illustrative count"
+data:
+  inline:
+    - {category: "Hidden", value: 1}
+encoding: {x: category, y: value}
+axes:
+  x: {label: Category}
+  y: {label: "Illustrative count"}
+```
+
+*Source: Synthetic hidden fixture.*
+
+## What to take away
+
+No real private information is included.

@@ -1,0 +1,19 @@
+[package]
+name = "richview-publish"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+richview-core = { path = "../richview-core" }
+richview-app = { path = "../richview-app" }
+richview-chart = { path = "../../richview-chart" }
+richview-share = { path = "../richview-share" }
+richview-publish-server = { path = "../richview-publish-server" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+clap = { version = "4", features = ["derive", "env"] }
+chrono = { version = "0.4", default-features = false, features = ["std"] }

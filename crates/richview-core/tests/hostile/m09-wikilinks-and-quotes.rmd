@@ -1,0 +1,11 @@
+---
+title: Wikilinks and quotes
+---
+
+[[<script>HOSTILE_WIKI()</script>]] and [[x" onmouseover="HOSTILE_WIKI2|label"><img src=x onerror=HOSTILE_WIKI3()>]] and [[javascript:HOSTILE_WIKI4()]] and [[../../etc/passwd|escape]] and [[Plain Report|a "label" & <more>]].
+
+> [!quote] <img src=x onerror=HOSTILE_QUOTE()> Author "name"
+> A quoted line.
+
+> [!quote] Author" onmouseover="HOSTILE_QUOTE2()
+> Another quoted line.

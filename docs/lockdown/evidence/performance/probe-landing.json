@@ -1,0 +1,236 @@
+{
+ "_source": {
+  "files": [
+   "tmp/prf-coverage-07/landing.json"
+  ],
+  "sha256": {
+   "tmp/prf-coverage-07/landing.json": "2cf7b626141d7034a2eedf9f16380d502d2bb053ff08ce1c3f0fae8fcdaf96d3"
+  },
+  "note": "tmp/prf-coverage-07/scripts/landing.mjs, b4db233 dist/web served with gzip and no-store, Claw Mini, Chromium 153, 2026-10-21"
+ },
+ "data": {
+  "started": "2026-10-21T21:01:45.750Z",
+  "browser": "153.0.8010.12",
+  "host": {
+   "cpus": "Apple M4",
+   "count": 10,
+   "platform": "darwin"
+  },
+  "load_before": [
+   2.65966796875,
+   3.16796875,
+   2.78369140625
+  ],
+  "runs": [
+   {
+    "profile": "desktop-loopback",
+    "rep": 0,
+    "wire_bytes": 3793608,
+    "top_resources": [
+     [
+      "/landing/generated/Rendered/demo-sleek.html",
+      1620570
+     ],
+     [
+      "/richview_web_bg.wasm",
+      1516078
+     ],
+     [
+      "/richview-fonts.css",
+      325607
+     ],
+     [
+      "/landing/grain.webp",
+      58445
+     ],
+     [
+      "/assets/showcase/fonts/geist-latin-wght-normal.woff2",
+      29627
+     ],
+     [
+      "/assets/showcase/fonts/ibm-plex-mono-latin-400-italic.woff2",
+      16675
+     ],
+     [
+      "/assets/showcase/fonts/ibm-plex-mono-latin-600-normal.woff2",
+      15847
+     ],
+     [
+      "/richview_web.js",
+      15459
+     ]
+    ],
+    "load_event_ms": 286,
+    "fcp_ms": 152,
+    "lcp_ms": 152,
+    "lcp_el": "H1",
+    "cls": 0.0227,
+    "homepage_engine_ms": null,
+    "demo_first_chart_frame_ms": null,
+    "demo_chart_frames": 0,
+    "loaf_over_50": 1,
+    "loaf_max_ms": 104,
+    "demo_loaf_max_ms": 0,
+    "errors": []
+   },
+   {
+    "profile": "desktop-loopback",
+    "rep": 1,
+    "wire_bytes": 3793608,
+    "top_resources": [
+     [
+      "/landing/generated/Rendered/demo-sleek.html",
+      1620570
+     ],
+     [
+      "/richview_web_bg.wasm",
+      1516078
+     ],
+     [
+      "/richview-fonts.css",
+      325607
+     ],
+     [
+      "/landing/grain.webp",
+      58445
+     ],
+     [
+      "/assets/showcase/fonts/geist-latin-wght-normal.woff2",
+      29627
+     ],
+     [
+      "/assets/showcase/fonts/ibm-plex-mono-latin-400-italic.woff2",
+      16675
+     ],
+     [
+      "/assets/showcase/fonts/ibm-plex-mono-latin-600-normal.woff2",
+      15847
+     ],
+     [
+      "/richview_web.js",
+      15459
+     ]
+    ],
+    "load_event_ms": 67,
+    "fcp_ms": 48,
+    "lcp_ms": 48,
+    "lcp_el": "H1",
+    "cls": 0.0227,
+    "homepage_engine_ms": null,
+    "demo_first_chart_frame_ms": null,
+    "demo_chart_frames": 0,
+    "loaf_over_50": 0,
+    "loaf_max_ms": 0,
+    "demo_loaf_max_ms": 0,
+    "errors": []
+   },
+   {
+    "profile": "phone-4x-slow4g",
+    "rep": 0,
+    "wire_bytes": 3793608,
+    "top_resources": [
+     [
+      "/landing/generated/Rendered/demo-sleek.html",
+      1620570
+     ],
+     [
+      "/richview_web_bg.wasm",
+      1516078
+     ],
+     [
+      "/richview-fonts.css",
+      325607
+     ],
+     [
+      "/landing/grain.webp",
+      58445
+     ],
+     [
+      "/assets/showcase/fonts/geist-latin-wght-normal.woff2",
+      29627
+     ],
+     [
+      "/assets/showcase/fonts/ibm-plex-mono-latin-400-italic.woff2",
+      16675
+     ],
+     [
+      "/assets/showcase/fonts/ibm-plex-mono-latin-600-normal.woff2",
+      15847
+     ],
+     [
+      "/richview_web.js",
+      15459
+     ]
+    ],
+    "load_event_ms": 16299,
+    "fcp_ms": 708,
+    "lcp_ms": 708,
+    "lcp_el": "H1",
+    "cls": 0.0347,
+    "homepage_engine_ms": null,
+    "demo_first_chart_frame_ms": null,
+    "demo_chart_frames": 0,
+    "loaf_over_50": 1,
+    "loaf_max_ms": 520,
+    "demo_loaf_max_ms": 0,
+    "errors": []
+   },
+   {
+    "profile": "phone-4x-slow4g",
+    "rep": 1,
+    "wire_bytes": 3793608,
+    "top_resources": [
+     [
+      "/landing/generated/Rendered/demo-sleek.html",
+      1620570
+     ],
+     [
+      "/richview_web_bg.wasm",
+      1516078
+     ],
+     [
+      "/richview-fonts.css",
+      325607
+     ],
+     [
+      "/landing/grain.webp",
+      58445
+     ],
+     [
+      "/assets/showcase/fonts/geist-latin-wght-normal.woff2",
+      29627
+     ],
+     [
+      "/assets/showcase/fonts/ibm-plex-mono-latin-400-italic.woff2",
+      16675
+     ],
+     [
+      "/assets/showcase/fonts/ibm-plex-mono-latin-600-normal.woff2",
+      15847
+     ],
+     [
+      "/richview_web.js",
+      15459
+     ]
+    ],
+    "load_event_ms": 16289,
+    "fcp_ms": 712,
+    "lcp_ms": 712,
+    "lcp_el": "H1",
+    "cls": 0.0347,
+    "homepage_engine_ms": null,
+    "demo_first_chart_frame_ms": null,
+    "demo_chart_frames": 0,
+    "loaf_over_50": 1,
+    "loaf_max_ms": 526,
+    "demo_loaf_max_ms": 0,
+    "errors": []
+   }
+  ],
+  "load_after": [
+   2.771484375,
+   3.0712890625,
+   2.767578125
+  ]
+ }
+}

@@ -1,0 +1,186 @@
+---
+title: Chart review set
+description: The same synthetic observations, comments and interaction states in every house style.
+version: 0.0.1
+format: rmd/1
+---
+
+# Labels, curves and honest marks
+
+Keep the data and these comments fixed between captures. Compare the title, unit, zero, legend or direct names, annotations and tooltip at each width.
+
+```callout
+kind: neutral
+title: Review comment
+body: Read the names before the values. Every plotted observation remains available in the tooltip and table, including points whose labels do not fit.
+```
+
+```chart
+type: line
+title: Two close endings still need two readable names
+subtitle: Monthly observations, with a missing month and three nearby events
+encoding: {x: month, y: value, color: series}
+axes:
+  y: {label: Measured value}
+annotations:
+  - {kind: line, at: {month: '2023-06-01'}, text: First event}
+  - {kind: line, at: {month: '2023-07-01'}, text: Second event with a longer name}
+  - {kind: line, at: {month: '2023-08-01'}, text: Third event}
+data:
+  inline:
+    - {month: '2023-01-01', value: 10, series: Alpha}
+    - {month: '2023-03-01', value: 17, series: Alpha}
+    - {month: '2023-05-01', value: 14, series: Alpha}
+    - {month: '2023-07-01', value: 29, series: Alpha}
+    - {month: '2023-09-01', value: null, series: Alpha}
+    - {month: '2023-11-01', value: 31, series: Alpha}
+    - {month: '2024-01-01', value: 31.2, series: Alpha}
+    - {month: '2023-01-01', value: 12, series: Beta}
+    - {month: '2023-03-01', value: 16, series: Beta}
+    - {month: '2023-05-01', value: 23, series: Beta}
+    - {month: '2023-07-01', value: 25, series: Beta}
+    - {month: '2023-09-01', value: 28, series: Beta}
+    - {month: '2023-11-01', value: 30, series: Beta}
+    - {month: '2024-01-01', value: 31, series: Beta}
+```
+
+*Source: fixed synthetic observations. A missing observation is a gap, and a curve must pass through its actual points.*
+
+```chart
+type: line
+title: Names beside categorical lines replace a lookup in the legend
+subtitle: The last values are close, but series identities remain separate
+encoding: {x: quarter, y: value, color: series}
+axes: {y: {label: Revenue, unit: M}}
+data:
+  inline:
+    - {quarter: '2023 Q1', value: 2.2, series: Alpha}
+    - {quarter: '2023 Q2', value: 5.1, series: Alpha}
+    - {quarter: '2023 Q3', value: 3.8, series: Alpha}
+    - {quarter: '2023 Q4', value: 7.2, series: Alpha}
+    - {quarter: '2023 Q1', value: 3.1, series: Beta}
+    - {quarter: '2023 Q2', value: 4.2, series: Beta}
+    - {quarter: '2023 Q3', value: 6.7, series: Beta}
+    - {quarter: '2023 Q4', value: 7.1, series: Beta}
+```
+
+*Review comment: the title and unit share a left edge; the names and their values also share a left edge.*
+
+```chart
+type: bar
+title: Six small bars start at plain zero
+subtitle: Fractional values retain one consistent tick precision
+encoding: {x: category, y: value}
+axes: {y: {label: Rate}}
+style: {orientation: vertical}
+data: {inline: [{category: A, value: 0}, {category: B, value: 0.03}, {category: C, value: 0.06}, {category: D, value: 0.12}, {category: E, value: 0.18}, {category: F, value: 0.21}]}
+```
+
+*Review comment: zero has no decimal tail; nonzero ticks use the precision needed to tell them apart.*
+
+```chart
+type: bar
+title: Signed bars meet the rule at their true zero
+subtitle: Neither the rule nor a rounded foot changes the value endpoint
+encoding: {x: category, y: value, color: series}
+axes: {y: {label: Change, unit: MWh}}
+data:
+  inline:
+    - {category: Platform subscriptions, value: -46, series: North}
+    - {category: Platform subscriptions, value: -39, series: South}
+    - {category: Local partnerships, value: -23, series: North}
+    - {category: Local partnerships, value: -16, series: South}
+    - {category: Audience expansion, value: 0, series: North}
+    - {category: Audience expansion, value: 7, series: South}
+    - {category: Research, value: 23, series: North}
+    - {category: Research, value: 30, series: South}
+```
+
+*Review comment: the zero rule is in front, without painting through the interior of a bar.*
+
+```chart
+type: scatter
+title: Crowded points need selective names
+subtitle: Outliers and authored annotations have priority; every point retains its exact tooltip
+encoding: {x: x, y: y, label: name, size: size}
+axes: {x: {label: Cost}, y: {label: Reach}}
+annotations:
+  - {kind: point, at: {x: 1, y: 9}, text: High reach}
+  - {kind: point, at: {x: 9, y: 1}, text: High cost}
+data:
+  inline:
+    - {x: 1, y: 9, name: North, size: 1}
+    - {x: 9, y: 1, name: South, size: 1}
+    - {x: 2, y: 2, name: West, size: 2}
+    - {x: 8, y: 8, name: East, size: 2}
+    - {x: 5, y: 5, name: Central A, size: 2}
+    - {x: 5.05, y: 5.05, name: Central B, size: 2}
+    - {x: 5.1, y: 5.1, name: Central C, size: 2}
+    - {x: 5.15, y: 5.15, name: Central D, size: 2}
+    - {x: 5.2, y: 5.2, name: Central E, size: 2}
+    - {x: 5.25, y: 5.25, name: Central F, size: 2}
+    - {x: 5.3, y: 5.3, name: Central G, size: 2}
+    - {x: 5.35, y: 5.35, name: Central H, size: 2}
+```
+
+*Review comment: omit a name before allowing it to collide. Disclose omissions in chart diagnostics, with full names retained in the source and table.*
+
+```chart
+type: heatmap
+title: Cell values explain the heatmap without a color bar
+subtitle: Positive and negative values keep their signs
+encoding: {x: quarter, y: region, color: value}
+axes: {color: {label: Change}}
+data:
+  inline:
+    - {quarter: '2023 Q1', region: North, value: -12}
+    - {quarter: '2023 Q2', region: North, value: -4}
+    - {quarter: '2023 Q3', region: North, value: 8}
+    - {quarter: '2023 Q4', region: North, value: 12}
+    - {quarter: '2023 Q1', region: South, value: 0}
+    - {quarter: '2023 Q2', region: South, value: 3}
+    - {quarter: '2023 Q3', region: South, value: 8}
+    - {quarter: '2023 Q4', region: South, value: 10}
+```
+
+*Review comment: each cell keeps its exact value and readout; there is no separate scale bar.*
+
+```chart
+type: pie
+title: Slice names and values stay clear
+subtitle: The comparison set includes all six chart types
+encoding: {x: segment, y: value}
+data: {inline: [{segment: One, value: 32}, {segment: Two, value: 28}, {segment: Three, value: 22}, {segment: Four, value: 12}, {segment: Five, value: 6}]}
+```
+
+*Review comment: names, values and leader lines remain legible in every treatment.*
+
+```chart
+type: area
+title: Area boundaries keep the observations honest
+subtitle: Direct names also identify filled series
+encoding: {x: quarter, y: value, color: series}
+axes: {y: {label: Volume}}
+data:
+  inline:
+    - {quarter: '2023 Q1', value: 12, series: Alpha}
+    - {quarter: '2023 Q2', value: 28, series: Alpha}
+    - {quarter: '2023 Q3', value: 17, series: Alpha}
+    - {quarter: '2023 Q4', value: 32, series: Alpha}
+    - {quarter: '2023 Q1', value: 4, series: Beta}
+    - {quarter: '2023 Q2', value: 8, series: Beta}
+    - {quarter: '2023 Q3', value: 6, series: Beta}
+    - {quarter: '2023 Q4', value: 10, series: Beta}
+```
+
+*Review comment: fills and curves keep their original endpoints and never create a new extremum.*
+
+```table
+title: Fixed review comments
+data:
+  inline:
+    - {check: Alignment, comment: Title and unit share the same inset}
+    - {check: Identity, comment: Direct names take precedence when they fit}
+    - {check: Geometry, comment: Curves keep extrema and gaps honest}
+columns: [{key: check, label: Check}, {key: comment, label: Comment}]
+```

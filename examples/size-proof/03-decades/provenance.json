@@ -1,0 +1,28 @@
+{
+  "date_utc": "2026-11-08",
+  "started_utc": "2026-11-08T19:09:26.163Z",
+  "session_output_last_written_utc": "2026-11-08T19:12:34.977Z",
+  "report_last_written_utc": "2026-11-08T19:11:43.519Z",
+  "agent": "Codex CLI 0.167.0",
+  "requested_model": "gpt-6.1-sol",
+  "execution_context_model": "gpt-6.1-sol",
+  "reported_model": null,
+  "model_evidence": "Requested via --model and echoed in local Codex rollout turn_context; this does not independently attest the server-side model.",
+  "reasoning_effort": "xhigh",
+  "session_id": "01a1bc90-b5cf-77e0-bd42-fe399ca17cdb",
+  "command": "codex exec --skip-git-repo-check --sandbox workspace-write --model gpt-6.1-sol -c 'model_reasoning_effort=\"xhigh\"' --json - < prompt.txt > session.jsonl 2> session.stderr",
+  "exit_code": 0,
+  "permission_denials": [],
+  "session_note": "The agent encountered a Node REPL import SyntaxError during its checks.",
+  "post_generation_repairs": "None. The agent authored the final report; it has not been modified after its session.",
+  "source_snapshot_sha256": "fc4c21802abf26f80bbd95fa2097a58cd220c0831aa54ac6602286d4426e13b9",
+  "file_sha256": {
+    "prompt.txt": "9f097068c310c8ee51536a08a58205bdcb716cce4ba55952a3611f8fb330dc97",
+    "data.csv": "5116beb97f7a8ea12a45167a16dc455ef7a047c06623433c6de63477d6b5e261",
+    "report.html": "b68867140a657f03d1fc07a06b8ffa191f9de6b074e62f86ce7d9d9b31469304"
+  },
+  "checks": {
+    "browser": "Chromium headless opened the local file with no page errors or external resource requests.",
+    "table": "Compared all 28 displayed rows against data.csv, treating the displayed Unicode minus sign as negative; all matched."
+  }
+}

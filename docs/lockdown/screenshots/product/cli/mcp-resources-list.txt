@@ -1,0 +1,20 @@
+$ richview mcp  <<< resources/list   # response after initialize, pretty-printed
+{
+  "id": 3,
+  "jsonrpc": "2.0",
+  "result": {
+    "resources": [
+      {
+        "description": "Rich Markdown grammar and authoring contract",
+        "mimeType": "text/plain",
+        "name": "Rich Markdown spec",
+        "uri": "richview://spec/rmd"
+      },
+      {
+        "mimeType": "text/markdown",
+        "name": "Example: hello-world.rmd",
+        "uri": "richview://examples/hello-world"
+      }
+    ]
+  }
+}

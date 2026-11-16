@@ -1,0 +1,112 @@
+/* Paper. Every report carries these rules, so printing from a browser gets them as well as the
+   PDF output, which adds its page box. The print tokens that follow this sheet set the colours
+   (a dark style prints with its light counterpart) and the type scale at paper size. */
+@media print {
+  .rv-enter { opacity: 1; transform: none; transition: none; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  /* A single flow keeps the source reading order through page breaks. */
+  .rv-report { display: block; max-width: none; margin: 0; padding: 0; }
+  /* A narrow space (Source Sans sets 0.2em) leaves no gap a PDF reader can read as a word break,
+     so copied text runs together; a little extra word space keeps the breaks. */
+  .rv-report { word-spacing: .05em; }
+  .rv-report > * + * { margin-top: var(--rv-line); }
+  /* Paper mirrors the wide screen: the text keeps its measure in the middle of the printable
+     width, and figures run from margin to margin like the page's running footer. A figure here is
+     a chart, a table or an image, with the source note under it. A metric is one stat line, so
+     it keeps the column's left edge with the text. Only a chart the PDF output laid out for the
+     page takes that width (`rv-chart--print`): a browser's own print cannot lay a chart out
+     again, so there a chart keeps the measure, as drawn, rather than be scaled up. */
+  .rv-report__body > :is(.rv-chart--print, .rv-table, .rv-table-scroll, table, .rv-image),
+  .rv-keep > .rv-chart--print,
+  :is(.rv-chart--print, .rv-table, .rv-table-scroll, table, .rv-image) + .rv-source { max-width: 100%; }
+
+  /* Keep together: a heading with what follows it; a figure, stat, callout, quote or table row
+     whole; a block with its source note (the PDF output boxes a chart with its note, because
+     Chrome gives up a second avoided break in a row); the colophon with a last block of text. */
+  .rv-report :is(h1, h2, h3, h4, h5, h6) { break-after: avoid; }
+  :is(.rv-report__header, .rv-keep, .rv-chart, .rv-metric, .rv-callout, .rv-image, .rv-video, .rv-audio, .rv-embed, .rv-scrolly__step, .rv-scrolly__still, .rv-notes),
+  .rv-report__body :is(blockquote, tr) { break-inside: avoid; }
+  .rv-report__body > :has(+ .rv-source) { break-after: avoid; }
+  .rv-keep > :has(+ .rv-source) { break-after: avoid; }
+  .rv-report__body .rv-source { break-before: avoid; }
+  /* The colophon stays with the last block only when that block is text: a chart or table never
+     leaves half a page empty to keep a one-line colophon beside it (the colophon then opens the
+     last page alone). */
+  .rv-report__body:has(> :is(p, ul, ol, blockquote, .rv-callout, .rv-metric):last-child) + .rv-report__footer { break-before: avoid; }
+  .rv-report__body :is(p, li) { orphans: 3; widows: 3; }
+  .rv-report__body > .rv-keep { display: block; max-width: 100%; }
+  .rv-keep > .rv-chart { margin-bottom: calc(var(--rv-line) * .25); }
+
+  /* Code wraps and continues across pages, keeping every character on paper (FEA-RP-17). It takes
+     the text width, breaks at spaces and inside a word only when the word is longer than the
+     line, and hangs each source line's continuations 2ch beside a hairline that starts at the
+     second line, so an unwrapped line has none. A source line stays on one page. No character
+     is added, so copied and extracted text stays exact. */
+  .rv-report__body > pre { max-width: 100%; }
+  .rv-report__body pre { white-space: pre-wrap; overflow-x: visible; overflow-wrap: break-word; }
+  .rv-report__body pre .rv-code-line {
+    --rv-code-hang: calc(var(--rv-code-indent, 0ch) + 2ch);
+    display: block; position: relative; padding-inline-start: var(--rv-code-hang);
+    text-indent: calc(var(--rv-code-hang) * -1); break-inside: avoid;
+  }
+  .rv-report__body pre .rv-code-line::before {
+    content: ""; position: absolute; inset-inline-start: calc(var(--rv-code-indent, 0ch) + .8ch); top: 1lh; bottom: 0;
+    border-inline-start: 1px solid var(--rv-rule);
+  }
+  /* A line's continuations hang from its own indent: the renderer names the line's leading
+     whitespace in columns, up to 24, so an indented line never seems to continue as a dedent. */
+  .rv-code-line--i1 { --rv-code-indent: 1ch; } .rv-code-line--i2 { --rv-code-indent: 2ch; }
+  .rv-code-line--i3 { --rv-code-indent: 3ch; } .rv-code-line--i4 { --rv-code-indent: 4ch; }
+  .rv-code-line--i5 { --rv-code-indent: 5ch; } .rv-code-line--i6 { --rv-code-indent: 6ch; }
+  .rv-code-line--i7 { --rv-code-indent: 7ch; } .rv-code-line--i8 { --rv-code-indent: 8ch; }
+  .rv-code-line--i9 { --rv-code-indent: 9ch; } .rv-code-line--i10 { --rv-code-indent: 10ch; }
+  .rv-code-line--i11 { --rv-code-indent: 11ch; } .rv-code-line--i12 { --rv-code-indent: 12ch; }
+  .rv-code-line--i13 { --rv-code-indent: 13ch; } .rv-code-line--i14 { --rv-code-indent: 14ch; }
+  .rv-code-line--i15 { --rv-code-indent: 15ch; } .rv-code-line--i16 { --rv-code-indent: 16ch; }
+  .rv-code-line--i17 { --rv-code-indent: 17ch; } .rv-code-line--i18 { --rv-code-indent: 18ch; }
+  .rv-code-line--i19 { --rv-code-indent: 19ch; } .rv-code-line--i20 { --rv-code-indent: 20ch; }
+  .rv-code-line--i21 { --rv-code-indent: 21ch; } .rv-code-line--i22 { --rv-code-indent: 22ch; }
+  .rv-code-line--i23 { --rv-code-indent: 23ch; } .rv-code-line--i24 { --rv-code-indent: 24ch; }
+
+  /* Tables print every row: no scroll box, overflow rows shown without their toggle, the
+     header on every page and the total once. A link cell prints its whole address under the
+     host; the PDF output sets the address itself as the link, in small type. */
+  :is(.rv-table, .rv-table-scroll) { overflow: visible; }
+  .rv-table-scroll > table { width: 100%; min-width: 0; }
+  .rv-report__body thead { display: table-header-group; }
+  .rv-report__body tfoot { display: table-row-group; }
+  .rv-table details { margin: 0; }
+  .rv-table details > summary { display: none; }
+  /* Every disclosure prints open (the runtime also opens them for the print), so no text is lost
+     to a fold; a table's own toggle has nothing left to say. */
+  .rv-report details::details-content { content-visibility: visible; display: block; }
+  .rv-report__body td:is(.link, .address) { overflow-wrap: anywhere; }
+  .rv-report__body td.link a::after { content: "\A" attr(href); white-space: pre-wrap; font-size: .85em; color: var(--rv-ink-soft); }
+  .rv-report__body td.address { font-size: .85em; }
+  .rv-report__body td.address a { color: var(--rv-ink-soft); text-decoration: none; }
+
+  /* No image or video poster taller than 60% of the page. Charts get the same cap from their
+     layout, and the runtime hides their actions, overview and readout in print. */
+  .rv-report img { width: auto; max-width: 100%; height: auto; max-height: 60vh; }
+
+  /* Nothing sticks or floats over the page: pinned figures, headers and open dialogs flow where
+     they sit in the source, and the screen-only controls are gone. */
+  .rv-report :is(.rv-scrolly__stage, .rv-report__header) { position: static !important; }
+  .rv-report dialog, .rv-embed__load, .rv-report button.rv-screen-only { display: none !important; }
+  .rv-scrolly { display: block; }
+  .rv-scrolly__steps { list-style: none; margin: 0; padding: 0; }
+  .rv-scrolly__stage img { transform: none !important; }
+  .rv-scrolly__stage .rv-scrolly__mark { display: none; }
+  .rv-scrolly__step { min-height: 0 !important; margin: 0 0 var(--rv-line); padding: 0 !important; border: 0 !important; opacity: 1 !important; }
+  .rv-scrolly__still { margin: 0 0 calc(var(--rv-line) * .5); }
+
+  /* Players and frames cannot work on paper: the stand-in printed beside them takes their place
+     (FEA-RP-45). */
+  .rv-print-only { display: block; }
+  .rv-report figure:has(> :is(audio, video)), .rv-report figure[data-rv-embed] { display: none; }
+
+  /* Media that cannot play on paper: a line under a rule. */
+  .rv-media-card { margin: calc(var(--rv-line) * 1.25) 0; padding-top: calc(var(--rv-line) * .5); border-top: 1px solid var(--rv-rule); }
+  .rv-media__line { margin: .5em 0 0; font-size: var(--rv-size-small); line-height: 1.45; color: var(--rv-ink-soft); overflow-wrap: anywhere; }
+  .rv-media-card .rv-media__line { margin: 0; }
+}

@@ -1,0 +1,117 @@
+# RichView house style — "hand-drawn".
+# Ink on off-white paper: black text, a dark grey story tone, a light grey context tone and one
+# red-pencil accent kept for the single most important mark, the stat underline. The report
+# title, section heads, chart claims, callout titles, table heads and NOTE/SOURCE labels are
+# lettered by hand (Patrick Hand); reading text is Newsreader in sentence case. Chart lettering
+# uses measured/constrained glyph boxes. Pencil rules and gray hatch/marker identities reinforce
+# the chart treatment; data endpoints and values remain exact.
+#
+# Paper, ink and every grey share one warm neutral hue (OKLCH 85) and differ in lightness, so the
+# greys are steps between the ink and the paper rather than separately picked colours.
+colophon: show
+tokens:
+  scheme: light
+  bg: "oklch(0.982 0.007 85)"
+  bg-elev: "oklch(0.955 0.01 85)"
+  bg-chart: "oklch(0.982 0.007 85)"
+  ink: "oklch(0.22 0.004 85)"
+  # Story tone and secondary text: 8.7:1 on the paper.
+  ink-soft: "oklch(0.4 0.007 85)"
+  # Pencil grey for section and footer rules, axis lines, ticks and leaders; as readout text it
+  # still reaches 4.5:1 on the paper and on raised surfaces.
+  ink-faint: "oklch(0.53 0.008 85)"
+  rule: "oklch(0.874 0.013 85)"
+  rule-soft: "oklch(0.92 0.012 85)"
+  # Red pencil.
+  accent: "oklch(0.52 0.174 31)"
+  # Annotation bands and brushes: a wash of ink.
+  accent-soft: "oklch(0.22 0.004 85 / 0.07)"
+  link: "oklch(0.22 0.004 85)"
+  brand: "oklch(0.45 0.10 250)"
+  # Trends and callout kinds read from their signs and words, not from colour.
+  up: "oklch(0.22 0.004 85)"
+  down: "oklch(0.22 0.004 85)"
+  hold: "oklch(0.4 0.007 85)"
+  chart-ink: "oklch(0.22 0.004 85)"
+  font-text: "Newsreader, Georgia, serif"
+  font-display: "Patrick Hand, Newsreader, Georgia, serif"
+  font-ui: "RichView Mono, ui-monospace, monospace"
+  font-mono: "RichView Mono, ui-monospace, monospace"
+  size-small: "14px"
+  size-base: "18px"
+  size-h3: "22px"
+  size-h2: "32px"
+  # Stat values: the lettering face draws small figures for its size; the title stays largest.
+  size-h1: "40px"
+  size-display: "50px"
+  size-small-phone: "14px"
+  size-base-phone: "17px"
+  size-h3-phone: "21px"
+  size-h2-phone: "28px"
+  size-h1-phone: "33px"
+  size-display-phone: "38px"
+  line-base: "1.6"
+  # About 68 characters of Newsreader at 18px.
+  measure: "41rem"
+  radius-s: "0px"
+  radius-m: "0px"
+  shadow-float: "none"
+  density: 1
+  block-gap: "4rem"
+  block-gap-phone: "2.5rem"
+layout:
+  report-max-width: "880px"
+# Playful, Ghibli-whimsical: a soft overshoot as things settle onto the page.
+motion:
+  character: playful
+  duration: 720
+  easing: spring
+  stagger: 70
+  block-entrance: fade-up
+  distance: 16
+components:
+  thumbnail:
+    rule: pencil
+  figure:
+    frame: none
+    title: below
+    description: below
+  title:
+    transform: uppercase
+    letter-spacing: "0.02em"
+  heading:
+    transform: uppercase
+    letter-spacing: "0.02em"
+  table-head:
+    font: display
+    transform: uppercase
+    letter-spacing: "0.04em"
+  source-label:
+    font: display
+    transform: uppercase
+    letter-spacing: "0.04em"
+  deck:
+    style: normal
+  # Header, section, footer and table-head rules drawn as pencil strokes.
+  rules:
+    style: pencil
+  # A marker bracket down the left side instead of the rule above.
+  callout:
+    style: bracket
+  # The stat value underlined with one red-pencil stroke.
+  metric:
+    style: underline
+chart:
+  legend: bottom
+  font-family: "Patrick Hand, cursive"
+  decals: true
+  # Data in greys, ink for text. The first four sit at least 0.15 apart in lightness and reach 3:1 on
+  # the paper; hatches and dashes carry identity as well (STY-22, STY-23).
+  palette: hand-drawn
+  # Heatmaps run from paper to ink, so higher values are more salient; the middle stop is the
+  # OKLCH midpoint of the ends, so equal steps in value are equal steps in lightness.
+  ramp: ["oklch(0.935 0.01 85)", "oklch(0.5775 0.007 85)", "oklch(0.22 0.004 85)"]
+  negative-ramp: ["oklch(0.935 0.01 85)", "oklch(0.5775 0.007 85)", "oklch(0.22 0.004 85)"]
+  # Negative heatmap cells carry a diagonal pencil hatch as well as the same greys (STY-56).
+  sign-cue: hatch
+  bar-radius: 0

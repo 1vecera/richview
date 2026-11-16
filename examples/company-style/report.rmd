@@ -1,0 +1,28 @@
+---
+title: Four teams contributed to the quarter
+version: 0.0.1
+description: A fictional example showing how one brand colour shapes a report.
+styles: [company.rstyle.yaml]
+---
+
+Your Company Name Inc. is a fictional company. Its single brand colour drives the report style and series palette.
+
+```chart
+type: bar
+title: Each team contributed to the quarter
+data:
+  inline:
+    - { quarter: Q1, value: 24, team: North }
+    - { quarter: Q1, value: 18, team: South }
+    - { quarter: Q1, value: 15, team: East }
+    - { quarter: Q1, value: 12, team: West }
+    - { quarter: Q2, value: 29, team: North }
+    - { quarter: Q2, value: 22, team: South }
+    - { quarter: Q2, value: 18, team: East }
+    - { quarter: Q2, value: 14, team: West }
+encoding: { x: quarter, y: value, color: team }
+axes:
+  y: { label: Illustrative units }
+```
+
+*Source: Fictional example data.*

@@ -1,0 +1,34 @@
+$ richview check demo/report.rmd --format json   # the init template; JSON pretty-printed
+{
+  "charts": [
+    {
+      "chartId": "rv-chart-1",
+      "chartType": "bar",
+      "checks": [],
+      "dimensions": {
+        "height": 405.0,
+        "width": 720.0
+      },
+      "droppedLabels": [],
+      "engine": "rust-svg",
+      "fontBounds": "estimated height; SVG textLength-constrained width",
+      "geometryMeasured": true,
+      "measured": false,
+      "measurement": "emitted mark geometry; label height is estimated, browser separately measures actual glyph bounds",
+      "sourceLine": 21,
+      "status": "clean"
+    }
+  ],
+  "diagnostics": [
+    {
+      "code": "chart.font-bounds-estimated",
+      "level": "info",
+      "line": 21,
+      "message": "Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser",
+      "path": "rv-chart-1",
+      "tag": "chart"
+    }
+  ],
+  "status": "clean"
+}
+(exit 0)

@@ -1,0 +1,40 @@
+---
+title: Find who connects a team
+description: A network diagram draws people as nodes and their messages as lines, so the people who link the most others are the largest.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Two people hold the team together
+
+These illustrative figures count the messages between twelve colleagues. A node is as large as the number of people it is linked to, and a line is as thick as the messages it stands for. The positions come from a fixed layout, so the same rows always give the same picture, and carry no value.
+
+```chart
+type: network
+title: Dee and Gus link the most people in the team
+subtitle: Messages sent between colleagues, synthetic
+data:
+  inline:
+    - {from: Ada, to: Ben, msgs: 12}
+    - {from: Ada, to: Cai, msgs: 8}
+    - {from: Ada, to: Dee, msgs: 15}
+    - {from: Ben, to: Cai, msgs: 5}
+    - {from: Ben, to: Eli, msgs: 9}
+    - {from: Cai, to: Dee, msgs: 6}
+    - {from: Dee, to: Fay, msgs: 11}
+    - {from: Eli, to: Fay, msgs: 4}
+    - {from: Fay, to: Gus, msgs: 7}
+    - {from: Gus, to: Hana, msgs: 10}
+    - {from: Hana, to: Ivo, msgs: 3}
+    - {from: Ivo, to: Jo, msgs: 6}
+    - {from: Gus, to: Ivo, msgs: 2}
+    - {from: Dee, to: Gus, msgs: 5}
+    - {from: Kim, to: Lee, msgs: 9}
+encoding: {source: from, target: to, y: msgs}
+axes:
+  y: {label: Messages}
+```
+
+*Source: Illustrative values.*
+
+Use the keyboard or pointer to read how many links each person has and the messages on each line.

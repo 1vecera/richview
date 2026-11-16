@@ -1,0 +1,24 @@
+---
+title: Code
+---
+
+Inline `<script>HOSTILE_CODE()</script>` and ``<img src=x onerror=HOSTILE_CODE2()>``.
+
+```"><script>HOSTILE_LANG()</script>
+<script>HOSTILE_FENCE()</script>
+```
+
+```rv-chart onclick=HOSTILE_INFO()
+text
+```
+
+```html
+<img src=x onerror=HOSTILE_HTML_FENCE()>
+</script><script>HOSTILE_BREAKOUT()</script>
+```
+
+    <script>HOSTILE_INDENTED()</script>
+
+```unknownblock
+kind: <script>HOSTILE_UNKNOWN()</script>
+```

@@ -1,0 +1,38 @@
+---
+title: About RichView News
+description: A maintained example publication for RichView Publish.
+version: 1.0.0
+styles: [scientific]
+publish:
+  id: about
+  slug: about
+  summary: What this publication is, how it works, and how corrections are handled.
+  byline: RichView Example Desk
+  section: fieldnotes
+  tags: [about]
+  published: 2026-10-18T09:00:00Z
+  updated: 2026-10-18T09:00:00Z
+  state: published
+  audience: public
+  kind: page
+---
+
+## A publication you can inspect
+
+RichView News is the maintained demonstration of **RichView Publish**. Its reports use safe example material. All numerical observations are synthetic unless a story explicitly states a dated source. They are not investment research, performance benchmarks or reports about a real business.
+
+The publication brings together Rich Markdown, the RichView Charts renderer and report experiences. Git holds the authored sources and ordinary editorial configuration. The reader gateway handles membership, immediate withdrawal and coherent release activation.
+
+## Corrections and source notes
+
+Each report has a stable identity. A correction keeps that identity and records the date and explanation beside the story. If a title or address changes, explicit aliases preserve earlier links. Synthetic examples remain labelled after an update.
+
+## Editorial access
+
+Readers can browse the material their membership allows. Editors propose Git changes and can urgently withdraw content in their section. Super editors review a different actor's change, curate the publication and manage scopes. The operator documentation describes the exact approval, build, release and restore mechanisms.
+
+## The format and the software
+
+[RichView source](https://github.com/richview-universe/richview-v3) · [RichView](https://richview.ai)
+
+The platform source uses the monorepo's MIT license. The repository's current visibility is independent of that license. Fonts and assets retain their own notices.

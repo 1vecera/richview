@@ -1,0 +1,8 @@
+---
+title: Remote
+---
+
+```image
+src: https://example.com/a.png
+alt: Remote image
+```

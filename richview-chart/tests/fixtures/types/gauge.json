@@ -1,0 +1,20 @@
+{
+ "spec": {
+  "type": "gauge",
+  "title": "Customer satisfaction is fair, short of good",
+  "encoding": {"x": "measure", "y": "score"},
+  "axes": {"y": {"label": "Score"}},
+  "style": {
+   "min": 0,
+   "max": 100,
+   "bands": [
+    {"to": 50, "label": "Poor"},
+    {"to": 75, "label": "Fair"},
+    {"to": 100, "label": "Good"}
+   ]
+  }
+ },
+ "rows": [
+  {"measure": "Satisfaction", "score": 72}
+ ]
+}

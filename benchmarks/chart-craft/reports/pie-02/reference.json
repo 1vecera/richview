@@ -1,0 +1,1 @@
+{"type": "pie", "title": "Pie study 02: synthetic observations", "subtitle": "Seasonality across calendar boundaries", "encoding": {"x": "x", "y": "y"}, "axes": {"y": {"suffix": "subscribers"}}, "style": {"ratio": "16:9"}, "data": {"inline": [{"x": "Subscriptions", "y": 53}, {"x": "Events", "y": 62}, {"x": "Commercial", "y": 77}, {"x": "Research", "y": 98}]}}

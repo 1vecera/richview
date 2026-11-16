@@ -1,0 +1,28 @@
+---
+title: Scrolly step
+---
+
+```scrolly
+image: {src: data:image/png;base64,AAAA, alt: Hostile}
+steps:
+  - text: |
+      Step <script>HOSTILE_STEP()</script> [js](javascript:HOSTILE_STEP_LINK())
+
+      ## Heading {#rv-hostile-step}
+
+      Cited.[^rv-hostile-step]
+
+      [^rv-hostile-step]: Step note.
+```
+
+```callout
+kind: up
+body: |
+  Callout cites.[^rv-hostile-two]
+
+  [^rv-hostile-two]: Second note.
+```
+
+Body cites.[^rv-hostile-three]
+
+[^rv-hostile-three]: Third note.

@@ -1,0 +1,79 @@
+---
+title: The nightly import, check by check
+description: A flow chart lays out cards in the order their edges give, joins them with right-angled lines that never cross a card, and sets each label on free paper beside its line.
+version: 0.0.2
+styles: [scientific]
+---
+
+## Nothing is written until every check passes
+
+The import waits for its files, loads them, then runs its checks inside one job. A failed check or a changed schema stops the run before any table changes, and the alert names the check. Only a clean run refreshes the summaries and, when publishing is on, writes the dashboard's extract.
+
+```chart
+type: flow
+title: Nothing is written until every check passes
+subtitle: The nightly import. A red line is a failure; the dashed line waits and asks again.
+nodes:
+  - {title: Nightly run starts, kind: start}
+  - {id: fresh, title: "New files since the last run?", kind: decision}
+  - id: wait
+    title: Wait and look again
+    lines: |
+      every 15 minutes, four times at most;
+      then the alert
+    tone: muted
+  - id: load
+    title: Load the new files
+    lines: |
+      parse CSV and JSON;
+      reject rows without an id
+  - id: checks
+    title: Run the checks
+    lines: |
+      row counts, ranges, duplicates;
+      results kept in run_checks
+  - {id: failed, title: "Any check failed?", kind: decision}
+  - {id: schema, title: "Schema as yesterday?", kind: decision}
+  - id: write
+    title: Write the tables
+    lines: replace today's partition
+  - id: totals
+    title: Refresh the summaries
+    lines: one row per region and day
+  - id: stop
+    title: Run fails
+    lines: |
+      nothing written;
+      the alert names the check
+    tone: alert
+  - {id: publish, title: "Publish on?", kind: decision}
+  - id: extract
+    title: Dashboard extract
+    kind: object
+    lines: |
+      orders.parquet,
+      then _MANIFEST last
+  - {id: done, title: Run ends, kind: end}
+groups:
+  - {label: One job · checks before any write, nodes: [checks, failed, schema, write, totals, stop]}
+edges:
+  - Nightly run starts -> fresh
+  - "fresh -> load: yes"
+  - "fresh -> wait: no"
+  - "wait ..> fresh: look again"
+  - "load -> checks: new rows"
+  - checks -> failed
+  - "failed -> schema: no"
+  - {edge: "failed -> stop: yes", tone: alert}
+  - "schema -> write: yes"
+  - {edge: "schema -> stop: no", tone: alert}
+  - write -> totals
+  - totals -> publish
+  - "publish -> extract: yes"
+  - "publish -> done: no"
+  - extract -> done
+```
+
+*Source: Illustrative pipeline.*
+
+Move through the cards with the keyboard in reading order; each one names what leads to it and where it leads.

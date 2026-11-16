@@ -1,0 +1,77 @@
+diff --git a/crates/richview-web/src/browser/charts.rs b/crates/richview-web/src/browser/charts.rs
+index 75bcc64..51dc837 100644
+--- a/crates/richview-web/src/browser/charts.rs
++++ b/crates/richview-web/src/browser/charts.rs
+@@ -3030,7 +3030,7 @@ fn paint_scene(v: &mut View, s: &Scene) {
+                     "rvc-grid"
+                 },
+             );
+-            t(v, &key, &tick.label, r.x - 6.0, tick.y + base, "end", "");
++            t(v, &key, &tick.label, r.x - 4.0, tick.y + base, "end", "");
+             if let Some(label) = &tick.secondary {
+                 t(
+                     v,
+diff --git a/richview-chart/src/rmd_render.rs b/richview-chart/src/rmd_render.rs
+index 26aef26..8a8706d 100644
+--- a/richview-chart/src/rmd_render.rs
++++ b/richview-chart/src/rmd_render.rs
+@@ -1022,7 +1022,7 @@ fn render_contract(chart: &Value, data: &[Value], width: f64, _theme: &str, mono
+             for t in &p.ticks {
+                 painter.labels.push(LabelBox {
+                     text: t.label.clone(),
+-                    x: p.rect.x - 6.0 - t.label.chars().count() as f64 * scene.font_size * 0.6,
++                    x: p.rect.x - 4.0 - t.label.chars().count() as f64 * scene.font_size * 0.6,
+                     y: t.y - 9.0,
+                     w: t.label.chars().count() as f64 * scene.font_size * 0.6,
+                     h: scene.font_size,
+diff --git a/richview-chart/src/svg.rs b/richview-chart/src/svg.rs
+index a80c068..3ceeed6 100644
+--- a/richview-chart/src/svg.rs
++++ b/richview-chart/src/svg.rs
+@@ -425,7 +425,7 @@ pub fn to_svg(scene: &Scene, id: &str) -> String {
+             let _ = write!(
+                 out,
+                 r#"<text x="{}" y="{}" text-anchor="end">{}</text>"#,
+-                r.x - 6.0,
++                r.x - 4.0,
+                 t.y + baseline,
+                 escape(&t.label)
+             );
+diff --git a/richview-chart/tests/calendar_label_diagnostics.rs b/richview-chart/tests/calendar_label_diagnostics.rs
+index d5d5603..fc5cc13 100644
+--- a/richview-chart/tests/calendar_label_diagnostics.rs
++++ b/richview-chart/tests/calendar_label_diagnostics.rs
+@@ -34,3 +34,33 @@ fn calendar_diagnostics_follow_shifted_endpoint_labels() {
+         }
+     }
+ }
++
++#[test]
++fn calendar_value_labels_fit_inside_the_native_frame() {
++    for scale in [1.0, 1e-12, 1e20] {
++        let rows = vec![
++            json!({"date":"2026-01-01","value":scale}),
++            json!({"date":"2026-01-02","value":2.0*scale}),
++            json!({"date":"2026-01-03","value":3.0*scale}),
++        ];
++        for format in ["currency", "percent"] {
++            let chart = json!({
++                "type":"line", "encoding":{"x":"date","y":"value"},
++                "axes":{"y":{"format":format}},
++            });
++            for width in [240.0, 320.0, 720.0] {
++                let out = render_rmd_chart(&chart, &rows, width, "scientific");
++                assert!(
++                    out.diagnostics["checks"]
++                        .as_array()
++                        .unwrap()
++                        .iter()
++                        .all(|check| check["kind"] != "clipping"),
++                    "{format} scale {scale} at {width}px: {}",
++                    out.diagnostics
++                );
++                assert_eq!(out.runtime.as_ref().unwrap()["chart"]["data"]["inline"], json!(rows));
++            }
++        }
++    }
++}

@@ -1,0 +1,8 @@
+---
+title: Numeric source zoom review
+version: 0.0.1
+---
+
+```chart
+{"type":"scatter","title":"Source positions survive zoom","encoding":{"x":"position","y":"value"},"data":{"inline":[{"position":0,"value":1,"sample":"A"},{"position":"4.000","value":2,"sample":"B"},{"position":"6.000","value":3,"sample":"C"},{"position":10,"value":4,"sample":"D"}]}}
+```

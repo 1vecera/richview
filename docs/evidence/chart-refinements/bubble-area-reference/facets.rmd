@@ -1,0 +1,78 @@
+---
+title: Interpreting circle areas
+version: 0.0.1
+---
+
+```chart
+{
+  "type": "scatter",
+  "title": "Orders and revenue",
+  "encoding": {
+    "x": "orders",
+    "y": "revenue",
+    "size": "customers",
+    "facet": "region"
+  },
+  "axes": {
+    "x": {
+      "label": "Orders"
+    },
+    "y": {
+      "label": "Revenue",
+      "suffix": "CZK"
+    }
+  },
+  "data": {
+    "inline": [
+      {
+        "orders": 100,
+        "revenue": 1000,
+        "customers": 1,
+        "region": "North"
+      },
+      {
+        "orders": 200,
+        "revenue": 4000,
+        "customers": 4,
+        "region": "North"
+      },
+      {
+        "orders": 300,
+        "revenue": 9000,
+        "customers": 9,
+        "region": "North"
+      },
+      {
+        "orders": 400,
+        "revenue": 16000,
+        "customers": 16,
+        "region": "North"
+      },
+      {
+        "orders": 100,
+        "revenue": 1000,
+        "customers": 100,
+        "region": "South"
+      },
+      {
+        "orders": 200,
+        "revenue": 4000,
+        "customers": 400,
+        "region": "South"
+      },
+      {
+        "orders": 300,
+        "revenue": 9000,
+        "customers": 900,
+        "region": "South"
+      },
+      {
+        "orders": 400,
+        "revenue": 16000,
+        "customers": 1600,
+        "region": "South"
+      }
+    ]
+  }
+}
+```

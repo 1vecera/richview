@@ -1,0 +1,11 @@
+chart:
+  palette: ['</script><script>HOSTILE_P()</script>', blue]
+  ramp: ['</style><script>HOSTILE_R()</script>', white, black]
+  negativeRamp: ['red;} body{background:url(//evil.example/HOSTILE)}', white, black]
+  curve: '</script><script>HOSTILE_C()</script>'
+  fontFamily: 'x;} </style><script>HOSTILE_F()</script>'
+  figuresFont: "'; } @import 'https://evil.example/HOSTILE.css"
+  legend: '"><script>HOSTILE_L()</script>'
+  barRadius: '</style><script>HOSTILE_B()</script>'
+  line: { smoothing: '</script><script>HOSTILE_S()</script>' }
+  '</style><script>HOSTILE_KEY()</script>': 1

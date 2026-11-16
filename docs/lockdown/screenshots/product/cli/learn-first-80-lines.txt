@@ -1,0 +1,53 @@
+$ richview learn | head -80
+---
+type: grammar
+title: The .rmd grammar
+---
+
+## The .rmd grammar
+
+Rich Markdown is CommonMark with YAML frontmatter and rich YAML fences: chart, table, big/metric, callout, image, embed, audio, video. Unknown fences remain code; unknown frontmatter keys are preserved. Local drafts need no metadata, but rendering requires an explicit dedicated report folder. Publishing requires title and semver version; first drafts start at 0.0.1. Add a description (the lede) to explain the report. Frontmatter supports title_image and prolog. Markdown supports tables, strikethrough, tasks, footnotes, definition lists, [[report links]] and native MathML from $inline$ / $$display$$ LaTeX. Prose gets curly quotes, dashes and ellipses; code, math and URLs keep their characters. A wholly emphasised paragraph starting with Source:, Sources:, Note: or Notes: directly after a rich block becomes that block's source note. No JavaScript/JSX is evaluated. Raw HTML and URLs are sanitized.
+
+---
+
+---
+type: chart-contract
+title: The chart contract
+---
+
+## The chart contract
+
+Write chart YAML with type: line|bar|scatter|area|pie|heatmap|histogram|boxplot|interval, title (the claim), subtitle (the interpretation), data.inline with expanded row mappings for small inputs, or block-local data.csv/data.json references for larger inputs, and encoding: {x: field, y: field, color: series_field, size: bubble_field, facet: panel_field}. Histogram uses encoding.x alone for numeric observations and optional binning: {count, extent, measure: count|proportion|density}; explicit edges replace count/extent. Groups stack within shared intervals and original rows remain in Table/CSV. Boxplot uses numeric encoding.y and optional categorical encoding.x, color and facets; R-7 quartiles, observed whiskers inside inclusive 1.5-IQR fences and original potential-outlier records. Its orientation may be auto, vertical or horizontal; axes.x/y retain category/value meanings. encoding.color is the series channel. axes.x/y support labels, formats and suffixes. axes.x.locale supports en-US (default), en-GB, cs-CZ, de-DE and ja-JP compact UTC calendar labels. Charts are responsive: set style.ratio as a positive number or W:H, never a fixed pixel height. Annotation kinds are point, range, line, band and text; anchors use at/from/to. Header data and data.id/url/sql are hard errors. Put the source and optional styling YAML beside each other in one dedicated report folder; local assets must remain inside it. Exactly one .rmd per folder. Native/browser hosts resolve local CSV/JSON before entering core. Exact values and missing observations must remain honest. Rust owns chart layout and browser interactions. Interval charts require categorical encoding.x and authored numeric encoding.lower/encoding.upper; optional encoding.y supplies an estimate. The renderer does not infer confidence or a distribution. Duplicate category/group pairs in a panel and reversed bounds are errors. Original values remain in readouts, Table and CSV.
+
+---
+
+---
+type: style
+title: Content plus cascading styles
+---
+
+## Content plus cascading styles
+
+Keep report content in .rmd and appearance in ordered .rstyle.yaml files. Canonical builtins are brutalist, scientific, sleek-light, sleek-dark and hand-drawn; sleek is the dark compatibility name and editorial aliases brutalist. hand-drawn letters the title, section heads, chart claims, callout titles, table heads and NOTE/SOURCE labels by hand, sets reading text in a serif and charts in greys with monospaced chart text, and draws its rules, callout bracket and stat underline as seeded pencil strokes (components rules.style: pencil, callout.style: bracket, big.style: underline; title, heading, table-head and source-label take font: display|text|ui|mono). Top-level sections: tokens, layout, motion, components, chart. Cascade is shallow last-wins per section key; arrays replace. tokens/layout become --rv-* custom properties; size-small, size-base, size-h3, size-h2, size-h1 and size-display (each with an optional -phone variant) form one type scale, and measure sets the reading width. Color, font and dimension leaves pass closed safety grammars; CSS url(), @import, expressions and arbitrary rules are rejected. Canonical font subsets are embedded for offline reports. Theme changes preserve data, units, annotations and meaning. Report text does not animate; motion.enabled: false renders charts settled, and the retired motion timing keys and components.callout.left-bar-width report style.retired. Motion respects prefers-reduced-motion.
+
+---
+
+---
+type: workflow
+title: The source-centered authoring loop
+---
+
+## The source-centered authoring loop
+
+Build by editing .rmd, data and styles. Preview the actual rendered report. Validate checks syntax/schema; check measures emitted chart geometry, including clipping, collisions and omitted-label provenance. Read diagnostics {level,code,message,path,line?,tag?,details?}, revise the source, and preview again. VS Code offers inline chart/table insertion, live semantic diagnostics, safe optional formatting, schema/value/data-field completion and preview; the web surface is a simple source/style playground. CLI mirrors MCP tools richview_render, richview_validate, richview_check, richview_publish and richview_learn. Publishing stores immutable slug/version artifacts, source and resolved styles/data for regeneration. Local PDF export uses richview generate --to pdf (or MCP richview_render with output: pdf), an installed Chromium-family browser on Linux/macOS, A4 or Letter, settled charts and embedded local assets. Sleek dark prints as sleek-light; all table rows remain present and media prints as posters or link cards. Browser requests outside the staged report and embedded data are blocked. Publication remains separate from local preparation.
+
+---
+
+---
+type: anti-slop
+title: RichView's design principles
+---
+
+## RichView's design principles
+
+Content leads. Every chart deserves an interpretation and every heading should make an evidence-backed claim. Keep analytical content identical across themes. Reuse the existing semantic styles and font assets; favor precise axes, units, restrained spacing and purposeful annotations. Preserve data provenance and label thinning decisions. Avoid generic dashboard grids, decorative gradients, glass effects, hover lifts and misleading chart scales. Add chrome only when it helps someone author or understand the story.

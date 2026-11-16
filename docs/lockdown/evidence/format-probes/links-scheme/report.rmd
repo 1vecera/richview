@@ -1,0 +1,5 @@
+---
+title: Links one
+---
+
+[ftp](ftp://example.com/x) and [js](javascript:alert(1)).

@@ -1,0 +1,110 @@
+---
+title: Scatter labels stay sparse unless you ask
+description: Two scatter charts built from synthetic data for demonstrating label behaviour, one with default labelling and one with explicit highlights.
+version: 0.1.0
+tags: [demo, scatter, labels]
+format: rmd/1
+---
+
+# Scatter labels stay sparse unless you ask
+
+Every row below is synthetic data for demonstrating label behaviour; none of it is a measurement. The first chart names 40 stations, and 34 of them sit almost on top of each other. RichView labels the isolated stations first, caps the names it attempts, and hides any name that would collide or need a leader line. The hidden names remain in the readouts, the table and the drop report.
+
+## Sparse by default
+
+```chart
+type: scatter
+title: Isolated stations carry their names, the packed cluster does not
+subtitle: 40 labelled points; names that cannot sit beside their point are hidden, never joined by a leader
+data:
+  inline:
+    - { station: Aldmoor, rainfall_mm: 50.8, sunshine_h: 58.6 }
+    - { station: Brightwell, rainfall_mm: 53.1, sunshine_h: 58.0 }
+    - { station: Carrow, rainfall_mm: 52.3, sunshine_h: 60.1 }
+    - { station: Dunmere, rainfall_mm: 48.9, sunshine_h: 61.1 }
+    - { station: Eastvale, rainfall_mm: 48.8, sunshine_h: 60.5 }
+    - { station: Farnley, rainfall_mm: 49.0, sunshine_h: 58.1 }
+    - { station: Gresham, rainfall_mm: 51.5, sunshine_h: 63.3 }
+    - { station: Hollin, rainfall_mm: 49.4, sunshine_h: 59.1 }
+    - { station: Ivesley, rainfall_mm: 52.9, sunshine_h: 64.1 }
+    - { station: Jarrow, rainfall_mm: 52.5, sunshine_h: 60.3 }
+    - { station: Kelby, rainfall_mm: 55.3, sunshine_h: 57.8 }
+    - { station: Lowick, rainfall_mm: 54.5, sunshine_h: 59.5 }
+    - { station: Marden, rainfall_mm: 49.5, sunshine_h: 58.3 }
+    - { station: Norbury, rainfall_mm: 50.7, sunshine_h: 63.2 }
+    - { station: Oakham, rainfall_mm: 49.8, sunshine_h: 61.6 }
+    - { station: Pendle, rainfall_mm: 53.0, sunshine_h: 60.1 }
+    - { station: Quorn, rainfall_mm: 52.3, sunshine_h: 57.9 }
+    - { station: Redmere, rainfall_mm: 48.9, sunshine_h: 58.9 }
+    - { station: Saltby, rainfall_mm: 53.3, sunshine_h: 60.5 }
+    - { station: Tarvin, rainfall_mm: 50.7, sunshine_h: 61.6 }
+    - { station: Ulverby, rainfall_mm: 51.7, sunshine_h: 59.6 }
+    - { station: Vexford, rainfall_mm: 54.1, sunshine_h: 62.4 }
+    - { station: Wickham, rainfall_mm: 50.2, sunshine_h: 61.5 }
+    - { station: Yarrow, rainfall_mm: 52.2, sunshine_h: 63.6 }
+    - { station: Ashgrove, rainfall_mm: 53.6, sunshine_h: 59.5 }
+    - { station: Bramley, rainfall_mm: 55.4, sunshine_h: 58.3 }
+    - { station: Corbridge, rainfall_mm: 51.4, sunshine_h: 62.8 }
+    - { station: Denholm, rainfall_mm: 49.6, sunshine_h: 60.9 }
+    - { station: Elmstead, rainfall_mm: 48.8, sunshine_h: 62.2 }
+    - { station: Fenwick, rainfall_mm: 53.9, sunshine_h: 61.5 }
+    - { station: Gransden, rainfall_mm: 54.6, sunshine_h: 59.7 }
+    - { station: Hartley, rainfall_mm: 53.4, sunshine_h: 61.7 }
+    - { station: Inkpen, rainfall_mm: 52.6, sunshine_h: 60.7 }
+    - { station: Kirkby, rainfall_mm: 54.4, sunshine_h: 64.1 }
+    - { station: Langdon, rainfall_mm: 14.2, sunshine_h: 22.5 }
+    - { station: Melbury, rainfall_mm: 88.4, sunshine_h: 83.1 }
+    - { station: Nunton, rainfall_mm: 21.7, sunshine_h: 81.9 }
+    - { station: Ormsby, rainfall_mm: 79.3, sunshine_h: 18.6 }
+    - { station: Poulton, rainfall_mm: 33.0, sunshine_h: 40.2 }
+    - { station: Radley, rainfall_mm: 67.5, sunshine_h: 70.4 }
+encoding:
+  x: rainfall_mm
+  y: sunshine_h
+  label: station
+axes:
+  x: {label: Rainfall, unit: ' mm'}
+  y: {label: Sunshine, unit: ' h'}
+```
+
+## Highlight what matters
+
+The second chart is also synthetic. Three towns sit in crowded clusters. `highlight` always attempts the named points first, matching case-insensitively. `priority` decides who gets the contested position when two highlights collide: Harbour Quay and Harbour Row are only a few pixels apart, so Harbour Quay, listed first, takes the nearest free spot and a crowded name such as Harbour Row may be joined to its point by a leader line. Ordinary names such as Tidewater are hidden instead.
+
+```chart
+type: scatter
+title: Named towns are labelled even inside a crowd
+subtitle: Highlighted points are placed first, in priority order; only a crowded highlight gets a leader
+data:
+  inline:
+    - { place: Harbour Quay, region: coast, effort_index: 41.2, reach_index: 38.1 }
+    - { place: Harbour Row, region: coast, effort_index: 41.9, reach_index: 38.6 }
+    - { place: Harbour Steps, region: coast, effort_index: 42.4, reach_index: 37.7 }
+    - { place: Tidewater, region: coast, effort_index: 44.1, reach_index: 40.0 }
+    - { place: Saltmarsh, region: coast, effort_index: 18.5, reach_index: 25.4 }
+    - { place: Mill Lane, region: valley, effort_index: 55.3, reach_index: 52.2 }
+    - { place: Mill Yard, region: valley, effort_index: 55.9, reach_index: 52.8 }
+    - { place: Mill Race, region: valley, effort_index: 56.4, reach_index: 52.0 }
+    - { place: Weir End, region: valley, effort_index: 57.3, reach_index: 53.6 }
+    - { place: Ford Meadow, region: valley, effort_index: 70.2, reach_index: 66.1 }
+    - { place: Orchard Gate, region: valley, effort_index: 33.0, reach_index: 61.4 }
+    - { place: Ridge Top, region: upland, effort_index: 81.2, reach_index: 81.5 }
+    - { place: Ridge Cross, region: upland, effort_index: 81.9, reach_index: 82.1 }
+    - { place: Cairn Hill, region: upland, effort_index: 86.4, reach_index: 74.9 }
+    - { place: Heather Fold, region: upland, effort_index: 64.7, reach_index: 88.3 }
+    - { place: Stone Gap, region: upland, effort_index: 90.1, reach_index: 90.4 }
+    - { place: Bleak Edge, region: upland, effort_index: 12.9, reach_index: 84.2 }
+    - { place: Lark Rise, region: upland, effort_index: 47.5, reach_index: 90.0 }
+encoding:
+  x: effort_index
+  y: reach_index
+  color: region
+  label: place
+highlight:
+  by: place
+  include: [harbour row, Harbour Quay, MILL YARD, Ridge Cross, Stone Gap]
+  priority: [Harbour Quay, Harbour Row]
+axes:
+  x: {label: Effort index}
+  y: {label: Reach index}
+```

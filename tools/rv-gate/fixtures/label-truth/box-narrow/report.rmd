@@ -1,0 +1,44 @@
+---
+title: Narrow box plots
+styles: [sleek]
+---
+
+# Narrow box plots
+
+```chart
+type: boxplot
+title: Latency stays near one second
+data:
+  inline:
+    - {g: North, v: 1001.3}
+    - {g: North, v: 1002.7}
+    - {g: North, v: 1003.1}
+    - {g: North, v: 1004.1}
+    - {g: North, v: 1005.5}
+    - {g: North, v: 1006.2}
+    - {g: North, v: 1008.9}
+    - {g: South, v: 1003.4}
+    - {g: South, v: 1004.9}
+    - {g: South, v: 1005.1}
+    - {g: South, v: 1006.6}
+    - {g: South, v: 1007.2}
+    - {g: South, v: 1007.8}
+    - {g: South, v: 1009.4}
+encoding: {x: g, y: v}
+source: Probe
+```
+
+```chart
+type: histogram
+title: Explicit edges the author chose
+data:
+  inline:
+    - {v: 0.2}
+    - {v: 1.254}
+    - {v: 1.258}
+    - {v: 2.0}
+    - {v: 2.5}
+binning: {edges: [0, 1.255, 2.51]}
+encoding: {x: v}
+source: Probe
+```

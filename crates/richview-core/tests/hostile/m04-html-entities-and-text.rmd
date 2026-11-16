@@ -1,0 +1,11 @@
+---
+title: Entities and kept text
+---
+
+Entities work: &nbsp;non&#8209;breaking&nbsp;, &copy; 2026, &lt;b&gt; and &amp; and &#x41;.
+
+<span>kept span text HOSTILE_KEPT</span>
+
+<b>kept block bold HOSTILE_KEPT_BLOCK</b>
+
+A stray < sign, a < b and 1<2 stay text; so does <3.

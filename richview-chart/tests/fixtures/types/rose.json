@@ -1,0 +1,22 @@
+{
+ "spec": {
+  "type": "rose",
+  "title": "Rainfall by month",
+  "encoding": {"x": "month", "y": "mm"},
+  "axes": {"y": {"label": "Rainfall (mm)"}}
+ },
+ "rows": [
+  {"month": "Jan", "mm": 30},
+  {"month": "Feb", "mm": 25},
+  {"month": "Mar", "mm": 40},
+  {"month": "Apr", "mm": 55},
+  {"month": "May", "mm": 80},
+  {"month": "Jun", "mm": 95},
+  {"month": "Jul", "mm": 110},
+  {"month": "Aug", "mm": 100},
+  {"month": "Sep", "mm": 70},
+  {"month": "Oct", "mm": 50},
+  {"month": "Nov", "mm": 45},
+  {"month": "Dec", "mm": 35}
+ ]
+}

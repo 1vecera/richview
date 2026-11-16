@@ -1,0 +1,401 @@
+$ richview mcp  <<< tools/list   # response after initialize, pretty-printed
+{
+  "id": 2,
+  "jsonrpc": "2.0",
+  "result": {
+    "tools": [
+      {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false,
+          "readOnlyHint": false
+        },
+        "description": "Render Rich Markdown to a self-contained HTML file, or with output pdf to a PDF printed by a local Chromium-family browser. Returns the output path and diagnostics; edit the source to improve a report.",
+        "inputSchema": {
+          "properties": {
+            "data": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "input_path": {
+              "description": "Saved .rmd in its dedicated report folder; required for materialized render into Rendered",
+              "type": "string"
+            },
+            "output": {
+              "description": "report (default) writes the interactive HTML; pdf prints Rendered/<name>.pdf",
+              "enum": [
+                "report",
+                "pdf"
+              ],
+              "type": "string"
+            },
+            "output_path": {
+              "description": "HTML or PDF filename inside this report folder’s Rendered subfolder; a .pdf name implies output pdf",
+              "type": "string"
+            },
+            "page": {
+              "description": "Paper size of a PDF (default a4)",
+              "enum": [
+                "a4",
+                "letter"
+              ],
+              "type": "string"
+            },
+            "report_folder": {
+              "description": "Explicit source-only host inventory; required without input_path",
+              "properties": {
+                "files": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "root": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "root",
+                "source",
+                "files"
+              ],
+              "type": "object"
+            },
+            "source": {
+              "description": "Rich Markdown source",
+              "type": "string"
+            },
+            "styles": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "theme": {
+              "enum": [
+                "auto",
+                "light",
+                "dark"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [],
+          "type": "object"
+        },
+        "name": "richview_render"
+      },
+      {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false,
+          "readOnlyHint": true
+        },
+        "description": "Validate Rich Markdown structure and rich-block contracts without rendering.",
+        "inputSchema": {
+          "properties": {
+            "data": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "input_path": {
+              "description": "Saved .rmd in its dedicated report folder; required for materialized render into Rendered",
+              "type": "string"
+            },
+            "report_folder": {
+              "description": "Explicit source-only host inventory; required without input_path",
+              "properties": {
+                "files": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "root": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "root",
+                "source",
+                "files"
+              ],
+              "type": "object"
+            },
+            "source": {
+              "description": "Rich Markdown source",
+              "type": "string"
+            },
+            "styles": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "theme": {
+              "enum": [
+                "auto",
+                "light",
+                "dark"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [],
+          "type": "object"
+        },
+        "name": "richview_validate"
+      },
+      {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false,
+          "readOnlyHint": true
+        },
+        "description": "Render and inspect actual chart geometry, clipping, label collisions and dropped-label provenance. Readability findings are successful results; only hard failures set isError.",
+        "inputSchema": {
+          "properties": {
+            "chart_width": {
+              "maximum": 4096,
+              "minimum": 240,
+              "type": "number"
+            },
+            "data": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "input_path": {
+              "description": "Saved .rmd in its dedicated report folder; required for materialized render into Rendered",
+              "type": "string"
+            },
+            "report_folder": {
+              "description": "Explicit source-only host inventory; required without input_path",
+              "properties": {
+                "files": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "root": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "root",
+                "source",
+                "files"
+              ],
+              "type": "object"
+            },
+            "source": {
+              "description": "Rich Markdown source",
+              "type": "string"
+            },
+            "styles": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "theme": {
+              "enum": [
+                "auto",
+                "light",
+                "dark"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [],
+          "type": "object"
+        },
+        "name": "richview_check"
+      },
+      {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": false
+        },
+        "description": "Publish an immutable report version to an explicitly selected RichView server. Requires a token; returns its URL.",
+        "inputSchema": {
+          "properties": {
+            "data": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "input_path": {
+              "description": "Saved .rmd in its dedicated report folder; required for materialized render into Rendered",
+              "type": "string"
+            },
+            "report_folder": {
+              "description": "Explicit source-only host inventory; required without input_path",
+              "properties": {
+                "files": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "root": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "root",
+                "source",
+                "files"
+              ],
+              "type": "object"
+            },
+            "server": {
+              "type": "string"
+            },
+            "slug": {
+              "type": "string"
+            },
+            "source": {
+              "description": "Rich Markdown source",
+              "type": "string"
+            },
+            "styles": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "theme": {
+              "enum": [
+                "auto",
+                "light",
+                "dark"
+              ],
+              "type": "string"
+            },
+            "token": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "server"
+          ],
+          "type": "object"
+        },
+        "name": "richview_publish"
+      },
+      {
+        "annotations": {
+          "idempotentHint": true,
+          "openWorldHint": false,
+          "readOnlyHint": true
+        },
+        "description": "Learn RichView's format, chart contract, style system, authoring workflow and writing principles.",
+        "inputSchema": {
+          "properties": {
+            "section": {
+              "enum": [
+                "grammar",
+                "chart-contract",
+                "style",
+                "workflow",
+                "anti-slop"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "name": "richview_learn"
+      },
+      {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": false
+        },
+        "description": "Upload a local data or media file to a configured S3-compatible store and return its integrity-pinned reference {url, bytes, sha256, type, visibility}. Private unless public is true. Calling again resumes an interrupted upload or reports the stored object. Progress notifications follow the request's progressToken.",
+        "inputSchema": {
+          "properties": {
+            "path": {
+              "description": "Local file to upload",
+              "type": "string"
+            },
+            "public": {
+              "description": "Serve under the public prefix with immutable caching",
+              "type": "boolean"
+            },
+            "store": {
+              "description": "Store profile name from stores.yaml",
+              "type": "string"
+            },
+            "type": {
+              "description": "Media type when the extension is ambiguous",
+              "type": "string"
+            }
+          },
+          "required": [
+            "path",
+            "store"
+          ],
+          "type": "object"
+        },
+        "name": "richview_asset_put"
+      },
+      {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "Check a stored object against its reference: HEAD status, size, type and range support; with hash, stream the object and compare its SHA-256. Private references need store.",
+        "inputSchema": {
+          "properties": {
+            "asset": {
+              "description": "Reference {url, bytes, sha256, type, visibility}",
+              "type": "object"
+            },
+            "hash": {
+              "type": "boolean"
+            },
+            "store": {
+              "description": "Store profile that signs requests for private references",
+              "type": "string"
+            }
+          },
+          "required": [
+            "asset"
+          ],
+          "type": "object"
+        },
+        "name": "richview_asset_verify"
+      }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+---
+title: "What a small sample leaves unsaid"
+description: "A worked example of why a smooth line does not make missing observations disappear."
+version: 1.0.0
+styles: [scientific]
+publish:
+  id: "small-samples"
+  slug: "small-samples"
+  summary: "A worked example of why a smooth line does not make missing observations disappear."
+  byline: "RichView Example Desk"
+  section: "research"
+  tags: ["example", "method"]
+  published: "2026-10-16T09:00:00Z"
+  updated: "2026-10-18T09:00:00Z"
+  state: "published"
+  audience: "public"
+  figure: {value: "48", label: "Observed requests in August, the latest month", as_of: "Aug 2026"}
+  kind: "report"
+  aliases: []
+  corrections: []
+---
+
+**Example material · Synthetic observations · 18 October 2026**
+
+## The shape is only half the evidence
+
+A polished chart compresses many decisions into a small space. Which observations were collected, which were excluded and which never existed all shape its meaning.
+
+Our fictional series records a monthly count at a small service desk. The modest range is deliberate: it lets readers inspect exact values in the chart table rather than interpreting decorative volatility.
+
+```chart
+type: line
+title: "Observed requests"
+data:
+  inline:
+    - {category: "May", value: 41}
+    - {category: "Jun", value: 45}
+    - {category: "Jul", value: 43}
+    - {category: "Aug", value: 48}
+    - {category: "Sep", value: 46}
+    - {category: "Oct", value: 49}
+encoding: {x: category, y: value}
+axes:
+  x: {label: Category}
+  y: {label: "Observed requests"}
+```
+
+*Source: Synthetic example, authored on 18 October 2026. No real customers or service desk are represented.*
+
+## What to take away
+
+A responsible update would add new observations and retain the definition of a request. It would not quietly rewrite earlier counts to make the trend look more persuasive.

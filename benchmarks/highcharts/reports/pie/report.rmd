@@ -1,0 +1,22 @@
+---
+title: Audience by subscription plan
+---
+
+```chart
+type: pie
+title: Audience by subscription plan
+subtitle: Exact counts; no decorative gradients
+encoding:
+  x: plan
+  y: audience
+data:
+  inline:
+  - plan: Basic
+    audience: 14200
+  - plan: Family
+    audience: 12300
+  - plan: Sport
+    audience: 6200
+  - plan: Premium
+    audience: 4600
+```

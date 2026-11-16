@@ -1,0 +1,8 @@
+---
+title: Monochrome pie craft audit
+version: 0.0.1
+---
+
+```chart
+{"type": "pie", "title": "Seventeen equal", "encoding": {"x": "category", "y": "value"}, "data": {"inline": [{"category": "A", "value": 1}, {"category": "B", "value": 1}, {"category": "C", "value": 1}, {"category": "D", "value": 1}, {"category": "E", "value": 1}, {"category": "F", "value": 1}, {"category": "G", "value": 1}, {"category": "H", "value": 1}, {"category": "I", "value": 1}, {"category": "J", "value": 1}, {"category": "K", "value": 1}, {"category": "L", "value": 1}, {"category": "M", "value": 1}, {"category": "N", "value": 1}, {"category": "O", "value": 1}, {"category": "P", "value": 1}, {"category": "Q", "value": 1}]}}
+```

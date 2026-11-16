@@ -1,0 +1,33 @@
+---
+title: Direct visits lead our traffic
+description: A first report of one metric, one chart and one callout, ready to edit.
+version: 0.0.1
+slug: hello-world
+styles: [sleek]
+---
+
+This is Rich Markdown: plain Markdown for the story, and tagged blocks for the numbers.
+
+```metric
+value: 910
+label: Visits this week
+delta: 0.12
+trend: up
+```
+
+```chart
+type: bar
+title: Direct visits lead, search follows
+data: { csv: data/visits.csv }
+encoding: { x: source, y: visits }
+axes:
+  y: { label: Visits }
+```
+
+*Source: Fictional example data in data/visits.csv.*
+
+```callout
+kind: neutral
+title: Make it yours
+body: Edit this file in any editor, preview it with `richview serve report.rmd` and check it with `richview check report.rmd`.
+```

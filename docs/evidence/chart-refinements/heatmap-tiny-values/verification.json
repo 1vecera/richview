@@ -1,0 +1,412 @@
+{
+  "status": "PASS",
+  "browser": "151.0.7922.173",
+  "base_main": "480af942714c16ce4c1f959c7f046344d4f8c99d",
+  "before": {
+    "head": "dad1615876cf05dccd7241da269fbf69cbc1ec31",
+    "tree_exact_to_base_main": true,
+    "web": "c415bc543db946539e4d1d2b8902935ba05a4d5ca1c60deb77456a8d64f89467",
+    "shared": "624e5e9e829c3b6424cb362b1514120bc9c24094e9e6806dc2afce45227a498a",
+    "native": "c3bc7b271d10a82a337f1cd0c0a112c2a81c893294fd6193e01ecd6b9aab39f6"
+  },
+  "builds": {
+    "main": {
+      "head": "7651ccbefe6c8807e01d9ab086a950889fc40102",
+      "web": "68c0519fa74c5869d74b5b771fdd06aef3f73cf9302334c5b3858a7893f27fc8",
+      "shared": "3928341752d4be4d2d913ddfda8a4713e38588dbe51189b098039d3b7573c838",
+      "native": "745aebf098127e066334ea494bc8d5270d9162be547a469604304406ee7a4435",
+      "required_checks": {
+        "fmt": 0,
+        "clippy": 0,
+        "clippy-wasm": 0,
+        "tests": 0,
+        "build": 0,
+        "fixtures": 0,
+        "editor": 0,
+        "native": 0,
+        "compat": 0,
+        "types": 0,
+        "browser": 0,
+        "landing": 0,
+        "cloudflare": 0,
+        "showcase": 0,
+        "flagship": 0,
+        "reel": 0,
+        "browser-api": 0,
+        "motion-runtime": 0,
+        "docs": 0
+      }
+    },
+    "seventh": {
+      "head": "fd3a7a11364179653db1e1e951843c9a64d129a6",
+      "web": "072b8cf0f5c5cc593d091f665a5a4fb4d11af250bc1ffe0969f2fa57deabc1e1",
+      "shared": "4348c7601ba857ad3ba012a81680a499edd1fcc2374bc147c89e6ef9ccf946d6",
+      "native": "bbff16eaa19d1b7871fdf095acf606d368f2f3eb3606d3ca4652b009b21a0acc",
+      "required_checks": {
+        "fmt": 0,
+        "clippy": 0,
+        "clippy-wasm": 0,
+        "tests": 0,
+        "build": 0,
+        "fixtures": 0,
+        "editor": 0,
+        "native": 0,
+        "compat": 0,
+        "types": 0,
+        "browser": 0,
+        "landing": 0,
+        "cloudflare": 0,
+        "showcase": 0,
+        "flagship": 0,
+        "reel": 0,
+        "browser-api": 0,
+        "motion-runtime": 0,
+        "docs": 0
+      }
+    },
+    "sibling": {
+      "head": "b5f3a72879731fbb156ba9b757ec67c0f4c81f84",
+      "web": "d48345a3c45b46fbc236a968e12ff59f3160aef8274177b767d77ab7cf923bbb",
+      "shared": "f8ad98b121a1dafb60597b521243ab1d0d0a4f4631143e94e0c2856969b063f4",
+      "native": "e8c858ad1a222b78f791f982c35a38149dfb1f93d235ecea01f1a7d872be0b27",
+      "required_checks": {
+        "fmt": 0,
+        "clippy": 0,
+        "clippy-wasm": 0,
+        "tests": 0,
+        "build": 0,
+        "fixtures": 0,
+        "editor": 0,
+        "native": 0,
+        "compat": 0,
+        "types": 0,
+        "browser": 0,
+        "landing": 0,
+        "cloudflare": 0,
+        "showcase": 0,
+        "flagship": 0,
+        "reel": 0,
+        "browser-api": 0,
+        "motion-runtime": 0,
+        "docs": 0
+      }
+    }
+  },
+  "cases": [
+    {
+      "name": "signed",
+      "source": "signed.rmd",
+      "fixture": "tiny-signed",
+      "width": 720,
+      "theme": "scientific"
+    },
+    {
+      "name": "annotated",
+      "source": "annotated.rmd",
+      "fixture": "annotated-cells",
+      "width": 320,
+      "theme": "scientific"
+    }
+  ],
+  "comparisons": {
+    "main": {
+      "rendered_reports": 315,
+      "rendered_leaves": 330,
+      "whole_svg_png_exact": 70,
+      "all_non_cell_svg_exact": true,
+      "all_native_checks_exact": true,
+      "cell_labels_after": 805,
+      "glyphs_contained": 805,
+      "live_checks_before": {
+        "invalid-color-values": 15,
+        "ambiguous-numeric-cell": 15,
+        "label-collision": 10
+      },
+      "live_checks_after": {
+        "invalid-color-values": 15,
+        "ambiguous-numeric-cell": 15
+      },
+      "new_live_findings": [],
+      "native_full_report_pairs": 315,
+      "native_direct_pairs": 945,
+      "cli_report_pairs": 21,
+      "public_interfaces": 60,
+      "source_table_csv_keyboard_pointer_touch_exact": true,
+      "interface_svg_states": 180,
+      "exported_svg_states": 60
+    },
+    "seventh": {
+      "rendered_reports": 220,
+      "rendered_leaves": 240,
+      "whole_svg_png_exact": 10,
+      "all_non_cell_svg_exact": true,
+      "all_native_checks_exact": true,
+      "cell_labels_after": 745,
+      "glyphs_contained": 745,
+      "live_checks_before": {
+        "unlocated-color-values": 10,
+        "ambiguous-numeric-cell": 10,
+        "label-collision": 133,
+        "clipping": 10
+      },
+      "live_checks_after": {
+        "unlocated-color-values": 10,
+        "ambiguous-numeric-cell": 10,
+        "label-collision": 103,
+        "clipping": 10
+      },
+      "new_live_findings": [],
+      "native_full_report_pairs": 315,
+      "native_direct_pairs": 945,
+      "cli_report_pairs": 21,
+      "public_interfaces": 60,
+      "source_table_csv_keyboard_pointer_touch_exact": true,
+      "interface_svg_states": 180,
+      "exported_svg_states": 60
+    },
+    "sibling": {
+      "rendered_reports": 220,
+      "rendered_leaves": 240,
+      "whole_svg_png_exact": 10,
+      "all_non_cell_svg_exact": true,
+      "all_native_checks_exact": true,
+      "cell_labels_after": 785,
+      "glyphs_contained": 785,
+      "live_checks_before": {
+        "ambiguous-numeric-cell": 10
+      },
+      "live_checks_after": {
+        "ambiguous-numeric-cell": 10
+      },
+      "new_live_findings": [],
+      "native_full_report_pairs": 315,
+      "native_direct_pairs": 945,
+      "cli_report_pairs": 21,
+      "public_interfaces": 60,
+      "source_table_csv_keyboard_pointer_touch_exact": true,
+      "interface_svg_states": 180,
+      "exported_svg_states": 60
+    }
+  },
+  "offline": {
+    "pairs": 48,
+    "states": 96,
+    "external_requests": 0,
+    "status": "PASS"
+  },
+  "independent": [
+    {
+      "scope": "main",
+      "pass": true,
+      "native_pairs": 225,
+      "records": 106,
+      "errors": [],
+      "packages": [
+        {
+          "name": "before",
+          "head": "dad1615876cf05dccd7241da269fbf69cbc1ec31",
+          "wasm": "c415bc543db946539e4d1d2b8902935ba05a4d5ca1c60deb77456a8d64f89467"
+        },
+        {
+          "name": "after",
+          "head": "7651ccbefe6c8807e01d9ab086a950889fc40102",
+          "wasm": "68c0519fa74c5869d74b5b771fdd06aef3f73cf9302334c5b3858a7893f27fc8"
+        }
+      ],
+      "failure": null,
+      "actual_svg_records": 72,
+      "facet_leaf_records": 0,
+      "shown_scientific_labels_after": 51,
+      "actual_annotation_overlaps_after": 0
+    },
+    {
+      "scope": "sibling",
+      "pass": true,
+      "native_pairs": 225,
+      "records": 106,
+      "errors": [],
+      "packages": [
+        {
+          "name": "before",
+          "head": "5485ab1a0fdf1b83951c4a2d1175959909e45452",
+          "wasm": "a82df179133710560082912d2f238497059623740b2ef981d016ba6c237450ec"
+        },
+        {
+          "name": "after",
+          "head": "b5f3a72879731fbb156ba9b757ec67c0f4c81f84",
+          "wasm": "d48345a3c45b46fbc236a968e12ff59f3160aef8274177b767d77ab7cf923bbb"
+        }
+      ],
+      "failure": null,
+      "actual_svg_records": 72,
+      "facet_leaf_records": 0,
+      "shown_scientific_labels_after": 79,
+      "actual_annotation_overlaps_after": 0
+    },
+    {
+      "scope": "seventh",
+      "pass": true,
+      "native_pairs": 225,
+      "records": 106,
+      "errors": [],
+      "packages": [
+        {
+          "name": "before",
+          "head": "8f8b64c4f15b91f93ad8cb48f14e97fad59bbbe4",
+          "wasm": "2c09002a53b5047a866d56cd004d60cca63c96f711d489ccb10ef332dbb5355b"
+        },
+        {
+          "name": "after",
+          "head": "fd3a7a11364179653db1e1e951843c9a64d129a6",
+          "wasm": "072b8cf0f5c5cc593d091f665a5a4fb4d11af250bc1ffe0969f2fa57deabc1e1"
+        }
+      ],
+      "failure": null,
+      "actual_svg_records": 72,
+      "facet_leaf_records": 0,
+      "shown_scientific_labels_after": 81,
+      "actual_annotation_overlaps_after": 0
+    },
+    {
+      "scope": "main-facets-complete",
+      "pass": true,
+      "native_pairs": 0,
+      "records": 8,
+      "errors": [],
+      "packages": [
+        {
+          "name": "before",
+          "head": "dad1615876cf05dccd7241da269fbf69cbc1ec31",
+          "wasm": "c415bc543db946539e4d1d2b8902935ba05a4d5ca1c60deb77456a8d64f89467"
+        },
+        {
+          "name": "after",
+          "head": "7651ccbefe6c8807e01d9ab086a950889fc40102",
+          "wasm": "68c0519fa74c5869d74b5b771fdd06aef3f73cf9302334c5b3858a7893f27fc8"
+        }
+      ],
+      "failure": null,
+      "actual_svg_records": 0,
+      "facet_leaf_records": 16,
+      "shown_scientific_labels_after": 16,
+      "actual_annotation_overlaps_after": null,
+      "annotation_overlap_scope": "This facet probe checks unchanged annotation SVG and no new browser findings; explicit glyph/stroke overlap geometry is measured by the separate per-branch and sparse probes."
+    },
+    {
+      "scope": "sibling-facets",
+      "pass": true,
+      "native_pairs": 0,
+      "records": 8,
+      "errors": [],
+      "packages": [
+        {
+          "name": "before",
+          "head": "5485ab1a0fdf1b83951c4a2d1175959909e45452",
+          "wasm": "a82df179133710560082912d2f238497059623740b2ef981d016ba6c237450ec"
+        },
+        {
+          "name": "after",
+          "head": "b5f3a72879731fbb156ba9b757ec67c0f4c81f84",
+          "wasm": "d48345a3c45b46fbc236a968e12ff59f3160aef8274177b767d77ab7cf923bbb"
+        }
+      ],
+      "failure": null,
+      "actual_svg_records": 0,
+      "facet_leaf_records": 16,
+      "shown_scientific_labels_after": 16,
+      "actual_annotation_overlaps_after": null,
+      "annotation_overlap_scope": "This facet probe checks unchanged annotation SVG and no new browser findings; explicit glyph/stroke overlap geometry is measured by the separate per-branch and sparse probes."
+    },
+    {
+      "scope": "seventh-facets",
+      "pass": true,
+      "native_pairs": 0,
+      "records": 8,
+      "errors": [],
+      "packages": [
+        {
+          "name": "before",
+          "head": "8f8b64c4f15b91f93ad8cb48f14e97fad59bbbe4",
+          "wasm": "2c09002a53b5047a866d56cd004d60cca63c96f711d489ccb10ef332dbb5355b"
+        },
+        {
+          "name": "after",
+          "head": "fd3a7a11364179653db1e1e951843c9a64d129a6",
+          "wasm": "072b8cf0f5c5cc593d091f665a5a4fb4d11af250bc1ffe0969f2fa57deabc1e1"
+        }
+      ],
+      "failure": null,
+      "actual_svg_records": 0,
+      "facet_leaf_records": 16,
+      "shown_scientific_labels_after": 16,
+      "actual_annotation_overlaps_after": null,
+      "annotation_overlap_scope": "This facet probe checks unchanged annotation SVG and no new browser findings; explicit glyph/stroke overlap geometry is measured by the separate per-branch and sparse probes."
+    },
+    {
+      "scope": "sibling-sparse",
+      "pass": true,
+      "native_pairs": 45,
+      "records": 16,
+      "errors": [],
+      "packages": [
+        {
+          "name": "before",
+          "head": "5485ab1a0fdf1b83951c4a2d1175959909e45452",
+          "wasm": "a82df179133710560082912d2f238497059623740b2ef981d016ba6c237450ec"
+        },
+        {
+          "name": "after",
+          "head": "b5f3a72879731fbb156ba9b757ec67c0f4c81f84",
+          "wasm": "d48345a3c45b46fbc236a968e12ff59f3160aef8274177b767d77ab7cf923bbb"
+        }
+      ],
+      "failure": null,
+      "actual_svg_records": 12,
+      "facet_leaf_records": 0,
+      "shown_scientific_labels_after": 6,
+      "actual_annotation_overlaps_after": 0
+    }
+  ],
+  "scope": "Heatmap cell text that previously formatted a finite nonzero value as zero; omit new fallback labels where they do not fit or overlap existing annotation ink.",
+  "limitations": [
+    "Global compact formatting and heatmap keys are unchanged; scientific key notation is separate PR51.",
+    "Annotation placement is unchanged. Inherited clipping and other annotation collisions remain in the compatibility matrix.",
+    "Scientific fallback has three significant digits; exact values remain available in source interfaces.",
+    "The old fixture fixed-short has an unused style.height field; actual 72px and 120px heights were tested through public renderChart options."
+  ],
+  "sibling_patch": {
+    "file": "pr40-annotation-clearance.patch",
+    "base": "5485ab1a0fdf1b83951c4a2d1175959909e45452",
+    "original_notation_commit": "b9147c614653f4c0180c8eef7178de6c7e49533e",
+    "apply_patch_after_notation_instead_of_main_correction": true,
+    "tested_before": "ca4bf6d70e9b80d8fbac0e5e1724e05a09abe34f",
+    "tested_after": "b5f3a72879731fbb156ba9b757ec67c0f4c81f84"
+  },
+  "retained_failures": [
+    "The initial notation-only candidate produced actual annotation collisions in 15 owner views and was held; corrected source omits only colliding new fallback text.",
+    "First correction triggered clippy possible_missing_else; adjacent conditions were grouped without changing behavior.",
+    "Scratch interface strict equality distinguished numeric 0 and -0; corrected probes preserve exact source/Table/CSV strings while comparing numeric values numerically.",
+    "Independent facet probes initially counted parent roots as leaves and normalized authored negative zero; corrected source-preserving probes pass."
+  ],
+  "scratch_root": "/home/vecera/tmp/richview-chart-refinement-20261011",
+  "files": {
+    "annotated-after.png": "0d410fb7b677f02f0487b06c04fce0145cb2d7f8f7bc77f3a0b110864620ef01",
+    "annotated-before.png": "8f2e4a70f30b72eeff8d0e395e440bee5603846c0123a05adab46acb15ec1db9",
+    "annotated.rmd": "11d4a383e0cc4be8f05a9eef7873bb136e9e763b0df9a0ee4b5f8d23e8528a8a",
+    "capture.mjs": "ac013e1121e210e84b92b2d008c091aea509ba5b58977081e7eff63bfbec0aec",
+    "pr40-annotation-clearance.patch": "a63aed9f235b733d778af6ee3942f9524411ad3d7047621d04095f3e31d69a95",
+    "signed-after.png": "a53aa665aaa22375166f639ae595dcccee7c076c7f58b584148429a390818d29",
+    "signed-before.png": "d7a76932e7e5a54e37bccc521f67aec7629ba0c234b3de7edba702b18b9983df",
+    "signed.rmd": "aa70a00e10e4f02767f79ffa410f338e687efa28f6733f8a05562d26c1871635"
+  },
+  "reproduction": {
+    "before": "PASS",
+    "after": "PASS",
+    "four_pngs_byte_exact": true
+  },
+  "packet_review": {
+    "verdict": "ACCEPT",
+    "report": "heatmap-tiny-values-packet-independent-review.md",
+    "sibling_patch_applied_in_scratch_and_exact": true
+  }
+}

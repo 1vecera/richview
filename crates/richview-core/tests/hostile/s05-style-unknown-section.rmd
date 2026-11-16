@@ -1,0 +1,6 @@
+---
+title: Style unknown top-level keys
+styles: [sleek, s05-style-unknown-section.rstyle.yaml]
+---
+
+A paragraph.

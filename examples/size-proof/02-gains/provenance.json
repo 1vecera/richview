@@ -1,0 +1,23 @@
+{
+  "date_utc": "2026-11-08",
+  "started_utc": "2026-11-08T19:09:22.409Z",
+  "session_output_last_written_utc": "2026-11-08T19:09:46.230Z",
+  "report_last_written_utc": "2026-11-08T19:09:42.649Z",
+  "agent": "Claude Code 2.1.319",
+  "requested_model": "sonnet",
+  "reported_model": [
+    "claude-sonnet-5-5"
+  ],
+  "session_id": "96b5d040-f669-4bec-bd25-18583a5a06d3",
+  "command": "clauth start --isolated personal -p --model sonnet --permission-mode acceptEdits --output-format json \"$(cat prompt.txt)\" > session.json 2> session.stderr",
+  "exit_code": 0,
+  "permission_denials": [],
+  "post_generation_repairs": "None. The agent authored the final report; it has not been modified after its session.",
+  "prompt_sha256": "44a35fd2dbfea0036219ec217de7d243cf3fab290ec84b9359dae5b101ea373d",
+  "data_sha256": "1587d77d2f467abd1bc8b8419ee9eeec9309cea6316f7e87e3c09fd033189063",
+  "report_sha256": "7fe32658d6e629721ab834fe83890cd7e52c5eff71a444a5d3630a5a3002b609",
+  "checks": {
+    "browser": "Chromium headless opened the local file without page errors or external resource requests.",
+    "table": "All four displayed rows match data.csv at one decimal."
+  }
+}

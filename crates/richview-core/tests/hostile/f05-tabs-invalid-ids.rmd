@@ -1,0 +1,13 @@
+---
+title: Tabs with hostile ids
+tabs:
+  default: '"><script>HOSTILE_DEFAULT()</script>'
+  export: '<script>'
+  panels:
+    - { id: '"><script>HOSTILE_TABID()</script>', label: '<script>HOSTILE_TABLABEL()</script>', from: "x'] [data-evil='" }
+    - { id: ok, label: Ok, from: ok }
+---
+
+## Ok {#ok}
+
+Text.

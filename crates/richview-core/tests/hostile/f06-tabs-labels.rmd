@@ -1,0 +1,16 @@
+---
+title: Tabs with hostile labels
+tabs:
+  default: one
+  panels:
+    - { id: one, label: '<script>HOSTILE_LABEL1()</script>', from: one }
+    - { id: two, label: '"><img src=x onerror=HOSTILE_LABEL2()>', from: two }
+---
+
+## One {#one}
+
+First.
+
+## Two {#two}
+
+Second.

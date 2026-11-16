@@ -1,0 +1,120 @@
+{
+  "partId": "08-open-work",
+  "answers": {
+    "OPN-01": {
+      "decision": "accept",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel accepted the batch OPN-01, OPN-02, OPN-43, OPN-44, OPN-13: 'Exactly. Yeah.' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "32804330d092423f",
+      "updatedAt": "2026-10-26T20:06:08.084Z"
+    },
+    "OPN-02": {
+      "decision": "accept",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel accepted the batch OPN-01, OPN-02, OPN-43, OPN-44, OPN-13: 'Exactly. Yeah.' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "6831651f52fbb7cf",
+      "updatedAt": "2026-10-26T20:06:08.389Z"
+    },
+    "OPN-43": {
+      "decision": "accept",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel accepted the batch OPN-01, OPN-02, OPN-43, OPN-44, OPN-13: 'Exactly. Yeah.' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "fee44ffc66e33b72",
+      "updatedAt": "2026-10-26T20:06:08.697Z"
+    },
+    "OPN-44": {
+      "decision": "accept",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel accepted the batch OPN-01, OPN-02, OPN-43, OPN-44, OPN-13: 'Exactly. Yeah.' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "61c5e0975d40acdc",
+      "updatedAt": "2026-10-26T20:06:08.993Z"
+    },
+    "OPN-04": {
+      "decision": "accept",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel accepted the cleanup batch OPN-04, OPN-05, OPN-45, OPN-25, OPN-65, OPN-47: 'Yes, all is good.' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "0a78b43efb89b087",
+      "updatedAt": "2026-10-26T20:06:57.132Z"
+    },
+    "OPN-45": {
+      "decision": "edit",
+      "text": "Accepted. Daniel owns and pays for the Fly app `richview-api`, so no other owner needs to agree. On his go: its seven reports are exported for the archive; app.richview.uk and docs.richview.uk redirect to richview.ai together with the apex (OPN-04); api.richview.uk leaves DNS; the Fly app `richview-api` and its database are destroyed; and whatever origin serves the apex, app. and docs. is retired once the redirects are in place.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel: 'Yes, all is good. Yes, it's me, mine.' — confirms he owns the Fly app richview-api (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "7b7017f2cd57b791",
+      "updatedAt": "2026-10-26T20:06:58.842Z"
+    },
+    "OPN-05": {
+      "decision": "accept",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel accepted the cleanup batch OPN-04, OPN-05, OPN-45, OPN-25, OPN-65, OPN-47: 'Yes, all is good.' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "64cdef6af089c5cc",
+      "updatedAt": "2026-10-26T20:06:57.483Z"
+    },
+    "OPN-13": {
+      "decision": "accept",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel accepted the batch OPN-01, OPN-02, OPN-43, OPN-44, OPN-13: 'Exactly. Yeah.' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "c6e5bd8add705ca9",
+      "updatedAt": "2026-10-26T20:06:09.294Z"
+    },
+    "OPN-48": {
+      "decision": "edit",
+      "text": "Daniel leads RichView alone: he answers the lockdown, merges into `prod` and leads the Linear project. \"Steven\" was an agent persona, not a separate person, so no message goes to anyone, and nothing waits on Steven. Every agent context that names Steven as RichView's lead is corrected to Daniel (OPN-49).",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel: 'Forget about Steven… Steven is just some crazy image… it was just agent personality. It's all me.' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "d552e74d680f9194",
+      "updatedAt": "2026-10-26T20:04:31.472Z"
+    },
+    "OPN-24": {
+      "decision": "edit",
+      "text": "No collaborator invite: \"Steven\" was an agent persona, not a separate person, and RichView is Daniel's alone. `stevenoliver7` gets no access to 1vecera/richview. `prod` stays Daniel's (DEL-04).",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel: 'Forget about Steven… it was just agent personality. It's all me.' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "5fff29d7e2c84a50",
+      "updatedAt": "2026-10-26T20:04:31.771Z"
+    },
+    "OPN-25": {
+      "decision": "accept",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel accepted the cleanup batch OPN-04, OPN-05, OPN-45, OPN-25, OPN-65, OPN-47: 'Yes, all is good.' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "c3d08f202ab5f6e2",
+      "updatedAt": "2026-10-26T20:06:57.830Z"
+    },
+    "OPN-47": {
+      "decision": "accept",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel accepted the cleanup batch OPN-04, OPN-05, OPN-45, OPN-25, OPN-65, OPN-47: 'Yes, all is good.' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "a7b1c95b3a850977",
+      "updatedAt": "2026-10-26T20:06:58.496Z"
+    },
+    "OPN-54": {
+      "decision": "edit",
+      "text": "Reads follow sharing, as simply as this:\n\n- **RichView Cowork:** everything is private by default. The author shares a report with their organization or with anyone on the web.\n- **RichView Publish (such as RichView News):** a publishing workflow that can require an editor's approval.\n  - An editor's own publish lands as private; the editor makes it public before anyone sees it.\n  - When an author who isn't an editor submits a report and an editor approves it, it becomes public automatically.\n- **Report lists:** anyone sees only the reports shared with them, and these roles come from FEA-SF-19.\n\nWhether a server render API exists, and how tokens work, are technical details the agents decide.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel: 'if people are using our RichView CoWork… Things are private by default, and they have to share it first. They can share it with their organization, or with anyone on the web. As simple as that. If they're on RichView News, there is a publishing workflow which can require an editor to accept the publishing… it gets published as private, and you have to, as an editor, make it public before anyone sees it. And if you suggest it to editor and editor agrees to it, then it gets automatically done as public… this is the workflow' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "c5509b836beb157d",
+      "updatedAt": "2026-10-26T19:36:31.151Z"
+    },
+    "OPN-59": {
+      "decision": "edit",
+      "text": "Chosen option: Rich style files, mechanics fixed (STY-14).\n\nDaniel's STY-14 answer: authors and agents change whatever differs between the styles, guided by safe and experimental marks; every value is validated and measured at render, so a weak result shows as a warning rather than being impossible.",
+      "proposedHash": "e6759c61c2ba6c18",
+      "updatedAt": "2026-10-26T19:41:58.635Z"
+    },
+    "OPN-62": {
+      "decision": "edit",
+      "text": "Use tabular figures wherever the font can do it. Proportional figures appear only where alignment isn't needed and the font has no tabular set.\n\nTo close that gap, RichView creates tabular-figure variants of Big Shoulders (Brutalist) and Patrick Hand (Hand-drawn), so metric values and columns in those styles also align while keeping their lettering. Both faces are under the SIL Open Font License, which allows modified versions. Any Reserved Font Name rule decides what the variants are called, and they ship under the same licence.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel: 'if the font uses it, then we use Tabular… If we can do it, then we do Tabular. Proportionally, we do if not needed… the task for you is also create variation of the Big Shoulders and Patrick Hand font faces… that will have Tabular representation of values as well' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "8b20bcfee967b2c6",
+      "updatedAt": "2026-10-26T19:38:34.800Z"
+    },
+    "OPN-63": {
+      "decision": "edit",
+      "text": "Live data connectors are standard on every RichView server, Cowork and Publish, whether local or hosted. RichView builds the connector core, and PR #66's work enters it (FEA-BR-01).\n\n- **Connectors on a server:** each server offers a set of connectors to set up. Named people manage them, and specific people are granted access to each one, under the governance roles (FEA-SF-19).\n- **SQL as a data source:** a report can use SQL against a connector where today it would link to a CSV or another file.\n- **Not a full CMS:** Publish's publishing setup is a light workflow (OPN-54), not a full CMS.\n- **Offline HTML:** a self-contained HTML file sent around never queries live data. The one exception is a data source pointing to a URL: the file downloads the data from that address, so the data updates when what the URL points to changes. There's no warning, because the reader already trusts the sender of the HTML.\n- **Credentials:** they stay in the server's configuration and never appear in `.rmd` files, report folders, rendered output, MCP arguments or agent context (ARC-23).\n\nThe agents decide the technical details, such as which engines back the connector core and whether DuckDB or MetricFlow adapters are part of it.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel: 'if you send your own HTML rendered offline, then it should never support live data… unless you hooked it up to a URL, in which case… you should download it… you have to trust the person sending you the HTML anyhow, so that's fine… live connectors should be a standard for all the RichView servers… you need to build the connector core… CMS is not like a full CMS… both local and remote should offer a set of connectors you can set up. You can give specific people access to those connectors. Specific people manage those connectors, and then you can have a SQL code instead of… link to a specific CSV' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "96a741fefc33434d",
+      "updatedAt": "2026-10-26T19:44:35.065Z"
+    },
+    "OPN-64": {
+      "decision": "edit",
+      "text": "Use the new tagline: the reel's legacy render carries whatever tagline INT-02 settles on after Daniel's rejection note, not \"Your agent organizes the text. RichView makes it a story.\", and \"Coming soon\" replaces the BETA label. The MP4 and poster are rendered only once INT-02 has an accepted tagline.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel: 'we use new tagline, yeah' — meaning the tagline INT-02 settles on after his rejection note, not the rejected one (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "f767dc4aa1e6a387",
+      "updatedAt": "2026-10-26T19:46:41.403Z"
+    },
+    "OPN-65": {
+      "decision": "accept",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel accepted the cleanup batch OPN-04, OPN-05, OPN-45, OPN-25, OPN-65, OPN-47: 'Yes, all is good.' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "270e23f91afe3593",
+      "updatedAt": "2026-10-26T20:06:58.163Z"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+# Trusted host-side configuration for examples/metricflow-report. Copy this file
+# somewhere outside the report folder, fill in the warehouse path, and point the
+# CLI at it:
+#
+#   richview generate examples/metricflow-report/report.rmd \
+#       --connectors /path/to/connectors.toml
+#
+# The report never sees this file; it only names a runtime handle in its
+# `report.connectors.yaml`.
+
+cache_root = ".richview-cache"
+
+[metricflow.okurka-local]
+launcher    = ["uv", "--project", "/absolute/path/to/semantic-layer-sandbox/tools/dbt-compat", "run", "--frozen", "--", "mf"]
+project_dir = "/absolute/path/to/semantic-layer-sandbox/analytics/okurka/dbt"
+
+[metricflow.okurka-local.env]
+DBT_PROFILES_DIR  = "/absolute/path/to/semantic-layer-sandbox/analytics"
+OKURKA_DBT_PATH   = "/absolute/path/to/okurka.duckdb"
+OKURKA_DBT_TARGET = "serve"

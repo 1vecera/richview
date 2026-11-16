@@ -1,0 +1,42 @@
+{
+ "_source": {
+  "files": [
+   "tmp/prf07-final/out-host-activity.json"
+  ],
+  "sha256": {
+   "tmp/prf07-final/out-host-activity.json": "84243b6473b33e78500c4c1341b568e62dd328ff0b3bd8291da566e31fda7662"
+  },
+  "note": "tmp/prf07-final/host_activity.py, Claw Mini, 2026-10-22 (120 s, 5 s interval)"
+ },
+ "data": {
+  "probe": "tmp/prf07-final/host_activity.py",
+  "host": "Claw Mini (Apple M4, 10 cores)",
+  "interval_s": 5.0,
+  "note": "cores_busy is the sum of ps %cpu over all processes, including this lockdown session and other agents; per-sample command lists keep only fileproviderd",
+  "summary": {
+   "n": 24,
+   "load1_min": 1.77,
+   "load1_max": 2.62,
+   "cores_busy_min": 0.51,
+   "cores_busy_median": 0.92,
+   "cores_busy_max": 1.43,
+   "window_utc": [
+    "2026-10-22T00:05:05+00:00",
+    "2026-10-22T00:07:02+00:00"
+   ],
+   "busiest_commands_mean_cores": [
+    [
+     "fileproviderd (macOS system daemon)",
+     0.39
+    ],
+    [
+     "every other command",
+     "below 0.1 core each"
+    ]
+   ]
+  },
+  "samples": {
+   "omitted_samples": 24
+  }
+ }
+}

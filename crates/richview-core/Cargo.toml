@@ -1,0 +1,31 @@
+[package]
+rust-version.workspace = true
+name = "richview-core"
+version.workspace = true
+edition = "2024"
+license = "MIT"
+description = "Pure Rust Rich Markdown parser, report renderer, styles and authoring diagnostics"
+publish = false
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+yaml-rust2 = { version = "0.13.0", default-features = false }
+pulldown-cmark = "0.13"
+ammonia = "4"
+regex-lite = "0.1"
+csv = "1"
+url = "2"
+# Keeps ICU4X out of the site Wasm (PRF-30); the idna crate documents this pin as the way to choose its unicode-rs backend.
+idna_adapter = "=1.0.0"
+unicode-normalization = "0.1"
+latex2mathml = "0.2.3"
+sha2 = "0.10"
+base64 = "0.22"
+richview-chart = { path = "../../richview-chart" }
+
+[dev-dependencies]
+regex = "1"

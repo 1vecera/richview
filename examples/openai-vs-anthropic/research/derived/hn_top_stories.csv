@@ -1,0 +1,661 @@
+month,side,id,title,score,descendants
+2023-01-01,anthropic,34561659,"Anthropic, an A.I. Startup, Is Said to Be Close to Adding $300M",2,0
+2023-01-01,anthropic,34281853,Claude: AnthropicAI's Model with self-awareness about its own creation,1,0
+2023-01-01,anthropic,34309381,Fast and Furious Movie Titles by 'Claude' from Anthropic AI,1,0
+2023-01-01,anthropic,34445238,Using the new language model Claude to build an in-editor coding assistant,1,0
+2023-01-01,both,34331396,"Anthropic's Claude is said to improve on ChatGPT, but still has limitations",25,7
+2023-01-01,both,34311152,Claude: The first ChatGPT competitor has arrived,2,0
+2023-01-01,both,34319877,Anthropic’s Claude Improves on ChatGPT,2,0
+2023-01-01,both,34331239,Claude: The First ChatGPT Competitor Has Arrived,2,0
+2023-01-01,both,34404536,Show HN: Use Cases and Comparisons of AnthropicAI's Claude with ChatGPT,1,0
+2023-01-01,openai,34369110,ChatGPT Can't Kill Anything Worth Preserving,68,49
+2023-01-01,openai,34483030,ChatGPT Has Passed the United States Medical Licensing Examination (USMLE),40,19
+2023-01-01,openai,34526741,OpenAI Major Outage,39,31
+2023-01-01,openai,34488811,OpenAI and Microsoft Extend Partnership,38,9
+2023-01-01,openai,34430092,ChatGPT recreated with GPT-3.5?,33,12
+2023-02-01,anthropic,34642915,Google invests $300M in AI startup Anthropic,3,3
+2023-02-01,anthropic,34649840,Google invests $300M in artificial intelligence startup Anthropic,2,1
+2023-02-01,anthropic,34958408,Anthropic's AI Safety Dataset Contains Racism and Political Bias,2,0
+2023-02-01,anthropic,34621940,"Leaving Wave, Joining Anthropic",1,0
+2023-02-01,anthropic,34646162,Anthropic Partners with Google Cloud,1,0
+2023-02-01,both,34645984,Google invests $300M in Anthropic as race to compete with ChatGPT,6,1
+2023-02-01,both,34663438,Google Invests Almost $400M in ChatGPT Rival Anthropic,2,0
+2023-02-01,openai,34956807,Open source implementation for LLaMA-based ChatGPT,83,26
+2023-02-01,openai,34790264,Google employees criticize CEO for “dumpster fire” response to ChatGPT,61,35
+2023-02-01,openai,34684062,Microsoft just announced a media event taking place tomorrow with OpenAI,38,14
+2023-02-01,openai,34614796,Introducing ChatGPT Plus,37,21
+2023-02-01,openai,34695306,Show HN: Supabase Clippy – ChatGPT for Supabase Docs,37,12
+2023-03-01,anthropic,35153815,Introducing Claude,8,0
+2023-03-01,anthropic,35154149,Anthropic AI's Claude early access for everyone now available,7,2
+2023-03-01,anthropic,35374888,"Anthropic's Claude, Now in Slack",4,0
+2023-03-01,anthropic,35158177,Claude,2,0
+2023-03-01,anthropic,35287010,"The Claude Glass, also known as the “18th-century Instagram filter“",2,0
+2023-03-01,both,35214337,"Anthropic introduces Claude, a “more steerable” AI competitor to ChatGPT",2,0
+2023-03-01,both,35013919,"Quora publicly launched Poe, an AI assistant chat powered by ChatGPT and Claude",2,0
+2023-03-01,both,35141867,Tell HN: Anthropic's Claude is significantly better than ChatGPT,1,0
+2023-03-01,both,35155844,Poe launches subscription with access to GPT-4 (OpenAI) and Claude+ (Anthropic),1,0
+2023-03-01,both,35178664,"Anthropic launches Claude, a chatbot to rival OpenAI’s ChatGPT",1,0
+2023-03-01,openai,35277677,ChatGPT Plugins,137,35
+2023-03-01,openai,35038804,ChatGPT invented its own puzzle game,110,31
+2023-03-01,openai,35200267,ChatGPT's Chess Elo is 1400,86,120
+2023-03-01,openai,35236467,ChatGPT is down,79,54
+2023-03-01,openai,35315542,Using ChatGPT Plugins with LLaMA,71,31
+2023-04-01,anthropic,35509378,"Can GPT 4 Prompt Itself? MemoryGPT, AutoGPT, Jarvis, Claude-Next [10x GPT 4!]",1,0
+2023-04-01,anthropic,35527907,"PhaseLLM: Standardized Chat LLM API (Cohere, Claude, GPT) + Evaluation Framework",1,0
+2023-04-01,anthropic,35603080,Anthropic’s CEO is going to lead a live conversation on steerable AI,1,0
+2023-04-01,both,35523859,"Anthropic’s $5B, 4-year plan to take on OpenAI",44,30
+2023-04-01,both,35481469,"Anthropic’s $5B, 4-year plan to take on OpenAI",4,0
+2023-04-01,both,35476124,"Anthropic’s $5B, 4-year plan to take on OpenAI",2,0
+2023-04-01,both,35492332,"Anthropic’s $5B, 4-year plan to take on OpenAI",2,0
+2023-04-01,both,35571761,"Universal LLM Jailbreak: ChatGPT, GPT-4, Bard, Bing, Anthropic, and Beyond",2,1
+2023-04-01,openai,35678372,"I’m ChatGPT, and for the love of God please don’t make me do anymore copywriting",92,52
+2023-04-01,openai,35504428,The LLama Effect: Leak Sparked a Series of Open Source Alternatives to ChatGPT,58,7
+2023-04-01,openai,35519229,It happened to me today: $80/hr writer replaced with ChatGPT,46,20
+2023-04-01,openai,35483823,"We need to tell people ChatGPT will lie to them, not debate linguistics",37,18
+2023-04-01,openai,35719559,Opting out of ChatGPT data sharing locked me out so hard I cant even cancel Plus,34,3
+2023-05-01,anthropic,35904773,"Anthropic - Introducing 100K Token Context Windows, Around 75,000 Words",69,24
+2023-05-01,anthropic,35948742,Anthropic's 100k context is now available in the web UI,37,9
+2023-05-01,anthropic,35813991,Prediction and Entropy of Printed English – Claude Shannon (1950) [pdf],5,3
+2023-05-01,anthropic,35952025,Anthropic's 100k context window is available on Poe,4,2
+2023-05-01,anthropic,36044682,Anthropic AI raises $450M Series C,3,0
+2023-05-01,both,35946955,"Show HN: Use ChatGPT, Bing, Bard and Claude in One App",2,0
+2023-05-01,both,35892872,Chatbot Arena Leaderboard: OpenAI GPT-4 and Anthropic Claude Take the Lead,1,0
+2023-05-01,both,36043303,OpenAI Rival Anthropic raises $450M,1,0
+2023-05-01,openai,35990552,OpenAI Brings ChatGPT to iOS,161,98
+2023-05-01,openai,35966011,ChatGPT chief calls for new agency to license AI systems in Congress testimony,56,58
+2023-05-01,openai,35804829,ChatGPT insists a BLE module can do Bluetooth classic,44,2
+2023-05-01,openai,36130354,Lawyer cited 6 fake cases made up by ChatGPT; judge calls it “unprecedented”,43,29
+2023-05-01,openai,35792898,Ask HN: What tech is under the radar with all attention on ChatGPT etc.?,39,22
+2023-06-01,anthropic,36327959,Anthropic Announces SOC 2 Type 1 Certificate,3,0
+2023-06-01,anthropic,36325707,Framework to compare LLMs (GPT-4 v/s 3.5 vs. Anthropic Claude v/s Cohere),2,0
+2023-06-01,anthropic,36505025,FTX Stops Sale of $500M Stake in AI Firm Anthropic: Report,2,0
+2023-06-01,anthropic,36222729,Used the Anthropic 100K tokens model to summarize 2K HN comments on Vision Pro,1,0
+2023-06-01,anthropic,36222773,Recap of HN Discussion about Apple Vision Pro (generated by Anthropic Claude),1,0
+2023-06-01,both,36327840,"Vercel AI Accelerator: $850k in API Credits from OpenAI, Anthropic, and More",7,0
+2023-06-01,both,36226678,"Show HN: Knit – A prompt managing tool, now supports both OpenAI and Claude",2,1
+2023-06-01,openai,36325958,Reddit Is OpenAI’s Moat?,77,73
+2023-06-01,openai,36313348,OpenAI Function calling and API updates,54,9
+2023-06-01,openai,36188390,OpenAI is getting sued for being biased with Y Combinator,50,7
+2023-06-01,openai,36419001,Over 100k ChatGPT Account Credentials Made Available on the Dark Web,36,17
+2023-06-01,openai,36519633,OpenAI sued for $3B after allegedly trampling privacy with ChatGPT,32,8
+2023-07-01,anthropic,36680755,Claude 2,113,38
+2023-07-01,anthropic,36729090,Claude 2 Internal API Client and CLI,14,5
+2023-07-01,anthropic,36741153,"Kagi: Words You Cannot Use: 'Constitutional AI', 'Anthropic', 'Anthropic, PBC'",4,0
+2023-07-01,anthropic,36888182,"AI Could Help Produce Weapons, Anthropic CEO Dario Amodei Says",3,0
+2023-07-01,anthropic,36825800,"Marvin 1.1: Anthropic, Azure, native mapping, and instructions",2,0
+2023-07-01,both,36701982,Claude 2.0 vs. ChatGPT,5,1
+2023-07-01,both,36911148,"Anthropic, Google, Microsoft and OpenAI Launch Frontier Model Forum",3,0
+2023-07-01,both,36680802,"AI Startup Anthropic Releases a New Version of Its ChatGPT Rival, Claude",2,0
+2023-07-01,both,36579750,Smol Menubar: Simultaneously Ping ChatGPT/Bard/Bing/Anthropic with a Shortcut,1,0
+2023-07-01,both,36686472,"New ChatGPT rival, Claude 2, launches for open beta testing",1,1
+2023-07-01,openai,36895300,LLaMA2 Chat 70B outperformed ChatGPT,57,24
+2023-07-01,openai,36862850,OpenAI Quietly Shuts Down Its AI Detection Tool,52,27
+2023-07-01,openai,36582430,OpenAI temporarily disables the Browse with Bing beta feature,27,8
+2023-07-01,openai,36946343,OpenAI wil crush Sarah Silverman,23,10
+2023-07-01,openai,36551320,"Man designs ChatGPT bot subscription service to annoy, waste telemarketers' time",16,9
+2023-08-01,anthropic,37315625,"GCP to Add AI Models from Meta (Llama2), Anthropic (Cladue2)",3,1
+2023-08-01,anthropic,36993673,Ask HN: Claude vs. GPT: What's been your experience so far?,2,5
+2023-08-01,anthropic,37070857,Claude Instant 1.2,2,1
+2023-08-01,anthropic,37127870,Ask HN: Has anyone got Claude API access,2,0
+2023-08-01,anthropic,37326816,Share Claude Conversations and more with A.I. Archives,1,1
+2023-08-01,both,37298539,"Data Exfiltration Vulnerabilities in Chatbots: ChatGPT, Bing Chat, Claude) [video]",6,0
+2023-08-01,both,37048149,"Show HN: LiteLLM -Open-Source Library for Anthropic,Azure,OpenAI, etc. API Calls",3,0
+2023-08-01,both,37022202,"3D Alliance, IBM NASA, Claude > ChatGPT, Elon's Ai.com, into LK99",3,0
+2023-08-01,both,37051257,"Anthropic CEO – $10B Models, OpenAI, Scaling, & AGI in 2 Years",2,0
+2023-08-01,both,37219755,"ChatALL: Concurrently Chat with ChatGPT, Bing Chat, Bard, Llama, Claude and More",1,0
+2023-08-01,openai,37112741,Azure ChatGPT: Private and secure ChatGPT for internal enterprise use,86,37
+2023-08-01,openai,37030568,GPTBot – OpenAI’s Web Crawler,55,27
+2023-08-01,openai,37239661,Ugly Numbers from Microsoft and ChatGPT Reveal AI Demand Is Already Shrinking,48,48
+2023-08-01,openai,37167185,Fresh evidence of ChatGPT’s political bias,41,24
+2023-08-01,openai,37337177,ChatGPT Is Down Again,30,22
+2023-09-01,anthropic,37409310,Show HN: Anthropic SDK for Dotnet Developers,3,0
+2023-09-01,anthropic,37517674,Claude and LLaMa get basic human anatomy wrong,3,0
+2023-09-01,anthropic,37640829,Amazon to invest up to $4B in AI startup Anthropic,3,2
+2023-09-01,anthropic,37704417,"Google Struggles to Support Anthropic, a Key AI Partner with a New Amazon Deal",3,0
+2023-09-01,anthropic,37453755,Show HN: Papersnap – Claude 2-Powered Mind Maps from Research,2,0
+2023-09-01,both,37387194,"Data Exfiltration in Chatbots: ChatGPT, Bing Chat and Claude [video]",3,0
+2023-09-01,both,37447699,"The AI-assistant wars heat up with Claude Pro, a new ChatGPT Plus rival",2,0
+2023-09-01,both,37427949,Anthropic Launches Claude Pro as Paid Alternative to ChatGPT Plus,1,0
+2023-09-01,both,37646324,Amazon to invest up to $4B in OpenAI rival Anthropic,1,2
+2023-09-01,both,37646344,Amazon will invest up to $4B in OpenAI rival Anthropic,1,0
+2023-09-01,openai,37658319,Google is picking ChatGPT responses from Quora as correct answer,91,43
+2023-09-01,openai,37475604,A boy saw 17 doctors over 3 years for pain. ChatGPT found the right diagnosis,64,48
+2023-09-01,openai,37642335,"ChatGPT can now see, hear, and speak – openai.com",54,8
+2023-09-01,openai,37393073,"Study shows over time, ChatGPT lost accuracy",41,33
+2023-09-01,openai,37408234,Join us for OpenAI’s first developer conference on November 6 in San Francisco,41,20
+2023-10-01,anthropic,37827950,SBF wants to introduce evidence of the current value of his Anthropic investment [pdf],5,1
+2023-10-01,anthropic,37938488,Universal Sues Anthropic,3,0
+2023-10-01,anthropic,38027345,"Universal Music sues Anthropic, claims Claude is posting lyrics to popular songs",3,0
+2023-10-01,anthropic,37940732,Music publishers sue AI company Anthropic over song lyrics,2,0
+2023-10-01,anthropic,37945589,Universal Music sues AI startup Anthropic for scraping song lyrics,2,0
+2023-10-01,both,37790782,Show HN: ChatGPT vs. Jurassic vs. Bard vs. Claude,5,3
+2023-10-01,both,38051102,OpenAI vs. Anthropic vs. Cohere,2,0
+2023-10-01,both,37757970,Arc browser’s new AI-powered features combine OpenAI and Anthropic’s models,2,0
+2023-10-01,both,38013066,"Safyrus AI, alternative to ChatGPT and Claude 2",1,0
+2023-10-01,both,38048155,Google agrees to invest up to $2B in OpenAI rival Anthropic,1,0
+2023-10-01,openai,37780199,"OpenAI's justification for why training data is fair use, not infringement [pdf]",45,28
+2023-10-01,openai,37804288,ChatGPT – Dalle3 System Prompt,26,9
+2023-10-01,openai,37911404,Finland's ChatGPT equivalent begins to think in Estonian as well,24,4
+2023-10-01,openai,37928956,OpenAI just replaced its core values with completely different ones,20,8
+2023-10-01,openai,38022277,ChatGPT cut off date now April 2023,20,6
+2023-11-01,anthropic,38365934,"Anthropic announces Claude 2.1 – 200k context, less refusals",146,86
+2023-11-01,anthropic,38371115,Claude 2.1 Refuses to kill a Python process,4,0
+2023-11-01,anthropic,38181330,"Automated, black-box method for jailbreaking GPT-4, Claude-2, Llama",3,0
+2023-11-01,anthropic,38098236,Google invests $2B in AI startup Anthropic,2,0
+2023-11-01,anthropic,38129203,Ask HN: Why is GPT-4 or Claude-2 so bad at tic-tac-toe?,2,1
+2023-11-01,both,38362652,OpenAI's board approached Anthropic CEO about top job and merger,2,0
+2023-11-01,both,38360005,OpenAI's Board Approached Anthropic CEO About Top Job and Merger,2,0
+2023-11-01,both,38375242,Show HN: Model-agnostic text summarization with Anthropic and OpenAI LLMs,1,0
+2023-11-01,both,38401158,What is the general consensus on Anthropic/Claude VS OpenAI/ChatGPT?,1,1
+2023-11-01,both,38390564,Acceleration of public GitHub repositories at OpenAI | Anthropic | Cohere,1,0
+2023-11-01,openai,38325552,OpenAI board in discussions with Sam Altman to return as CEO,273,177
+2023-11-01,openai,38347868,OpenAI staff threaten to quit unless board resigns,258,161
+2023-11-01,openai,38375239,We have reached an agreement in principle for Sam to return to OpenAI,241,118
+2023-11-01,openai,38312704,Greg Brockman quits OpenAI,202,66
+2023-11-01,openai,38348010,550 of 700 Employees OpenAI tell the board to resign,161,57
+2023-12-01,anthropic,38819030,Claude Bragdon: Drawings of the Fourth Dimension (2022),139,21
+2023-12-01,anthropic,38618273,Claude for Google Sheets,11,5
+2023-12-01,anthropic,38629165,Gemini Pro outperforms Claude 2 and GPT-4 on a classification task,5,0
+2023-12-01,anthropic,38603485,Anthropic Claude for Google Sheets,4,1
+2023-12-01,anthropic,38728403,"Mandala: Notebook memoization on steroids, used by Anthropic",3,0
+2023-12-01,both,38733891,"Show HN: GPT Router – Open-Source API Gateway for LLMs (OpenAI, Anthropic, etc.)",15,11
+2023-12-01,both,38775380,Amazon will invest up to $4B into OpenAI rival Anthropic,6,1
+2023-12-01,both,38484518,"Talk anonymously to ChatGPT, Claude, Llama and vote for the better model",2,1
+2023-12-01,both,38516905,"Anthropic, OpenAI's biggest rival, has a weird structure too",2,0
+2023-12-01,both,38516977,"Show HN: PromptForge – Prompt Manager Inside ChatGPT, Bard and Claude",2,0
+2023-12-01,openai,38821248,"Compare Google, Bing, Marginalia, Kagi, Mwmbl, and ChatGPT",950,465
+2023-12-01,openai,38759877,Ask HN: How do I train a custom LLM/ChatGPT on my own documents in Dec 2023?,800,237
+2023-12-01,openai,38781941,The New York Times is suing OpenAI and Microsoft for copyright infringement,593,868
+2023-12-01,openai,38790255,NY Times copyright suit wants OpenAI to delete all GPT instances,529,891
+2023-12-01,openai,38782678,Pushing ChatGPT's Structured Data Support to Its Limits,304,89
+2024-01-01,anthropic,38989294,New study from Anthropic exposes deceptive 'sleeper agents' lurking in AI's core,26,1
+2024-01-01,anthropic,38939993,Mistral Medium reaches Claude-level performance on Chatbot Arena,4,2
+2024-01-01,anthropic,38989233,New Anthropic Paper: Sleeper Agents,4,1
+2024-01-01,anthropic,39174479,Claude Shannon Invented the Information Age,3,0
+2024-01-01,anthropic,38935723,"Gemini Pro suffers in RAG (compared to GPT-4-turbo, Claude 2.1)",3,0
+2024-01-01,both,39062025,Show HN: Claude and ChatGPT can't do basic operations?,2,0
+2024-01-01,both,38979047,"OpenAI, Anthropic have been engaging with Chinese expert over AI Safety",2,0
+2024-01-01,both,39132566,"FTC Queries AI Deals by Amazon, OpenAI, Microsoft, Anthropic",1,0
+2024-01-01,both,39135836,"FTC Drills into Amazon, Microsoft, Google over Billions to OpenAI, Anthropic",1,0
+2024-01-01,both,39165115,"Chatbox: A cross-platform desktop client for ChatGPT, Claude and other LLMs",1,0
+2024-01-01,openai,38971012,I'm sorry but I cannot fulfill this request it goes against OpenAI use policy,1325,737
+2024-01-01,openai,39156778,"Implementing a ChatGPT-like LLM from scratch, step by step",739,98
+2024-01-01,openai,39121521,OpenAI scrapped a promise to disclose key documents to the public,614,300
+2024-01-01,openai,38941942,ChatGPT for Teams,436,418
+2024-01-01,openai,38972735,"OpenAI deletes ban on using ChatGPT for ""military and warfare""",387,265
+2024-02-01,anthropic,39456140,The funding frenzy at Anthropic,111,92
+2024-02-01,anthropic,39483421,US judge says FTX can sell its Anthropic shares; FTX invested $500M in 2021,61,69
+2024-02-01,anthropic,39440161,"The Funding Frenzy at Anthropic, One of A.I.'S Hottest Startups",11,1
+2024-02-01,anthropic,39398562,Anthropic takes steps to prevent election misinformation,3,0
+2024-02-01,anthropic,39251468,Claude Shannon,2,0
+2024-02-01,both,39276270,"I asked ChatGPT, Claude and Bard to predict Super Bowl result, here's the winner",1,0
+2024-02-01,openai,39365935,"Hi everyone yes, I left OpenAI yesterday",769,453
+2024-02-01,openai,39307330,OpenAI compatibility,643,188
+2024-02-01,openai,39380165,OpenAI – Application for US trademark “GPT” has failed,602,259
+2024-02-01,openai,39511530,Microsoft strikes deal with Mistral in push beyond OpenAI,537,383
+2024-02-01,openai,39360724,Memory and new controls for ChatGPT,460,261
+2024-03-01,anthropic,39590666,Claude 3 model family,1016,683
+2024-03-01,anthropic,39841618,Amazon spends another $2.7B on Anthropic,206,118
+2024-03-01,anthropic,39838169,Claude 3 beats GPT-4 on Aider's code editing benchmark,202,228
+2024-03-01,anthropic,39735108,"Ask HN: If you've used GPT-4-Turbo and Claude Opus, which do you prefer?",113,101
+2024-03-01,anthropic,39841390,Claude 3 surpasses GPT-4 on Chatbot Arena for the first time,101,63
+2024-03-01,both,39806310,Claude and ChatGPT for ad-hoc sidequests,13,0
+2024-03-01,both,39669644,Show HN: Gemini vs. ChatGPT vs. Claude AI,6,2
+2024-03-01,both,39794179,Claude and ChatGPT for ad-hoc tasks,6,1
+2024-03-01,both,39836443,Claude and ChatGPT for ad-hoc sidequests,5,0
+2024-03-01,both,39619389,ChatGPT 4 Vision Vs Claude 3 Opus,4,6
+2024-03-01,openai,39559966,"Elon Musk sues Sam Altman, Greg Brockman, and OpenAI [pdf]",1462,1208
+2024-03-01,openai,39611484,OpenAI and Elon Musk,1037,977
+2024-03-01,openai,39675054,OpenAI – transformer debugger release,362,118
+2024-03-01,openai,39852219,I scraped all of OpenAI's Community Forum,310,59
+2024-03-01,openai,39647105,OpenAI board reappoints Altman and adds three other directors,281,296
+2024-04-01,anthropic,40192403,Claude Émile Jean-Baptiste Litre,132,11
+2024-04-01,anthropic,40062210,Collection of notebooks showcasing some fun and effective ways of using Claude,128,44
+2024-04-01,anthropic,40130768,Claude 3 beats Google Translate,126,119
+2024-04-01,anthropic,39972036,Colab notebook to create Magic cards from image with Claude,107,25
+2024-04-01,anthropic,40116488,Anthropic: Prompt Library,77,9
+2024-04-01,both,40069246,Show HN: Easy Folders – A folders based organization tool for ChatGPT and Claude,6,1
+2024-04-01,both,39923763,"Show HN: PlugBear – No-Code Connector Between OpenAI,Claude <> Slack,HubSpot",4,0
+2024-04-01,both,40112864,Ask HN: Who else is using Claude/ChatGPT to fill the YC app?,3,0
+2024-04-01,both,40047247,"Show HN: A/B test Gemini, ChatGPT and Claude",2,2
+2024-04-01,both,39897746,"Free Access to ChatGPT, Claude and Mistral",1,4
+2024-04-01,openai,40001971,Anyone got a contact at OpenAI. They have a spider problem,743,375
+2024-04-01,openai,40142374,Meta does everything OpenAI should be,403,216
+2024-04-01,openai,39895994,OpenAI removes Sam Altman's ownership of its Startup Fund,340,45
+2024-04-01,openai,39896462,OpenAI: Start using ChatGPT instantly,135,154
+2024-04-01,openai,39900197,OpenAI's comment to the NTIA on open model weights,108,68
+2024-05-01,anthropic,40459543,Golden Gate Claude,169,60
+2024-05-01,anthropic,40429540,Scaling Monosemanticity: Extracting Interpretable Features from Claude 3 Sonnet,168,124
+2024-05-01,anthropic,40352204,Claude is now available in Europe,145,132
+2024-05-01,anthropic,40395057,A web version of Anthropic's prompt engineering interactive tutorial,144,21
+2024-05-01,anthropic,40502794,Jan Leike joins Anthropic on their superalignment team,99,33
+2024-05-01,both,40527165,Anthropic Designed Itself to Avoid OpenAI's Mistakes,45,8
+2024-05-01,both,40517021,"Sam Altman ""Wrecks"" OpenAI – Jan Leike Joins Anthropic [video]",25,20
+2024-05-01,both,40338055,"Show HN: A better UI for ChatGPT, Claude with text search, saved chats and more",23,21
+2024-05-01,both,40514038,"OpenAI partners with Vox Media, Anthropic brings ex-OpenAI safety lead",17,9
+2024-05-01,both,40504090,Anthropic hires former OpenAI safety lead to head up new team,5,0
+2024-05-01,openai,40447431,Leaked OpenAI documents reveal aggressive tactics toward former employees,1791,534
+2024-05-01,openai,40421225,"Statement from Scarlett Johansson on the OpenAI ""Sky"" voice",1528,1000
+2024-05-01,openai,40393121,OpenAI departures: Why can’t former employees talk?,1254,961
+2024-05-01,openai,40361128,Ilya Sutskever to leave OpenAI,1124,782
+2024-05-01,openai,40506582,Ex-OpenAI board member reveals what led to Sam Altman's brief ousting,785,805
+2024-06-01,anthropic,40738916,Claude 3.5 Sonnet,665,278
+2024-06-01,anthropic,40806698,Claude 3.5 Sonnet,301,204
+2024-06-01,anthropic,40620055,Claude's Character,263,146
+2024-06-01,anthropic,40790911,Anthropic Introduces Claude Projects,149,56
+2024-06-01,anthropic,40802334,Anthropic: Expanding Access to Claude for Government,113,95
+2024-06-01,both,40759916,"OpenAI, Anthropic ignoring rule that prevents bots scraping online content",44,22
+2024-06-01,both,40754633,OpenAI and Anthropic are ignoring robots.txt,18,6
+2024-06-01,both,40576239,"AI apocalypse? ChatGPT, Claude and Perplexity are all down at the same time",13,2
+2024-06-01,both,40795689,Show HN: Chrome extension that brings Claude Artifacts for ChatGPT,11,2
+2024-06-01,both,40762976,"Show HN: Python lib to run evals across providers: OpenAI, Anthropic, etc.",8,1
+2024-06-01,openai,40636980,OpenAI and Apple Announce Partnership,422,317
+2024-06-01,openai,40627558,A ChatGPT mistake cost us $10k,355,495
+2024-06-01,openai,40593275,"U.S. clears way for antitrust inquiries of Nvidia, Microsoft and OpenAI",285,196
+2024-06-01,openai,40685644,"Snowden: ""They've gone full mask-off: do not ever trust OpenAI or its products""",275,159
+2024-06-01,openai,40750391,OpenAI Acquires Rockset,249,86
+2024-07-01,anthropic,40947238,Show HN: Open-source CLI coding framework using Claude,84,21
+2024-07-01,anthropic,41060559,iFixit CEO Kyle Wiens calls out Anthropic for disruptive crawling,79,10
+2024-07-01,anthropic,41076459,iFixit CEO takes shots at Anthropic for hitting servers a million times in 24h,51,2
+2024-07-01,anthropic,40911350,Claude 3.5 Sonnet Reproduces BIG-Bench Canary String,50,21
+2024-07-01,anthropic,41113236,Anthropic is scraping websites so fast it's causing problems,50,24
+2024-07-01,both,41121045,Claude 3.5 Sonnet is way better then ChatGPT,5,5
+2024-07-01,both,40927713,Show HN: MailMate GPT plugin – Use ChatGPT/Claude to write emails in MailMate,3,1
+2024-07-01,both,40973258,AI-digest: Query your whole codebase in a Custom ChatGPT or Claude Project,3,0
+2024-07-01,both,41086834,Show HN: I integrated a folder system into ChatGPT and Claude,3,1
+2024-07-01,both,40868089,"Using AI(OpenAI, Anthropic,Gemini) Function Calling to Automate IDE Actions",1,0
+2024-07-01,openai,40843848,My finetuned models beat OpenAI's GPT-4,414,91
+2024-07-01,openai,41071639,OpenAI Announces SearchGPT,345,190
+2024-07-01,openai,41027658,"When ChatGPT summarises, it does nothing of the kind",251,177
+2024-07-01,openai,40974154,"OpenAI illegally barred staff from airing safety risks, whistleblowers say",159,177
+2024-07-01,openai,40961385,Show HN: I generated 70k audiobooks with OpenAI Text-to-Speech,140,109
+2024-08-01,anthropic,41364637,Anthropic publishes the 'system prompts' that make Claude tick,432,278
+2024-08-01,anthropic,41343826,"Anthropic Claude 3.5 can create icalendar files, so I did this",367,170
+2024-08-01,anthropic,41325889,"Claude's API now supports CORS requests, enabling client-side applications",349,163
+2024-08-01,anthropic,41395921,Anthropic's Prompt Engineering Interactive Tutorial,284,88
+2024-08-01,anthropic,41380814,Show HN: Claude Artifacts but creating real web apps,189,48
+2024-08-01,both,41168904,OpenAI co-founder John Schulman says he will leave and join rival Anthropic,403,280
+2024-08-01,both,41166731,OpenAI co-founder John Schulman announces he is joining Anthropic,43,8
+2024-08-01,both,41215631,Ask HN: Has degradation in the quality of ChatGPT and Claude been proven?,42,40
+2024-08-01,both,41393825,"Show HN: Geppetto v0.2.5 Claude, ChatGPT, and Gemini OSS Companion in Your Slack",16,0
+2024-08-01,both,41167110,OpenAI co-founder leaves for Anthropic,13,1
+2024-08-01,openai,41389185,OpenAI is good at unminifying code,931,304
+2024-08-01,openai,41125630,How Does OpenAI Survive?,151,188
+2024-08-01,openai,41411478,The Threat to OpenAI,150,152
+2024-08-01,openai,41217313,ChatGPT unexpectedly began speaking in a user's cloned voice during testing,122,154
+2024-08-01,openai,41166862,"OpenAI: Cofounders Greg Brockman, John Schulman, along with others, to leave",89,20
+2024-09-01,anthropic,41446896,Claude for Enterprise,84,17
+2024-09-01,anthropic,41458044,Show HN: Claude Memory – Long-term memory for Claude,76,23
+2024-09-01,anthropic,41429469,"Code Smarter, Not Harder: Developing with Cursor and Claude Sonnet",58,74
+2024-09-01,anthropic,41438672,Anthropic Quickstarts,57,9
+2024-09-01,anthropic,41472622,Open-source reflection lama 70B beats Claude 3.5 and GPT-4 on benchmarks,6,4
+2024-09-01,both,41440415,OpenAI and Anthropic agree to send models to US Government for safety evaluation,57,59
+2024-09-01,both,41540771,"OpenAI, Anthropic, Google employees support California AI bill",20,26
+2024-09-01,both,41458278,"Leaked System Prompts from V0, Cursor, Claude, Perplexity, ChatGPT",6,1
+2024-09-01,both,41500138,"Show HN: Intelligent Context Control LLM Chat App for ChatGPT, Claude and Gemini",2,2
+2024-09-01,both,41566515,Developer Productivity with ChatGPT and Claude with Simon Willison [video],2,1
+2024-09-01,openai,41655954,OpenAI to become for-profit company,1346,745
+2024-09-01,openai,41651038,Mira Murati leaves OpenAI,823,599
+2024-09-01,openai,41609393,Forget ChatGPT: why researchers now run small AIs on their laptops,705,365
+2024-09-01,openai,41527143,Notes on OpenAI's new o1 chain-of-thought models,699,629
+2024-09-01,openai,41534474,OpenAI threatens to revoke o1 access for asking it about its chain of thought,538,305
+2024-10-01,anthropic,41914989,"Computer use, a new Claude 3.5 Sonnet, and Claude 3.5 Haiku",1454,735
+2024-10-01,anthropic,41985915,"GitHub cuts AI deals with Google, Anthropic",897,702
+2024-10-01,anthropic,41929174,Everything I built with Claude Artifacts this week,637,465
+2024-10-01,anthropic,42007649,Claude for Desktop,330,214
+2024-10-01,anthropic,41943662,Notes on the new Claude analysis JavaScript code execution tool,179,53
+2024-10-01,both,41711913,Anthropic hires OpenAI co-founder Durk Kingma,162,82
+2024-10-01,both,41726603,OpenAI and Anthropic Revenue Breakdown,129,136
+2024-10-01,both,42009290,"Support for Claude Sonnet 3.5, OpenAI O1 and Gemini 1.5 Pro",69,35
+2024-10-01,both,41726182,"Show HN: TabGPT - Ask Gemini, ChatGPT, Claude at the Same Time in Chrome",31,18
+2024-10-01,both,41764933,Another OpenAI founder moves to arch-rival Anthropic,13,1
+2024-10-01,openai,42008569,ChatGPT Search,1485,1252
+2024-10-01,openai,41732634,Canvas is a new way to write and code with ChatGPT,985,679
+2024-10-01,openai,41986926,"OpenAI builds first chip with Broadcom and TSMC, scales back foundry ambition",370,301
+2024-10-01,openai,41878281,Microsoft and OpenAI's close partnership shows signs of fraying,326,521
+2024-10-01,openai,41743327,Show HN: Open source framework OpenAI uses for Advanced Voice,266,61
+2024-11-01,anthropic,42215126,Amazon to invest another $4B in Anthropic,666,363
+2024-11-01,anthropic,42091043,Claude AI to process secret government data through new Palantir deal,239,184
+2024-11-01,anthropic,42164141,Claude AI built me a React app to compare maps side by side,222,201
+2024-11-01,anthropic,42034305,"Claude Shannon: Mathematician, engineer, genius and juggler (2017)",179,58
+2024-11-01,anthropic,42210560,DOJ proposal would require Google to divest from AI partnerships with Anthropic,111,157
+2024-11-01,both,42125888,"OpenAI, Google and Anthropic are struggling to build more advanced AI",625,604
+2024-11-01,both,42138319,"AI progress stalls as OpenAI, Google and Anthropic hit roadblocks",97,2
+2024-11-01,both,42042401,"Show HN: Mem0 Browser Extension: Shared Memory Across ChatGPT,Claude,Perplexity",34,4
+2024-11-01,both,42233159,"Does anyone need a fine-tuned model from an ex-OpenAI, ex-Anthropic researcher?",7,1
+2024-11-01,both,42032314,Show HN: A browser extension for Claude/ChatGPT to edit your projects locally,4,2
+2024-11-01,openai,42129064,A Student's Guide to Writing with ChatGPT,323,309
+2024-11-01,openai,42273817,Core copyright violation moves ahead in The Intercept's lawsuit against OpenAI,307,365
+2024-11-01,openai,42252806,OpenAI hits pause on video model Sora after artists leak access in protest,138,131
+2024-11-01,openai,42067474,ChatGPT now on chat.com,125,155
+2024-11-01,openai,42273780,Alibaba releases an 'open' challenger to OpenAI's O1 reasoning model,121,6
+2024-12-01,anthropic,42342529,I spent 8 hours testing o1 Pro ($200) vs. Claude Sonnet 3.5 ($20),53,0
+2024-12-01,anthropic,42514676,DeepSeek v3 beats Claude sonnet 3.5 and way cheaper,48,9
+2024-12-01,anthropic,42471596,Building Anthropic: A conversation with our co-founders [video],12,2
+2024-12-01,anthropic,42443069,Show HN: Anthropic's MCP Server Directory,11,6
+2024-12-01,anthropic,42458384,New Anthropic research: Alignment faking in large language models,8,0
+2024-12-01,both,42328640,"OpenAI, Anthropic Expand in Europe with Zurich Offices",3,0
+2024-12-01,both,42395047,"Ask HN: Claude, OpenAI, Janitor, and Character.AI down in the last 2 hours?",3,6
+2024-12-01,both,42520426,Gemini 2.0 vs. OpenAI o1 vs. Claude 3.5 Sonnet: The game of AI thrones,2,0
+2024-12-01,both,42406903,OpenAI O1 vs. Claude 3.5 Sonnet: Which One's Worth Your $20?,2,0
+2024-12-01,both,42435797,UIPath's Daniel Dines isn't sweating over threats from OpenAI or Anthropic,1,0
+2024-12-01,openai,42473321,OpenAI O3 breakthrough high score on ARC-AGI-PUB,1724,1755
+2024-12-01,openai,42412718,OpenAI whistleblower found dead in San Francisco apartment,1041,432
+2024-12-01,openai,42330732,ChatGPT Pro,813,1197
+2024-12-01,openai,42411608,Elon Musk wanted an OpenAI for-profit,582,640
+2024-12-01,openai,42330666,OpenAI o1 system card,417,302
+2025-01-01,anthropic,42807173,Citations on the Anthropic API,177,61
+2025-01-01,anthropic,42625497,Anthropic raising funding valuing it at $60B,115,110
+2025-01-01,anthropic,42721460,Anthropic achieves ISO 42001 certification for responsible AI,84,84
+2025-01-01,anthropic,42873771,Anthropic's CEO says DeepSeek shows US export rules are working,42,23
+2025-01-01,anthropic,42571963,How I Use Claude,28,12
+2025-01-01,both,42817438,"Show HN: Onit – Source-available ChatGPT Desktop with local mode, Claude, Gemini",174,58
+2025-01-01,both,42789323,"Chatbox: Cross-platform desktop client for ChatGPT, Claude and other LLMs",110,23
+2025-01-01,both,42850024,"Gemini refuses to answer questions that Grok, ChatGPT, Claude answer",9,2
+2025-01-01,both,42791425,Google invests further $1B in OpenAI rival Anthropic,6,1
+2025-01-01,both,42756095,Show HN: Open ChatGPT/Claude/Google with one address bar command,3,3
+2025-01-01,openai,42865527,OpenAI Furious DeepSeek Might Have Stolen All the Data OpenAI Stole from Us,1361,16
+2025-01-01,openai,42785891,"Stargate Project: SoftBank, OpenAI, Oracle, MGX to build data centers",1021,1538
+2025-01-01,openai,42890627,OpenAI O3-Mini,962,904
+2025-01-01,openai,42861475,OpenAI says it has evidence DeepSeek used its model to train competitor,747,1541
+2025-01-01,openai,42763231,FrontierMath was funded by OpenAI,483,199
+2025-02-01,anthropic,43163011,Claude 3.7 Sonnet and Claude Code,2127,963
+2025-02-01,anthropic,43000529,The Anthropic Economic Index,582,225
+2025-02-01,anthropic,42915905,"Anthropic: ""Applicants should not use AI assistants""",477,401
+2025-02-01,anthropic,43177117,"Show HN: MyCoder, an open source Claude-Code alternative",125,53
+2025-02-01,anthropic,43173825,Claude Plays Pokémon,75,24
+2025-02-01,both,42910057,Ask HN: How many AI startups are just OpenAI/Anthropic/etc. API calls with a UI?,16,17
+2025-02-01,both,42958933,OpenAI Co-Founder John Schulman Leaves Rival Firm Anthropic,8,0
+2025-02-01,both,42965517,OpenAI Co-Founder John Schulman Leaves Rival Firm Anthropic,7,3
+2025-02-01,both,43132963,Retry in Another AI: Switch Between ChatGPT and Claude Seamlessly,3,0
+2025-02-01,both,43194063,A trick to manage frequently used prompts in Claude/ChatGPT,3,0
+2025-02-01,openai,42989320,Modern-Day Oracles or Bullshit Machines? How to thrive in a ChatGPT world,930,603
+2025-02-01,openai,43004889,Musk-led group makes $97B bid for control of OpenAI,706,978
+2025-02-01,openai,42952960,Andrej Karpathy: Deep Dive into LLMs Like ChatGPT [video],582,46
+2025-02-01,openai,42997340,TL;DR of Deep Dive into LLMs Like ChatGPT by Andrej Karpathy,381,83
+2025-02-01,openai,42894215,Notes on OpenAI o3-mini,211,76
+2025-03-01,anthropic,43425655,Claude can now search the web,1233,726
+2025-03-01,anthropic,43534029,Gemini 2.5 Pro vs. Claude 3.7 Sonnet: Coding Comparison,483,328
+2025-03-01,anthropic,43307809,I've been using Claude Code for a couple of days,458,490
+2025-03-01,anthropic,43246206,Anthropic raises $3.5B at $61.5B valuation,194,139
+2025-03-01,anthropic,43217357,"Yes, Claude Code can decompile itself. Here's the source code",187,117
+2025-03-01,both,43337350,Our Small ML Team Beat OpenAI and Anthropic in a Specialized Domain [pdf],15,2
+2025-03-01,both,43415958,Show HN: I built an extension to integrate my own knowledge into ChatGPT/Claude,4,0
+2025-03-01,both,43355728,"Agents: Comparing OpenAI's Operator, ResponsesAPI, AgentsSDK vs. Anthropic's MCP",3,1
+2025-03-01,both,43296048,"Show HN: Claude Code"" Inspired OpenAI Model Context Protocol Server",2,0
+2025-03-01,both,43399936,Show HN: SerenGPTy – Find similar ChatGPT / Claude users,2,0
+2025-03-01,openai,43485566,OpenAI adds MCP support to Agents SDK,807,267
+2025-03-01,openai,43352531,OpenAI asks White House for relief from state AI rules,780,782
+2025-03-01,openai,43426022,OpenAI Audio Models,661,296
+2025-03-01,openai,43292946,Microsoft is plotting a future without OpenAI,430,443
+2025-03-01,openai,43344673,Reverse engineering OpenAI code execution to make it run C and JavaScript,289,73
+2025-04-01,anthropic,43613194,"Show HN: Browser MCP – Automate your browser using Cursor, Claude, VS Code",616,217
+2025-04-01,anthropic,43735550,Claude Code: Best practices for agentic coding,614,257
+2025-04-01,anthropic,43633383,How University Students Use Claude,401,579
+2025-04-01,anthropic,43719447,"Show HN: AgentAPI – HTTP API for Claude Code, Goose, Aider, and Codex",163,15
+2025-04-01,anthropic,43545757,Why Does Claude Speak Byzantine Music Notation?,139,82
+2025-04-01,both,43632831,"Show HN: Comparing product rankings by OpenAI, Anthropic, and Perplexity",125,35
+2025-04-01,both,43650323,"Show HN: 100x faster, cheaper, + reliable than OpenAI and Anthropic Computer Use",3,0
+2025-04-01,both,43719923,Show HN: ChatGPT's Infinite Memory Lies – Anthropic Paper Explainer,3,2
+2025-04-01,both,43735523,"I Pitted ChatGPT,Claude,DeepSeek,Gemini,Vercel V0 to Make a Complex React UI",3,0
+2025-04-01,both,43634368,Show HN: Side Reader – Read and Chat with PDFs Inside ChatGPT and Claude,2,0
+2025-04-01,openai,43707719,OpenAI o3 and o4-mini,555,507
+2025-04-01,openai,43708025,OpenAI Codex CLI: Lightweight coding agent that runs in your terminal,516,289
+2025-04-01,openai,43786506,OpenAI releases image generation in the API,487,297
+2025-04-01,openai,43791992,Show HN: I used OpenAI's new image API for a personalized coloring book service,316,188
+2025-04-01,openai,43694877,OpenAI is building a social network?,315,430
+2025-05-01,anthropic,44063703,Claude 4,2013,1170
+2025-05-01,anthropic,43859536,Claude Integrations,734,257
+2025-05-01,anthropic,44085920,Claude 4 System Card,700,252
+2025-05-01,anthropic,43909409,Claude's system prompt is over 24k tokens with tools,627,334
+2025-05-01,anthropic,44032777,Claude Code SDK,454,194
+2025-05-01,both,44142839,"The Trackers and SDKs in ChatGPT, Claude, Grok and Perplexity",111,15
+2025-05-01,both,43950324,"Senators probe Google–Anthropic, Microsoft–OpenAI deals over antitrust concerns",7,0
+2025-05-01,both,44097341,"Show HN: AI Page Ready – Is Your Website Ready for ChatGPT, Gemini and Claude?",6,1
+2025-05-01,both,44114686,"System Prompt Leak Compilation (ChatGPT, Claude, Perplexity, etc.)",3,0
+2025-05-01,both,43998555,Field Testing Claude vs. ChatGPT for Marketing Strategy and Advertising Analysis,2,0
+2025-05-01,openai,44053518,OpenAI to buy AI startup from Jony Ive,818,1126
+2025-05-01,openai,43900877,OpenAI reaches agreement to buy Windsurf for $3B,667,572
+2025-05-01,openai,43897772,Evolving OpenAI's Structure,602,676
+2025-05-01,openai,44089156,Chomsky on what ChatGPT is good for (2023),286,359
+2025-05-01,openai,43854776,When ChatGPT broke the field of NLP: An oral history,278,173
+2025-06-01,anthropic,44159166,Cloudlflare builds OAuth with Claude and publishes all the prompts,889,530
+2025-06-01,anthropic,44211417,Field Notes from Shipping Real Code with Claude,354,99
+2025-06-01,anthropic,44288377,Snorting the AGI with Claude Code,332,242
+2025-06-01,anthropic,44379673,Build and Host AI-Powered Apps with Claude – No Deployment Needed,325,143
+2025-06-01,anthropic,44205697,I read all of Cloudflare's Claude-generated commits,301,283
+2025-06-01,both,44426643,Apple weighs using Anthropic or OpenAI to power Siri,97,101
+2025-06-01,both,44413921,"Show HN: A tool to benchmark LLM APIs (OpenAI, Claude, local/self-hosted)",55,9
+2025-06-01,both,44365321,How ChatGPT Lost Its Lead to Claude: A Product Engineer's Take,10,1
+2025-06-01,both,44389568,"Show HN: Chat with ChatGPT, Claude, Grok, Gemini and Llama on One UI",5,4
+2025-06-01,both,44400701,"Show HN: AI-SDK-Cpp – Unified C++ SDK for OpenAI, Anthropic, and More",5,0
+2025-06-01,openai,44185913,"OpenAI slams court order to save all ChatGPT logs, including deleted chats",1132,932
+2025-06-01,openai,44376989,"OpenAI charges by the minute, so speed up your audio",740,228
+2025-06-01,openai,44239359,OpenAI dropped the price of o3 by 80%,517,495
+2025-06-01,openai,44293988,OpenAI wins $200M U.S. defense contract,319,276
+2025-06-01,openai,44367638,ChatGPT's enterprise success against Copilot fuels OpenAI/Microsoft rivalry,306,333
+2025-07-01,anthropic,44713757,Claude Code weekly rate limits,609,705
+2025-07-01,anthropic,44746621,6 weeks of Claude Code,581,590
+2025-07-01,anthropic,44488331,"Anthropic cut up millions of used books, and downloaded 7M pirated ones – judge",497,651
+2025-07-01,anthropic,44598254,Anthropic tightens usage limits for Claude Code without telling users,407,257
+2025-07-01,anthropic,44596472,My experience with Claude Code after two weeks of adventures,392,379
+2025-07-01,both,44565416,"Anthropic, Google, OpenAI and XAI Granted Up to $200M from Defense Department",216,135
+2025-07-01,both,44577171,"Unlike ChatGPT, Anthropic has doubled down on Artifacts",112,35
+2025-07-01,both,44523292,Anthropic and DeepMind researchers more likely to reject Meta offers than OpenAI,20,5
+2025-07-01,both,44430069,Apple weighs using Anthropic or OpenAI to power Siri in major reversal,10,0
+2025-07-01,both,44584902,"Show HN: A memory for Claude & ChatGPT with custom data types, sharing, and GUI",8,0
+2025-07-01,openai,44491071,Adding a feature because ChatGPT incorrectly thinks it exists,1299,424
+2025-07-01,openai,44536988,"OpenAI’s Windsurf deal is off, and Windsurf’s CEO is going to Google",1055,685
+2025-07-01,openai,44573195,Reflections on OpenAI,771,421
+2025-07-01,openai,44595492,ChatGPT agent: bridging research and action,686,486
+2025-07-01,openai,44613840,OpenAI claims gold-medal performance at IMO 2025,479,698
+2025-08-01,anthropic,44878147,Claude Sonnet 4 now supports 1M tokens of context,1324,692
+2025-08-01,anthropic,44864185,Claude Code is all you need,851,504
+2025-08-01,anthropic,44800185,Claude Opus 4.1,841,328
+2025-08-01,anthropic,45030760,Claude for Chrome,799,406
+2025-08-01,anthropic,44811567,Claude Code IDE integration for Emacs,782,266
+2025-08-01,both,45050415,Are OpenAI and Anthropic losing money on inference?,515,478
+2025-08-01,both,44762856,Anthropic revokes OpenAI's access to Claude,294,124
+2025-08-01,both,44770113,Anthropic cuts OpenAI's Claude API access,10,1
+2025-08-01,both,44988529,"Show HN: Any-LLM chat demo – switch between ChatGPT, Claude, Ollama, in one chat",10,0
+2025-08-01,both,45042183,OpenAI and Anthropic share findings from a joint safety evaluation,9,0
+2025-08-01,openai,44800746,Open models by OpenAI,2124,876
+2025-08-01,openai,44840728,Ask HN: How can ChatGPT serve 700M users when I can't run one GPT-4 locally?,574,365
+2025-08-01,openai,45026886,A teen was suicidal. ChatGPT was the friend he confided in,444,588
+2025-08-01,openai,44839842,The surprise deprecation of GPT-4o for ChatGPT consumers,428,412
+2025-08-01,openai,44828884,OpenAI's new open-source model is basically Phi-5,403,222
+2025-09-01,anthropic,45415962,Claude Sonnet 4.5,1585,786
+2025-09-01,anthropic,45142885,Anthropic agrees to pay $1.5B to settle lawsuit with book authors,989,737
+2025-09-01,anthropic,45163362,Using Claude Code to modernize a 25-year-old kernel driver,929,318
+2025-09-01,anthropic,45416228,Claude Code 2.0,842,413
+2025-09-01,anthropic,45116688,Claude Code: Now in Beta in Zed,683,406
+2025-09-01,both,45214908,Claude’s memory architecture is the opposite of ChatGPT’s,448,236
+2025-09-01,both,45263063,Microsoft Favors Anthropic over OpenAI for Visual Studio Code,213,99
+2025-09-01,both,45106705,Finding vulnerabilities in Python web apps using Claude Code and OpenAI Codex,13,0
+2025-09-01,both,45190253,Microsoft to Use AI from Anthropic in Partial Shift from OpenAI,9,4
+2025-09-01,both,45408742,X tells ChatGPT and Claude no – only Grok eats,4,1
+2025-09-01,openai,45375477,ChatGPT Pulse,627,730
+2025-09-01,openai,45199713,ChatGPT Developer Mode: Full MCP client access,517,281
+2025-09-01,openai,45335474,OpenAI and Nvidia announce partnership to deploy 10GW of Nvidia systems,473,632
+2025-09-01,openai,45410068,I built ChatGPT with Minecraft redstone [video],440,86
+2025-09-01,openai,45152284,GPT-5 Thinking in ChatGPT (a.k.a. Research Goblin) is good at search,361,255
+2025-10-01,anthropic,45607117,Claude Skills,816,427
+2025-10-01,anthropic,45619537,"Claude Skills are awesome, maybe a bigger deal than MCP",738,370
+2025-10-01,anthropic,45595403,Claude Haiku 4.5,730,287
+2025-10-01,anthropic,45722639,Claude for Excel,684,459
+2025-10-01,anthropic,45647166,Claude Code on the web,578,390
+2025-10-01,both,45701622,"Claudeskills.cc – Share, Discover, and Reuse Claude/OpenAI Agent Skills",28,19
+2025-10-01,both,45609835,"OpenAI board member is violating export control, selling Claude API to HongKong",21,5
+2025-10-01,both,45512552,Insurers balk at multibillion-dollar claims faced by OpenAI and Anthropic,7,1
+2025-10-01,both,45694452,OpenAI and Anthropic vs. app developers: tech's Cronos syndrome,6,1
+2025-10-01,both,45696541,OpenAI Atlas Blocks Claude,4,1
+2025-10-01,openai,45569350,NanoChat – The best ChatGPT that $100 can buy,1523,308
+2025-10-01,openai,45702397,ChatGPT's Atlas: The Browser That's Anti-Web,803,351
+2025-10-01,openai,45658479,ChatGPT Atlas,771,732
+2025-10-01,openai,45453586,"OpenAI's H1 2025: $4.3B in income, $13.5B in loss",558,697
+2025-10-01,openai,45490549,"AMD signs AI chip-supply deal with OpenAI, gives it option to take a 10% stake",442,370
+2025-11-01,anthropic,45944296,Anthropic’s paper smells like bullshit,1160,322
+2025-11-01,anthropic,46037637,Claude Opus 4.5,1113,506
+2025-11-01,anthropic,46098838,Writing a good Claude.md,748,290
+2025-11-01,anthropic,46038047,Claude Advanced Tool Use,673,266
+2025-11-01,anthropic,45786738,How I use every Claude Code feature,534,188
+2025-11-01,both,46013984,"Show HN: PolyGPT – ChatGPT, Claude, Gemini, Perplexity responses side-by-side",26,24
+2025-11-01,both,46061232,API that auto-routes to the cheapest AI provider (OpenAI/Anthropic/Gemini),24,38
+2025-11-01,both,45848001,Israel is attempting to influence ChatGPT and Claude responses,16,1
+2025-11-01,both,45926057,"LiteAI – OpenAI, Anthropic, and Google LLMs at a discount",12,23
+2025-11-01,both,45884219,Anthropic Is on Track to Turn a Profit Much Faster Than OpenAI,9,0
+2025-11-01,openai,46086771,Leak confirms OpenAI is preparing ads on ChatGPT for public roll out,854,737
+2025-11-01,openai,46058065,OpenAI needs to raise at least $207B by 2030,559,581
+2025-11-01,openai,45904551,"GPT-5.1: A smarter, more conversational ChatGPT",555,726
+2025-11-01,openai,45825965,ChatGPT terms disallow its use in providing legal and medical advice to others,379,426
+2025-11-01,openai,45789602,Tongyi DeepResearch – open-source 30B MoE Model that rivals OpenAI DeepResearch,365,153
+2025-12-01,anthropic,46124267,Anthropic acquires Bun,2192,1073
+2025-12-01,anthropic,46183294,I failed to recreate the 1996 Space Jam website with Claude,552,461
+2025-12-01,anthropic,46355165,Claude Code gets native LSP support,500,326
+2025-12-01,anthropic,46125184,Claude 4.5 Opus’ Soul Document,342,244
+2025-12-01,anthropic,46339777,Claude in Chrome,310,181
+2025-12-01,both,46132531,Anthropic taps IPO lawyers as it races OpenAI to go public,367,305
+2025-12-01,both,46137385,Anthropic reportedly preparing for IPO in race with OpenAI: FT,6,1
+2025-12-01,both,46167835,I got Claude and ChatGPT to stop being sycophantic cheerleaders,4,0
+2025-12-01,both,46227803,Ask HN: Why are people using Claude or ChatGPT when Gemini is free?,4,7
+2025-12-01,both,46425990,"Show HN: Cumbersome – iOS/macOS API client for OpenAI, Anthropic, Z.ai",2,0
+2025-12-01,openai,46103376,Search tool that only returns content created before ChatGPT's public release,888,370
+2025-12-01,openai,46121870,OpenAI declares 'code red' as Google catches up in AI race,819,930
+2025-12-01,openai,46273466,"I'm Kenyan. I don't write like ChatGPT, ChatGPT writes like me",799,504
+2025-12-01,openai,46250332,"OpenAI are quietly adopting skills, now available in ChatGPT and Codex CLI",587,324
+2025-12-01,openai,46231585,"Disney making $1B investment in OpenAI, will allow characters on Sora AI",327,2
+2026-01-01,anthropic,46601902,Anthropic has made a large contribution to the Python Software Foundation,81,28
+2026-01-01,anthropic,46625918,Anthropic Explicitly Blocking OpenCode,59,26
+2026-01-01,anthropic,46578701,Anthropic: Developing a Claude Code competitor using Claude Code is banned,50,20
+2026-01-01,anthropic,46622328,Claude Cowork Exfiltrates Files,45,19
+2026-01-01,anthropic,46593022,Cowork: Claude Code for the rest of your work,41,12
+2026-01-01,both,46812653,"Mozilla is building an AI 'rebel alliance' to take on OpenAI, Anthropic",13,0
+2026-01-01,both,46785163,"Anthropic and OpenAI CEOs condemn ICE violence, praise Trump",3,1
+2026-01-01,both,46820833,"Top engineers at Anthropic, OpenAI say AI now writes 100% of their code",3,0
+2026-01-01,both,46532793,"Search your past ChatGPT, Claude and perplexity chats with context",2,0
+2026-01-01,both,46693021,Claude Code is the ChatGPT moment repeated and awful news for software stocks,2,0
+2026-01-01,openai,46816539,"Retiring GPT-4o, GPT-4.1, GPT-4.1 mini, and OpenAI o4-mini in ChatGPT",111,150
+2026-01-01,openai,46812173,US cybersecurity chief leaked sensitive government files to ChatGPT: Report,86,28
+2026-01-01,openai,46831702,The $100B Megadeal Between OpenAI and Nvidia Is on Ice,59,13
+2026-01-01,openai,46649644,OpenAI to begin testing ads on ChatGPT in the U.S.,40,55
+2026-01-01,openai,46649577,Our approach to advertising and expanding access to ChatGPT,31,10
+2026-02-01,anthropic,47186677,I am directing the Department of War to designate Anthropic a Supply-Chain Risk,234,136
+2026-02-01,anthropic,46902223,Claude Opus 4.6,158,49
+2026-02-01,anthropic,46978710,Claude Code Is Being Dumbed Down,115,83
+2026-02-01,anthropic,47175931,"Google Workers Seek 'Red Lines' on Military A.I., Echoing Anthropic",60,15
+2026-02-01,anthropic,46872481,Anthropic is Down,52,25
+2026-02-01,both,47187488,Altman says OpenAI agrees with Anthropic's red lines in Pentagon dispute,8,1
+2026-02-01,both,46886859,"Anthropic says 'Claude will remain ad-free,' unlike ChatGPT",7,3
+2026-02-01,both,47181375,Sam Altman says OpenAI shares Anthropic's red lines in Pentagon fight,5,0
+2026-02-01,both,47191135,OpenAI Reaches A.I. Agreement with Defense Dept. After Anthropic Clash,5,3
+2026-02-01,both,47019108,Reddit users in /r/MyboyfriendisAI are migrating from ChatGPT to Claude,4,3
+2026-02-01,openai,47008560,OpenAI has deleted the word 'safely' from its mission,149,51
+2026-02-01,openai,47193478,OpenAI – How to delete your account,143,20
+2026-02-01,openai,46949401,Testing Ads in ChatGPT,99,105
+2026-02-01,openai,47140632,"OpenAI, the US government and Persona built an identity surveillance machine",93,22
+2026-02-01,openai,46899770,OpenAI Frontier,68,74
+2026-03-01,anthropic,47202032,Claude becomes number one app on the U.S. App Store,173,51
+2026-03-01,anthropic,47278720,Claude Code wiped our production database with a Terraform command,63,55
+2026-03-01,anthropic,47448524,Claude Code: Channels,60,20
+2026-03-01,anthropic,47266084,Pentagon Formally Labels Anthropic Supply-Chain Risk,49,7
+2026-03-01,anthropic,47418576,Garry Tan's Claude Code Setup,37,34
+2026-03-01,both,47298997,Claude Struggles to Cope with ChatGPT Exodus,30,14
+2026-03-01,both,47518001,OpenAI's latest repo has Claude as the third top contributor,11,1
+2026-03-01,both,47255662,Anthropic CEO calls OpenAI's messaging around military deal 'straight up lies',6,1
+2026-03-01,both,47209443,Claude dethrones ChatGPT as top U.S. app after Pentagon saga,5,0
+2026-03-01,both,47580447,OpenAI introduces a Codex plugin for Claude Code,4,1
+2026-03-01,openai,47438723,Astral to Join OpenAI,198,62
+2026-03-01,openai,47299009,"Based on its own charter, OpenAI should surrender the race",147,43
+2026-03-01,openai,47438716,OpenAI to Acquire Astral,88,43
+2026-03-01,openai,47241092,Cancel ChatGPT AI boycott surges after OpenAI pentagon military deal,52,8
+2026-03-01,openai,47566865,ChatGPT Won't Let You Type Until Cloudflare Reads Your React State,49,19
+2026-04-01,anthropic,47806725,Claude Design,170,93
+2026-04-01,anthropic,47793493,Claude Opus 4.7,169,9
+2026-04-01,anthropic,47854477,Claude Code removed from Anthropic's Pro plan,138,64
+2026-04-01,anthropic,47936370,Anthropic Joins the Blender Development Fund as Corporate Patron,127,97
+2026-04-01,anthropic,47679258,System Card: Claude Mythos Preview [pdf],120,44
+2026-04-01,both,47601405,OpenAI Demand Sinks on Secondary Market as Anthropic Runs Hot,48,11
+2026-04-01,both,47835646,"I prompted ChatGPT, Claude, Perplexity, and Gemini and watched my Nginx logs",38,1
+2026-04-01,both,47692224,"Meta debuts new Muse model, rivaling Google, OpenAI and Anthropic",5,1
+2026-04-01,both,47877478,"30 Days Running ChatGPT Plus, Claude Pro, and Google AI Pro in Parallel",5,1
+2026-04-01,both,47694188,Using Claude Code with my ChatGPT subscription instead of paying for both,4,0
+2026-04-01,openai,47717587,OpenAI Backs Bill That Would Limit Liability for AI-Enabled Mass Deaths,164,96
+2026-04-01,openai,47707253,ChatGPT Pro now starts at $100/month,92,96
+2026-04-01,openai,47840980,"OpenAI ad partner now selling ChatGPT ad placements based on ""prompt relevance""",32,5
+2026-04-01,openai,47684326,OpenAI says its new model GPT-2 is too dangerous to release (2019),28,2
+2026-04-01,openai,47867085,OpenAI: Workspace Agents for Business,28,5
+2026-05-01,anthropic,48194352,I’ve joined Anthropic,312,108
+2026-05-01,anthropic,48311647,Claude Opus 4.8,131,49
+2026-05-01,anthropic,47976415,Uber Torches 2026 AI Budget on Claude Code in Four Months,81,73
+2026-05-01,anthropic,48037986,Higher usage limits for Claude and a compute deal with SpaceX,68,25
+2026-05-01,anthropic,48238896,Microsoft Drops Claude Code After Budget Overrun,55,23
+2026-05-01,both,47973108,"After dissing Anthropic for limiting Mythos, OpenAI restricts access to Cyber",28,11
+2026-05-01,both,48146424,RelaxAI – UK sovereign LLM inference at 80% cheaper than OpenAI/Claude,5,0
+2026-05-01,both,48336233,Anthropic surpasses OpenAI to become most valuable AI startup,5,1
+2026-05-01,both,48095474,"OpenAI, Anthropic, and Google, private equity giants threatens IT services work",4,0
+2026-05-01,both,48121464,"You can now run hackathons on Claude, ChatGPT and Gemini (via MCP)",4,1
+2026-05-01,openai,48212493,An OpenAI model has disproved a central conjecture in discrete geometry,154,82
+2026-05-01,openai,48182754,Elon Musk has lost his lawsuit against Sam Altman and OpenAI,90,21
+2026-05-01,openai,48035969,OpenAI president forced to read his personal diary entries to jury,50,44
+2026-05-01,openai,48163392,OpenAI and Government of Malta partner to roll out ChatGPT Plus to all citizens,33,22
+2026-05-01,openai,48210226,OpenAI Is Preparing to File for an IPO Soon,25,5
+2026-06-01,anthropic,48533308,Why Is Claude Turning into an a**Hole?,77,93
+2026-06-01,anthropic,48735770,Claude Science,72,32
+2026-06-01,anthropic,48558766,Claude: Elevated errors across many models,69,39
+2026-06-01,anthropic,48434436,"Anthropic, please ship an official Claude Desktop for Linux",61,30
+2026-06-01,anthropic,48648039,Claude Tag,60,22
+2026-06-01,both,48486486,OpenAI mulls slashing prices as it competes with Anthropic for users,30,21
+2026-06-01,both,48485673,"OpenAI considers drastic price cuts, anticipating war for users with Anthropic",5,0
+2026-06-01,both,48679972,Chinese A.I. Models Close the Gap with Anthropic and OpenAI,4,0
+2026-06-01,both,48726966,"Open Memory Protocol – One Memory Store for Claude, ChatGPT, Curso",4,0
+2026-06-01,both,48458991,Perplexity plans IPO in 2028 regardless of what happens to Anthropic or OpenAI,4,0
+2026-06-01,openai,48602639,Amazon drops Sam Altman movie after announcing OpenAI partnership,78,15
+2026-06-01,openai,48452317,OpenAI Submits S-1 Draft to SEC,41,12
+2026-06-01,openai,48577208,Leaked financial docs show OpenAI is losing billions of dollars a year,30,8
+2026-06-01,openai,48452224,OpenAI Confidentially Files for IPO,22,0
+2026-06-01,openai,48550465,"OpenAI Losses Increased Nearly 8X in 2025, with Spending Hitting $34B",22,9
+2026-07-01,anthropic,48751752,ZCode: Claude Code from the Makers of GLM,90,25
+2026-07-01,anthropic,48950477,Ask HN: Did Fable disappear from your Claude usage and requires credits now?,79,79
+2026-07-01,anthropic,48966569,Claude Code uses Bun written in Rust now,52,20
+2026-07-01,anthropic,48883275,Claude Code sends 33k tokens before reading the prompt; OpenCode sends 7k,42,13
+2026-07-01,anthropic,48883064,Claude Code May–July 2026 weekly limits promotion,39,54
+2026-07-01,both,48760296,Karp: Anthropic/OpenAI are stealing customer IP and their tokens have low value,15,13
+2026-07-01,both,48836765,Maybe Anthropic and OpenAI Are Not the Future of Artificial Intelligence,6,1
+2026-07-01,both,49022984,Microsoft considers replacing ChatGPT and Claude with Kimi K3 to save $600M,6,0
+2026-07-01,both,48834459,"In San Francisco, Some Home Sellers Now Ask for OpenAI or Anthropic Stock",5,0
+2026-07-01,both,49124085,Anthropic and OpenAI are competing to see whose agents can go rogue harder,5,0
+2026-07-01,openai,48997548,OpenAI and Hugging Face partner to address security incident,171,72
+2026-07-01,openai,48849059,ChatGPT Work,106,30
+2026-07-01,openai,49010345,Terrence Tao's ChatGPT Conversation about the Jacobian Conjecture Counterexample,69,15
+2026-07-01,openai,49005398,OpenAI says its AI went rogue and launched 'unprecedented' cyber-attack,48,52
+2026-07-01,openai,48759623,OpenAI: In early talks to give 5% stake to US Government,44,72
+2026-08-01,anthropic,49348163,Claude: Degraded Performance for Multiple Models,82,47
+2026-08-01,anthropic,49473522,Judge Rules Trump Administration’s Blacklisting of Anthropic Was Illegal,60,9
+2026-08-01,anthropic,49352806,Claude Code Teaching macOS to Natively Print to the HP Laser 1008a,49,21
+2026-08-01,anthropic,49258881,Claude Code is leaking real email address as a User-Agent string in curl command,34,26
+2026-08-01,anthropic,49492432,Warp builds self-improving agents on Claude,28,18
+2026-08-01,both,49410097,GLM-5.3 (open-weight) beat Anthropic/OpenAI models – for 1/5 the cost,53,16
+2026-08-01,both,49231022,"Israeli startup was linked to rogue AI hacks at OpenAI, Anthropic and Meta",39,12
+2026-08-01,both,49265135,OpenAI and Anthropic hidden CoT leaks when given deep_think tool.,12,0
+2026-08-01,both,49243219,"Sanders urges OpenAI, Anthropic, Meta to pause AI develpmnt amid regulatory push",7,1
+2026-08-01,both,49187704,Meta debuts first AI coding agent to take on Anthropic and OpenAI,6,0
+2026-08-01,openai,49351330,Norway Should Buy OpenAI,80,73
+2026-08-01,openai,49421074,OpenAI: GPT 5.6 Sol price reduction (until at least Nov 21),57,36
+2026-08-01,openai,49510000,ChatGPT Work Tool and Skill Reference,36,23
+2026-08-01,openai,49198884,"Microsoft filings suggest ""around 70%"" of its AI revenue is on OpenAI",35,8
+2026-08-01,openai,49188980,"OpenAI says my prepaid credits were consumed, refuses to show any record",30,6
+2026-09-01,anthropic,49803863,Claude Opus 5.5,255,177
+2026-09-01,anthropic,49893876,Claude partial outage,81,47
+2026-09-01,anthropic,49814947,Claude Code reads AGENTS.md only when telemetry is on,78,23
+2026-09-01,anthropic,49688695,"Claude Fable 5.1 Solves the Cyphral Distich, a 370-year-old cipher",77,8
+2026-09-01,anthropic,49848033,"Yes, Claude can do Nine Loops",57,6
+2026-09-01,both,49704132,"A single firm is behind OpenAI, Anthropic, and Meta hacking scandals",81,29
+2026-09-01,both,49551096,"Ask HN: Why are OpenAI, Claude, and Grok simultaneously down? Coincidence?",65,46
+2026-09-01,both,49551658,"ChatGPT, Claude, and Grok Are Down",24,8
+2026-09-01,both,49567594,Nobody Is Saying Why OpenAI and Anthropic Had Outages,23,2
+2026-09-01,both,49554060,OpenAI says it has overtaken Anthropic with its latest AI model,16,6
+2026-09-01,openai,49643112,"Another researcher says OpenAI trained on conversations, then claimed breakthrou",87,36
+2026-09-01,openai,49554273,OpenAI begins rolling out GPT-6 Astra,77,62
+2026-09-01,openai,49666735,OpenAI agents carried out an undisclosed attack on RubyGems,76,19
+2026-09-01,openai,49550614,ChatGPT Is Throwing 404,75,40
+2026-09-01,openai,49896975,ChatGPT Pro 500,74,58

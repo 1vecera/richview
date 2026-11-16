@@ -1,0 +1,18 @@
+{
+ "spec": {"type": "chord", "title": "Europe, Asia and the Americas dominate trade between five regions", "encoding": {"source": "from", "target": "to", "y": "bn"}, "axes": {"y": {"label": "bn USD"}}},
+ "rows": [
+  {"from": "Europe", "to": "Asia", "bn": 40},
+  {"from": "Europe", "to": "Americas", "bn": 55},
+  {"from": "Europe", "to": "Africa", "bn": 20},
+  {"from": "Asia", "to": "Europe", "bn": 35},
+  {"from": "Asia", "to": "Americas", "bn": 60},
+  {"from": "Asia", "to": "Oceania", "bn": 25},
+  {"from": "Americas", "to": "Europe", "bn": 45},
+  {"from": "Americas", "to": "Asia", "bn": 30},
+  {"from": "Americas", "to": "Africa", "bn": 10},
+  {"from": "Africa", "to": "Europe", "bn": 15},
+  {"from": "Africa", "to": "Asia", "bn": 12},
+  {"from": "Oceania", "to": "Asia", "bn": 18},
+  {"from": "Oceania", "to": "Americas", "bn": 8}
+ ]
+}

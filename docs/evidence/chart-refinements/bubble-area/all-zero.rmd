@@ -1,0 +1,8 @@
+---
+title: Bubble size review
+version: 0.0.1
+---
+
+```chart
+{"type":"scatter","title":"Zero quantities have no filled area","data":{"inline":[{"x":0,"value":10,"quantity":0},{"x":1,"value":20,"quantity":0}]},"encoding":{"x":"x","y":"value","size":"quantity"}}
+```

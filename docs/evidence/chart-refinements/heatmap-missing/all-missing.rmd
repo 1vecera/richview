@@ -1,0 +1,8 @@
+---
+title: Heatmap missing-value review
+version: 0.0.1
+---
+
+```chart
+{"type":"heatmap","title":"Observed quantities","encoding":{"x":"month","y":"team","color":"value"},"data":{"inline":[{"month":"Jan","team":"Alpha","value":null},{"month":"Feb","team":"Alpha","value":null},{"month":"Jan","team":"Beta","value":null},{"month":"Feb","team":"Beta","value":null}]}}
+```

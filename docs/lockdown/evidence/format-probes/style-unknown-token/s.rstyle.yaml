@@ -1,0 +1,5 @@
+tokens:
+  accent: "#ff0000"
+  sparkle: "#00ff00"
+layout:
+  report-max-width: 500px

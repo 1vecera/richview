@@ -1,0 +1,38 @@
+---
+title: See how much five regions trade with each other
+description: A chord diagram puts each region on a circle and joins them with ribbons as wide as the trade between them, so the busiest routes stand out.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Three regions trade most
+
+These illustrative figures give the exports from each of five regions to the others. An arc is as long as everything a region sends and receives, and a ribbon is as wide as its flow at both ends and takes the colour of the region that sends it.
+
+```chart
+type: chord
+title: Europe, Asia and the Americas dominate trade between five regions
+subtitle: Exports in bn USD from one region to another, synthetic
+data:
+  inline:
+    - {from: Europe, to: Asia, bn: 40}
+    - {from: Europe, to: Americas, bn: 55}
+    - {from: Europe, to: Africa, bn: 20}
+    - {from: Asia, to: Europe, bn: 35}
+    - {from: Asia, to: Americas, bn: 60}
+    - {from: Asia, to: Oceania, bn: 25}
+    - {from: Americas, to: Europe, bn: 45}
+    - {from: Americas, to: Asia, bn: 30}
+    - {from: Americas, to: Africa, bn: 10}
+    - {from: Africa, to: Europe, bn: 15}
+    - {from: Africa, to: Asia, bn: 12}
+    - {from: Oceania, to: Asia, bn: 18}
+    - {from: Oceania, to: Americas, bn: 8}
+encoding: {source: from, target: to, y: bn}
+axes:
+  y: {label: bn USD}
+```
+
+*Source: Illustrative values.*
+
+Use the keyboard or pointer to read what each region sends and receives, and the value and share of each route.

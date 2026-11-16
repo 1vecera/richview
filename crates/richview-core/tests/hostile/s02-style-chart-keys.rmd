@@ -1,0 +1,14 @@
+---
+title: Style chart keys
+styles: [sleek, s02-style-chart-keys.rstyle.yaml]
+---
+
+```chart
+type: bar
+title: Plain chart
+data:
+  inline:
+    - { x: A, y: 1 }
+    - { x: B, y: 2 }
+encoding: { x: x, y: y }
+```

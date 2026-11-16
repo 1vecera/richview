@@ -1,0 +1,39 @@
+---
+title: Zoomed line
+---
+
+# Zoomed line
+
+The chart is read after two zoom steps; its readouts must name the visible x values.
+
+```chart
+type: line
+title: Two series to zoom
+data:
+  inline:
+    - {d: 1, s: North, v: 4.37}
+    - {d: 1, s: South, v: 48.09}
+    - {d: 2, s: North, v: 5.74}
+    - {d: 2, s: South, v: 46.18}
+    - {d: 3, s: North, v: 7.11}
+    - {d: 3, s: South, v: 44.27}
+    - {d: 4, s: North, v: 8.48}
+    - {d: 4, s: South, v: 42.36}
+    - {d: 5, s: North, v: 9.85}
+    - {d: 5, s: South, v: 40.45}
+    - {d: 6, s: North, v: 11.22}
+    - {d: 6, s: South, v: 38.54}
+    - {d: 7, s: North, v: 12.59}
+    - {d: 7, s: South, v: 36.63}
+    - {d: 8, s: North, v: 13.96}
+    - {d: 8, s: South, v: 34.72}
+    - {d: 9, s: North, v: 15.33}
+    - {d: 9, s: South, v: 32.81}
+    - {d: 10, s: North, v: 16.70}
+    - {d: 10, s: South, v: 30.90}
+    - {d: 11, s: North, v: 18.07}
+    - {d: 11, s: South, v: 28.99}
+    - {d: 12, s: North, v: 19.44}
+    - {d: 12, s: South, v: 27.08}
+encoding: {x: d, y: v, color: s}
+```

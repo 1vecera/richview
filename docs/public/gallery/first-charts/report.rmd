@@ -1,0 +1,50 @@
+---
+title: Wheat and wages
+description: William Playfair compared the price of wheat with a mechanic's wages over two centuries.
+styles: [hand-drawn]
+title_image:
+  src: https://images.unsplash.com/photo-1593455071238-92dd081a39b1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE0NDQ4fDB8MXxhbGx8fHx8fHx8fHwxNzk0MjQ3MjMwfA&ixlib=rb-4.1.0&q=80&w=1080
+  alt: "Golden grain in a field"
+  caption: "Golden grain in a field."
+  fit: cover
+  width: 1080
+  height: 432
+  credit:
+    author: "Sarah Mason"
+    author_url: https://unsplash.com/@sarahthemason?utm_source=richview&utm_medium=referral
+    source: Unsplash
+    source_url: https://unsplash.com/photos/brown-grass-field-during-daytime-cUY7u2Fskk4?utm_source=richview&utm_medium=referral
+---
+
+In 1821 William Playfair used bars and a line to put wheat prices beside weekly wages. The axes have different scales: compare the changes, not the heights of the marks.
+
+```chart
+type: combo
+title: Wheat and a mechanic's weekly wage
+subtitle: Shillings, selected observations from 1565 to 1805
+data: { csv: data/selected.csv }
+encoding: { x: year, y: wheat, line: wages }
+axes:
+  x: { label: Year }
+  y: { label: Wheat per quarter, unit: s }
+  y2: { label: Weekly wage, unit: s }
+style: { gaps: break, ratio: '16:9' }
+```
+
+*Source: William Playfair, A Letter on Our Agricultural Distresses (1821), [Wheat dataset](https://vincentarelbundock.github.io/Rdatasets/doc/HistData/Wheat.html) via the HistData R package. The chart selects every eighth observation with a known wage from the full dataset; prices are not inflation-adjusted.*
+
+## Nightingale's second year
+
+Florence Nightingale used mortality statistics to argue for sanitary reform. Compare the monthly annualized death rates across two periods. These stacked bars retain the rates; they are a modern replot, rather than a reproduction of her area-proportional polar diagram.
+
+```chart
+type: bar
+title: Preventable disease dominated the first winter
+data: { csv: data/nightingale.csv }
+encoding: { x: month, y: rate, color: cause, facet: period }
+stack: true
+axes:
+  y: { label: 'Annualized deaths per 1,000' }
+```
+
+*Source: Florence Nightingale's [Crimean War mortality data](https://vincentarelbundock.github.io/Rdatasets/doc/HistData/Nightingale.html), via HistData. Rates are annualized deaths per 1,000 soldiers, not monthly death counts; the periods run April to March.*

@@ -1,0 +1,46 @@
+# Dependency gate (ARC-68): licences, advisories, duplicate versions and sources for every Rust crate.
+# The npm side is tools/rv-gate/npm-licences.mjs. Both share one allowlist.
+
+[graph]
+targets = ["aarch64-apple-darwin", "x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
+
+[licenses]
+confidence-threshold = 0.93
+allow = [
+	"MIT",
+	"Apache-2.0",
+	"BSD-2-Clause",
+	"BSD-3-Clause",
+	"ISC",
+	"Zlib",
+	"Unicode-3.0",
+	# No crate carries it yet (cargo deny warns "not encountered"); npm's minimatch does, and the two lists stay one (ARC-68).
+	"BlueOak-1.0.0",
+]
+# Each exception names one crate, so a new crate under the same licence still fails.
+exceptions = [
+	# MPL-2.0 is file-level copyleft: it binds only changes to these crates' own files, not RichView's MIT source. Pulled in by ammonia.
+	{ allow = ["MPL-2.0"], crate = "cssparser" },
+	{ allow = ["MPL-2.0"], crate = "dtoa-short" },
+	# CC0-1.0 is a public-domain dedication. Pulled in by duckdb's arrow dependency (ahash, const-random).
+	{ allow = ["CC0-1.0"], crate = "tiny-keccak" },
+	# 0BSD is permissive with no attribution condition. Pulled in by lettre for hosted mail.
+	{ allow = ["0BSD"], crate = "quoted_printable" },
+	# CDLA-Permissive-2.0 covers the bundled Mozilla root-certificate data and permits redistribution. Pulled in by reqwest and ureq.
+	{ allow = ["CDLA-Permissive-2.0"], crate = "webpki-roots" },
+]
+
+[advisories]
+unmaintained = "workspace"
+yanked = "deny"
+ignore = []
+
+[bans]
+multiple-versions = "warn"
+wildcards = "allow"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

@@ -1,0 +1,183 @@
+{
+ "_source": {
+  "files": [
+   "tmp/prf-probe/charts-mobile.json"
+  ],
+  "sha256": {
+   "tmp/prf-probe/charts-mobile.json": "3c7a69cc5e5a1f751cbbf0fafa8dbb4fb21a38e9089c16e85533b539d74f4300"
+  },
+  "note": "tmp/prf-probe/charts-mobile.mjs (script in the ignored tmp/prf-probe/), b4db233 dist/web, Claw Mini, 2026-10-21"
+ },
+ "data": {
+  "started": "2026-10-21T19:38:46.119Z",
+  "browser": "153.0.8010.12",
+  "host": {
+   "cpus": "Apple M4",
+   "count": 10,
+   "platform": "darwin"
+  },
+  "load_before": [
+   2.033203125,
+   2.890625,
+   2.99267578125
+  ],
+  "runs": [
+   {
+    "page": "charts-page",
+    "profile": "desktop-loopback",
+    "rep": 0,
+    "wire_bytes": 2419215,
+    "load_event_ms": 31,
+    "dcl_ms": 31,
+    "response_end_ms": 4,
+    "fcp_ms": 36,
+    "lcp_ms": 36,
+    "lcp_el": "P",
+    "cls": 0.0026,
+    "shifts": [
+     {
+      "t": 234.79999999701977,
+      "v": 0.0023089476701817556,
+      "src": [
+       "DIV.facts",
+       "DIV.themes",
+       "#text."
+      ]
+     },
+     {
+      "t": 329.29999999701977,
+      "v": 0.00033463928473829736,
+      "src": [
+       "#text.",
+       "#text.",
+       "#text.",
+       "DIV.themes",
+       "#text."
+      ]
+     }
+    ],
+    "first_chart_frame_ms": 232,
+    "chart_frames": 6,
+    "loaf_count_over_50": 2,
+    "loaf_max_ms": 68,
+    "richview": "object",
+    "errors": []
+   },
+   {
+    "page": "charts-page",
+    "profile": "desktop-loopback",
+    "rep": 1,
+    "wire_bytes": 2419215,
+    "load_event_ms": 25,
+    "dcl_ms": 25,
+    "response_end_ms": 1,
+    "fcp_ms": 32,
+    "lcp_ms": 32,
+    "lcp_el": "P",
+    "cls": 0.0044,
+    "shifts": [
+     {
+      "t": 83.90000000596046,
+      "v": 0.004436091084212106,
+      "src": [
+       "DIV.facts",
+       "#text.",
+       "#text.",
+       "DIV.themes",
+       "#text."
+      ]
+     }
+    ],
+    "first_chart_frame_ms": 78,
+    "chart_frames": 4,
+    "loaf_count_over_50": 1,
+    "loaf_max_ms": 65,
+    "richview": "object",
+    "errors": []
+   },
+   {
+    "page": "charts-page",
+    "profile": "phone-4x-slow4g",
+    "rep": 0,
+    "wire_bytes": 1596713,
+    "load_event_ms": 448,
+    "dcl_ms": 448,
+    "response_end_ms": 184,
+    "fcp_ms": 464,
+    "lcp_ms": 464,
+    "lcp_el": "P",
+    "cls": 0.0249,
+    "shifts": [
+     {
+      "t": 8128.5999999940395,
+      "v": 0.024772327712390404,
+      "src": [
+       "DIV.facts",
+       "P.lede",
+       "#text.",
+       "H1.",
+       "#text."
+      ]
+     },
+     {
+      "t": 8843.79999999702,
+      "v": 8.525579113054687e-05,
+      "src": [
+       "#text."
+      ]
+     }
+    ],
+    "first_chart_frame_ms": 8404,
+    "chart_frames": 2,
+    "loaf_count_over_50": 3,
+    "loaf_max_ms": 267,
+    "richview": "object",
+    "errors": []
+   },
+   {
+    "page": "charts-page",
+    "profile": "phone-4x-slow4g",
+    "rep": 1,
+    "wire_bytes": 1596713,
+    "load_event_ms": 432,
+    "dcl_ms": 432,
+    "response_end_ms": 184,
+    "fcp_ms": 416,
+    "lcp_ms": 416,
+    "lcp_el": "P",
+    "cls": 0.0249,
+    "shifts": [
+     {
+      "t": 8111.9000000059605,
+      "v": 0.024772327712390404,
+      "src": [
+       "DIV.facts",
+       "P.lede",
+       "#text.",
+       "H1.",
+       "#text."
+      ]
+     },
+     {
+      "t": 8798.5,
+      "v": 8.525579113054687e-05,
+      "src": [
+       "#text."
+      ]
+     }
+    ],
+    "first_chart_frame_ms": 8403,
+    "chart_frames": 2,
+    "loaf_count_over_50": 3,
+    "loaf_max_ms": 240,
+    "richview": "object",
+    "errors": []
+   }
+  ],
+  "load_after": [
+   1.8740234375,
+   2.79931640625,
+   2.95751953125
+  ]
+ }
+}

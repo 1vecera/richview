@@ -1,0 +1,282 @@
+{
+  "oracle": "Manually chosen typing contracts; accepted numeric decimal values independently checked with Python Decimal against float shortest spelling. Long values expected as text are literal source observations.",
+  "cases": [
+    {
+      "name": "empty",
+      "source": "",
+      "expected": null,
+      "kind": "null"
+    },
+    {
+      "name": "zero",
+      "source": "0",
+      "expected": 0,
+      "kind": "number"
+    },
+    {
+      "name": "negative-zero",
+      "source": "-0.0",
+      "expected": -0.0,
+      "kind": "number"
+    },
+    {
+      "name": "true",
+      "source": "true",
+      "expected": true,
+      "kind": "boolean"
+    },
+    {
+      "name": "false",
+      "source": "false",
+      "expected": false,
+      "kind": "boolean"
+    },
+    {
+      "name": "case-sensitive-boolean",
+      "source": "True",
+      "expected": "True",
+      "kind": "string"
+    },
+    {
+      "name": "missing-text",
+      "source": "null",
+      "expected": "null",
+      "kind": "string"
+    },
+    {
+      "name": "identifier",
+      "source": "00123",
+      "expected": "00123",
+      "kind": "string"
+    },
+    {
+      "name": "zero-exponent-identifier",
+      "source": "0e4",
+      "expected": "0e4",
+      "kind": "string"
+    },
+    {
+      "name": "integer",
+      "source": "42",
+      "expected": 42,
+      "kind": "number"
+    },
+    {
+      "name": "negative-integer",
+      "source": "-17",
+      "expected": -17,
+      "kind": "number"
+    },
+    {
+      "name": "signed-integer",
+      "source": "+17",
+      "expected": 17,
+      "kind": "number"
+    },
+    {
+      "name": "fraction",
+      "source": "1.25",
+      "expected": 1.25,
+      "kind": "number"
+    },
+    {
+      "name": "leading-point",
+      "source": ".5",
+      "expected": 0.5,
+      "kind": "number"
+    },
+    {
+      "name": "signed-fraction",
+      "source": "+4.5",
+      "expected": 4.5,
+      "kind": "number"
+    },
+    {
+      "name": "trailing-zeroes",
+      "source": "1.2500000000000000000",
+      "expected": 1.25,
+      "kind": "number"
+    },
+    {
+      "name": "decimal-exponent",
+      "source": "1.25e2",
+      "expected": 125.0,
+      "kind": "number"
+    },
+    {
+      "name": "small-exponent",
+      "source": "1E-003",
+      "expected": 0.001,
+      "kind": "number"
+    },
+    {
+      "name": "safe-integer",
+      "source": "9007199254740991",
+      "expected": 9007199254740991,
+      "kind": "number"
+    },
+    {
+      "name": "exact-boundary",
+      "source": "9007199254740992",
+      "expected": 9007199254740992,
+      "kind": "number"
+    },
+    {
+      "name": "lost-integer",
+      "source": "9007199254740993",
+      "expected": "9007199254740993",
+      "kind": "string"
+    },
+    {
+      "name": "next-exact-integer",
+      "source": "9007199254740994",
+      "expected": 9007199254740994,
+      "kind": "number"
+    },
+    {
+      "name": "negative-lost-integer",
+      "source": "-9007199254740993",
+      "expected": "-9007199254740993",
+      "kind": "string"
+    },
+    {
+      "name": "signed-limit",
+      "source": "9223372036854775807",
+      "expected": "9223372036854775807",
+      "kind": "string"
+    },
+    {
+      "name": "negative-signed-limit",
+      "source": "-9223372036854775808",
+      "expected": "-9223372036854775808",
+      "kind": "string"
+    },
+    {
+      "name": "unsigned-limit",
+      "source": "18446744073709551615",
+      "expected": "18446744073709551615",
+      "kind": "string"
+    },
+    {
+      "name": "large-roundtrip-integer",
+      "source": "1000000000000000000",
+      "expected": 1000000000000000000,
+      "kind": "number"
+    },
+    {
+      "name": "beyond-u64",
+      "source": "100000000000000000001",
+      "expected": "100000000000000000001",
+      "kind": "string"
+    },
+    {
+      "name": "large-power",
+      "source": "1e20",
+      "expected": 1e+20,
+      "kind": "number"
+    },
+    {
+      "name": "long-fraction",
+      "source": "1.234567890123456789",
+      "expected": "1.234567890123456789",
+      "kind": "string"
+    },
+    {
+      "name": "negative-long-fraction",
+      "source": "-9.876543210987654321",
+      "expected": "-9.876543210987654321",
+      "kind": "string"
+    },
+    {
+      "name": "near-tenth",
+      "source": "0.100000000000000005",
+      "expected": "0.100000000000000005",
+      "kind": "string"
+    },
+    {
+      "name": "roundtrip-long-fraction",
+      "source": "1.2345678901234567",
+      "expected": 1.2345678901234567,
+      "kind": "number"
+    },
+    {
+      "name": "rounded-last-digit",
+      "source": "1.2345678901234568",
+      "expected": "1.2345678901234568",
+      "kind": "string"
+    },
+    {
+      "name": "smallest-roundtrip",
+      "source": "5e-324",
+      "expected": 5e-324,
+      "kind": "number"
+    },
+    {
+      "name": "rounded-subnormal",
+      "source": "2.5e-324",
+      "expected": "2.5e-324",
+      "kind": "string"
+    },
+    {
+      "name": "other-subnormal",
+      "source": "3e-324",
+      "expected": "3e-324",
+      "kind": "string"
+    },
+    {
+      "name": "roundtrip-subnormal",
+      "source": "1e-320",
+      "expected": 1e-320,
+      "kind": "number"
+    },
+    {
+      "name": "underflow",
+      "source": "1e-400",
+      "expected": "1e-400",
+      "kind": "string"
+    },
+    {
+      "name": "finite-maximum",
+      "source": "1.7976931348623157e308",
+      "expected": 1.7976931348623157e+308,
+      "kind": "number"
+    },
+    {
+      "name": "rounded-maximum",
+      "source": "1.7976931348623158e308",
+      "expected": "1.7976931348623158e308",
+      "kind": "string"
+    },
+    {
+      "name": "overflow",
+      "source": "1.7976931348623159e308",
+      "expected": "1.7976931348623159e308",
+      "kind": "string"
+    },
+    {
+      "name": "nan",
+      "source": "NaN",
+      "expected": "NaN",
+      "kind": "string"
+    },
+    {
+      "name": "infinity",
+      "source": "inf",
+      "expected": "inf",
+      "kind": "string"
+    },
+    {
+      "name": "non-numeric",
+      "source": "1_000",
+      "expected": "1_000",
+      "kind": "string"
+    },
+    {
+      "name": "comma-text",
+      "source": "1,000",
+      "expected": "1,000",
+      "kind": "string"
+    }
+  ],
+  "csv": "id,amount,cell\n0,1,\n1,1,0\n2,1,-0.0\n3,1,true\n4,1,false\n5,1,True\n6,1,null\n7,1,00123\n8,1,0e4\n9,1,42\n10,1,-17\n11,1,+17\n12,1,1.25\n13,1,.5\n14,1,+4.5\n15,1,1.2500000000000000000\n16,1,1.25e2\n17,1,1E-003\n18,1,9007199254740991\n19,1,9007199254740992\n20,1,9007199254740993\n21,1,9007199254740994\n22,1,-9007199254740993\n23,1,9223372036854775807\n24,1,-9223372036854775808\n25,1,18446744073709551615\n26,1,1000000000000000000\n27,1,100000000000000000001\n28,1,1e20\n29,1,1.234567890123456789\n30,1,-9.876543210987654321\n31,1,0.100000000000000005\n32,1,1.2345678901234567\n33,1,1.2345678901234568\n34,1,5e-324\n35,1,2.5e-324\n36,1,3e-324\n37,1,1e-320\n38,1,1e-400\n39,1,1.7976931348623157e308\n40,1,1.7976931348623158e308\n41,1,1.7976931348623159e308\n42,1,NaN\n43,1,inf\n44,1,1_000\n45,1,\"1,000\"\n"
+}

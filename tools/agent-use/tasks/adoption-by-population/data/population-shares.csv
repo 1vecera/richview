@@ -1,0 +1,17 @@
+measure,population,definition,anthropic_value,openai_value,anthropic_share_pct,source_id
+US iOS ratings,Consumers,"cumulative App Store ratings, US, 2026-10-02",271740,10883936,2.4,D-ITUNES
+App users,Consumers,"mobile monthly active users, Q2 2026 (Sensor Tower)",56,1000,5.3,C186
+Product pages,Readers,"English Wikipedia views, Claude vs ChatGPT articles, 2025-10..2026-09",2301760.0,32603987.0,6.6,D-WIKI
+Product searches,Searchers,"Google topic interest, Claude vs ChatGPT, 2025-10..2026-09",96.0,1003.2,8.7,D-GT
+Web visits,Consumers,"share of gen-AI web visits, Aug 2026 (Similarweb)",9.3,55.5,14.4,C195
+Weekly use,US adults,"used in past week, May 2026 (SSRS probability panel)",9,43,17.3,S005
+Company searches,Searchers,"Google topic interest, Anthropic vs OpenAI, 2025-10..2026-09",171.0,562.1,23.3,D-GT
+PyPI SDK,Developers,"Python SDK median daily downloads, Sep 2026",5247993.5,10341113.0,33.7,D-PYPI
+Dev usage,Developers,"used for development, 2025 (Stack Overflow survey)",42.8,81.4,34.5,S054
+npm SDK,Developers,"JavaScript SDK median daily downloads, Sep 2026",6831095.5,6888305.0,49.8,D-NPM
+Firms paying,Businesses,"US businesses paying each vendor, Aug 2026 (Ramp)",43.8,39.8,52.4,C196
+Company pages,Readers,"English Wikipedia views, Anthropic vs OpenAI articles, 2025-10..2026-09",3681984.0,2920448.0,55.8,D-WIKI
+API spend,Enterprises,"enterprise LLM API spend, end-2025 (Menlo, an Anthropic investor)",40,27,59.7,C174
+Q2 revenue,Investors,"recognised revenue, Q2 2026 (reported documents)",11.5,6.7,63.2,C110
+HN comments,Developers,"Hacker News comments, 2025-10..2026-09",96395.0,52212.0,64.9,D-HN
+Agent at work,Developers,"coding agent used at work, mid-2026 (JetBrains survey)",39,16,70.9,S065

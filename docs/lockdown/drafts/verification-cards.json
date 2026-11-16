@@ -1,0 +1,995 @@
+{
+	"id": "drafts-verification",
+	"title": "Draft cards: verification path",
+	"status": "draft",
+	"summary": "Draft cards from the verification audit of 2026-10-26 (`docs/lockdown/VERIFICATION-AUDIT.md`). Each card carries a suggested `part`; none is in a part file yet. Key cards are the ones only Daniel can decide: what he trusts without looking, the before-and-after report, the prod tests behind his go and the per-style review. Everything else is important.",
+	"items": [
+		{
+			"id": "DRAFT-1",
+			"part": "02-delivery",
+			"kind": "rule",
+			"importance": "key",
+			"refId": "G-TRUST-CONTRACT",
+			"group": "Trust and evidence",
+			"title": "What you trust without looking",
+			"question": "Which changes do you accept on automated evidence alone, which do you see one by one, and which do you always judge yourself?",
+			"why": "Speed comes from not checking by hand. This card names, per kind of change, the evidence that is enough, so agents know what they must prove and you know what you never have to open.",
+			"proposed": "Trust is set per kind of change, and earned:\n\n| Change | Evidence that is enough | Where you see it |\n| --- | --- | --- |\n| `none`: fixes, refactors, accepted items implemented with no capture change (DEL-32) | A passing dev-gate receipt; a mutation proof for any weakened test (DEL-36) | Packet appendix only, plus the sample below |\n| `design`: a capture, motion, token, typography or copy change | Receipt plus its before-and-after entry (DRAFT-2) | One by one in the design log before `prod` |\n| `feature`: scope added, changed or removed | Receipt, public-surface diff (DEL-53) and its before-and-after entry | One by one in the feature log before `prod` |\n| Website or highly public-facing change | Not merged into `dev` without your grant (DEL-06) | Before the merge |\n| Gate weakening of DEL-36's four kinds | None automatic | A card |\n| `prod` merge | The prod tests (DRAFT-4) and your log review | Your go |\n| Visual and motion quality | Never tests alone (INT-67) | You, on a phone and a desktop |\n\nEach packet, a fresh review agent reads a sample of `none` merges end to end (DEL-38's second option). A defect the gates missed adds a check, and that kind of change moves to one-by-one review until the check exists and has caught a deliberate mutation of the defect (DEL-26).",
+			"options": [
+				{
+					"label": "Gates decide none; you see design and feature one by one",
+					"detail": "As proposed; your review time goes only to taste and scope, and sampling keeps the gates honest."
+				},
+				{
+					"label": "Also list every none change in the log",
+					"detail": "Nothing escapes your eye; the log grows by every fix and refactor, which slows the review the model exists to shorten."
+				},
+				{
+					"label": "Trust design changes inside a style's accepted envelope",
+					"detail": "Fastest; tweaks within an accepted style reach prod with only the gates, so taste regressions surface on the live site."
+				}
+			],
+			"recommendation": "Gates decide none; you see design and feature one by one: it matches your DEL-06 answer and adds the sampling that lets you trust the none class without reading it.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Daniel's DEL-06 answer",
+					"ref": "docs/lockdown/answers/02-delivery.json DEL-06",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "Daniel's INT-67 answer",
+					"ref": "docs/lockdown/answers/01-intent.json INT-67",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-38 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-38",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-32 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-32",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "DEL-38's sampling is its second option, not its recommendation. DEL-35 keeps review agents advisory; the sample is advisory too, but a reproduced miss changes the class's review path, which is a gate change (DEL-36)."
+		},
+		{
+			"id": "DRAFT-2",
+			"part": "02-delivery",
+			"kind": "rule",
+			"importance": "key",
+			"refId": "G-CHANGE-REPORT",
+			"group": "Trust and evidence",
+			"title": "The before-and-after report you review",
+			"question": "What must the before-and-after report show for each design and feature change, so that you can judge it without opening code or running anything?",
+			"why": "Your DEL-06 answer lets design and feature changes merge into `dev` without you and asks for one report, collectively and step by step, with what caused each change. DEL-34 names the report but no card says what it contains.",
+			"proposed": "The report is generated from `dev`'s change log (DRAFT-3) for a frozen candidate against `prod`, and on request for any range of `dev` (\"what changed since Monday\"). Design and feature changes sit in separate sections and never share an entry.\n\n- **Together:** one contact sheet of every changed capture, grouped by style and width, and the net size and timing deltas.\n- **Step by step:** one entry per change, in merge order, with its cause (your request with its quote, an autonomous-loop idea with the principle it pursued, or a bug or regression issue), the lockdown items it touches, its PRs and receipts, and a one-command revert.\n- **Design entries:** `prod`, candidate and diff crops at 390 and 1440 px in every affected style (all five for a style-wide change); for motion, the frame strip at fixed fractions (DRAFT-8) and a short clip at real speed, before and after side by side; for interaction, a short recording.\n- **Feature entries:** the public-surface diff (CLI, MCP, schema, `learn`), a demo source with its render, and the docs diff.\n- **Reverted and superseded changes** stay listed, linked to what undid them, so the net effect and the history both show.\n\nIt opens in the lockdown app with the packet (DEL-31) and on the `dev` preview (DEL-40), so the same entries work on a phone.",
+			"options": [
+				{
+					"label": "Per change, with crops, clips and cause",
+					"detail": "As proposed; judged without code; needs captures kept per merge until the next prod merge (DEL-29 already keeps them) and clip recording."
+				},
+				{
+					"label": "Contact sheet plus a text entry per change",
+					"detail": "Cheaper; motion and interaction changes need the preview to judge."
+				},
+				{
+					"label": "Live preview only",
+					"detail": "No report to build; you hunt for changes yourself, which DEL-06's trail rules out."
+				}
+			],
+			"recommendation": "Per change, with crops, clips and cause: it is the trail your DEL-06 answer describes, and it makes motion reviewable without a device in hand.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Daniel's DEL-06 answer",
+					"ref": "docs/lockdown/answers/02-delivery.json DEL-06",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-34 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-34",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-31 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-31",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-29 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-29",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "DEL-34 opens the packet with this report and DEL-31 defines before, after, diff and contact-sheet views; clips and recordings are new. Whether the `dev` preview also carries the candidate is open (DEL-31, OPN-66)."
+		},
+		{
+			"id": "DRAFT-3",
+			"part": "02-delivery",
+			"kind": "rule",
+			"importance": "important",
+			"refId": "G-CHANGE-LOG",
+			"group": "Trust and evidence",
+			"title": "The dev change log and the autonomous loop's trail",
+			"question": "Who writes `dev`'s feature and design log, what does each entry hold, and how does work from an autonomous loop enter it?",
+			"why": "The report (DRAFT-2) is only as true as the log. If agents write their own entries, the log can flatter them.",
+			"proposed": "The gate writes the log, never the agent: at each squash-merge it appends one entry to the evidence store (DEL-61) and copies it into the PR body. An entry holds the merge commit, PR, receipt, class (`design`, `feature` or `none`), cause, lockdown items, changed captures, changed public surfaces, performance and size deltas, and the revert command; a later revert or supersession adds an entry that points back.\n\nThe PR declares its cause in a required field: `request` (with Daniel's words or the issue that holds them), `loop:<run>` or `issue`. The gate refuses a `design` or `feature` PR without a cause, and a PR that is both `design` and `feature`, which is split instead.\n\nAn autonomous loop is a recorded run: an ID, the lockdown principle or item it pursues, its time and capacity limit (DEL-62), and one Linear issue per idea with cause `loop:<run>`. Its PRs pass the same gate, never touch the website or another highly public-facing surface without your grant (DEL-06), the gate or `answers/`, and its run summary lists every idea tried, merged, reverted or dropped.",
+			"options": [
+				{
+					"label": "Gate-written log from validated PR fields",
+					"detail": "Agents cannot fake it (DEL-37); needs a cause field and a split rule."
+				},
+				{
+					"label": "Agents write entries in their PRs",
+					"detail": "No gate work; entries are unverified."
+				},
+				{
+					"label": "Generated from Git and Linear at packet time",
+					"detail": "Nothing new to build; causes and captures are reconstructed after the fact."
+				}
+			],
+			"recommendation": "Gate-written log from validated PR fields.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Daniel's DEL-06 answer",
+					"ref": "docs/lockdown/answers/02-delivery.json DEL-06",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "Daniel's DEL-05 answer",
+					"ref": "docs/lockdown/answers/02-delivery.json DEL-05",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-32 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-32",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-37 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-37",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "DEL-32 declares a class but no cause. DEL-44's `Refs S27-<n>` points nowhere once the source is public (DEL-03, open). DEL-05's answer lets agents set up loops and automations; this card bounds what a loop may change."
+		},
+		{
+			"id": "DRAFT-4",
+			"part": "02-delivery",
+			"kind": "gate",
+			"importance": "key",
+			"refId": "G-PROD-TESTS",
+			"group": "Prod review",
+			"title": "The prod tests behind your go",
+			"question": "Your DEL-04 answer has a second, automatic set of tests run before you tell an agent to merge into `prod`. What must that set prove, and what runs after the merge?",
+			"why": "DEL-33 is that set, but it was written before WebGL, the 30 chart types, Cowork and Publish with roles, connectors and the hosted services, so a green run today would not cover them.",
+			"proposed": "`rv-gate prod` (DEL-33) runs on the frozen candidate (DEL-63) and must pass every row. A row that cannot run fails the candidate unless DELIVERY.md names it as a standing gap, and the go card lists it.\n\n| Proves | Suite |\n| --- | --- |\n| Everything the dev gate proves, on the candidate's final tree | `rv-gate dev` (DEL-08) |\n| Charts mount, draw and read the same in Chrome, Firefox and Safari | Browser matrix with per-engine captures (DRAFT-6, DRAFT-7) |\n| Motion follows its spec and paces within budget | Motion suite and frame strips (DRAFT-8); pacing in Chromium and WebKit (PRF-24, PRF-27) |\n| Every chart type, map, flow and pivot table meets its contract in every style | DRAFT-11, DRAFT-12 |\n| A story travels end to end, and readers see only what is shared with them | Journeys and the role matrix (DRAFT-13, DRAFT-14) |\n| Live data stays safe, when the batch touches connectors | DRAFT-15 |\n| PDF in every style | FEA-RP-43 with qpdf and Poppler, DRAFT-20 |\n| Install paths and listings | VSIX, the install script and builds from `prod` (DEL-33, INT-71) |\n| Budgets | The full capture (PRF-04, OPN-51) |\n| Accessibility | DEL-58 and DRAFT-18 |\n| The agent path | A fresh-agent run on this candidate (DRAFT-17) |\n| Every merge accounted for | The audit (DEL-38) |\n\nThe go card shows the receipt with every row passed, failed or unrun. Your go names the candidate and its receipt; the merge command refuses any other tree (DEL-04). After each deploy, the deployed targets' smoke checks run (DRAFT-16); a failure triggers DEL-48's rollback.",
+			"options": [
+				{
+					"label": "DEL-33 extended with these rows",
+					"detail": "Your go rests on proof for everything the rewrite builds; likely past PRF-51's 45-minute limit, unmeasured."
+				},
+				{
+					"label": "DEL-33 as written",
+					"detail": "Shorter; the servers, connectors, new elements and non-Chromium WebGL reach prod unproven."
+				},
+				{
+					"label": "Extended set plus a soak on the preview",
+					"detail": "Also runs the candidate on the private preview for some hours under synthetic traffic; catches leaks and slow failures; delays each go."
+				}
+			],
+			"recommendation": "DEL-33 extended with these rows; raise PRF-51's limit if the measured run needs it, since your INT-17 answer puts a working, good-looking product above speed.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Daniel's DEL-04 answer",
+					"ref": "docs/lockdown/answers/02-delivery.json DEL-04",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-33 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-33",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "PRF-51 card",
+					"ref": "docs/lockdown/parts/07-performance.json PRF-51",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-37 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-37",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "DEL-33 lists WebKit, Firefox, PDF, uploads, VSIX, the VS Code check, filmstrips and a screen-reader pass only. DEL-37 leaves open how the merge command proves your go to the hooks and the audit. The `dev` preview (DEL-40) shows the moving `dev` head, not the candidate (OPN-66)."
+		},
+		{
+			"id": "DRAFT-5",
+			"part": "02-delivery",
+			"kind": "gate",
+			"importance": "important",
+			"refId": "G-GEOMETRY-ORACLE",
+			"group": "Dev merge gate",
+			"title": "The geometry model is the chart test oracle",
+			"question": "Do chart, value, interaction and motion checks read the engine's geometry model through one named interface, with a check that the canvas really draws that model, and does ARC-08's contract test join the dev gate?",
+			"why": "A WebGL canvas exposes no element boxes. DEL-15, DEL-19, DEL-30, DEL-52 and DEL-57 all say their chart assertions move to the geometry model and are reported unrun until it is reachable; until then the gate is blind for charts.",
+			"proposed": "The report runtime exposes each figure's current geometry model (scales, marks, labels and their boxes, hit targets and animation state) read-only through `window.__richview` (FEA-RP-37), typed by TYP-97, as part of the tool contract like `settled()`. It carries values only at the author's chosen precision (FEA-CH-37), so it reveals nothing the page does not show.\n\nEvery chart assertion reads this interface. A draw-fidelity check proves the canvas draws the model: for each golden chart it reads canvas pixels at mark centres and edges and at label boxes, and fails when what is drawn and what the model says differ. Without it, a shader bug would pass every model-based test.\n\nARC-08's contract test becomes a dev-gate step: every fixture through CLI, MCP, HTTP, editor and Wasm, with identical diagnostics, HTML and geometry models. DEL-26's mutation set gains scale, layout and label-placement mutations.",
+			"options": [
+				{
+					"label": "Model interface plus draw-fidelity check",
+					"detail": "One oracle and proof that the canvas follows it; one more public tool surface."
+				},
+				{
+					"label": "Model interface only",
+					"detail": "Simpler; a renderer defect passes until someone sees it."
+				},
+				{
+					"label": "Pixel assertions only",
+					"detail": "Tests what readers see; brittle across GPUs, and it cannot read values or label boxes."
+				}
+			],
+			"recommendation": "Model interface plus draw-fidelity check.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "DEL-15 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-15",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-64 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-64",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "ARC-08 card",
+					"ref": "docs/lockdown/parts/03-architecture.json ARC-08",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "Daniel's FEA-CH-37 answer",
+					"ref": "docs/lockdown/answers/04a-features-chart.json FEA-CH-37",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "TYP-97 and FEA-RP-37 gain the read-only interface. EVIDENCE.md lists ARC-08's contract test as required by a card but in no tier. Mark coordinates computed from exact values could still let a reader recover more precision than shown; DRAFT-21 decides what FEA-CH-37's \"cannot be retrieved\" covers."
+		},
+		{
+			"id": "DRAFT-6",
+			"part": "02-delivery",
+			"kind": "gate",
+			"importance": "important",
+			"refId": "G-WEBGL-CAPTURE",
+			"group": "Visual regression and screenshots",
+			"title": "Deterministic WebGL captures and per-engine baselines",
+			"question": "How are WebGL charts captured so DEL-28's exact pixel diff stays meaningful, and how are Firefox and WebKit captured?",
+			"why": "DEL-28's byte-identical result was measured on SVG. WebGL pixels depend on GPU, driver and antialiasing, and whether two captures of one build match is unmeasured.",
+			"proposed": "Before the chart-engine series merges, an agent captures every golden chart 20 times on each path (Chromium with SwiftShader, Chromium on the Mac's GPU, WebKit and Firefox through Playwright) and records how many captures are byte-identical.\n\n- The pixel diff (DEL-28) runs on the most deterministic path, expected to be Chromium with SwiftShader pinned by flag; DEL-49 pins it.\n- Timing runs use the GPU path and name it (PRF-24); SwiftShader timings are not a reader's.\n- Each engine keeps its own baselines. Firefox and WebKit are compared with their own previous capture, exact if the measurement shows them deterministic, otherwise with a per-engine tolerance recorded as a gate change (DEL-36).\n- A cross-engine check fails on a blank or missing canvas, a notice where a chart should be, or a model drift between engines.\n- Context checks: the flagship's 18 charts all mount within Chromium's 16-context cap; a forced context loss redraws from the model; WebGL disabled shows the notice ARC-05 decided, in each engine.",
+			"options": [
+				{
+					"label": "Exact on pinned SwiftShader, per-engine baselines",
+					"detail": "Keeps the exact diff; SwiftShader is not what readers see, so GPU-only defects surface in timing runs, the browser matrix and your phone."
+				},
+				{
+					"label": "Exact on the Mac's GPU",
+					"detail": "Closer to readers; exactness depends on the driver and breaks on OS updates."
+				},
+				{
+					"label": "A tolerance everywhere",
+					"detail": "Robust; small real regressions pass, which DEL-28 rejects."
+				}
+			],
+			"recommendation": "Exact on pinned SwiftShader, per-engine baselines, confirmed by the determinism measurement before the series merges.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "DEL-28 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-28",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-27 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-27",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "Daniel's ARC-05 answer",
+					"ref": "docs/lockdown/answers/03-architecture.json ARC-05",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "ARC-18 card",
+					"ref": "docs/lockdown/parts/03-architecture.json ARC-18",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "DEL-28 says nondeterminism is fixed at its cause, never absorbed by a tolerance; a per-engine tolerance changes that and is held for you (DEL-36). DEL-27 captures in Chromium only. Whether each engine gets a WebGL context headless on Claw Mini is unmeasured."
+		},
+		{
+			"id": "DRAFT-7",
+			"part": "02-delivery",
+			"kind": "gate",
+			"importance": "important",
+			"refId": "G-BROWSER-MATRIX",
+			"group": "Dev merge gate",
+			"title": "Chrome, Firefox and Safari for WebGL charts",
+			"question": "Which engines run on every merge and which at the candidate, and what counts as proof that Safari works?",
+			"why": "Your ARC-05 answer requires Safari, Firefox and Chrome with WebGL. Today only Chromium runs per merge; WebKit and an undefined Firefox loop run at the candidate, and Playwright's WebKit is not Safari.",
+			"proposed": "- **Per merge:** a WebGL smoke in Chromium, Firefox and WebKit through Playwright: every golden input mounts every chart with a live context and no console error, one pointer and one keyboard interaction per chart type, and the notice with WebGL blocked.\n- **At the candidate:** the full functional suites in all three engines (DEL-33's WebKit loop, and a Firefox loop with the same suite list), per-engine captures (DRAFT-6), and the same smoke in real Safari on Claw Mini through `safaridriver`.\n- **iOS Safari:** your phone at each candidate (PRF-09, OPN-66).\n- **VS Code:** the preview webview mounts WebGL charts on macOS and in Lenovo's offscreen Linux (FEA-SF-23, DEL-22).",
+			"options": [
+				{
+					"label": "Three-engine smoke per merge, full suites and real Safari at the candidate",
+					"detail": "Engine breakage surfaces at the merge that caused it; adds minutes per merge, unmeasured."
+				},
+				{
+					"label": "Chromium per merge, others at the candidate",
+					"detail": "As today; a Firefox or Safari break is found only when a batch closes and must be bisected."
+				},
+				{
+					"label": "Full suites in all three engines per merge",
+					"detail": "Most coverage; likely breaks PRF-51's 15-minute dev gate."
+				}
+			],
+			"recommendation": "Three-engine smoke per merge, full suites and real Safari at the candidate.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Daniel's ARC-05 answer",
+					"ref": "docs/lockdown/answers/03-architecture.json ARC-05",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "FEA-RP-59 card",
+					"ref": "docs/lockdown/parts/04b-features-report.json FEA-RP-59",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-33 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-33",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "PRF-24 card",
+					"ref": "docs/lockdown/parts/07-performance.json PRF-24",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "DEL-08 has no non-Chromium step and FEA-RP-59 checks other engines only at the candidate. Firefox is not installed on Claw Mini (DEL-07). `safaridriver` needs a one-time enable with administrator rights and a signed-in session on Claw Mini; not verified for this audit."
+		},
+		{
+			"id": "DRAFT-8",
+			"part": "02-delivery",
+			"kind": "gate",
+			"importance": "important",
+			"refId": "G-MOTION-TESTS",
+			"group": "Visual regression and screenshots",
+			"title": "Motion tests for WebGL animation",
+			"question": "How are chart and report animations tested automatically, now that entrances are drawn WebGL frames rather than CSS animations?",
+			"why": "Your INT-17 answer makes rich animation part of the craft that decides whether RichView succeeds. Today's motion checks (DEL-15's `bar-paint` and `motion-runtime`, DEL-30) read CSS animations on chart SVG and are reported unrun under WebGL, so motion could only be judged by eye.",
+			"proposed": "Every motion is specified as data in the engine: what moves, duration, curve and stagger (FEA-CH-51, FEA-CH-52). The runtime's animation clock can be paused and stepped by tools through `window.__richview` (TYP-97), like `settled()`.\n\nThe motion suite steps each transition to fixed fractions (0, 25, 50, 75 and 100 %) and asserts on the geometry model (DRAFT-5) at each: bars stay on their baseline; axes, titles and legends do not move; marks move monotonically towards their target; a readout taken mid-frame shows the target value at the author's precision, never an interpolated one; an entrance runs once and never replays on scroll-back or repaint; the last frame equals the settled frame; reduced motion shows the settled frame from the first frame (FEA-RP-36).\n\nFrames captured at those fractions on the pinned capture path (DRAFT-6) are diffed exactly, like stills, on every merge that changes a capture, and feed the before-and-after report (DRAFT-2). Real-speed clips on the GPU path go to the report for your judgement. Pacing stays PRF-21 and PRF-27. The suite covers chart entrances and transitions, scrollytelling steps (FEA-RP-48), the style switch (STY-43), the landing (FEA-BR-21) and any motion INT-17's richer animation adds.",
+			"options": [
+				{
+					"label": "Steppable clock, per-frame model checks and frame strips",
+					"detail": "Motion becomes as checkable as stills; one more tool hook."
+				},
+				{
+					"label": "Real-time recordings judged by you",
+					"detail": "Nothing to build; every motion change waits for your eye."
+				},
+				{
+					"label": "Pacing budgets only",
+					"detail": "Catches stutter, not wrong motion."
+				}
+			],
+			"recommendation": "Steppable clock, per-frame model checks and frame strips.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Daniel's INT-17 answer",
+					"ref": "docs/lockdown/answers/01-intent.json INT-17",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-30 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-30",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "FEA-CH-51 card",
+					"ref": "docs/lockdown/parts/04a-features-chart.json FEA-CH-51",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "FEA-RP-36 card",
+					"ref": "docs/lockdown/parts/04b-features-report.json FEA-RP-36",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "DEL-30 attaches filmstrips only to PRs that change motion code and reads CSS. FEA-RP-35 limits motion to chart data; whether INT-17's rich animation widens that is open. EVIDENCE.md records that no step checks values inside animation frames; this card closes it."
+		},
+		{
+			"id": "DRAFT-9",
+			"part": "06-styles",
+			"kind": "rule",
+			"importance": "key",
+			"refId": "S-STYLE-REVIEW",
+			"group": "Rules and review",
+			"title": "What you see before accepting a style",
+			"question": "Each of the five styles gets its own design review (STY-01). What evidence do you want before accepting a style, and when do you review it again?",
+			"why": "Under your INT-17 answer, a style that looks bad is a failure. Today the only per-style review is STY-51's typography specimen comparison, and nothing shows a style's structural identity across every element.",
+			"proposed": "Each style has a review sheet generated from the candidate:\n\n- the typography specimen, the every-block fixture, every chart type, the map, flow and pivot table, and the flagship, at 320, 390 and 1440 px and as PDF;\n- the same content in the other four styles beside it, so structural differences show: outlines and shading, legend and title positions, Scientific's captions below charts in boxes;\n- the style's declared structure (where legends and titles sit, outlines or none) verified against the geometry model, and STY-52's measured checks;\n- entrance clips in that style;\n- STY-51's three answers.\n\nYou review a sheet when a style is created and when its tokens or structure change; packets that change any capture in a style show the sheet's diff. A mechanical check flags two styles whose structural declarations are identical; distinctiveness beyond that is your judgement. Once you accept a style, later changes to it come one by one through the design log (DRAFT-2).",
+			"options": [
+				{
+					"label": "Full sheet per style, side by side",
+					"detail": "Every element in every style at once; the largest capture set, unmeasured."
+				},
+				{
+					"label": "Specimen only",
+					"detail": "STY-51 as written; charts, tables and structure are judged incidentally."
+				},
+				{
+					"label": "Live preview only",
+					"detail": "Nothing generated; you assemble the comparison yourself."
+				}
+			],
+			"recommendation": "Full sheet per style, side by side.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Daniel's STY-01 answer",
+					"ref": "docs/lockdown/answers/06-styles.json STY-01",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "Daniel's STY-05 answer",
+					"ref": "docs/lockdown/answers/06-styles.json STY-05",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "STY-51 card",
+					"ref": "docs/lockdown/parts/06-styles.json STY-51",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "STY-52 card",
+					"ref": "docs/lockdown/parts/06-styles.json STY-52",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "STY-51 compares only the typography specimen across styles; this card widens the style review to every element. DEL-27 captures neither every chart type nor the flagship."
+		},
+		{
+			"id": "DRAFT-10",
+			"part": "06-styles",
+			"kind": "gate",
+			"importance": "important",
+			"refId": "S-SETTINGS-MATRIX",
+			"group": "Rules and review",
+			"title": "Safe style settings are tested; experimental ones are labelled",
+			"question": "How is your STY-14 line between safe and experimental style settings proven?",
+			"why": "Your STY-14 answer makes style files rich and promises agents clear guidance on what is safe. A setting is safe only if no value of it breaks a layout.",
+			"proposed": "Every setting in the generated settings registry carries `safe` or `experimental`. On every merge that touches styles, the gate renders the every-block and chart-type fixtures with each safe setting at its declared values (or boundary values for ranges), pairwise across settings, in each builtin, and runs the layout assertions (DEL-19, DEL-59), STY-52's contrast and palette checks and the value check (DEL-52). A failing safe setting is fixed or relabelled experimental. Experimental settings raise a `style.experimental` info diagnostic, and `learn` lists them apart.",
+			"options": [
+				{
+					"label": "Pairwise matrix on style changes, full at the candidate",
+					"detail": "Proves the safe list; cost unmeasured."
+				},
+				{
+					"label": "Builtins only",
+					"detail": "Cheap; authors' combinations are untested."
+				}
+			],
+			"recommendation": "Pairwise matrix on style changes, full at the candidate.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Daniel's STY-14 answer",
+					"ref": "docs/lockdown/answers/06-styles.json STY-14",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "STY-52 card",
+					"ref": "docs/lockdown/parts/06-styles.json STY-52",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "TYP-55's catalogue has no `style.*` codes yet (OPN-58)."
+		},
+		{
+			"id": "DRAFT-11",
+			"part": "04a-features-chart",
+			"kind": "gate",
+			"importance": "important",
+			"refId": "G-CHART-TYPE-CONTRACT",
+			"group": "Chart types and engines",
+			"title": "What every chart type ships with",
+			"question": "With about 30 chart types (FEA-CH-01), what must each type carry before it merges into `dev`?",
+			"why": "The visual matrix covers 3 cases (DEL-19) and the checks table 9 types (FEA-CH-69). Without a per-type contract each new type is a hand check.",
+			"proposed": "A chart type merges only with all of these, and `learn`, the docs and every count list it only then (DEL-18):\n\n- schema, `learn` entry and a golden input with sourced data, plus edge fixtures: empty, single value, negative, missing, extremes, dense;\n- its row in FEA-CH-69's table, with a test that each listed check fires;\n- geometry checks: no clipping or collision at 320, 390 and 1440 px in every style;\n- values at the author's precision in readouts, Table, CSV and exports (DEL-52, FEA-CH-37);\n- its interaction policy (FEA-CH-39) with pointer and keyboard tests;\n- its motion spec with motion tests (DRAFT-8);\n- its accessible summary (FEA-CH-55);\n- vector output in a PDF pagination fixture (FEA-RP-43);\n- captures: one case per type, per style, at 390 and 1440 px (DEL-27);\n- a local comparison against the libraries that define the type (ggplot2, Plotly, ECharts, Highcharts, Power BI) on the same data (ARC-64), shown on its first design card;\n- an entry in the all-types performance fixture (PRF-07).\n\nThe type list compiled from those libraries arrives as feature cards per family, so each type is accepted before it is built.",
+			"options": [
+				{
+					"label": "Full contract per type",
+					"detail": "Each type is proven the same way; about 300 figure captures per merge for 30 types, unmeasured."
+				},
+				{
+					"label": "Full contract for the core nine, smoke for the rest",
+					"detail": "Cheaper; the long tail is checked by eye."
+				}
+			],
+			"recommendation": "Full contract per type.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Daniel's FEA-CH-01 answer",
+					"ref": "docs/lockdown/answers/04a-features-chart.json FEA-CH-01",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "FEA-CH-69 card",
+					"ref": "docs/lockdown/parts/04a-features-chart.json FEA-CH-69",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-19 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-19",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "ARC-64 card",
+					"ref": "docs/lockdown/parts/03-architecture.json ARC-64",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "FEA-CH-01's card text still says nine types. ARC-64's labs run in no tier, and Highcharts is commercially licensed, so its comparison stays local (INT-53)."
+		},
+		{
+			"id": "DRAFT-12",
+			"part": "04a-features-chart",
+			"kind": "gate",
+			"importance": "important",
+			"refId": "G-MAP-FLOW-PIVOT",
+			"group": "Chart types and engines",
+			"title": "Map, flow and pivot-table checks",
+			"question": "What proves the map, flow and pivot-table elements your FEA-CH-01 answer adds, which no feature card specifies yet?",
+			"why": "They cannot be tested before they are specified, and pivot aggregation is a new way to show a wrong number.",
+			"proposed": "Each element first gets feature and type cards (parts 04a, 04b and 05); these checks come with them.\n\n- **Map:** boundaries and geographic data come from the report folder or ship with RichView, never from a server at read time (ARC-11); projected positions match known coordinates; values equal the source at the author's precision; labels do not collide; zoom and pan pass model tests; the offline file works.\n- **Flow:** the same source gives the same layout, natively and in Wasm; labels never clip; edges do not cross nodes; a one-node edit moves few other nodes, measured; it reads as an ordered list to assistive technology. Nova flow is the reference to improve on.\n- **Pivot table:** every aggregation equals a reference computation on fixtures with nulls, decimals and dates (DEL-16); totals and subtotals add up; sorting and expand or collapse work by keyboard; print shows every row; its CSV equals what is displayed.",
+			"options": [
+				{
+					"label": "Specs first, then these checks",
+					"detail": "Nothing is built untested; the elements wait for their cards."
+				},
+				{
+					"label": "Build now, test like charts",
+					"detail": "Faster start; map projection, flow layout and aggregation have no dedicated oracle."
+				}
+			],
+			"recommendation": "Specs first, then these checks.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Daniel's FEA-CH-01 answer",
+					"ref": "docs/lockdown/answers/04a-features-chart.json FEA-CH-01",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-16 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-16",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "ARC-11 card",
+					"ref": "docs/lockdown/parts/03-architecture.json ARC-11",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "Nova flow's own specification is not in this repository. Map boundary data needs a licence check before it ships (ARC-68)."
+		},
+		{
+			"id": "DRAFT-13",
+			"part": "02-delivery",
+			"kind": "gate",
+			"importance": "important",
+			"refId": "G-JOURNEYS",
+			"group": "Dev merge gate",
+			"title": "End-to-end journeys on built artifacts",
+			"question": "Which complete journeys run end to end on the release artifacts, and when?",
+			"why": "FEA-SF-62 and DEL-14 test pieces on loopback; no card runs a whole journey from an agent's source to another person reading the shared report in a real browser.",
+			"proposed": "A journey suite runs the release artifacts on loopback with real browsers and fresh data directories:\n\n- **Author:** `init` in an empty temporary folder, edits, `check`, `generate`, the offline file opened in Chromium, Firefox and WebKit with charts live, then `--to pdf`.\n- **Agent:** a scripted MCP client runs `learn`, render, check, fix and publish, and asserts the JSON every step returns (FEA-SF-09).\n- **Cowork:** an author publishes from the CLI, MCP and VS Code; a reader opens the permalink and gets the same geometry models as the offline file; the owner shares, pins and deletes; a reader without access is refused.\n- **Publish:** source change, protected preview, approval by a second identity, release, public read; urgent hide; rollback keeps access floors (FEA-BR-26, FEA-BR-29).\n- **VS Code:** the built VSIX installed in a headless VS Code; the preview draws WebGL charts; diagnostics equal `validate`; Export equals `generate` (FEA-SF-24, FEA-SF-27).\n\nThe author and agent journeys run on every merge; all journeys run at the candidate.",
+			"options": [
+				{
+					"label": "Cheap journeys per merge, all at the candidate",
+					"detail": "Breaks between components surface early; Cowork and Publish journeys cost candidate time."
+				},
+				{
+					"label": "All journeys at the candidate only",
+					"detail": "Faster merges; a broken hand-off surfaces when a batch closes."
+				},
+				{
+					"label": "Component checks only",
+					"detail": "As today; nothing proves the pieces fit."
+				}
+			],
+			"recommendation": "Cheap journeys per merge, all at the candidate.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "FEA-SF-62 card",
+					"ref": "docs/lockdown/parts/04c-features-surfaces.json FEA-SF-62",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-14 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-14",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "Daniel's INT-83 answer",
+					"ref": "docs/lockdown/answers/01-intent.json INT-83",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "Daniel's INT-35 answer",
+					"ref": "docs/lockdown/answers/01-intent.json INT-35",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "DEL-22 runs the VS Code check only on Lenovo's offscreen Linux at the candidate. The identity source for test identities is open (FEA-SF-19). Publish is rebuilt later in the rewrite, so its journey lands with it."
+		},
+		{
+			"id": "DRAFT-14",
+			"part": "04c-features-surfaces",
+			"kind": "gate",
+			"importance": "important",
+			"refId": "G-ROLES-MATRIX",
+			"group": "Publishing and the report host",
+			"title": "Roles, approvals and tenant isolation are tested on every route",
+			"question": "How is it proven that Cowork's and Publish's roles and approvals hold, and that hosted Cowork keeps accounts apart?",
+			"why": "A leaked private report is invisible in a screenshot review and breaks the safety floor (INT-79). Roles are now part of RichView (INT-06), and hosted Cowork serves many accounts (INT-36).",
+			"proposed": "A role, route and action matrix generated from the server's route table (TYP-70) runs against the server core on loopback. For every route, assets, downloads, previews, search, feeds and old releases included, each role (anonymous, reader, author, owner; Publish's editor, super editor and publishing service) gets the expected allow or deny, and a denial reveals nothing, with the same answer for missing and forbidden. A route with no row fails the gate.\n\nApprovals bind the exact head; a changed head voids them; nobody approves their own change; a role change voids outstanding approvals (FEA-BR-26). The browser source edit refuses a report that fails to validate or render, saves nothing and shows the diagnostics (INT-26). On hosted Cowork, two accounts are refused each other's reports on every route, and limits on report count and size are enforced with a clear error (INT-36). Server cases join the hostile-input corpus (DEL-56): path traversal in slugs, tokens in URLs, cross-site requests on state-changing routes.",
+			"options": [
+				{
+					"label": "Generated matrix that fails on an unlisted route",
+					"detail": "A new route cannot ship without its access rule."
+				},
+				{
+					"label": "Hand-written tests per feature",
+					"detail": "Simpler; a forgotten route is untested."
+				}
+			],
+			"recommendation": "Generated matrix that fails on an unlisted route.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Daniel's INT-06 answer",
+					"ref": "docs/lockdown/answers/01-intent.json INT-06",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "Daniel's INT-36 answer",
+					"ref": "docs/lockdown/answers/01-intent.json INT-36",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "Daniel's INT-26 answer",
+					"ref": "docs/lockdown/answers/01-intent.json INT-26",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "FEA-BR-25 card",
+					"ref": "docs/lockdown/parts/04d-features-branches.json FEA-BR-25",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "FEA-SF-19 leaves the identity source open. FEA-BR-25's roles (Reader, Editor, Super editor) and INT-06's (reader, author, owner) are not mapped yet. DEL-56 covers render sinks only. Hosted limits are open (INT-36)."
+		},
+		{
+			"id": "DRAFT-15",
+			"part": "04d-features-branches",
+			"kind": "gate",
+			"importance": "important",
+			"refId": "G-CONNECTOR-TESTS",
+			"group": "PR #66 · Data connectors",
+			"title": "Connector checks for the live-data path",
+			"question": "What proves Publish's live-data path safe and correct, whichever third-party connector engine is chosen?",
+			"why": "PR #66's adapter could read any host file through SQL (FEA-BR-14), and OPN-63 leaves the engine open. RichView configures the engine, so RichView must own the proof.",
+			"proposed": "RichView keeps a conformance suite that a candidate engine must pass before it is adopted, run against local fixture databases on loopback: writes are refused; queries reach no host file or network beyond the declared source; timeouts and row caps hold; parameters are bound, so injection strings stay values (FEA-BR-43); snapshots are keyed and reused, freshness is honoured and staleness reported, and provenance is visible to readers (FEA-BR-16); credentials never appear in output, logs, diagnostics or agent context (DEL-55's patterns over the rendered output); and a published version re-renders from its snapshots with the source offline. Fast safety cases run on every merge that touches the connector path; the full suite runs at the candidate.",
+			"options": [
+				{
+					"label": "Conformance suite the engine must pass",
+					"detail": "RichView's guarantees hold whatever the engine."
+				},
+				{
+					"label": "Rely on the engine's own tests",
+					"detail": "No suite to keep; RichView's rules are unproven."
+				}
+			],
+			"recommendation": "Conformance suite the engine must pass.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Daniel's INT-24 answer",
+					"ref": "docs/lockdown/answers/01-intent.json INT-24",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "OPN-63 card",
+					"ref": "docs/lockdown/parts/08-open-work.json OPN-63",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "FEA-BR-14 card",
+					"ref": "docs/lockdown/parts/04d-features-branches.json FEA-BR-14",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "FEA-BR-16 card",
+					"ref": "docs/lockdown/parts/04d-features-branches.json FEA-BR-16",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "Whether connectors are in Publish's first cut is open (OPN-63); this suite lands with them."
+		},
+		{
+			"id": "DRAFT-16",
+			"part": "02-delivery",
+			"kind": "gate",
+			"importance": "important",
+			"refId": "G-HOSTED-SMOKE",
+			"group": "Hosted CI, deployment and releases",
+			"title": "Checks for hosted services and previews",
+			"question": "What proves each RichView-run service after a deploy and between deploys, and that the `dev` preview stays private?",
+			"why": "Your INT-36 answer makes paid hosted services how RichView earns money, and DEL-40 adds a `dev` preview behind Cloudflare Access. Only richview.ai's routes are checked after a deploy today (DEL-40, PRF-37).",
+			"proposed": "Each target has a smoke check the deployment owner runs after every deploy (DEL-40), and agents schedule it between deploys (DEL-05):\n\n| Target | Checks |\n| --- | --- |\n| richview.ai | Routes, headers and bytes (DEL-59, PRF-37) |\n| `dev` preview | An unauthenticated request gets the Access sign-in and no content bytes; `noindex` |\n| Hosted Cowork | Health; publish and read with a probe account; limits; cross-account refusal (DRAFT-14); TLS and headers |\n| Customer Publish servers | DNS, TLS, health, one public and one restricted item |\n| Managed data and media hosting | Upload, read, signed-URL expiry, retention |\n\nEach packet runs a restore drill per hosted store into an isolated environment and compares content hashes. A failed check after a deploy triggers DEL-48's rollback; a failed scheduled check opens an incident issue.",
+			"options": [
+				{
+					"label": "Post-deploy and scheduled smoke, restore drill per packet",
+					"detail": "Services are proven continuously; probe accounts live on production."
+				},
+				{
+					"label": "Post-deploy only",
+					"detail": "No standing probes; outages between deploys go unseen."
+				}
+			],
+			"recommendation": "Post-deploy and scheduled smoke, restore drill per packet.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Daniel's INT-36 answer",
+					"ref": "docs/lockdown/answers/01-intent.json INT-36",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "Daniel's DEL-40 answer",
+					"ref": "docs/lockdown/answers/02-delivery.json DEL-40",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "Daniel's DEL-05 answer",
+					"ref": "docs/lockdown/answers/02-delivery.json DEL-05",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-48 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-48",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "The hosted services' provider is open (INT-48). Probe accounts on production services are an outward effect that needs your go once (DEL-05). Customers' DNS is theirs, so a DNS failure is reported, not fixed."
+		},
+		{
+			"id": "DRAFT-17",
+			"part": "02-delivery",
+			"kind": "gate",
+			"importance": "important",
+			"refId": "G-FRESH-AGENT-RUN",
+			"group": "Test tiers",
+			"title": "The fresh-agent run: harness and schedule",
+			"question": "How, how often and with which agents does INT-69's fresh-agent test run?",
+			"why": "INT-69 sets the bar, but no harness, schedule, agent products or datasets exist, so whether a new agent succeeds is known only by trying it yourself.",
+			"proposed": "A harness starts Claude Code and Codex, each in an empty sandbox outside any checkout, with only the candidate's installed CLI and MCP server and a network limited to the model API. Each gets a fixed brief and one of several rotating datasets, and its transcript, tool calls, attempts and final report are recorded. A run passes INT-69's bar: a sourced report with prose, at least three chart types (one of them from a family added since the last run) and a table, no error diagnostics, and a clean `check` by the second attempt without reading RichView's source. Agents are not deterministic, so the result is a pass rate over three runs per product. It runs at each candidate and weekly on `dev`; the packet appendix shows pass rates and the diagnostics that confused agents, and each confusion caused by docs or diagnostics becomes an issue.",
+			"options": [
+				{
+					"label": "Harness at each candidate and weekly",
+					"detail": "The agent path is proven continuously; costs subscription usage per run."
+				},
+				{
+					"label": "Once before launch",
+					"detail": "Cheap; regressions in `learn` and diagnostics go unseen until then."
+				}
+			],
+			"recommendation": "Harness at each candidate and weekly.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "INT-69 card",
+					"ref": "docs/lockdown/parts/01-intent.json INT-69",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "INT-21 card",
+					"ref": "docs/lockdown/parts/01-intent.json INT-21",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "Daniel's DEL-05 answer",
+					"ref": "docs/lockdown/answers/02-delivery.json DEL-05",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "INT-69 is unanswered. Each run uses agent subscription capacity; the harness must not read the repository, so it runs outside every checkout."
+		},
+		{
+			"id": "DRAFT-18",
+			"part": "04a-features-chart",
+			"kind": "gate",
+			"importance": "important",
+			"refId": "G-CHART-A11Y-CHECK",
+			"group": "Accessibility",
+			"title": "Chart accessibility checks with WebGL",
+			"question": "Once FEA-CH-55 decides how screen-reader users reach a canvas chart, what proves it?",
+			"why": "FEA-RP-49 makes WCAG 2.2 AA a gate, and an automated audit sees a canvas only as its container's name.",
+			"proposed": "Whatever layer FEA-CH-55 chooses (an ARIA mark layer, the Table, or both), the gate checks it against the geometry model: every figure has a name and summary; the summary's facts match the data, per type; a mark layer lists every mark with the readout's text; keyboard inspection reaches every mark in order (FEA-CH-56); the Table equals the source rows at the author's precision (FEA-CH-37). The server pages for approval, the source editor and the owner menu join DEL-58's audit. The VoiceOver pass stays a standing gap until it can be driven reliably (DEL-58).",
+			"options": [
+				{
+					"label": "Model-checked accessibility layer",
+					"detail": "What assistive technology gets is proven against the same model readers see."
+				},
+				{
+					"label": "Automated audit only",
+					"detail": "As DEL-58; passes a canvas with a name and nothing else."
+				}
+			],
+			"recommendation": "Model-checked accessibility layer.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "FEA-CH-55 card",
+					"ref": "docs/lockdown/parts/04a-features-chart.json FEA-CH-55",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "FEA-RP-49 card",
+					"ref": "docs/lockdown/parts/04b-features-report.json FEA-RP-49",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-58 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-58",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "Follows FEA-CH-55's open question and ARC-05's answer."
+		},
+		{
+			"id": "DRAFT-19",
+			"part": "02-delivery",
+			"kind": "rule",
+			"importance": "important",
+			"refId": "G-TRACEABILITY",
+			"group": "Gate operation",
+			"title": "Every accepted item names its check",
+			"question": "Does every accepted lockdown item name the check that proves it, so a green gate says which items are proven?",
+			"why": "INT-67 calls the rewrite done when every accepted item is on `prod` with its evidence, and EVIDENCE.md notes that no report maps items to evidence. A green gate otherwise proves only what someone remembered to test.",
+			"proposed": "Each accepted feature, type, style, rule and budget maps to one or more check IDs in the tier registry (DEL-23), or is marked `judged: Daniel` when your review is its evidence (INT-67). The gate keeps a generated coverage file: item, checks, last receipt result. A PR that names an accepted item it implements (DEL-32) fails when that item has no check and is not marked judged. The packet appendix shows coverage: proven, judged only, and without evidence. INT-67's done report is this file at the final candidate.",
+			"options": [
+				{
+					"label": "Coverage file enforced by the gate",
+					"detail": "Green means proven for named items; every card needs a check ID."
+				},
+				{
+					"label": "Coverage report without enforcement",
+					"detail": "Visible gaps, no blocking."
+				}
+			],
+			"recommendation": "Coverage file enforced by the gate.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "INT-67 card",
+					"ref": "docs/lockdown/parts/01-intent.json INT-67",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-23 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-23",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-32 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-32",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "Adds a step to DEL-08's registry. Items accepted before this card need their check IDs filled in, a one-time pass."
+		},
+		{
+			"id": "DRAFT-20",
+			"part": "04b-features-report",
+			"kind": "gate",
+			"importance": "important",
+			"refId": "G-PDF-STYLES",
+			"group": "PDF and other outputs",
+			"title": "PDF in every style, drawn from the same model",
+			"question": "Does PDF export get checked in every style, and against the page?",
+			"why": "DEL-17's theme-switch proof excludes the PDF, so a style that breaks on paper passes. Under your ARC-05 and INT-31 answers the page draws WebGL and the PDF draws vectors, two renderers of one model.",
+			"proposed": "The pagination fixtures (FEA-RP-43) run in each builtin's paper form (STY-21; Sleek prints as Air, STY-06). For each chart, the PDF's vector drawing comes from the same geometry model as the page (compared by model hash), and a raster of the PDF chart matches the model's mark positions within one device pixel at its print width. Text extracted with Poppler shows the same values as the page at the author's precision (DEL-52, FEA-CH-37), and the style's fonts and colours reach the PDF.",
+			"options": [
+				{
+					"label": "Every style, with page parity",
+					"detail": "Closes DEL-17's PDF gap; more fixture time at a slow export (PRF-16)."
+				},
+				{
+					"label": "One style",
+					"detail": "As today's fixtures imply; other styles on paper are unproven."
+				}
+			],
+			"recommendation": "Every style, with page parity.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "FEA-RP-43 card",
+					"ref": "docs/lockdown/parts/04b-features-report.json FEA-RP-43",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-17 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-17",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "Daniel's STY-06 answer",
+					"ref": "docs/lockdown/answers/06-styles.json STY-06",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "OPN-52 runs the pagination fixtures per merge; five styles multiply their cost, unmeasured since the vector conversion is slow (PRF-16). If that breaks the dev gate's limit, the other styles run at the candidate."
+		},
+		{
+			"id": "DRAFT-21",
+			"part": "02-delivery",
+			"kind": "gate",
+			"importance": "important",
+			"refId": "G-PRECISION",
+			"group": "Dev merge gate",
+			"title": "Values at the author's precision, and nothing more precise",
+			"question": "Your FEA-CH-37 answer says readers never get more precision than the author chose. What does the gate check, and what counts as retrievable?",
+			"why": "DEL-16 and DEL-52 were written to prove the opposite: exact source values in readouts, Table and CSV. They have to be rewritten, and a new check must prove that the exact values are absent.",
+			"proposed": "DEL-16 and DEL-52 assert that every value a reader sees (labels, readouts, Table, CSV, accessible names, downloads, PDF text) equals the source rounded by the author's precision rule (the three-digit default, or the precision set per chart or element), identical across styles and widths.\n\nA disclosure check then scans every output (the HTML, embedded data, the runtime's model interface (DRAFT-5), CSV, downloads and PDF) of fixtures whose source carries more digits than shown, and fails when any value appears with more precision than its element allows.\n\nOpen: whether mark coordinates count. Positions drawn from exact values let a determined reader recover more digits than shown; quantizing positions to the shown precision can move marks visibly. Options below.",
+			"options": [
+				{
+					"label": "Numbers and text only",
+					"detail": "No value with more digits in any output; coordinates stay exact, so close reading of the drawing can recover more precision."
+				},
+				{
+					"label": "Also quantize coordinates",
+					"detail": "Nothing recoverable; marks plotted from rounded values can shift by up to the rounding step."
+				}
+			],
+			"recommendation": "Numbers and text only: it meets the answer's reason, that a reader cannot read off digits the author did not show, without bending charts.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Daniel's FEA-CH-37 answer",
+					"ref": "docs/lockdown/answers/04a-features-chart.json FEA-CH-37",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-16 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-16",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "DEL-52 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-52",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "DEL-16, DEL-52, FEA-CH-45 and FEA-CH-48 still promise exact source values, and EVIDENCE.md's first outcome says every value equals its source; all follow FEA-CH-37's answer now. Which option applies is a product decision for FEA-CH-37's follow-up, not only a gate choice."
+		}
+	]
+}

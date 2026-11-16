@@ -1,0 +1,254 @@
+{
+  "status": "isolated package and separate scientific composition accepted",
+  "scope": "Heatmap key label selection only; reserve unchanged domain endpoint boxes when they fit.",
+  "source": {
+    "base": "480af942714c16ce4c1f959c7f046344d4f8c99d",
+    "commit": "71abfe4c2320740c7fb0486b511bc221524d37f2",
+    "canonical_diff_sha256": "3f78e289f75a135e9c48aab395237ee5b07778c82dd064c8fd5bc330eabadcb7",
+    "hash_command": "git diff --src-prefix=a/ --dst-prefix=b/ 480af942 71abfe4 | sha256sum",
+    "files": [
+      "richview-chart/src/rmd_render.rs",
+      "docs/RMD-SPEC.md"
+    ]
+  },
+  "before": {
+    "artifact_head": "dad1615876cf05dccd7241da269fbf69cbc1ec31",
+    "tracked_tree_equals_main": true,
+    "web_wasm_sha256": "c415bc543db946539e4d1d2b8902935ba05a4d5ca1c60deb77456a8d64f89467"
+  },
+  "after": {
+    "web_wasm_sha256": "a0759f35d55cab2b0ddbf69c3970a68c90d58121923ebfd56848ec5fb82d7f5f",
+    "native_sha256": "8dbb7451f2d59868d9c6477bd9eb33f6e0f56b7ef0f17c64e9dca4549edaa4fb",
+    "shared_render_wasm_sha256": "22dbdfb40cd9809e006e5eb7a6cfc723bf4626427a24c8e6611c1a60b202a513",
+    "release_exit": 0,
+    "native_and_wasm_release_caches_cleaned": true
+  },
+  "rendering": {
+    "browser": "Chromium 151.0.7922.173",
+    "themes": [
+      "scientific",
+      "brutalist",
+      "sleek",
+      "sleek-light",
+      "hand-drawn"
+    ],
+    "viewport_widths": [
+      240,
+      320,
+      720
+    ],
+    "device_scale": 2,
+    "fonts": "Bundled fonts after document.fonts.ready",
+    "reduced_motion_reports": 120,
+    "expected_key_changes": 20,
+    "complete_svg_png_controls_exact": 100,
+    "all_non_key_svg_exact": true,
+    "native_and_measured_checks_clean": true,
+    "page_errors": 0,
+    "horizontal_overflow": 0,
+    "ordinary_motion_reports": 30,
+    "ordinary_svg_and_png_equal_reduced": 30,
+    "active_animations_after_settle": 0
+  },
+  "source_interfaces": {
+    "direct_renderChart_pairs": 56,
+    "requested_widths": [
+      240,
+      288,
+      320,
+      720
+    ],
+    "direct_pairs_changed_only_in_key_labels": 9,
+    "full_render_source_pairs": 210,
+    "full_report_outputs_exact": 195,
+    "full_report_outputs_equal_except_key_labels": 210,
+    "report_width_policy": "Report HTML uses its responsive and print frame sizes; direct renderChart pairs separately assert the exact requested SVG widths.",
+    "native_cli_sources": 14,
+    "native_static_print_svg_frames_exact_to_shared": 28,
+    "public_before_and_after_states": 88,
+    "pointer_checks": 8,
+    "touch_checks": 8,
+    "keyboard_checks": 20,
+    "table_and_downloaded_csv_checks": 12,
+    "downloaded_svg_equal_api_checks": 12,
+    "source_readout_formatting_and_diagnostics_unchanged": true,
+    "source_error_inputs": "Expected invalid and duplicate inputs retain their existing nonzero CLI exit and diagnostics; valid inputs remain clean."
+  },
+  "required_checks": [
+    {
+      "name": "release-build",
+      "exit": 0
+    },
+    {
+      "name": "fixtures",
+      "exit": 0
+    },
+    {
+      "name": "fmt",
+      "exit": 0
+    },
+    {
+      "name": "clippy-native",
+      "exit": 0
+    },
+    {
+      "name": "clippy-wasm",
+      "exit": 0
+    },
+    {
+      "name": "workspace-tests",
+      "exit": 0
+    },
+    {
+      "name": "editor",
+      "exit": 0
+    },
+    {
+      "name": "native",
+      "exit": 0
+    },
+    {
+      "name": "compat",
+      "exit": 0
+    },
+    {
+      "name": "types",
+      "exit": 0
+    },
+    {
+      "name": "browser",
+      "exit": 0
+    },
+    {
+      "name": "landing",
+      "exit": 0
+    },
+    {
+      "name": "cloudflare",
+      "exit": 0
+    },
+    {
+      "name": "showcase",
+      "exit": 0
+    },
+    {
+      "name": "flagship",
+      "exit": 0
+    },
+    {
+      "name": "reel",
+      "exit": 0
+    },
+    {
+      "name": "browser-api",
+      "exit": 0
+    },
+    {
+      "name": "motion-runtime",
+      "exit": 0
+    },
+    {
+      "name": "docs",
+      "exit": 0
+    }
+  ],
+  "all_19_required_pass": true,
+  "independent_review": {
+    "isolated": "ACCEPT",
+    "source_commit": "71abfe4c2320740c7fb0486b511bc221524d37f2",
+    "native_pairs": 56,
+    "whole_svg_controls_exact": 44,
+    "actual_public_records": 20
+  },
+  "scientific_composition": {
+    "base": "bd301ac0e3a5c3591e307941eca5a1c99e3492cf",
+    "includes": [
+      "24fed09f469c9e16327650e6af50f5b3050d99f6",
+      "bd301ac0e3a5c3591e307941eca5a1c99e3492cf"
+    ],
+    "head": "c4230ef78cc225ba9735069273df3ffdf07f8fa2",
+    "web_wasm_sha256": "22af869b62a6651283fa2296fd4b262bb936fbb74e3e4587285a2f0370a71e31",
+    "source_hash": "00296edc0be14a38fc736cde04cc6a1982b55b80b05383d464bb48fc53472b3c",
+    "matched_reports": 120,
+    "key_changes": 25,
+    "complete_svg_png_controls_exact": 95,
+    "all_non_key_svg_exact": true,
+    "direct_renderChart_pairs": 56,
+    "report_output_pairs_exact": 210,
+    "native_cli_sources": 14,
+    "native_static_print_frames": 28,
+    "public_before_and_after_states": 88,
+    "ordinary_motion_svg_png_matches": 30,
+    "independent_review": "ACCEPT",
+    "scope": "Separate local composition; scientific formatter and calendar diagnostic source stay exact to bd301ac.",
+    "independent_native_pairs": 56,
+    "independent_whole_svg_controls_exact": 43,
+    "independent_actual_public_records": 24
+  },
+  "pr40": {
+    "frozen_head": "2badd2774f188b9dadfb4c47982d8e0197e1c8f9",
+    "fresh_baseline_records": 6,
+    "policy": "PR40 removes this key. Omit the endpoint selection/test/spec additions when composing; do not restore the key. No production edit or rebuild is needed for that no-op."
+  },
+  "reproduction": {
+    "helper": "capture.mjs",
+    "four_png_files_reproduced_exactly": true,
+    "images": [
+      {
+        "id": "positive-percent",
+        "side": "before",
+        "sha256": "c7f64def7682855780ac899c0c7878dddf2673c1cf860e18e17c6c47c2a0f1d7",
+        "exact": true
+      },
+      {
+        "id": "signed-percent",
+        "side": "before",
+        "sha256": "55bfaf6ef694a71b2fc55494dc35594c14933cf67299a054df9e17dfd930bf71",
+        "exact": true
+      },
+      {
+        "id": "positive-percent",
+        "side": "after",
+        "sha256": "13f92185b298e77816e00b475d5c665272375f23288abbb86c06e2305a1ac1ae",
+        "exact": true
+      },
+      {
+        "id": "signed-percent",
+        "side": "after",
+        "sha256": "95c5f4f5a9fcf25772ffbf7d24fdb6e6aa2f7a48d7d4a6be22b089d312ac7c18",
+        "exact": true
+      }
+    ],
+    "sources": [
+      {
+        "file": "positive-percent.rmd",
+        "sha256": "f8f20b4734314426b2304b5e2bacc6bc2d16ec9e78275d0bf3fd6ddc5c699427"
+      },
+      {
+        "file": "signed-percent.rmd",
+        "sha256": "d4a4d3d5ed79769e111e5cf51ef4bd175d356efe15fce070444ac728fd532f29"
+      }
+    ]
+  },
+  "limits": [
+    "When the endpoint pair itself cannot fit, original greedy output remains exact; long units can still omit a bound.",
+    "An interior zero label has no special priority.",
+    "Tiny cell compact labels are unchanged and may still print zero.",
+    "Native glyph heights are estimates; browser checks use actual glyph bounds."
+  ],
+  "retained_scratch_failures": [
+    "Initial focused-test expectation assumed two wide percent decimals; the existing formatter emits one. Expectation corrected before the frozen source build; no formatter edit.",
+    "Scientific scratch oracle initially used rustc default edition. Recompiled unchanged imported source with --edition=2024; initial failure retained.",
+    "Independent narrow long-unit probe initially expected wide-layout decimal precision. Its corrected width-matched baseline passed; failure retained."
+  ],
+  "detailed_local_proof": {
+    "isolated": "/home/vecera/code/richview-v3/.claude/worktrees/chart-heatmap-key-endpoints-20261012/tmp/heatmap-key-endpoints",
+    "scientific": "/home/vecera/code/richview-v3/.claude/worktrees/chart-heatmap-key-scientific-20261012/tmp/heatmap-key-scientific",
+    "audit": "/home/vecera/tmp/richview-chart-refinement-20261011/heatmap-key-endpoints-audit-20261012T014559Z"
+  },
+  "publication": "Local task branch and review composition only; no push, PR, merge or deployment by this package owner.",
+  "evidence_docs_check": {
+    "exit": 0,
+    "log": "tmp/heatmap-key-endpoints/docs-evidence.log"
+  }
+}

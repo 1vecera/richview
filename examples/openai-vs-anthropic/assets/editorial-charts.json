@@ -1,0 +1,113 @@
+{
+  "snapshot": "2026-10-02",
+  "imageRevision": "2026-10-15",
+  "source": "data/charts/population-shares.csv",
+  "source_sha256": "1cdcaf87979207e1f01a6496b15febca515d3a5e48b76764c1724eb6bd0fa5c3",
+  "renderer_commit": "407e62c520cd60ba835d8e5e23c2c03fb2503d36",
+  "runtime_sha256": "b9c8954f9d0c13bb265bd346e1d7d80ceceb283d5deb79958aa6b88919263896",
+  "browser": "153.0.8010.12",
+  "assets": [
+    {
+      "id": "I-AUDIENCES",
+      "file": "audiences.svg",
+      "width": 420,
+      "height": 231,
+      "sha256": "87f637243aec4e5334c1cee0f3fc99814611bddbd8135727389b7aea8e70af88",
+      "source_ids": [
+        "D-ITUNES",
+        "C196",
+        "S065"
+      ],
+      "chart": {
+        "type": "bar",
+        "title": "Different audiences, different leaders",
+        "subtitle": "Anthropic ÷ (Anthropic + OpenAI), across distinct measures",
+        "data": {
+          "inline": [
+            {
+              "audience": "US App Store ratings · 2.4%",
+              "share": "2.4",
+              "source": "D-ITUNES"
+            },
+            {
+              "audience": "US businesses on Ramp · 52.4%",
+              "share": "52.4",
+              "source": "C196"
+            },
+            {
+              "audience": "Coding agents at work · 70.9%",
+              "share": "70.9",
+              "source": "S065"
+            }
+          ]
+        },
+        "encoding": {
+          "x": "audience",
+          "y": "share"
+        },
+        "axes": {
+          "y": {
+            "min": 0,
+            "max": 100,
+            "suffix": "%"
+          }
+        },
+        "style": {
+          "orientation": "horizontal"
+        }
+      }
+    },
+    {
+      "id": "I-RATINGS",
+      "file": "app-store-ratings.svg",
+      "width": 420,
+      "height": 211,
+      "sha256": "32e04f4c155ab1f947cd04c3c6ab35d3670c49fdf76f5e52fef5a6544f212d37",
+      "source_ids": [
+        "D-ITUNES"
+      ],
+      "chart": {
+        "type": "bar",
+        "title": "ChatGPT has a much larger ratings footprint",
+        "subtitle": "Cumulative US App Store ratings · 2 October 2026",
+        "data": {
+          "inline": [
+            {
+              "product": "ChatGPT",
+              "ratings": "10883936"
+            },
+            {
+              "product": "Claude",
+              "ratings": "271740"
+            }
+          ]
+        },
+        "encoding": {
+          "x": "product",
+          "y": "ratings"
+        },
+        "style": {
+          "orientation": "horizontal"
+        },
+        "annotations": [
+          {
+            "kind": "point",
+            "at": {
+              "x": "ChatGPT",
+              "y": 10883936
+            },
+            "text": "10,883,936"
+          },
+          {
+            "kind": "point",
+            "at": {
+              "x": "Claude",
+              "y": 271740
+            },
+            "text": "271,740"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+---
+title: Source notes
+---
+
+```metric
+value: 1
+label: One
+```
+
+*Source: <script>HOSTILE_SOURCE()</script> [js](javascript:HOSTILE_SOURCE2()) <img src=x onerror=HOSTILE_SOURCE3()>*
+
+```table
+data:
+  inline:
+    - { a: 1 }
+```
+
+*Note: <b onclick=HOSTILE_NOTE()>note</b> "quoted" & more*

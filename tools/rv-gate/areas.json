@@ -1,0 +1,482 @@
+{
+  "version": 1,
+  "areas": [
+    {
+      "name": "all changed files",
+      "paths": [
+        "*"
+      ],
+      "steps": [
+        "secrets"
+      ]
+    },
+    {
+      "name": "chart engine",
+      "paths": [
+        "richview-chart/"
+      ],
+      "steps": [
+        "fmt",
+        "clippy",
+        "clippy-wasm",
+        "arch",
+        "rust-tests",
+        "rust-slow",
+        "chromium",
+        "chart-type-keyboard",
+        "chart-type-pdf",
+        "data-integrity",
+        "visual-matrix",
+        "captures",
+        "cross-style",
+        "disclosure-probe",
+        "label-truth",
+        "geometry",
+        "parallel-shaders",
+        "motion",
+        "report-motion",
+        "exports",
+        "contract",
+        "journeys",
+        "journeys-full"
+      ],
+      "commands": {
+        "chromium": [
+          "scripts/verify-browser.mjs",
+          "scripts/verify-flagship.mjs",
+          "scripts/verify-figure-expand.mjs",
+          "scripts/verify-chart-keyboard.mjs",
+          "scripts/verify-chart-readouts.mjs",
+          "scripts/verify-readout-placement.mjs",
+          "scripts/verify-wedge-readouts.mjs",
+          "scripts/verify-chord-readouts.mjs",
+          "scripts/verify-funnel-readouts.mjs",
+          "scripts/verify-point-modes.mjs",
+          "scripts/verify-chart-interaction.mjs",
+          "scripts/verify-chart-feedback.mjs",
+          "scripts/verify-report-runtime.mjs",
+          "scripts/verify-docs.mjs"
+        ]
+      }
+    },
+    {
+      "name": "landing and documentation stylesheet",
+      "paths": [
+        "assets/site.css"
+      ],
+      "steps": [
+        "chromium",
+        "site",
+        "captures"
+      ],
+      "commands": {
+        "chromium": [
+          "scripts/verify-browser.mjs",
+          "scripts/verify-flagship.mjs",
+          "scripts/verify-docs.mjs"
+        ]
+      }
+    },
+    {
+      "name": "landing page",
+      "paths": [
+        "assets/landing/",
+        "crates/richview-site/src/browser/voices.rs"
+      ],
+      "steps": [
+        "chromium",
+        "site",
+        "captures"
+      ],
+      "commands": {
+        "chromium": [
+          "scripts/verify-browser.mjs"
+        ]
+      }
+    },
+    {
+      "name": "shared site header and footer",
+      "paths": [
+        "crates/richview-build/src/chrome.rs"
+      ],
+      "steps": [
+        "chromium",
+        "site",
+        "captures"
+      ],
+      "commands": {
+        "chromium": [
+          "scripts/verify-browser.mjs",
+          "scripts/verify-flagship.mjs",
+          "scripts/verify-docs.mjs"
+        ]
+      }
+    },
+    {
+      "name": "browser verification script",
+      "paths": [
+        "scripts/verify-browser.mjs"
+      ],
+      "steps": [
+        "chromium"
+      ],
+      "commands": {
+        "chromium": [
+          "scripts/verify-browser.mjs"
+        ]
+      }
+    },
+    {
+      "name": "site appearance",
+      "paths": [
+        "assets/"
+      ],
+      "steps": [
+        "rust-tests",
+        "rust-slow",
+        "chromium",
+        "chart-type-keyboard",
+        "chart-type-pdf",
+        "theme-switch",
+        "visual-matrix",
+        "captures",
+        "a11y",
+        "site",
+        "cross-style",
+        "no-js",
+        "motion",
+        "report-motion",
+        "exports"
+      ],
+      "except": [
+        "assets/site.css",
+        "assets/landing/"
+      ]
+    },
+    {
+      "name": "browser runtime",
+      "paths": [
+        "crates/richview-site/",
+        "crates/richview-runtime/"
+      ],
+      "steps": [
+        "fmt",
+        "clippy",
+        "clippy-wasm",
+        "arch",
+        "rust-tests",
+        "rust-slow",
+        "chromium",
+        "chart-type-keyboard",
+        "chart-type-pdf",
+        "data-integrity",
+        "theme-switch",
+        "visual-matrix",
+        "captures",
+        "a11y",
+        "site",
+        "cross-style",
+        "disclosure-probe",
+        "label-truth",
+        "geometry",
+        "parallel-shaders",
+        "motion",
+        "report-motion",
+        "no-js",
+        "contract",
+        "exports"
+      ],
+      "except": [
+        "crates/richview-site/src/browser/voices.rs"
+      ]
+    },
+    {
+      "name": "format and rendering",
+      "paths": [
+        "crates/richview-core/"
+      ],
+      "steps": [
+        "fmt",
+        "clippy",
+        "clippy-wasm",
+        "arch",
+        "rust-tests",
+        "rust-slow",
+        "docs-match",
+        "chromium",
+        "chart-type-keyboard",
+        "chart-type-pdf",
+        "data-integrity",
+        "theme-switch",
+        "visual-matrix",
+        "captures",
+        "surface",
+        "golden",
+        "hostile",
+        "a11y",
+        "site",
+        "cross-style",
+        "disclosure-probe",
+        "label-truth",
+        "geometry",
+        "parallel-shaders",
+        "motion",
+        "report-motion",
+        "no-js",
+        "contract",
+        "exports",
+        "journeys",
+        "journeys-full"
+      ]
+    },
+    {
+      "name": "host and editor",
+      "paths": [
+        "crates/richview-app/",
+        "crates/richview-editor/",
+        "packages/vscode/"
+      ],
+      "steps": [
+        "fmt",
+        "clippy",
+        "clippy-wasm",
+        "arch",
+        "rust-tests",
+        "rust-slow",
+        "docs-match",
+        "host",
+        "chromium",
+        "surface",
+        "golden",
+        "hostile",
+        "journeys",
+        "journeys-full",
+        "contract",
+        "packaging",
+        "vscode"
+      ]
+    },
+    {
+      "name": "publish",
+      "paths": [
+        "crates/richview-publish/",
+        "cloudflare/publish/",
+        "publications/",
+        "crates/richview-publish-server/"
+      ],
+      "steps": [
+        "fmt",
+        "clippy",
+        "clippy-wasm",
+        "arch",
+        "rust-tests",
+        "rust-slow",
+        "publish-tests",
+        "chromium",
+        "journeys-full",
+        "hosted-smoke"
+      ]
+    },
+    {
+      "name": "gate tools",
+      "paths": [
+        "tools/rv-gate/",
+        "tools/lockdown-app/",
+        "tools/api-contracts/",
+        "tools/dependency-rules/",
+        "tools/agent-use/"
+      ],
+      "steps": [
+        "tool-tests",
+        "entrypoints",
+        "arch",
+        "coverage"
+      ]
+    },
+    {
+      "name": "font pipeline",
+      "paths": [
+        "assets/showcase/fonts/",
+        "scripts/fonts/",
+        "crates/richview-core/assets/font-manifest.json"
+      ],
+      "steps": [
+        "fonts"
+      ]
+    },
+    {
+      "name": "example reports",
+      "paths": [
+        "examples/"
+      ],
+      "steps": [
+        "rust-tests",
+        "rust-slow",
+        "chromium",
+        "data-integrity",
+        "visual-matrix",
+        "captures",
+        "golden",
+        "no-js",
+        "a11y",
+        "site",
+        "cross-style",
+        "disclosure-probe",
+        "label-truth",
+        "geometry",
+        "motion",
+        "report-motion",
+        "journeys",
+        "journeys-full",
+        "contract",
+        "exports"
+      ]
+    },
+    {
+      "name": "workspace build configuration",
+      "paths": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "rust-toolchain.toml",
+        ".cargo/"
+      ],
+      "steps": [
+        "pins",
+        "entrypoints",
+        "fmt",
+        "clippy",
+        "clippy-wasm",
+        "arch",
+        "secrets",
+        "rust-tests",
+        "tool-tests",
+        "publish-tests",
+        "build",
+        "rust-slow",
+        "host",
+        "chromium",
+        "chart-type-keyboard",
+        "chart-type-pdf",
+        "data-integrity",
+        "theme-switch",
+        "visual-matrix",
+        "captures",
+        "surface",
+        "fonts",
+        "docs-match",
+        "golden",
+        "no-js",
+        "hostile",
+        "a11y",
+        "site",
+        "cross-style",
+        "disclosure-probe",
+        "label-truth",
+        "geometry",
+        "engines-smoke",
+        "parallel-shaders",
+        "motion",
+        "report-motion",
+        "journeys",
+        "contract",
+        "deps",
+        "coverage",
+        "perf",
+        "webkit",
+        "firefox",
+        "journeys-full",
+        "exports",
+        "assets",
+        "packaging",
+        "vscode",
+        "voiceover",
+        "fresh-agent",
+        "hosted-smoke",
+        "audit"
+      ]
+    },
+    {
+      "name": "documentation contract inputs",
+      "paths": [
+        "AGENTS.md",
+        "README.md",
+        "CLAUDE.md",
+        ".claude/rules/",
+        "skill/SKILL.md",
+        "docs/guide/",
+        "docs/public/"
+      ],
+      "steps": [
+        "docs-match"
+      ]
+    },
+    {
+      "name": "golden regression inputs",
+      "paths": [
+        "benchmarks/chart-regression/",
+        "docs/public/index.md"
+      ],
+      "steps": [
+        "golden"
+      ]
+    },
+    {
+      "name": "dependency policy",
+      "paths": [
+        "deny.toml"
+      ],
+      "steps": [
+        "deps"
+      ]
+    },
+    {
+      "name": "browser dependency lock",
+      "paths": [
+        "package-lock.json",
+        "package.json"
+      ],
+      "steps": [
+        "pins",
+        "deps",
+        "chromium"
+      ]
+    },
+    {
+      "name": "publish dependency lock",
+      "paths": [
+        "cloudflare/publish/package-lock.json"
+      ],
+      "steps": [
+        "pins",
+        "deps"
+      ]
+    },
+    {
+      "name": "node toolchain pins",
+      "paths": [
+        ".node-version"
+      ],
+      "steps": [
+        "pins"
+      ]
+    },
+    {
+      "name": "spec documentation contract",
+      "paths": [
+        "docs/RMD-SPEC.md"
+      ],
+      "steps": [
+        "docs-match"
+      ]
+    },
+    {
+      "name": "lockdown sources",
+      "paths": [
+        "docs/lockdown/"
+      ],
+      "steps": [
+        "tool-tests"
+      ]
+    }
+  ]
+}

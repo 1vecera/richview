@@ -1,0 +1,170 @@
+{
+  "status": "PASS",
+  "base": "480af942714c16ce4c1f959c7f046344d4f8c99d",
+  "source": "879e1bed5bae745b1e66d2e825624e81a1650a99",
+  "browser": "151.0.7922.173",
+  "builds": {
+    "before": {
+      "head": "dad1615876cf05dccd7241da269fbf69cbc1ec31",
+      "tree_equals_base": true,
+      "wasm": "c415bc543db946539e4d1d2b8902935ba05a4d5ca1c60deb77456a8d64f89467"
+    },
+    "after": {
+      "head": "879e1bed5bae745b1e66d2e825624e81a1650a99",
+      "wasm": "7b59e7860bba1afd576c1fbf1a40484643db2ce87ebc50945b41bbe3460441cb"
+    },
+    "native_cli_both": "c3bc7b271d10a82a337f1cd0c0a112c2a81c893294fd6193e01ecd6b9aab39f6"
+  },
+  "owner": {
+    "native_exact": 135,
+    "lifecycle_states": 324,
+    "live_svg_exact_except_resource_ids": 612,
+    "diagnostics_exact": 612,
+    "standalone_svg_exact": 72,
+    "foreign_references_before": 2520,
+    "foreign_references_after": 0,
+    "interface_source_panels": 12,
+    "interface_keyboard_readouts": 24,
+    "interface_pointer_touch_checks": 16,
+    "interface_downloads_exact": 12,
+    "offline_configs": 16,
+    "offline_states": 32,
+    "offline_pngs_exact": 24,
+    "offline_pngs_repaired": 8,
+    "offline_external_requests": 0
+  },
+  "independent": {
+    "verdict": "ACCEPT",
+    "main_states": 20,
+    "main_svg_comparisons": 64,
+    "main_foreign_references_before": 338,
+    "main_foreign_references_after": 0,
+    "sibling_states": 32,
+    "sibling_svg_comparisons": 100,
+    "report": "svg-resources-independent-review.md"
+  },
+  "sibling": {
+    "base": "da0d11badd97d88729e3531e92f7b903fdcdd7c2",
+    "source": "f74c38432e8e5b35d36c2308649ac607a99a35e6",
+    "test_reconciliation": "82d4b9e090337b7d0d53eb7aac757f0b20edde84",
+    "before_wasm": "64f8a52c75acc29efe38fbd15fae2e721111f0c1626ed09d6fca327b6bf8440f",
+    "after_wasm": "611819917086d6f1a08ff1d405f0908a2d40d820f40b984af735491964567cc5",
+    "native_cli_both": "0e1e5f725578f0bacabf948e26d00fcb8dadd41f1d313d349583bd0416b6fac0",
+    "owner_records": 14,
+    "owner_svg_exact_except_resource_ids": 32,
+    "owner_source_panels": 16,
+    "owner_readouts": 32,
+    "owner_pointer_touch_checks": 16,
+    "owner_downloads_exact": 16,
+    "actual_numeric_clip_views": 4,
+    "release_and_rust": "PASS",
+    "browser_api_and_motion": "PASS",
+    "browser_after_test_reconciliation": "PASS"
+  },
+  "checks": [
+    {
+      "id": "release",
+      "exit": 0
+    },
+    {
+      "id": "format",
+      "exit": 0
+    },
+    {
+      "id": "clippy-native",
+      "exit": 0
+    },
+    {
+      "id": "clippy-wasm",
+      "exit": 0
+    },
+    {
+      "id": "workspace",
+      "exit": 0
+    },
+    {
+      "id": "fixtures",
+      "exit": 0
+    },
+    {
+      "id": "editor",
+      "exit": 0
+    },
+    {
+      "id": "native",
+      "exit": 0
+    },
+    {
+      "id": "compat",
+      "exit": 0
+    },
+    {
+      "id": "types",
+      "exit": 0
+    },
+    {
+      "id": "browser",
+      "exit": 0
+    },
+    {
+      "id": "landing",
+      "exit": 0
+    },
+    {
+      "id": "cloudflare",
+      "exit": 0
+    },
+    {
+      "id": "showcase",
+      "exit": 0
+    },
+    {
+      "id": "flagship",
+      "exit": 0
+    },
+    {
+      "id": "reel",
+      "exit": 0
+    },
+    {
+      "id": "browser-api",
+      "exit": 0
+    },
+    {
+      "id": "motion-runtime",
+      "exit": 0
+    },
+    {
+      "id": "docs",
+      "exit": 0
+    }
+  ],
+  "files": {
+    "capture.mjs": "00632e2733268f4aa9f97124f1077be6b48613904fb1ccd510917ec6d709321e",
+    "hidden-after.png": "00b760e26eb1dd79860e3405361365cd0542406184bd18562bd4dd95e2e0f0c4",
+    "hidden-before.png": "dee9b24003ee2d01fd10c984c037f7367dbf57751967bbda33ba8fefb8a59675",
+    "identical-bars.rmd": "148de2fab12bc23dbe04a50ba1057434e886c3e8f9b3dbd35b58babd85803f19",
+    "mixed-after.png": "b12d642b592e59e479d845fb290528ab4e966c33fb971e2b33ae67d8a1909ca2",
+    "mixed-bars.rmd": "7f23b1a3f0a768550cc05f7a92ca8e8dbc1ae0e699efb04795cdb9a559ef6255",
+    "mixed-before.png": "e1d99069cb16f33068f009bfc40bd808479450ce131e0dbc6c9a863d612e1895",
+    "pr40-heatmap-test.patch": "60cf17343dec761fc24c853b8308b223f0f544251edc002d57cead698415d31b",
+    "report.rstyle.yaml": "ea697acbfea3ac0f2cc86a53623836e96bd8488c462283c0b27e18d0f7c0530b"
+  },
+  "limitations": [
+    "Only generated whole-value local SVG resource references are scoped; this is not a general SVG/CSS rewriter.",
+    "Temporal rendering and native standalone SVG generation remain unchanged.",
+    "The numeric-window clip gate uses the separately frozen PR40 plus accepted continuity composition.",
+    "PR40 intentionally removed the heatmap key; its test-only adaptation is supplied, not applied to the main delivery.",
+    "No pie hatches or palette changes are included."
+  ],
+  "retained_failures": [
+    "Relative runtime URL rejected by the existing security contract.",
+    "Deferred diagnostic timing in a scratch comparator; fresh measure_chart output matches.",
+    "Existing heatmap text overlay intercepted strict locator hover; actual cell-center input verified.",
+    "Temporal table display-order expectation corrected to its existing engine contract.",
+    "Offline companion style required an explicit frontmatter reference.",
+    "JavaScript-disabled animation-frame wait corrected in scratch only.",
+    "Independent PNG comparison initially moved the inspected flow element.",
+    "Frozen sibling fixture generation was initially missing; its later main-gradient assertion required the documented test-only adaptation."
+  ]
+}

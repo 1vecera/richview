@@ -1,0 +1,86 @@
+{
+ "_source": {
+  "files": [
+   "tmp/prf-probe/preset-pacing.json"
+  ],
+  "sha256": {
+   "tmp/prf-probe/preset-pacing.json": "95bebbc6bee5bfcd13b157857e63d14fd94be072abdca307562998201b1ad73d"
+  },
+  "note": "tmp/prf-probe/preset-pacing.mjs (script in the ignored tmp/prf-probe/), b4db233 dist/web, Claw Mini, 2026-10-21"
+ },
+ "data": {
+  "browser": "153.0.8010.12",
+  "load_before": [
+   4.20947265625,
+   3.74365234375,
+   3.21142578125
+  ],
+  "runs": [
+   {
+    "chart": "keeling",
+    "cpu": 1,
+    "rust_frames": 229,
+    "rust_ms_p50": 0.7,
+    "rust_ms_p95": 0.9,
+    "rust_ms_max": 1.8,
+    "raf_interval_p50": 16.7,
+    "raf_interval_p95": 16.8,
+    "raf_interval_max": 16.8,
+    "intervals_over_25ms": 0,
+    "raf_samples": 397,
+    "loaf_over_50": 0,
+    "loaf_max": 0
+   },
+   {
+    "chart": "grid",
+    "cpu": 1,
+    "rust_frames": 229,
+    "rust_ms_p50": 2.1,
+    "rust_ms_p95": 3,
+    "rust_ms_max": 5.3,
+    "raf_interval_p50": 16.7,
+    "raf_interval_p95": 16.8,
+    "raf_interval_max": 16.8,
+    "intervals_over_25ms": 0,
+    "raf_samples": 398,
+    "loaf_over_50": 0,
+    "loaf_max": 0
+   },
+   {
+    "chart": "keeling",
+    "cpu": 4,
+    "rust_frames": 231,
+    "rust_ms_p50": 2.1,
+    "rust_ms_p95": 3.1,
+    "rust_ms_max": 4.6,
+    "raf_interval_p50": 16.7,
+    "raf_interval_p95": 16.7,
+    "raf_interval_max": 16.8,
+    "intervals_over_25ms": 0,
+    "raf_samples": 396,
+    "loaf_over_50": 0,
+    "loaf_max": 0
+   },
+   {
+    "chart": "grid",
+    "cpu": 4,
+    "rust_frames": 229,
+    "rust_ms_p50": 8.8,
+    "rust_ms_p95": 12.9,
+    "rust_ms_max": 15.1,
+    "raf_interval_p50": 16.7,
+    "raf_interval_p95": 16.7,
+    "raf_interval_max": 16.8,
+    "intervals_over_25ms": 0,
+    "raf_samples": 397,
+    "loaf_over_50": 0,
+    "loaf_max": 0
+   }
+  ],
+  "load_after": [
+   4.09521484375,
+   3.7822265625,
+   3.24658203125
+  ]
+ }
+}

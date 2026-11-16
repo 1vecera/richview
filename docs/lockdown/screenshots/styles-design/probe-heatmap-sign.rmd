@@ -1,0 +1,15 @@
+---
+title: Heatmap sign probe
+---
+
+```chart
+type: heatmap
+title: Two cells fell and two rose
+data:
+  inline:
+    - { region: North, quarter: Q1, change: -40 }
+    - { region: North, quarter: Q2, change: 40 }
+    - { region: South, quarter: Q1, change: -10 }
+    - { region: South, quarter: Q2, change: 10 }
+encoding: { x: quarter, y: region, color: change }
+```

@@ -1,0 +1,115 @@
+{
+ "_source": {
+  "files": [
+   "tmp/prf07-final/out-mcp-latency.json"
+  ],
+  "sha256": {
+   "tmp/prf07-final/out-mcp-latency.json": "3f5c5f2a017031387527a269febbd8f92a9da4f40a7a876b3b601785bb8c7b6f"
+  },
+  "note": "tmp/prf07-final/mcp_latency.py, b4db233, Claw Mini, 2026-10-22"
+ },
+ "data": {
+  "probe": "tmp/prf07-final/mcp_latency.py",
+  "date": "2026-10-21T23:33:27+00:00",
+  "commit": "b4db233",
+  "binary": "target/release/richview",
+  "host": {
+   "machine": "arm64",
+   "os": "macOS-26.3-arm64-arm-64bit-Mach-O",
+   "load_before": [
+    1.955078125,
+    2.265625,
+    2.30712890625
+   ],
+   "load_after": [
+    2.4013671875,
+    2.349609375,
+    2.33642578125
+   ]
+  },
+  "tools_listed": [
+   "richview_render",
+   "richview_validate",
+   "richview_check",
+   "richview_publish",
+   "richview_learn",
+   "richview_asset_put",
+   "richview_asset_verify"
+  ],
+  "method": "one persistent stdio server; per fixture and tool: 3 untimed warm-ups, then timed sequential calls (100; dense 20); latency is request write to response line",
+  "series": {
+   "small.richview_validate": {
+    "n": 100,
+    "median_ms": 0.27,
+    "p95_ms": 0.3,
+    "max_ms": 0.37,
+    "server_rss_mib_before": 8.2,
+    "server_rss_mib_after": 10.2
+   },
+   "small.richview_check": {
+    "n": 100,
+    "median_ms": 0.42,
+    "p95_ms": 0.47,
+    "max_ms": 0.56,
+    "server_rss_mib_before": 10.2,
+    "server_rss_mib_after": 13.5
+   },
+   "small.richview_render": {
+    "n": 100,
+    "median_ms": 5.23,
+    "p95_ms": 7.31,
+    "max_ms": 88.32,
+    "server_rss_mib_before": 13.5,
+    "server_rss_mib_after": 168.4
+   },
+   "flagship.richview_validate": {
+    "n": 100,
+    "median_ms": 6.04,
+    "p95_ms": 6.25,
+    "max_ms": 6.59,
+    "server_rss_mib_before": 168.4,
+    "server_rss_mib_after": 169.3
+   },
+   "flagship.richview_check": {
+    "n": 100,
+    "median_ms": 14.5,
+    "p95_ms": 15.46,
+    "max_ms": 16.68,
+    "server_rss_mib_before": 169.3,
+    "server_rss_mib_after": 173.8
+   },
+   "flagship.richview_render": {
+    "n": 100,
+    "median_ms": 34.89,
+    "p95_ms": 40.85,
+    "max_ms": 75.01,
+    "server_rss_mib_before": 173.8,
+    "server_rss_mib_after": 293.8
+   },
+   "dense.richview_validate": {
+    "n": 20,
+    "median_ms": 136.88,
+    "p95_ms": 139.69,
+    "max_ms": 139.82,
+    "server_rss_mib_before": 293.8,
+    "server_rss_mib_after": 1409.3
+   },
+   "dense.richview_check": {
+    "n": 20,
+    "median_ms": 135.63,
+    "p95_ms": 138.76,
+    "max_ms": 142.87,
+    "server_rss_mib_before": 1409.3,
+    "server_rss_mib_after": 1238.9
+   },
+   "dense.richview_render": {
+    "n": 20,
+    "median_ms": 192.15,
+    "p95_ms": 195.49,
+    "max_ms": 205.21,
+    "server_rss_mib_before": 1238.9,
+    "server_rss_mib_after": 1442.1
+   }
+  }
+ }
+}

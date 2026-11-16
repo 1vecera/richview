@@ -1,0 +1,37 @@
+# Heatmap source identity
+
+```chart
+{
+  "type": "heatmap",
+  "title": "Resolve repeated observations at one cell",
+  "encoding": {
+    "x": "period",
+    "y": "team",
+    "color": "score"
+  },
+  "axes": {
+    "color": {
+      "label": "Measured value"
+    }
+  },
+  "data": {
+    "inline": [
+      {
+        "period": "Jan",
+        "team": "Alpha",
+        "score": 10
+      },
+      {
+        "period": "Jan",
+        "team": "Alpha",
+        "score": 90
+      },
+      {
+        "period": "Feb",
+        "team": "Alpha",
+        "score": 50
+      }
+    ]
+  }
+}
+```

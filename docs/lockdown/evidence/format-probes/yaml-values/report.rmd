@@ -1,0 +1,21 @@
+---
+title: First
+title: Second
+---
+
+```table
+data:
+  inline:
+    - {a: 007, b: 0b11, c: 0x10, d: 1_000, e: 0o17, f: 1e3, g: .inf, h: yes, i: 2026-10-04}
+```
+
+```chart
+type: bar
+title: Flow comma
+data:
+  inline:
+    - {month: Jan, v: 1}
+encoding: {x: month, y: v}
+axes:
+  y: {label: Tickets per 1,000 accounts}
+```

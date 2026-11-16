@@ -1,0 +1,36 @@
+# Dedicated News gateway. The existing richview.ai Worker is not modified.
+name = "richview-news"
+main = "cloudflare/publish/entry.mjs"
+compatibility_date = "2026-10-18"
+workers_dev = false
+preview_urls = false
+
+# Publication fonts are bundled with the Worker and served at /_fonts/<name>.woff2.
+[[rules]]
+type = "Data"
+globs = ["**/*.woff2"]
+fallthrough = false
+
+[limits]
+cpu_ms = 1000
+
+[[r2_buckets]]
+binding = "RELEASES"
+bucket_name = "richview-news-private"
+
+[[durable_objects.bindings]]
+name = "PUBLICATION"
+class_name = "Publication"
+
+[[migrations]]
+tag = "publish-v1"
+new_sqlite_classes = ["Publication"]
+
+[[routes]]
+pattern = "news.richview.ai"
+custom_domain = true
+
+# Set environment-specific values at deployment; no passwords or identity keys here.
+# PUBLICATION_HOST, ACCESS_ISSUER, ACCESS_AUD, GITHUB_REPOSITORY,
+# PUBLICATION_BRANCH, CONTENT_ROOT, BOOTSTRAP_SUPER_EDITOR, PUBLISHER_IDENTITY,
+# BOOTSTRAP_COMMIT. GITHUB_TOKEN is a Worker secret.

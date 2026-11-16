@@ -1,0 +1,8 @@
+---
+title: Heatmap scale endpoint audit
+version: 0.0.1
+---
+
+```chart
+{"type":"heatmap","title":"Compare the measured values","encoding":{"x":"column","y":"row","color":"value"},"axes":{"color":{"format":"percent","suffix":"%","label":"Signed share"}},"data":{"inline":[{"column":"A","row":"Now","value":-0.5},{"column":"B","row":"Now","value":0},{"column":"C","row":"Now","value":1}]}}
+```

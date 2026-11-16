@@ -1,0 +1,148 @@
+{
+  "state": {
+    "generation": 5,
+    "active": "e6c08a364752db844772d8ad526bf53dc57cec9e783b31ff76756ac80c2ea3b1",
+    "paused": false,
+    "hidden": {
+      "retired": {
+        "revision": "00000000-0000-4000-8000-000000000001",
+        "actor": "email:owner@example.test",
+        "reason": "Fixture urgent withdrawal",
+        "at": "2026-10-18T09:00:00.000Z",
+        "reconciliation": "pending"
+      }
+    },
+    "policies": {
+      "story": {
+        "id": "story",
+        "section": "research",
+        "state": "published",
+        "audience": "public"
+      },
+      "retired": {
+        "id": "retired",
+        "section": "research",
+        "state": "published",
+        "audience": "public",
+        "deleted": true
+      }
+    },
+    "roles": {
+      "email:reader@example.test": {
+        "name": "reader",
+        "sections": [
+          "research"
+        ],
+        "audiences": [
+          "members"
+        ]
+      }
+    },
+    "edits": {
+      "50": {
+        "number": 50,
+        "url": "https://example.test/pull/50",
+        "head": "7c8c886b0390d8c7b0b549dbcb5b7e597321aff7",
+        "branch": "publish-edit/50",
+        "actor": "github:author",
+        "git_author": "author",
+        "imported": true,
+        "state": "approved"
+      }
+    },
+    "approvals": {
+      "7c8c886b0390d8c7b0b549dbcb5b7e597321aff7": {
+        "actor": "email:owner@example.test",
+        "pull": 50,
+        "at": "2026-10-18T09:00:00.000Z"
+      }
+    },
+    "authorized": {
+      "1111111111111111111111111111111111111111": {
+        "actor": "bootstrap",
+        "head": "1111111111111111111111111111111111111111"
+      },
+      "2222222222222222222222222222222222222222": {
+        "actor": "github:reviewer",
+        "pull": 2,
+        "head": "fa20e30f0095af1556fb769342cae65bac94a60f",
+        "base": "1111111111111111111111111111111111111111"
+      },
+      "3333333333333333333333333333333333333333": {
+        "actor": "github:reviewer",
+        "pull": 3,
+        "head": "819b1a51fcee28b1f0c67a0695f36c1be559842d",
+        "base": "2222222222222222222222222222222222222222"
+      },
+      "4444444444444444444444444444444444444444": {
+        "actor": "github:reviewer",
+        "pull": 4,
+        "head": "41a32b4aa9a7e76aa29c3903a14d450dcf6eeb23",
+        "base": "3333333333333333333333333333333333333333"
+      },
+      "5555555555555555555555555555555555555555": {
+        "actor": "github:reviewer",
+        "pull": 5,
+        "head": "408568cdd67cbdf17752bf1ed1be9b9e5060c32a",
+        "base": "4444444444444444444444444444444444444444"
+      }
+    },
+    "builds": {
+      "1111111111111111111111111111111111111111": {
+        "state": "live",
+        "release": "bc5abcd5b8044c093f7d71580fa39bed02b45ee7fd2ad40191995c40ed2ea0ec"
+      },
+      "2222222222222222222222222222222222222222": {
+        "state": "live",
+        "release": "1234ff91400f5aebf2d2f4b2d7b1a800543b0ef89be40d3d18b13b2ea255587a"
+      },
+      "3333333333333333333333333333333333333333": {
+        "state": "live",
+        "release": "d30d516a3b94365769ffa713389b3c9d3dd9b3f41c6ac45f45d857b10b320280"
+      },
+      "4444444444444444444444444444444444444444": {
+        "state": "live",
+        "release": "e4744adc5a1ccaa9cd38ecc2c7b487b3fcc2c05475a8e2ccfa961595822e5889"
+      },
+      "5555555555555555555555555555555555555555": {
+        "state": "live",
+        "release": "e6c08a364752db844772d8ad526bf53dc57cec9e783b31ff76756ac80c2ea3b1"
+      },
+      "7c8c886b0390d8c7b0b549dbcb5b7e597321aff7": {
+        "state": "built",
+        "release": "acad477e2f07a88b6ceabe567a470d35307e7115a0b9b14d8ab708bd44c3ca92"
+      },
+      "6666666666666666666666666666666666666666": {
+        "state": "building",
+        "reason": ""
+      },
+      "7777777777777777777777777777777777777777": {
+        "state": "failed",
+        "reason": "Fixture build failed"
+      }
+    },
+    "auditSequence": 17
+  },
+  "activated": {
+    "bc5abcd5b8044c093f7d71580fa39bed02b45ee7fd2ad40191995c40ed2ea0ec": {
+      "commit": "1111111111111111111111111111111111111111"
+    },
+    "1234ff91400f5aebf2d2f4b2d7b1a800543b0ef89be40d3d18b13b2ea255587a": {
+      "commit": "2222222222222222222222222222222222222222"
+    },
+    "d30d516a3b94365769ffa713389b3c9d3dd9b3f41c6ac45f45d857b10b320280": {
+      "commit": "3333333333333333333333333333333333333333"
+    },
+    "e4744adc5a1ccaa9cd38ecc2c7b487b3fcc2c05475a8e2ccfa961595822e5889": {
+      "commit": "4444444444444444444444444444444444444444"
+    },
+    "e6c08a364752db844772d8ad526bf53dc57cec9e783b31ff76756ac80c2ea3b1": {
+      "commit": "5555555555555555555555555555555555555555"
+    }
+  },
+  "runtimes": {
+    "01d911fef6234ea25ab24c3ac593df3359477eaeb59f730255e92095dad766af": {
+      "richview_web.js": "bca7ddb2c5d5bc9b996675aa4ea067c55b900a51445f016917d45c55f6f0e020"
+    }
+  }
+}

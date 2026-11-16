@@ -1,0 +1,14 @@
+# Retired routes (Cloudflare Workers static assets).
+# The /charts/ examples page went to the docs chart gallery (ARC-40, FEA-SF-44).
+/charts /docs/charts 301
+/charts/* /docs/charts 301
+/app /playground 301
+/app/* /playground 301
+/playground/ /playground 301
+/chart-gallery /docs/charts 301
+/chart-gallery/* /docs/charts 301
+/impressum.html /impressum 301
+/privacy.html /privacy 301
+/terms.html /terms 301
+/licenses.html /licenses 301
+/showcase /showcase/openai-vs-anthropic/ 301

@@ -1,0 +1,6 @@
+---
+title: Colon style
+styles: ["tokens: {accent: red}"]
+---
+
+Body.

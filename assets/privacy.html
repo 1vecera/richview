@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Privacy — RichView</title>
+		<meta name="description" content="What RichView stores for updates, the playground and hosted accounts." />
+		<link rel="icon" type="image/svg+xml" href="/landing/favicon.svg" />
+		<link rel="stylesheet" href="/site.css" />
+		<link rel="stylesheet" href="/legal.css" />
+	</head>
+	<body data-richview-page="legal">
+		<a class="skip" href="#main">Skip to content</a>
+		<!-- rv-site-header -->
+		<main id="main" class="legal">
+			<article>
+				<h1>Privacy</h1>
+				<p class="updated">Updated: 15 November 2026</p>
+
+				<section>
+					<h2>Update signup</h2>
+					<p>If you opt in to release and product updates, we store your normalised e-mail address, the time of consent and the version of the consent text in a private Cloudflare D1 database. Repeated signups do not create another subscriber. The signup sends no confirmation e-mail.</p>
+					<p>Daniel Vecera operates the list. Subscriber addresses are not published and there is no read API. Rate limits are based on your network address; the application does not store that address.</p>
+					<p>We use your consent only for RichView release and product updates, and keep the signup until you withdraw consent or the list is retired. To withdraw consent or ask for deletion of your information, e-mail <a href="mailto:daniel.vecera@outlook.com">daniel.vecera@outlook.com</a>.</p>
+				</section>
+
+				<section>
+					<h2>Playground and live example</h2>
+					<p>The playground and the live example on the <a href="/">home page</a> run in your browser. They upload nothing and store nothing on a server.</p>
+				</section>
+
+				<section>
+					<h2>Publishing</h2>
+					<p>Publishing is an explicit action. It sends a report only to a server the author chooses.</p>
+				</section>
+
+				<section>
+					<h2>Hosted accounts</h2>
+					<p>If you create an account on the hosted server, we store your e-mail address, the name you enter, a salted hash of your password, hashes of your CLI tokens with the names you give them, the organizations you belong to with your role in each, and the reports you publish with their versions and attached data. The members of an organization you belong to see your name, your e-mail address and your role. When we send account, invitation or report-share mail through Cloudflare's email service, it receives your address and the mail in order to deliver it.</p>
+					<p>When you invite someone, or share a report with a person not already named on it, we store that person's address with the invitation and try to send them a mail; you can send it again. When an invitation or report-share mail is sent, the mail shows your e-mail address and, unless they look like a link, your name, the organization's name and the shared report's title. An invitation that is not accepted expires after seven days and can be cancelled earlier.</p>
+					<p>Sign-up, invitation and sharing links expire after 24 hours, and password-reset links after one hour. The server keeps a hash of each link and a record of the address for about 24 hours to limit abuse. When mail is sent automatically, a waiting message containing the link is normally removed when the provider accepts it or within about a minute after the link expires. An unaccepted invitation or report share is normally removed within about a minute after its seven days, and counts of invitation and share mails per sender are kept for about 24 hours. If mail is handled by hand, the server normally removes delivery records and mail copies in its outbox within seven days.</p>
+					<p>The server runs on Amazon Web Services in Frankfurt, Germany, on an encrypted disk with daily encrypted snapshots, of which the last five are kept. The web server logs requests with network addresses to limit abuse and find faults; the log leaves out sign-up and reset links and is kept for at most 14 days. To limit abuse, the application counts sign-up and reset requests per network address in memory for one hour, and failed sign-ins per account for 15 minutes. A failed sign-in is written to a security log together with the e-mail address that was typed; that log is not kept by date but is overwritten as it fills.</p>
+					<p>A private report can be opened by you, by the people you name and by your organization's owners and admins. A report opened to the organization can be read by its members. A report with a public link can be opened by anyone who has the link. We do not read reports except when needed to fix a fault or act on a complaint.</p>
+					<p>We keep an account until you ask for its deletion or the service closes. Deleting a report removes it from the server at once and from the snapshots within five days. To delete your account, or to get a copy of what we hold, write to the address below.</p>
+				</section>
+
+				<section>
+					<h2>Embeds</h2>
+					<p>Embeds and credited Unsplash photos are the only third-party content in reports. Their providers may receive your network address and apply their own privacy policies. A report that names a <code>data.url</code> address has the reader’s browser download that data, so the host of that address sees the reader’s network address.</p>
+				</section>
+
+				<section>
+					<h2>Cookies and analytics</h2>
+					<p>This site sets no cookies and runs no analytics. The hosted server sets one cookie when you sign in, to keep you signed in; it is not used for tracking and is removed when you sign out.</p>
+				</section>
+
+				<section>
+					<h2>Contact</h2>
+					<p>For questions about your data, contact <a href="mailto:daniel.vecera@outlook.com">daniel.vecera@outlook.com</a>. The operator is named in the <a href="/impressum">Impressum</a>.</p>
+				</section>
+			</article>
+		</main>
+		<!-- rv-site-footer -->
+	</body>
+</html>

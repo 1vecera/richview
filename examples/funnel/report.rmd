@@ -1,0 +1,33 @@
+---
+title: See where visitors drop out of signup
+description: A funnel sets each stage's width by its value, so the reader sees where most of the audience is lost.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Most visitors leave before signing up
+
+These illustrative figures follow twelve thousand visitors through signup. Each band is as wide as the number of users at that stage; the readout gives the share of the first stage and of the stage before.
+
+```chart
+type: funnel
+title: Four in ten visitors sign up and one in twenty subscribes
+subtitle: Users at each stage, from the first visit to a paid subscription
+data:
+  inline:
+    - stage: Visited
+      users: 12000
+    - stage: Signed up
+      users: 4800
+    - stage: Activated
+      users: 2900
+    - stage: Subscribed
+      users: 640
+encoding: {x: stage, y: users}
+axes:
+  y: {label: Users}
+```
+
+*Source: Illustrative values.*
+
+Use the keyboard or pointer to read each stage's value and how much of the audience it keeps.

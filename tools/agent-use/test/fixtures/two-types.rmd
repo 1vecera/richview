@@ -1,0 +1,60 @@
+---
+title: Where the two assistants disagree
+description: Complaint themes in app-store reviews and Hacker News.
+version: 0.0.1
+slug: complaint-themes
+styles: [sleek]
+---
+
+# Refusals and coding split the two products
+
+```big
+value: 157
+label: More low-star reviews for Claude than ChatGPT
+```
+
+```chart
+type: bar
+title: Claude's low-star reviews mention refusals more often
+data: { csv: data/app-reviews.csv }
+encoding: { x: topic, y: share_of_low_star_pct, color: app }
+```
+
+*Source: App-store low-star review sample (RichView flagship example).*
+
+```chart
+type: bar
+title: Topics sit on both sides of the diagonal
+data:
+  inline:
+    - { topic: Quality, reviews: 5.2, hn: 4.3 }
+    - { topic: Refusals, reviews: 9.9, hn: 0.0 }
+    - { topic: Coding, reviews: 0.0, hn: 9.0 }
+encoding: { x: topic, y: reviews }
+```
+
+*Source: App-store low-star review sample and Hacker News negative-comment sample (RichView flagship example).*
+
+```chart
+type: lollipop
+title: Hacker News gaps by topic
+data:
+  inline:
+    - { topic: Coding, gap: 9.0 }
+    - { topic: Reliability, gap: 8.3 }
+    - { topic: Quality, gap: 4.3 }
+encoding: { x: topic, y: gap }
+```
+
+*Source: Hacker News negative-comment sample (RichView flagship example).*
+
+```table
+data:
+  inline:
+    - { topic: Refusals, review_gap_points: 9.9 }
+    - { topic: Coding, hn_gap_points: 9.0 }
+columns:
+  - { key: topic, label: Topic }
+  - { key: review_gap_points, label: Review gap }
+  - { key: hn_gap_points, label: HN gap }
+```

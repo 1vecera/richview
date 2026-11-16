@@ -1,0 +1,8 @@
+---
+title: Pie key inspection
+version: 0.0.1
+---
+
+```chart
+{"type":"pie","title":"Complete category key","encoding":{"x":"category","y":"value"},"data":{"inline":[{"category":"Český úplný název segmentu A subscription observation","value":18},{"category":"Český úplný název segmentu B subscription observation","value":17},{"category":"Český úplný název segmentu C subscription observation","value":16},{"category":"Český úplný název segmentu D subscription observation","value":15},{"category":"Český úplný název segmentu E subscription observation","value":14},{"category":"Český úplný název segmentu F subscription observation","value":13},{"category":"Český úplný název segmentu G subscription observation","value":12},{"category":"Český úplný název segmentu H subscription observation","value":11},{"category":"Český úplný název segmentu I subscription observation","value":10},{"category":"Český úplný název segmentu J subscription observation","value":9},{"category":"Český úplný název segmentu K subscription observation","value":8},{"category":"Český úplný název segmentu L subscription observation","value":7},{"category":"Český úplný název segmentu M subscription observation","value":6},{"category":"Český úplný název segmentu N subscription observation","value":5},{"category":"Český úplný název segmentu O subscription observation","value":4},{"category":"Český úplný název segmentu P subscription observation","value":3},{"category":"Český úplný název segmentu Q subscription observation","value":2},{"category":"Český úplný název segmentu R subscription observation","value":1}]}}
+```

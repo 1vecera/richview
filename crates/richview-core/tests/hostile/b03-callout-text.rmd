@@ -1,0 +1,18 @@
+---
+title: Callout text
+---
+
+```callout
+kind: up
+title: '<script>HOSTILE_CALLOUT_TITLE()</script> "quoted"'
+body: |
+  Body <script>HOSTILE_CALLOUT_BODY()</script> <img src=x onerror=HOSTILE_CALLOUT_IMG()>
+
+  [js](javascript:HOSTILE_CALLOUT_LINK()) ![ok](data:image/png;base64,AAAA)
+
+  ## Heading {#rv-hostile-id}
+
+  - [^rv-hostile-id]
+
+  [^rv-hostile-id]: Callout note.
+```

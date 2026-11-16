@@ -1,0 +1,22 @@
+[package]
+rust-version.workspace = true
+name = "richview-build"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+base64 = "0.22"
+richview-app = { path = "../richview-app" }
+richview-core = { path = "../richview-core" }
+richview-editor = { path = "../richview-editor" }
+serde_json = "1"
+flate2 = "1"
+sha2 = "0.10"
+pulldown-cmark = "0.13"
+zopfli = { version = "0.8.4", default-features = false, features = ["gzip"] }
+cargo-config2 = "=0.1.45"
+
+[dev-dependencies]
+tempfile = "3"

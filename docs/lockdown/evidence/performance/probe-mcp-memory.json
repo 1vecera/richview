@@ -1,0 +1,73 @@
+{
+ "_source": {
+  "files": [
+   "tmp/prf-coverage-07/mcp-memory.json"
+  ],
+  "sha256": {
+   "tmp/prf-coverage-07/mcp-memory.json": "467b91240b022ee0082cfb405f3ee31f534d7cd336425a1e1198afd14bfd8a96"
+  },
+  "note": "tmp/prf-coverage-07/scripts/mcp_memory.py, b4db233, Claw Mini, 2026-10-21"
+ },
+ "data": {
+  "probe": "tmp/prf-coverage-07/scripts/mcp_memory.py",
+  "date": "2026-10-21",
+  "host": "Claw Mini (Apple M4, macOS), load 3.2-3.4",
+  "workload": "one persistent `richview mcp`, 50 x richview_render of the 2.03 MB dense fixture",
+  "samples": [
+   {
+    "after": 0,
+    "rss_mib": 7.8,
+    "footprint_mb": 2.7
+   },
+   {
+    "after": 1,
+    "rss_mib": 91.1,
+    "footprint_mb": 32.0
+   },
+   {
+    "after": 5,
+    "rss_mib": 417.4,
+    "footprint_mb": 359.0
+   },
+   {
+    "after": 10,
+    "rss_mib": 801.2,
+    "footprint_mb": 750.0
+   },
+   {
+    "after": 20,
+    "rss_mib": 1396.4,
+    "footprint_mb": 1567.0
+   },
+   {
+    "after": 30,
+    "rss_mib": 1533.3,
+    "footprint_mb": 1566.0
+   },
+   {
+    "after": 40,
+    "rss_mib": 1566.8,
+    "footprint_mb": 1561.0
+   },
+   {
+    "after": 50,
+    "rss_mib": 1515.4,
+    "footprint_mb": 1510.0
+   }
+  ],
+  "render_ms_first5": [
+   235.7,
+   182.8,
+   188.4,
+   185.7,
+   194.4
+  ],
+  "render_ms_last5": [
+   198.9,
+   195.0,
+   202.2,
+   210.2,
+   190.0
+  ]
+ }
+}

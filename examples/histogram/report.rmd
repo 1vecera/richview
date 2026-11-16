@@ -1,0 +1,81 @@
+---
+title: Reading distributions
+description: Synthetic observations demonstrate histogram intervals and normalization.
+version: 0.1.0
+styles: [scientific]
+format: rmd/1
+---
+
+# Most observations fall between 10 and 20
+
+These small synthetic samples demonstrate the chart contract. The table and CSV actions retain individual observations, while a histogram readout describes an interval summary.
+
+```chart
+type: histogram
+title: The middle intervals contain most observations
+data:
+  inline:
+    - value: 8
+    - value: 10
+    - value: 12
+    - value: 14
+    - value: 15
+    - value: 16
+    - value: 18
+    - value: 22
+encoding: {x: value}
+binning: {edges: [5, 10, 15, 20, 25]}
+axes:
+  x: {label: Duration, unit: ms}
+```
+
+## Unequal intervals need an explicit measure
+
+Each of the next two intervals contains two observations. The wider interval has half the density, so both rectangles have the same area.
+
+```chart
+type: histogram
+title: Equal probability occupies unequal interval widths
+data:
+  inline:
+    - value: 0
+    - value: 0.5
+    - value: 1
+    - value: 3
+encoding: {x: value}
+binning: {edges: [0, 1, 3], measure: density}
+```
+
+## Compare panels with shared boundaries
+
+Both panels retain the same intervals. Hiding a group removes its contribution and recalculates proportions among the remaining visible observations in that panel. The missing observation stays in the source table and is disclosed below its chart.
+
+```chart
+type: histogram
+title: The later sample occupies higher intervals
+data:
+  inline:
+    - value: 0
+      group: A
+      sample: Earlier
+    - value: 10
+      group: B
+      sample: Earlier
+    - value: 15
+      group: A
+      sample: Earlier
+    - value: 15
+      group: B
+      sample: Later
+    - value: 20
+      group: B
+      sample: Later
+    - value: 30
+      group: A
+      sample: Later
+    - value: null
+      group: A
+      sample: Later
+encoding: {x: value, color: group, facet: sample}
+binning: {count: 3, measure: proportion}
+```

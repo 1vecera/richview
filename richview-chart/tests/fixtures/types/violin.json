@@ -1,0 +1,305 @@
+{
+ "spec": {
+  "type": "violin",
+  "title": "Premium customers rate us higher and less evenly",
+  "encoding": {
+   "x": "plan",
+   "y": "score"
+  },
+  "axes": {
+   "y": {
+    "label": "Satisfaction score"
+   }
+  }
+ },
+ "rows": [
+  {
+   "plan": "Standard",
+   "score": 47.6
+  },
+  {
+   "plan": "Standard",
+   "score": 39.7
+  },
+  {
+   "plan": "Standard",
+   "score": 59.3
+  },
+  {
+   "plan": "Standard",
+   "score": 57.8
+  },
+  {
+   "plan": "Standard",
+   "score": 59.3
+  },
+  {
+   "plan": "Standard",
+   "score": 73.2
+  },
+  {
+   "plan": "Standard",
+   "score": 47.6
+  },
+  {
+   "plan": "Standard",
+   "score": 57.3
+  },
+  {
+   "plan": "Standard",
+   "score": 59.5
+  },
+  {
+   "plan": "Standard",
+   "score": 42.1
+  },
+  {
+   "plan": "Standard",
+   "score": 50.4
+  },
+  {
+   "plan": "Standard",
+   "score": 50.9
+  },
+  {
+   "plan": "Standard",
+   "score": 41.5
+  },
+  {
+   "plan": "Standard",
+   "score": 40.5
+  },
+  {
+   "plan": "Standard",
+   "score": 46.7
+  },
+  {
+   "plan": "Standard",
+   "score": 69.5
+  },
+  {
+   "plan": "Standard",
+   "score": 53.7
+  },
+  {
+   "plan": "Standard",
+   "score": 44.3
+  },
+  {
+   "plan": "Standard",
+   "score": 58.1
+  },
+  {
+   "plan": "Standard",
+   "score": 66.7
+  },
+  {
+   "plan": "Standard",
+   "score": 47.4
+  },
+  {
+   "plan": "Standard",
+   "score": 49.8
+  },
+  {
+   "plan": "Standard",
+   "score": 57.3
+  },
+  {
+   "plan": "Standard",
+   "score": 57.1
+  },
+  {
+   "plan": "Flex",
+   "score": 61.4
+  },
+  {
+   "plan": "Flex",
+   "score": 78.8
+  },
+  {
+   "plan": "Flex",
+   "score": 56.5
+  },
+  {
+   "plan": "Flex",
+   "score": 49.5
+  },
+  {
+   "plan": "Flex",
+   "score": 59.1
+  },
+  {
+   "plan": "Flex",
+   "score": 70.5
+  },
+  {
+   "plan": "Flex",
+   "score": 48.7
+  },
+  {
+   "plan": "Flex",
+   "score": 54.4
+  },
+  {
+   "plan": "Flex",
+   "score": 62.7
+  },
+  {
+   "plan": "Flex",
+   "score": 68.1
+  },
+  {
+   "plan": "Flex",
+   "score": 53.7
+  },
+  {
+   "plan": "Flex",
+   "score": 58.7
+  },
+  {
+   "plan": "Flex",
+   "score": 64.7
+  },
+  {
+   "plan": "Flex",
+   "score": 64.4
+  },
+  {
+   "plan": "Flex",
+   "score": 61.3
+  },
+  {
+   "plan": "Flex",
+   "score": 61.2
+  },
+  {
+   "plan": "Flex",
+   "score": 57.7
+  },
+  {
+   "plan": "Flex",
+   "score": 51.7
+  },
+  {
+   "plan": "Flex",
+   "score": 53.6
+  },
+  {
+   "plan": "Flex",
+   "score": 69.1
+  },
+  {
+   "plan": "Flex",
+   "score": 62.4
+  },
+  {
+   "plan": "Flex",
+   "score": 62.3
+  },
+  {
+   "plan": "Flex",
+   "score": 62.0
+  },
+  {
+   "plan": "Flex",
+   "score": 58.5
+  },
+  {
+   "plan": "Premium",
+   "score": 64.6
+  },
+  {
+   "plan": "Premium",
+   "score": 77.8
+  },
+  {
+   "plan": "Premium",
+   "score": 63.0
+  },
+  {
+   "plan": "Premium",
+   "score": 70.5
+  },
+  {
+   "plan": "Premium",
+   "score": 56.9
+  },
+  {
+   "plan": "Premium",
+   "score": 83.6
+  },
+  {
+   "plan": "Premium",
+   "score": 64.4
+  },
+  {
+   "plan": "Premium",
+   "score": 90.8
+  },
+  {
+   "plan": "Premium",
+   "score": 53.7
+  },
+  {
+   "plan": "Premium",
+   "score": 81.9
+  },
+  {
+   "plan": "Premium",
+   "score": 97.5
+  },
+  {
+   "plan": "Premium",
+   "score": 66.3
+  },
+  {
+   "plan": "Premium",
+   "score": 69.4
+  },
+  {
+   "plan": "Premium",
+   "score": 69.4
+  },
+  {
+   "plan": "Premium",
+   "score": 82.3
+  },
+  {
+   "plan": "Premium",
+   "score": 68.3
+  },
+  {
+   "plan": "Premium",
+   "score": 58.7
+  },
+  {
+   "plan": "Premium",
+   "score": 97.4
+  },
+  {
+   "plan": "Premium",
+   "score": 69.6
+  },
+  {
+   "plan": "Premium",
+   "score": 86.8
+  },
+  {
+   "plan": "Premium",
+   "score": 69.0
+  },
+  {
+   "plan": "Premium",
+   "score": 99.1
+  },
+  {
+   "plan": "Premium",
+   "score": 54.1
+  },
+  {
+   "plan": "Premium",
+   "score": 57.0
+  }
+ ]
+}

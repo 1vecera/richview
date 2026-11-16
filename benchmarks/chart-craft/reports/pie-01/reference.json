@@ -1,0 +1,1 @@
+{"type": "pie", "title": "Pie study 01: synthetic observations", "subtitle": "Daily detail and missing readings", "encoding": {"x": "x", "y": "y"}, "axes": {"y": {"suffix": "subscribers"}}, "style": {"ratio": "16:9"}, "data": {"inline": [{"x": "Subscriptions", "y": 52}, {"x": "Events", "y": 58}, {"x": "Commercial", "y": 68}]}}

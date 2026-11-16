@@ -1,0 +1,8 @@
+---
+title: Pie key inspection
+version: 0.0.1
+---
+
+```chart
+{"type":"pie","title":"Complete category key","encoding":{"x":"category","y":"value"},"data":{"inline":[{"category":"Main","value":9999},{"category":"Rare","value":"1.00000"}]},"axes":{"y":{"format":"currency"}}}
+```

@@ -1,0 +1,40 @@
+{
+ "spec": {
+  "type": "waterfall",
+  "title": "Profit bridge",
+  "encoding": {
+   "x": "step",
+   "y": "amount",
+   "measure": "kind"
+  },
+  "axes": {
+   "y": {
+    "unit": "$"
+   }
+  }
+ },
+ "rows": [
+  {
+   "step": "Revenue",
+   "amount": 120,
+   "kind": "start"
+  },
+  {
+   "step": "Costs",
+   "amount": -45.5
+  },
+  {
+   "step": "Tax",
+   "amount": -14.5
+  },
+  {
+   "step": "Grants",
+   "amount": 30
+  },
+  {
+   "step": "Profit",
+   "amount": 90,
+   "kind": "total"
+  }
+ ]
+}

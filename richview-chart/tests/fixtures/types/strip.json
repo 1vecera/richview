@@ -1,0 +1,161 @@
+{
+ "spec": {
+  "type": "strip",
+  "title": "West scores bunch tightly; North and South spread wider",
+  "encoding": {
+   "x": "team",
+   "y": "score"
+  },
+  "axes": {
+   "y": {
+    "label": "Score"
+   }
+  }
+ },
+ "rows": [
+  {
+   "team": "North",
+   "score": 62
+  },
+  {
+   "team": "North",
+   "score": 65
+  },
+  {
+   "team": "North",
+   "score": 65
+  },
+  {
+   "team": "North",
+   "score": 68
+  },
+  {
+   "team": "North",
+   "score": 70
+  },
+  {
+   "team": "North",
+   "score": 70
+  },
+  {
+   "team": "North",
+   "score": 70
+  },
+  {
+   "team": "North",
+   "score": 72
+  },
+  {
+   "team": "North",
+   "score": 75
+  },
+  {
+   "team": "North",
+   "score": 78
+  },
+  {
+   "team": "North",
+   "score": 81
+  },
+  {
+   "team": "North",
+   "score": 90
+  },
+  {
+   "team": "South",
+   "score": 55
+  },
+  {
+   "team": "South",
+   "score": 58
+  },
+  {
+   "team": "South",
+   "score": 60
+  },
+  {
+   "team": "South",
+   "score": 61
+  },
+  {
+   "team": "South",
+   "score": 63
+  },
+  {
+   "team": "South",
+   "score": 63
+  },
+  {
+   "team": "South",
+   "score": 66
+  },
+  {
+   "team": "South",
+   "score": 69
+  },
+  {
+   "team": "South",
+   "score": 74
+  },
+  {
+   "team": "South",
+   "score": 77
+  },
+  {
+   "team": "South",
+   "score": 80
+  },
+  {
+   "team": "South",
+   "score": 84
+  },
+  {
+   "team": "West",
+   "score": 70
+  },
+  {
+   "team": "West",
+   "score": 72
+  },
+  {
+   "team": "West",
+   "score": 73
+  },
+  {
+   "team": "West",
+   "score": 73
+  },
+  {
+   "team": "West",
+   "score": 74
+  },
+  {
+   "team": "West",
+   "score": 75
+  },
+  {
+   "team": "West",
+   "score": 75
+  },
+  {
+   "team": "West",
+   "score": 76
+  },
+  {
+   "team": "West",
+   "score": 78
+  },
+  {
+   "team": "West",
+   "score": 79
+  },
+  {
+   "team": "West",
+   "score": 83
+  },
+  {
+   "team": "West",
+   "score": 88
+  }
+ ]
+}

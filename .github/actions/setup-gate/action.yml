@@ -1,0 +1,16 @@
+name: Prepare gate prerequisites
+description: Install the repository toolchain and browser prerequisites for the manual gate.
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: .node-version
+    - name: Prepare Rust and browsers
+      shell: bash
+      run: |
+        rustup show active-toolchain
+        cargo install wasm-bindgen-cli --version 0.2.129 --locked
+        cargo install cargo-deny --version 0.20.2 --locked
+        npm ci --ignore-scripts
+        npx --no-install playwright install --with-deps chromium firefox webkit

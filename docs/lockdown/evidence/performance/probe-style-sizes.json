@@ -1,0 +1,69 @@
+{
+ "_source": {
+  "files": [
+   "tmp/prf07-final/out-style-sizes.json"
+  ],
+  "sha256": {
+   "tmp/prf07-final/out-style-sizes.json": "0e0c4d0a88bd3f89b4a9f176f1fecfd23b72325a59c83c429881c31059f43cab"
+  },
+  "note": "tmp/prf07-final/style_sizes.py, b4db233 CLI, small fixture in each builtin style, 2026-10-22"
+ },
+ "data": {
+  "probe": "tmp/prf07-final/style_sizes.py",
+  "commit": "b4db233",
+  "date": "2026-10-22T00:05:40+00:00",
+  "fixture": "small (copy of the harness fixture, examples/sales-report)",
+  "styles": {
+   "sleek": {
+    "exit_code": 0,
+    "bytes": 2319912,
+    "runtime_module_bytes": 2137039,
+    "without_runtime_bytes": 182873,
+    "font_faces": 5,
+    "font_face_bytes": 88719,
+    "font_notice_bytes": 50726,
+    "without_runtime_and_notices_bytes": 132147
+   },
+   "sleek-light": {
+    "exit_code": 0,
+    "bytes": 2319381,
+    "runtime_module_bytes": 2137039,
+    "without_runtime_bytes": 182342,
+    "font_faces": 5,
+    "font_face_bytes": 88719,
+    "font_notice_bytes": 50726,
+    "without_runtime_and_notices_bytes": 131616
+   },
+   "scientific": {
+    "exit_code": 0,
+    "bytes": 2370813,
+    "runtime_module_bytes": 2137039,
+    "without_runtime_bytes": 233774,
+    "font_faces": 6,
+    "font_face_bytes": 140203,
+    "font_notice_bytes": 50726,
+    "without_runtime_and_notices_bytes": 183048
+   },
+   "brutalist": {
+    "exit_code": 0,
+    "bytes": 2381184,
+    "runtime_module_bytes": 2137039,
+    "without_runtime_bytes": 244145,
+    "font_faces": 6,
+    "font_face_bytes": 149789,
+    "font_notice_bytes": 50726,
+    "without_runtime_and_notices_bytes": 193419
+   },
+   "hand-drawn": {
+    "exit_code": 0,
+    "bytes": 2414943,
+    "runtime_module_bytes": 2137039,
+    "without_runtime_bytes": 277904,
+    "font_faces": 6,
+    "font_face_bytes": 155054,
+    "font_notice_bytes": 50726,
+    "without_runtime_and_notices_bytes": 227178
+   }
+  }
+ }
+}

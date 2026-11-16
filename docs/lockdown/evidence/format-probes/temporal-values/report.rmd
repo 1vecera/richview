@@ -1,0 +1,47 @@
+---
+title: Years
+---
+
+```chart
+type: line
+title: Quoted years
+data:
+  inline:
+    - {year: "2020", v: 1}
+    - {year: "2021", v: 2}
+    - {year: "2022", v: 3}
+encoding: {x: year, y: v}
+```
+
+```chart
+type: line
+title: Numeric years
+data:
+  inline:
+    - {year: 2020, v: 1}
+    - {year: 2021, v: 2}
+    - {year: 2022, v: 3}
+encoding: {x: year, y: v}
+```
+
+```chart
+type: bar
+title: Missing markers
+data:
+  inline:
+    - {k: a, v: "n/a"}
+    - {k: b, v: "1,234"}
+    - {k: c, v: "NA"}
+    - {k: d, v: 4}
+encoding: {x: k, y: v}
+```
+
+```chart
+type: line
+title: Calendar comma
+data:
+  inline:
+    - {d: "2026-01-01", v: "1,234"}
+    - {d: "2026-02-01", v: 5}
+encoding: {x: d, y: v}
+```

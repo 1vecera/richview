@@ -1,0 +1,13 @@
+Preview the report in a browser and reload it when the folder changes
+
+Usage: richview serve [OPTIONS] <INPUT>
+
+Arguments:
+  <INPUT>  The report's `.rmd`, saved in its own folder (a folder holding one `.rmd` also works)
+
+Options:
+      --style <STYLES>           Style (a builtin name or a file in the report folder) replacing the source's `styles` for this call; repeatable
+      --connectors <CONNECTORS>  Trusted `connectors.toml` binding the names in `report.connectors.yaml` to data sources [env: RICHVIEW_CONNECTORS=]
+  -p, --port <PORT>              [default: 4711]
+      --bind <BIND>              [default: 127.0.0.1]
+  -h, --help                     Print help

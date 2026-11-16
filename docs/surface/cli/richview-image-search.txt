@@ -1,0 +1,25 @@
+Search Unsplash and list candidate photos (does not register a download)
+
+Reads UNSPLASH_ACCESS_KEY; RICHVIEW_UNSPLASH_API and RICHVIEW_UNSPLASH_APP are optional.
+
+Usage: richview image search [OPTIONS] <QUERY>
+
+Arguments:
+  <QUERY>
+          
+
+Options:
+      --orientation <ORIENTATION>
+          [possible values: landscape, portrait, squarish]
+
+      --per-page <PER_PAGE>
+          Results to return, from 1 to 10
+          
+          [default: 6]
+
+      --format <FORMAT>
+          [default: text]
+          [possible values: text, json]
+
+  -h, --help
+          Print help (see a summary with '-h')

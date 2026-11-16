@@ -1,0 +1,13 @@
+---
+title: Injection
+styles: [sleek, report.rstyle.yaml]
+---
+
+```chart
+type: bar
+title: Bars
+data:
+  inline:
+    - {month: Jan, revenue: 100}
+encoding: {x: month, y: revenue}
+```

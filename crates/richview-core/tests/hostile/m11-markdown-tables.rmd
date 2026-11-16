@@ -1,0 +1,8 @@
+---
+title: Markdown tables
+---
+
+| <script>HOSTILE_TH()</script> | `<img src=x onerror=HOSTILE_TH2()>` | "quoted" onclick=HOSTILE_TH3() |
+|:---|:---:|---:|
+| <b onclick=HOSTILE_TD()>cell</b> | [js](javascript:HOSTILE_TD2()) | ![x](data:image/png;base64,AAAA) |
+| </td><script>HOSTILE_TD3()</script> | a \| b | <!-- HOSTILE_COMMENT --> |

@@ -1,0 +1,28 @@
+{
+  "date_utc": "2026-11-08",
+  "started_utc": "2026-11-08T19:09:26.113Z",
+  "session_output_last_written_utc": "2026-11-08T19:12:48.292Z",
+  "report_last_written_utc": "2026-11-08T19:12:02.416Z",
+  "agent": "Codex CLI 0.167.0",
+  "requested_model": "gpt-6.1-sol",
+  "execution_context_model": "gpt-6.1-sol",
+  "reported_model": null,
+  "model_evidence": "Requested via --model and echoed in local Codex rollout turn_context; this does not independently attest the server-side model.",
+  "reasoning_effort": "xhigh",
+  "session_id": "01a1bc90-b5cf-7253-825c-3b1712e835fd",
+  "command": "codex exec --skip-git-repo-check --sandbox workspace-write --model gpt-6.1-sol -c 'model_reasoning_effort=\"xhigh\"' --json - < prompt.txt > session.jsonl 2> session.stderr",
+  "exit_code": 0,
+  "permission_denials": [],
+  "session_note": "No reported permission denial.",
+  "post_generation_repairs": "None. The agent authored the final report; it has not been modified after its session.",
+  "source_snapshot_sha256": "fc4c21802abf26f80bbd95fa2097a58cd220c0831aa54ac6602286d4426e13b9",
+  "file_sha256": {
+    "prompt.txt": "0ebcf4bce4ef86bbbea1dcf8f6d614dbefa387059027429e274bdfda6808a11a",
+    "data.csv": "c3037c6e98f21bceaf18430b78804dbe2b2da43e2fc28564dda4c9dd3cbd9dd1",
+    "report.html": "882dee3862d0870d2dfab24ed4031ee00df0a9857deb65f45c09d43eb34ab4be"
+  },
+  "checks": {
+    "browser": "Chromium headless opened the local file with no page errors or external resource requests.",
+    "table": "Compared all 280 displayed rows against data.csv; all matched."
+  }
+}

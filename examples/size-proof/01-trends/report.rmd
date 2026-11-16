@@ -1,0 +1,39 @@
+---
+title: Life expectancy across four world regions
+description: Gapminder regional estimates from 1950 to 2019.
+version: 0.1.0
+styles: [scientific]
+---
+
+## Every region gained at least 14 years
+
+Asia rose from 45.6 years in 1950 to 74.9 in 2019, the largest gain at 29.3 years. Europe rose from 64.6 to 78.8 years, the smallest gain at 14.2 years. In 2019, Europe led at 78.8 years, followed by the Americas at 77.5, Asia at 74.9 and Africa at 65.2. Asia's estimate dipped to 40.7 years in 1960; Africa's series was comparatively flat in the 1990s.
+
+```chart
+type: line
+title: Life expectancy rose across all four regions
+subtitle: Estimated life expectancy at birth, 1950–2019
+data: {csv: data.csv}
+encoding: {x: year, y: life, color: region}
+axes:
+  x: {label: Year, format: year}
+  y: {label: Life expectancy, unit: ' years'}
+style: {points: all, curve: linear}
+```
+
+*Source: Gapminder, life expectancy at birth, version 15 (5 April 2026), regional averages weighted by population; [gapminder.org](https://www.gapminder.org/data/), CC BY 4.0.*
+
+## Observations
+
+Life expectancy and differences are in years.
+
+```table
+title: Annual life expectancy by region
+data: {csv: data.csv}
+columns:
+  - {key: year, label: 'Year', format: year}
+  - {key: region, label: 'Region'}
+  - {key: life, label: 'Life expectancy', format: number, digits: 3}
+```
+
+*Source: the same Gapminder data.*

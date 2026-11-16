@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "validated_at": "2026-10-11T20:49:29.186031+00:00",
+  "base_commit": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+  "source_commit": "b8fa7e64e10dad64fc2b58909db3a509e5857e30",
+  "source_file_sha256": "2336f5e7069be98cfa348d5d5a1f1925cd31aa68fa0ba2463b9c17eead0f3746",
+  "capture": {
+    "browser": "151.0.7922.173",
+    "device_scale_factor": 2,
+    "motion": "reduced; separate interaction coverage also used normal motion",
+    "kind": "Actual report figure including heading and controls; no image edits or synthetic styles.",
+    "captured_working_tree": {
+      "base_commit": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+      "git_diff_head_sha256": "738f8e7dba24945e7739d8dab34a7df710c587179b725dcc7be171d976223e4a"
+    },
+    "verified_source_equivalent_to_commit": "b8fa7e64e10dad64fc2b58909db3a509e5857e30"
+  },
+  "pairs": [
+    {
+      "fixture": "sparse.rmd",
+      "source_sha256": "1db15bc1e01e36be3a20fd4d8e36ec07198bc3dbf645905a2fbe6241f9e13f32",
+      "theme": "scientific",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 900
+      },
+      "reproduction_png_bytes_match": true,
+      "before": {
+        "image": "sparse-before.png",
+        "image_sha256": "cc89af1ecd00b1b557f6821312763431c5f1afd90107c6bac3f45d4df35bdb82",
+        "figure_css_px": {
+          "width": 358,
+          "height": 234.625
+        },
+        "source_commit": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+        "wasm_sha256": "141dd99c023fc595e987febc299f4c7ce554912fd489d3ffe768a46ce939be4e"
+      },
+      "after": {
+        "image": "sparse-after.png",
+        "image_sha256": "a69d3b4864bf966e37bb0c7fd050475fb0862b73daaa705e75e67fff5ae1fb92",
+        "figure_css_px": {
+          "width": 358,
+          "height": 234.625
+        },
+        "source_commit": "b8fa7e64e10dad64fc2b58909db3a509e5857e30",
+        "wasm_sha256": "38235750b70ceb9058df46e9b0cf03407ba181dcc6c574463dbcacd17ce62fa4"
+      }
+    },
+    {
+      "fixture": "all-missing.rmd",
+      "source_sha256": "1dac565c83fd755972ff936f8d98dacbe5a9a096651a0e74946cfa6058e29731",
+      "theme": "sleek",
+      "viewport_css_px": {
+        "width": 320,
+        "height": 900
+      },
+      "reproduction_png_bytes_match": true,
+      "before": {
+        "image": "all-missing-before.png",
+        "image_sha256": "eec50c3101f20ea6e6ffb8eee1cac25c78d1fd4fd5246aee7ff3289bd049ee2f",
+        "figure_css_px": {
+          "width": 288,
+          "height": 253
+        },
+        "source_commit": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+        "wasm_sha256": "141dd99c023fc595e987febc299f4c7ce554912fd489d3ffe768a46ce939be4e"
+      },
+      "after": {
+        "image": "all-missing-after.png",
+        "image_sha256": "6dfc75e1ab9816e6d19a821d9fd9e2c505872e3cc54d00302bb90af39a54a315",
+        "figure_css_px": {
+          "width": 288,
+          "height": 253
+        },
+        "source_commit": "b8fa7e64e10dad64fc2b58909db3a509e5857e30",
+        "wasm_sha256": "38235750b70ceb9058df46e9b0cf03407ba181dcc6c574463dbcacd17ce62fa4"
+      }
+    }
+  ],
+  "validation": {
+    "release_build": "passed",
+    "required_rust_and_host_checks": "passed",
+    "host_checks": {
+      "fmt": "passed",
+      "clippy-native": "passed",
+      "clippy-wasm": "passed",
+      "workspace-tests": "passed",
+      "editor": "passed",
+      "native": "passed",
+      "compat": "passed",
+      "types": "passed",
+      "browser": "passed",
+      "landing": "passed",
+      "cloudflare": "passed",
+      "showcase": "passed",
+      "flagship": "passed",
+      "reel": "passed",
+      "browser-api": "passed",
+      "motion-runtime": "passed",
+      "docs": "passed"
+    },
+    "generated_fixtures": "passed",
+    "initial_check_retry": "Browser host check started before its generated fixtures existed; rerun passed after fixture generation. No source change was needed.",
+    "matched_actual_views": {
+      "count": 210,
+      "fixtures": 14,
+      "themes": [
+        "sleek",
+        "scientific",
+        "brutalist",
+        "sleek-light",
+        "hand-drawn"
+      ],
+      "viewport_widths": [
+        320,
+        390,
+        720
+      ],
+      "numeric_cells_and_color_keys": "exactly unchanged in all mixed/numeric controls",
+      "numeric_only_and_guarded_controls": "byte-identical actual SVG",
+      "missing_cells": "only unique, representable authored missing observations",
+      "actual_missing_glyph_bounds": "fit their cells in all five themes",
+      "new_glyph_findings": 0,
+      "horizontal_overflow": 0,
+      "page_or_capture_errors": 0
+    },
+    "actual_native_cli": {
+      "matched_source_pairs": 14,
+      "fallback_svgs_per_side": 28,
+      "numeric_geometry_and_fill": "exactly unchanged",
+      "expected_source_errors": "preserved or intentionally added for invalid text/ambiguous missing cells"
+    },
+    "interactive": {
+      "cases": 168,
+      "themes": [
+        "scientific",
+        "hand-drawn"
+      ],
+      "viewport_widths": [
+        320,
+        390,
+        720
+      ],
+      "motion_modes": [
+        "reduce",
+        "no-preference"
+      ],
+      "keyboard_readouts": 780,
+      "pointer_readouts": 624,
+      "source_rows_checked_in_Table_and_CSV": 2436,
+      "downloaded_SVGs_with_exact_live_cell_geometry_and_fill": 168,
+      "no_pointer_target_at_absent_cells": true,
+      "source_strings_and_row_order": "exactly preserved",
+      "page_errors": 0
+    },
+    "focused_shared_Rust_tests": 3,
+    "independent_review": {
+      "verdict": "accept",
+      "source_commit": "b8fa7e64e10dad64fc2b58909db3a509e5857e30",
+      "wasm_sha256": "38235750b70ceb9058df46e9b0cf03407ba181dcc6c574463dbcacd17ce62fa4",
+      "own_matched_adversarial_views": 8,
+      "own_normal_motion_phone_views": 15,
+      "themes": 5,
+      "pointer_and_touch_checks": 22,
+      "first_and_last_keyboard_checks": 16,
+      "source_Table_rows": 25,
+      "numeric_cell_preservation": "All measured cells unchanged; seven numeric controls identical after removing only the new missing markup.",
+      "absent_cell_target": "none",
+      "mixed_duplicate_pick": "Existing published 10.000 row retained in either order.",
+      "verdict_report_sha256": "5f430f1e84d1d3169407d8d338ceb1ea0aa5c63b734d9dc3a06df197f7162f29"
+    }
+  },
+  "limits": [
+    "New invalid-color-values and ambiguous-missing-cell errors intentionally fail source checking for previously tolerated inputs.",
+    "All-missing keeps the pre-existing missing-color-values source error.",
+    "Current main live diagnostics expose measured glyph checks only; native source errors remain authoritative on this standalone branch.",
+    "Cells below 24 by 20 px omit n/a text while retaining their outline and No observation mark title.",
+    "An absent color key remains absent from the exact source readout; established string markers retain their exact text.",
+    "Numeric-only duplicate coordinates retain the previous behavior; no general duplicate policy was added."
+  ],
+  "detailed_evidence_sha256": {
+    "comparison.json": "599689d42b42d30f2ce9e99d0ec05791ec0af6dc10a2c4e24b95d475b664b3b5",
+    "native/verification.json": "1c8bd4c08b662838bab63ac1a592f79b9546e994479d7ebd2ee1f563027a2753",
+    "live/verification.json": "336d53b9ba18d59671244d96ad6d90b90972992d529506fea4c3b6465e584af3",
+    "export-comparison.json": "3e83122c7b55a49ea083a73a3609495af09669167f2b7e1ae954bbd9a90fcf2d",
+    "checks/rust-checks.json": "e8eece720b2dbff1d109b9c3af416aaa3725288b0bc6a844855d0ec2d399903d",
+    "checks/host-checks.json": "7ec8feaf5032636719401140e71b79477acb68d908e6b1bc0f92110ebe8336e4"
+  }
+}

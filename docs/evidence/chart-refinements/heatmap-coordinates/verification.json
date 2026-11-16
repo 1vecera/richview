@@ -1,0 +1,189 @@
+{
+  "status": "PASS: all19 required local checks, matched actual current/sibling captures and independent final short-height/source/interface reviews",
+  "baseline": "b76885a66808956d7e7944b9923aacb445d72b66",
+  "source_commit": "e746b931a14e6aa2fddffbb19126abdd4827fa61",
+  "before_wasm_sha256": "1127df183cd5fd089014ed7fd76858792a61693cdb157ad8fd93631aac36ade1",
+  "after_wasm_sha256": "30c9e6e116a6fef74f1b74d691490d1008fc075b59d508739c648f724057f7a6",
+  "browser": "Chromium 151.0.7922.173",
+  "device_scale_factor": 2,
+  "pairs": [
+    {
+      "id": "dense-null-x-extreme",
+      "source": "visible-colors.rmd",
+      "source_sha256": "ee69e57371514750dca3081c20d326d3ffa9e4f62f35dbfc990dd341ec33bcfe",
+      "theme": "sleek",
+      "width": 320,
+      "motion": "reduce",
+      "before": {
+        "file": "visible-colors-before.png",
+        "sha256": "dc06786bf34ff0f8559bbfcf3aa7d9496623f0d18d38aa6149745e2a7fe7c2ee"
+      },
+      "after": {
+        "file": "visible-colors-after.png",
+        "sha256": "835b80bbd14deac43d1fca7e3ac78cc5c16645211d5e3761cb51fc17d9c8cd4c"
+      }
+    },
+    {
+      "id": "all-unlocated",
+      "source": "missing-coordinates.rmd",
+      "source_sha256": "878ad6b24ee59810e57798e65ff17901018aec99f980fa87ccd332c4c0bb773d",
+      "theme": "scientific",
+      "width": 320,
+      "motion": "reduce",
+      "before": {
+        "file": "missing-coordinates-before.png",
+        "sha256": "59741dc6e427c1d46e216fc43a4a48ca08efa4f549e4ddc2bc39351785874c36"
+      },
+      "after": {
+        "file": "missing-coordinates-after.png",
+        "sha256": "aadb07da8920f284ad4d62b4d4217b173308dbb35da69601843702b7bc9fe200"
+      }
+    }
+  ],
+  "owner_current": {
+    "reports": 480,
+    "leaf_charts": 495,
+    "exact_svg_png_reports": 195,
+    "changed_reports": 285,
+    "exact_cell_geometry_and_source_names": 1380,
+    "coordinate_errors": 315,
+    "live_checks": {
+      "unlocated-color-values": 315,
+      "invalid-color-values": 30,
+      "ambiguous-missing-cell": 15,
+      "label-collision": 10,
+      "clipping": 1
+    },
+    "native_checks": {
+      "unlocated-color-values": 315,
+      "invalid-color-values": 30,
+      "ambiguous-missing-cell": 15,
+      "fixed-height": 15
+    }
+  },
+  "ordinary_motion_supplement": {
+    "reports": 480,
+    "all_svg_png_native_and_live_exact_to_reduced": true
+  },
+  "native_cli": {
+    "cases": 32,
+    "commands": 64,
+    "all_original_source_errors_exact": true,
+    "source_commit": "e746b931a14e6aa2fddffbb19126abdd4827fa61"
+  },
+  "required_local_checks": {
+    "all_passed": true,
+    "names": [
+      "fmt",
+      "clippy",
+      "clippy-wasm",
+      "tests",
+      "build",
+      "fixtures",
+      "editor",
+      "native",
+      "compat",
+      "types",
+      "browser",
+      "landing",
+      "cloudflare",
+      "showcase",
+      "flagship",
+      "reel",
+      "browser-api",
+      "motion-runtime",
+      "docs"
+    ],
+    "source_commit": "e746b931a14e6aa2fddffbb19126abdd4827fa61"
+  },
+  "sibling": {
+    "before_head": "b19f92b340bf4987b5726898059ba15e9e528635",
+    "after_head": "9129c7c918908ca4a6fa6eecd745e8129d8bb3a7",
+    "before_wasm": "46551a3928a3e84250c61811deb08dcbb9be89b4e3aead3a3fd816f496fec96b",
+    "after_wasm": "c11f96ba547366c082cfb1b6c56ca338b6009f569804172805b9091f8d0f0efe",
+    "reports": 128,
+    "leaf_charts": 132,
+    "exact_svg_png_reports": 60,
+    "changed_reports": 68,
+    "exact_cell_geometry_and_source_names": 368,
+    "coordinate_errors": 84,
+    "live_checks": {
+      "unlocated-color-values": 84,
+      "invalid-color-values": 8,
+      "ambiguous-missing-cell": 4
+    },
+    "native_checks": {
+      "unlocated-color-values": 84,
+      "invalid-color-values": 8,
+      "ambiguous-missing-cell": 4,
+      "fixed-height": 4
+    },
+    "independent_verdict": "ACCEPT"
+  },
+  "limits": [
+    "Ten authored annotation collisions and one short-height label clipping are inherited unchanged in current-main broad proof.",
+    "Rows with missing coordinates can still contribute their other coordinate to the existing row/column inventory; this change does not delete or reorder source rows.",
+    "Headless Linux Chromium and emulated pointer/touch; no physical-device or screen-reader result claimed."
+  ],
+  "history": [
+    "An initial native CLI fixture layout shared a folder among report sources and failed existing report-root validation; each case now has a separate report folder and all64 final commands pass.",
+    "The original149c136 after capture completed all480 records before the wrapper returned143; final a9b4170 ordinary/reduced and sibling before/after runners all exit0.",
+    "The final ordinary-motion matrix was started before its matched reduced-motion refresh; both are retained separately and their480 settled outputs are exactly equal.",
+    "Root review reproduced clipping of both explanation lines at a24px requested height. The new wholly-unlocated state now grows to48px; all480 current and128 sibling SVG/PNG/native/live broad outputs remain exactly equal to the prior checkpoint, and all19 gates and64 CLI commands pass on the final source."
+  ],
+  "independent": {
+    "original_matched_reports": 32,
+    "original_leaf_views": 36,
+    "original_interface_states": 28,
+    "final_copy_reports": 20,
+    "final_copy_leaf_views": 30,
+    "final_copy_interface_states": 28,
+    "final_copy_native_renders": 2,
+    "sibling_matched_reports": 8,
+    "sibling_leaf_views": 9,
+    "sibling_interface_states": 28,
+    "verdict": "ACCEPT"
+  },
+  "curated_png_reproduction": {
+    "before_exit": 0,
+    "after_exit": 0,
+    "exact_hashes": 4,
+    "after_source": "e746b931a14e6aa2fddffbb19126abdd4827fa61"
+  },
+  "previous_source_checkpoint": {
+    "source": "a9b4170c9abdd1215c84a702843a891a7683fbae",
+    "wasm": "8d6abda1b55b661ad9527dba6c6b765680636703ab7c68e188f81437472e609f",
+    "ordinary_motion_supplement": "480 reports exactly matched reduced motion; unchanged by the short-height-only follow-up"
+  },
+  "short_height_follow_up": {
+    "source": "e746b931a14e6aa2fddffbb19126abdd4827fa61",
+    "new_empty_state_minimum_height": 48,
+    "requested_native_heights": [
+      1,
+      24,
+      47,
+      48,
+      60
+    ],
+    "actual_native_heights": [
+      48,
+      48,
+      48,
+      48,
+      60
+    ],
+    "independent_themes": 5,
+    "width": 240,
+    "ordinary_motion": true,
+    "keyboard_rows": 15,
+    "pointer_positions": 30,
+    "touch_positions": 30,
+    "verdict": "ACCEPT current and frozen sibling",
+    "evidence": "heatmap-coordinate-independent-short-after-final/verification.json",
+    "sibling_evidence": "heatmap-coordinate-independent-sibling-short-final/verification.json",
+    "sibling_themes": 5,
+    "sibling_keyboard_rows": 15,
+    "sibling_pointer_positions": 30,
+    "sibling_touch_positions": 30
+  }
+}

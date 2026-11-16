@@ -1,0 +1,294 @@
+{
+ "_source": {
+  "files": [
+   "tmp/prf07-final/out-playground-cold.json"
+  ],
+  "sha256": {
+   "tmp/prf07-final/out-playground-cold.json": "0e0ef54cf4f02c983c369de7043b3473ff36127364df9202db55f1db07653da5"
+  },
+  "note": "tmp/prf07-final/playground_cold.mjs, b4db233 dist/web, Claw Mini, Chromium 153, 2026-10-22"
+ },
+ "data": {
+  "probe": "tmp/prf07-final/playground_cold.mjs",
+  "commit": "b4db233",
+  "started": "2026-10-21T23:44:54.355Z",
+  "browser": "153.0.8010.12",
+  "host": {
+   "cpus": "Apple M4",
+   "count": 10,
+   "platform": "darwin"
+  },
+  "load_before": [
+   2.392578125,
+   2.23486328125,
+   2.259765625
+  ],
+  "server": "loopback copy of dist/web; gzip; ETag; cache-control public, max-age=0, must-revalidate",
+  "runs": [
+   {
+    "profile": "desktop-loopback",
+    "rep": 0,
+    "load_event_ms": 265,
+    "page_fcp_ms": 143,
+    "first_preview_chart_frame_ms": 474,
+    "loaf_over_50": 1,
+    "loaf_max_ms": 99,
+    "server_bytes_total": 1858444,
+    "server_bytes_by_path": [
+     [
+      "/richview_web_bg.wasm",
+      1515819
+     ],
+     [
+      "/richview-fonts.css",
+      325357
+     ],
+     [
+      "/richview_web.js",
+      15203
+     ],
+     [
+      "/playground.html",
+      1697
+     ],
+     [
+      "/worker.js",
+      292
+     ],
+     [
+      "/bootstrap.js",
+      76
+     ]
+    ],
+    "errors": []
+   },
+   {
+    "profile": "desktop-loopback",
+    "rep": 1,
+    "load_event_ms": 22,
+    "page_fcp_ms": 25,
+    "first_preview_chart_frame_ms": 142,
+    "loaf_over_50": 0,
+    "loaf_max_ms": 0,
+    "server_bytes_total": 1858444,
+    "server_bytes_by_path": [
+     [
+      "/richview_web_bg.wasm",
+      1515819
+     ],
+     [
+      "/richview-fonts.css",
+      325357
+     ],
+     [
+      "/richview_web.js",
+      15203
+     ],
+     [
+      "/playground.html",
+      1697
+     ],
+     [
+      "/worker.js",
+      292
+     ],
+     [
+      "/bootstrap.js",
+      76
+     ]
+    ],
+    "errors": []
+   },
+   {
+    "profile": "desktop-loopback",
+    "rep": 2,
+    "load_event_ms": 24,
+    "page_fcp_ms": 28,
+    "first_preview_chart_frame_ms": 143,
+    "loaf_over_50": 0,
+    "loaf_max_ms": 0,
+    "server_bytes_total": 1858444,
+    "server_bytes_by_path": [
+     [
+      "/richview_web_bg.wasm",
+      1515819
+     ],
+     [
+      "/richview-fonts.css",
+      325357
+     ],
+     [
+      "/richview_web.js",
+      15203
+     ],
+     [
+      "/playground.html",
+      1697
+     ],
+     [
+      "/worker.js",
+      292
+     ],
+     [
+      "/bootstrap.js",
+      76
+     ]
+    ],
+    "errors": []
+   },
+   {
+    "profile": "desktop-loopback",
+    "rep": 3,
+    "load_event_ms": 24,
+    "page_fcp_ms": 28,
+    "first_preview_chart_frame_ms": 140,
+    "loaf_over_50": 0,
+    "loaf_max_ms": 0,
+    "server_bytes_total": 1858444,
+    "server_bytes_by_path": [
+     [
+      "/richview_web_bg.wasm",
+      1515819
+     ],
+     [
+      "/richview-fonts.css",
+      325357
+     ],
+     [
+      "/richview_web.js",
+      15203
+     ],
+     [
+      "/playground.html",
+      1697
+     ],
+     [
+      "/worker.js",
+      292
+     ],
+     [
+      "/bootstrap.js",
+      76
+     ]
+    ],
+    "errors": []
+   },
+   {
+    "profile": "desktop-loopback",
+    "rep": 4,
+    "load_event_ms": 22,
+    "page_fcp_ms": 25,
+    "first_preview_chart_frame_ms": 140,
+    "loaf_over_50": 0,
+    "loaf_max_ms": 0,
+    "server_bytes_total": 1858444,
+    "server_bytes_by_path": [
+     [
+      "/richview_web_bg.wasm",
+      1515819
+     ],
+     [
+      "/richview-fonts.css",
+      325357
+     ],
+     [
+      "/richview_web.js",
+      15203
+     ],
+     [
+      "/playground.html",
+      1697
+     ],
+     [
+      "/worker.js",
+      292
+     ],
+     [
+      "/bootstrap.js",
+      76
+     ]
+    ],
+    "errors": []
+   },
+   {
+    "profile": "phone-4x-slow4g",
+    "rep": 0,
+    "load_event_ms": 431,
+    "page_fcp_ms": 248,
+    "first_preview_chart_frame_ms": 10100,
+    "loaf_over_50": 3,
+    "loaf_max_ms": 92,
+    "server_bytes_total": 1858444,
+    "server_bytes_by_path": [
+     [
+      "/richview_web_bg.wasm",
+      1515819
+     ],
+     [
+      "/richview-fonts.css",
+      325357
+     ],
+     [
+      "/richview_web.js",
+      15203
+     ],
+     [
+      "/playground.html",
+      1697
+     ],
+     [
+      "/worker.js",
+      292
+     ],
+     [
+      "/bootstrap.js",
+      76
+     ]
+    ],
+    "errors": []
+   },
+   {
+    "profile": "phone-4x-slow4g",
+    "rep": 1,
+    "load_event_ms": 422,
+    "page_fcp_ms": 244,
+    "first_preview_chart_frame_ms": 10102,
+    "loaf_over_50": 3,
+    "loaf_max_ms": 95,
+    "server_bytes_total": 1858444,
+    "server_bytes_by_path": [
+     [
+      "/richview_web_bg.wasm",
+      1515819
+     ],
+     [
+      "/richview-fonts.css",
+      325357
+     ],
+     [
+      "/richview_web.js",
+      15203
+     ],
+     [
+      "/playground.html",
+      1697
+     ],
+     [
+      "/worker.js",
+      292
+     ],
+     [
+      "/bootstrap.js",
+      76
+     ]
+    ],
+    "errors": []
+   }
+  ],
+  "load_after": [
+   1.98876953125,
+   2.14892578125,
+   2.22705078125
+  ]
+ }
+}

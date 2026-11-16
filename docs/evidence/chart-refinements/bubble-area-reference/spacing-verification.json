@@ -1,0 +1,240 @@
+{
+  "status": "ACCEPT: bounded source, all 19 local checks, fresh actual owner gates and independent isolated/combined review",
+  "browser": "Firefox 155.0",
+  "browser_version": "155.0",
+  "device_scale_factor": 2,
+  "before": {
+    "commit": "6d7dcf41f93a25fc6dda927304e40b30e7ae3faa",
+    "web_wasm_sha256": "6b5127fe53678fa3624a49b9effbdc1f9f5a97c8c35a87d428ac46ae53eb4bde",
+    "node_wasm_sha256": "a461f33fe98bcab301e67161f3d167a5d31f61aeb83b6c275ea6f290111ea864"
+  },
+  "after": {
+    "commit": "7c97c1ea39dc3efa39a710f0dfaa6372046b8950",
+    "web_wasm_sha256": "1bbb99e2c4d0dc29a225d01891fce3e248e7c60aac90f99e5fd0387e57711fc1",
+    "node_wasm_sha256": "40c1405ebce5050a48aa9adcea4188584d57e1528ed873bc3db3d8a807d90798"
+  },
+  "pair": {
+    "source": "spacing-wrapped.rmd",
+    "source_sha256": "719528213a6786dd8ca3b86b1be420ea6d1b8394c044afa5cd7449f25ed0fe99",
+    "theme": "brutalist",
+    "page_width": 240,
+    "chart_svg_width": 240,
+    "rendered_svg_width": 208,
+    "motion": "reduce",
+    "before": {
+      "file": "spacing-wrapped-before.png",
+      "sha256": "d2245d460ff957902279598c07a18fc8ebaac85cb928067736fa2b5c658c8c71"
+    },
+    "after": {
+      "file": "spacing-wrapped-after.png",
+      "sha256": "6eaa60689ac269991a92ee3afb1f1379d96887ade0ae6e5470471d27a6b237d8"
+    }
+  },
+  "owner_matched_firefox": {
+    "reports": 80,
+    "leaf_charts": 100,
+    "exact_quantitative_svgs": 100,
+    "exact_unsized_svgs": 20,
+    "exact_unsized_pngs": 20,
+    "minimum_before_client_gap": -2.4333648681640625,
+    "minimum_after_client_gap": 1.0333099365234375,
+    "status": "PASS"
+  },
+  "ordinary_motion": {
+    "records": 20,
+    "svg_exact": 20,
+    "png_exact": 20,
+    "differences": [],
+    "minimum_client_gap": 1.0333099365234375,
+    "errors": [],
+    "status": "PASS"
+  },
+  "public_interface_states": 60,
+  "rejected_candidate": {
+    "commit": "5e9ff3feb970d453396264affc539535b30c1ca7",
+    "leading": 20,
+    "web_wasm_sha256": "fdf13f603880078f635303709373bc222d7f427430104ee66e65f11facf3d1d7",
+    "minimum_client_gap": -0.7000274658203125,
+    "result": "FIX REQUIRED: two 240px Brutalist cases remain overlapped; original proof retained in scratch"
+  },
+  "scope": "Shared bubble-key line leading only:18\u219222; original quantitative plot SVG, source values, labels and inspection targets unchanged. Single-line guide grows2 SVG units and reference center moves1; wrapped captions gain consistent line spacing.",
+  "limitations": [
+    "Measured bundled fonts and recorded browser versions; no arbitrary-font or external SVG viewer guarantee.",
+    "The owner live matrix retains 11 unrelated existing label-collision findings and introduces none. Dense short-height axes remain inherited limits.",
+    "Original guide-introduction images and helper remain pinned to 8c26556, not the final spacing artifact.",
+    "The native JavaScript-disabled minimum client gap 0.283325px is separate from the hydrated minimum 1.033310px because the responsive native variant scales differently."
+  ],
+  "required_local_checks": {
+    "source_commit": "7c97c1ea39dc3efa39a710f0dfaa6372046b8950",
+    "all_passed": true,
+    "count": 19,
+    "checks": [
+      {
+        "name": "fmt",
+        "exit": 0
+      },
+      {
+        "name": "clippy",
+        "exit": 0
+      },
+      {
+        "name": "clippy-wasm",
+        "exit": 0
+      },
+      {
+        "name": "tests",
+        "exit": 0
+      },
+      {
+        "name": "build",
+        "exit": 0
+      },
+      {
+        "name": "fixtures",
+        "exit": 0
+      },
+      {
+        "name": "editor",
+        "exit": 0
+      },
+      {
+        "name": "native",
+        "exit": 0
+      },
+      {
+        "name": "compat",
+        "exit": 0
+      },
+      {
+        "name": "types",
+        "exit": 0
+      },
+      {
+        "name": "browser",
+        "exit": 0
+      },
+      {
+        "name": "landing",
+        "exit": 0
+      },
+      {
+        "name": "cloudflare",
+        "exit": 0
+      },
+      {
+        "name": "showcase",
+        "exit": 0
+      },
+      {
+        "name": "flagship",
+        "exit": 0
+      },
+      {
+        "name": "reel",
+        "exit": 0
+      },
+      {
+        "name": "browser-api",
+        "exit": 0
+      },
+      {
+        "name": "motion-runtime",
+        "exit": 0
+      },
+      {
+        "name": "docs",
+        "exit": 0
+      }
+    ],
+    "release_log": "tmp/bubble-key-leading-22/checks/build.log",
+    "rust_records": "tmp/bubble-key-leading-22/checks/rust-checks.json",
+    "host_records": "tmp/bubble-key-leading-22/checks/host-checks.json",
+    "cloudflare": "Serialized with the shared task lock"
+  },
+  "independent_review": {
+    "verdict": "ACCEPT",
+    "artifacts": [
+      {
+        "scope": "isolated",
+        "base": "6d7dcf41f93a25fc6dda927304e40b30e7ae3faa",
+        "head": "7c97c1ea39dc3efa39a710f0dfaa6372046b8950",
+        "web_wasm_sha256": "1bbb99e2c4d0dc29a225d01891fce3e248e7c60aac90f99e5fd0387e57711fc1"
+      },
+      {
+        "scope": "main",
+        "base": "ef7350b757883a50cb4f6161e7599c1680be47f6",
+        "head": "b7a172349972231a750e9d26ea71895166e442ff",
+        "web_wasm_sha256": "05d8b2b7c982b6c6b352cac13127da6a1a58c8cca9d68aa21399801b15e6c68a"
+      },
+      {
+        "scope": "pr40",
+        "base": "66796fc3bb78bae238a3a7810cd34c7b25c1d7a5",
+        "head": "0606c361833553927e2425eef26665aa33e0c8b0",
+        "web_wasm_sha256": "4d9c0e245193fa84f4300a656e733afc655f4eaaff4688f2704b8fab792aa6b2"
+      }
+    ],
+    "summary": {
+      "paired_reports": 198,
+      "paired_leaves": 222,
+      "guide_free_png_controls_exact": 42,
+      "combined_public_states": 72,
+      "isolated_public_states": 12,
+      "original_firefox_blockers_closed": 6,
+      "guide_collisions_removed": 63,
+      "minimum_actual_guide_clearance_css_px": 1.0333099365234375,
+      "specific_rounding_cases_with_exact_reversible_proof": 8,
+      "new_warning_identities": 0,
+      "viewed_pngs": 14
+    },
+    "engines": [
+      "151.0.7922.173",
+      "155.0",
+      "26.6"
+    ],
+    "report": "/home/vecera/tmp/richview-chart-refinement-20261011/bubble-leading-22-independent-review.md",
+    "proof_sha256": "3eea36084ae5cd6ce1ca57f170714561900410d9ae0f2424bc07338e56d51ad6",
+    "report_scope": "Local independent scratch evidence; this review report is not a tracked packet file."
+  },
+  "native_javascript_disabled": {
+    "records": 20,
+    "actual_figures": 40,
+    "themes": [
+      "sleek",
+      "scientific",
+      "brutalist",
+      "sleek-light",
+      "hand-drawn"
+    ],
+    "page_widths": [
+      240,
+      720
+    ],
+    "media": [
+      "screen",
+      "print"
+    ],
+    "runtime_loaded": false,
+    "quantitative_svg_and_complete_text_exact": true,
+    "minimum_client_gap": 0.2833251953125,
+    "errors": [],
+    "scope": "The visible responsive native SVG; its scaling differs from the hydrated plot. FontFaceSet loaded status is checked synchronously."
+  },
+  "curated_reproduction": {
+    "before_exit": 0,
+    "after_exit": 0,
+    "exact_png_hashes": 2,
+    "original_rebuild_exit": 0,
+    "original_wasm_hashes_reproduced": true
+  },
+  "history": [
+    "The rejected 20-unit candidate retains actual 0.700027px overlap in two Brutalist 240px cases.",
+    "The first JavaScript-disabled Firefox runner awaited a font-ready Promise whose callback did not settle although FontFaceSet status and used faces were loaded; the owner stopped only that runner. The corrected proof polls loaded status with a 30-second deadline.",
+    "A scratch diagnostic initially omitted the required report-folder inventory and failed before rendering.",
+    "The first corrected static oracle selected the hidden mobile SVG at wide widths. The final oracle requires exactly one visible responsive native SVG and nonzero bounds.",
+    "Eight independent short-height Chromium/WebKit cases show inherited CSS auto-height rounding when the guide height changes; exact reversible viewBox probes reproduce the corresponding boxes and clipping regions. No finding was suppressed and no tolerance was added."
+  ],
+  "supplemental_docs_verifier": {
+    "exit": 0,
+    "log": "bubble-key-spacing-docs.log"
+  }
+}

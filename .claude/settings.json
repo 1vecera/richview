@@ -1,0 +1,28 @@
+{
+	"permissions": {
+		"allow": [
+			"Bash(cargo:*)",
+			"Bash(rustup:*)",
+			"Bash(npm ci:*)",
+			"Bash(npx playwright:*)",
+			"Bash(npx tsc:*)",
+			"Bash(node:*)",
+			"Bash(git status:*)",
+			"Bash(git diff:*)",
+			"Bash(git log:*)",
+			"Bash(git add:*)",
+			"Bash(git commit:*)",
+			"Bash(git fetch:*)",
+			"Bash(git pull:*)",
+			"Bash(git switch:*)",
+			"Bash(git checkout:*)",
+			"Bash(git branch:*)",
+			"Bash(git worktree:*)",
+			"Bash(git rebase:*)",
+			"Bash(gh pr list:*)",
+			"Bash(gh pr view:*)",
+			"Bash(gh pr create:*)",
+			"Bash(gh pr edit:*)"
+		]
+	}
+}

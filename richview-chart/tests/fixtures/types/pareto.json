@@ -1,0 +1,15 @@
+{
+ "spec": {
+  "type": "pareto",
+  "title": "Defects by cause",
+  "encoding": {"x": "cause", "y": "defects"},
+  "axes": {"y": {"label": "Defects"}}
+ },
+ "rows": [
+  {"cause": "Scratches", "defects": 18},
+  {"cause": "Misalignment", "defects": 52},
+  {"cause": "Cracks", "defects": 9},
+  {"cause": "Discolouration", "defects": 31},
+  {"cause": "Other", "defects": 6}
+ ]
+}

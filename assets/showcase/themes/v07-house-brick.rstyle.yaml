@@ -1,0 +1,27 @@
+# Studio exploration "Brick Accent" (v07-house-brick), House candidate.
+# Converted from richview-universe/richview-design-system studio/variants.js @ 8c6a8e0.
+# Tokens and layout live here; the variant's signature rules ship as CSS beside it.
+tokens:
+  scheme: light
+  size-base: "17px"
+  line-base: "1.65"
+  bg: "oklch(0.985 0.008 70)"
+  bg-elev: "oklch(0.982 0.0041 91.45)"
+  bg-chart: "oklch(0.982 0.0041 91.45)"
+  ink: "oklch(0.20 0.015 40)"
+  ink-soft: "oklch(0.42 0.013 40)"
+  ink-faint: "oklch(0.62 0.010 40)"
+  rule: "oklch(0.89 0.012 50)"
+  rule-soft: "oklch(0.93 0.010 50)"
+  accent: "oklch(0.5752 0.1539 13.31)"
+  accent-soft: "oklch(0.5752 0.1539 13.31 / 0.102)"
+  link: "oklch(0.5702 0.1539 13.31)"
+  up: "oklch(0.5330 0.1901 137.01)"
+  down: "oklch(0.5702 0.1539 13.31)"
+  hold: "oklch(0.5702 0.1539 13.31)"
+  font-text: '"RichView Serif", Georgia, serif'
+  font-display: '"RichView Serif", serif'
+  font-ui: '"Inter", sans-serif'
+  font-mono: '"JetBrains Mono", monospace'
+  radius-s: "6px"
+  radius-m: "6px"

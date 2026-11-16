@@ -1,0 +1,17 @@
+{
+ "spec": {
+  "type": "combo",
+  "title": "Revenue and margin",
+  "encoding": {"x": "quarter", "y": "revenue", "line": "margin"},
+  "axes": {
+   "y": {"label": "Revenue", "unit": "$"},
+   "y2": {"label": "Margin", "unit": "%"}
+  }
+ },
+ "rows": [
+  {"quarter": "Q1", "revenue": 120, "margin": 18},
+  {"quarter": "Q2", "revenue": 150, "margin": 22},
+  {"quarter": "Q3", "revenue": 135, "margin": 20},
+  {"quarter": "Q4", "revenue": 180, "margin": 27}
+ ]
+}

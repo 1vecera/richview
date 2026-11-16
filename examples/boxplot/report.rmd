@@ -1,0 +1,66 @@
+---
+title: Compare the observations behind each distribution
+description: Synthetic samples with explicit quartiles, observed whiskers and original outliers
+styles: [scientific]
+format: rmd/1
+---
+
+Every row below is a synthetic observation. The boxes use R-7 quartiles and observed whiskers within inclusive 1.5-IQR fences. Potential outliers remain observations; they are not automatically errors.
+
+```chart
+type: boxplot
+title: The second sample has a higher center
+subtitle: Both groups retain every source observation in Table and CSV.
+data:
+  inline:
+    - { sample: First, value: 2 }
+    - { sample: First, value: 3 }
+    - { sample: First, value: 4 }
+    - { sample: First, value: 5 }
+    - { sample: First, value: 6 }
+    - { sample: First, value: 7 }
+    - { sample: First, value: 30, record: Inspect this original observation }
+    - { sample: Second, value: 8 }
+    - { sample: Second, value: 9 }
+    - { sample: Second, value: 10 }
+    - { sample: Second, value: 11 }
+    - { sample: Second, value: 12 }
+encoding: { x: sample, y: value }
+axes:
+  y: { label: Observed value }
+```
+
+```chart
+type: boxplot
+title: Horizontal boxes keep the same statistical meaning
+subtitle: Category metadata remains on axes.x and value metadata remains on axes.y.
+data:
+  inline:
+    - { sample: A longer first category name, value: 1.2 }
+    - { sample: A longer first category name, value: 1.4 }
+    - { sample: A longer first category name, value: 1.8 }
+    - { sample: A longer second category name, value: 1.5 }
+    - { sample: A longer second category name, value: 1.7 }
+    - { sample: A longer second category name, value: 2.2 }
+encoding: { x: sample, y: value }
+style: { orientation: horizontal }
+axes:
+  y: { label: Duration, unit: seconds }
+```
+
+```chart
+type: boxplot
+title: Each panel summarizes its own observations
+subtitle: Color identity remains stable across panels, including groups absent from one panel.
+data:
+  inline:
+    - { panel: Earlier, sample: A, group: Control, value: 1 }
+    - { panel: Earlier, sample: A, group: Control, value: 3 }
+    - { panel: Earlier, sample: A, group: Variant, value: 2 }
+    - { panel: Earlier, sample: A, group: Variant, value: 5 }
+    - { panel: Later, sample: A, group: Variant, value: 4 }
+    - { panel: Later, sample: A, group: Variant, value: 8 }
+encoding: { x: sample, y: value, color: group, facet: panel }
+axes:
+  y: { label: Observed value }
+```

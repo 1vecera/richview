@@ -1,0 +1,22 @@
+---
+title: Data shapes
+---
+
+```table
+data: {csv: d/rows-json.csv}
+```
+
+```table
+data: {json: d/wrapped.json}
+```
+
+```chart
+type: bar
+title: Semicolon file
+data: {csv: d/semi.csv}
+encoding: {x: region, y: sales}
+```
+
+```embed
+url: https://example.com/widget
+```

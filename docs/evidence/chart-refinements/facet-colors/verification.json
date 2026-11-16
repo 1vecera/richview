@@ -1,0 +1,126 @@
+{
+  "status": "PASS",
+  "scope": "Parent category fill and bar-hatch identity in bar/scatter facets only; local grouping, source rows and quantitative geometry are preserved.",
+  "base": "480af942714c16ce4c1f959c7f046344d4f8c99d",
+  "baseline_capture_head": "dad1615876cf05dccd7241da269fbf69cbc1ec31",
+  "runtime_head": "ddf0dac411bde62bc30e2775a6a6e5023cb19653",
+  "baseline_wasm_sha256": "c415bc543db946539e4d1d2b8902935ba05a4d5ca1c60deb77456a8d64f89467",
+  "current_wasm_sha256": "48af0fbb9a73f8de85de5d004203a38364686f6c2604a32d2c8202e175bfe41d",
+  "baseline_native_sha256": "c3bc7b271d10a82a337f1cd0c0a112c2a81c893294fd6193e01ecd6b9aab39f6",
+  "current_native_sha256": "2e2c0a2d4d4158629c77cdd613de98277d75efc7196a62c9fb8c1cc9ee641374",
+  "browser": "151.0.7922.173",
+  "required_checks": {
+    "format": "PASS",
+    "clippy-native": "PASS",
+    "clippy-wasm": "PASS",
+    "workspace": "PASS",
+    "fixtures": "PASS",
+    "editor": "PASS",
+    "native": "PASS",
+    "compat": "PASS",
+    "types": "PASS",
+    "browser": "PASS",
+    "landing": "PASS",
+    "cloudflare": "PASS",
+    "showcase": "PASS",
+    "flagship": "PASS",
+    "reel": "PASS",
+    "browser-api": "PASS",
+    "motion-runtime": "PASS",
+    "docs": "PASS",
+    "release": "PASS"
+  },
+  "matched_owner": {
+    "configurations": 210,
+    "native_child_svgs_exact": 435,
+    "live_child_paint_identity_checks": 435,
+    "themes": [
+      "scientific",
+      "sleek",
+      "sleek-light",
+      "brutalist",
+      "hand-drawn"
+    ],
+    "page_widths": [
+      320,
+      390,
+      720
+    ],
+    "controls_exact_configurations": 16,
+    "lifecycle_states": 56,
+    "lifecycle_child_observations": 112,
+    "dedicated_interface_states": 28,
+    "offline_views": 24,
+    "offline_panels": 48,
+    "offline_external_requests": 0,
+    "mixed_line_transition_actual_states_exact": 6
+  },
+  "independent_main": {
+    "verdict": "ACCEPT",
+    "records": 104,
+    "measured_states": 76,
+    "child_source_and_download_checks": 18,
+    "pointer_and_touch_checks": 6,
+    "complete_native_baseline_controls": 10
+  },
+  "frozen_sibling": {
+    "base": "2badd2774f188b9dadfb4c47982d8e0197e1c8f9",
+    "composed_head": "91d48436b53171f5d848acf3ab55a76ba48d1ff2",
+    "wasm_sha256": "df44ae14448b32d7d9ef6a819d66fd72c5733ef395bf96525a332619b436c18b",
+    "native_sha256": "e45db1c1b84c6607de9e415a4296f42117f1a79683a3e0bad0b16d4c5a6fbf4e",
+    "release_and_four_rust_checks": "PASS",
+    "matched_configurations": 50,
+    "supported_live_panels": 66,
+    "nonparticipating_and_annotation_controls": "Exact native panels, geometry, source data and diagnostics; line/area direct labels unchanged.",
+    "independent_verdict": "ACCEPT",
+    "independent_records": 104,
+    "reconciliation": "Only specification context conflicted; retained sibling pie prose. Runtime and public-renderer tests apply without semantic adaptation."
+  },
+  "rejected_checkpoints": [
+    "Initial 99dc495 re-faceting reused inherited scope for native paint; the failing round-trip test is preserved and ddf0dac removes inherited scope before new child rendering.",
+    "A 320 px scratch host inside a 1000 px viewport retained two CSS facet columns and overlapping download actions after numeric zoom. The two failed runs and click targets are retained; intended phone verification uses a matching viewport. No layout change is bundled.",
+    "Export comparators initially omitted existing key swatches or compared live accessibility/title details against native export. Corrected comparisons check quantitative geometry, expected key paint and pattern structure. Original observations remain in scratch."
+  ],
+  "limitations": [
+    "Line/area and temporal facet identity remain unchanged; a coherent cross-path policy is deferred.",
+    "Only normalized nonempty original categories reserve palette/hatch slots; blank/null aliases and eligibility follow existing behavior.",
+    "A new parent source order intentionally regenerates slots; no global category registry or public setting is introduced.",
+    "Existing narrow-container toolbar behavior and annotation findings remain unchanged."
+  ],
+  "pairs": [
+    {
+      "id": "bars",
+      "source": "bars.rmd",
+      "report_root": "facet-palette-craft-category-horizontal",
+      "source_sha256": "8d3fcfe3e2a4b3fd46b960dc9d4fa5cc37e2027d367cd0cb2e26c6a1aa73dde4",
+      "theme": "scientific",
+      "width": 720,
+      "motion": "no-preference",
+      "before": {
+        "file": "bars-before.png",
+        "sha256": "01d1d2e777a7f42ebb07cb7bb5b8cca851c437dd6312531b155d987dc38a0232"
+      },
+      "after": {
+        "file": "bars-after.png",
+        "sha256": "c005cc4536f1422656048bc19eaf123a3fe3ed2d2f104a5b13085a70a5411ac3"
+      }
+    },
+    {
+      "id": "scatter",
+      "source": "scatter.rmd",
+      "report_root": "facet-palette-craft-scatter",
+      "source_sha256": "b85007093387e2c176bb2be615f5397ac0f181a33f32c656e69656e71fcbd970",
+      "theme": "sleek",
+      "width": 390,
+      "motion": "reduce",
+      "before": {
+        "file": "scatter-before.png",
+        "sha256": "1b79b4ead5253126deef6247e6b8f100bfd50e7227fd69fd7cb406b7bee8f0a8"
+      },
+      "after": {
+        "file": "scatter-after.png",
+        "sha256": "c876303933223419b196c8cc1b791b049704c67169d0b173b885dfce238799e1"
+      }
+    }
+  ]
+}

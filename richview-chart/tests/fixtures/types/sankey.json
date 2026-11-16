@@ -1,0 +1,15 @@
+{
+ "spec": {"type": "sankey", "title": "Coal and gas feed most of the power that homes and industry use", "encoding": {"source": "from", "target": "to", "y": "twh"}, "axes": {"y": {"label": "TWh"}}},
+ "rows": [
+  {"from": "Coal", "to": "Power", "twh": 35},
+  {"from": "Gas", "to": "Power", "twh": 30},
+  {"from": "Gas", "to": "Heat", "twh": 25},
+  {"from": "Wind", "to": "Power", "twh": 20},
+  {"from": "Solar", "to": "Power", "twh": 10},
+  {"from": "Power", "to": "Homes", "twh": 45},
+  {"from": "Power", "to": "Industry", "twh": 40},
+  {"from": "Power", "to": "Losses", "twh": 10},
+  {"from": "Heat", "to": "Homes", "twh": 15},
+  {"from": "Heat", "to": "Industry", "twh": 10}
+ ]
+}

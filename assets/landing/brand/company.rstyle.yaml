@@ -1,0 +1,12 @@
+# Your Company Name Inc.: its typeface and colours, set once.
+fonts:
+  display:
+    family: Bricolage Grotesque
+    file: brand/bricolage-grotesque-600.woff2
+    weight: 600
+accent: '#0f5c45'
+palette: ['#0f5c45', '#b97c0a', '#34346f', '#0a9ab5']
+tokens:
+  bg: '#fcfaf4'
+  bg-chart: '#fcfaf4'
+  ink: '#12261f'

@@ -1,0 +1,8 @@
+---
+title: Scatter padding review
+version: 0.0.1
+---
+
+```chart
+{"type":"scatter","title":"Measured values and their zero reference","encoding":{"x":"x","y":"value"},"axes":{"y":{"format":"percent"}},"data":{"inline":[{"x":1,"value":0.0049,"size":10},{"x":2,"value":0.005,"size":20},{"x":3,"value":0.0051,"size":30},{"x":4,"value":0.0052,"size":40}]}}
+```

@@ -1,0 +1,37 @@
+---
+title: See how several measurements relate to each other
+description: A scatterplot matrix plots every pair of several numeric fields in a grid, so groups and relationships across all of them show at once.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Gentoo penguins stand apart on every pair
+
+These illustrative figures give twelve penguins four measurements. The grid plots every pair below the diagonal, names the field on the diagonal and gives the correlation of the pair above it, so a group that separates from the others shows in several cells at once.
+
+```chart
+type: splom
+title: Gentoo penguins are heavier, with longer flippers and shallower bills
+subtitle: Twelve penguins, every pair of four measurements
+data:
+  inline:
+    - {species: Adelie, bill: 39, flipper: 181, mass: 3750, depth: 18.7}
+    - {species: Adelie, bill: 40, flipper: 186, mass: 3800, depth: 18.0}
+    - {species: Adelie, bill: 38, flipper: 190, mass: 3250, depth: 17.4}
+    - {species: Adelie, bill: 36, flipper: 195, mass: 3450, depth: 19.3}
+    - {species: Chinstrap, bill: 46, flipper: 192, mass: 3500, depth: 17.9}
+    - {species: Chinstrap, bill: 50, flipper: 196, mass: 3900, depth: 19.5}
+    - {species: Chinstrap, bill: 49, flipper: 193, mass: 3650, depth: 19.1}
+    - {species: Chinstrap, bill: 51, flipper: 195, mass: 3750, depth: 18.7}
+    - {species: Gentoo, bill: 46, flipper: 211, mass: 4500, depth: 13.7}
+    - {species: Gentoo, bill: 48, flipper: 222, mass: 5400, depth: 14.3}
+    - {species: Gentoo, bill: 50, flipper: 230, mass: 5700, depth: 15.2}
+    - {species: Gentoo, bill: 47, flipper: 215, mass: 4750, depth: 14.5}
+encoding:
+  dimensions: [bill, flipper, mass, depth]
+  color: species
+```
+
+*Source: Illustrative values.*
+
+Use the keyboard or pointer to read a penguin's two values in a cell, or the correlation of a pair.

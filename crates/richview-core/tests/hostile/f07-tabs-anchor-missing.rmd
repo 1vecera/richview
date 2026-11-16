@@ -1,0 +1,15 @@
+---
+title: Tabs with missing anchors
+tabs:
+  panels:
+    - { id: one, label: One, from: rv-chart-0 }
+    - { id: two, label: Two, from: panel-two }
+---
+
+## Heading {#rv-chart-0}
+
+Text.
+
+## Heading two {#panel-two}
+
+Text.

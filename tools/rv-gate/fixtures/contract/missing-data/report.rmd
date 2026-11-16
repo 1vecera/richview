@@ -1,0 +1,22 @@
+---
+title: Broken fixture
+description: A deliberately broken report for the contract step.
+version: 0.0.1
+slug: broken
+styles: [sleek]
+---
+
+# Broken fixture
+
+```chart
+type: bar
+title: Visits by source
+data: { csv: data/absent.csv }
+encoding: { x: source, y: visits }
+```
+
+```chart
+type: bar
+data: { csv: data/also-absent.csv }
+encoding: { x: source, y: visits }
+```

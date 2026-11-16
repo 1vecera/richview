@@ -1,0 +1,27 @@
+# Studio exploration "Swiss Grid" (v20-swiss-grid), Experimental.
+# Converted from richview-universe/richview-design-system studio/variants.js @ 8c6a8e0.
+# Tokens and layout live here; the variant's signature rules ship as CSS beside it.
+tokens:
+  scheme: light
+  size-base: "16.5px"
+  line-base: "1.6"
+  bg: "oklch(0.99 0.000 0)"
+  bg-elev: "oklch(0.96 0.000 0)"
+  bg-chart: "oklch(0.97 0.000 0)"
+  ink: "oklch(0.14 0.000 0)"
+  ink-soft: "oklch(0.42 0.000 0)"
+  ink-faint: "oklch(0.6350 0.0 0.0)"
+  rule: "oklch(0.88 0.000 0)"
+  rule-soft: "oklch(0.94 0.000 0)"
+  accent: "oklch(0.50 0.22 27)"
+  accent-soft: "oklch(0.50 0.22 27 / 0.08)"
+  link: "oklch(0.50 0.22 27)"
+  up: "oklch(0.45 0.10 150)"
+  down: "oklch(0.50 0.22 27)"
+  hold: "oklch(0.5450 0.13 70.0)"
+  font-text: '"Inter", "Helvetica Neue", sans-serif'
+  font-display: '"Inter", sans-serif'
+  font-ui: '"Inter", "Helvetica Neue", sans-serif'
+  font-mono: '"JetBrains Mono", monospace'
+  radius-s: "0px"
+  radius-m: "0px"

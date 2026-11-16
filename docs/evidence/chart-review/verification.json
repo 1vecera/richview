@@ -1,0 +1,664 @@
+{
+  "captured_at": "2026-10-12T00:20:03.631Z",
+  "source_fixture_sha256": "f6fb8c62eef4f32b88a319b13502418a39d588ecf97b8371cc3c6fae696f07d9",
+  "before": {
+    "commit": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+    "wasm_sha256": "141dd99c023fc595e987febc299f4c7ce554912fd489d3ffe768a46ce939be4e",
+    "cli_sha256": "874dd8ef1c126b140282f08258ccaff408be2b08092250f31bb5a0045c314d56",
+    "added_capture_tools_only": true,
+    "pages": 60,
+    "figures": 540,
+    "label_findings": 115,
+    "browser_errors": 0
+  },
+  "after": {
+    "commit": "317c25e945465be9bc96ff94a6378fe02ec17a5c",
+    "branch": "veceda/chart-label-curvature",
+    "dirty": false,
+    "version": "richview 3.0.0-alpha.0",
+    "wasm_sha256": "980ba77a74aac347a0b88086fb01965f9c341b458ea0e4a76c4b1d3f7d03905f",
+    "cli_sha256": "8fe5590bb950d3f5a9ccde08be5c5c53d31be62aa54b1e24a3bcf62dedf51cab",
+    "pages": 60,
+    "figures": 540,
+    "rest_and_tooltip_images": 1080,
+    "label_findings": 0,
+    "browser_errors": 0
+  },
+  "additional_composition_cases": {
+    "cases": 585,
+    "browser_errors": 0,
+    "all_passed": true
+  },
+  "native_workspace_tests": 267,
+  "figma": {
+    "url": "https://www.figma.com/design/NlR94RSo5Pw6aszsoXk565",
+    "before_page": "0:1",
+    "after_page": "2:2",
+    "plates_per_page": 40,
+    "editable": true,
+    "imported_from_commit": "f0b9934",
+    "final_graphics_files_byte_identical_to_imported_cases": 920,
+    "refreshed_heatmap_tooltip_figures": 20,
+    "heatmap_refresh_source_commit": "8b22ed18967579048e93b02a9fd79e33151321d0",
+    "header_wrap_applied_to_both_pages": true
+  },
+  "known_pdf_warnings": {
+    "scope": "Hand-drawn flagship smoke export only",
+    "kind": "Existing bottom whitespace warnings",
+    "pages": [
+      11,
+      16,
+      17,
+      20
+    ],
+    "baseline": "3c07128b7139687b754f6e1b5848c2a46c31cfe5"
+  },
+  "gallery": [
+    {
+      "path": "sleek-line-before.png",
+      "sha256": "0eeb61c366683f451db02f49a6efb6d3088d22f2deb10e4c7731a161a505ff8e",
+      "bytes": 28786
+    },
+    {
+      "path": "sleek-scatter-before.png",
+      "sha256": "72f3c392f4f02590e094d310d9f64c04174083062b9bc44636cef536dd559fb3",
+      "bytes": 27137
+    },
+    {
+      "path": "sleek-line-after.png",
+      "sha256": "d066d4e0e73b1040c36bae25f353847417b27604b17e760ea43e58127a6596fd",
+      "bytes": 30644
+    },
+    {
+      "path": "sleek-scatter-after.png",
+      "sha256": "6809c8883c311c3ea181a1ee448722c2186c2b5dad9a4f8013481e002fb5b0ba",
+      "bytes": 34640
+    },
+    {
+      "path": "sleek-light-line-before.png",
+      "sha256": "3d545d0d0ef50e56163463508993570d84e6987859e4af5d68b142b33c3e4f8a",
+      "bytes": 25967
+    },
+    {
+      "path": "sleek-light-scatter-before.png",
+      "sha256": "e7ad2d9d49da42a1afadbee32cdefd797c9bcb2cc5d7eef3c59e61cab5992c9d",
+      "bytes": 24417
+    },
+    {
+      "path": "sleek-light-line-after.png",
+      "sha256": "e5de84c3d2849ddc5c97eeac51c66039580a6967e4acc38dc9590724066a6e70",
+      "bytes": 28244
+    },
+    {
+      "path": "sleek-light-scatter-after.png",
+      "sha256": "40979df3d6235197bfb3f18cadf8753cf1d68f450b08730bc7c6bacd0b84add1",
+      "bytes": 28249
+    },
+    {
+      "path": "scientific-line-before.png",
+      "sha256": "80d19df3b0268a9d9b5dbeb409c6f6e7998bebce654dc9d775015d399cf362c6",
+      "bytes": 28139
+    },
+    {
+      "path": "scientific-scatter-before.png",
+      "sha256": "a5b02ff1229ceed641367e3dbf6525008f4a76d7de2b12339ea27a7b87387a48",
+      "bytes": 24896
+    },
+    {
+      "path": "scientific-line-after.png",
+      "sha256": "d5384b2b126faa956b9f2a7059bb2825e15d4b248ed5da4798564db1d28fa6f3",
+      "bytes": 28666
+    },
+    {
+      "path": "scientific-scatter-after.png",
+      "sha256": "d4cc4a09d104f0f3c1cfd77e03df39ef5d9384331143bdb28aacf3de02d858f0",
+      "bytes": 30436
+    },
+    {
+      "path": "brutalist-line-before.png",
+      "sha256": "128806d28da98835a78079900ad44d11002ff5076faac6d6985acf48251da533",
+      "bytes": 26412
+    },
+    {
+      "path": "brutalist-scatter-before.png",
+      "sha256": "40313b9e307c97a3305795cead9f4a45efb57f42bf4ba8482562c757c1a3438a",
+      "bytes": 24433
+    },
+    {
+      "path": "brutalist-line-after.png",
+      "sha256": "aa5f17e0a811d69cc76412abc8461c6e6180df0ecd1756857cda444b2e7adf3a",
+      "bytes": 28300
+    },
+    {
+      "path": "brutalist-scatter-after.png",
+      "sha256": "d24ff6c4536c88fab5081c7e801fc131174f2c18e0d260936dde820fda20e320",
+      "bytes": 30550
+    },
+    {
+      "path": "hand-drawn-line-before.png",
+      "sha256": "c28f838344f918920d6d49f53a5ea6585bf0e6ca19462a0e0b6f1cf4cbf70abd",
+      "bytes": 27283
+    },
+    {
+      "path": "hand-drawn-scatter-before.png",
+      "sha256": "4d5c25a1bae256a722113d3a09d8f06f1804a11b51fd5be136261796f084fe5c",
+      "bytes": 23767
+    },
+    {
+      "path": "hand-drawn-line-after.png",
+      "sha256": "2ee03fec5da7a41ddc60697db096c6b61577943a19e2fa1c32a0cd2d9ce69c7c",
+      "bytes": 31012
+    },
+    {
+      "path": "hand-drawn-scatter-after.png",
+      "sha256": "36e48e9f2d766b3436270e41860490ec2dbb1abdefbf9fb8543ebae06851973c",
+      "bytes": 31833
+    },
+    {
+      "path": "hand-drawn-bars-before.png",
+      "sha256": "7137f3e21ffcfc9d84d9778f34e3a3837a94d5751d8f94d222e15074e63ae6a0",
+      "bytes": 23935
+    },
+    {
+      "path": "brutalist-header-before.png",
+      "sha256": "67586aa5eda0b28166c60ce41db0276da8504c0fe0f95fb34de9bbd58a9fa469",
+      "bytes": 76680
+    },
+    {
+      "path": "hand-drawn-bars-after.png",
+      "sha256": "540bf6ae2e423783b93be31ae0fe98333ecb690346584d527def191a862e726f",
+      "bytes": 29534
+    },
+    {
+      "path": "brutalist-header-after.png",
+      "sha256": "d3477b3cc12aa286d0c2addbf5aab9778d5b0b8355da3b5b8a34c230046163c9",
+      "bytes": 76865
+    },
+    {
+      "path": "figma-heatmap-tooltip.png",
+      "sha256": "bdc180f511a617170241861c6039a354a2086bf62878234ce7d5e767773c56e7",
+      "bytes": 18330
+    },
+    {
+      "path": "figma-hand-drawn-case.png",
+      "sha256": "8ccf77212d86913aff973461cb66c0a4da1ffaa94ffc61b6e79ce3a84b24f012",
+      "bytes": 27056
+    },
+    {
+      "path": "figma-hand-drawn-plate.png",
+      "sha256": "9a2f22581ea14a9fc373a669af66f089cf0ad263c05849b8b08c8e90040bccf4",
+      "bytes": 160440
+    },
+    {
+      "path": "pie-note-before.png",
+      "sha256": "3b3995ea10a82f162b16ad07a77a7d0fe9fcd329c25eeebccd4b57665c92efa5",
+      "bytes": 19558
+    },
+    {
+      "path": "pie-note-after.png",
+      "sha256": "c3e2de6b37bf60db8ee9ae590f4ff1fe026cfe8fa893014e1819bbd71d38b17d",
+      "bytes": 19794
+    }
+  ],
+  "performance": {
+    "status": "failed",
+    "budgets": [
+      {
+        "name": "native.small",
+        "value": 1.856521,
+        "limit": 5,
+        "unit": "ms",
+        "passed": true
+      },
+      {
+        "name": "native.six-types",
+        "value": 2.41758,
+        "limit": 10,
+        "unit": "ms",
+        "passed": true
+      },
+      {
+        "name": "native.flagship",
+        "value": 24.997737,
+        "limit": 35,
+        "unit": "ms",
+        "passed": true
+      },
+      {
+        "name": "native.dense",
+        "value": 420.380156,
+        "limit": 250,
+        "unit": "ms",
+        "passed": false
+      },
+      {
+        "name": "cli.small",
+        "value": 54.892348,
+        "limit": 150,
+        "unit": "ms",
+        "passed": true
+      },
+      {
+        "name": "cli.flagship",
+        "value": 121.913414,
+        "limit": 250,
+        "unit": "ms",
+        "passed": true
+      },
+      {
+        "name": "cli.dense",
+        "value": 651.953663,
+        "limit": 400,
+        "unit": "ms",
+        "passed": false
+      },
+      {
+        "name": "editor.small",
+        "value": 2.396061,
+        "limit": 10,
+        "unit": "ms",
+        "passed": true
+      },
+      {
+        "name": "editor.flagship",
+        "value": 46.833887,
+        "limit": 50,
+        "unit": "ms",
+        "passed": true
+      },
+      {
+        "name": "editor.dense",
+        "value": 298.387206,
+        "limit": 400,
+        "unit": "ms",
+        "passed": true
+      },
+      {
+        "name": "http.small.1-clients",
+        "value": 112.949208,
+        "limit": 200,
+        "unit": "ms",
+        "passed": true
+      },
+      {
+        "name": "http.small.4-clients",
+        "value": 165.436096,
+        "limit": 500,
+        "unit": "ms",
+        "passed": true
+      },
+      {
+        "name": "http.small.throughput",
+        "value": 28.37160086126664,
+        "limit": 10,
+        "unit": "requests/s",
+        "passed": true
+      },
+      {
+        "name": "http.dense.1-clients",
+        "value": 446.739949,
+        "limit": 600,
+        "unit": "ms",
+        "passed": true
+      },
+      {
+        "name": "http.dense.4-clients",
+        "value": 608.854332,
+        "limit": 1500,
+        "unit": "ms",
+        "passed": true
+      },
+      {
+        "name": "http.dense.throughput",
+        "value": 6.781623291137756,
+        "limit": 4,
+        "unit": "requests/s",
+        "passed": true
+      },
+      {
+        "name": "browser.dense-zoom.layout-dom",
+        "value": 8.699999988079071,
+        "limit": 16,
+        "unit": "ms",
+        "passed": true
+      },
+      {
+        "name": "browser.dense-zoom.two-frames",
+        "value": 51.400000005960464,
+        "limit": 100,
+        "unit": "ms",
+        "passed": true
+      },
+      {
+        "name": "browser.theme.first-all-charts",
+        "value": 202.89990234375,
+        "limit": 100,
+        "unit": "ms",
+        "passed": false
+      },
+      {
+        "name": "browser.theme.latest-all-charts",
+        "value": 202.89990234375,
+        "limit": 100,
+        "unit": "ms",
+        "passed": false
+      },
+      {
+        "name": "browser.small-edit",
+        "value": 416.5,
+        "limit": 300,
+        "unit": "ms",
+        "passed": false
+      },
+      {
+        "name": "browser.dense-edit",
+        "value": 2011.5,
+        "limit": 1000,
+        "unit": "ms",
+        "passed": false
+      },
+      {
+        "name": "browser.cold-mount",
+        "value": 1122.8305599999999,
+        "limit": 2500,
+        "unit": "ms",
+        "passed": true
+      },
+      {
+        "name": "native.peak-memory",
+        "value": 162652160,
+        "limit": 268435456,
+        "unit": "bytes",
+        "passed": true
+      },
+      {
+        "name": "browser.delivered-wasm",
+        "value": 1404354,
+        "limit": 1572864,
+        "unit": "bytes",
+        "passed": true
+      }
+    ],
+    "integrity": [
+      {
+        "name": "native capture completed with stable artifacts",
+        "passed": true
+      },
+      {
+        "name": "native engine capture has stable artifacts",
+        "passed": true
+      },
+      {
+        "name": "browser behavioral assertions passed without errors",
+        "passed": false
+      },
+      {
+        "name": "delivery encoding is actually gzip",
+        "passed": true
+      },
+      {
+        "name": "native and browser captures use identical runtime bytes",
+        "passed": true
+      },
+      {
+        "name": "dense browser worker receives the measured native fixture",
+        "passed": true
+      },
+      {
+        "name": "native surface and engine captures use identical fixtures",
+        "passed": true
+      }
+    ],
+    "sources": {
+      "rust": {
+        "file": "rust.json",
+        "sha256": "d78ab5e96f0557c815b3d17638fe8bc03e1522da31a3d984faad04f38f692a04"
+      },
+      "native": {
+        "file": "native-surfaces.json",
+        "sha256": "1001a84058456fa23c1420402a5e5d5aa83460c4772e1ed3dcad87becc8b564c"
+      },
+      "browser": {
+        "file": "browser.json",
+        "sha256": "f1f95cc5a28329cd83b54da249c52298018603c9fd489177b59614fe593b9f27"
+      }
+    },
+    "scope": "Timing capture of product commit 9b300f0506f07c028f37efaa2fb4fc06c097b77c, before the final typed-series/scatter-padding/heatmap-duplicate/pie-share composition. Final correctness and screenshot checks were repeated; these are not timing measurements of the final Wasm.",
+    "wasm_sha256": "675d5760dc0a124bae56c04d247c942ffa69acd441d1783a842564f84e0fdd75",
+    "environment": {
+      "host": "Intel Core i7-12700H, Linux, shared host",
+      "cpu_affinity": "0,2,6,8 (four distinct performance cores)",
+      "quiet_machine": false
+    },
+    "baseline_comparisons": {
+      "dense_cli": {
+        "scope": "50 alternating process-cold complete offline CLI samples per build, three warmups each, same dense report and current offline runtime bytes; shared host, four distinct performance-core affinity CPUs 0,2,6,8. This comparison supplements, and never replaces, the fixed-budget capture.",
+        "fixture_sha256": "8089599d220a5660e4e8cf7f50f5320ef59c870ec70f472981bef5cbbbafb1c4",
+        "wasm_sha256": "675d5760dc0a124bae56c04d247c942ffa69acd441d1783a842564f84e0fdd75",
+        "results": {
+          "before": {
+            "commit": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+            "cli_sha256": "874dd8ef1c126b140282f08258ccaff408be2b08092250f31bb5a0045c314d56",
+            "samples": [
+              508.003041,
+              522.834912,
+              614.754678,
+              545.439561,
+              554.182311,
+              803.126543,
+              600.780222,
+              684.128664,
+              563.612246,
+              464.364218,
+              540.495484,
+              543.149378,
+              527.578089,
+              498.774724,
+              563.517321,
+              486.104131,
+              540.569743,
+              533.512121,
+              567.107429,
+              481.030425,
+              452.912532,
+              559.703397,
+              471.197838,
+              501.50067,
+              560.651099,
+              442.336604,
+              459.14126,
+              435.795931,
+              423.022586,
+              422.505807,
+              621.4393,
+              586.347264,
+              476.189472,
+              470.459834,
+              524.577285,
+              567.660978,
+              570.403975,
+              563.632162,
+              476.322245,
+              463.484015,
+              542.784271,
+              493.927263,
+              442.057737,
+              574.917165,
+              633.196357,
+              488.424714,
+              589.112865,
+              566.640346,
+              532.92158,
+              592.670602
+            ],
+            "median_ms": 540.495484,
+            "p95_ms": 633.196357,
+            "min_ms": 422.505807
+          },
+          "after": {
+            "commit": "9b300f0506f07c028f37efaa2fb4fc06c097b77c",
+            "cli_sha256": "89ca290202664607c98cb12b8fd6e3106e3785ca35500393184531ce8c1965f8",
+            "samples": [
+              523.036621,
+              562.351837,
+              567.513423,
+              561.871781,
+              673.141953,
+              616.453043,
+              626.723729,
+              601.320491,
+              675.790379,
+              500.025409,
+              566.345587,
+              537.729366,
+              611.964658,
+              676.439214,
+              665.475915,
+              639.379525,
+              527.373513,
+              550.233497,
+              721.568169,
+              486.753427,
+              468.881525,
+              486.65858,
+              496.706338,
+              465.09845,
+              541.469264,
+              517.728145,
+              522.678658,
+              419.181741,
+              433.981069,
+              447.783058,
+              495.194916,
+              633.957906,
+              489.400482,
+              589.634443,
+              500.651883,
+              502.067891,
+              474.257417,
+              576.618511,
+              583.960737,
+              596.978245,
+              530.604795,
+              532.230825,
+              531.296244,
+              545.361971,
+              570.889509,
+              471.929358,
+              420.38749,
+              520.840407,
+              643.027756,
+              651.18573
+            ],
+            "median_ms": 541.469264,
+            "p95_ms": 675.790379,
+            "min_ms": 419.181741
+          }
+        }
+      },
+      "browser": {
+        "scope": "Same browser harness and exact source fixtures, before/after release distributions, four performance-core affinity CPUs 0,2,6,8, sequential captures on a shared host. These measurements do not replace the fixed-budget capture or prove the source of every slowdown.",
+        "before": {
+          "commit": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+          "wasm_sha256": "141dd99c023fc595e987febc299f4c7ce554912fd489d3ffe768a46ce939be4e"
+        },
+        "after": {
+          "commit": "9b300f0506f07c028f37efaa2fb4fc06c097b77c",
+          "wasm_sha256": "675d5760dc0a124bae56c04d247c942ffa69acd441d1783a842564f84e0fdd75"
+        },
+        "rows": [
+          {
+            "name": "dense_rust_dom_p95_ms",
+            "limit": 16,
+            "before": 5.9000000059604645,
+            "after": 8.699999988079071,
+            "before_passed": true,
+            "after_passed": true
+          },
+          {
+            "name": "dense_two_animation_frames_p95_ms",
+            "limit": 100,
+            "before": 54.099999994039536,
+            "after": 51.400000005960464,
+            "before_passed": true,
+            "after_passed": true
+          },
+          {
+            "name": "theme_first_all_18_frames_p95_ms",
+            "limit": 100,
+            "before": 188.30029296875,
+            "after": 202.89990234375,
+            "before_passed": false,
+            "after_passed": false
+          },
+          {
+            "name": "theme_settled_all_18_frames_p95_ms",
+            "limit": 100,
+            "before": 188.30029296875,
+            "after": 202.89990234375,
+            "before_passed": false,
+            "after_passed": false
+          },
+          {
+            "name": "small_edit_first_live_p95_ms",
+            "limit": 300,
+            "before": 324.800048828125,
+            "after": 416.5,
+            "before_passed": false,
+            "after_passed": false
+          },
+          {
+            "name": "dense_edit_first_live_ms",
+            "limit": 1000,
+            "before": 1148,
+            "after": 2011.5,
+            "before_passed": false,
+            "after_passed": false
+          },
+          {
+            "name": "cold_three_examples_ms",
+            "limit": 2500,
+            "before": 765.8649969999999,
+            "after": 1122.8305599999999,
+            "before_passed": true,
+            "after_passed": true
+          },
+          {
+            "name": "delivered_gzip_wasm_bytes",
+            "limit": 1572864,
+            "before": 1584427,
+            "after": 1404354,
+            "before_passed": false,
+            "after_passed": true
+          }
+        ]
+      }
+    }
+  },
+  "source_equivalence": {
+    "capture_commit": "317c25e945465be9bc96ff94a6378fe02ec17a5c",
+    "review_commit": "317c25e945465be9bc96ff94a6378fe02ec17a5c",
+    "production_source_unchanged_since_capture": true,
+    "post_capture_changes": "Documentation/evidence only; the host-only richview-bench crate is excluded from product-source comparison"
+  },
+  "pie_note_spot_check": {
+    "source_sha256": "ccb441d37c756de17831582c667fe691ad99ecebd2c9c7349a0e5a0e6472e484",
+    "before": "61ecefddd1c4deb95c0cce0745ca3c17b939e62f",
+    "after": "317c25e945465be9bc96ff94a6378fe02ec17a5c",
+    "viewports": [
+      320,
+      390
+    ],
+    "sector_geometry_and_source_values_preserved": true,
+    "crowded_omissions_disclosed": true
+  },
+  "pdf_smoke_source_commit": "f0b9934",
+  "local_checks": {
+    "native_workspace": true,
+    "native_and_wasm_clippy": true,
+    "browser_lifecycle": true,
+    "motion_lifecycle": true,
+    "packaging": true,
+    "staged_review_reports": 10
+  }
+}

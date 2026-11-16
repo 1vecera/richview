@@ -1,0 +1,22 @@
+{
+ "spec": {"type": "pivot", "title": "The West sells the most and every region grows into Q4", "encoding": {"rows": "region", "columns": "quarter", "values": "sales"}},
+ "rows": [
+  {"region": "North", "quarter": "Q1", "sales": 120},
+  {"region": "North", "quarter": "Q2", "sales": 135},
+  {"region": "North", "quarter": "Q3", "sales": 150},
+  {"region": "North", "quarter": "Q4", "sales": 190},
+  {"region": "South", "quarter": "Q1", "sales": 95},
+  {"region": "South", "quarter": "Q2", "sales": 110},
+  {"region": "South", "quarter": "Q3", "sales": 105},
+  {"region": "South", "quarter": "Q4", "sales": 140},
+  {"region": "East", "quarter": "Q1", "sales": 80},
+  {"region": "East", "quarter": "Q2", "sales": 90},
+  {"region": "East", "quarter": "Q3", "sales": 120},
+  {"region": "East", "quarter": "Q4", "sales": 100},
+  {"region": "East", "quarter": "Q4", "sales": 35},
+  {"region": "West", "quarter": "Q1", "sales": 150},
+  {"region": "West", "quarter": "Q2", "sales": 140},
+  {"region": "West", "quarter": "Q3", "sales": 160},
+  {"region": "West", "quarter": "Q4", "sales": 210}
+ ]
+}

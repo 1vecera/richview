@@ -1,0 +1,129 @@
+---
+title: Precision fixture
+description: Source values carry more digits than any element shows, so the cross-style step can prove that every output shows the author's precision and no more (FEA-CH-37, DEL-52, DEL-80).
+version: 0.0.1
+slug: cross-style-precision
+---
+
+Every number below is written with more digits than it shows.
+
+```metric
+value: 1234567.891
+label: Revenue in millions
+format: number_compact
+```
+
+```metric
+value: 167543.217
+label: Visitors in thousands
+format: number_compact
+```
+
+```metric
+value: 0.123456789
+label: Conversion as a percentage
+format: percent
+```
+
+```metric
+value: 98765.4321
+label: Basket as currency
+format: number
+unit: "$"
+```
+
+```table
+data:
+  inline:
+    - {item: Alpha, amount: 1234567.891, price: 98765.4321}
+    - {item: Beta, amount: 167543.217, price: 4321.98765}
+    - {item: Gamma, amount: 98.7654321, price: 12.3456789}
+columns:
+  - {key: item, label: Item}
+  - {key: amount, label: Amount, format: number_compact, align: right}
+  - {key: price, label: Price, format: number, unit: "$", align: right}
+total: true
+```
+
+```table
+data:
+  inline:
+    - {item: Alpha, rate: 0.123456789}
+    - {item: Beta, rate: 0.045678912}
+    - {item: Gamma, rate: 0.5}
+columns:
+  - {key: item, label: Item}
+  - {key: rate, label: Rate, format: percent, align: right}
+```
+
+```table
+data:
+  inline:
+    - {item: Alpha, level: 3.14159265}
+    - {item: Beta, level: 2.71828183}
+    - {item: Gamma, level: 1.41421356}
+columns:
+  - {key: item, label: Item}
+  - {key: level, label: Level}
+```
+
+```chart
+type: bar
+title: Amounts keep three significant digits
+data:
+  inline:
+    - {item: Alpha, amount: 1234567.891}
+    - {item: Beta, amount: 167543.217}
+    - {item: Gamma, amount: 98765.4321}
+encoding: {x: item, y: amount}
+axes:
+  y: {label: Amount, format: number_compact}
+```
+
+```chart
+type: bar
+title: Rates as percentages
+data:
+  inline:
+    - {item: Alpha, rate: 0.123456789}
+    - {item: Beta, rate: 0.045678912}
+    - {item: Gamma, rate: 0.5}
+encoding: {x: item, y: rate}
+axes:
+  y: {label: Rate, format: percent}
+```
+
+```chart
+type: line
+title: Daily prices as currency
+data:
+  csv: data/prices.csv
+encoding: {x: day, y: price}
+axes:
+  y: {label: Price, format: number, unit: "$"}
+```
+
+```chart
+type: line
+title: Plain decimals
+data:
+  inline:
+    - {day: 2024-03-01, level: 3.14159265}
+    - {day: 2024-03-02, level: 2.71828183}
+    - {day: 2024-03-03, level: 1.41421356}
+    - {day: 2024-03-04, level: 1.73205081}
+encoding: {x: day, y: level}
+axes:
+  y: {label: Level}
+```
+
+```chart
+type: pie
+title: Shares
+data:
+  inline:
+    - {part: North, share: 0.123456789}
+    - {part: South, share: 0.234567891}
+    - {part: East, share: 0.641975320}
+encoding: {x: part, y: share}
+```

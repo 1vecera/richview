@@ -1,0 +1,36 @@
+{
+	"fixtures": false,
+	"reports": [
+		"bar",
+		"line"
+	],
+	"style": "sleek",
+	"judged": [
+		{
+			"report": "bar",
+			"state": "initial 1100",
+			"charts": 1
+		},
+		{
+			"report": "line",
+			"state": "initial 1100",
+			"charts": 2
+		}
+	],
+	"findings": [],
+	"problems": [],
+	"judgedTexts": [
+		{
+			"report": "bar",
+			"chart": 0,
+			"title": "Bars count",
+			"texts": 4
+		},
+		{
+			"report": "line",
+			"chart": 0,
+			"title": "Steady line",
+			"texts": 3
+		}
+	]
+}

@@ -1,0 +1,35 @@
+---
+title: A warmer world
+description: NASA's global temperature index, compared with the 1951–1980 average.
+styles: [air]
+title_image:
+  src: https://images.unsplash.com/photo-1541180413652-36d68a04c873?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE0NDQ4fDB8MXxhbGx8fHx8fHx8fHwxNzk0MjQ3MjMxfA&ixlib=rb-4.1.0&q=80&w=1080
+  alt: "Blue and white ice at a glacier lagoon"
+  caption: "Glacier ice meets the water in a lagoon."
+  fit: cover
+  width: 1080
+  height: 432
+  credit:
+    author: "Stephen"
+    author_url: https://unsplash.com/@srkraakmo?utm_source=richview&utm_medium=referral
+    source: Unsplash
+    source_url: https://unsplash.com/photos/water-splash-near-iceberg-DMjeSRTfhkg?utm_source=richview&utm_medium=referral
+---
+
+The annual global temperature anomaly compares each year with the 1951–1980 average. It is a departure from that baseline, not an absolute temperature.
+
+```chart
+type: line
+title: Global temperature has risen since the late nineteenth century
+data: { csv: data/global-temperature.csv }
+encoding: { x: year, y: anomaly_c }
+axes:
+  x: { format: year }
+  y: { label: Temperature anomaly, unit: °C }
+```
+
+*Source: [NASA GISS GISTEMP v4](https://data.giss.nasa.gov/gistemp/), annual land–ocean temperature index, downloaded 9 November 2026. Credit: NASA GISS GISTEMP Team.*
+
+## Read the baseline correctly
+
+Zero means the 1951–1980 average. A value of 1 means one degree Celsius above that baseline. It does not mean an absolute temperature of one degree. This is an annual global index; individual places and months differ. The frozen CSV ends in 2025, so it does not mix an incomplete current year with completed annual means.

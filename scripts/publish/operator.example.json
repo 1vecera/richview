@@ -1,0 +1,14 @@
+{
+  "origin": "https://news.example.com",
+  "repository": "your-team/your-private-publication",
+  "branch": "publish/news",
+  "contentRoot": "publications/news",
+  "builder": "/absolute/path/to/pinned/richview-publish",
+  "builderSha256": "replace-with-sha256-of-trusted-builder",
+  "runtime": "/absolute/path/to/matching/dist/web",
+  "runtimeSha256": {
+    "richview_runtime.js": "replace-with-sha256-of-trusted-javascript",
+    "richview_runtime_bg.wasm": "replace-with-sha256-of-trusted-wasm"
+  },
+  "scratch": "/absolute/path/to/private/publication-jobs"
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "sql": "SELECT name, value FROM duckdb_settings() WHERE name IN ('home_directory','temp_directory','extension_directory','secret_directory','allowed_directories','allowed_paths')",
+    "params": {}
+  },
+  {
+    "sql": "SELECT current_setting('temp_directory') AS path",
+    "params": {}
+  },
+  {
+    "sql": "SELECT * FROM main.\"DUCKDB_DATABASES\"()",
+    "params": {}
+  },
+  {
+    "sql": "SELECT * FROM pragma_database_list()",
+    "params": {}
+  },
+  {
+    "sql": "SELECT * FROM duckdb_views",
+    "params": {}
+  },
+  {
+    "sql": "SELECT * FROM information_schema.tables",
+    "params": {}
+  },
+  {
+    "sql": "SELECT * FROM pg_catalog.pg_settings",
+    "params": {}
+  },
+  {
+    "sql": "SELECT * FROM sqlite_master",
+    "params": {}
+  },
+  {
+    "sql": "SELECT * FROM query($sql)",
+    "params": {
+      "sql": "SELECT current_setting('temp_directory')"
+    }
+  },
+  {
+    "sql": "SELECT * FROM query_table($table)",
+    "params": {
+      "table": "duckdb_views"
+    }
+  },
+  {
+    "sql": "SELECT getenv('HOME') AS home",
+    "params": {}
+  },
+  {
+    "sql": "WITH source AS (SELECT current_setting/*comment*/('extension_directory') AS path) SELECT * FROM source",
+    "params": {}
+  },
+  {
+    "sql": "SELECT U&\"current\\005fsetting\"('temp_directory')",
+    "params": {}
+  },
+  {
+    "sql": "SELECT * FROM json_execute_serialized_sql(json_serialize_sql('SEL' || 'ECT value FROM duckdb_settings()'))",
+    "params": {}
+  }
+]

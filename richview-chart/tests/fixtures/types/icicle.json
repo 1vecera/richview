@@ -1,0 +1,79 @@
+{
+ "spec": {
+  "type": "icicle",
+  "title": "Engineering and sales hold two thirds of the budget",
+  "encoding": {
+   "label": "part",
+   "parent": "group",
+   "y": "budget",
+   "color": "group"
+  },
+  "axes": {
+   "y": {
+    "unit": "$"
+   }
+  }
+ },
+ "rows": [
+  {
+   "part": "Engineering",
+   "group": null,
+   "budget": null
+  },
+  {
+   "part": "Platform",
+   "group": "Engineering",
+   "budget": null
+  },
+  {
+   "part": "Core",
+   "group": "Platform",
+   "budget": 260
+  },
+  {
+   "part": "Tooling",
+   "group": "Platform",
+   "budget": 160
+  },
+  {
+   "part": "Product",
+   "group": "Engineering",
+   "budget": 310
+  },
+  {
+   "part": "Data",
+   "group": "Engineering",
+   "budget": 150
+  },
+  {
+   "part": "Sales",
+   "group": null,
+   "budget": null
+  },
+  {
+   "part": "EMEA",
+   "group": "Sales",
+   "budget": 240
+  },
+  {
+   "part": "Americas",
+   "group": "Sales",
+   "budget": 260
+  },
+  {
+   "part": "Operations",
+   "group": null,
+   "budget": 180
+  },
+  {
+   "part": "People",
+   "group": null,
+   "budget": 90
+  },
+  {
+   "part": "Finance",
+   "group": null,
+   "budget": 60
+  }
+ ]
+}

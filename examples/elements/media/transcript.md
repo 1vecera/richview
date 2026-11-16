@@ -1,0 +1,1 @@
+Neil Armstrong, Apollo 11, 21 July 1969 UTC: “That's one small step for man, one giant leap for mankind.” Source: NASA Historical Sounds, https://www.nasa.gov/historical-sounds/. The intended article “a” is not clearly audible in the recording.

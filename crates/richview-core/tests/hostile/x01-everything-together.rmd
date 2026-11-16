@@ -1,0 +1,27 @@
+---
+title: '<script>HOSTILE_ALL_TITLE()</script>'
+styles: [sleek, x01-everything-together.rstyle.yaml]
+format: rmd/1
+---
+<img src=x onerror=HOSTILE_ALL_PROLOG()>
+
+<script>HOSTILE_ALL_BODY()</script>
+
+```metric
+value: '<script>HOSTILE_ALL_VALUE()</script>'
+```
+
+```callout
+kind: neutral
+body: '<script>HOSTILE_ALL_CALLOUT()</script>'
+```
+
+```chart
+type: bar
+title: Plain chart
+data:
+  inline:
+    - { x: A, y: 1 }
+    - { x: B, y: 2 }
+encoding: { x: x, y: y }
+```

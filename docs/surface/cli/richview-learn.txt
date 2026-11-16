@@ -1,0 +1,9 @@
+Print the authoring guide, or one section of it
+
+Usage: richview learn [SECTION]
+
+Arguments:
+  [SECTION]  grammar, chart-contract, style, workflow or anti-slop
+
+Options:
+  -h, --help  Print help

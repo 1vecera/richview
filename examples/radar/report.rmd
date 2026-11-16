@@ -1,0 +1,35 @@
+---
+title: Compare profiles across several measures at once
+description: A radar sets one polygon per group over spokes that share a scale, so a reader sees where profiles differ in shape.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Beta is steadier, Alpha is faster
+
+These illustrative scores rate two teams on five skills. Each spoke is one skill on the same 0 to 100 scale, and each polygon joins one team's scores.
+
+```chart
+type: radar
+title: Beta is steadier and cheaper, Alpha is faster
+subtitle: Score per skill and team
+data:
+  inline:
+    - {skill: Speed, team: Alpha, score: 80}
+    - {skill: Reliability, team: Alpha, score: 65}
+    - {skill: Cost, team: Alpha, score: 40}
+    - {skill: Documentation, team: Alpha, score: 70}
+    - {skill: Community support, team: Alpha, score: 55}
+    - {skill: Speed, team: Beta, score: 50}
+    - {skill: Reliability, team: Beta, score: 90}
+    - {skill: Cost, team: Beta, score: 75}
+    - {skill: Documentation, team: Beta, score: 45}
+    - {skill: Community support, team: Beta, score: 85}
+encoding: {x: skill, y: score, color: team}
+axes:
+  y: {label: Score}
+```
+
+*Source: Illustrative values.*
+
+Use the keyboard or pointer to read each team's score on a skill.

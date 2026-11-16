@@ -1,0 +1,19 @@
+[package]
+name = "richview-chart"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99"
+license = "MIT"
+description = "The chart engine behind RichView chart blocks: one geometry model per chart, drawn as SVG and by the browser runtime."
+repository = "https://github.com/richview-universe/richview-v3"
+publish = false
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+serde = { version = "1", features = ["derive", "rc"] }
+serde_json = "1"
+
+[dev-dependencies]
+roxmltree = "0.21.1"

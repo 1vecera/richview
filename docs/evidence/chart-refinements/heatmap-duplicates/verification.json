@@ -1,0 +1,207 @@
+{
+  "base": {
+    "head": "159e3cbc01773c59891c984d3a485d089ac6372d",
+    "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm_sha256": "8637409185519596f1860ab681101fb9845d97accc337ba8c91d39012524f8df"
+  },
+  "source": {
+    "head": "1f5f2048d037e09143f0991c89924ac753cb6b2b",
+    "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm_sha256": "f10fc2b3d42191e81f27ff691441cce924d2690a44e0e1c42fbffd9a9a469dfa"
+  },
+  "native_cli_sha256": "3d48c3381d767b33001ace85e576dfd471f2ea32323d048cb6ffb87edec16fb8",
+  "browser": "Chromium151.0.7922.173",
+  "device_scale_factor": 2,
+  "motion": "reduced for matched matrix; static/reduced/ordinary for offline gate",
+  "comparison": {
+    "reports": 297,
+    "panels": 312,
+    "rejected_panels": 192,
+    "exact_control_svg": 120,
+    "exact_control_png": 105,
+    "exact_neighbor_facet_svg": 15,
+    "before_glyph_findings": {
+      "label-collision": 213,
+      "clipping": 22
+    },
+    "after_glyph_findings": {},
+    "after_source_errors": {
+      "ambiguous-numeric-cell": 192,
+      "invalid-color-values": 30,
+      "ambiguous-missing-cell": 45,
+      "missing-color-values": 15
+    },
+    "native_before": {
+      "invalid-color-values": 30,
+      "ambiguous-missing-cell": 45,
+      "missing-color-values": 15,
+      "fixed-height": 6,
+      "clipping": 22
+    },
+    "native_after": {
+      "ambiguous-numeric-cell": 192,
+      "invalid-color-values": 30,
+      "ambiguous-missing-cell": 45,
+      "missing-color-values": 15
+    },
+    "errors": [],
+    "overflow": [],
+    "historical_fixture_corrections": []
+  },
+  "required_checks": {
+    "rust": [
+      {
+        "name": "fmt",
+        "status": 0
+      },
+      {
+        "name": "clippy",
+        "status": 0
+      },
+      {
+        "name": "clippy-wasm",
+        "status": 0
+      },
+      {
+        "name": "tests",
+        "status": 0
+      },
+      {
+        "name": "build",
+        "status": 0
+      },
+      {
+        "name": "fixtures",
+        "status": 0
+      }
+    ],
+    "host": [
+      {
+        "name": "editor",
+        "status": 0
+      },
+      {
+        "name": "native",
+        "status": 0
+      },
+      {
+        "name": "compat",
+        "status": 0
+      },
+      {
+        "name": "types",
+        "status": 0
+      },
+      {
+        "name": "browser",
+        "status": 0
+      },
+      {
+        "name": "landing",
+        "status": 0
+      },
+      {
+        "name": "cloudflare",
+        "status": 0
+      },
+      {
+        "name": "showcase",
+        "status": 0
+      },
+      {
+        "name": "flagship",
+        "status": 0
+      },
+      {
+        "name": "reel",
+        "status": 0
+      },
+      {
+        "name": "browser-api",
+        "status": 0
+      },
+      {
+        "name": "motion-runtime",
+        "status": 0
+      },
+      {
+        "name": "docs",
+        "status": 0
+      }
+    ]
+  },
+  "offline": {
+    "reports": 96,
+    "rendered_panels": 108,
+    "static_reports": 32,
+    "live_reports": 64,
+    "live_panels": 72,
+    "exact_keyboard_rows": 224,
+    "full_source_table_csv": true,
+    "downloaded_svg": true,
+    "invalid_pointer_touch_targets": "none after existing readout hold/fade",
+    "external_requests": 0,
+    "page_errors": 0,
+    "runner_exit": 0
+  },
+  "independent": {
+    "verdict": "accept",
+    "current_reports": 16,
+    "current_panels": 18,
+    "unchanged_control_panels": 10,
+    "reused_view_states": 20,
+    "scope": "source errors, normalized identities, invalid/valid/facet updates, complete source interfaces, empty spatial targets"
+  },
+  "images": [
+    {
+      "file": "source-before.png",
+      "source": "source.rmd",
+      "theme": "scientific",
+      "viewport": 320,
+      "sha256": "05bfb88f0038709ea8ca4d73ca948a2ad163261b29301f73b12bf51dce2102d3"
+    },
+    {
+      "file": "source-after.png",
+      "source": "source.rmd",
+      "theme": "scientific",
+      "viewport": 320,
+      "sha256": "e169688c9721798faae0968ae2693b5fa7ada7f58c5d47ca0b8f9f68e7071f70"
+    },
+    {
+      "file": "facets-before.png",
+      "source": "facets.rmd",
+      "theme": "sleek",
+      "viewport": 720,
+      "sha256": "dd19bd4480a739f6b3d10c40dba47434e8a733560e667242e1a65140e33b31c7"
+    },
+    {
+      "file": "facets-after.png",
+      "source": "facets.rmd",
+      "theme": "sleek",
+      "viewport": 720,
+      "sha256": "fc17642cf51f6e3109ebc934f1484f2c8b28fd4164821d140ce9b6607b7b9f30"
+    }
+  ],
+  "retained_history": [
+    "Initial native short-height and annotation fixtures were corrected to actual _renderHeight and kind/text with a positive annotation control before the final gate.",
+    "Historical offline selector and tooltip lifecycle assumptions were corrected; original failed/partial outputs remain preserved.",
+    "A historical wrapper returned143 after all96 records were written; the complete current run exited0.",
+    "An independent review reused owner manifest/log paths. Dedicated owner-current captures regenerated both full manifests from the frozen builds; before PNGs match all285 original images exactly. Collided originals remain read-only in scratch."
+  ],
+  "limits": [
+    "Conflicts use existing exact coordinate text identity; coordinates must be representable and values finite numeric.",
+    "Diagnostic rows are one-based positions within the affected resolved chart data; facet row numbers correspond to that facet Table.",
+    "Numeric plus missing or invalid values retain existing behavior; unrepresentable coordinates remain a separate issue.",
+    "Source errors remain visible; no aggregation or arbitrary winner is invented.",
+    "Linux Chromium only; no physical-device or screen-reader claim."
+  ],
+  "raw_evidence": {
+    "root": "/home/vecera/tmp/richview-chart-refinement-20261011",
+    "comparison": "heatmap-duplicate-owner-current-validation.json",
+    "offline": "heatmap-duplicate-owner-current-offline/verification.json",
+    "independent": "heatmap-duplicate-independent-current-comparison.json",
+    "review": "heatmap-duplicate-review.md",
+    "collision_record": "heatmap-current-evidence-collision.json",
+    "required_checks": "/home/vecera/code/richview-v3/.claude/worktrees/chart-heatmap-duplicates-20261012/tmp/heatmap-duplicates-current/checks"
+  }
+}

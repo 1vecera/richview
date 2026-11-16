@@ -1,0 +1,6 @@
+tokens:
+  bg: 'oklch(0.9695 0.0336 86.31)'
+  accent: 'oklch(0.4806 0.1597 25.56)'
+chart:
+  palette: ['oklch(0.4806 0.1597 25.56)', 'oklch(0.5429 0.0892 211.21)']
+  bar-radius: 8

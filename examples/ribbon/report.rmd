@@ -1,0 +1,45 @@
+---
+title: Show who leads, month after month, and when that changes
+description: A ribbon chart ranks the groups in every category and joins each group across them, so a change of rank shows as a ribbon that crosses another.
+version: 0.0.1
+styles: [scientific]
+---
+
+## South takes the lead in March
+
+These illustrative sales figures stack four regions in each month, the largest on top. A ribbon follows each region from month to month, so a region that moves up or down the stack is easy to follow.
+
+```chart
+type: ribbon
+title: South overtakes North in March and East follows in April
+subtitle: Sales per month and region, ranked in each month
+data:
+  inline:
+    - {month: Jan, region: North, sales: 50}
+    - {month: Feb, region: North, sales: 48}
+    - {month: Mar, region: North, sales: 44}
+    - {month: Apr, region: North, sales: 39}
+    - {month: May, region: North, sales: 35}
+    - {month: Jan, region: South, sales: 42}
+    - {month: Feb, region: South, sales: 47}
+    - {month: Mar, region: South, sales: 51}
+    - {month: Apr, region: South, sales: 55}
+    - {month: May, region: South, sales: 58}
+    - {month: Jan, region: East, sales: 35}
+    - {month: Feb, region: East, sales: 33}
+    - {month: Mar, region: East, sales: 38}
+    - {month: Apr, region: East, sales: 46}
+    - {month: May, region: East, sales: 52}
+    - {month: Jan, region: West, sales: 20}
+    - {month: Feb, region: West, sales: 28}
+    - {month: Mar, region: West, sales: 30}
+    - {month: Apr, region: West, sales: 32}
+    - {month: May, region: West, sales: 41}
+encoding: {x: month, y: sales, color: region}
+axes:
+  y: {label: Sales}
+```
+
+*Source: Illustrative values.*
+
+Use the keyboard or pointer to read each region's sales, rank and share in a month.

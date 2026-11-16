@@ -1,0 +1,47 @@
+---
+title: "A draft that has not been published"
+description: "Safe synthetic draft used to exercise editorial previews."
+version: 1.0.0
+styles: [scientific]
+publish:
+  id: "desk-draft"
+  slug: "desk-draft"
+  summary: "Safe synthetic draft used to exercise editorial previews."
+  byline: "RichView Example Desk"
+  section: "fieldnotes"
+  tags: ["example", "method"]
+  published: "2026-10-11T09:00:00Z"
+  updated: "2026-10-18T09:00:00Z"
+  state: "draft"
+  audience: "public"
+  kind: "report"
+  aliases: []
+  corrections: []
+---
+
+**Example material · Synthetic observations · 18 October 2026**
+
+## Still on the desk
+
+This draft is safe example material. Its purpose is to prove that drafts remain outside public navigation and delivery.
+
+Only an authorized editor within the section scope may use a protected preview.
+
+```chart
+type: bar
+title: "Illustrative workflow count"
+data:
+  inline:
+    - {category: "First pass", value: 1}
+    - {category: "Reviewed", value: 0}
+encoding: {x: category, y: value}
+axes:
+  x: {label: Category}
+  y: {label: "Illustrative workflow count"}
+```
+
+*Source: Synthetic draft fixture.*
+
+## What to take away
+
+The ordinary publication branch remains the canonical source of this text.

@@ -1,0 +1,8 @@
+---
+title: Facet identity audit
+version: 0.0.1
+---
+
+```chart
+{"type":"bar","title":"category-horizontal","encoding":{"x":"category","y":"value","color":"category","facet":"panel"},"data":{"inline":[{"panel":"One","category":"North","value":"6.00000"},{"panel":"One","category":"South","value":3},{"panel":"One","category":"Central","value":1},{"panel":"Two","category":"South","value":"9.00000"},{"panel":"Two","category":"Central","value":4}]},"style":{"orientation":"horizontal"}}
+```

@@ -1,0 +1,15 @@
+{
+ "spec": {
+  "type": "bullet",
+  "title": "Sales against target",
+  "encoding": {"x": "region", "y": "sales", "target": "goal"},
+  "axes": {"y": {"label": "Sales"}},
+  "style": {"ranges": [60, 80, 100]}
+ },
+ "rows": [
+  {"region": "North", "sales": 72, "goal": 85},
+  {"region": "South", "sales": 91, "goal": 80},
+  {"region": "East", "sales": 55, "goal": 70},
+  {"region": "West", "sales": 64, "goal": 60}
+ ]
+}

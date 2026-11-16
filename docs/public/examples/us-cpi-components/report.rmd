@@ -1,0 +1,28 @@
+---
+title: Energy prices change unevenly
+description: The energy component of US consumer prices, with the full CPI component snapshot to download.
+styles: [scientific]
+---
+
+Energy prices move in sharp rises and falls rather than following a steady climb. This chart shows the price index itself, so a fall means a lower index level rather than slower inflation.
+
+```chart
+type: line
+title: US energy prices rise and fall sharply
+data: { csv: data.csv }
+encoding: { x: month, y: energy }
+axes:
+  y: { label: Energy price index, unit: "1982–84 = 100", digits: 6 }
+```
+
+*Source: U.S. Bureau of Labor Statistics, CPI-U, not seasonally adjusted, via [FRED](https://fred.stlouisfed.org/series/CPIENGNS), retrieved 2 October 2026. The CSV retains [all items](https://fred.stlouisfed.org/series/CPIAUCNS), [core](https://fred.stlouisfed.org/series/CPILFENS), [food](https://fred.stlouisfed.org/series/CPIUFDNS), energy and [shelter](https://fred.stlouisfed.org/series/CUUR0000SAH1). October 2025 remains empty in this snapshot; it is not filled with zero or interpolated.*
+
+## Work with this example
+
+Keep `report.rmd` and the [CSV observations](data.csv) together in one folder. Change `encoding.y` to another component's column to explore its index on the same basis.
+
+```sh
+richview generate report.rmd
+```
+
+Zoom into a period and inspect a month by keyboard or pointer. The chart's Table and CSV actions show the fields used here; the CSV above retains every original column.

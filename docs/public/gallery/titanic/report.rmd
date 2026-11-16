@@ -1,0 +1,34 @@
+---
+title: Passengers and crew on the Titanic
+description: The Board of Trade inquiry's counts, grouped by class, sex, age and survival.
+styles: [brutalist]
+title_image:
+  src: https://images.unsplash.com/photo-1593289863184-909382e6c779?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE0NDQ4fDB8MXxzZWFyY2h8MXx8YXRsYW50aWMlMjBvY2VhbiUyMHdhdmVzJTIwZGFya3xlbnwwfDB8fHwxNzk0MjQ3MjkyfDA&ixlib=rb-4.1.0&q=80&w=1080
+  alt: "Atlantic surf under a stormy sky"
+  caption: "Waves reach the Atlantic coast."
+  fit: cover
+  width: 1080
+  height: 432
+  credit:
+    author: "Don Shetterly"
+    author_url: https://unsplash.com/@donshetterly?utm_source=richview&utm_medium=referral
+    source: Unsplash
+    source_url: https://unsplash.com/photos/brown-sand-near-body-of-water-under-white-clouds-during-daytime-i8_5VtLkOkQ?utm_source=richview&utm_medium=referral
+---
+
+These are aggregate counts, not a record of individual routes. Follow each ribbon through class, sex and survival; inspect a ribbon to read its count.
+
+```chart
+type: alluvial
+title: Survival differed across class and sex
+data: { csv: data/titanic.csv }
+encoding: { dimensions: [class, sex, survived], y: people }
+axes:
+  y: { label: People }
+```
+
+*Source: Titanic passenger and crew counts from the British Board of Trade inquiry, via Dawson (1995) and the [R datasets package](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/Titanic.html). Age groups are summed in this view.*
+
+## What an aggregate hides
+
+Class includes the crew as well as the passenger classes. The source also separates adults and children; this view sums those groups. These ribbons are counts from a contingency table, not traced journeys of individuals. Use the CSV to inspect the age split before drawing conclusions about any subgroup.

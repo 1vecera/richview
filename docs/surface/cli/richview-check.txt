@@ -1,0 +1,13 @@
+Render the report and return every diagnostic and each chart's geometry
+
+Usage: richview check [OPTIONS] <INPUT>
+
+Arguments:
+  <INPUT>  The report's `.rmd`, saved in its own folder (a folder holding one `.rmd` also works)
+
+Options:
+      --style <STYLES>             Style (a builtin name or a file in the report folder) replacing the source's `styles` for this call; repeatable
+      --connectors <CONNECTORS>    Trusted `connectors.toml` binding the names in `report.connectors.yaml` to data sources [env: RICHVIEW_CONNECTORS=]
+      --chart-width <CHART_WIDTH>  Measure charts at this width in pixels instead of the widths readers get; repeatable
+      --format <FORMAT>            `pretty` for people, `json` for agents [default: pretty] [possible values: pretty, json]
+  -h, --help                       Print help

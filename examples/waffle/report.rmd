@@ -1,0 +1,30 @@
+---
+title: Show how a whole divides into parts you can count
+description: A waffle gives every category the squares its share earns, so a share reads as a count of squares.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Most trips are still made by car
+
+These illustrative counts come from a commuter survey. The chart shares 100 squares out by the largest remainder method, so the squares always add up to the whole.
+
+```chart
+type: waffle
+title: Cars carry four in ten trips
+subtitle: Each square is 1% of the trips
+data:
+  inline:
+    - {mode: Car, trips: 412}
+    - {mode: Train, trips: 236}
+    - {mode: Bicycle, trips: 118}
+    - {mode: Walking, trips: 97}
+    - {mode: Bus, trips: 61}
+encoding: {x: mode, y: trips}
+axes:
+  y: {label: Trips}
+```
+
+*Source: Illustrative values.*
+
+Use the keyboard or pointer to read each mode's trips, share and squares.

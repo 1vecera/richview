@@ -1,0 +1,38 @@
+[
+  {
+    "id": "pie-empty-zero",
+    "source": "---\ntitle: Empty pie review\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"pie\", \"encoding\": {\"x\": \"name\", \"y\": \"value\"}, \"data\": {\"inline\": [{\"name\": \"North\", \"value\": 0}, {\"name\": \"South\", \"value\": \"0.000\"}]}, \"title\": \"No positive published values\"}\n```\n"
+  },
+  {
+    "id": "pie-empty-missing",
+    "source": "---\ntitle: Empty pie review\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"pie\", \"encoding\": {\"x\": \"name\", \"y\": \"value\"}, \"data\": {\"inline\": [{\"name\": \"North\", \"value\": null}, {\"name\": \"South\", \"value\": null}]}, \"title\": \"Values are unavailable\"}\n```\n"
+  },
+  {
+    "id": "pie-empty-negative",
+    "source": "---\ntitle: Empty pie review\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"pie\", \"encoding\": {\"x\": \"name\", \"y\": \"value\"}, \"data\": {\"inline\": [{\"name\": \"North\", \"value\": -2}, {\"name\": \"South\", \"value\": \"-1.00\"}]}, \"title\": \"Negative values cannot form a pie\"}\n```\n"
+  },
+  {
+    "id": "pie-empty-invalid",
+    "source": "---\ntitle: Empty pie review\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"pie\", \"encoding\": {\"x\": \"name\", \"y\": \"value\"}, \"data\": {\"inline\": [{\"name\": \"North\", \"value\": \"unknown\"}, {\"name\": \"South\", \"value\": \"NaN\"}]}, \"title\": \"No usable observations\"}\n```\n"
+  },
+  {
+    "id": "pie-empty-mixed",
+    "source": "---\ntitle: Empty pie review\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"pie\", \"encoding\": {\"x\": \"name\", \"y\": \"value\"}, \"data\": {\"inline\": [{\"name\": \"North\", \"value\": 0}, {\"name\": \"South\", \"value\": null}, {\"name\": \"Central\", \"value\": -4}, {\"name\": \"Unavailable\", \"value\": \"unknown\"}]}, \"title\": \"Zero, absent and rejected observations\"}\n```\n"
+  },
+  {
+    "id": "pie-empty-positive-control",
+    "source": "---\ntitle: Empty pie review\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"pie\", \"encoding\": {\"x\": \"name\", \"y\": \"value\"}, \"data\": {\"inline\": [{\"name\": \"North\", \"value\": \"12.500\"}, {\"name\": \"South\", \"value\": \"25.000\"}, {\"name\": \"Central\", \"value\": -4}]}, \"title\": \"Positive observations still form a pie\"}\n```\n"
+  },
+  {
+    "id": "pie-empty-one-positive-control",
+    "source": "---\ntitle: Empty pie review\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"pie\", \"encoding\": {\"x\": \"name\", \"y\": \"value\"}, \"data\": {\"inline\": [{\"name\": \"North\", \"value\": \"12.500\"}]}, \"title\": \"One positive observation still forms a disk\"}\n```\n"
+  },
+  {
+    "id": "pie-empty-no-title",
+    "source": "---\ntitle: Empty pie review\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"pie\", \"encoding\": {\"x\": \"name\", \"y\": \"value\"}, \"data\": {\"inline\": [{\"name\": \"North\", \"value\": 0}, {\"name\": \"South\", \"value\": 0}]}}\n```\n"
+  },
+  {
+    "id": "pie-empty-facets",
+    "source": "---\ntitle: Empty pie review\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"pie\", \"title\": \"Empty and available panels retain their own data\", \"encoding\": {\"x\": \"name\", \"y\": \"value\", \"facet\": \"panel\"}, \"data\": {\"inline\": [{\"name\": \"North\", \"value\": 0, \"panel\": \"Empty\"}, {\"name\": \"South\", \"value\": null, \"panel\": \"Empty\"}, {\"name\": \"North\", \"value\": \"12.500\", \"panel\": \"Available\"}, {\"name\": \"South\", \"value\": \"25.000\", \"panel\": \"Available\"}]}}\n```\n"
+  }
+]

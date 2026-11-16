@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Life expectancy gap: Europe vs Africa, 1950–2019</title>
+<style>
+:root{--bg:#fff;--ink:#1a1a1a;--mut:#595959;--grid:#e3e3e3;--c:#2a6fb0;--card:#f3f3f3}
+@media(prefers-color-scheme:dark){:root{--bg:#16181c;--ink:#e8e8e8;--mut:#a5a5a5;--grid:#33373d;--c:#6fb0ee;--card:#1e2126}}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:760px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:1.5rem;line-height:1.25;margin:0 0 4px}
+h2{font-size:1.1rem;margin:32px 0 8px}
+.sub,.src{color:var(--mut);font-size:.9rem}
+svg{width:100%;height:auto;display:block}
+.grid{stroke:var(--grid);stroke-width:1}
+.tick{fill:var(--mut);font-size:12px}
+.lbl{fill:var(--ink);font-size:13px;font-weight:600}
+.line{fill:none;stroke:var(--c);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.dot{fill:var(--c);stroke:var(--bg);stroke-width:2}
+.hit{fill:transparent}
+.hit:hover{fill:var(--c);opacity:.5}
+.wrap{max-height:480px;overflow:auto;border:1px solid var(--grid)}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:4px 12px;text-align:right;border-bottom:1px solid var(--grid)}
+th{position:sticky;top:0;background:var(--card)}
+</style>
+</head>
+<body>
+<main>
+<h1>Life expectancy at birth: Europe minus Africa, 1950–2019</h1>
+<p class="sub">Population-weighted regional averages, in years, rounded to one decimal. The gap is Europe minus Africa.</p>
+
+<h2>Gap by year</h2>
+<div id="chart"><noscript>The chart and table need JavaScript enabled.</noscript></div>
+
+<h2>Interpretation</h2>
+<p>The gap between Europe and Africa was 21.8 years in 1950 and rose to its maximum of 23.0 years in 1960 and 1961. It then narrowed to 16.6 years by 1994–1995, widened again to 18.1 years in 2001, and has fallen almost every year since, reaching its minimum of 13.6 years in 2019. Over the whole period it narrowed by 8.2 years (21.8 to 13.6).</p>
+<p>Both averages are higher in 2019 than in 1950: Europe rose from 64.6 to 78.8 years (+14.2) and Africa from 42.8 to 65.2 years (+22.4). Africa's larger increase accounts for the narrowing. The gap compares two regional averages and says nothing about differences within either region.</p>
+
+<h2>Data (all 70 rows)</h2>
+<div class="wrap">
+<table>
+<thead><tr><th>Year</th><th>Europe</th><th>Africa</th><th>Gap (Europe − Africa)</th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+</div>
+
+<p class="src">Source: Gapminder, life expectancy at birth, version 15 (5 April 2026), gapminder.org, CC BY 4.0.</p>
+</main>
+
+<script>
+(function () {
+  var CSV = [
+    "1950,64.6,42.8,21.8","1951,64.8,43.1,21.7","1952,65.4,43.5,21.9","1953,65.9,43.9,22.0","1954,66.3,44.1,22.2",
+    "1955,66.6,44.4,22.2","1956,66.7,44.7,22.0","1957,67.0,44.7,22.3","1958,67.6,45.1,22.5","1959,68.0,45.4,22.6",
+    "1960,68.4,45.4,23.0","1961,68.7,45.7,23.0","1962,68.7,46.4,22.3","1963,69.0,46.8,22.2","1964,69.5,47.0,22.5",
+    "1965,69.6,47.2,22.4","1966,69.7,47.5,22.2","1967,69.8,47.7,22.1","1968,69.8,48.0,21.8","1969,69.7,48.3,21.4",
+    "1970,69.9,48.7,21.2","1971,70.1,49.1,21.0","1972,70.3,49.2,21.1","1973,70.5,49.9,20.6","1974,70.6,50.2,20.4",
+    "1975,70.6,50.6,20.0","1976,70.6,51.0,19.6","1977,70.8,51.4,19.4","1978,70.9,51.9,19.0","1979,71.0,52.4,18.6",
+    "1980,71.1,52.8,18.3","1981,71.4,53.0,18.4","1982,71.6,53.4,18.2","1983,71.7,53.3,18.4","1984,71.9,53.4,18.5",
+    "1985,72.1,54.0,18.1","1986,72.6,54.5,18.1","1987,72.9,54.8,18.1","1988,72.9,55.1,17.8","1989,73.0,55.3,17.7",
+    "1990,72.9,55.4,17.5","1991,72.9,55.6,17.3","1992,72.7,55.8,16.9","1993,72.4,55.7,16.7","1994,72.3,55.7,16.6",
+    "1995,72.4,55.8,16.6","1996,72.9,55.6,17.3","1997,73.4,55.7,17.7","1998,73.7,55.7,18.0","1999,73.6,55.9,17.7",
+    "2000,73.9,56.1,17.8","2001,74.2,56.1,18.1","2002,74.3,56.7,17.6","2003,74.4,57.2,17.2","2004,74.8,57.7,17.1",
+    "2005,75.0,58.5,16.5","2006,75.5,59.1,16.4","2007,75.8,59.9,15.9","2008,76.1,60.5,15.6","2009,76.6,61.1,15.5",
+    "2010,76.9,61.5,15.4","2011,77.3,61.9,15.4","2012,77.5,62.5,15.0","2013,77.7,63.0,14.7","2014,77.9,63.4,14.5",
+    "2015,77.9,63.7,14.2","2016,78.2,64.1,14.1","2017,78.4,64.5,13.9","2018,78.6,64.9,13.7","2019,78.8,65.2,13.6"
+  ];
+  var D = CSV.map(function (s) {
+    var p = s.split(",");
+    return { y: +p[0], e: p[1], a: p[2], g: p[3] };
+  });
+
+  // Table
+  var tb = document.getElementById("rows"), html = "";
+  D.forEach(function (r) {
+    html += "<tr><td>" + r.y + "</td><td>" + r.e + "</td><td>" + r.a + "</td><td>" + r.g + "</td></tr>";
+  });
+  tb.innerHTML = html;
+
+  // Chart
+  var W = 720, H = 360, L = 48, R = 16, T = 16, B = 40;
+  var y0 = 1950, y1 = 2019, v0 = 10, v1 = 24;
+  function X(y) { return L + (y - y0) / (y1 - y0) * (W - L - R); }
+  function Y(v) { return T + (v1 - v) / (v1 - v0) * (H - T - B); }
+  function f(n) { return n.toFixed(1); }
+  var s = [], i, v;
+  for (v = v0; v <= v1; v += 2) {
+    s.push('<line x1="' + L + '" x2="' + (W - R) + '" y1="' + f(Y(v)) + '" y2="' + f(Y(v)) + '" class="grid"/>' +
+           '<text x="' + (L - 8) + '" y="' + f(Y(v) + 4) + '" text-anchor="end" class="tick">' + v + '</text>');
+  }
+  for (i = 1950; i <= 2010; i += 10) {
+    s.push('<text x="' + f(X(i)) + '" y="' + (H - B + 18) + '" text-anchor="middle" class="tick">' + i + '</text>');
+  }
+  s.push('<text x="' + ((L + W - R) / 2) + '" y="' + (H - 6) + '" text-anchor="middle" class="tick">Year</text>');
+  s.push('<text transform="translate(12 ' + ((T + H - B) / 2) + ') rotate(-90)" text-anchor="middle" class="tick">Gap (years)</text>');
+  s.push('<polyline class="line" points="' + D.map(function (r) { return f(X(r.y)) + "," + f(Y(+r.g)); }).join(" ") + '"/>');
+  D.forEach(function (r) {
+    s.push('<circle class="hit" cx="' + f(X(r.y)) + '" cy="' + f(Y(+r.g)) + '" r="7"><title>' + r.y + ": gap " + r.g + " years (Europe " + r.e + ", Africa " + r.a + ")</title></circle>");
+  });
+  var first = D[0], last = D[D.length - 1];
+  s.push('<circle class="dot" cx="' + f(X(first.y)) + '" cy="' + f(Y(+first.g)) + '" r="4"/>');
+  s.push('<circle class="dot" cx="' + f(X(last.y)) + '" cy="' + f(Y(+last.g)) + '" r="4"/>');
+  s.push('<text class="lbl" x="' + f(X(first.y) + 8) + '" y="' + f(Y(+first.g) - 8) + '">' + first.g + '</text>');
+  s.push('<text class="lbl" text-anchor="end" x="' + f(X(last.y) - 4) + '" y="' + f(Y(+last.g) - 10) + '">' + last.g + '</text>');
+  document.getElementById("chart").innerHTML =
+    '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-labelledby="ct cd">' +
+    '<title id="ct">Life expectancy gap, Europe minus Africa, 1950–2019</title>' +
+    '<desc id="cd">Line chart of the gap in years: 21.8 in 1950, a peak of 23.0 in 1960–1961, a low of 16.6 in 1994–1995, 18.1 in 2001, and 13.6 in 2019.</desc>' +
+    s.join("") + "</svg>";
+})();
+</script>
+</body>
+</html>

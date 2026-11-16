@@ -1,0 +1,48 @@
+---
+title: Chart integrity audit
+version: 0.0.1
+---
+
+```chart
+{
+  "type": "bar",
+  "title": "Reported values",
+  "encoding": {
+    "x": "category",
+    "y": "value",
+    "color": "group"
+  },
+  "style": {
+    "orientation": "vertical"
+  },
+  "data": {
+    "inline": [
+      {
+        "category": "Q1",
+        "group": "A",
+        "value": "10.000"
+      },
+      {
+        "category": "Q1",
+        "group": "A",
+        "value": "90.000"
+      },
+      {
+        "category": "Q1",
+        "group": "B",
+        "value": "30.000"
+      },
+      {
+        "category": "Q2",
+        "group": "A",
+        "value": "40.000"
+      },
+      {
+        "category": "Q2",
+        "group": "B",
+        "value": "60.000"
+      }
+    ]
+  }
+}
+```

@@ -1,0 +1,53 @@
+Run RichView Cowork, the report server
+
+Usage: richview server [OPTIONS]
+
+Options:
+      --hosted
+          Run the multi-organization hosted server with organization-scoped report addresses [env: RICHVIEW_HOSTED=]
+  -p, --port <PORT>
+          [env: PORT=] [default: 8080]
+      --bind <BIND>
+          [env: RICHVIEW_BIND=] [default: 127.0.0.1]
+      --data-dir <DATA_DIR>
+          [env: RICHVIEW_DATA_DIR=] [default: ./data]
+      --token <TOKEN>
+          [env: RICHVIEW_TOKEN]
+      --public-url <PUBLIC_URL>
+          [env: RICHVIEW_PUBLIC_URL=]
+      --report-origin <REPORT_ORIGIN>
+          The origin that serves report pages, apart from the app's (ARC-15). Defaults to this host on --report-port [env: RICHVIEW_REPORT_ORIGIN=]
+      --report-port <REPORT_PORT>
+          The port of the report listener; defaults to the port after --port (any free port for 0) [env: RICHVIEW_REPORT_PORT=]
+      --quota-bytes <QUOTA_BYTES>
+          Most bytes the report store may hold; a publication past it fails with `publish.quota` [env: RICHVIEW_QUOTA_BYTES=]
+      --org-quota-bytes <ORG_QUOTA_BYTES>
+          Maximum stored bytes per hosted organization [env: RICHVIEW_ORG_QUOTA_BYTES=] [default: 52428800]
+      --org-report-limit <ORG_REPORT_LIMIT>
+          Maximum live reports per hosted organization [env: RICHVIEW_ORG_REPORT_LIMIT=] [default: 50]
+      --mail-outbox <MAIL_OUTBOX>
+          Local delivery outbox for hosted verification mail [env: RICHVIEW_MAIL_OUTBOX=]
+      --smtp-host <SMTP_HOST>
+          TLS SMTP relay for hosted verification mail [env: RICHVIEW_SMTP_HOST=]
+      --smtp-port <SMTP_PORT>
+          SMTP submission port [env: RICHVIEW_SMTP_PORT=] [default: 587]
+      --smtp-tls <SMTP_TLS>
+          TLS mode for a nonstandard SMTP port: implicit or starttls [env: RICHVIEW_SMTP_TLS=] [possible values: implicit, starttls]
+      --smtp-user <SMTP_USER>
+          SMTP login; the password comes only from RICHVIEW_SMTP_PASSWORD [env: RICHVIEW_SMTP_USER]
+      --mail-from <MAIL_FROM>
+          Sender mailbox for hosted mail [env: RICHVIEW_MAIL_FROM=]
+      --mail-daily-limit <MAIL_DAILY_LIMIT>
+          Maximum hosted messages accepted per UTC day [env: RICHVIEW_MAIL_DAILY_LIMIT=] [default: 1000]
+      --signup-account-limit <SIGNUP_ACCOUNT_LIMIT>
+          Maximum hosted accounts; raising it requires restarting the server [env: RICHVIEW_SIGNUP_ACCOUNT_LIMIT=] [default: 500]
+      --org-creation-limit <ORG_CREATION_LIMIT>
+          Maximum organizations created by one hosted person; raising it requires a restart [env: RICHVIEW_ORG_CREATION_LIMIT=] [default: 1]
+      --operator-port <OPERATOR_PORT>
+          Port for the separate loopback-only operator listener; its token is in RICHVIEW_OPERATOR_TOKEN [env: RICHVIEW_OPERATOR_PORT=]
+      --default-visibility <DEFAULT_VISIBILITY>
+          Who can read a report until its owner shares it: private, org or public [env: RICHVIEW_DEFAULT_VISIBILITY=] [default: private]
+      --admin-email <ADMIN_EMAIL>
+          Creates this admin on first start when the server has no people yet; the password comes from RICHVIEW_ADMIN_PASSWORD [env: RICHVIEW_ADMIN_EMAIL=]
+  -h, --help
+          Print help

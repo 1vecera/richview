@@ -1,0 +1,286 @@
+diff --git a/docs/RMD-SPEC.md b/docs/RMD-SPEC.md
+index 566856a..b2a9dc6 100644
+--- a/docs/RMD-SPEC.md
++++ b/docs/RMD-SPEC.md
+@@ -107,7 +107,7 @@ Missing observations stay visible. Lines end with butt caps, so a break is as wi
+ 
+ Heatmaps show an authored missing color value as a neutral outlined cell with `n/a` where the cell has room for readable text. Null, an absent color field, blank text and the case-insensitive markers `.`, `na`, `n/a`, `nan`, `null` and `none` mean no observation; an absent row/column combination stays empty. The cell title and readout retain source identity, while Table and CSV retain the original values. Arbitrary nonnumeric text is an error and is not painted. A missing row that repeats an existing coordinate is diagnosed and is not drawn over another observation; resolve those source rows explicitly. Missing cells do not enter the numeric color domain. A heatmap with no numeric observations retains its source error and has no numeric key.
+ 
+-Heatmap cell labels use three-significant-digit scientific notation when their compact text would round a nonzero value to `0`. Actual zero and existing nonzero compact strings keep their formatting. Percentage conversion and literal suffixes apply as before. A longer label appears only when it fits the existing cell; cell geometry, color, exact readouts, Table and CSV remain unchanged.
++Heatmap cell labels use three-significant-digit scientific notation when their compact text would round a nonzero value to `0`. Actual zero and existing nonzero compact strings keep their formatting. Percentage conversion and literal suffixes apply as before. A longer label appears only when it fits the existing cell and clears authored annotation text or strokes; cell geometry, color, exact readouts, Table and CSV remain unchanged.
+ 
+ Two or more numeric observations at the same heatmap coordinate reject that panel with an explanation and source diagnostics; row order never chooses the visible value. Aggregate or resolve those source rows explicitly. Diagnostics identify the original one-based rows of the affected chart's resolved data, including each facet's own Table. All source rows remain available in Table and CSV, and valid neighboring facets still draw.
+ 
+diff --git a/richview-chart/src/rmd_render.rs b/richview-chart/src/rmd_render.rs
+index 478c8a8..dd5a320 100644
+--- a/richview-chart/src/rmd_render.rs
++++ b/richview-chart/src/rmd_render.rs
+@@ -467,6 +467,8 @@ struct Painter {
+     out: String,
+     plot: Option<crate::scene::Rect>,
+     labels: Vec<LabelBox>,
++    // Read-only paint bounds: never inputs to annotation placement or diagnostics.
++    annotation_ink: Vec<crate::scene::Rect>,
+     checks: Vec<Value>,
+     dropped: Vec<Value>,
+     width: f64,
+@@ -490,6 +492,7 @@ impl Painter {
+             out,
+             plot: None,
+             labels: vec![],
++            annotation_ink: vec![],
+             checks: vec![],
+             dropped: vec![],
+             width,
+@@ -523,6 +526,16 @@ impl Painter {
+             h: size,
+             kind,
+         });
++        if kind == "annotation" && !s.is_empty() {
++            // Bundled 12 px glyphs span baseline -13..+4; include their 2 px halo
++            // and 0.1 px serialization allowance without changing diagnostic boxes.
++            self.annotation_ink.push(crate::scene::Rect {
++                x: left - 2.1,
++                y: y - 15.1,
++                w: w + 4.2,
++                h: 21.2,
++            });
++        }
+         let _ = write!(
+             self.out,
+             "<text x=\"{x:.1}\" y=\"{y:.1}\" text-anchor=\"{anchor}\" textLength=\"{w:.2}\" lengthAdjust=\"spacingAndGlyphs\" style=\"font-size:{size}px\" class=\"{class}\">{}</text>",
+@@ -624,6 +637,17 @@ impl Painter {
+             );
+         }
+         self.out.push_str("</text>");
++        if kind == "annotation" {
++            self.annotation_ink.push(crate::scene::Rect {
++                x: x - 2.1,
++                y: y - 15.1,
++                w: w + 4.2,
++                h: 21.2 + lines.len().saturating_sub(1) as f64 * 18.0,
++            });
++            if rotate.is_finite() && rotate != 0.0 {
++                self.rotate_annotation_ink([cx, cy], rotate);
++            }
++        }
+     }
+     /// A category name of one or more lines, `category::LINE_H` apart from the baseline `y`, as one
+     /// text element: a wrapped name stays a single label for readers and for glyph checks.
+@@ -682,6 +706,14 @@ impl Painter {
+         );
+     }
+     fn line(&mut self, x0: f64, y0: f64, x1: f64, y1: f64, class: &str, stroke: &str) {
++        if matches!(class, "rvc-event" | "rvc-leader") {
++            self.annotation_ink.push(crate::scene::Rect {
++                x: x0.min(x1) - 0.6,
++                y: y0.min(y1) - 0.6,
++                w: (x1 - x0).abs() + 1.2,
++                h: (y1 - y0).abs() + 1.2,
++            });
++        }
+         let _ = write!(
+             self.out,
+             "<line x1=\"{x0:.1}\" y1=\"{y0:.1}\" x2=\"{x1:.1}\" y2=\"{y1:.1}\" class=\"{class}\" stroke=\"{}\"/>",
+@@ -718,6 +750,33 @@ impl Painter {
+             cursor = cursor.max(b);
+         }
+     }
++    fn rotate_annotation_ink(&mut self, pivot: [f64; 2], rotate: f64) {
++        let Some(rect) = self.annotation_ink.last_mut() else {
++            return;
++        };
++        let (sin, cos) = rotate.to_radians().sin_cos();
++        let mut bounds = [f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY];
++        for x in [rect.x, rect.right()] {
++            for y in [rect.y, rect.bottom()] {
++                let dx = x - pivot[0];
++                let dy = y - pivot[1];
++                let xx = pivot[0] + dx * cos - dy * sin;
++                let yy = pivot[1] + dx * sin + dy * cos;
++                bounds = [
++                    bounds[0].min(xx),
++                    bounds[1].min(yy),
++                    bounds[2].max(xx),
++                    bounds[3].max(yy),
++                ];
++            }
++        }
++        *rect = crate::scene::Rect {
++            x: bounds[0],
++            y: bounds[1],
++            w: bounds[2] - bounds[0],
++            h: bounds[3] - bounds[1],
++        };
++    }
+     fn grow_height(&mut self, height: f64) {
+         if height > self.height {
+             self.set_height(height);
+@@ -2254,6 +2313,12 @@ fn annotations(
+                             p.out,
+                             "<circle cx=\"{x:.1}\" cy=\"{y:.1}\" r=\"5\" fill=\"none\" stroke=\"var(--rv-accent,oklch(0.4917 0.1398 261.54))\" stroke-width=\"2\"/>"
+                         );
++                        p.annotation_ink.push(crate::scene::Rect {
++                            x: x - 6.1,
++                            y: y - 6.1,
++                            w: 12.2,
++                            h: 12.2,
++                        });
+                     }
+                     Some([x, y])
+                 }
+@@ -3218,9 +3283,9 @@ fn heatmap(p: &mut Painter, chart: &Value, data: &[Value], grow: bool, theme: &s
+     let cell_value = |value: f64| {
+         let text = crate::format::compact(value);
+         if value != 0.0 && text == "0" {
+-            format!("{value:.2e}")
++            (format!("{value:.2e}"), true)
+         } else {
+-            text
++            (text, false)
+         }
+     };
+     let column_index: HashMap<&str, usize> = layout
+@@ -3231,6 +3296,7 @@ fn heatmap(p: &mut Painter, chart: &Value, data: &[Value], grow: bool, theme: &s
+         .collect();
+     let row_index: HashMap<&str, usize> = layout.rows.iter().enumerate().map(|(i, s)| (s.as_str(), i)).collect();
+     let (cf, rf) = (layout.column_field.as_str(), layout.row_field.as_str());
++    let mut scientific_labels = Vec::new();
+     for (index, r) in data.iter().enumerate() {
+         let (Some(&i), Some(&j)) = (
+             column_index.get(text(&r[cf]).as_str()),
+@@ -3288,10 +3354,11 @@ fn heatmap(p: &mut Painter, chart: &Value, data: &[Value], grow: bool, theme: &s
+             svg::escape(&text(&r[y])),
+             v
+         );
++        let (number, scientific) = cell_value(if format == "percent" { v * 100.0 } else { v });
+         let value = if format == "percent" {
+-            format!("{}%", cell_value(v * 100.0))
++            format!("{number}%")
+         } else {
+-            crate::format::with_unit(&cell_value(v), suffix)
++            crate::format::with_unit(&number, suffix)
+         };
+         if cw >= 40.0 && ch >= 20.0 && category::text_width(&value) <= cw - 6.0 {
+             let ink = if colors.level(v) >= RAMP_TEXT_FLIP {
+@@ -3300,6 +3367,7 @@ fn heatmap(p: &mut Painter, chart: &Value, data: &[Value], grow: bool, theme: &s
+                 "var(--rv-chart-ink,oklch(0 0 0))"
+             };
+             let w = category::text_width(&value);
++            let start = p.out.len();
+             let _ = write!(
+                 p.out,
+                 "<text class=\"rvc-cell-value\" x=\"{:.1}\" y=\"{:.1}\" text-anchor=\"middle\" textLength=\"{w:.2}\" lengthAdjust=\"spacingAndGlyphs\" style=\"font-size:12px;fill:{ink}\">{}</text>",
+@@ -3307,6 +3375,18 @@ fn heatmap(p: &mut Painter, chart: &Value, data: &[Value], grow: bool, theme: &s
+                 yy + ch / 2.0 + 4.0,
+                 svg::escape(&value)
+             );
++            if scientific {
++                // These optional labels have no halo and never affect annotation placement.
++                scientific_labels.push((
++                    start..p.out.len(),
++                    crate::scene::Rect {
++                        x: xx + cw / 2.0 - w / 2.0 - 0.1,
++                        y: yy + ch / 2.0 + 4.0 - 13.1,
++                        w: w + 0.2,
++                        h: 17.2,
++                    },
++                ));
++            }
+         }
+     }
+     let xmap = |value: &Value| {
+@@ -3341,6 +3421,25 @@ fn heatmap(p: &mut Painter, chart: &Value, data: &[Value], grow: bool, theme: &s
+         chart.clone()
+     };
+     annotations(p, &annotated, cf, rf, left, top, grid_w, h, &xmap, &ymap, true);
++    // Preserve authored annotation placement; only the newly expanded optional text can go.
++    let mut blocked = scientific_labels
++        .into_iter()
++        .filter(|(_, cell)| {
++            p.annotation_ink.iter().any(|ink| {
++                cell.x < ink.right() && ink.x < cell.right() && cell.y < ink.bottom() && ink.y < cell.bottom()
++            })
++        })
++        .peekable();
++    if blocked.peek().is_some() {
++        let mut output = String::with_capacity(p.out.len());
++        let mut cursor = 0;
++        for (range, _) in blocked {
++            output.push_str(&p.out[cursor..range.start]);
++            cursor = range.end;
++        }
++        output.push_str(&p.out[cursor..]);
++        p.out = output;
++    }
+     for (j, label) in layout.row_labels.iter().enumerate() {
+         let first = top + (j as f64 + 0.5) * ch - (label.len() as f64 - 1.0) * category::LINE_H / 2.0 + 4.0;
+         p.name(label, left - 10.0, first, "end");
+diff --git a/richview-chart/tests/heatmap_cell_values.rs b/richview-chart/tests/heatmap_cell_values.rs
+index bbe4f31..fafd552 100644
+--- a/richview-chart/tests/heatmap_cell_values.rs
++++ b/richview-chart/tests/heatmap_cell_values.rs
+@@ -68,3 +68,63 @@ fn heatmap_cell_units_convert_once_and_keep_the_existing_fit_limit() {
+         ["0 mol/s", "1.00e-12 mol/s", "2.00e-12 mol/s"]
+     );
+ }
++
++#[test]
++fn expanded_cell_values_yield_only_to_emitted_annotation_ink() {
++    let rows = vec![
++        json!({"x":"A","y":"Now","value":1e-12}),
++        json!({"x":"B","y":"Now","value":2e-12}),
++        json!({"x":"C","y":"Now","value":0}),
++        json!({"x":"D","y":"Now","value":7}),
++        json!({"x":"A","y":"Later","value":3e-12}),
++        json!({"x":"B","y":"Later","value":4e-12}),
++        json!({"x":"C","y":"Later","value":0}),
++        json!({"x":"D","y":"Later","value":8}),
++    ];
++    let base = json!({"type":"heatmap","encoding":{"x":"x","y":"y","color":"value"}});
++    let plain = render_rmd_chart(&base, &rows, 720.0, "scientific");
++    for kind in ["point", "text"] {
++        for rotate in [0, 45, 90, 180] {
++            let mut chart = base.clone();
++            chart["annotations"] =
++                json!([{"kind":kind,"at":{"x":"A","y":"Now"},"text":"First reading","rotate":rotate}]);
++            let out = render_rmd_chart(&chart, &rows, 720.0, "scientific");
++            let values = labels(&out.svg);
++            if kind == "point" {
++                assert!(!values.iter().any(|s| s == "1.00e-12"), "{kind} {rotate}: {values:?}");
++            } else {
++                // This sibling drops optional text when the full heatmap leaves it no room.
++                assert!(values.iter().any(|s| s == "1.00e-12"), "{kind} {rotate}: {values:?}");
++                assert!(
++                    out.diagnostics["droppedLabels"]
++                        .as_array()
++                        .unwrap()
++                        .iter()
++                        .any(|l| l["text"] == "First reading")
++                );
++            }
++            assert!(values.iter().any(|s| s == "4.00e-12"), "{kind} {rotate}: {values:?}");
++            assert_eq!(values.iter().filter(|s| *s == "0").count(), 2);
++            assert!(values.iter().any(|s| s == "7") && values.iter().any(|s| s == "8"));
++            assert_eq!(out.hit_points, plain.hit_points);
++            assert_eq!(out.runtime.as_ref().unwrap()["chart"]["data"]["inline"], json!(rows));
++        }
++    }
++    for annotation in [
++        json!({"kind":"band","from":{"y":"Now"},"to":{"y":"Later"},"text":""}),
++        json!({"kind":"text","at":{"x":"Unknown","y":"Now"},"text":"Unresolved"}),
++    ] {
++        let mut chart = base.clone();
++        chart["annotations"] = json!([annotation]);
++        assert_eq!(
++            labels(&render_rmd_chart(&chart, &rows, 720.0, "scientific").svg),
++            labels(&plain.svg)
++        );
++    }
++    let mut chart = base;
++    chart["annotations"] = json!([{"kind":"line","at":{"y":"Now"},"text":""}]);
++    assert_eq!(
++        labels(&render_rmd_chart(&chart, &rows, 720.0, "scientific").svg),
++        ["0", "7", "3.00e-12", "4.00e-12", "0", "8"]
++    );
++}

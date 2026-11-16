@@ -1,0 +1,29 @@
+---
+title: Heatmap cells label-truth passes
+---
+
+# Heatmap cells label-truth passes
+
+```chart
+type: heatmap
+title: Small cells in a 0 to 100 domain
+data:
+  inline:
+    - {r: a, c: x, v: 0.01}
+    - {r: a, c: y, v: 0.07}
+    - {r: b, c: x, v: 100}
+    - {r: b, c: y, v: 0.03}
+encoding: {x: c, y: r, color: v}
+```
+
+```chart
+type: heatmap
+title: A positive cell in a domain from minus 1 to 1000
+data:
+  inline:
+    - {r: a, c: x, v: -1}
+    - {r: a, c: y, v: 0.03}
+    - {r: b, c: x, v: 1000}
+    - {r: b, c: y, v: 0.5}
+encoding: {x: c, y: r, color: v}
+```

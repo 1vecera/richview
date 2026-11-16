@@ -1,0 +1,8 @@
+---
+title: Empty quantity inspection
+version: 0.0.1
+---
+
+```chart
+{"type": "scatter", "encoding": {"x": "x", "y": "y", "size": "size"}, "axes": {"y": {"label": "Published total", "format": "currency", "min": 0, "suffix": "USD"}}, "data": {"inline": [{"x": 0, "y": 1000000, "size": 0}, {"x": 10, "y": 1200000, "size": 0}]}, "title": "Observations"}
+```

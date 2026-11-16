@@ -1,0 +1,35 @@
+---
+title: Find the few causes behind most defects
+description: A Pareto chart ranks causes from the largest down and adds a running share, so the reader sees how few causes explain most of the total.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Two causes explain most defects
+
+These illustrative counts come from a production line. The bars run from the largest cause down; the line at the right adds them up as a share of all defects.
+
+```chart
+type: pareto
+title: Misalignment and discolouration cause 71 percent of defects
+subtitle: Defects per cause, with the running share of the total
+data:
+  inline:
+    - cause: Scratches
+      defects: 18
+    - cause: Misalignment
+      defects: 52
+    - cause: Cracks
+      defects: 9
+    - cause: Discolouration
+      defects: 31
+    - cause: Other
+      defects: 6
+encoding: {x: cause, y: defects}
+axes:
+  y: {label: Defects}
+```
+
+*Source: Illustrative values.*
+
+Use the keyboard or pointer to read each cause's count, its share and the share of the causes up to it.

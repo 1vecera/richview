@@ -1,0 +1,27 @@
+# Studio exploration "Apricot" (v10-apricot), Editorial.
+# Converted from richview-universe/richview-design-system studio/variants.js @ 8c6a8e0.
+# Tokens and layout live here; the variant's signature rules ship as CSS beside it.
+tokens:
+  scheme: light
+  size-base: "16.5px"
+  line-base: "1.6"
+  bg: "oklch(0.96 0.028 50)"
+  bg-elev: "oklch(0.93 0.030 50)"
+  bg-chart: "oklch(0.94 0.028 50)"
+  ink: "oklch(0.24 0.015 260)"
+  ink-soft: "oklch(0.44 0.012 260)"
+  ink-faint: "oklch(0.6100 0.01 260.0)"
+  rule: "oklch(0.80 0.020 45)"
+  rule-soft: "oklch(0.88 0.018 50)"
+  accent: "oklch(0.45 0.10 210)"
+  accent-soft: "oklch(0.45 0.10 210 / 0.10)"
+  link: "oklch(0.45 0.10 210)"
+  up: "oklch(0.42 0.11 150)"
+  down: "oklch(0.48 0.15 25)"
+  hold: "oklch(0.5200 0.13 70.0)"
+  font-text: '"RichView Serif", Georgia, serif'
+  font-display: '"RichView Serif", serif'
+  font-ui: '"Inter", sans-serif'
+  font-mono: '"JetBrains Mono", monospace'
+  radius-s: "3px"
+  radius-m: "3px"

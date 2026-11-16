@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<title>RichView — Let your agent present.</title>
+		<meta
+			name="description"
+			content="Let your agent present. Designed, reproducible, versioned. RichView is a presentation layer for your agent: a plain-text Rich Markdown file in, a typeset, self-contained HTML data story out."
+		/>
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="RichView" />
+		<meta property="og:title" content="RichView — Let your agent present. Designed, reproducible, versioned." />
+		<meta
+			property="og:description"
+			content="Let your agent present. Designed, reproducible, versioned."
+		/>
+		<meta property="og:url" content="https://richview.ai/" />
+		<meta property="og:image" content="https://richview.ai/share/home.png" />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="theme-color" content="#faf9f6" />
+		<link rel="canonical" href="https://richview.ai/" />
+		<link rel="icon" type="image/svg+xml" href="/landing/favicon.svg" />
+		<!-- The first screen's faces: the headline, the interface, and Vee's handwriting and brush. -->
+		<link rel="preload" href="/fonts/bricolage-grotesque-600.woff2" as="font" type="font/woff2" crossorigin />
+		<link rel="preload" href="/fonts/geist-400.woff2" as="font" type="font/woff2" crossorigin />
+		<link rel="preload" href="/fonts/caveat-500.woff2" as="font" type="font/woff2" crossorigin />
+		<link rel="preload" href="/fonts/caveat-brush-400.woff2" as="font" type="font/woff2" crossorigin />
+		<!-- The page's faces are site fonts. The report-face catalog is not linked here: the scroll story's
+		     styles link it as the reader nears them, and the live example's renders fetch it (S27-927). -->
+		<link rel="stylesheet" href="/site.css" />
+		<link rel="stylesheet" href="/landing/landing.css" />
+		<link rel="stylesheet" href="/landing/editor.css" />
+		<link rel="stylesheet" href="/landing/homepage.css" />
+		<link rel="stylesheet" href="/landing/voices.css" />
+	</head>
+	<body data-richview-page="landing" data-homepage>
+		<a class="skip" href="#main">Skip to content</a>
+
+		<canvas id="rv-field" class="rv-field" aria-hidden="true"></canvas>
+		<svg id="rv-stage" class="rv-stage" aria-hidden="true" focusable="false"></svg>
+
+		<!-- rv-site-header -->
+
+		<main id="main">
+			<!-- The first screen (W4, S27-959): the line across the top, and under it RichView's painting agent at
+			     work on the anchor report's chart from its real data, rendered in Blender and baked into a short
+			     clip. The clip plays once and holds on its last frame. The still under it is the clip's first
+			     frame, so the clip's arrival never shows and a reader without video sees the same scene, standing
+			     still. With reduced motion no clip loads and the still is the clip's last frame, the scene at
+			     rest. Phones get a portrait cut. On wide screens the words and the two actions sit in the calm
+			     paper at the scene's top left; elsewhere they stand around the scene. -->
+			<section class="hero" data-ch="hero" data-rest="0.05" aria-labelledby="h-hero">
+				<h1 id="h-hero"><span class="hero__lead">Let your agent</span> <em>present.</em></h1>
+				<div class="hero__stage">
+				<div class="hero__copy">
+					<p class="hero__sub">RichView is a presentation layer for your agent.</p>
+					<!-- rv-prompt-box -->
+					<p class="hero__try"><a class="pill pill--line" href="#demo">Try it in your browser <span aria-hidden="true">&#8595;</span></a></p>
+				</div>
+				<figure class="hero__scene">
+					<div class="hero__frame">
+						<picture>
+							<source media="(max-width: 699px) and (prefers-reduced-motion: reduce)" type="image/avif" srcset="/landing/hero/pip-portrait-rest.avif" width="1170" height="1560" />
+							<source media="(max-width: 699px) and (prefers-reduced-motion: reduce)" type="image/webp" srcset="/landing/hero/pip-portrait-rest.webp" width="1170" height="1560" />
+							<source media="(max-width: 699px)" type="image/avif" srcset="/landing/hero/pip-portrait.avif" width="1170" height="1560" />
+							<source media="(max-width: 699px)" type="image/webp" srcset="/landing/hero/pip-portrait.webp" width="1170" height="1560" />
+							<source media="(prefers-reduced-motion: reduce)" type="image/avif" srcset="/landing/hero/pip-rest.avif" />
+							<source media="(prefers-reduced-motion: reduce)" type="image/webp" srcset="/landing/hero/pip-rest.webp" />
+							<source type="image/avif" srcset="/landing/hero/pip.avif" />
+							<img
+								class="hero__still"
+								src="/landing/hero/pip.webp"
+								width="2560"
+								height="1440"
+								fetchpriority="high"
+								alt="Vee, a small robot, paints a line chart of life expectancy at birth in four world regions, 1950 to 2019, onto a report page."
+							/>
+						</picture>
+						<!-- One file per reader: the first source whose media and type the browser accepts, so AV1,
+						     then HEVC, then H.264. With reduced motion no source matches and nothing loads. -->
+						<video class="hero__clip" muted playsinline autoplay preload="auto" disablepictureinpicture disableremoteplayback aria-hidden="true">
+							<source media="(min-width: 700px) and (prefers-reduced-motion: no-preference)" type='video/mp4; codecs="av01.0.12M.08"' src="/landing/hero/pip.av1.mp4" />
+							<source media="(min-width: 700px) and (prefers-reduced-motion: no-preference)" type='video/mp4; codecs="hvc1.1.6.L150.90"' src="/landing/hero/pip.hevc.mp4" />
+							<source media="(min-width: 700px) and (prefers-reduced-motion: no-preference)" type='video/mp4; codecs="avc1.640032"' src="/landing/hero/pip.h264.mp4" />
+							<source media="(max-width: 699px) and (prefers-reduced-motion: no-preference)" type='video/mp4; codecs="av01.0.08M.08"' src="/landing/hero/pip-portrait.av1.mp4" />
+							<source media="(max-width: 699px) and (prefers-reduced-motion: no-preference)" type='video/mp4; codecs="hvc1.1.6.L120.90"' src="/landing/hero/pip-portrait.hevc.mp4" />
+							<source media="(max-width: 699px) and (prefers-reduced-motion: no-preference)" type='video/mp4; codecs="avc1.640028"' src="/landing/hero/pip-portrait.h264.mp4" />
+						</video>
+						<!-- The chart's title and region names, painted on the scene's paper in the scene's perspective: each text
+						     sits at a data point (year, years of life) mapped into the frame by the camera's homography, fitted
+						     to the drawn lines, set in Caveat Brush and run through one wet-paint filter per cut. One set per cut. -->
+						<svg class="hero__marks hero__marks--wide" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+							<defs>
+								<filter id="hero-paint-wide" x="-3%" y="-45%" width="106%" height="190%" color-interpolation-filters="sRGB">
+									<feTurbulence type="fractalNoise" baseFrequency="0.085 0.11" numOctaves="2" seed="11" result="wob"/>
+									<feDisplacementMap in="SourceGraphic" in2="wob" scale="3.4" xChannelSelector="R" yChannelSelector="G" result="bent"/>
+									<feGaussianBlur in="bent" stdDeviation="0.75" result="soft"/>
+									<feComponentTransfer in="soft" result="edge"><feFuncA type="linear" slope="2.6" intercept="-0.6"/></feComponentTransfer>
+									<feTurbulence type="fractalNoise" baseFrequency="0.018 0.16" numOctaves="2" seed="4" result="streak"/>
+									<feColorMatrix in="streak" type="matrix" values="2.4 0 0 0 -0.45  2.4 0 0 0 -0.45  2.4 0 0 0 -0.45  0 0 0 0 1" result="dry"/>
+									<feComposite in="edge" in2="dry" operator="arithmetic" k1="0.4" k2="0.62" k3="0" k4="0" result="dried"/>
+									<feMorphology in="edge" operator="erode" radius="1.1" result="core"/>
+									<feGaussianBlur in="core" stdDeviation="0.8" result="coreSoft"/>
+									<feComposite in="edge" in2="coreSoft" operator="out" result="rim"/>
+									<feColorMatrix in="rim" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.3 0" result="rimDark"/>
+									<feGaussianBlur in="edge" stdDeviation="1.5" result="bump"/>
+									<feSpecularLighting in="bump" surfaceScale="3" specularConstant="0.5" specularExponent="22" lighting-color="#fff" result="sheen"><feDistantLight azimuth="235" elevation="52"/></feSpecularLighting>
+									<feComposite in="sheen" in2="edge" operator="in" result="sheenIn"/>
+									<feComponentTransfer in="sheenIn" result="sheenSoft"><feFuncA type="linear" slope="0.45"/></feComponentTransfer>
+									<feMerge><feMergeNode in="dried"/><feMergeNode in="rimDark"/><feMergeNode in="sheenSoft"/></feMerge>
+								</filter>
+							</defs>
+							<text class="hero__mark hero__mark-title" transform="matrix(0.9829 -0.0851 -0.0134 0.4755 263 500)" rotate="-1.2 -1.5 1.8 -1.2 -1.4 1.9 1.3 0.6 1.7 0.8 -0.1 1.6 1.8 1.5 0.4 -0.9 -2.0 0.2 2.2" dy="-0.57 -0.33 0.43 0.05 -0.49 0.47 -0.44 0.33 -0.37 0.01 -0.01 0.07 0.10 0.01 -0.10 0.45 0.18 -0.04 -0.44" dx="-0.10 -0.10 0.27 -0.22 -0.29 0.31 -0.19 0.35 0.11 -0.32 0.43 -0.20 0.38 -0.09 -0.34 -0.46 -0.22 -0.16 -0.09" filter="url(#hero-paint-wide)">Every region gained</text>
+							<text class="hero__mark hero__mark-title" transform="matrix(1.0028 -0.0884 -0.0139 0.4949 261.9397 537.7084)" rotate="2.0 -1.2 1.3 1.7 -0.7 0.4 0.5 -0.1 -1.4 0.4 -1.1 -0.7 1.5 1.3 1.8 0.1 -1.6" dy="0.54 -0.24 -0.70 -0.50 0.21 -0.16 0.18 0.05 0.10 0.43 -0.12 0.71 -0.66 0.07 0.71 -0.66 -0.49" dx="0.23 0.21 -0.33 0.16 0.36 -0.18 -0.09 -0.24 -0.40 0.33 0.42 -0.30 0.17 0.13 -0.32 -0.12 0.12" filter="url(#hero-paint-wide)">at least 14 years</text>
+							<text class="hero__mark hero__mark-sub" transform="matrix(1.0229 -0.0919 -0.0136 0.515 264 576)" rotate="2.0 -1.2 1.3 1.7 -0.7 0.4 0.5 -0.1 -1.4 0.4 -1.1 -0.7 1.5 1.3 1.8 0.1 -1.6 -1.8 1.4 0.5 0.2 -0.8 1.6 0.1 0.3 -1.3 -1.8 1.4 0.3 1.5 -1.3 -1.4 -1.2 -1.8 0.0 -1.2 -1.9 -0.5 -0.0 -0.5 -1.0 -0.6 -0.2 -0.3 1.7 -1.5 0.8 -0.3 -0.0 1.4 -0.8 -0.3 2.0 0.3 -1.6 1.7 -1.1" dy="0.54 -0.24 -0.70 -0.50 0.21 -0.16 0.18 0.05 0.10 0.43 -0.12 0.71 -0.66 0.07 0.71 -0.66 -0.49 -0.38 0.00 0.31 0.05 0.49 0.56 0.03 -0.68 -0.02 0.11 0.16 0.66 -0.70 -0.49 -0.50 0.00 0.00 0.00 0.00 0.55 0.07 -0.15 0.39 0.57 0.36 -0.70 -0.68 -0.42 0.43 0.25 -0.55 -0.13 0.00 0.00 0.68 0.17 -0.49 0.62 -0.40 0.47" dx="0.23 0.21 -0.33 0.16 0.36 -0.18 -0.09 -0.24 -0.40 0.33 0.42 -0.30 0.17 0.13 -0.32 -0.12 0.12 -0.49 -0.43 0.13 0.22 0.19 0.34 0.23 0.42 -0.05 0.09 -0.19 0.14 0.19 -0.17 -0.29 0.30 -0.45 0.03 -0.01 0.06 0.45 -0.28 0.11 -0.37 0.42 0.06 -0.15 -0.32 -0.19 -0.49 0.30 0.31 -0.41 -0.06 0.17 -0.27 0.08 -0.20 -0.29 0.33" filter="url(#hero-paint-wide)">The years a newborn could expect to live, by world region</text>
+							<text class="hero__mark hero__mark-label hero__mark-label--europe" transform="matrix(1.0357 -0.0978 0.1076 0.5487 709.0708 637.6808)" text-anchor="middle" rotate="-0.5 -1.6 0.9 -1.9 2.1 -1.5" dy="-0.60 -0.03 -0.28 0.00 0.52 -0.43" dx="0.08 -0.17 0.47 0.17 0.32 -0.21" filter="url(#hero-paint-wide)">Europe</text>
+							<text class="hero__mark hero__mark-label hero__mark-label--americas" transform="matrix(1.0816 -0.1066 0.1175 0.5994 726.8437 728.3224)" text-anchor="middle" rotate="-1.6 -0.2 -0.9 1.1 1.9 -1.4 2.0 1.2" dy="-0.11 -0.38 0.12 -0.53 0.00 0.00 0.64 -0.06" dx="0.35 0.17 -0.27 -0.21 -0.11 0.07 -0.19 -0.40" filter="url(#hero-paint-wide)">Americas</text>
+							<text class="hero__mark hero__mark-label hero__mark-label--asia" transform="matrix(1.049 -0.1022 0.1733 0.5742 935.1279 683.2796)" text-anchor="middle" rotate="-1.8 -1.8 -0.5 0.7" dy="-0.14 0.14 -0.58 -0.03" dx="-0.50 -0.17 0.38 0.03" filter="url(#hero-paint-wide)">Asia</text>
+							<text class="hero__mark hero__mark-label hero__mark-label--africa" transform="matrix(1.1208 -0.1168 0.1986 0.6581 978.8481 828.1155)" text-anchor="middle" rotate="-0.2 1.1 1.1 2.1 -0.7 -0.4" dy="0.10 -0.44 0.27 0.07 -0.67 0.02" dx="0.31 -0.35 0.12 -0.20 0.31 -0.35" filter="url(#hero-paint-wide)">Africa</text>
+						</svg>
+						<svg class="hero__marks hero__marks--tall" viewBox="0 0 780 1040" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+							<defs>
+								<filter id="hero-paint-tall" x="-3%" y="-45%" width="106%" height="190%" color-interpolation-filters="sRGB">
+									<feTurbulence type="fractalNoise" baseFrequency="0.085 0.11" numOctaves="2" seed="11" result="wob"/>
+									<feDisplacementMap in="SourceGraphic" in2="wob" scale="3.4" xChannelSelector="R" yChannelSelector="G" result="bent"/>
+									<feGaussianBlur in="bent" stdDeviation="0.75" result="soft"/>
+									<feComponentTransfer in="soft" result="edge"><feFuncA type="linear" slope="2.6" intercept="-0.6"/></feComponentTransfer>
+									<feTurbulence type="fractalNoise" baseFrequency="0.018 0.16" numOctaves="2" seed="4" result="streak"/>
+									<feColorMatrix in="streak" type="matrix" values="2.4 0 0 0 -0.45  2.4 0 0 0 -0.45  2.4 0 0 0 -0.45  0 0 0 0 1" result="dry"/>
+									<feComposite in="edge" in2="dry" operator="arithmetic" k1="0.4" k2="0.62" k3="0" k4="0" result="dried"/>
+									<feMorphology in="edge" operator="erode" radius="1.1" result="core"/>
+									<feGaussianBlur in="core" stdDeviation="0.8" result="coreSoft"/>
+									<feComposite in="edge" in2="coreSoft" operator="out" result="rim"/>
+									<feColorMatrix in="rim" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.3 0" result="rimDark"/>
+									<feGaussianBlur in="edge" stdDeviation="1.5" result="bump"/>
+									<feSpecularLighting in="bump" surfaceScale="3" specularConstant="0.5" specularExponent="22" lighting-color="#fff" result="sheen"><feDistantLight azimuth="235" elevation="52"/></feSpecularLighting>
+									<feComposite in="sheen" in2="edge" operator="in" result="sheenIn"/>
+									<feComponentTransfer in="sheenIn" result="sheenSoft"><feFuncA type="linear" slope="0.45"/></feComponentTransfer>
+									<feMerge><feMergeNode in="dried"/><feMergeNode in="rimDark"/><feMergeNode in="sheenSoft"/></feMerge>
+								</filter>
+							</defs>
+							<text class="hero__mark hero__mark-title" transform="matrix(0.9342 -0.237 0.7183 0.6615 52 446)" rotate="-1.2 -1.5 1.8 -1.2 -1.4 1.9 1.3 0.6 1.7 0.8 -0.1 1.6" dy="-0.57 -0.33 0.43 0.05 -0.49 0.47 -0.44 0.33 -0.37 0.01 -0.01 0.07" dx="-0.10 -0.10 0.27 -0.22 -0.29 0.31 -0.19 0.35 0.11 -0.32 0.43 -0.20" filter="url(#hero-paint-tall)">Every region</text>
+							<text class="hero__mark hero__mark-title" transform="matrix(0.9326 -0.2514 0.7353 0.6771 86.7655 478.0146)" rotate="2.0 -1.2 1.3 1.7 -0.7 0.4 0.5 -0.1 -1.4 0.4 -1.1 -0.7 1.5 1.3 1.8" dy="0.54 -0.24 -0.70 -0.50 0.21 -0.16 0.18 0.05 0.10 0.43 -0.12 0.71 -0.66 0.07 0.71" dx="0.23 0.21 -0.33 0.16 0.36 -0.18 -0.09 -0.24 -0.40 0.33 0.42 -0.30 0.17 0.13 -0.32" filter="url(#hero-paint-tall)">gained at least</text>
+							<text class="hero__mark hero__mark-title" transform="matrix(0.9307 -0.2663 0.7529 0.6933 122.3536 510.7866)" rotate="-0.5 -1.6 0.9 -1.9 2.1 -1.5 -1.2 -0.5" dy="-0.60 -0.03 -0.28 0.00 0.52 -0.43 -0.09 0.00" dx="0.08 -0.17 0.47 0.17 0.32 -0.21 -0.20 0.31" filter="url(#hero-paint-tall)">14 years</text>
+							<text class="hero__mark hero__mark-sub" transform="matrix(0.9284 -0.2826 0.772 0.7109 160.4499 545.8684)" rotate="-1.6 -0.2 -0.9 1.1 1.9 -1.4 2.0 1.2 -1.0 2.2 0.4 1.6 1.7 1.3 -1.2 1.2 1.8 -1.8 -1.4" dy="-0.11 -0.38 0.12 -0.53 0.00 0.00 0.64 -0.06 -0.26 0.43 -0.30 -0.46 0.00 0.00 0.56 -0.32 -0.23 0.47 -0.47" dx="0.35 0.17 -0.27 -0.21 -0.11 0.07 -0.19 -0.40 -0.10 -0.40 -0.24 0.23 -0.21 -0.14 0.31 -0.39 -0.28 -0.05 -0.04" filter="url(#hero-paint-tall)">The years a newborn</text>
+							<text class="hero__mark hero__mark-sub" transform="matrix(0.9269 -0.2917 0.7825 0.7205 181.2158 564.9911)" rotate="-1.8 -1.8 -0.5 0.7 -1.4 -1.4 -1.6 -2.0 0.2 -1.8 0.4 -1.7 -0.9 0.7 2.1 -1.1 -2.0 -2.2 0.1 1.7 0.2" dy="-0.14 0.14 -0.58 -0.03 0.12 -0.42 0.00 0.00 0.00 0.71 0.07 0.40 0.33 -0.36 -0.42 0.01 -0.21 0.70 0.57 0.00 0.00" dx="-0.50 -0.17 0.38 0.03 0.25 0.01 -0.23 0.32 -0.45 0.26 0.35 0.33 -0.18 -0.30 -0.26 -0.30 -0.04 -0.39 0.29 0.18 -0.22" filter="url(#hero-paint-tall)">could expect to live,</text>
+							<text class="hero__mark hero__mark-sub" transform="matrix(0.9254 -0.3009 0.7932 0.7304 202.2641 584.3739)" rotate="-0.2 1.1 1.1 2.1 -0.7 -0.4 1.9 1.0 0.8 1.9 -1.8 1.0 0.8 -1.0 -0.2" dy="0.10 -0.44 0.27 0.07 -0.67 0.02 -0.12 0.38 -0.48 0.64 -0.14 -0.51 0.00 0.54 0.23" dx="0.31 -0.35 0.12 -0.20 0.31 -0.35 -0.44 -0.42 -0.29 -0.43 -0.33 -0.25 0.16 0.21 0.11" filter="url(#hero-paint-tall)">by world region</text>
+							<text class="hero__mark hero__mark-label hero__mark-label--europe" transform="matrix(1.0038 -0.3359 0.8089 0.7798 117.0794 636.2937)" text-anchor="middle" rotate="-1.6 -0.2 -0.9 1.1 1.9 -1.4" dy="-0.11 -0.38 0.12 -0.53 0.00 0.00" dx="0.35 0.17 -0.27 -0.21 -0.11 0.07" filter="url(#hero-paint-tall)">Europe</text>
+							<text class="hero__mark hero__mark-label hero__mark-label--americas" transform="matrix(0.9075 -0.3384 0.8393 0.7685 306.2399 663.5762)" text-anchor="middle" rotate="-1.8 -1.8 -0.5 0.7 -1.4 -1.4 -1.6 -2.0" dy="-0.14 0.14 -0.58 -0.03 0.12 -0.42 0.00 0.00" dx="-0.50 -0.17 0.38 0.03 0.25 0.01 -0.23 0.32" filter="url(#hero-paint-tall)">Americas</text>
+							<text class="hero__mark hero__mark-label hero__mark-label--asia" transform="matrix(0.795 -0.2876 0.8123 0.6956 441.0252 588.4681)" text-anchor="middle" rotate="-0.2 1.1 1.1 2.1" dy="0.10 -0.44 0.27 0.07" dx="0.31 -0.35 0.12 -0.20" filter="url(#hero-paint-tall)">Asia</text>
+							<text class="hero__mark hero__mark-label hero__mark-label--africa" transform="matrix(0.7793 -0.3357 0.8715 0.7463 560.6585 690.918)" text-anchor="middle" rotate="-1.9 -0.6 1.0 0.0 -0.6 -0.8" dy="0.59 0.27 0.04 -0.45 0.45 0.00" dx="0.27 0.07 -0.21 -0.38 -0.20 0.32" filter="url(#hero-paint-tall)">Africa</text>
+						</svg>
+					</div>
+					<figcaption>Life expectancy at birth by world region, 1950&#8211;2019. Data: Gapminder (CC BY 4.0).</figcaption>
+				</figure>
+				</div>
+			</section>
+
+			<!-- The problem and the better way: the proof pair sets the HTML an agent writes by default beside
+			     the Rich Markdown source RichView keeps, in words and without numbers. The code is an example
+			     excerpt: the first lines of one small report's two files (examples/size-proof/01-trends),
+			     written in by the build, and labelled as an example. The hidden `data-size` slots wait for
+			     measured sizes, if Daniel picks a measured example. -->
+			<section class="problem" id="problem" aria-labelledby="h-problem">
+				<h2 id="h-problem">Agents create HTML reports by default. They're large, hard to edit, hard to version and iterate on, and different every time.</h2>
+				<p class="statement">There's a better way: <em>RichView.</em></p>
+				<div class="proof">
+					<figure class="proof__card proof__card--agent">
+						<figcaption>What your agent writes</figcaption>
+						<p class="proof__lead">Megabytes of generated HTML</p>
+						<p class="proof__note">what your agent hands you</p>
+						<p class="proof__size" data-size hidden></p>
+						<p class="proof__excerpt">Example excerpt</p>
+						<pre class="proof__code"><code data-hl="plain"><!-- rv-proof-html --></code></pre>
+					</figure>
+					<figure class="proof__card proof__card--git">
+						<figcaption>What you keep in Git</figcaption>
+						<p class="proof__lead">Kilobytes of text and data</p>
+						<p class="proof__note">what you keep and review in Git</p>
+						<p class="proof__size" data-size hidden></p>
+						<p class="proof__excerpt">Example excerpt</p>
+						<pre class="proof__code"><code data-hl="rmd"><!-- rv-proof-rmd --></code></pre>
+					</figure>
+				</div>
+			</section>
+
+			<section class="demo" id="demo" data-ch="demo" data-rest="0.42" aria-labelledby="h-demo">
+				<!-- Scene 2 (W3): in story builds the track pins the stage while the scroll writes the anchor
+				     report into the source and the report beside it; elsewhere both are plain blocks. -->
+				<div class="demo__track">
+					<div class="demo__pin">
+						<div class="demo__head">
+							<h2 id="h-demo">Markdown in. Interactive report out.</h2>
+						</div>
+						<div class="demo__stage">
+							<div class="sheet sheet--source" data-stage="source">
+								<!-- Vee types at a tiny keyboard on the editor's edge, twice through (under 5 s). The still is the clip's first frame, or Vee at rest with reduced motion or without
+								     scripts; the site runtime gives the slot its clip as the reader comes near (homepage.rs). -->
+								<div class="pip-slot" data-pip="typing" data-clip="/landing/vee/typing" data-plays="2" aria-hidden="true"><picture><source media="(prefers-reduced-motion: reduce), (scripting: none)" srcset="/landing/vee/typing-last.webp" /><img src="/landing/vee/typing-first.webp" width="400" height="400" alt="" loading="lazy" decoding="async" /></picture></div>
+								<div class="sheet__bar">
+									<div class="tabs" role="tablist" aria-label="Files in this report folder">
+										<button class="tab" type="button" role="tab" id="tab-report" aria-selected="true" aria-controls="panel-report" disabled>report.rmd</button>
+										<button class="tab" type="button" role="tab" id="tab-style" aria-selected="false" aria-controls="panel-style" tabindex="-1" disabled>report.rstyle.yaml <small>optional</small></button>
+									</div>
+									<span class="sheet__hint">Editable</span>
+								</div>
+								<!-- Two tools over the report's source. The picker lists the chart types the core draws for the chart the caret is in without a finding; the buttons add a block built from the example's own data. The engine fills and enables them (browser/toolbar.rs). -->
+								<div class="tools" id="demo-tools" role="group" aria-label="Edit the report">
+									<div class="tools__group">
+										<label class="tools__label" for="demo-chart-type">Chart type</label>
+										<select id="demo-chart-type" class="tools__select" aria-describedby="demo-fit" disabled><option value="line" selected>line</option></select>
+										<span class="tools__note" id="demo-fit"></span>
+									</div>
+									<div class="tools__group" role="group" aria-labelledby="tools-add">
+										<span class="tools__label" id="tools-add">Add</span>
+										<button class="tools__add" type="button" data-add="chart" disabled>+ Chart</button>
+										<button class="tools__add" type="button" data-add="table" disabled>+ Table</button>
+										<button class="tools__add" type="button" data-add="metric" disabled>+ Metric</button>
+										<button class="tools__add" type="button" data-add="callout" disabled>+ Callout</button>
+										<button class="tools__add" type="button" data-add="heading" disabled>+ Heading</button>
+										<button class="tools__add" type="button" data-add="paragraph" disabled>+ Paragraph</button>
+									</div>
+									<p class="sr-only" id="demo-tools-status" role="status"></p>
+								</div>
+								<div class="code" id="panel-report" role="tabpanel" aria-labelledby="tab-report" data-language="rmd">
+									<pre class="code__hl" aria-hidden="true"><code></code></pre>
+									<textarea id="demo-source" class="code__input" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="report.rmd, Rich Markdown source" aria-describedby="demo-help"><!-- richview-demo-source --></textarea>
+								</div>
+								<div class="code" id="panel-style" role="tabpanel" aria-labelledby="tab-style" data-language="yaml" hidden>
+									<pre class="code__hl" aria-hidden="true"><code></code></pre>
+									<textarea id="demo-style" class="code__input" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="report.rstyle.yaml, optional styling" aria-describedby="demo-help"><!-- richview-demo-style --></textarea>
+								</div>
+								<div class="sheet__foot">
+									<p id="demo-pending" class="demo-status" role="status"><i aria-hidden="true"></i><span class="demo-pending__idle">Editor not ready.</span><span class="demo-pending__starting">Starting the editor…</span><span class="demo-pending__failed">Could not start the editor. Reload to try again.</span></p>
+									<p id="demo-status" class="demo-status" role="status" aria-live="polite" data-state="static"><i aria-hidden="true"></i><span>Pre-rendered from this exact source.</span></p>
+									<button id="demo-reset" class="quiet" type="button" disabled>Reset example</button>
+								</div>
+								<ol id="demo-diagnostics" class="diagnostics" aria-label="Diagnostics" hidden></ol>
+								<p id="demo-help" class="sheet__help">Try changing the chart title or a value. The source stays in your browser.</p>
+								<noscript><p class="sheet__help">The editor requires JavaScript.</p></noscript>
+							</div>
+							<div class="sheet sheet--report">
+								<div class="sheet__bar">
+									<span>Rendered report <span class="dim">· HTML</span></span>
+									<div class="themes" id="demo-themes">
+										<span class="themes__label" id="themes-label">Style</span>
+										<div class="themes__group" role="radiogroup" aria-labelledby="themes-label">
+											<!-- rv-style-pills -->
+										</div>
+									</div>
+								</div>
+								<div class="report-viewport">
+									<p id="demo-fallback"><a href="/landing/demo.html">Open the example report</a></p>
+									<iframe id="demo-result" title="RichView report rendered from the Rich Markdown source" sandbox="allow-scripts" hidden></iframe>
+									<noscript><iframe title="RichView report rendered from the Rich Markdown source" src="/landing/demo.html" sandbox="allow-scripts"></iframe></noscript>
+									<div class="report-veil" id="demo-veil" hidden><span>Not updated: this is the last report that rendered. Fix the source or reset the example.</span></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- Your brand: an example company's style file and the report it makes, then the anchor report in each
+			     prebuilt style, as the build renders it, standing still. The company report is the page's example
+			     report rendered by the CLI with assets/landing/brand/company.rstyle.yaml over Air and captured as an
+			     image; the company, its name and its logo (the report's header image) are placeholders. -->
+			<section class="voices" id="styles" aria-labelledby="h-voices">
+				<div class="voices__head">
+					<h2 id="h-voices">Your brand</h2>
+					<p>Set your typeface and colours once. Reuse them in every report.</p>
+				</div>
+				<div class="brand-slot" data-brand>
+					<figure class="brand">
+						<figcaption class="brand__file">
+							<p class="brand__name"><code>company.rstyle.yaml</code></p>
+							<pre class="hl"><code data-hl="yaml"><!-- rv-brand-style --></code></pre>
+							<ul class="brand__chips" aria-hidden="true">
+								<li style="--chip: #0f5c45"></li>
+								<li style="--chip: #b97c0a"></li>
+								<li style="--chip: #34346f"></li>
+								<li style="--chip: #0a9ab5"></li>
+							</ul>
+							<p class="brand__note">A placeholder company; its logo bar is the report&#8217;s header image. The report is the example above, rendered with this file over the Air style.</p>
+							<!-- Vee dips a brush in the paint. The still is the clip's first frame, or Vee at rest with reduced motion or without
+							     scripts; the site runtime gives the slot its clip as the reader comes near (homepage.rs). -->
+							<div class="pip-slot" data-pip="brush" data-clip="/landing/vee/brand" aria-hidden="true"><picture><source media="(prefers-reduced-motion: reduce), (scripting: none)" srcset="/landing/vee/brand-last.webp" /><img src="/landing/vee/brand-first.webp" width="400" height="400" alt="" loading="lazy" decoding="async" /></picture></div>
+						</figcaption>
+						<div class="brand__page">
+							<picture>
+								<source type="image/avif" srcset="/landing/brand/company-report-720.avif 720w, /landing/brand/company-report-1280.avif 1280w" sizes="(max-width: 899px) 92vw, 44vw" />
+								<img src="/landing/brand/company-report-1280.webp" srcset="/landing/brand/company-report-720.webp 720w, /landing/brand/company-report-1280.webp 1280w" sizes="(max-width: 899px) 92vw, 44vw" width="1280" height="1788" loading="lazy" decoding="async" alt="The example report, Longer lives, in the style of Your Company Name Inc.: a slim green bar with its logo, its own headline typeface and its four colours on the life-expectancy chart." />
+							</picture>
+						</div>
+					</figure>
+				</div>
+				<h3 class="voices__label" id="h-prebuilt">Prebuilt styles</h3>
+				<div class="voices__track">
+					<div class="voices__stage">
+						<ol class="voices__rail" aria-label="Styles">
+							<!-- rv-voices-rail -->
+						</ol>
+						<div class="voices__pages">
+							<!-- rv-voices-pages -->
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- The best elements, named (Daniel, 9 Nov): each with a small specimen made from the page's example, its
+			     data, numbers and words. The site draws the specimens; the chart's lines and the style colours are
+			     written in by the build from the example's CSV and from core's style tokens. -->
+			<section class="best" id="elements" aria-labelledby="h-best">
+				<header class="section-head">
+					<h2 id="h-best">The best elements of Rich Markdown</h2>
+				</header>
+				<ul class="elements">
+					<li class="element element--charts">
+						<h3>Charts</h3>
+						<p>Line, bar and scatter to Sankey diagrams, treemaps and maps, each drawn from the data beside it.</p>
+						<div class="element__spec">
+							<!-- rv-elements-chart -->
+							<p class="spec-chart__source">Life expectancy at birth, 1950&#8211;2019. Data: Gapminder (CC BY 4.0).</p>
+						</div>
+					</li>
+					<li class="element element--metrics">
+						<h3>Metrics</h3>
+						<p>The one number that matters, with what it counts and how it moved.</p>
+						<div class="element__spec spec-metric"><b>78.8</b><span>Years a newborn in Europe could expect to live, 2019</span><span class="up">+14.2 years since 1950</span></div>
+					</li>
+					<li class="element element--callouts">
+						<h3>Callouts</h3>
+						<p>An aside that tells the reader which way the evidence points.</p>
+						<div class="element__spec"><p class="spec-callout"><b>Why the dip.</b> The sharp fall in Asia around 1960 is the Great Chinese Famine of 1959&#8211;61.</p></div>
+					</li>
+					<li class="element element--tables">
+						<h3>Tables</h3>
+						<p>Exact values in columns a reader can sort.</p>
+						<div class="element__spec">
+							<table class="spec-table">
+								<caption>Years gained, 1950 to 2019</caption>
+								<thead><tr><th scope="col">Region</th><th scope="col">1950</th><th scope="col">2019</th><th scope="col">Gained</th></tr></thead>
+								<tbody>
+									<tr><th scope="row">Asia</th><td>45.6</td><td>74.9</td><td>29.3</td></tr>
+									<tr><th scope="row">Africa</th><td>42.8</td><td>65.2</td><td>22.4</td></tr>
+									<tr><th scope="row">Americas</th><td>60.8</td><td>77.5</td><td>16.7</td></tr>
+									<tr><th scope="row">Europe</th><td>64.6</td><td>78.8</td><td>14.2</td></tr>
+								</tbody>
+							</table>
+						</div>
+					</li>
+					<li class="element element--images">
+						<h3>Images</h3>
+						<p>Your own pictures, or credited photos from Unsplash.</p>
+						<figure class="element__spec spec-image">
+							<img src="https://images.unsplash.com/photo-1658909913848-1680f5d1af61?ixid=M3wxMTE0NDQ4fDB8MXxhbGx8fHx8fHx8fHwxNzk0MjMzMTAzfA&amp;ixlib=rb-4.1.0&amp;w=800&amp;q=75&amp;fm=jpg&amp;fit=max" width="800" height="320" loading="lazy" decoding="async" alt="A small child&#8217;s hand holding the finger of an older person&#8217;s weathered hand" />
+							<figcaption>Photo by <a href="https://unsplash.com/@loumevisser?utm_source=richview&amp;utm_medium=referral">Loume Visser</a> on <a href="https://unsplash.com/?utm_source=richview&amp;utm_medium=referral">Unsplash</a></figcaption>
+						</figure>
+					</li>
+					<li class="element element--type">
+						<h3>Typography</h3>
+						<p>Curly quotes, dashes and footnotes, set as a typesetter would.</p>
+						<div class="element__spec"><p class="spec-type">&#8220;Longer lives&#8221; &#8211; 1950 to 2019<sup>1</sup></p></div>
+					</li>
+					<li class="element element--colour">
+						<h3>Colour</h3>
+						<p>Each style brings its own accent; RichView derives the tints from it and checks every palette for contrast and colour vision.</p>
+						<div class="element__spec"><ul class="spec-colour"><!-- rv-elements-palettes --></ul></div>
+					</li>
+					<li class="element element--more">
+						<h3>And more</h3>
+						<ul class="spec-more">
+							<li>Annotations</li>
+							<li>Maths</li>
+							<li>Footnotes</li>
+							<li>Tabs</li>
+							<li>Scrollytelling</li>
+							<li>Video</li>
+							<li>Audio</li>
+							<li>Embeds</li>
+						</ul>
+						<p class="best__more"><a href="/docs/">All elements in the docs &#8594;</a></p>
+					</li>
+				</ul>
+			</section>
+
+			<!-- The ecosystem: the five pieces of RichView, one line each. Rich Markdown is only one of them, and
+			     its card leads up to the elements. -->
+			<section class="ecosystem" id="ecosystem" aria-labelledby="h-ecosystem">
+				<header class="section-head">
+					<h2 id="h-ecosystem">RichView is a whole ecosystem.</h2>
+				</header>
+				<ul class="eco">
+					<li class="eco__card eco__card--link">
+						<h3><a href="#elements">Rich Markdown <span aria-hidden="true">&#8593;</span></a></h3>
+						<p>Your agent writes it, guided by <code>richview learn</code>.</p>
+						<pre class="hl eco__visual"><code data-hl="rmd">## The evidence
+
+```chart
+type: bar
+title: Share of mentions
+data: { csv: data/hn.csv }
+```</code></pre>
+					</li>
+					<li class="eco__card">
+						<h3>Renderer</h3>
+						<p>Validation and chart diagnostics, then one self-contained HTML report.</p>
+						<div class="eco__visual mini-chart" aria-hidden="true"><i style="--h: 4.4%"><em>3%</em></i><i style="--h: 26.7%"><em>18%</em></i><i style="--h: 62.8%"><em>43%</em></i><i style="--h: 100%"><em>68%</em></i></div>
+					</li>
+					<li class="eco__card">
+						<h3>Styles</h3>
+						<p>Your brand, decided once and reused every time.</p>
+						<div class="eco__visual eco__visual--tiles" aria-hidden="true">
+							<div class="theme-tiles"><!-- rv-style-tiles --></div>
+							<pre class="hl"><code data-hl="yaml">styles: [scientific, report.rstyle.yaml]</code></pre>
+						</div>
+					</li>
+					<li class="eco__card">
+						<h3>VS Code extension</h3>
+						<p>Live preview beside the source. <a href="/docs/vscode">Build it from source</a> for now.</p>
+						<div class="eco__visual" aria-hidden="true">
+							<div class="split"><span class="split__src"><i></i><i></i><i class="hi"></i><i></i><i></i></span><span class="split__view"><i></i><i></i><i></i><i></i></span></div>
+						</div>
+					</li>
+					<li class="eco__card">
+						<h3>Report server</h3>
+						<p>Share a stable, versioned link.</p>
+						<div class="eco__visual" aria-hidden="true">
+							<ul class="versions"><li><code>/r/weekly</code><span>latest</span></li><li><code>/r/weekly/v/1.2.0</code></li><li><code>/r/weekly/v/1.1.0</code></li></ul>
+						</div>
+					</li>
+				</ul>
+			</section>
+
+			<!-- rv-hosted-server -->
+
+			<section class="close" id="close" aria-labelledby="h-close">
+				<h2 id="h-close">Try it right now and see how simple it is.</h2>
+				<p class="close__note">Of course, you won't be doing any of this: it's for your agent.</p>
+				<div class="close__sheet">
+					<!-- rv-prompt-box -->
+					<!-- Vee waves, a card under one arm. The still is the clip's first frame, or Vee at rest with reduced motion or without
+					     scripts; the site runtime gives the slot its clip as the reader comes near (homepage.rs). -->
+					<div class="pip-slot" data-pip="wave" data-clip="/landing/vee/wave" aria-hidden="true"><picture><source media="(prefers-reduced-motion: reduce), (scripting: none)" srcset="/landing/vee/wave-rest.webp" /><img src="/landing/vee/wave-first.webp" width="400" height="400" alt="" loading="lazy" decoding="async" /></picture></div>
+				</div>
+				<!-- Release updates: one email field and its button, and one line that says what the reader signs up
+				     for (Daniel, 9 Nov). Pressing the button is the consent the line describes. -->
+				<div class="updates" id="signup">
+					<form id="interest-form" action="/api/interest" method="post">
+						<label class="updates__label" for="interest-email">Get release updates</label>
+						<div class="updates__input">
+							<input id="interest-email" name="email" type="email" autocomplete="email" maxlength="254" required placeholder="you@example.com" />
+							<button class="btn btn--primary" type="submit" disabled>Keep me updated &#8594;</button>
+						</div>
+						<div class="honeypot" aria-hidden="true"><label for="interest-website">Website</label><input id="interest-website" name="website" type="text" tabindex="-1" autocomplete="off" /></div>
+						<p class="updates__terms">You&#8217;ll get RichView release and product updates by email. <a href="/privacy">Privacy</a></p>
+						<p id="interest-status" role="status" aria-live="polite"></p>
+						<noscript><p>Signing up requires JavaScript so we can show whether your email was saved.</p></noscript>
+					</form>
+				</div>
+				<p class="close__open">RichView is open source and MIT licensed.</p>
+			</section>
+
+		</main>
+
+		<!-- rv-site-footer -->
+
+		<script src="/landing/bootstrap.js"></script>
+	</body>
+</html>

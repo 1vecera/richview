@@ -1,0 +1,75 @@
+---
+title: Chart integrity audit
+version: 0.0.1
+---
+
+```chart
+{
+  "type": "heatmap",
+  "title": "Reported values",
+  "encoding": {
+    "x": "column",
+    "y": "row",
+    "color": "score"
+  },
+  "data": {
+    "inline": [
+      {
+        "column": "01",
+        "row": "A",
+        "score": "1.000"
+      },
+      {
+        "column": "02",
+        "row": "A",
+        "score": "10.000"
+      },
+      {
+        "column": "03",
+        "row": "A",
+        "score": "20.000"
+      },
+      {
+        "column": "04",
+        "row": "A",
+        "score": "30.000"
+      },
+      {
+        "column": "05",
+        "row": "A",
+        "score": "40.000"
+      },
+      {
+        "column": "06",
+        "row": "A",
+        "score": "50.000"
+      },
+      {
+        "column": "07",
+        "row": "A",
+        "score": "60.000"
+      },
+      {
+        "column": "08",
+        "row": "A",
+        "score": "70.000"
+      },
+      {
+        "column": "09",
+        "row": "A",
+        "score": "80.000"
+      },
+      {
+        "column": "10",
+        "row": "A",
+        "score": "90.000"
+      },
+      {
+        "column": null,
+        "row": "A",
+        "score": "1000000.000"
+      }
+    ]
+  }
+}
+```

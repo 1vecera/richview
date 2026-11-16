@@ -1,0 +1,254 @@
+/* Layout and print rules only: every colour, face, size and radius comes from the style cascade
+   (STY-17), whose builtin sets each token. */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--rv-bg); color: var(--rv-ink); }
+body {
+  font: 400 var(--rv-size-base)/var(--rv-line-base) var(--rv-font-text);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+/* Vertical rhythm counts in body lines. */
+/* (The syntax string is written with a CSS escape so the stylesheet holds no angle bracket.)
+   The measure as one length, resolved at the report so a measure in `ch` is the page's and not the
+   width of the heading or quote it limits. */
+@property --rv-measure-w { syntax: "\3c length>"; inherits: true; initial-value: 576px; }
+.rv-report {
+  --rv-measure-w: var(--rv-measure);
+  --rv-line: calc(var(--rv-size-base) * var(--rv-line-base));
+  max-width: var(--rv-report-max-width, 980px);
+  margin: 4rem auto;
+  padding: 0 1.5rem 4rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--rv-line);
+}
+.rv-report > * { min-width: 0; }
+.rv-report :where(strong, b) { font-weight: 600; }
+/* Header, prose and footer share one measure and one left spine; only tables and blocks that
+   opt in break out of it. */
+.rv-report__header { max-width: var(--rv-measure-w); padding-bottom: calc(var(--rv-line) * .75); border-bottom: 1px solid var(--rv-rule); }
+.rv-report__title {
+  font-family: var(--rv-font-display, var(--rv-font-text));
+  font-size: var(--rv-size-display);
+  line-height: 1.08;
+  font-weight: 600;
+  margin: 0 0 calc(var(--rv-line) * .5);
+  letter-spacing: -.015em;
+  text-wrap: balance;
+}
+.rv-report__lede, .rv-report__subtitle {
+  font-size: var(--rv-size-base);
+  line-height: 1.5;
+  color: var(--rv-ink-soft);
+  margin: 0 0 calc(var(--rv-line) * .75);
+  max-width: var(--rv-measure-w);
+  text-wrap: pretty;
+}
+.rv-report__meta { font-size: var(--rv-size-small); color: var(--rv-ink-soft); display: flex; flex-wrap: wrap; gap: .25rem 1rem; margin: 0; }
+.rv-report__meta span, .rv-report__meta time { display: inline-block; }
+/* Everything defaults to the text measure so charts, callouts and figures all
+   share a left reading spine with the prose. Markdown tables still spill to the full
+   column because they're often wider than text; a table block opts in with `wide`. Chart/image/embed blocks that
+   explicitly opt in (`--full`) break out to the full report width. */
+/* A chart and its source note share a box for paper; on screen the box generates none, so its
+   children lay out as the body's own. */
+.rv-keep { display: contents; }
+.rv-report__body > *, .rv-keep > * { max-width: var(--rv-measure-w); }
+/* The measure column sits on the report's axis, with the header and footer, so wide blocks that
+   break out are symmetric about the same centre. A phone is narrower than the measure, so
+   nothing moves there; on paper the axis is the middle of the printable width. */
+.rv-report .rv-report__body > *, .rv-report .rv-keep > *, .rv-report .rv-report__header, .rv-report .rv-report__footer { margin-inline: auto; }
+/* Grid items with auto margins shrink to their content; the header and footer fill the measure. */
+.rv-report .rv-report__header, .rv-report .rv-report__footer { width: 100%; }
+.rv-report__body > :first-child, .rv-report__body > .rv-keep:first-child > :first-child { margin-top: 0; }
+.rv-report__body > .rv-table--full,
+.rv-report__body > table,
+.rv-report__body > .rv-table-scroll { max-width: 100%; }
+.rv-report__body > .rv-chart.rv-chart--full,
+.rv-keep > .rv-chart.rv-chart--full,
+.rv-report__body > .rv-embed.rv-embed--full,
+.rv-report__body > figure.rv-image.rv-image--full { max-width: 100%; }
+.rv-report__body h1, .rv-report__body h2, .rv-report__body h3 {
+  font-family: var(--rv-font-display, var(--rv-font-text));
+  font-weight: 600;
+  letter-spacing: -.01em;
+  text-wrap: balance;
+}
+.rv-report__body h1 { font-size: var(--rv-size-h1); line-height: 1.12; margin: var(--rv-block-gap) 0 calc(var(--rv-line) * .5); }
+.rv-report__body h2 { font-size: var(--rv-size-h2); line-height: 1.18; margin: var(--rv-block-gap) 0 calc(var(--rv-line) * .5); }
+.rv-report__body h3 { font-size: var(--rv-size-h3); line-height: 1.25; margin: calc(var(--rv-line) * 1.25) 0 calc(var(--rv-line) * .4); }
+.rv-report__body p, .rv-report__body ul, .rv-report__body ol { margin: 0 0 calc(var(--rv-line) * .75 * var(--rv-density)); }
+.rv-report__body a { color: var(--rv-link); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
+/* Text-level blocks (quotes, code, tables) sit half a block gap apart; metrics and callouts a whole one. A quote reads from its indent and softer ink, with no side rule (STY-61). */
+.rv-report__body blockquote { margin-block: calc(var(--rv-block-gap) * .5); padding-inline-start: 2.5ch; box-sizing: border-box; color: var(--rv-ink-soft); line-height: 1.55; }
+/* The larger size sits on the content, so a measure in ch is still the page's, not the quote's. */
+.rv-report__body blockquote > * { font-size: calc(var(--rv-size-base) * 1.06); }
+/* Definition lists and mathematics read as part of the text, in the style's own inks. */
+.rv-report__body dl { margin: 0 0 calc(var(--rv-line) * .75 * var(--rv-density)); }
+.rv-report__body dt { font-weight: 600; color: var(--rv-ink); }
+.rv-report__body dd { margin: 0 0 calc(var(--rv-line) * .4) 2.5ch; color: var(--rv-ink-soft); }
+.rv-report__body math { font-size: 1.08em; }
+.rv-report__body .rv-math { display: block; margin-block: calc(var(--rv-block-gap) * .5); overflow-x: auto; }
+.rv-report__body .rv-math > math { font-size: 1.2em; }
+.rv-report__body .rv-math-error { color: var(--rv-down); font-family: var(--rv-font-mono); font-size: var(--rv-size-small); }
+.rv-report__body blockquote > :last-child { margin-bottom: 0; }
+.rv-report__body blockquote cite, .rv-report__body blockquote footer { display: block; margin-top: calc(var(--rv-line) * .35); font-size: var(--rv-size-small); font-style: normal; }
+.rv-report__body code:not(pre code) {
+  font-family: var(--rv-font-mono);
+  background: var(--rv-bg-elev); padding: .1em .3em; border-radius: min(var(--rv-radius-s), .25em);
+}
+.rv-report__body pre {
+  background: var(--rv-bg-elev); padding: 1em 1.25em; border-radius: min(var(--rv-radius-m), 6px); overflow-x: auto;
+  font: var(--rv-size-small)/1.5 var(--rv-font-mono);
+}
+/* The user-agent code rule otherwise overrides the pre's embedded mono face. */
+.rv-report__body pre code { font-family: inherit; }
+/* A return arrow made from vector rules needs no host-only Unicode glyph. The link keeps its
+   accessible name and reference target in the generated markup. */
+.rv-fn-back { display: inline-block; position: relative; width: 1em; height: .8em; vertical-align: baseline; }
+.rv-fn-back::before { content: ""; position: absolute; left: .1em; bottom: .16em; width: .28em; height: .28em; border-left: .08em solid; border-bottom: .08em solid; transform: rotate(45deg); }
+.rv-fn-back::after { content: ""; position: absolute; left: .12em; bottom: .25em; width: .65em; height: .45em; border-right: .08em solid; border-bottom: .08em solid; border-bottom-right-radius: .2em; }
+/* A block the runtime found overflowing (it is then focusable) shows a solid rule on the side
+   where more code is hidden: no gradient, no shadow (STY-50). */
+.rv-report__body pre[tabindex] { border-inline-end: 3px solid var(--rv-rule); }
+/* Tables. A chart's expanded view is a dialog outside the body, and its Table follows the same
+   rules, each style's included (FEA-CH-45). */
+.rv-report__body table, .rv-chart-dialog table {
+  border-collapse: collapse; width: 100%; margin: calc(var(--rv-block-gap) * .5) 0;
+  font-size: var(--rv-size-small); line-height: 1.45;
+}
+/* In the expanded view a table is as wide as its columns need and at least a measure wide: spread
+   across the whole dialog, a few columns would sit too far apart to read across. */
+.rv-chart-dialog table { width: auto; min-width: min(100%, var(--rv-measure, 35rem)); }
+/* A Markdown table scrolls inside its wrapper at narrow widths; wide content keeps its size. */
+.rv-table-scroll { max-width: 100%; overflow-x: auto; margin: calc(var(--rv-block-gap) * .5) 0; }
+.rv-table-scroll > table { margin: 0; min-width: 100%; width: max-content; max-width: none; }
+.rv-table-scroll:focus-visible { outline: 2px solid var(--rv-link); outline-offset: 2px; }
+/* A table box that scrolls sideways shows it (S27-879). While its content is wider, the runtime
+   marks the box (data-rv-cues) and the sides that have more (data-rv-more): on each, an edge cue
+   fades the content into the surface the box sits on, and it leaves when the reader reaches that
+   end, so a value the box cuts is never read as whole. The box is then a grid: its rows in the
+   middle column, as wide as the table or the box, its cues stuck to its sides over them. What
+   stands with the table stays in place over the cues while only the columns scroll: a chart
+   Table's status line and Show all, a long table's "Showing 10 of 64 rows". As wide as the box at
+   most (--rv-box-w, set by the runtime), they leave the table alone to set how far the box
+   scrolls; a long table's folded rows scroll with its columns. */
+[data-rv-cues] { display: grid; grid-template-columns: 0 minmax(100%, max-content) 0; }
+[data-rv-cues] > * { grid-column: 2; }
+[data-rv-cues] > :not(table, p, button) { contain: inline-size; }
+[data-rv-cues] > :is(p, button), [data-rv-cues] > details > summary {
+  position: sticky; inset-inline-start: 0; z-index: 2; justify-self: start; width: fit-content; max-width: var(--rv-box-w, 100%);
+}
+[data-rv-cues]::before, [data-rv-cues]::after {
+  content: ""; position: sticky; z-index: 1; grid-row: 1 / span 4; width: 2rem; pointer-events: none; opacity: 0;
+}
+[data-rv-cues]::before { grid-column: 1; left: 0; background: linear-gradient(to right, var(--rv-cue-surface, var(--rv-bg)), transparent); }
+[data-rv-cues]::after { grid-column: 3; justify-self: end; right: 0; background: linear-gradient(to left, var(--rv-cue-surface, var(--rv-bg)), transparent); }
+[data-rv-more~="left"]::before, [data-rv-more~="right"]::after { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) { [data-rv-cues]::before, [data-rv-cues]::after { transition: opacity .15s ease-out; } }
+@media print { [data-rv-cues]::before, [data-rv-cues]::after { display: none; } }
+:is(div.rv-table, .rv-chart__table)[tabindex]:focus-visible { outline: 2px solid var(--rv-link); outline-offset: 2px; }
+.rv-report__body th, .rv-report__body td, .rv-chart-dialog th, .rv-chart-dialog td {
+  padding: calc(.5em * var(--rv-density)) .75em; border-bottom: 1px solid var(--rv-rule); text-align: left;
+}
+.rv-report__body th, .rv-chart-dialog th { font-family: var(--rv-font-ui, var(--rv-font-text)); font-weight: 600; color: var(--rv-ink-soft); }
+/* A total row is set heavier under a firmer rule (STY-61). */
+.rv-report__body tr.total td, .rv-report__body tr.total th, .rv-report__body tfoot td, .rv-report__body tfoot th { font-weight: 600; border-top: 2px solid var(--rv-rule); }
+/* Sortable headers are buttons; they keep the header's case and tracking. */
+.rv-report__body th button { text-transform: inherit; letter-spacing: inherit; }
+.rv-report__body td.num, .rv-report__body th.num, .rv-chart-dialog td.num, .rv-chart-dialog th.num { text-align: right; font-variant-numeric: lining-nums tabular-nums; }
+.rv-report__body td.center, .rv-report__body th.center { text-align: center; }
+/* A heading belongs to what follows it: the next block adds no space of its own. */
+.rv-report__body :is(h1, h2, h3) + *, .rv-report__body :is(h1, h2, h3) + .rv-keep > :first-child { margin-top: 0; }
+.rv-report__footer {
+  max-width: var(--rv-measure-w); border-top: 1px solid var(--rv-rule); padding-top: calc(var(--rv-line) * .75); color: var(--rv-ink-soft); font-size: var(--rv-size-small);
+}
+.rv-report__footer a { color: var(--rv-ink-soft); }
+
+/* Rich blocks */
+.rv-chart, .rv-table, .rv-image, .rv-video, .rv-audio, .rv-embed { margin: var(--rv-block-gap) 0; }
+/* A task list is its checkboxes: no bullet beside them, and a ticked box reads as ticked. */
+.rv-report__body ul:has(> li > input[type="checkbox"]) { list-style: none; padding-inline-start: 0; }
+.rv-report__body li > input[type="checkbox"] { margin-inline: 0 .5em; opacity: 1; accent-color: var(--rv-accent); }
+.rv-chart__canvas { width: 100%; min-height: 240px; }
+.rv-table { overflow-x: auto; }
+.rv-table table { width: 100%; margin: 0; }
+/* A source note belongs to the block above it: snug underneath, smaller than
+   body text, and only as wide as its parent block so it wraps with the chart. */
+.rv-report__body > :has(+ .rv-source), .rv-keep > :has(+ .rv-source) { margin-bottom: 0; }
+.rv-report__body .rv-source {
+  font-size: calc(var(--rv-size-small) * .92); line-height: 1.4; color: var(--rv-ink-soft);
+  margin-block: calc(var(--rv-line) * .25) var(--rv-line);
+}
+.rv-report__body .rv-source a { color: inherit; }
+.rv-report__body .rv-source code { background: none; padding: 0; }
+/* Stat line: the value under one rule, at the h1 size so the title stays the largest text.
+   Styles choose bracket or knockout variants. */
+.rv-metric {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: .15em .75em;
+  margin: var(--rv-block-gap) 0; padding-top: calc(var(--rv-line) * .5 * var(--rv-density));
+  border-top: 1px solid var(--rv-rule);
+}
+.rv-metric__value {
+  flex: 0 0 100%;
+  font-family: var(--rv-font-display, var(--rv-font-text)); font-size: var(--rv-size-h1); font-weight: 600;
+  line-height: 1.15; letter-spacing: -.01em; font-variant-numeric: lining-nums tabular-nums;
+}
+.rv-metric__label, .rv-metric__delta { font-size: var(--rv-size-small); line-height: 1.45; color: var(--rv-ink-soft); }
+.rv-metric__delta { font-variant-numeric: lining-nums tabular-nums; }
+.rv-metric__delta--up { color: var(--rv-up); }
+.rv-metric__delta--down { color: var(--rv-down); }
+/* Callout: an aside under one rule. The run-in title carries the kind. */
+.rv-callout {
+  margin: var(--rv-block-gap) 0; padding: calc(var(--rv-line) * .5 * var(--rv-density)) 0;
+  border-top: 1px solid var(--rv-rule);
+}
+.rv-callout__title {
+  font-family: var(--rv-font-display, var(--rv-font-text)); font-size: var(--rv-size-base); font-weight: 600;
+  margin: 0 .3em 0 0;
+}
+p.rv-callout__title { margin: 0 0 calc(var(--rv-line) * .25); }
+.rv-callout--up .rv-callout__title { color: var(--rv-up); }
+.rv-callout--down .rv-callout__title { color: var(--rv-down); }
+.rv-callout--hold .rv-callout__title { color: var(--rv-hold); }
+.rv-callout__body > :last-child { margin-bottom: 0; }
+/* A run of stats or asides reads as one group: half the block gap between neighbours. */
+.rv-metric:has(+ .rv-metric), .rv-callout:has(+ .rv-callout) { margin-bottom: calc(var(--rv-block-gap) * .5); }
+.rv-metric + .rv-metric, .rv-callout + .rv-callout { margin-top: calc(var(--rv-block-gap) * .5); }
+.rv-image img { max-width: 100%; height: auto; display: block; border-radius: var(--rv-radius-s); }
+.rv-image figcaption { font-size: var(--rv-size-small); line-height: 1.45; color: var(--rv-ink-soft); margin-top: .5em; }
+/* Photo credit: a quiet line under the picture, in the style's interface face and smaller than
+   the caption, with hairline underlines so the two links read as attribution, not as buttons. */
+.rv-image .rv-credit {
+  margin: .4em 0 0; font-family: var(--rv-font-ui, var(--rv-font-text));
+  font-size: calc(var(--rv-size-small) * .86); line-height: 1.4; letter-spacing: .01em; color: var(--rv-ink-soft);
+}
+.rv-image figcaption + .rv-credit { margin-top: .15em; }
+.rv-image .rv-credit a {
+  color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .18em;
+  text-decoration-color: color-mix(in oklch, currentColor 38%, transparent);
+}
+.rv-image .rv-credit a:hover, .rv-image .rv-credit a:focus-visible { text-decoration-color: currentColor; }
+.rv-embed iframe { width: 100%; border: 1px solid var(--rv-rule); border-radius: var(--rv-radius-m); display: block; }
+
+@media (max-width: 640px) {
+  .rv-report { margin: 1.5rem auto; padding: 0 1rem 2rem; gap: calc(var(--rv-line) * .85); }
+}
+
+/* Keyboard: every control and link shows where focus is, in the style's accent, whatever the
+   control's own rules say (WCAG 2.2 AA, 2.4.7). Mouse clicks do not draw the ring. */
+.rv-report :is(a, button, summary, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--rv-accent); outline-offset: 2px;
+}
+.rv-report [tabindex="0"]:focus-visible { outline-offset: -2px; }
+/* A reader who asks for less motion gets jumps, not glides. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* Soft block entrances (FEA-RP-35): the runtime marks only blocks that start below the first
+   screen, so a report without scripts, print and reduced motion show every block at rest. */
+.rv-enter { opacity: 0; transform: translateY(var(--rv-motion-distance, .6rem)); }
+.rv-enter.rv-entered { opacity: 1; transform: none; transition: opacity var(--rv-motion-duration, 300ms) var(--rv-motion-easing, ease-out), transform var(--rv-motion-duration, 300ms) var(--rv-motion-easing, ease-out); }
+@media (prefers-reduced-motion: reduce) { .rv-enter { opacity: 1; transform: none; } }
+.rv-report[data-motion="off"] .rv-enter { opacity: 1; transform: none; transition: none; }

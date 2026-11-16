@@ -1,0 +1,26 @@
+[
+  {
+    "id": "readout-currency",
+    "source": "---\ntitle: Readout review\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"bar\", \"title\": \"Published measure\", \"encoding\": {\"x\": \"category\", \"y\": \"value\"}, \"axes\": {\"y\": {\"label\": \"Revenue\", \"format\": \"currency\"}}, \"data\": {\"inline\": [{\"category\": \"First release\", \"value\": \"340000.00100\"}]}}\n```\n"
+  },
+  {
+    "id": "readout-percent",
+    "source": "---\ntitle: Readout review\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"bar\", \"title\": \"Published measure\", \"encoding\": {\"x\": \"category\", \"y\": \"value\"}, \"axes\": {\"y\": {\"label\": \"Success rate\", \"format\": \"percent\"}}, \"data\": {\"inline\": [{\"category\": \"First release\", \"value\": \"0.123400\"}]}}\n```\n"
+  },
+  {
+    "id": "readout-heatmap",
+    "source": "---\ntitle: Readout review\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"heatmap\", \"title\": \"Success by cohort\", \"encoding\": {\"x\": \"product\", \"y\": \"year\", \"color\": \"score\"}, \"axes\": {\"y\": {\"label\": \"Year\"}, \"color\": {\"label\": \"Success rate\", \"format\": \"percent\", \"suffix\": \"%\"}}, \"data\": {\"inline\": [{\"product\": \"Product A\", \"year\": \"2026\", \"score\": \"0.2500\"}, {\"product\": \"Product B\", \"year\": \"2026\", \"score\": \"0.1250\"}]}}\n```\n"
+  },
+  {
+    "id": "readout-scatter-x",
+    "source": "---\ntitle: Readout review\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"scatter\", \"title\": \"Measured costs and conversion\", \"encoding\": {\"x\": \"cost\", \"y\": \"rate\"}, \"axes\": {\"x\": {\"label\": \"Cost\", \"format\": \"currency\"}, \"y\": {\"label\": \"Conversion\", \"format\": \"percent\"}}, \"data\": {\"inline\": [{\"cost\": \"12.500\", \"rate\": \"0.123400\"}, {\"cost\": \"15.700\", \"rate\": \"0.162000\"}]}}\n```\n"
+  },
+  {
+    "id": "readout-temporal-control",
+    "source": "---\ntitle: Readout review\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"line\", \"title\": \"Small failure rates\", \"encoding\": {\"x\": \"date\", \"y\": \"rate\"}, \"axes\": {\"y\": {\"label\": \"Failure rate\", \"format\": \"percent\"}}, \"data\": {\"inline\": [{\"date\": \"2026-01-01\", \"rate\": \"0.0001200\"}, {\"date\": \"2026-01-02\", \"rate\": \"0.0001600\"}]}}\n```\n"
+  },
+  {
+    "id": "heatmap-percent",
+    "source": "---\ntitle: Exact heatmap readouts\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"heatmap\", \"title\": \"Published values retain their exact units\", \"encoding\": {\"x\": \"column\", \"y\": \"team\", \"color\": \"score\"}, \"axes\": {\"y\": {\"label\": \"Team\"}, \"color\": {\"label\": \"Published measure\", \"format\": \"percent\", \"suffix\": \"%\"}}, \"data\": {\"inline\": [{\"column\": \"001230\", \"team\": \"004560\", \"score\": \"0.123400\", \"series\": \"2026\"}, {\"column\": \"001231\", \"team\": \"004560\", \"score\": \"1.2300e-4\", \"series\": \"2026\"}]}}\n```\n"
+  }
+]

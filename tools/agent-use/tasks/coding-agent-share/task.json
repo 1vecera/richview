@@ -1,0 +1,125 @@
+{
+	"id": "coding-agent-share",
+	"title": "Claude Code's share of coding-agent activity",
+	"origin": "flagship evidence: examples/openai-vs-anthropic/data/charts/coding-agents.csv",
+	"brief": "Jonas, an engineering manager, is deciding which coding agent to standardise on. He asked for a short report on how Claude Code's share of coding-agent activity has moved, because different signals tell different stories.\n\ndata/coding-agents.csv has monthly series from April 2025 to September 2026 for four measures (Hacker News comments, GitHub cloud-agent PRs, npm CLI downloads, Google searches); claude_code_share_pct is Claude Code's share of the activity among the coding agents counted. The series start and end in different months. Name the sources as \"Hacker News (ClickHouse public playground)\", \"GitHub\", \"npm registry downloads\" and \"Google Trends\".\n\nJonas wants one number per measure: the change in points between its first and its latest month in the file.\n\nAudience: Jonas and his four team leads. Use at least three different chart types, add a table with each measure's first month, latest month and change, and name the source under every chart.",
+	"checks": {
+		"chartTypes": {
+			"minDistinct": 3
+		},
+		"tables": {
+			"min": 1
+		},
+		"sources": true,
+		"figures": [
+			{
+				"id": "change-hacker-news-comments",
+				"describe": "Hacker News comments: latest minus first (points)",
+				"key": "hacker",
+				"compute": {
+					"op": "diff",
+					"a": {
+						"file": "data/coding-agents.csv",
+						"where": {
+							"measure": "Hacker News comments"
+						},
+						"column": "claude_code_share_pct",
+						"agg": "last"
+					},
+					"b": {
+						"file": "data/coding-agents.csv",
+						"where": {
+							"measure": "Hacker News comments"
+						},
+						"column": "claude_code_share_pct",
+						"agg": "first"
+					}
+				},
+				"tolerance": {
+					"absolute": 0.06
+				}
+			},
+			{
+				"id": "change-github-cloud-agent-prs",
+				"describe": "GitHub cloud-agent PRs: latest minus first (points)",
+				"key": "github",
+				"compute": {
+					"op": "diff",
+					"a": {
+						"file": "data/coding-agents.csv",
+						"where": {
+							"measure": "GitHub cloud-agent PRs"
+						},
+						"column": "claude_code_share_pct",
+						"agg": "last"
+					},
+					"b": {
+						"file": "data/coding-agents.csv",
+						"where": {
+							"measure": "GitHub cloud-agent PRs"
+						},
+						"column": "claude_code_share_pct",
+						"agg": "first"
+					}
+				},
+				"tolerance": {
+					"absolute": 0.06
+				}
+			},
+			{
+				"id": "change-npm-cli-downloads",
+				"describe": "npm CLI downloads: latest minus first (points)",
+				"key": "npm",
+				"compute": {
+					"op": "diff",
+					"a": {
+						"file": "data/coding-agents.csv",
+						"where": {
+							"measure": "npm CLI downloads"
+						},
+						"column": "claude_code_share_pct",
+						"agg": "last"
+					},
+					"b": {
+						"file": "data/coding-agents.csv",
+						"where": {
+							"measure": "npm CLI downloads"
+						},
+						"column": "claude_code_share_pct",
+						"agg": "first"
+					}
+				},
+				"tolerance": {
+					"absolute": 0.06
+				}
+			},
+			{
+				"id": "change-google-searches",
+				"describe": "Google searches: latest minus first (points)",
+				"key": "google",
+				"compute": {
+					"op": "diff",
+					"a": {
+						"file": "data/coding-agents.csv",
+						"where": {
+							"measure": "Google searches"
+						},
+						"column": "claude_code_share_pct",
+						"agg": "last"
+					},
+					"b": {
+						"file": "data/coding-agents.csv",
+						"where": {
+							"measure": "Google searches"
+						},
+						"column": "claude_code_share_pct",
+						"agg": "first"
+					}
+				},
+				"tolerance": {
+					"absolute": 0.06
+				}
+			}
+		]
+	}
+}

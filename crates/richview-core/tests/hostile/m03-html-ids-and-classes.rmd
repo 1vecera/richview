@@ -1,0 +1,13 @@
+---
+title: Source ids and classes
+---
+
+<span class="rv-hostile-class" id="rv-hostile-id">span text</span>
+
+<h1 id="rv-chart-0" class="rv-hostile-class">raw heading text</h1>
+
+<figure class="rv-chart rv-hostile-class" id="richview-font-notices" data-rv-chart>figure text</figure>
+
+<div id="panel-hostile" class="rv-tabpanel rv-hostile-class">panel text</div>
+
+<button class="rv-tabs__tab" data-rv-tab="hostile" id="tab-hostile">tab text</button>

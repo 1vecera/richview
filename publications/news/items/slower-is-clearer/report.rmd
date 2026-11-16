@@ -1,0 +1,52 @@
+---
+title: "A slower answer can be the clearer one"
+description: "A fictional latency study separates the time to draw a chart from the time to understand it."
+version: 1.0.0
+styles: [scientific]
+publish:
+  id: "slower-is-clearer"
+  slug: "slower-is-clearer"
+  summary: "A fictional latency study separates the time to draw a chart from the time to understand it."
+  byline: "RichView Example Desk"
+  section: "systems"
+  tags: ["example", "method"]
+  published: "2026-10-17T09:00:00Z"
+  updated: "2026-10-18T09:00:00Z"
+  state: "published"
+  audience: "public"
+  figure: {value: "19 s", label: "Fastest interpretation time, design C", as_of: "Fictional study"}
+  kind: "report"
+  aliases: []
+  corrections: []
+  cover: "cover.svg"
+  cover_alt: "A typographic illustration of time spent drawing and understanding."
+---
+
+**Example material · Synthetic observations · 18 October 2026**
+
+## Fast enough for thought
+
+An interface can respond instantly and still leave its reader waiting for understanding. The useful unit of speed is the complete decision, including the moments spent checking the evidence.
+
+The example below imagines four versions of the same analytical page. These are invented timings, provided to demonstrate an interactive RichView report. They are not performance measurements of RichView or another product.
+
+```chart
+type: bar
+title: "Interpretation time (seconds)"
+data:
+  inline:
+    - {category: "A", value: 36}
+    - {category: "B", value: 28}
+    - {category: "C", value: 19}
+    - {category: "D", value: 23}
+encoding: {x: category, y: value}
+axes:
+  x: {label: Category}
+  y: {label: "Interpretation time (seconds)"}
+```
+
+*Source: Fictional observations from an imaginary reading exercise; lower values are not a universal design objective.*
+
+## What to take away
+
+Version C gives the reader more context before presenting the chart. The imagined result suggests a question worth testing, not a causal conclusion. In a real study, keep task difficulty and reader familiarity visible alongside the timing.

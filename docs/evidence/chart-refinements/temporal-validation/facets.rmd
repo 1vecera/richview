@@ -1,0 +1,8 @@
+---
+title: Temporal failure independent review
+version: 0.0.1
+---
+
+```chart
+{"type":"line","title":"One invalid and one valid panel","encoding":{"x":"date","y":"value","facet":"panel"},"data":{"inline":[{"date":"2026-01-01","value":"10.000","release":"first","panel":"Conflicting releases"},{"date":"2026-01-01","value":"20.500","release":"second","panel":"Conflicting releases"},{"date":"2026-01-10","value":30,"release":"first","panel":"Conflicting releases"},{"date":"2026-01-01","value":"5.000","panel":"Valid releases"},{"date":"2026-01-10","value":"15.000","panel":"Valid releases"}]}}
+```

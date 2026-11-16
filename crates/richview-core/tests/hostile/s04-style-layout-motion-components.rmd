@@ -1,0 +1,17 @@
+---
+title: Style layout, motion and components
+styles: [brutalist, s04-style-layout-motion-components.rstyle.yaml]
+---
+
+Text.
+
+```metric
+value: 1
+label: One
+```
+
+```callout
+kind: neutral
+title: Title
+body: Body.
+```

@@ -1,0 +1,355 @@
+{
+ "_source": {
+  "files": [
+   "tmp/performance/rust.json"
+  ],
+  "sha256": {
+   "tmp/performance/rust.json": "1409d4d64f1cf8324c625547feb9d74c5bf8b934253b8bd3e7b7f1a264bd9bcb"
+  },
+  "note": "scripts/benchmark-rust.mjs, b4db233, Claw Mini, 2026-10-21"
+ },
+ "data": {
+  "architecture": "aarch64",
+  "engine": "Rust",
+  "os": "macos",
+  "peak_rss": null,
+  "profile": "release opt-level=3 lto codegen-units=1",
+  "results": [
+   {
+    "charts": 1,
+    "html_bytes": 233789,
+    "iterations": 100,
+    "median_ms": 0.27370900000000004,
+    "min_ms": 0.256125,
+    "p95_ms": 0.632292,
+    "source_bytes": 2453,
+    "workload": "small"
+   },
+   {
+    "charts": 6,
+    "html_bytes": 267430,
+    "iterations": 100,
+    "median_ms": 0.582375,
+    "min_ms": 0.4885,
+    "p95_ms": 0.684625,
+    "source_bytes": 1140,
+    "workload": "six-types"
+   },
+   {
+    "charts": 1,
+    "html_bytes": 2204090,
+    "iterations": 100,
+    "median_ms": 91.807416,
+    "min_ms": 85.4375,
+    "p95_ms": 113.076083,
+    "source_bytes": 2033557,
+    "workload": "dense"
+   },
+   {
+    "charts": 18,
+    "html_bytes": 2214104,
+    "iterations": 100,
+    "median_ms": 12.159542,
+    "min_ms": 11.839250000000002,
+    "p95_ms": 12.27675,
+    "source_bytes": 124588,
+    "workload": "flagship"
+   }
+  ],
+  "provenance": {
+   "captured_at": "2026-10-21T18:51:11.569Z",
+   "commit": "b4db23319160b29952035751cc7854489db880a5",
+   "inputs": {
+    "small": {
+     "path": "tmp/performance/fixtures/small/report.rmd",
+     "source_sha256": "74e0a922290ff3507e021d7bf80ba8db91848a4ab590f4f635a2f7090e67fb0a"
+    },
+    "six-types": {
+     "path": "tmp/performance/fixtures/six-types/report.rmd",
+     "source_sha256": "50b1386eeb85ecd8a8f4114105c433f05db8e719e6567b7e4d625c898d847805"
+    },
+    "dense": {
+     "path": "tmp/performance/fixtures/dense/report.rmd",
+     "source_sha256": "d4a657d6b913733c23aeff611344b5d742e6de46f29a39f6c551c9c8b3630130"
+    },
+    "flagship": {
+     "path": "tmp/performance/fixtures/flagship/report.rmd",
+     "source_sha256": "ba49afeff1be32608493adc874760e7cdd9d51d3a3e7d590d50eebc3f59722cf"
+    }
+   },
+   "artifacts": {
+    "dist/web/richview_web_bg.wasm": {
+     "bytes": 4366342,
+     "mtime_ms": 1792607642892.2021,
+     "sha256": "67270c8c8a4d9bd96c2a21662463467c4d465d4e2d19ce8f374cf0787bdfd8d5"
+    },
+    "target/release/richview-bench": {
+     "bytes": 4669264,
+     "mtime_ms": 1792607670832.5085,
+     "sha256": "9f551b786d339654ccdfd5fef48bc8e71cff92b4ea622adb4fd0de92e555224e"
+    },
+    "tmp/performance/fixtures/dense/render-options.json": {
+     "bytes": 490,
+     "mtime_ms": 1792607671310.1877,
+     "sha256": "83e1fe12e43005eb001a1a22b339102c72e5c6a5fdb690c11ca508a719392b52"
+    },
+    "tmp/performance/fixtures/dense/report.rmd": {
+     "bytes": 2033557,
+     "mtime_ms": 1792607671251.0654,
+     "sha256": "d4a657d6b913733c23aeff611344b5d742e6de46f29a39f6c551c9c8b3630130"
+    },
+    "tmp/performance/fixtures/flagship/README.md": {
+     "bytes": 7277,
+     "mtime_ms": 1792606137160.453,
+     "sha256": "0836290b443d37409e6e24d0883769f95c1e532e92c6f2c54adab48d633d0fd3"
+    },
+    "tmp/performance/fixtures/flagship/assets/CREDITS.md": {
+     "bytes": 2872,
+     "mtime_ms": 1792606137160.6653,
+     "sha256": "30b77f78fa3a8cffd37f9d5d518dbe010e42248c248c8d542759abe63a2be779"
+    },
+    "tmp/performance/fixtures/flagship/assets/app-store-ratings.svg": {
+     "bytes": 90776,
+     "mtime_ms": 1792606137161.858,
+     "sha256": "32e04f4c155ab1f947cd04c3c6ab35d3670c49fdf76f5e52fef5a6544f212d37"
+    },
+    "tmp/performance/fixtures/flagship/assets/audiences.svg": {
+     "bytes": 91297,
+     "mtime_ms": 1792606137163.6602,
+     "sha256": "87f637243aec4e5334c1cee0f3fc99814611bddbd8135727389b7aea8e70af88"
+    },
+    "tmp/performance/fixtures/flagship/assets/claude-computer-use.jpg": {
+     "bytes": 87707,
+     "mtime_ms": 1792606137164.7905,
+     "sha256": "c79ac003fd72b053805c35cc2daeba48de64d6a2c822cab09f03f9b3e2ac4ac4"
+    },
+    "tmp/performance/fixtures/flagship/assets/codex-cli.png": {
+     "bytes": 838131,
+     "mtime_ms": 1792606137174.0122,
+     "sha256": "15b86fa9c0790a779ecdd84f1e7dee029ab79bfb093bd3c4876998696925b013"
+    },
+    "tmp/performance/fixtures/flagship/assets/editorial-charts.json": {
+     "bytes": 2903,
+     "mtime_ms": 1792606137174.1978,
+     "sha256": "3bbafbe1d34cdc7b8622340c8cd240c6eef6b9ee7a9ed76d14c2f418ac155d6a"
+    },
+    "tmp/performance/fixtures/flagship/assets/licenses/anthropic-quickstarts-MIT.txt": {
+     "bytes": 1065,
+     "mtime_ms": 1792606137174.3171,
+     "sha256": "d7a04bf11ce24a7b79cd44b4a78dcc9971eaeb3b565821de437e0ecb7723e634"
+    },
+    "tmp/performance/fixtures/flagship/assets/licenses/openai-codex-Apache-2.0.txt": {
+     "bytes": 10926,
+     "mtime_ms": 1792606137174.443,
+     "sha256": "d17f227e4df5da1600391338865ce0f3055211760a36688f816941d58232d8dc"
+    },
+    "tmp/performance/fixtures/flagship/assets/licenses/openai-codex-NOTICE.txt": {
+     "bytes": 242,
+     "mtime_ms": 1792606137174.6367,
+     "sha256": "9d71575ecfd9a843fc1677b0efb08053c6ba9fd686a0de1a6f5382fd3c220915"
+    },
+    "tmp/performance/fixtures/flagship/assets/licenses/richview-MIT.txt": {
+     "bytes": 1070,
+     "mtime_ms": 1792606137174.6829,
+     "sha256": "c51d2801c4591ab41ca993557e0389b06a7bb41271bbdc03bd22ce1d54d4c872"
+    },
+    "tmp/performance/fixtures/flagship/assets/licenses/source-code-pro-OFL.txt": {
+     "bytes": 4473,
+     "mtime_ms": 1792606137174.7341,
+     "sha256": "0b2c3168605cb4f3ba54cf3cf2003f67ff894c66484c75702007f23eda92c353"
+    },
+    "tmp/performance/fixtures/flagship/assets/licenses/source-serif-4-OFL.txt": {
+     "bytes": 4492,
+     "mtime_ms": 1792606137174.7905,
+     "sha256": "75784a295293a8992f5a8d99210566e0064a012e6dab6731305e3787f15896c7"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/app-reviews.csv": {
+     "bytes": 382,
+     "mtime_ms": 1792606137176.765,
+     "sha256": "5b3be66d1c3ee67251fce61bd3af40fd6d26895027df98753b49ca8337b8faaf"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/capability-frontier.csv": {
+     "bytes": 5284,
+     "mtime_ms": 1792606137176.8408,
+     "sha256": "70bf9bd35b8d1c632450a21f8c2b958c6d1b5c1f49ac25786ca117d0d22d9f68"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/capability-leads.csv": {
+     "bytes": 1341,
+     "mtime_ms": 1792606137176.889,
+     "sha256": "3636c226434ec9c30a03b9f40d56485a2394c8f8f71f7db80de742a78fba4e5b"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/coding-agents.csv": {
+     "bytes": 2158,
+     "mtime_ms": 1792606137176.9397,
+     "sha256": "4ae77f5d49e1865fec3635048d1a973dae2a2d4612fa59af49be7e78d6bb3668"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/company-vs-product.csv": {
+     "bytes": 191,
+     "mtime_ms": 1792606137176.9834,
+     "sha256": "54e95d557a2d84f130eab9e9e57b0dff0a9ef4ccf48d51c28be756bfe1a9d5b6"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/hn-comment-mentions-monthly.csv": {
+     "bytes": 1673,
+     "mtime_ms": 1792606137177.0303,
+     "sha256": "8d10006ebc044157d6d85eb7c646adb392947a7b9db6f9dee810f90f2abb0ca9"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/hn-stance.csv": {
+     "bytes": 920,
+     "mtime_ms": 1792606137177.086,
+     "sha256": "a32695d503714616b47c494ddf4fc3007bcbb33b20685bc4947fcbed14e8b57f"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/hn-switching.csv": {
+     "bytes": 520,
+     "mtime_ms": 1792606137177.1414,
+     "sha256": "2dea87a9ef4e47d311e99f19a468c180f46217a7bd7d10f17f97ee9ae238e255"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/hn-topics.csv": {
+     "bytes": 459,
+     "mtime_ms": 1792606137177.2004,
+     "sha256": "0cd163430b3f0e77e2f1948b6e79cbde28dfe2d8a46eb2635421aacc792508aa"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/index.json": {
+     "bytes": 16377,
+     "mtime_ms": 1792606137177.2776,
+     "sha256": "6f9035c1da0dfc85c71a7fa0a764d2b641accbd1ee061b140db0f09d046d056f"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/pentagon-week.csv": {
+     "bytes": 2069,
+     "mtime_ms": 1792606137177.3303,
+     "sha256": "326ba49f64605337a59faea99ff112d1d759b7746541bc42d9b6f071d38f3585"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/population-shares.csv": {
+     "bytes": 1713,
+     "mtime_ms": 1792606137177.3806,
+     "sha256": "1cdcaf87979207e1f01a6496b15febca515d3a5e48b76764c1724eb6bd0fa5c3"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/quarterly-revenue.csv": {
+     "bytes": 271,
+     "mtime_ms": 1792606137177.4448,
+     "sha256": "1bd70f699755f69141312ba6d87477b7098aa57320e39d7e05ec1c981c5a0721"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/ramp-adoption.csv": {
+     "bytes": 813,
+     "mtime_ms": 1792606137177.505,
+     "sha256": "2ce17043261e7776ede2ac6b65ddca90dc34663de562857d3322656c7f060a36"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/reddit-communities.csv": {
+     "bytes": 2403,
+     "mtime_ms": 1792606137177.5652,
+     "sha256": "ca5151b3ebf23fe16c54c7f26cbfc67e578b6eee97118dee69571cb19986123d"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/run-rate.csv": {
+     "bytes": 622,
+     "mtime_ms": 1792606137177.63,
+     "sha256": "2e062462605c8039a6694732c6ccc6665b7c752183f57249fd6bd5f54153af63"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/share-by-population.csv": {
+     "bytes": 266,
+     "mtime_ms": 1792606137177.6953,
+     "sha256": "7d88b8727858718d3080dad937f3c5933fdd500c95fe2ea25ce8649328b2b2a0"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/share-over-time.csv": {
+     "bytes": 5689,
+     "mtime_ms": 1792606137177.7866,
+     "sha256": "e32f6abc6e0c9b5f5cf790cee2e6d29fc0d845ea2c02a92e97285cce05b0cdc6"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/surveys.csv": {
+     "bytes": 1251,
+     "mtime_ms": 1792606137177.858,
+     "sha256": "e60c6320440507b58ace9ce4d44160f6837d77cf2d05b707e569af3b6a1d6f26"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/trends-geo.csv": {
+     "bytes": 154,
+     "mtime_ms": 1792606137177.918,
+     "sha256": "d7938a2044d75e7a85e38e5455ce4cf504056407e37386b22183828a1b4e4bd9"
+    },
+    "tmp/performance/fixtures/flagship/data/charts/web-share.csv": {
+     "bytes": 334,
+     "mtime_ms": 1792606137177.979,
+     "sha256": "62c92a729d52464722cbc2868f2c4e035346c00865d0c8f72002aed7e429d795"
+    },
+    "tmp/performance/fixtures/flagship/data/facts.json": {
+     "bytes": 17118,
+     "mtime_ms": 1792606137178.0583,
+     "sha256": "a8ded8f141fc9ca7f65e0829dbb218edc72fd06f24d0a09955b910c47bb3b388"
+    },
+    "tmp/performance/fixtures/flagship/ledger/collection-runs.csv": {
+     "bytes": 6708,
+     "mtime_ms": 1792606137178.361,
+     "sha256": "fa3285ca7c19a357e8686911b4cbcc9e82c07e98478b57b09621c3e488e19f37"
+    },
+    "tmp/performance/fixtures/flagship/ledger/image-sources.csv": {
+     "bytes": 2572,
+     "mtime_ms": 1792606137178.5312,
+     "sha256": "99874f313025ad7019d6fb18daefdc7fbcad986ce1ce200970e790655a4be090"
+    },
+    "tmp/performance/fixtures/flagship/ledger/sources.csv": {
+     "bytes": 326436,
+     "mtime_ms": 1792606137179.8965,
+     "sha256": "93e96edf37e09446ace4f3e46bd9629ba096609dade5afe871418fe697df41d0"
+    },
+    "tmp/performance/fixtures/flagship/media/CREDITS.md": {
+     "bytes": 1711,
+     "mtime_ms": 1792606137180.014,
+     "sha256": "6c294040b0616768670db77fdded258a81fc1d92c5b3a8193d10552da930f174"
+    },
+    "tmp/performance/fixtures/flagship/media/code-on-a-monitor.webp": {
+     "bytes": 82784,
+     "mtime_ms": 1792606137181.2383,
+     "sha256": "cb743ac4398522642c351237575254caa665b2d3539702dac0496fb3ddd30869"
+    },
+    "tmp/performance/fixtures/flagship/media/phone-in-hand.webp": {
+     "bytes": 36428,
+     "mtime_ms": 1792606137181.3682,
+     "sha256": "a926a4cd8099f15e93165b25e46a30d64cc495e9e914fd80236fc7f41cf53688"
+    },
+    "tmp/performance/fixtures/flagship/media/san-francisco-at-dusk.webp": {
+     "bytes": 103546,
+     "mtime_ms": 1792606137181.5276,
+     "sha256": "da9b48e3b842e2664073140b247dd470944e47eb9a92bcfcad96e4e1c84b85db"
+    },
+    "tmp/performance/fixtures/flagship/media/server-racks.webp": {
+     "bytes": 77036,
+     "mtime_ms": 1792606137181.6775,
+     "sha256": "d817caeb998899d83a792f94516cf45916601b4e4a60774a90da7e6b85139cce"
+    },
+    "tmp/performance/fixtures/flagship/render-options.json": {
+     "bytes": 1479499,
+     "mtime_ms": 1792607671317.449,
+     "sha256": "d6fa83f4af88ee0cbc0cd047d6e98d7315b734d2e1d9418a5898bf96dc9a1f6d"
+    },
+    "tmp/performance/fixtures/flagship/report.rmd": {
+     "bytes": 124588,
+     "mtime_ms": 1792607671251.514,
+     "sha256": "ba49afeff1be32608493adc874760e7cdd9d51d3a3e7d590d50eebc3f59722cf"
+    },
+    "tmp/performance/fixtures/flagship/report.rstyle.yaml": {
+     "bytes": 169,
+     "mtime_ms": 1792606137182.816,
+     "sha256": "c0081593742e71273080e8d3d06cdf3b0c7e595ab7c41b9edcf754ff170cd759"
+    },
+    "tmp/performance/fixtures/six-types/render-options.json": {
+     "bytes": 498,
+     "mtime_ms": 1792607671259.1035,
+     "sha256": "17bcfb656c9b6fcfd80aefba19d2b1130f54031b92354429149d86862c680670"
+    },
+    "tmp/performance/fixtures/six-types/report.rmd": {
+     "bytes": 1140,
+     "mtime_ms": 1792607671217.242,
+     "sha256": "50b1386eeb85ecd8a8f4114105c433f05db8e719e6567b7e4d625c898d847805"
+    },
+    "tmp/performance/fixtures/small/render-options.json": {
+     "bytes": 490,
+     "mtime_ms": 1792607671258.8882,
+     "sha256": "5c643498f804377474e46598a7ad39c76f0884bab845a8c8df9b79b986096c26"
+    },
+    "tmp/performance/fixtures/small/report.rmd": {
+     "bytes": 2453,
+     "mtime_ms": 1792606137200.7676,
+     "sha256": "74e0a922290ff3507e021d7bf80ba8db91848a4ab590f4f635a2f7090e67fb0a"
+    }
+   },
+   "artifact_signatures_stable": true
+  }
+ }
+}

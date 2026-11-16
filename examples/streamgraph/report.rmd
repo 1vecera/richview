@@ -1,0 +1,61 @@
+---
+title: Watch the mix of a whole change shape through the year
+description: A streamgraph stacks each group around a moving centre line, so the swell and thinning of the whole and of each part read as one shape.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Summer belongs to pop
+
+These illustrative listening hours stack three genres around a centre line. The thickness of a stream is its hours; the bar at the left shows how thick a given number of hours is.
+
+```chart
+type: streamgraph
+title: Pop swells in summer while rock fades
+subtitle: Hours listened per month and genre
+data:
+  inline:
+    - {month: 2025-01, genre: Rock, hours: 40}
+    - {month: 2025-02, genre: Rock, hours: 49}
+    - {month: 2025-03, genre: Rock, hours: 55}
+    - {month: 2025-04, genre: Rock, hours: 58}
+    - {month: 2025-05, genre: Rock, hours: 56}
+    - {month: 2025-06, genre: Rock, hours: 51}
+    - {month: 2025-07, genre: Rock, hours: 43}
+    - {month: 2025-08, genre: Rock, hours: 34}
+    - {month: 2025-09, genre: Rock, hours: 26}
+    - {month: 2025-10, genre: Rock, hours: 22}
+    - {month: 2025-11, genre: Rock, hours: 23}
+    - {month: 2025-12, genre: Rock, hours: 27}
+    - {month: 2025-01, genre: Jazz, hours: 36}
+    - {month: 2025-02, genre: Jazz, hours: 31}
+    - {month: 2025-03, genre: Jazz, hours: 25}
+    - {month: 2025-04, genre: Jazz, hours: 20}
+    - {month: 2025-05, genre: Jazz, hours: 16}
+    - {month: 2025-06, genre: Jazz, hours: 14}
+    - {month: 2025-07, genre: Jazz, hours: 15}
+    - {month: 2025-08, genre: Jazz, hours: 19}
+    - {month: 2025-09, genre: Jazz, hours: 25}
+    - {month: 2025-10, genre: Jazz, hours: 31}
+    - {month: 2025-11, genre: Jazz, hours: 36}
+    - {month: 2025-12, genre: Jazz, hours: 38}
+    - {month: 2025-01, genre: Pop, hours: 16}
+    - {month: 2025-02, genre: Pop, hours: 12}
+    - {month: 2025-03, genre: Pop, hours: 13}
+    - {month: 2025-04, genre: Pop, hours: 19}
+    - {month: 2025-05, genre: Pop, hours: 28}
+    - {month: 2025-06, genre: Pop, hours: 38}
+    - {month: 2025-07, genre: Pop, hours: 47}
+    - {month: 2025-08, genre: Pop, hours: 51}
+    - {month: 2025-09, genre: Pop, hours: 51}
+    - {month: 2025-10, genre: Pop, hours: 47}
+    - {month: 2025-11, genre: Pop, hours: 38}
+    - {month: 2025-12, genre: Pop, hours: 29}
+encoding: {x: month, y: hours, color: genre}
+axes:
+  y: {label: Hours listened}
+```
+
+*Source: Illustrative values.*
+
+Use the keyboard or pointer to read each month's hours by genre and their total.

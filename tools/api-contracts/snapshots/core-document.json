@@ -1,0 +1,445 @@
+{
+  "schema": "interface-v1",
+  "id": "core.document",
+  "producer": "richview-core",
+  "kind": "rust",
+  "surface": {
+    "module": "richview_core::document",
+    "registration": "pub mod document ;",
+    "exports": [
+      {
+        "name": "CheckReport",
+        "kind": "struct",
+        "declaration": "# [ derive ( Debug , Clone , Serialize , Deserialize ) ] pub struct CheckReport",
+        "publicFields": [
+          "pub status : String",
+          "pub diagnostics : Vec < Diagnostic >",
+          "pub charts : Vec < Value >"
+        ],
+        "privateFields": false
+      },
+      {
+        "name": "Diagnostic",
+        "kind": "struct",
+        "declaration": "# [ derive ( Debug , Clone , Serialize , Deserialize , PartialEq ) ] pub struct Diagnostic",
+        "publicFields": [
+          "pub level : String",
+          "pub code : String",
+          "pub message : String",
+          "# [ serde ( skip_serializing_if = \"Option::is_none\" , default ) ] pub fix : Option < String >",
+          "# [ serde ( skip_serializing_if = \"Option::is_none\" , default ) ] pub expected : Option < String >",
+          "# [ serde ( skip_serializing_if = \"Option::is_none\" , default ) ] pub retry : Option < bool >",
+          "pub path : String",
+          "# [ serde ( skip_serializing_if = \"Option::is_none\" , default ) ] pub file : Option < String >",
+          "# [ serde ( skip_serializing_if = \"Option::is_none\" , default ) ] pub line : Option < usize >",
+          "# [ serde ( skip_serializing_if = \"Option::is_none\" , default ) ] pub column : Option < usize >",
+          "# [ serde ( skip_serializing_if = \"Option::is_none\" , default ) ] pub tag : Option < String >",
+          "# [ serde ( skip_serializing_if = \"Option::is_none\" , default ) ] pub details : Option < Value >"
+        ],
+        "privateFields": false
+      },
+      {
+        "name": "Document",
+        "kind": "struct",
+        "declaration": "# [ derive ( Debug , Clone , Serialize , Deserialize ) ] pub struct Document",
+        "publicFields": [
+          "pub frontmatter : Value",
+          "pub body : String",
+          "pub blocks : Vec < RichBlock >",
+          "pub diagnostics : Vec < Diagnostic >",
+          "# [ serde ( skip_serializing_if = \"Vec::is_empty\" , default ) ] pub failed : Vec < FailedBlock >"
+        ],
+        "privateFields": true
+      },
+      {
+        "name": "FORMAT_MAJOR",
+        "kind": "const",
+        "declaration": "pub const FORMAT_MAJOR : u32 = 1"
+      },
+      {
+        "name": "FailedBlock",
+        "kind": "struct",
+        "declaration": "# [ derive ( Debug , Clone , Serialize , Deserialize ) ] pub struct FailedBlock",
+        "publicFields": [
+          "pub tag : String",
+          "pub source : String",
+          "pub line : usize",
+          "pub message : String"
+        ],
+        "privateFields": false
+      },
+      {
+        "name": "LearnSection",
+        "kind": "use",
+        "declaration": "pub use crate : : knowledge : : LearnSection ;"
+      },
+      {
+        "name": "MARKDOWN_OPTIONS",
+        "kind": "const",
+        "declaration": "pub const MARKDOWN_OPTIONS : Options = Options : : ENABLE_TABLES . union ( Options : : ENABLE_STRIKETHROUGH ) . union ( Options : : ENABLE_TASKLISTS ) . union ( Options : : ENABLE_FOOTNOTES ) . union ( Options : : ENABLE_DEFINITION_LIST ) . union ( Options : : ENABLE_MATH ) . union ( Options : : ENABLE_HEADING_ATTRIBUTES )"
+      },
+      {
+        "name": "MAX_DATASET_BYTES",
+        "kind": "const",
+        "declaration": "pub const MAX_DATASET_BYTES : usize = 16 * 1024 * 1024"
+      },
+      {
+        "name": "MAX_REPORT_BYTES",
+        "kind": "const",
+        "declaration": "pub const MAX_REPORT_BYTES : usize = 64 * 1024 * 1024"
+      },
+      {
+        "name": "MAX_SOURCE_BYTES",
+        "kind": "const",
+        "declaration": "pub const MAX_SOURCE_BYTES : usize = 16 * 1024 * 1024"
+      },
+      {
+        "name": "Output",
+        "kind": "enum",
+        "declaration": "# [ derive ( Debug , Clone , Copy , Default , PartialEq , Eq , Serialize , Deserialize ) ] # [ serde ( rename_all = \"lowercase\" ) ] pub enum Output",
+        "variants": [
+          "# [ default ] Report",
+          "Pdf"
+        ]
+      },
+      {
+        "name": "Page",
+        "kind": "enum",
+        "declaration": "# [ derive ( Debug , Clone , Copy , Default , PartialEq , Eq , Serialize , Deserialize ) ] # [ serde ( rename_all = \"lowercase\" ) ] pub enum Page",
+        "variants": [
+          "# [ default ] A4",
+          "Letter"
+        ]
+      },
+      {
+        "name": "RenderOptions",
+        "kind": "struct",
+        "declaration": "# [ derive ( Debug , Clone , Serialize , Deserialize ) ] # [ serde ( default ) ] pub struct RenderOptions",
+        "publicFields": [
+          "pub styles : Vec < String >",
+          "pub report_folder : Option < ReportFolder >",
+          "pub data : BTreeMap < String , String >",
+          "pub width : f64",
+          "pub chart_widths : Vec < f64 >",
+          "pub runtime_js : Option < String >",
+          "pub runtime_url : Option < String >",
+          "pub runtime_wasm : Option < String >",
+          "pub runtime_wasm_codec : String",
+          "pub source : Option < String >",
+          "pub output : Output",
+          "pub page : Page"
+        ],
+        "privateFields": false
+      },
+      {
+        "name": "RenderedReport",
+        "kind": "struct",
+        "declaration": "# [ derive ( Debug , Clone , Serialize , Deserialize ) ] pub struct RenderedReport",
+        "publicFields": [
+          "pub html : String",
+          "pub diagnostics : Vec < Diagnostic >",
+          "pub metadata : Value",
+          "pub charts : Vec < Value >"
+        ],
+        "privateFields": false
+      },
+      {
+        "name": "ReportFolder",
+        "kind": "use",
+        "declaration": "pub use crate : : folder : : ReportFolder ;"
+      },
+      {
+        "name": "ReportResource",
+        "kind": "use",
+        "declaration": "pub use crate : : folder : : ReportResource ;"
+      },
+      {
+        "name": "RichBlock",
+        "kind": "struct",
+        "declaration": "# [ derive ( Debug , Clone , Serialize , Deserialize ) ] pub struct RichBlock",
+        "publicFields": [
+          "pub tag : String",
+          "pub value : Value",
+          "pub raw : String",
+          "pub line : usize"
+        ],
+        "privateFields": false
+      },
+      {
+        "name": "VERSION",
+        "kind": "const",
+        "declaration": "pub const VERSION : & str = env ! ( \"CARGO_PKG_VERSION\" )"
+      },
+      {
+        "name": "attach_asset_findings",
+        "kind": "use",
+        "declaration": "pub use crate : : folder : : attach_asset_findings ;"
+      },
+      {
+        "name": "check",
+        "kind": "use",
+        "declaration": "pub use crate : : render : : check ;"
+      },
+      {
+        "name": "check_document",
+        "kind": "use",
+        "declaration": "pub use crate : : render : : check_document ;"
+      },
+      {
+        "name": "impl Default for RenderOptions",
+        "kind": "impl",
+        "types": [
+          "RenderOptions"
+        ],
+        "declaration": "impl Default for RenderOptions",
+        "members": [
+          {
+            "name": "default",
+            "kind": "fn",
+            "declaration": "fn default ( ) - > Self",
+            "default": true
+          }
+        ]
+      },
+      {
+        "name": "impl Diagnostic",
+        "kind": "impl",
+        "types": [
+          "Diagnostic"
+        ],
+        "declaration": "impl Diagnostic",
+        "members": [
+          {
+            "name": "expected",
+            "kind": "fn",
+            "declaration": "pub fn expected ( mut self , expected : impl Into < String > ) - > Self"
+          },
+          {
+            "name": "fix",
+            "kind": "fn",
+            "declaration": "pub fn fix ( mut self , fix : impl Into < String > ) - > Self"
+          },
+          {
+            "name": "in_file",
+            "kind": "fn",
+            "declaration": "pub fn in_file ( mut self , file : impl Into < String > ) - > Self"
+          },
+          {
+            "name": "new",
+            "kind": "fn",
+            "declaration": "pub fn new ( level : & str , code : & str , message : impl Into < String > , path : impl Into < String > , ) - > Self"
+          },
+          {
+            "name": "retry",
+            "kind": "fn",
+            "declaration": "pub fn retry ( mut self , retry : bool ) - > Self"
+          },
+          {
+            "name": "with_details",
+            "kind": "fn",
+            "declaration": "pub fn with_details ( mut self , details : Value ) - > Self"
+          }
+        ]
+      },
+      {
+        "name": "impl Page",
+        "kind": "impl",
+        "types": [
+          "Page"
+        ],
+        "declaration": "impl Page",
+        "members": [
+          {
+            "name": "css_size",
+            "kind": "fn",
+            "declaration": "pub fn css_size ( self ) - > & ' static str"
+          },
+          {
+            "name": "text_area",
+            "kind": "fn",
+            "declaration": "pub fn text_area ( self ) - > ( f64 , f64 )"
+          }
+        ]
+      },
+      {
+        "name": "learn_bundle",
+        "kind": "use",
+        "declaration": "pub use crate : : knowledge : : learn_bundle ;"
+      },
+      {
+        "name": "learn_section",
+        "kind": "use",
+        "declaration": "pub use crate : : knowledge : : learn_section ;"
+      },
+      {
+        "name": "learn_sections",
+        "kind": "use",
+        "declaration": "pub use crate : : knowledge : : learn_sections ;"
+      },
+      {
+        "name": "operation_result",
+        "kind": "use",
+        "declaration": "pub use crate : : folder : : operation_result ;"
+      },
+      {
+        "name": "parse",
+        "kind": "use",
+        "declaration": "pub use crate : : parser : : parse ;"
+      },
+      {
+        "name": "render",
+        "kind": "use",
+        "declaration": "pub use crate : : render : : render ;"
+      },
+      {
+        "name": "render_document",
+        "kind": "use",
+        "declaration": "pub use crate : : render : : render_document ;"
+      },
+      {
+        "name": "report_relative_path",
+        "kind": "use",
+        "declaration": "pub use crate : : folder : : report_relative_path ;"
+      },
+      {
+        "name": "report_resources",
+        "kind": "use",
+        "declaration": "pub use crate : : folder : : report_resources ;"
+      },
+      {
+        "name": "validate",
+        "kind": "use",
+        "declaration": "pub use crate : : parser : : validate ;"
+      },
+      {
+        "name": "validate_publish",
+        "kind": "use",
+        "declaration": "pub use crate : : parser : : validate_publish ;"
+      },
+      {
+        "name": "validate_report_document",
+        "kind": "use",
+        "declaration": "pub use crate : : folder : : validate_report_document ;"
+      },
+      {
+        "name": "validate_report_folder",
+        "kind": "use",
+        "declaration": "pub use crate : : folder : : validate_report_folder ;"
+      }
+    ],
+    "declarations": [
+      {
+        "name": "LearnSection",
+        "kind": "struct",
+        "declaration": "# [ derive ( Debug , Clone , Serialize , Deserialize ) ] pub struct LearnSection",
+        "publicFields": [
+          "# [ serde ( rename = \"type\" ) ] pub kind : String",
+          "pub title : String",
+          "pub body : String"
+        ],
+        "privateFields": false
+      },
+      {
+        "name": "ReportFolder",
+        "kind": "struct",
+        "declaration": "# [ derive ( Debug , Clone , Serialize , Deserialize ) ] pub struct ReportFolder",
+        "publicFields": [
+          "pub root : String",
+          "pub source : String",
+          "pub files : Vec < String >"
+        ],
+        "privateFields": false
+      },
+      {
+        "name": "ReportResource",
+        "kind": "struct",
+        "declaration": "# [ derive ( Debug , Clone , serde : : Serialize ) ] pub struct ReportResource",
+        "publicFields": [
+          "pub path : String",
+          "pub kind : & ' static str"
+        ],
+        "privateFields": false
+      },
+      {
+        "name": "attach_asset_findings",
+        "kind": "fn",
+        "declaration": "pub fn attach_asset_findings ( document : & mut crate : : Document , folder : Option < & ReportFolder > , ) - > Result < ( ) , Vec < Diagnostic > >"
+      },
+      {
+        "name": "check",
+        "kind": "fn",
+        "declaration": "pub fn check ( source : & str , options : & RenderOptions ) - > Result < CheckReport , Vec < Diagnostic > >"
+      },
+      {
+        "name": "check_document",
+        "kind": "fn",
+        "declaration": "pub fn check_document ( mut document : crate : : Document , options : & RenderOptions , ) - > Result < CheckReport , Vec < Diagnostic > >"
+      },
+      {
+        "name": "learn_bundle",
+        "kind": "fn",
+        "declaration": "pub fn learn_bundle ( ) - > String"
+      },
+      {
+        "name": "learn_section",
+        "kind": "fn",
+        "declaration": "pub fn learn_section ( kind : & str ) - > Option < LearnSection >"
+      },
+      {
+        "name": "learn_sections",
+        "kind": "fn",
+        "declaration": "pub fn learn_sections ( ) - > Vec < LearnSection >"
+      },
+      {
+        "name": "operation_result",
+        "kind": "fn",
+        "declaration": "pub fn operation_result ( diagnostics : Vec < Diagnostic > , extra : serde_json : : Value , ) - > serde_json : : Value"
+      },
+      {
+        "name": "parse",
+        "kind": "fn",
+        "declaration": "pub fn parse ( source : & str ) - > Result < Document , Vec < Diagnostic > >"
+      },
+      {
+        "name": "render",
+        "kind": "fn",
+        "declaration": "pub fn render ( source : & str , options : & RenderOptions ) - > Result < RenderedReport , Vec < Diagnostic > >"
+      },
+      {
+        "name": "render_document",
+        "kind": "fn",
+        "declaration": "pub fn render_document ( document : crate : : Document , options : & RenderOptions , ) - > Result < RenderedReport , Vec < Diagnostic > >"
+      },
+      {
+        "name": "report_relative_path",
+        "kind": "fn",
+        "declaration": "pub fn report_relative_path ( path : & str ) - > bool"
+      },
+      {
+        "name": "report_resources",
+        "kind": "fn",
+        "declaration": "pub fn report_resources ( document : & crate : : Document ) - > Vec < ReportResource >"
+      },
+      {
+        "name": "validate",
+        "kind": "fn",
+        "declaration": "pub fn validate ( source : & str ) - > Vec < Diagnostic >"
+      },
+      {
+        "name": "validate_publish",
+        "kind": "fn",
+        "declaration": "pub fn validate_publish ( source : & str ) - > Vec < Diagnostic >"
+      },
+      {
+        "name": "validate_report_document",
+        "kind": "fn",
+        "declaration": "pub fn validate_report_document ( document : & crate : : Document , folder : Option < & ReportFolder > , ) - > Result < ( ) , Vec < Diagnostic > >"
+      },
+      {
+        "name": "validate_report_folder",
+        "kind": "fn",
+        "declaration": "pub fn validate_report_folder ( folder : Option < & ReportFolder > ) - > Result < ( ) , Vec < Diagnostic > >"
+      }
+    ]
+  }
+}

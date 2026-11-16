@@ -1,0 +1,164 @@
+---
+title: Capacity and overnight demand
+format: rmd/1
+---
+
+```chart
+type: area
+title: Capacity and overnight demand
+subtitle: Zero baseline with an explicit missing observation
+encoding:
+  x: hour
+  y: load
+  color: series
+axes:
+  y:
+    label: Load
+    unit: MW
+data:
+  inline:
+  - hour: 0
+    load: 52.0
+    series: Demand
+  - hour: 0
+    load: 71.48
+    series: Capacity
+  - hour: 1
+    load: 51.34
+    series: Demand
+  - hour: 1
+    load: 67.82
+    series: Capacity
+  - hour: 2
+    load: 49.43
+    series: Demand
+  - hour: 2
+    load: 63.85
+    series: Capacity
+  - hour: 3
+    load: 46.48
+    series: Demand
+  - hour: 3
+    load: 60.01
+    series: Capacity
+  - hour: 4
+    load: 42.82
+    series: Demand
+  - hour: 4
+    load: 56.71
+    series: Capacity
+  - hour: 5
+    load: 38.85
+    series: Demand
+  - hour: 5
+    load: 54.33
+    series: Capacity
+  - hour: 6
+    load: 35.01
+    series: Demand
+  - hour: 6
+    load: 53.12
+    series: Capacity
+  - hour: 7
+    load: null
+    series: Demand
+  - hour: 7
+    load: 53.22
+    series: Capacity
+  - hour: 8
+    load: 29.33
+    series: Demand
+  - hour: 8
+    load: 54.62
+    series: Capacity
+  - hour: 9
+    load: 28.12
+    series: Demand
+  - hour: 9
+    load: 57.16
+    series: Capacity
+  - hour: 10
+    load: 28.22
+    series: Demand
+  - hour: 10
+    load: 60.56
+    series: Capacity
+  - hour: 11
+    load: 29.62
+    series: Demand
+  - hour: 11
+    load: 64.45
+    series: Capacity
+  - hour: 12
+    load: 32.16
+    series: Demand
+  - hour: 12
+    load: 68.4
+    series: Capacity
+  - hour: 13
+    load: 35.56
+    series: Demand
+  - hour: 13
+    load: 71.98
+    series: Capacity
+  - hour: 14
+    load: 39.45
+    series: Demand
+  - hour: 14
+    load: 74.79
+    series: Capacity
+  - hour: 15
+    load: 43.4
+    series: Demand
+  - hour: 15
+    load: 76.52
+    series: Capacity
+  - hour: 16
+    load: 46.98
+    series: Demand
+  - hour: 16
+    load: 76.98
+    series: Capacity
+  - hour: 17
+    load: 49.79
+    series: Demand
+  - hour: 17
+    load: 76.13
+    series: Capacity
+  - hour: 18
+    load: 51.52
+    series: Demand
+  - hour: 18
+    load: 74.05
+    series: Capacity
+  - hour: 19
+    load: 51.98
+    series: Demand
+  - hour: 19
+    load: 70.97
+    series: Capacity
+  - hour: 20
+    load: 51.13
+    series: Demand
+  - hour: 20
+    load: 67.23
+    series: Capacity
+  - hour: 21
+    load: 49.05
+    series: Demand
+  - hour: 21
+    load: 63.25
+    series: Capacity
+  - hour: 22
+    load: 45.97
+    series: Demand
+  - hour: 22
+    load: 59.47
+    series: Capacity
+  - hour: 23
+    load: 42.23
+    series: Demand
+  - hour: 23
+    load: 56.29
+    series: Capacity
+```

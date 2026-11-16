@@ -1,0 +1,268 @@
+A chart block takes a `type`, a `title`, `data` and an `encoding` that maps data columns to the channels the type reads:
+
+```chart
+type: line
+title: Brno recovered within a month of reopening
+subtitle: Monthly revenue by store, CZK
+data: { csv: data/revenue.csv }
+encoding: { x: month, y: revenue, color: store }
+axes:
+  y: { label: Revenue, unit: CZK, format: number_compact }
+annotations:
+  - { kind: line, at: { x: "2026-07" }, text: Brno closed }
+style: { curve: linear }
+```
+
+*Source: Store revenue export, January 2025 to October 2026.*
+
+The title states the claim and is required; subtitle is the interpretation.
+
+### Chart types
+
+Each type with its channels (* required) and what it draws:
+
+- line (x*, y*, color, facet, detail): Values over a time axis, one line per series.
+- bar (x*, y*, color, facet, detail): Values per category, one bar per series.
+- scatter (x*, y*, color, size, label, facet, detail): Points on two numeric axes, optionally sized and labelled.
+- area (x*, y*, color, facet, detail): Values over a time axis, filled to the baseline.
+- pie (x*, y*, facet, detail): Shares of a total by category.
+- heatmap (x*, y*, color*, facet, detail): A grid of cells coloured by a numeric value.
+- histogram (x*, color, facet, detail): Counts of one numeric field in bins.
+- boxplot (y*, x, color, facet, detail): The distribution of a numeric field per category.
+- interval (x*, lower*, upper*, y, color, facet, detail): Authored lower and upper bounds per category, with an optional estimate.
+- waterfall (x*, y*, measure, color, facet, detail): Signed steps from a start to a total, each step drawn from the running level.
+- treemap (label*, y*, parent, color, facet, detail): A hierarchy of named parts whose tile areas are their values.
+- funnel (x*, y*, detail): Stages from first to last as centred bands as wide as their values.
+- dumbbell (x*, lower*, upper*, color, facet, detail): A line per category between two values, with a hollow start and a filled end.
+- band (x*, lower*, upper*, y, color, facet, detail): A filled range between a lower and an upper value over x, with an optional line for a central value.
+- bullet (x*, y*, target, facet, detail): A value bar against a target, with optional shaded ranges, per category.
+- candlestick (x*, open*, high*, low*, close*, facet, detail): Open, high, low and close per period, drawn as a body with wicks.
+- icicle (label*, y*, parent, color, facet, detail): A hierarchy as stacked bands by depth; widths are shares of the whole.
+- map (region*, y*, facet, detail): Regions shaded by value.
+- ohlc (x*, open*, high*, low*, close*, facet, detail): Open, high, low and close per period, drawn as ticks on a vertical bar.
+- radar (x*, y*, color, facet, detail): Spokes at equal angles with one polygon per group.
+- sunburst (label*, y*, parent, color, facet, detail): A hierarchy as rings by depth; angles are shares of the whole.
+- pareto (x*, y*, facet, detail): Bars sorted from the largest down with a running share of the total on a second axis.
+- tree (label*, parent, y, facet, detail): A hierarchy as nodes joined by elbow curves, with an optional value per node.
+- combo (x*, y*, line*, facet, detail): Bars for one measure with a line for another on a second axis.
+- rose (x*, y*, color, facet, detail): Bars around a circle, one per category, with radius as the value.
+- waffle (x*, y*, color, facet, detail): A grid of squares in which each category fills a share of the whole.
+- gauge (y*, x, facet): One value on an arc, with optional bands that split the scale.
+- calendar (x*, y*, facet): A square for each day in week columns, coloured by value, one strip per year.
+- streamgraph (x*, y*, color, facet): Stacked areas around a moving centre line, one stream per group, thickness as the value.
+- ribbon (x*, y*, color, facet): Stacked bars ranked by value in each category, with ribbons joining each group across categories.
+- sankey (source*, target*, y*, facet): Flows between named nodes as ribbons as wide as their values, in columns by longest path from a source.
+- alluvial (dimensions*, y, facet): Rows as paths through several categorical fields, drawn as ribbons between the categories of neighbouring columns.
+- chord (source*, target*, y*, facet): Nodes as arcs around a circle sized by their flow, with ribbons between them as wide as the flow they carry.
+- network (source*, target*, y, facet): Nodes joined by lines in a fixed force layout, with node size by number of links and an optional value that widens each line.
+- lollipop (y*, x, color, facet, detail): A stem from zero with a dot at the value, per category.
+- violin (x*, y*, color, facet): The distribution of a numeric field per category as a mirrored density shape with quartiles and median.
+- dotplot (x*, color, facet): Counts of one numeric field in equal-width intervals, one stacked dot for every observation.
+- bin2d (x*, y*, facet): Counts of observations in a grid of rectangles over two numeric fields, coloured by count.
+- hexbin (x*, y*, facet): Counts of observations in a tiling of hexagons over two numeric fields, coloured by count.
+- density (x*, color, facet, detail): A smooth estimate of how values are spread, one filled curve per group.
+- ecdf (x*, color, facet, detail): A step line of the share of values at or below each value, per group.
+- qq (y*, color, facet, detail): Sample values against normal quantiles, with a quartile reference line.
+- strip (y*, x, color, facet, detail): Every observation as a point, spread sideways so none hide, per category.
+- splom (dimensions*, label, color, facet): Every pair of several numeric fields as a small scatterplot in a grid, with the field names on the diagonal.
+- parallel (dimensions*, label, color, facet): A vertical axis for each of several numeric fields, scaled to its own range, with one line per row across them.
+- gantt (label*, start*, end*, color, facet): One bar per task from its start to its end on a time axis, tasks in source order.
+- contour (x*, y*, z*, facet): Iso-lines of a value over the plane at round levels, coloured along the style's ramp, with a key.
+- packed-bubble (label*, y*, color, facet): Circles packed together, each as large in area as its value, coloured by group.
+- wordcloud (label*, y*, facet): Words sized by their values, packed together without overlap.
+- venn (sets*, y*, facet): Two or three overlapping circles whose areas are the sets' sizes and whose overlaps are drawn at their own sizes.
+- vector (x*, y*, angle*, size, facet): An arrow at each position pointing in the direction of its angle, optionally as long and as coloured as its value.
+- flow (label*, source, target, lane, y, facet): Steps in columns by order, optionally in lanes, joined by right-angled connections that go around the steps.
+- pivot (rows*, columns*, values*): A matrix of sums with row, column and grand totals, as in a spreadsheet pivot table.
+- surface (x*, y*, z*): A mesh of z over the x-y plane seen from a set angle, coloured by z.
+- scatter3d (x*, y*, z*, color, size, label): Points in a box seen from a set angle, nearer dots larger, coloured by group and sized by a value.
+- bar3d (x*, y*, color): Bars as boxes on a grid of two categories, seen from a set angle, with the height as the value.
+
+Channels outside the type's list and column names the data lacks are errors (block.schema, block.field).
+
+- **Category and value.** On a bar, `x` is the category and `y` the value, whichever way the bars lie. `style.orientation` is `auto` by default, which may lay the bars down to fit the category names; set `vertical` or `horizontal` to decide.
+- **Series.** `encoding.color` is the series channel, and `stack: true` stacks the series of a bar or area chart.
+- **Order.** Categories are drawn in the order of the data rows. To sort a chart, sort its data.
+- **Lines are smoothed by default** (`style.curve: monotone`). For counts, or a series with a sharp drop or spike, use `style: { curve: linear }`, which draws straight segments.
+- **Detail.** `encoding.detail` lists extra columns for readouts, Table views and downloads; columns no block references never reach the report.
+- **Size.** Charts are responsive: set style.ratio as a positive number or W:H from 0.5 to 6, never a fixed pixel height, and wide: true takes the full report width.
+
+### Data
+
+data takes exactly one source: inline rows, a CSV or JSON file in the report folder, or a connector query such as SQL. The grammar section's Data and SQL parts give the rules; the keys are below.
+
+### Chart keys
+
+Every key a chart reads (* required), nested keys under their parent:
+
+- type* (one of 'line', 'bar', 'scatter', 'area', 'pie', 'heatmap', 'histogram', 'boxplot', 'interval', 'waterfall', 'treemap', 'funnel', 'dumbbell', 'band', 'bullet', 'candlestick', 'icicle', 'map', 'ohlc', 'radar', 'sunburst', 'pareto', 'tree', 'combo', 'rose', 'waffle', 'gauge', 'calendar', 'streamgraph', 'ribbon', 'sankey', 'alluvial', 'chord', 'network', 'lollipop', 'violin', 'dotplot', 'bin2d', 'hexbin', 'density', 'ecdf', 'qq', 'strip', 'splom', 'parallel', 'gantt', 'contour', 'packed-bubble', 'wordcloud', 'venn', 'vector', 'flow', 'pivot', 'surface', 'scatter3d' or 'bar3d'): The chart type.
+- title* (text): The title that states the claim; it is the caption heading and the chart's accessible name.
+- subtitle (text): A line under the title.
+- stack (true or false): Stacks the series of a bar or area chart; needs `encoding.color`. Default: false.
+- wide (true or false): Draws the chart at the full report width. Default: false.
+- digits (a whole number of significant digits from 2 to 6): Significant digits of the chart's printed numbers, not decimal places. Omit to use the default.
+- readout_digits (a whole number of significant digits from 2 to 6): Significant digits of the hover readout, not decimal places; never fewer than `digits`. Omit to use the chart precision.
+- highlight (a mapping): Names the scatter points that always get a label.
+- highlight.by* (a data column name): The column whose values `include` matches.
+- highlight.include* (a list whose entries are each text, a number, true or false): The values to label; at least one.
+- highlight.priority (a list whose entries are each text, a number, true or false): Values that win a label slot first.
+- data* (a mapping): The chart's data; exactly one local source is allowed.
+- data.inline (a list of mappings): Rows written in the block, each a mapping of column to value.
+- data.csv (text): A CSV file inside the report folder.
+- data.json (text): A JSON file of row mappings inside the report folder.
+- data.url (an http or https address): An https data source; current native and browser hosts do not load this field.
+- data.sql (a mapping): A SQL query run through a named connector on a host that has a registry.
+- data.sql.connector* (text): The name of the connector that runs the query.
+- data.sql.query (text): A report-relative file holding the SQL; set this or inline, not both.
+- data.sql.inline (text): The SQL text itself; set this or query, not both.
+- data.metricflow (a mapping): A MetricFlow query run through a named connector.
+- data.metricflow.connector* (text): The name of the connector that runs the query.
+- data.metricflow.metrics* (a list of text): The metric names to query; at least one.
+- data.cache (a mapping): A reference to a cached connector result.
+- data.cache.key* (text): The key of the cached result.
+- data.sql.params (a mapping): Named values passed to the query.
+- data.sql.cache (a mapping): How long the query's result is reused.
+- data.sql.cache.key (text): The key of the cached result.
+- data.sql.cache.ttl (text): How long the result stays fresh, such as 1h.
+- data.sql.cache.freshness (text): A freshness rule for the result.
+- data.sql.cache.refresh (true or false): Whether every run refreshes the result.
+- data.metricflow.group_by (a list of text): The dimensions to group by.
+- data.metricflow.where (a list of text): Filters on the query.
+- data.metricflow.order_by (a list of text): The order of the rows.
+- data.metricflow.limit (a whole number): The most rows returned.
+- data.metricflow.cache (a mapping): How long the query's result is reused.
+- data.metricflow.cache.key (text): The key of the cached result.
+- data.metricflow.cache.ttl (text): How long the result stays fresh, such as 15m.
+- data.metricflow.cache.freshness (text): A freshness rule for the result.
+- data.metricflow.cache.refresh (true or false): Whether every run refreshes the result.
+- data.cache.ttl (text): How long the result stays fresh.
+- encoding* (a mapping): Maps data columns to chart channels.
+- encoding.x (a data column name): The column on the x axis or the categories.
+- encoding.y (a data column name): The column that gives the values.
+- encoding.lower (a data column name): The column with each interval's lower bound; interval charts only.
+- encoding.upper (a data column name): The column with each interval's upper bound; interval charts only.
+- encoding.color (a data column name): The column whose distinct values become series.
+- encoding.size (a data column name): The column that sizes bubbles on a scatter chart, or gives the length and colour of the arrows of a vector chart.
+- encoding.label (a data column name): The column whose values label scatter points.
+- encoding.facet (a data column name): The column whose distinct values split the chart into panels.
+- encoding.target (a data column name): Bullet: the column that gives each target. Sankey, chord, network and flow: the column with the node each link ends at.
+- encoding.dimensions (a list of data column names): Alluvial: the columns of categories, in order from left to right. Parallel coordinates and scatterplot matrix: the numeric columns drawn as axes. At least two.
+- encoding.source (a data column name): Sankey, chord, network and flow: the column with the node each link starts at.
+- encoding.open (a data column name): Candlestick and OHLC: the opening value.
+- encoding.high (a data column name): Candlestick and OHLC: the highest value.
+- encoding.low (a data column name): Candlestick and OHLC: the lowest value.
+- encoding.close (a data column name): Candlestick and OHLC: the closing value.
+- encoding.region (a data column name): Map only: the column naming each region.
+- encoding.line (a data column name): Combo only: the column drawn as a line on the second axis.
+- encoding.start (a data column name): Gantt only: the column holding each task's start, as a date or a number.
+- encoding.end (a data column name): Gantt only: the column holding each task's end, as a date or a number of the same kind as the start.
+- encoding.rows (a data column name): Pivot only: the column whose values head the rows of the matrix.
+- encoding.columns (a data column name): Pivot only: the column whose values head the columns of the matrix.
+- encoding.values (a data column name): Pivot only: the numeric column summed into each cell.
+- encoding.detail (a list of data column names): Extra columns shown in readouts, Table views and downloads.
+- encoding.measure (a data column name): The column that says whether a waterfall row is a step, a start or a total.
+- encoding.z (a data column name): Contour, surface and 3-D scatter: the numeric column drawn as iso-lines or as the third coordinate.
+- encoding.sets (a data column name): Venn only: the column naming the sets of each row, joined by `&` or a comma, such as `A&B`.
+- encoding.angle (a data column name): Vector only: the column holding each arrow's direction in degrees, counter-clockwise from east.
+- encoding.lane (a data column name): Flow only: the column naming the lane, drawn as a band, that each step sits in.
+- encoding.parent (a data column name): The column that names each row's parent tile in a treemap.
+- controls (a list of mappings): Reader controls drawn above the chart, in author order.
+- controls[n].kind* (one of 'playback', 'filter', 'metric' or 'variant'): What the control changes.
+- controls[n].id (text): The control's name, unique in the chart.
+- controls[n].field (a data column name): The data column a playback or filter control steps through.
+- controls[n].label (text): The control's caption.
+- controls[n].options (any value): The choices: values, or mappings with value, label and the field, axis or chart each applies.
+- controls[n].initial (text, a number, true or false): The choice shown first.
+- controls[n].all (text): The label of a filter's choice that shows every row.
+- controls[n].speed (a number): Milliseconds per frame of a playback control. Default: 800.
+- controls[n].loop (true or false): Whether playback starts over; false plays once. Default: true.
+- controls[n].as (one of 'buttons' or 'dropdown'): How the choices are drawn.
+- binning (a mapping): Histogram bin options; other chart types refuse it.
+- binning.count (a whole number): The number of equal-width bins, 1 to 256. Default: Sturges' rule.
+- binning.edges (a list of numbers): Explicit bin edges, 2 to 257 increasing values; not combined with count or extent.
+- binning.extent (a list of numbers): The lower and upper bound of the bins, two increasing values.
+- binning.measure (one of 'count', 'proportion' or 'density'): What bin heights show. Default: count.
+- axes (a mapping): Axis options.
+- axes.x (a mapping): Options of the x axis.
+- axes.x.label (text): The x axis title.
+- axes.x.format (one of 'number', 'number_compact', 'percent' or 'year'): The number format of x values.
+- axes.x.unit (text): A unit printed with x values, by the unit rule.
+- axes.x.digits (a whole number of significant digits from 2 to 6): Significant digits of x values on this axis, from 2 to 6.
+- axes.x.locale (one of 'en-US', 'en-GB', 'cs-CZ', 'de-DE' or 'ja-JP'): The locale of x values and calendar labels; the report's lang otherwise.
+- axes.y (a mapping): Options of the value axis.
+- axes.y.label (text): The value axis title.
+- axes.y.format (one of 'number', 'number_compact', 'percent' or 'year'): The number format of values.
+- axes.y.unit (text): A unit printed with values, by the unit rule.
+- axes.y.digits (a whole number of significant digits from 2 to 6): Significant digits of values on this axis, from 2 to 6.
+- axes.y.min (a number): The lowest value the axis shows; below axes.y.max.
+- axes.y.max (a number): The highest value the axis shows.
+- axes.y2 (a mapping): Combo charts: options of the second value axis, at the right.
+- axes.y2.label (text): The second axis title.
+- axes.y2.format (one of 'number', 'number_compact', 'percent' or 'year'): The number format of the second axis.
+- axes.y2.unit (text): A unit printed with the second axis's values.
+- axes.y2.digits (a whole number): Significant digits of values on the second axis.
+- axes.y2.min (a number): The lowest value the second axis shows.
+- axes.y2.max (a number): The highest value the second axis shows.
+- axes.color (a mapping): Options of the colour scale or key.
+- axes.color.label (text): The colour key title.
+- axes.color.format (one of 'number', 'number_compact', 'percent' or 'year'): The number format of colour values.
+- axes.color.unit (text): A unit printed with colour values, by the unit rule.
+- axes.color.digits (a whole number of significant digits from 2 to 6): Significant digits of colour values on this axis, from 2 to 6.
+- annotations (a list of mappings): Marks added on top of the data.
+- annotations[n].kind* (one of 'point', 'range', 'line', 'band' or 'text'): What the annotation draws.
+- annotations[n].at (a mapping): The coordinate of a point, line or text annotation; required for those kinds.
+- annotations[n].from (a mapping): The start coordinate of a range or band; required for those kinds.
+- annotations[n].to (a mapping): The end coordinate of a range or band; required for those kinds.
+- annotations[n].text (text): The annotation's text; required for point and text annotations.
+- annotations[n].rotate (a number): The rotation of a text annotation.
+- style (a mapping): Chart styling.
+- style.palette (one of 'air', 'brutalist', 'hand-drawn', 'scientific' or 'sleek'): The colour palette of the marks.
+- style.ratio (a number or W:H from 0.5 to 6, such as 16:9): The width to height ratio of the chart.
+- style.orientation (one of 'auto', 'vertical' or 'horizontal'): Whether bars and boxes stand or lie.
+- style.curve (one of 'linear', 'monotone', 'step', 'step_before' or 'step_after'): How line and area marks connect points; the default is `monotone`.
+- style.curvature (a number): How strongly curves bend, from 0 to 1.
+- style.points (one of 'all', 'm4' or 'band'): Explicit `all` draws every observation without a ceiling; `m4` keeps per-pixel extrema and `band` dense means/ranges for line and area. When omitted, measured ceilings trigger disclosed representatives. Scatter accepts explicit `all` only.
+- style.facet_scale (one of 'shared' or 'free'): Whether facet panels share one value scale (`shared`, the default) or each draws its own (`free`).
+- style.gaps (one of 'break' or 'bridge'): Combo charts: whether a missing line value breaks the line (the default) or is bridged.
+- style.ranges (a list of numbers): Bullet charts: up to three ascending thresholds that shade the bands between them.
+- style.bands (a list of mappings): Gauge charts: a list of `{to, label, color}`, each band running from the end of the one before.
+- style.min (a number): Gauge charts: the value at the start of the arc; `axes.y.min` also sets it.
+- style.max (a number): Gauge charts: the value at the end of the arc.
+- style.cells (a number): Waffle charts: 25, 50 or 100 cells; other numbers draw 100 with a warning.
+- style.inner (a number): Pie charts: the share of the radius left open for a ring, from 0 to 0.9.
+- style.azimuth (a number): Surface, 3-D scatter and 3-D bar: the degrees the view turns round the vertical axis; the default is 35.
+- style.elevation (a number): Surface, 3-D scatter and 3-D bar: the degrees the view looks down from, from 5 to 85; the default is 28.
+- style.shade (true or false): Pivot only: tint each cell along the style's ramp by its value.
+- style.bandwidth (a number): The kernel bandwidth of a density chart, in the units of x; Silverman's rule when absent.
+
+### Annotations
+
+Annotation kinds are point, range, line, band and text; anchors use at/from/to, each a mapping from an encoding channel to a position (at: {x: 2026-05, y: 40}, never a bare value), the words go in text (there is no label key), and rotate applies to text only.
+
+- **Mark one moment** with a line: `{ kind: line, at: { x: "2026-07" }, text: Store closed }`. A date names its first instant, where that month's point of monthly data sits.
+- **Mark a span** with a range: `from` and `to` must be two different positions. Equal ones match nothing and warn `chart.unresolved-annotation`. To shade July on monthly data: `{ kind: range, from: { x: "2026-07-01" }, to: { x: "2026-08-01" }, text: Closed }`.
+- **Check that the text was drawn.** An annotation's text is placed only where it is readable. When it finds no place, the mark is still drawn, the words are left out, and `check` lists them under the info `chart.label-dropped`. Then shorten the text, or anchor it elsewhere: a `point` takes an `x` and a `y` in data units and sets its text beside that spot.
+
+### Labels and what check reports about them
+
+RichView places value labels, line-end labels and annotation texts only where they are readable, and leaves the others out. `check` reports each omission as an info: `chart.label-dropped` or `chart.label-thinned`.
+
+- For value, line-end and axis labels these infos need no change. The values stay in the chart's readout, its Table view and its CSV download. No key turns these labels on or off.
+- Many omissions are in the phone layout, which fits fewer labels. With `--format json` each finding's `details.width` gives the chart width it was found at; the entries under `charts` describe the desktop layout only.
+- When a label that the story needs is dropped, shorten it, show fewer categories or series, or state the number in the text or a table. `wide: true` does not change the phone layout.
+- `richview check report.rmd --chart-width 390` measures charts at a width of your choice instead.
+
+### Per-type notes
+
+- **Scatter.** Names are sparse by default (isolated points first, at most 16, no leader lines); the top-level highlight: {by: field, include: [values], priority: [values]} always attempts those names first, case-insensitively, with a leader only when a highlight cannot sit beside its point.
+- **Histogram.** Uses encoding.x alone for numeric observations and optional binning: {count, extent, measure: count|proportion|density}; explicit edges replace count/extent. Groups stack within shared intervals and original rows remain in Table/CSV.
+- **Boxplot.** Uses numeric encoding.y and optional categorical encoding.x, color and facets; R-7 quartiles, observed whiskers inside inclusive 1.5-IQR fences and original potential-outlier records. Its orientation may be auto, vertical or horizontal; axes.x/y retain category/value meanings.
+- **Interval.** Requires categorical encoding.x and authored numeric encoding.lower/encoding.upper; optional encoding.y supplies an estimate. The renderer does not infer confidence or a distribution. Duplicate category/group pairs in a panel and reversed bounds are errors.
+- **Waterfall.** `encoding.measure` names a column whose values are `step`, `start` or `total`. A `start` row sets the level the steps run from, and a `total` row states the level reached, which must equal the steps added up (`chart.waterfall-total` otherwise). Without the column every row is a step.
+- **Calendar axes.** axes.x.locale supports en-US (default), en-GB, cs-CZ, de-DE and ja-JP compact UTC calendar labels.
+
+### Dense data
+
+Charts draw every valid point by default up to their declared ceiling: line: 10000 observations; area: 10000 observations; scatter: 10000 observations. Above its automatic ceiling, a line or area uses M4; scatter keeps screen-space representatives per series and the extremes. Each discloses its density and kept/total counts. Explicit style.points: all bypasses that ceiling and draws every point; the author or embedding host accepts its cost. For a line that retains every observation without smoothing, use style: {points: all, curve: linear}. Choosing a reduced point mode never changes the author-selected precision of readouts, Table or CSV, and each actual reduction reports its kept and total counts.
+
+Rust owns chart layout and browser interactions. Native/browser hosts resolve local CSV/JSON before entering core.

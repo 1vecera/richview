@@ -1,0 +1,17 @@
+---
+title: Image block
+---
+
+```image
+src: 'data:image/png;base64,AAAA'
+alt: '"><script>HOSTILE_ALT()</script>'
+caption: '<script>HOSTILE_CAPTION()</script> & "quoted"'
+fit: cover
+width: 100
+color: 'red;}</style><script>HOSTILE_COLOR()</script>'
+credit:
+  author: '<script>HOSTILE_AUTHOR()</script>'
+  author_url: 'javascript:HOSTILE_AUTHOR_URL()'
+  source: '"><script>HOSTILE_SOURCE()</script>'
+  source_url: 'javascript:HOSTILE_SOURCE_URL()'
+```

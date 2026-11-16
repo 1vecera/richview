@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>Changes in regional life expectancy, 1950–2019</title>
+<style>
+:root { color-scheme: light; --ink: #202c34; --muted: #4b5c65; --line: #d7dfe2; --paper: #fff; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+main { max-width: 1180px; margin: 0 auto; padding: 44px 28px 32px; }
+h1 { max-width: 26ch; margin: 0 0 12px; font-size: clamp(1.9rem, 4vw, 2.75rem); line-height: 1.15; letter-spacing: -.025em; }
+h2 { margin: 0 0 10px; font-size: 1.3rem; line-height: 1.3; }
+p { max-width: 74ch; margin: 0 0 14px; }
+.subtitle { font-size: 1.06rem; color: var(--muted); margin-bottom: 12px; }
+section, figure { margin: 34px 0 0; }
+figure { padding-top: 25px; border-top: 1px solid var(--line); }
+figcaption p, .note, caption { color: var(--muted); font-size: .9rem; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 24px; list-style: none; padding: 0; margin: 14px 0 0; }
+.legend li { display: inline-flex; align-items: center; gap: 8px; }
+.swatch { width: 13px; height: 13px; display: inline-block; }
+.scroll-area { width: 100%; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-color: #788b94 #edf1f3; }
+.scroll-area:focus-visible { outline: 3px solid #3568af; outline-offset: 3px; }
+.chart { display: block; width: 100%; min-width: 950px; height: auto; font-family: inherit; }
+.grid-line { stroke: #dce3e6; stroke-width: 1; }
+.zero-line { stroke: #5e707a; stroke-width: 1.5; }
+.axis-label { fill: #4b5c65; font-size: 15px; }
+.period-label { fill: #202c34; font-size: 16px; }
+.value-label { fill: #202c34; font-size: 14px; font-variant-numeric: tabular-nums; }
+.note { margin: 10px 0 0; }
+table { border-collapse: collapse; width: 100%; min-width: 660px; font-size: .94rem; font-variant-numeric: tabular-nums; }
+caption { text-align: left; caption-side: top; padding: 0 0 12px; }
+th, td { padding: 10px 13px; text-align: right; border-bottom: 1px solid #e2e7e9; }
+thead th { background: #f0f4f5; font-size: .86rem; line-height: 1.4; vertical-align: bottom; border-top: 1px solid var(--line); border-bottom: 1px solid #9fadb4; }
+thead th:first-child, tbody th { text-align: left; }
+tbody th { font-weight: 500; }
+tbody tr:nth-child(even) { background: #f8fafb; }
+.region-start > * { border-top: 2px solid #aebcc3; }
+footer { margin-top: 34px; padding-top: 18px; border-top: 1px solid var(--line); font-size: .86rem; color: var(--muted); }
+a { color: #245b92; text-underline-offset: 3px; }
+a:focus-visible { outline: 3px solid #3568af; outline-offset: 3px; }
+::selection { background: #cce8e3; color: #142c29; }
+@media (max-width: 600px) { main { padding: 26px 16px; } h1 { max-width: 22ch; } section, figure { margin-top: 28px; } th, td { padding: 9px 10px; } .legend { gap: 6px 18px; font-size: .92rem; } }
+@media print { main { max-width: none; padding: 0; } .chart, table { min-width: 0; } .scroll-area { overflow: visible; } body { font-size: 10pt; } th, td { padding: 5px 8px; } thead { display: table-header-group; } tr { break-inside: avoid; } figure { break-inside: avoid; } a { color: inherit; } }
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>Changes in regional life expectancy</h1>
+<p class="subtitle">Africa, Americas, Asia and Europe · 1950–2019</p>
+<p>Life expectancy at birth, in years. Values are population-weighted regional averages; endpoint values and changes are rounded to one decimal.</p>
+</header>
+<figure aria-labelledby="chart-heading">
+<figcaption>
+<h2 id="chart-heading">Change by period and region</h2>
+<p>Change in years, calculated as end value minus start value. Within each period, bars follow the legend order.</p>
+</figcaption>
+<ul class="legend" aria-label="Regions in bar order"><li><span class="swatch" style="background:#087e73" aria-hidden="true"></span>Africa</li>
+<li><span class="swatch" style="background:#3568af" aria-hidden="true"></span>Americas</li>
+<li><span class="swatch" style="background:#b65f17" aria-hidden="true"></span>Asia</li>
+<li><span class="swatch" style="background:#8a4e87" aria-hidden="true"></span>Europe</li></ul>
+<div class="scroll-area" tabindex="0" role="region" aria-label="Bar chart; scroll horizontally on smaller screens">
+<svg class="chart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 466" role="img" aria-labelledby="svg-title svg-description">
+<title id="svg-title">Change in life expectancy by period and region</title>
+<desc id="svg-description">One grouped bar chart with seven periods and four regions. The horizontal axis shows periods; the vertical axis shows change in years. Asia declines by 4.9 years in 1950–1960, then gains 14.5 years in 1960–1970. All other changes are positive. Exact values and endpoints appear in the complete table below.</desc>
+<text x="66" y="20" class="axis-label">Change (years)</text>
+<line x1="66" x2="1100" y1="374.00" y2="374.00" class="grid-line"/><text x="52" y="379" text-anchor="end" class="axis-label">−5</text>
+<line x1="66" x2="1100" y1="294.00" y2="294.00" class="zero-line"/><text x="52" y="299" text-anchor="end" class="axis-label">0</text>
+<line x1="66" x2="1100" y1="214.00" y2="214.00" class="grid-line"/><text x="52" y="219" text-anchor="end" class="axis-label">5</text>
+<line x1="66" x2="1100" y1="134.00" y2="134.00" class="grid-line"/><text x="52" y="139" text-anchor="end" class="axis-label">10</text>
+<line x1="66" x2="1100" y1="54.00" y2="54.00" class="grid-line"/><text x="52" y="59" text-anchor="end" class="axis-label">15</text>
+<g class="bar" data-region="Africa" data-start="1950" data-change="2.6"><title>Africa, 1950–1960: +2.6 years</title><rect x="79.36" y="252.40" width="25" height="41.60" fill="#087e73"/><text x="91.86" y="243.40" text-anchor="middle" class="value-label">+2.6</text></g>
+<g class="bar" data-region="Americas" data-start="1950" data-change="3.0"><title>Americas, 1950–1960: +3.0 years</title><rect x="111.36" y="246.00" width="25" height="48.00" fill="#3568af"/><text x="123.86" y="237.00" text-anchor="middle" class="value-label">+3.0</text></g>
+<g class="bar" data-region="Asia" data-start="1950" data-change="-4.9"><title>Asia, 1950–1960: −4.9 years</title><rect x="143.36" y="294.00" width="25" height="78.40" fill="#b65f17"/><text x="155.86" y="391.40" text-anchor="middle" class="value-label">−4.9</text></g>
+<g class="bar" data-region="Europe" data-start="1950" data-change="3.8"><title>Europe, 1950–1960: +3.8 years</title><rect x="175.36" y="233.20" width="25" height="60.80" fill="#8a4e87"/><text x="187.86" y="224.20" text-anchor="middle" class="value-label">+3.8</text></g>
+<g class="bar" data-region="Africa" data-start="1960" data-change="3.3"><title>Africa, 1960–1970: +3.3 years</title><rect x="227.07" y="241.20" width="25" height="52.80" fill="#087e73"/><text x="239.57" y="232.20" text-anchor="middle" class="value-label">+3.3</text></g>
+<g class="bar" data-region="Americas" data-start="1960" data-change="2.0"><title>Americas, 1960–1970: +2.0 years</title><rect x="259.07" y="262.00" width="25" height="32.00" fill="#3568af"/><text x="271.57" y="253.00" text-anchor="middle" class="value-label">+2.0</text></g>
+<g class="bar" data-region="Asia" data-start="1960" data-change="14.5"><title>Asia, 1960–1970: +14.5 years</title><rect x="291.07" y="62.00" width="25" height="232.00" fill="#b65f17"/><text x="303.57" y="53.00" text-anchor="middle" class="value-label">+14.5</text></g>
+<g class="bar" data-region="Europe" data-start="1960" data-change="1.5"><title>Europe, 1960–1970: +1.5 years</title><rect x="323.07" y="270.00" width="25" height="24.00" fill="#8a4e87"/><text x="335.57" y="261.00" text-anchor="middle" class="value-label">+1.5</text></g>
+<g class="bar" data-region="Africa" data-start="1970" data-change="4.1"><title>Africa, 1970–1980: +4.1 years</title><rect x="374.79" y="228.40" width="25" height="65.60" fill="#087e73"/><text x="387.29" y="219.40" text-anchor="middle" class="value-label">+4.1</text></g>
+<g class="bar" data-region="Americas" data-start="1970" data-change="3.9"><title>Americas, 1970–1980: +3.9 years</title><rect x="406.79" y="231.60" width="25" height="62.40" fill="#3568af"/><text x="419.29" y="222.60" text-anchor="middle" class="value-label">+3.9</text></g>
+<g class="bar" data-region="Asia" data-start="1970" data-change="5.2"><title>Asia, 1970–1980: +5.2 years</title><rect x="438.79" y="210.80" width="25" height="83.20" fill="#b65f17"/><text x="451.29" y="201.80" text-anchor="middle" class="value-label">+5.2</text></g>
+<g class="bar" data-region="Europe" data-start="1970" data-change="1.2"><title>Europe, 1970–1980: +1.2 years</title><rect x="470.79" y="274.80" width="25" height="19.20" fill="#8a4e87"/><text x="483.29" y="265.80" text-anchor="middle" class="value-label">+1.2</text></g>
+<g class="bar" data-region="Africa" data-start="1980" data-change="2.6"><title>Africa, 1980–1990: +2.6 years</title><rect x="522.50" y="252.40" width="25" height="41.60" fill="#087e73"/><text x="535.00" y="243.40" text-anchor="middle" class="value-label">+2.6</text></g>
+<g class="bar" data-region="Americas" data-start="1980" data-change="2.8"><title>Americas, 1980–1990: +2.8 years</title><rect x="554.50" y="249.20" width="25" height="44.80" fill="#3568af"/><text x="567.00" y="240.20" text-anchor="middle" class="value-label">+2.8</text></g>
+<g class="bar" data-region="Asia" data-start="1980" data-change="4.1"><title>Asia, 1980–1990: +4.1 years</title><rect x="586.50" y="228.40" width="25" height="65.60" fill="#b65f17"/><text x="599.00" y="219.40" text-anchor="middle" class="value-label">+4.1</text></g>
+<g class="bar" data-region="Europe" data-start="1980" data-change="1.8"><title>Europe, 1980–1990: +1.8 years</title><rect x="618.50" y="265.20" width="25" height="28.80" fill="#8a4e87"/><text x="631.00" y="256.20" text-anchor="middle" class="value-label">+1.8</text></g>
+<g class="bar" data-region="Africa" data-start="1990" data-change="0.7"><title>Africa, 1990–2000: +0.7 years</title><rect x="670.21" y="282.80" width="25" height="11.20" fill="#087e73"/><text x="682.71" y="273.80" text-anchor="middle" class="value-label">+0.7</text></g>
+<g class="bar" data-region="Americas" data-start="1990" data-change="2.1"><title>Americas, 1990–2000: +2.1 years</title><rect x="702.21" y="260.40" width="25" height="33.60" fill="#3568af"/><text x="714.71" y="251.40" text-anchor="middle" class="value-label">+2.1</text></g>
+<g class="bar" data-region="Asia" data-start="1990" data-change="3.6"><title>Asia, 1990–2000: +3.6 years</title><rect x="734.21" y="236.40" width="25" height="57.60" fill="#b65f17"/><text x="746.71" y="227.40" text-anchor="middle" class="value-label">+3.6</text></g>
+<g class="bar" data-region="Europe" data-start="1990" data-change="1.0"><title>Europe, 1990–2000: +1.0 years</title><rect x="766.21" y="278.00" width="25" height="16.00" fill="#8a4e87"/><text x="778.71" y="269.00" text-anchor="middle" class="value-label">+1.0</text></g>
+<g class="bar" data-region="Africa" data-start="2000" data-change="5.4"><title>Africa, 2000–2010: +5.4 years</title><rect x="817.93" y="207.60" width="25" height="86.40" fill="#087e73"/><text x="830.43" y="198.60" text-anchor="middle" class="value-label">+5.4</text></g>
+<g class="bar" data-region="Americas" data-start="2000" data-change="1.7"><title>Americas, 2000–2010: +1.7 years</title><rect x="849.93" y="266.80" width="25" height="27.20" fill="#3568af"/><text x="862.43" y="257.80" text-anchor="middle" class="value-label">+1.7</text></g>
+<g class="bar" data-region="Asia" data-start="2000" data-change="3.9"><title>Asia, 2000–2010: +3.9 years</title><rect x="881.93" y="231.60" width="25" height="62.40" fill="#b65f17"/><text x="894.43" y="222.60" text-anchor="middle" class="value-label">+3.9</text></g>
+<g class="bar" data-region="Europe" data-start="2000" data-change="3.0"><title>Europe, 2000–2010: +3.0 years</title><rect x="913.93" y="246.00" width="25" height="48.00" fill="#8a4e87"/><text x="926.43" y="237.00" text-anchor="middle" class="value-label">+3.0</text></g>
+<g class="bar" data-region="Africa" data-start="2010" data-change="3.7"><title>Africa, 2010–2019: +3.7 years</title><rect x="965.64" y="234.80" width="25" height="59.20" fill="#087e73"/><text x="978.14" y="225.80" text-anchor="middle" class="value-label">+3.7</text></g>
+<g class="bar" data-region="Americas" data-start="2010" data-change="1.2"><title>Americas, 2010–2019: +1.2 years</title><rect x="997.64" y="274.80" width="25" height="19.20" fill="#3568af"/><text x="1010.14" y="265.80" text-anchor="middle" class="value-label">+1.2</text></g>
+<g class="bar" data-region="Asia" data-start="2010" data-change="2.9"><title>Asia, 2010–2019: +2.9 years</title><rect x="1029.64" y="247.60" width="25" height="46.40" fill="#b65f17"/><text x="1042.14" y="238.60" text-anchor="middle" class="value-label">+2.9</text></g>
+<g class="bar" data-region="Europe" data-start="2010" data-change="1.9"><title>Europe, 2010–2019: +1.9 years</title><rect x="1061.64" y="263.60" width="25" height="30.40" fill="#8a4e87"/><text x="1074.14" y="254.60" text-anchor="middle" class="value-label">+1.9</text></g>
+<text x="139.86" y="425" text-anchor="middle" class="period-label">1950–1960</text>
+<text x="287.57" y="425" text-anchor="middle" class="period-label">1960–1970</text>
+<text x="435.29" y="425" text-anchor="middle" class="period-label">1970–1980</text>
+<text x="583.00" y="425" text-anchor="middle" class="period-label">1980–1990</text>
+<text x="730.71" y="425" text-anchor="middle" class="period-label">1990–2000</text>
+<text x="878.43" y="425" text-anchor="middle" class="period-label">2000–2010</text>
+<text x="1026.14" y="425" text-anchor="middle" class="period-label">2010–2019</text>
+
+<text x="583" y="459" text-anchor="middle" class="axis-label">Period</text>
+</svg>
+</div>
+<p class="note">2010–2019 covers nine years; all earlier periods cover ten. Bars show total period changes, not annual rates. On smaller screens, scroll the chart and table horizontally.</p>
+</figure>
+<section aria-labelledby="interpretation-heading">
+<h2 id="interpretation-heading">What the data show</h2>
+<p>Asia has the only decline, −4.9 years in 1950–1960, followed by the largest gain, +14.5 years in 1960–1970. Africa’s gain is +0.7 years in 1990–2000 and +5.4 years in 2000–2010. The Americas and Europe gain life expectancy in every supplied period.</p>
+</section>
+<section aria-labelledby="table-heading">
+<h2 id="table-heading">Complete data</h2>
+<div class="scroll-area" tabindex="0" role="region" aria-label="Complete data table; scroll horizontally on smaller screens">
+<table>
+<caption>All 28 supplied rows. Endpoint values and changes are in years.</caption>
+<thead><tr><th scope="col">Region</th><th scope="col">Start year</th><th scope="col">End year</th><th scope="col">Life expectancy<br>at start (years)</th><th scope="col">Life expectancy<br>at end (years)</th><th scope="col">Change<br>(years)</th></tr></thead>
+<tbody>
+<tr><th scope="row">Africa</th><td>1950</td><td>1960</td><td>42.8</td><td>45.4</td><td>+2.6</td></tr>
+<tr><th scope="row">Africa</th><td>1960</td><td>1970</td><td>45.4</td><td>48.7</td><td>+3.3</td></tr>
+<tr><th scope="row">Africa</th><td>1970</td><td>1980</td><td>48.7</td><td>52.8</td><td>+4.1</td></tr>
+<tr><th scope="row">Africa</th><td>1980</td><td>1990</td><td>52.8</td><td>55.4</td><td>+2.6</td></tr>
+<tr><th scope="row">Africa</th><td>1990</td><td>2000</td><td>55.4</td><td>56.1</td><td>+0.7</td></tr>
+<tr><th scope="row">Africa</th><td>2000</td><td>2010</td><td>56.1</td><td>61.5</td><td>+5.4</td></tr>
+<tr><th scope="row">Africa</th><td>2010</td><td>2019</td><td>61.5</td><td>65.2</td><td>+3.7</td></tr>
+<tr class="region-start"><th scope="row">Americas</th><td>1950</td><td>1960</td><td>60.8</td><td>63.8</td><td>+3.0</td></tr>
+<tr><th scope="row">Americas</th><td>1960</td><td>1970</td><td>63.8</td><td>65.8</td><td>+2.0</td></tr>
+<tr><th scope="row">Americas</th><td>1970</td><td>1980</td><td>65.8</td><td>69.7</td><td>+3.9</td></tr>
+<tr><th scope="row">Americas</th><td>1980</td><td>1990</td><td>69.7</td><td>72.5</td><td>+2.8</td></tr>
+<tr><th scope="row">Americas</th><td>1990</td><td>2000</td><td>72.5</td><td>74.6</td><td>+2.1</td></tr>
+<tr><th scope="row">Americas</th><td>2000</td><td>2010</td><td>74.6</td><td>76.3</td><td>+1.7</td></tr>
+<tr><th scope="row">Americas</th><td>2010</td><td>2019</td><td>76.3</td><td>77.5</td><td>+1.2</td></tr>
+<tr class="region-start"><th scope="row">Asia</th><td>1950</td><td>1960</td><td>45.6</td><td>40.7</td><td>−4.9</td></tr>
+<tr><th scope="row">Asia</th><td>1960</td><td>1970</td><td>40.7</td><td>55.2</td><td>+14.5</td></tr>
+<tr><th scope="row">Asia</th><td>1970</td><td>1980</td><td>55.2</td><td>60.4</td><td>+5.2</td></tr>
+<tr><th scope="row">Asia</th><td>1980</td><td>1990</td><td>60.4</td><td>64.5</td><td>+4.1</td></tr>
+<tr><th scope="row">Asia</th><td>1990</td><td>2000</td><td>64.5</td><td>68.1</td><td>+3.6</td></tr>
+<tr><th scope="row">Asia</th><td>2000</td><td>2010</td><td>68.1</td><td>72.0</td><td>+3.9</td></tr>
+<tr><th scope="row">Asia</th><td>2010</td><td>2019</td><td>72.0</td><td>74.9</td><td>+2.9</td></tr>
+<tr class="region-start"><th scope="row">Europe</th><td>1950</td><td>1960</td><td>64.6</td><td>68.4</td><td>+3.8</td></tr>
+<tr><th scope="row">Europe</th><td>1960</td><td>1970</td><td>68.4</td><td>69.9</td><td>+1.5</td></tr>
+<tr><th scope="row">Europe</th><td>1970</td><td>1980</td><td>69.9</td><td>71.1</td><td>+1.2</td></tr>
+<tr><th scope="row">Europe</th><td>1980</td><td>1990</td><td>71.1</td><td>72.9</td><td>+1.8</td></tr>
+<tr><th scope="row">Europe</th><td>1990</td><td>2000</td><td>72.9</td><td>73.9</td><td>+1.0</td></tr>
+<tr><th scope="row">Europe</th><td>2000</td><td>2010</td><td>73.9</td><td>76.9</td><td>+3.0</td></tr>
+<tr><th scope="row">Europe</th><td>2010</td><td>2019</td><td>76.9</td><td>78.8</td><td>+1.9</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+<footer>
+<p>Source: Gapminder, <cite>life expectancy at birth</cite>, version 15 (5 April 2026), <a href="https://www.gapminder.org/">gapminder.org</a>, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. This report uses only the supplied data.</p>
+</footer>
+<script type="application/json" id="report-data">[{"region":"Africa","start_year":1950,"end_year":1960,"life_start":42.8,"life_end":45.4,"change":2.6},{"region":"Africa","start_year":1960,"end_year":1970,"life_start":45.4,"life_end":48.7,"change":3.3},{"region":"Africa","start_year":1970,"end_year":1980,"life_start":48.7,"life_end":52.8,"change":4.1},{"region":"Africa","start_year":1980,"end_year":1990,"life_start":52.8,"life_end":55.4,"change":2.6},{"region":"Africa","start_year":1990,"end_year":2000,"life_start":55.4,"life_end":56.1,"change":0.7},{"region":"Africa","start_year":2000,"end_year":2010,"life_start":56.1,"life_end":61.5,"change":5.4},{"region":"Africa","start_year":2010,"end_year":2019,"life_start":61.5,"life_end":65.2,"change":3.7},{"region":"Americas","start_year":1950,"end_year":1960,"life_start":60.8,"life_end":63.8,"change":3},{"region":"Americas","start_year":1960,"end_year":1970,"life_start":63.8,"life_end":65.8,"change":2},{"region":"Americas","start_year":1970,"end_year":1980,"life_start":65.8,"life_end":69.7,"change":3.9},{"region":"Americas","start_year":1980,"end_year":1990,"life_start":69.7,"life_end":72.5,"change":2.8},{"region":"Americas","start_year":1990,"end_year":2000,"life_start":72.5,"life_end":74.6,"change":2.1},{"region":"Americas","start_year":2000,"end_year":2010,"life_start":74.6,"life_end":76.3,"change":1.7},{"region":"Americas","start_year":2010,"end_year":2019,"life_start":76.3,"life_end":77.5,"change":1.2},{"region":"Asia","start_year":1950,"end_year":1960,"life_start":45.6,"life_end":40.7,"change":-4.9},{"region":"Asia","start_year":1960,"end_year":1970,"life_start":40.7,"life_end":55.2,"change":14.5},{"region":"Asia","start_year":1970,"end_year":1980,"life_start":55.2,"life_end":60.4,"change":5.2},{"region":"Asia","start_year":1980,"end_year":1990,"life_start":60.4,"life_end":64.5,"change":4.1},{"region":"Asia","start_year":1990,"end_year":2000,"life_start":64.5,"life_end":68.1,"change":3.6},{"region":"Asia","start_year":2000,"end_year":2010,"life_start":68.1,"life_end":72,"change":3.9},{"region":"Asia","start_year":2010,"end_year":2019,"life_start":72,"life_end":74.9,"change":2.9},{"region":"Europe","start_year":1950,"end_year":1960,"life_start":64.6,"life_end":68.4,"change":3.8},{"region":"Europe","start_year":1960,"end_year":1970,"life_start":68.4,"life_end":69.9,"change":1.5},{"region":"Europe","start_year":1970,"end_year":1980,"life_start":69.9,"life_end":71.1,"change":1.2},{"region":"Europe","start_year":1980,"end_year":1990,"life_start":71.1,"life_end":72.9,"change":1.8},{"region":"Europe","start_year":1990,"end_year":2000,"life_start":72.9,"life_end":73.9,"change":1},{"region":"Europe","start_year":2000,"end_year":2010,"life_start":73.9,"life_end":76.9,"change":3},{"region":"Europe","start_year":2010,"end_year":2019,"life_start":76.9,"life_end":78.8,"change":1.9}]</script>
+</main>
+</body>
+</html>

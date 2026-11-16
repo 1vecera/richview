@@ -1,0 +1,29 @@
+---
+title: Show what moved between two measurements
+description: A dumbbell joins a start and an end value, so the reader sees both the levels and the direction of change.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Three teams improved and one slipped
+
+These illustrative scores compare each team before and after a training programme. The hollow dot is the start, the filled dot the end, and the line between them is the change.
+
+```chart
+type: dumbbell
+title: Three of four teams scored higher after training
+subtitle: Score per team; hollow dot before, filled dot after
+data:
+  inline:
+    - {team: Alpha, before: 62, after: 78}
+    - {team: Beta, before: 55, after: 51}
+    - {team: Gamma, before: 70, after: 88}
+    - {team: Delta, before: 48, after: 66}
+encoding: {x: team, lower: before, upper: after}
+axes:
+  y: {label: Score}
+```
+
+*Source: Illustrative values. Beta is the only team whose score fell.*
+
+Use the keyboard or pointer to read each team's start, end and signed change.

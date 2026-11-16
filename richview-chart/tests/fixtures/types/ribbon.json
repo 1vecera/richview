@@ -1,0 +1,25 @@
+{
+ "spec": {"type": "ribbon", "title": "South overtakes North in March and East follows in April", "encoding": {"x": "month", "y": "sales", "color": "region"}, "axes": {"y": {"label": "Sales"}}},
+ "rows": [
+  {"month": "Jan", "region": "North", "sales": 50},
+  {"month": "Feb", "region": "North", "sales": 48},
+  {"month": "Mar", "region": "North", "sales": 44},
+  {"month": "Apr", "region": "North", "sales": 39},
+  {"month": "May", "region": "North", "sales": 35},
+  {"month": "Jan", "region": "South", "sales": 42},
+  {"month": "Feb", "region": "South", "sales": 47},
+  {"month": "Mar", "region": "South", "sales": 51},
+  {"month": "Apr", "region": "South", "sales": 55},
+  {"month": "May", "region": "South", "sales": 58},
+  {"month": "Jan", "region": "East", "sales": 35},
+  {"month": "Feb", "region": "East", "sales": 33},
+  {"month": "Mar", "region": "East", "sales": 38},
+  {"month": "Apr", "region": "East", "sales": 46},
+  {"month": "May", "region": "East", "sales": 52},
+  {"month": "Jan", "region": "West", "sales": 20},
+  {"month": "Feb", "region": "West", "sales": 28},
+  {"month": "Mar", "region": "West", "sales": 30},
+  {"month": "Apr", "region": "West", "sales": 32},
+  {"month": "May", "region": "West", "sales": 41}
+ ]
+}

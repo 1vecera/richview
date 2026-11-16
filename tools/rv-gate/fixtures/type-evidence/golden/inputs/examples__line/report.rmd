@@ -1,0 +1,18 @@
+---
+title: Line
+---
+
+```chart
+type: line
+title: Steady line
+data:
+  inline:
+    - {a: 1}
+encoding: {x: a, y: a}
+```
+
+```chart
+type: line
+title: Broken line
+encoding: {x: a, y: a}
+```

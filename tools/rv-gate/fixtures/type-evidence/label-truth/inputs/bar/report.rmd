@@ -1,0 +1,12 @@
+---
+title: Bar
+---
+
+```chart
+type: bar
+title: Bars count
+data:
+  inline:
+    - {a: 1}
+encoding: {x: a, y: a}
+```

@@ -1,0 +1,14 @@
+{
+ "spec": {
+  "type": "funnel",
+  "title": "Signup funnel",
+  "encoding": {"x": "stage", "y": "users"},
+  "axes": {"y": {"label": "Users"}}
+ },
+ "rows": [
+  {"stage": "Visited", "users": 12000},
+  {"stage": "Signed up", "users": 4800},
+  {"stage": "Activated", "users": 2900},
+  {"stage": "Subscribed", "users": 640}
+ ]
+}

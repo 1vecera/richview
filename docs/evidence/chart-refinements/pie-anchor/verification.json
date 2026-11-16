@@ -1,0 +1,358 @@
+{
+  "status": "accepted at verification",
+  "source": {
+    "base": "bb8b112c121eae1ec70d810df1b5e6a2070c9c4e",
+    "product": "9e414e175dce492a78584cb81a7d5a71c8b1b187",
+    "branch": "refine/chart-pie-anchor",
+    "production_diff_sha256": "176dd35d88d47c3f91cec13a250be7291c4af2c9c9a6f25f230aeb919ff8ef48"
+  },
+  "tools": {
+    "rust": "1.99.0 (b940084d7 2026-09-28)",
+    "wasm_bindgen": "0.2.129",
+    "node": "26.8.1",
+    "chromium": "151.0.7922.173"
+  },
+  "build": {
+    "command": "CARGO_BUILD_JOBS=3 cargo run --release --locked -p richview-build",
+    "exit": 0,
+    "baseline_wasm": "1f278570318a19163969089bf4b8f1f694efe5b0f9b3ba04b2897912851458be",
+    "candidate_wasm": "32af0db212111a68dbf98d2fb5b18893000ccef4c0ce5f047095dbc441c25d2f",
+    "baseline_native": "7d322a1488760e99785b5d6d9b538f0f09d61a57dc68ca5ac9565d919a5e2a7e",
+    "candidate_native": "efa4b6b592874df643737111715e0ee288988cee0ff144d869804f21e4974b29"
+  },
+  "matrix": {
+    "before": {
+      "head": "bb8b112c121eae1ec70d810df1b5e6a2070c9c4e",
+      "wasm": "1f278570318a19163969089bf4b8f1f694efe5b0f9b3ba04b2897912851458be"
+    },
+    "after": {
+      "head": "9e414e175dce492a78584cb81a7d5a71c8b1b187",
+      "wasm": "32af0db212111a68dbf98d2fb5b18893000ccef4c0ce5f047095dbc441c25d2f"
+    },
+    "reports": 210,
+    "child_panels": 225,
+    "removed_false_outlines": 120,
+    "byte_identical_control_svgs": 105,
+    "byte_identical_control_pngs": 90,
+    "before_live_findings": 110,
+    "after_live_findings": 75
+  },
+  "interfaces": {
+    "before": {
+      "head": "bb8b112c121eae1ec70d810df1b5e6a2070c9c4e",
+      "wasm": "1f278570318a19163969089bf4b8f1f694efe5b0f9b3ba04b2897912851458be",
+      "native": "7d322a1488760e99785b5d6d9b538f0f09d61a57dc68ca5ac9565d919a5e2a7e"
+    },
+    "after": {
+      "head": "9e414e175dce492a78584cb81a7d5a71c8b1b187",
+      "wasm": "32af0db212111a68dbf98d2fb5b18893000ccef4c0ce5f047095dbc441c25d2f",
+      "native": "efa4b6b592874df643737111715e0ee288988cee0ff144d869804f21e4974b29"
+    },
+    "interface_panels": 60,
+    "keyboard_rows": 176,
+    "pointer_rows": 172,
+    "touch_rows": 172,
+    "table_csv_pairs": 60,
+    "offline_native_views": 48,
+    "offline_native_panels": 56,
+    "unchanged_native_controls": 24
+  },
+  "direct_controls": [
+    {
+      "id": "null-field",
+      "targets": [
+        0
+      ]
+    },
+    {
+      "id": "null-name",
+      "targets": [
+        0
+      ]
+    },
+    {
+      "id": "null-and-name",
+      "targets": [
+        0,
+        1
+      ]
+    },
+    {
+      "id": "missing-at",
+      "targets": []
+    },
+    {
+      "id": "null-at",
+      "targets": []
+    },
+    {
+      "id": "unsupported-kind",
+      "targets": []
+    },
+    {
+      "id": "unannotated",
+      "targets": []
+    }
+  ],
+  "independent_review": {
+    "verdict": "ACCEPT",
+    "report": "/home/vecera/tmp/richview-chart-refinement-20261011/pie-anchor-review.md",
+    "matched_reports": 32,
+    "unchanged_svg_controls": 12,
+    "direct_null_controls": 12,
+    "source_keyboard_rows": 12,
+    "pointer_hits": 12,
+    "touch_hits": 12,
+    "raw": "/home/vecera/tmp/richview-chart-refinement-20261011/pie-anchor-current-independent-after/manifest.json"
+  },
+  "checks": {
+    "rust": [
+      {
+        "id": "format",
+        "command": [
+          "cargo",
+          "fmt",
+          "--all",
+          "--check"
+        ],
+        "exit": 0,
+        "signal": null,
+        "elapsed_ms": 1138
+      },
+      {
+        "id": "clippy-native",
+        "command": [
+          "cargo",
+          "clippy",
+          "--workspace",
+          "--all-targets",
+          "--locked",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit": 0,
+        "signal": null,
+        "elapsed_ms": 10337
+      },
+      {
+        "id": "clippy-wasm",
+        "command": [
+          "cargo",
+          "clippy",
+          "-p",
+          "richview-web",
+          "--target",
+          "wasm32-unknown-unknown",
+          "--locked",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit": 0,
+        "signal": null,
+        "elapsed_ms": 8227
+      },
+      {
+        "id": "workspace",
+        "command": [
+          "cargo",
+          "test",
+          "--workspace",
+          "--locked"
+        ],
+        "exit": 0,
+        "signal": null,
+        "elapsed_ms": 98078
+      }
+    ],
+    "host": [
+      {
+        "id": "fixtures",
+        "command": [
+          "cargo",
+          "run",
+          "--release",
+          "--locked",
+          "-p",
+          "richview-bench",
+          "--",
+          "--write-fixtures",
+          "--fixtures-only"
+        ],
+        "exit": 0,
+        "signal": null,
+        "elapsed_ms": 67720
+      },
+      {
+        "id": "editor",
+        "command": [
+          "node",
+          "scripts/verify-editor.cjs"
+        ],
+        "exit": 0,
+        "signal": null,
+        "elapsed_ms": 1042
+      },
+      {
+        "id": "native",
+        "command": [
+          "node",
+          "scripts/verify-native.mjs"
+        ],
+        "exit": 0,
+        "signal": null,
+        "elapsed_ms": 3527
+      },
+      {
+        "id": "compat",
+        "command": [
+          "node",
+          "scripts/verify-compat.mjs"
+        ],
+        "exit": 0,
+        "signal": null,
+        "elapsed_ms": 177
+      },
+      {
+        "id": "types",
+        "command": [
+          "node",
+          "node_modules/typescript/bin/tsc",
+          "--noEmit",
+          "--strict",
+          "--module",
+          "nodenext",
+          "--moduleResolution",
+          "nodenext",
+          "--target",
+          "es2022",
+          "--lib",
+          "es2022,dom",
+          "scripts/verify-types.ts"
+        ],
+        "exit": 0,
+        "signal": null,
+        "elapsed_ms": 956
+      },
+      {
+        "id": "browser",
+        "command": [
+          "node",
+          "scripts/verify-browser.mjs"
+        ],
+        "exit": 0,
+        "signal": null,
+        "elapsed_ms": 48702
+      },
+      {
+        "id": "landing",
+        "command": [
+          "node",
+          "scripts/verify-landing.mjs"
+        ],
+        "exit": 0,
+        "signal": null,
+        "elapsed_ms": 56468
+      },
+      {
+        "id": "cloudflare",
+        "command": [
+          "flock",
+          "/home/vecera/tmp/richview-chart-refinement-20261011/cloudflare-check.lock",
+          "node",
+          "scripts/verify-cloudflare.mjs"
+        ],
+        "exit": 0,
+        "signal": null,
+        "elapsed_ms": 63216
+      },
+      {
+        "id": "showcase",
+        "command": [
+          "node",
+          "scripts/verify-showcase.mjs"
+        ],
+        "exit": 0,
+        "signal": null,
+        "elapsed_ms": 24207
+      },
+      {
+        "id": "flagship",
+        "command": [
+          "node",
+          "scripts/verify-flagship.mjs"
+        ],
+        "exit": 0,
+        "signal": null,
+        "elapsed_ms": 13193
+      },
+      {
+        "id": "reel",
+        "command": [
+          "node",
+          "scripts/verify-reel.mjs"
+        ],
+        "exit": 0,
+        "signal": null,
+        "elapsed_ms": 6068
+      },
+      {
+        "id": "browser-api",
+        "command": [
+          "node",
+          "scripts/verify-browser-api.mjs"
+        ],
+        "exit": 0,
+        "signal": null,
+        "elapsed_ms": 3850
+      },
+      {
+        "id": "motion-runtime",
+        "command": [
+          "node",
+          "scripts/verify-motion-runtime.mjs"
+        ],
+        "exit": 0,
+        "signal": null,
+        "elapsed_ms": 1678
+      },
+      {
+        "id": "docs",
+        "command": [
+          "node",
+          "scripts/verify-docs.mjs"
+        ],
+        "exit": 0,
+        "signal": null,
+        "elapsed_ms": 12271
+      }
+    ]
+  },
+  "limitations": [
+    "Identity only: existing annotation placement remains unchanged. All 75 remaining broad-matrix warning instances were present before.",
+    "Explicit null coordinates are accepted by the low-level chart API but rejected by the report parser; both behaviors remain unchanged.",
+    "Pending first-seen pie order remains blocked by independent annotation collisions.",
+    "Aggregated repeated categories retain existing floating-point representation; one-source decimal strings retain their precision.",
+    "Local Node is 26.8.1; CI specifies Node 22. No hosted check is claimed."
+  ],
+  "harness_notes": [
+    "Initial static helper selected both responsive native SVG variants; the final helper measures only the visible variant. The failed scratch log is retained.",
+    "An initial aggregate expectation used 5; the existing aggregated readout is 5.0. Corrected the expectation without changing product behavior; failed scratch log retained.",
+    "Original generic facet capture retained the empty outer SVG. Fifteen configurations per build were recaptured with child SVGs and reconciled into the 210-configuration comparison.",
+    "Headless-page activation sequencing was aligned with the existing interaction helper; an earlier partial run remains archived."
+  ],
+  "files": {
+    "README.md": "60d3d3828015932f30cd5870ef3fbef9ed208e4c326783fe172c4027d58f64b2",
+    "capture.mjs": "b5d58b15079a84cecc479ee326392701357d038c00d4514ac64fe456bd14ef57",
+    "compare-interfaces.mjs": "71b97ce30fc56bd07d01c18d7843541403ef3c4ea925763719daefb8b7396099",
+    "fixtures.json": "3a80616c5e18c20c4fc3c8928d0e9040090b00ca4f7dee80b6d081d91f37e1d4",
+    "named-target-after.png": "c7b1411f748d24fa90b1aeaf8652aef59748a0cda0cbccd9ddf373718d3ecc80",
+    "named-target-before.png": "53c68dd32bf6fc364cbddab514d0b02678c96c46844fd21339da1027e6c9ab21",
+    "verify-matched.mjs": "7c8b5501651f4a8399abfc61a5bdb87884fdf1e7c32f59058c6e3965fac8cab0",
+    "verify-native-cli.mjs": "166d7278ea6a7943f92f73fff8bb5d6b06d86d49a90a508886725424c69ed086",
+    "verify-paths.mjs": "ab7268584b17964a98e973e75485713e3ca2881c22774fc5af91f39d8beef70e"
+  },
+  "delivery_status_at_verification": "local branch; not pushed",
+  "verified_at": "2026-10-11T22:11:06.919Z"
+}

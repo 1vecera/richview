@@ -1,0 +1,160 @@
+{
+  "status": "Independent main, corrected frozen sibling and rendered output ACCEPT",
+  "base": "480af942714c16ce4c1f959c7f046344d4f8c99d",
+  "baseline_capture_head": "dad1615876cf05dccd7241da269fbf69cbc1ec31",
+  "formatter_source": "24fed09f469c9e16327650e6af50f5b3050d99f6",
+  "runtime_head": "bd301ac0e3a5c3591e307941eca5a1c99e3492cf",
+  "wasm": "78b50734f3850600172ec6aea094b5c764ba84d1f5ed6a797416d8abcc9cc5bf",
+  "shared_wasm": "9adcbd26cc7a4a8f3425313e2b847e099d216ff6bb196ecaba35f3cfffc00ee1",
+  "native": "3dbc99832ae9ae940d523b48048b212ab8420c56f1ca6bc0f44e9d20c8233898",
+  "browser": "151.0.7922.173",
+  "required_checks": {
+    "fmt": "PASS",
+    "clippy": "PASS",
+    "clippy-wasm": "PASS",
+    "tests": "PASS",
+    "build": "PASS",
+    "fixtures": "PASS",
+    "editor": "PASS",
+    "native": "PASS",
+    "compat": "PASS",
+    "types": "PASS",
+    "browser": "PASS",
+    "landing": "PASS",
+    "cloudflare": "PASS",
+    "showcase": "PASS",
+    "flagship": "PASS",
+    "reel": "PASS",
+    "browser-api": "PASS",
+    "motion-runtime": "PASS",
+    "docs": "PASS"
+  },
+  "pairs": [
+    {
+      "id": "line-small",
+      "source": "tiny-line.rmd",
+      "report_root": "line-small",
+      "source_sha256": "fed834fc2d714c8ef740e2d90c47577216b63e8530163491469b34b482e88b55",
+      "theme": "scientific",
+      "width": 240,
+      "motion": "reduce",
+      "before": {
+        "file": "tiny-line-before.png",
+        "sha256": "d4b19c96d6a25f0b41c07bd2741d4812f44ab617c129ed329b423df617a37c8b"
+      },
+      "after": {
+        "file": "tiny-line-after.png",
+        "sha256": "1090ba5e545190b60d23f5cc1c5fb318778483252bd3a04a23004ac49136813a"
+      }
+    },
+    {
+      "id": "calendar-percent-large",
+      "source": "large-percent-calendar.rmd",
+      "report_root": "calendar-percent-large",
+      "source_sha256": "81aacedf75e971a153122cc185c7d41cfc2922b22d3791e74eeb8652a1dd5631",
+      "theme": "scientific",
+      "width": 240,
+      "motion": "reduce",
+      "before": {
+        "file": "large-percent-calendar-before.png",
+        "sha256": "fe04de7cce96d55780b7e20e900d18afad82f0d9768bac5f282b2b48f9625102"
+      },
+      "after": {
+        "file": "large-percent-calendar-after.png",
+        "sha256": "5f5a9caf96fa0ce7ee8cdd63221e1d0969cc3c70ba3c7dc4f286a4cb268bb4cf"
+      }
+    }
+  ],
+  "main_actual": {
+    "initial_formatter_reports": 525,
+    "ordinary_full_svg_png_exact": 90,
+    "catalog_full_svg_png_exact": 750,
+    "additional_feedback_reports": 100,
+    "final_native_reports_rechecked": 1275,
+    "final_native_new_findings": 0,
+    "native_clipping_in_525_before_after": [
+      365,
+      55
+    ],
+    "live_clipping_in_525_before_after": [
+      416,
+      95
+    ],
+    "source_table_csv_views": 105,
+    "exact_keyboard_readouts": 210,
+    "same_pointer_touch": 104,
+    "previously_offscreen_target_now_accessible": 1,
+    "public_exports_contain_live_labels": 105,
+    "direct_native_calendar_views": 30,
+    "direct_native_clipped_labels": 0,
+    "independent_actual_final_views": 36,
+    "native_geometry_pairs": 176,
+    "final_diagnostic_fix_pairs": 176,
+    "native_geometry_note": "126 changed plots,5 changed rounded automatic domains,15 tick plans; source extents and authored bounds preserved. Final diagnostic correction leaves all176 SVGs, geometry and source fields exact to initial formatter."
+  },
+  "sibling": {
+    "base": "2badd2774f188b9dadfb4c47982d8e0197e1c8f9",
+    "source": "5485ab1a0fdf1b83951c4a2d1175959909e45452",
+    "wasm": "a82df179133710560082912d2f238497059623740b2ef981d016ba6c237450ec",
+    "shared_wasm": "62500957631c61d9c3fae1bc2ec9029c0249325748db4ff41837260eeed1e8af",
+    "native": "a16fba65d96774245c271f4add2155173d703693a15da62cd76ed7a128dff33c",
+    "initial_formatter_reports": 525,
+    "ordinary_full_svg_png_exact_before_text_shift": 90,
+    "formatter_whole_svg_png_exact_before_text_shift": 120,
+    "text_shift_calendar_reports": 105,
+    "only_primary_y_text_x_changes": 525,
+    "text_shift_native_clipping_before_after": [
+      195,
+      0
+    ],
+    "all_other_calendar_svg_exact": true,
+    "direct_native_calendar_views": 30,
+    "direct_native_clipped_labels": 0,
+    "minimum_native_glyph_clearance_css_px": 0.5958328247070312,
+    "source_table_csv_views": 105,
+    "exact_keyboard_readouts": 210,
+    "pointer_touch_exact_to_pre_shift": 105,
+    "public_full_svg_controls_exact": 90,
+    "public_reset_and_resize_svg_exact": 105,
+    "required_checks": "All19 PASS",
+    "independent_full_scene_model_runtime_pairs_exact": 182,
+    "value_label_note": "Only primary temporal Y text moves2px toward plot in native/live/diagnostics. Original Engine gutter restored exactly; dates, plots, geometry and sampling are exact to19324da.",
+    "rejected_checkpoint": {
+      "source": "d4233884eff5b8eb609e9ae6a76e9dea176a7161",
+      "reason": "ceil+2 gutter fixed clipping but two240px/14px cases lost daily date context; density boundaries could change sampling. Rejected and fully reverted before text-only correction."
+    },
+    "independent_review": {
+      "verdict": "ACCEPT",
+      "scene_model_runtime_pairs_exact": 182,
+      "native_pairs": 180,
+      "live_export_pairs": 180,
+      "themes": 5,
+      "widths": [
+        240,
+        720
+      ],
+      "font_sizes": [
+        12,
+        14,
+        16
+      ],
+      "minimum_native_left_clearance_css_px": 0.453125,
+      "minimum_live_export_left_clearance_css_px": 1.578125,
+      "minimum_plot_gap_css_px": 3.205902,
+      "inherited_warning": "12 Brutalist16px cases retain the same title/top-Y-tick bounding-box warning identities; some overlap widths change. Actual before/after ink remains legible."
+    },
+    "later_head_source_parity": {
+      "head": "2c13ffb",
+      "difference": "Accepted pie-share endpoint labels and related tests/docs only; formatter, calendar and browser sources unchanged",
+      "fresh_later_head_build_claimed": false
+    }
+  },
+  "limits": [
+    "Compact cells/end labels and exact source/readout formatters retain their existing policies.",
+    "Unsupported numerical-scale overflow and underflow remain outside this formatter change.",
+    "Long close-offset values or authored units can still need fit diagnostics.",
+    "Five main calendar resize states reorder identical nodes; node attributes/ancestry and actual PNG remain exact.",
+    "Viewport widths and chart viewBox widths are recorded separately; report captures do not imply a fixed390px chart.",
+    "Frozen sibling custom-font evidence is bounded to12/14/16px and five bundled themes; inherited Brutalist16px title/tick overlaps remain disclosed."
+  ]
+}

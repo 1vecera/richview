@@ -1,0 +1,11 @@
+---
+title: Host SQL metadata must not reach a report
+---
+
+```table
+title: Refuse engine path settings
+data:
+  sql:
+    connector: local
+    inline: SELECT name, value FROM duckdb_settings() WHERE name IN ('home_directory','temp_directory','extension_directory','secret_directory','allowed_directories','allowed_paths')
+```

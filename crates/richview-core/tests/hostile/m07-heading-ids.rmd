@@ -1,0 +1,24 @@
+---
+title: Heading ids
+tabs:
+  default: overview
+  panels:
+    - { id: overview, label: Overview, from: overview }
+    - { id: detail, label: Detail, from: detail }
+---
+
+## Overview {#overview}
+
+### Reserved id {#rv-hostile-id}
+
+### Chart id {#rv-chart-0}
+
+### Panel id {#panel-detail}
+
+### Classes {.rv-hostile-class .rv-chart}
+
+### Attributes {#ok-id onclick=HOSTILE_ATTR() style="x"}
+
+## Detail {#detail}
+
+### Tab id {#tab-detail}

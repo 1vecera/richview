@@ -1,0 +1,8 @@
+---
+title: Script title image
+title_image:
+  src: 'javascript:HOSTILE_TITLE_IMAGE()'
+  alt: x
+---
+
+Body.

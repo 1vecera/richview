@@ -1,0 +1,15 @@
+topic,app,share_of_low_star_pct,low_star_reviews
+Quality,Claude,22.4,541
+Quality,ChatGPT,17.2,384
+Limits,Claude,19.4,541
+Limits,ChatGPT,13.3,384
+Accuracy,Claude,17.9,541
+Accuracy,ChatGPT,18.5,384
+Refusals,Claude,18.5,541
+Refusals,ChatGPT,8.6,384
+Bugs,Claude,11.5,541
+Bugs,ChatGPT,17.7,384
+Pricing,Claude,15.3,541
+Pricing,ChatGPT,17.7,384
+Login,Claude,10.7,541
+Login,ChatGPT,2.6,384

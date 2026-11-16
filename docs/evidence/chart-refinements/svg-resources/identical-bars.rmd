@@ -1,0 +1,13 @@
+---
+title: Independent chart resources
+version: 0.0.1
+styles: [sleek, report.rstyle.yaml]
+---
+
+```chart
+{"type":"bar","title":"Same categories in two views","encoding":{"x":"category","y":"value","color":"category"},"style":{"orientation":"vertical"},"data":{"inline":[{"category":"A","value":"5.12500"},{"category":"B","value":"5.00000"},{"category":"C","value":"5.00000"},{"category":"D","value":"5.00000"},{"category":"E","value":"5.00000"},{"category":"F","value":"5.00000"}]}}
+```
+
+```chart
+{"type":"bar","title":"Same categories in two views","encoding":{"x":"category","y":"value","color":"category"},"style":{"orientation":"vertical"},"data":{"inline":[{"category":"A","value":"5.12500"},{"category":"B","value":"5.00000"},{"category":"C","value":"5.00000"},{"category":"D","value":"5.00000"},{"category":"E","value":"5.00000"},{"category":"F","value":"5.00000"}]}}
+```

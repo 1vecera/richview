@@ -1,0 +1,45 @@
+---
+title: Show which topics come up most often
+description: A word cloud sets each word at a size that follows its value and packs the words together without overlap.
+version: 0.0.1
+styles: [scientific]
+---
+
+## What readers ask for
+
+These illustrative counts give each topic a number of requests. The size of a word follows the square root of its count, so the most requested topics stand out; a word that finds no room is reported and stays in the table.
+
+```chart
+type: wordcloud
+title: Dashboards and forecasts lead what readers ask for
+subtitle: Requests per topic over one quarter, illustrative counts
+data:
+  inline:
+    - {topic: dashboards, requests: 48}
+    - {topic: forecast, requests: 41}
+    - {topic: churn, requests: 36}
+    - {topic: revenue, requests: 33}
+    - {topic: cohort, requests: 28}
+    - {topic: funnel, requests: 25}
+    - {topic: margin, requests: 22}
+    - {topic: retention, requests: 20}
+    - {topic: pricing, requests: 18}
+    - {topic: segment, requests: 16}
+    - {topic: anomaly, requests: 14}
+    - {topic: budget, requests: 12}
+    - {topic: trend, requests: 11}
+    - {topic: pipeline, requests: 10}
+    - {topic: ratio, requests: 9}
+    - {topic: outlier, requests: 8}
+    - {topic: survey, requests: 7}
+    - {topic: lift, requests: 6}
+    - {topic: mix, requests: 5}
+    - {topic: drift, requests: 4}
+encoding: {label: topic, y: requests}
+axes:
+  y: {label: Requests}
+```
+
+*Source: Illustrative counts.*
+
+Use the keyboard or pointer to read each topic's requests and its share of the total.

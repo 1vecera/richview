@@ -1,0 +1,61 @@
+---
+title: Retention rose in every cohort after the pricing change
+description: A fictional probe report used to compare RichView treatments; every number is invented.
+version: 0.0.1
+author: Style probe
+date: 2026-10-21
+---
+
+## Retention improved for all four cohorts
+
+Body text sets the reading measure. It carries **strong text**, a [link](https://example.com), `inline code` and a footnote.[^1]
+
+```big
+value: 0.184
+format: percent
+label: Twelve-week retention, new cohort
+delta: 0.032
+delta_label: vs prior quarter
+trend: up
+```
+
+```callout
+kind: hold
+title: Small sample
+body: Only twelve weeks of observations are available after the change.
+```
+
+```chart
+type: line
+title: Retention climbed after week four in every cohort
+subtitle: Share of each cohort still active, by week
+data:
+  inline:
+    - {week: 1, cohort: A, share: 0.62}
+    - {week: 2, cohort: A, share: 0.55}
+    - {week: 3, cohort: A, share: 0.52}
+    - {week: 4, cohort: A, share: 0.53}
+    - {week: 5, cohort: A, share: 0.56}
+    - {week: 1, cohort: B, share: 0.58}
+    - {week: 2, cohort: B, share: 0.50}
+    - {week: 3, cohort: B, share: 0.47}
+    - {week: 4, cohort: B, share: 0.49}
+    - {week: 5, cohort: B, share: 0.51}
+    - {week: 1, cohort: C, share: 0.54}
+    - {week: 2, cohort: C, share: 0.46}
+    - {week: 3, cohort: C, share: 0.43}
+    - {week: 4, cohort: C, share: 0.44}
+    - {week: 5, cohort: C, share: 0.47}
+    - {week: 1, cohort: D, share: 0.50}
+    - {week: 2, cohort: D, share: 0.42}
+    - {week: 3, cohort: D, share: 0.40}
+    - {week: 4, cohort: D, share: 0.41}
+    - {week: 5, cohort: D, share: 0.44}
+encoding: {x: week, y: share, color: cohort}
+axes:
+  y: {format: percent}
+```
+
+*Source: invented probe data.*
+
+[^1]: A footnote definition.

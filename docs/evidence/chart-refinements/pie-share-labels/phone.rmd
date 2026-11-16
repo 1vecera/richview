@@ -1,0 +1,7 @@
+---
+title: Pie share precision
+---
+
+```chart
+{"type": "pie", "title": "A small positive share", "encoding": {"x": "segment", "y": "count"}, "axes": {"y": {"label": "Observations"}}, "data": {"inline": [{"segment": "Major", "count": 9999}, {"segment": "Minor", "count": 1}]}}
+```

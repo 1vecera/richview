@@ -1,0 +1,19 @@
+---
+title: Dense power observations
+format: rmd/1
+---
+
+```chart
+type: line
+title: Dense power observations
+subtitle: 12,000 observations; source values stay inspectable
+encoding:
+  x: time
+  y: power
+axes:
+  y:
+    label: Power
+    unit: MW
+data:
+  csv: power.csv
+```

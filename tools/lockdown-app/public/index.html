@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>RichView lockdown review</title>
+	<link rel="icon" href="data:,">
+	<link rel="stylesheet" href="/app.css">
+	<script src="/journal.js" defer></script>
+	<script src="/app.js" defer></script>
+</head>
+<body>
+	<a class="skip-link" href="#main">Skip to the content</a>
+	<header class="masthead">
+		<div class="masthead-title">
+			<p class="eyebrow">RichView rewrite</p>
+			<a class="wordmark" href="#/">Lockdown review</a>
+		</div>
+		<div class="overall" id="overall"></div>
+		<div class="masthead-links">
+			<button type="button" class="parts-toggle" id="parts-toggle" aria-expanded="false" aria-controls="rail">Contents</button>
+			<button type="button" class="help-toggle" id="help-toggle" aria-expanded="false" aria-controls="help" aria-keyshortcuts="?" aria-label="How answering works"><span class="wide-only">How answering works</span><span class="narrow-only" aria-hidden="true">?</span></button>
+			<a class="masthead-guide" id="masthead-guide" href="#/" hidden>Guide</a>
+			<a class="export-link" href="/api/export.md" target="_blank" rel="noopener" aria-label="Export answers">Export<span class="wide-only"> answers</span></a>
+		</div>
+		<p class="unsaved" id="unsaved" role="status" hidden></p>
+	</header>
+	<div class="layout">
+		<nav class="rail" id="rail" aria-label="Lockdown contents">
+			<a class="rail-start" id="rail-start" href="#/">Start here</a>
+			<a class="rail-key" id="rail-key" href="#/key">Key decisions</a>
+			<h2 class="rail-heading">Parts</h2>
+			<ol class="rail-list" id="rail-list"></ol>
+			<p class="rail-empty" id="rail-empty" hidden>No part files yet. Agents write them to <code>docs/lockdown/parts/</code>; they appear here within seconds.</p>
+			<section class="rail-guide" aria-labelledby="guide-heading">
+				<h2 class="rail-heading" id="guide-heading">Guide</h2>
+				<div id="guide-docs"></div>
+				<p class="rail-empty" id="guide-empty" hidden>No documents yet. The guide lands in <code>docs/guide/</code> and shows up here as files appear.</p>
+			</section>
+			<section class="keys" aria-labelledby="keys-heading">
+				<h2 class="rail-heading" id="keys-heading">Keys</h2>
+				<dl class="keys-list">
+					<div><dt><kbd>j</kbd> <kbd>k</kbd></dt><dd>Next and previous item</dd></div>
+					<div><dt><kbd>a</kbd> <kbd>r</kbd> <kbd>d</kbd></dt><dd>Accept, reject, defer, then move on</dd></div>
+					<div><dt><kbd>e</kbd></dt><dd>Edit the proposal</dd></div>
+					<div><dt><kbd>n</kbd></dt><dd>Write a note</dd></div>
+					<div><dt><kbd>u</kbd></dt><dd>Clear the answer</dd></div>
+					<div><dt><kbd>v</kbd></dt><dd>Switch between rows and cards</dd></div>
+					<div><dt><kbd>o</kbd></dt><dd>Open or close the row</dd></div>
+					<div><dt><kbd>x</kbd></dt><dd>Select the row</dd></div>
+					<div><dt><kbd>A</kbd> <kbd>R</kbd> <kbd>D</kbd></dt><dd>With Shift: accept, reject or defer every selected row</dd></div>
+					<div><dt><kbd>/</kbd></dt><dd>Search</dd></div>
+					<div><dt><kbd>?</kbd></dt><dd>How answering works</dd></div>
+					<div><dt><kbd>Esc</kbd></dt><dd>Leave a text field, close a row</dd></div>
+				</dl>
+			</section>
+		</nav>
+		<main class="main" id="main" tabindex="-1">
+			<div class="banner" id="banner" role="status" hidden></div>
+			<article class="page" id="page" hidden></article>
+			<div class="part-view" id="part-view" hidden>
+				<section class="part-head" id="part-head"></section>
+				<div class="toolbar" id="toolbar" role="search" hidden>
+					<label class="field field-search">
+						<span class="field-label">Search</span>
+						<input type="search" id="filter-query" placeholder="IDs, titles, proposals, sources" autocomplete="off" spellcheck="false">
+					</label>
+					<label class="field">
+						<span class="field-label">Importance</span>
+						<select id="filter-importance"><option value="all">All items</option></select>
+					</label>
+					<label class="check" id="unanswered-field">
+						<input type="checkbox" id="filter-unanswered">
+						<span>Unanswered only</span>
+					</label>
+					<label class="field field-topic" id="topic-field" hidden>
+						<span class="field-label">Topic</span>
+						<select id="filter-topic"><option value="any">Any topic</option></select>
+					</label>
+					<label class="field" id="view-field">
+						<span class="field-label">Show</span>
+						<select id="filter-view">
+							<option value="all">All items</option>
+							<option value="unanswered">Unanswered</option>
+							<option value="accept">Accepted</option>
+							<option value="edit">Edited</option>
+							<option value="reject">Rejected</option>
+							<option value="defer">Deferred</option>
+							<option value="conflicts">With conflicts</option>
+							<option value="stale">Changed after my answer</option>
+						</select>
+					</label>
+					<label class="field">
+						<span class="field-label">Kind</span>
+						<select id="filter-kind"><option value="any">Any kind</option></select>
+					</label>
+					<label class="field" id="component-field" hidden>
+						<span class="field-label">Component</span>
+						<select id="filter-component"><option value="any">Any component</option></select>
+					</label>
+					<div class="field">
+						<span class="field-label" id="layout-label">Layout</span>
+						<div class="segmented" id="layout" role="group" aria-labelledby="layout-label">
+							<button type="button" data-layout="rows" aria-pressed="false">Rows</button>
+							<button type="button" data-layout="cards" aria-pressed="true">Cards</button>
+						</div>
+					</div>
+					<label class="check" id="collapse-field">
+						<input type="checkbox" id="filter-collapse">
+						<span>Collapse answered</span>
+					</label>
+					<p class="showing" id="showing" aria-live="polite"></p>
+				</div>
+				<div class="list-head" id="list-head" hidden>
+					<input type="checkbox" class="row-check" id="select-all">
+					<label class="list-select" for="select-all" id="select-all-label">Select all shown</label>
+					<p class="list-hint">Shift-click a checkbox to select a range. Click a row to open it.</p>
+				</div>
+				<div class="cards" id="cards"></div>
+			</div>
+		</main>
+	</div>
+	<aside class="help-panel" id="help" role="dialog" aria-labelledby="help-title" tabindex="-1" hidden>
+		<div class="help-head">
+			<h2 class="help-title" id="help-title">How answering works</h2>
+			<button type="button" class="quiet" id="help-close">Close</button>
+		</div>
+		<dl class="legend help-legend">
+			<div class="legend-row is-accept"><dt>Accept</dt><dd>Keep the proposal as written. On a card with options, take the recommended option.</dd></div>
+			<div class="legend-row is-edit"><dt>Edit</dt><dd>Write your own wording. It saves as you type and replaces the proposal; no Accept needed afterwards.</dd></div>
+			<div class="legend-row is-choose"><dt>Choose</dt><dd>On a card with options, pick one. That is your whole answer.</dd></div>
+			<div class="legend-row is-reject"><dt>Reject</dt><dd>Drop it. The rewrite does not build or follow it.</dd></div>
+			<div class="legend-row is-defer"><dt>Defer</dt><dd>Decide later. It stays open.</dd></div>
+			<div class="legend-row"><dt>Note</dt><dd>A comment for the agents, not an answer. On an undecided card it is saved with your next decision.</dd></div>
+			<div class="legend-row"><dt>Clear answer</dt><dd>Remove your decision.</dd></div>
+		</dl>
+		<p class="help-foot">Every answer saves at once; the card then says what was saved. <kbd>?</kbd> opens and closes this, <kbd>Esc</kbd> closes it.</p>
+	</aside>
+	<div class="selection-bar" id="selection-bar" role="region" aria-label="Selected items" hidden></div>
+	<p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
+</body>
+</html>

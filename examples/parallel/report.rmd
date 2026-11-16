@@ -1,0 +1,35 @@
+---
+title: Compare many measures of the same things at once
+description: A parallel coordinates chart gives each measure its own axis and draws one line per row across them, so groups that differ on several measures show as bundles.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Sports cars sit apart from the rest
+
+These illustrative figures give nine cars four measures: mileage, power, weight and the seconds to reach speed. Each axis runs from its own lowest to its highest value, so the lines show how a car ranks on each measure and which cars rank alike.
+
+```chart
+type: parallel
+title: Sports cars trade mileage for power and speed
+subtitle: Nine cars on four measures, each axis from its own lowest to its highest value
+data:
+  inline:
+    - {model: Mini, class: Small, mpg: 38, power: 85, weight: 1050, accel: 12.5}
+    - {model: Zip, class: Small, mpg: 42, power: 75, weight: 980, accel: 13.8}
+    - {model: Kei, class: Small, mpg: 35, power: 95, weight: 1120, accel: 11.9}
+    - {model: Estate, class: Family, mpg: 28, power: 140, weight: 1550, accel: 9.5}
+    - {model: Tourer, class: Family, mpg: 31, power: 125, weight: 1480, accel: 10.2}
+    - {model: Sedan, class: Family, mpg: 26, power: 160, weight: 1700, accel: 8.8}
+    - {model: Coupe, class: Sport, mpg: 19, power: 330, weight: 1450, accel: 4.8}
+    - {model: Roadster, class: Sport, mpg: 22, power: 280, weight: 1380, accel: 5.4}
+    - {model: GT, class: Sport, mpg: 17, power: 410, weight: 1500, accel: 3.9}
+encoding:
+  dimensions: [mpg, power, weight, accel]
+  label: model
+  color: class
+```
+
+*Source: Illustrative values.*
+
+Use the keyboard or pointer to read a car's value on every axis.

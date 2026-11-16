@@ -1,0 +1,63 @@
+---
+title: Playable indicator with a metric selector
+description: Fictional global indicator values demonstrating RichView's playback and metric-swap controls. Values are invented for this authoring example.
+version: 0.0.1
+slug: playable-line-indicator
+styles: [scientific]
+---
+
+## Reading the chart
+
+Press play to animate the time window. The axis label and units switch together when you change the metric, so values never drift from the measurement they describe.
+
+```chart
+type: line
+title: Global demonstration indicator
+subtitle: Invented quarterly values for the controls example
+data:
+  csv: data/indicator.csv
+encoding:
+  x: quarter
+  y: value_abs
+  color: region
+axes:
+  y:
+    label: Indicator
+    unit: units
+controls:
+  - kind: playback
+    id: quarter
+    field: quarter
+    label: Quarter
+    speed: 900
+    loop: true
+  - kind: metric
+    id: measure
+    label: Measure
+    initial: absolute
+    as: buttons
+    options:
+      - value: absolute
+        label: Absolute
+        field: value_abs
+        axis:
+          label: Indicator
+          unit: units
+      - value: per_capita
+        label: Per capita
+        field: value_per_cap
+        axis:
+          label: Indicator per capita
+          unit: units/person
+      - value: index
+        label: Index (2020 Q1 = 100)
+        field: value_index
+        axis:
+          label: Indicator, indexed
+```
+
+## How the controls read
+
+The playback control holds the chart's time window at the selected quarter, so the mark identity for each region is preserved as the window slides forward. Changing the metric swaps the plotted column together with its axis label, unit and tooltip format — never one without the other.
+
+Reduced motion is a hard floor: when the reader's system prefers reduced motion, the chart renders the last frame and the scrubber stays usable, but auto-play does not start and inter-frame animation is stepped rather than tweened.

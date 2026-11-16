@@ -1,0 +1,192 @@
+/* The flagship page. Its frame follows the active style (STY-60): the script sets the site
+   tokens on <body> from the style's own tokens, so header, rail and footer read as one piece
+   with the report. Opaque surfaces, three radii, 150 to 200 ms transitions on `out` only. */
+
+body[data-richview-page="showcase"] {
+	margin: 0;
+	background: var(--paper);
+	color: var(--ink);
+	font: 400 0.95rem / 1.5 var(--font-ui);
+}
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+.style-rail {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.6rem 1rem;
+	padding: 0.6rem var(--gutter);
+	border-bottom: 1px solid var(--rule);
+	background: var(--paper);
+}
+.style-rail .themes__group {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.2rem;
+	padding: 0.25rem;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-pill);
+}
+.style-rail .themes__group button {
+	font: 600 0.9rem / 1 var(--font-ui);
+	color: var(--ink);
+	background: none;
+	border: 0;
+	border-radius: var(--r-pill);
+	padding: 0.5rem 0.95rem;
+	cursor: pointer;
+	transition: background 150ms cubic-bezier(0.33, 1, 0.68, 1), color 150ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+.style-rail .themes__group button:hover {
+	background: color-mix(in oklch, var(--ink) 8%, transparent);
+}
+.style-rail .themes__group button[aria-checked="true"] {
+	background: var(--ink);
+	color: var(--paper);
+}
+.style-rail .themes__group button[aria-checked="true"]::after {
+	content: " ✓";
+}
+.style-more select,
+.pane-label select,
+#compare-toggle {
+	font: 600 0.85rem / 1 var(--font-ui);
+	color: var(--soft);
+	background: var(--paper);
+	border: 1px solid var(--rule);
+	border-radius: var(--r-pill);
+	padding: 0.55rem 0.85rem;
+	cursor: pointer;
+}
+#compare-toggle[aria-pressed="true"] {
+	color: var(--paper);
+	background: var(--ink);
+	border-color: var(--ink);
+}
+#showcase-panes {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	height: calc(100svh - var(--nav-h) - 8rem);
+	min-height: 30rem;
+}
+#showcase-panes[data-compare="true"] {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.report-pane {
+	display: grid;
+	grid-template-rows: minmax(0, 1fr);
+	min-width: 0;
+	min-height: 0;
+}
+/* `display: grid` above would otherwise show the closed comparison pane and halve the report's height. */
+.report-pane[hidden] {
+	display: none;
+}
+#compare-pane {
+	border-left: 1px solid var(--rule);
+}
+.pane-label {
+	display: none;
+	align-items: center;
+	gap: 0.6rem;
+	padding: 0.4rem var(--gutter);
+	color: var(--soft);
+	font-size: 0.85rem;
+	border-bottom: 1px solid var(--rule);
+}
+[data-compare="true"] .report-pane {
+	grid-template-rows: 3rem minmax(0, 1fr);
+}
+[data-compare="true"] .pane-label {
+	display: flex;
+	min-height: 3rem;
+	box-sizing: border-box;
+}
+.frame-host {
+	position: relative;
+	min-height: 0;
+	min-width: 0;
+	background: var(--paper);
+}
+.frame-host iframe {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	border: 0;
+	background: var(--paper);
+	transition: opacity 200ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+.frame-host iframe[data-entering] {
+	opacity: 0;
+}
+.flag-foot {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem 1.2rem;
+	padding: 0.7rem var(--gutter);
+	border-top: 1px solid var(--rule);
+	font-size: 0.82rem;
+	color: var(--soft);
+	background: var(--paper);
+}
+.flag-foot a {
+	color: inherit;
+}
+.flag-foot code {
+	font-family: var(--font-mono);
+}
+.citation-card {
+	position: fixed;
+	z-index: 30;
+	width: 340px;
+	padding: 0.8rem 1rem;
+	background: var(--panel);
+	color: var(--ink);
+	border: 1px solid var(--rule);
+	border-radius: var(--r-panel);
+	box-shadow: var(--shadow-float);
+	font-size: 0.85rem;
+	line-height: 1.45;
+}
+.citation-card p {
+	margin: 0 0 0.4rem;
+}
+.citation-card blockquote {
+	margin: 0.4rem 0;
+	padding-left: 0.8rem;
+	color: var(--soft);
+}
+.citation-kind {
+	font: 600 0.72rem / 1 var(--font-mono);
+	color: var(--soft);
+}
+.citation-title {
+	font-weight: 600;
+}
+@media (max-width: 899px) {
+	#showcase-panes[data-compare="true"] {
+		grid-template-columns: minmax(0, 1fr);
+		grid-auto-rows: 80svh;
+		height: auto;
+	}
+	#showcase-panes {
+		height: 78svh;
+	}
+	#compare-pane {
+		border-left: 0;
+		border-top: 1px solid var(--rule);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.frame-host iframe,
+	.style-rail .themes__group button {
+		transition: none;
+	}
+}

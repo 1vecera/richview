@@ -1,0 +1,173 @@
+{
+ "_source": {
+  "files": [
+   "tmp/prf07-final/out-editor-memory.json"
+  ],
+  "sha256": {
+   "tmp/prf07-final/out-editor-memory.json": "306ab4cd21c6ba7bba6af273498a1a8c4cfcc05895ca352d5a168951836bec92"
+  },
+  "note": "tmp/prf07-final/editor_memory.py, b4db233, Claw Mini, 2026-10-22"
+ },
+ "data": {
+  "probe": "tmp/prf07-final/editor_memory.py",
+  "date": "2026-10-21T23:34:13+00:00",
+  "commit": "b4db233",
+  "binary": "target/release/richview-editor",
+  "host": {
+   "machine": "arm64",
+   "os": "macOS-26.3-arm64-arm-64bit-Mach-O",
+   "load_before": [
+    1.93212890625,
+    2.236328125,
+    2.294921875
+   ],
+   "load_after": [
+    2.2294921875,
+    2.28857421875,
+    2.3125
+   ]
+  },
+  "method": "fresh editor process per fixture; 100 sequential preview requests (styles scientific, external runtime URL); MiB = 1,048,576 bytes",
+  "fixtures": {
+   "small": {
+    "checkpoints": [
+     {
+      "after_previews": 1,
+      "rss_mib": 12.0,
+      "footprint_mib": 4.8,
+      "footprint_peak_mib": 4.8
+     },
+     {
+      "after_previews": 25,
+      "rss_mib": 12.4,
+      "footprint_mib": 5.2,
+      "footprint_peak_mib": 5.2
+     },
+     {
+      "after_previews": 50,
+      "rss_mib": 12.5,
+      "footprint_mib": 5.3,
+      "footprint_peak_mib": 5.3
+     },
+     {
+      "after_previews": 75,
+      "rss_mib": 12.5,
+      "footprint_mib": 5.3,
+      "footprint_peak_mib": 5.3
+     },
+     {
+      "after_previews": 100,
+      "rss_mib": 12.5,
+      "footprint_mib": 5.3,
+      "footprint_peak_mib": 5.3
+     }
+    ],
+    "seconds": 0.8,
+    "vmmap_summary_rows": [
+     "Physical footprint: 5408K",
+     "Physical footprint (peak): 5408K",
+     "REGION TYPE SIZE SIZE SIZE SIZE SIZE SIZE SIZE COUNT (non-coalesced)",
+     "MALLOC_SMALL 12.0M 3232K 3232K 0K 0K 0K 0K 3 see MALLOC ZONE table below",
+     "MALLOC_TINY 4096K 160K 160K 0K 0K 0K 0K 1 see MALLOC ZONE table below",
+     "TOTAL 1.1G 153.0M 5424K 0K 0K 0K 0K 1813",
+     "TOTAL, minus reserved VM space 1.1G 153.0M 5424K 0K 0K 0K 0K 1813",
+     "DefaultMallocZone_0x105908000 16.5M 3472K 3472K 0K 2144 430K 3042K 88% 7"
+    ]
+   },
+   "flagship": {
+    "checkpoints": [
+     {
+      "after_previews": 1,
+      "rss_mib": 29.2,
+      "footprint_mib": 22.0,
+      "footprint_peak_mib": 22.0
+     },
+     {
+      "after_previews": 25,
+      "rss_mib": 81.0,
+      "footprint_mib": 74.0,
+      "footprint_peak_mib": 74.0
+     },
+     {
+      "after_previews": 50,
+      "rss_mib": 134.7,
+      "footprint_mib": 127.0,
+      "footprint_peak_mib": 127.0
+     },
+     {
+      "after_previews": 75,
+      "rss_mib": 160.4,
+      "footprint_mib": 153.0,
+      "footprint_peak_mib": 155.0
+     },
+     {
+      "after_previews": 100,
+      "rss_mib": 160.4,
+      "footprint_mib": 153.0,
+      "footprint_peak_mib": 155.0
+     }
+    ],
+    "seconds": 2.4,
+    "vmmap_summary_rows": [
+     "Physical footprint: 152.6M",
+     "Physical footprint (peak): 155.3M",
+     "REGION TYPE SIZE SIZE SIZE SIZE SIZE SIZE SIZE COUNT (non-coalesced)",
+     "MALLOC_LARGE (empty) 267.8M 136.0M 136.0M 0K 0K 0K 0K 64 see MALLOC ZONE table below",
+     "MALLOC_SMALL 16.0M 12.5M 12.5M 0K 0K 0K 0K 4 see MALLOC ZONE table below",
+     "MALLOC_SMALL (empty) 8192K 1184K 1184K 0K 0K 0K 0K 2 see MALLOC ZONE table below",
+     "MALLOC_TINY 4096K 208K 208K 0K 0K 0K 0K 1 see MALLOC ZONE table below",
+     "TOTAL 1.4G 301.2M 152.6M 0K 0K 0K 0K 1882",
+     "TOTAL, minus reserved VM space 1.4G 301.2M 152.6M 0K 0K 0K 0K 1882",
+     "DefaultMallocZone_0x102dc4000 29.5M 15.0M 14.4M 0K 2453 625K 13.8M 96% 12"
+    ]
+   },
+   "dense": {
+    "checkpoints": [
+     {
+      "after_previews": 1,
+      "rss_mib": 91.1,
+      "footprint_mib": 18.0,
+      "footprint_peak_mib": 111.0
+     },
+     {
+      "after_previews": 25,
+      "rss_mib": 704.2,
+      "footprint_mib": 671.0,
+      "footprint_peak_mib": 671.0
+     },
+     {
+      "after_previews": 50,
+      "rss_mib": 1191.8,
+      "footprint_mib": 1355.0,
+      "footprint_peak_mib": 1355.0
+     },
+     {
+      "after_previews": 75,
+      "rss_mib": 1383.9,
+      "footprint_mib": 1538.0,
+      "footprint_peak_mib": 1564.0
+     },
+     {
+      "after_previews": 100,
+      "rss_mib": 1256.7,
+      "footprint_mib": 1538.0,
+      "footprint_peak_mib": 1564.0
+     }
+    ],
+    "seconds": 11.1,
+    "vmmap_summary_rows": [
+     "Physical footprint: 1.5G",
+     "Physical footprint (peak): 1.5G",
+     "REGION TYPE SIZE SIZE SIZE SIZE SIZE SIZE SIZE COUNT (non-coalesced)",
+     "MALLOC_LARGE (empty) 2.6G 1.1G 1.1G 315.5M 0K 0K 0K 121 see MALLOC ZONE table below",
+     "MALLOC_SMALL 24.0M 17.3M 17.3M 416K 0K 0K 0K 6 see MALLOC ZONE table below",
+     "MALLOC_SMALL (empty) 64.0M 59.2M 59.2M 3584K 0K 0K 0K 16 see MALLOC ZONE table below",
+     "MALLOC_TINY 4096K 80K 80K 80K 0K 0K 0K 1 see MALLOC ZONE table below",
+     "TOTAL 3.8G 1.3G 1.2G 320.7M 0K 0K 0K 1955",
+     "TOTAL, minus reserved VM space 3.8G 1.3G 1.2G 320.7M 0K 0K 0K 1955",
+     "DefaultMallocZone_0x1010e8000 93.5M 78.0M 77.3M 4096K 1973 362K 80.9M 100% 28"
+    ]
+   }
+  }
+ }
+}

@@ -1,0 +1,25 @@
+{
+ "spec": {"type": "wordcloud", "title": "Dashboards and forecasts lead what readers ask for", "encoding": {"label": "topic", "y": "requests"}, "axes": {"y": {"label": "Requests"}}},
+ "rows": [
+  {"topic": "dashboards", "requests": 48},
+  {"topic": "forecast", "requests": 41},
+  {"topic": "churn", "requests": 36},
+  {"topic": "revenue", "requests": 33},
+  {"topic": "cohort", "requests": 28},
+  {"topic": "funnel", "requests": 25},
+  {"topic": "margin", "requests": 22},
+  {"topic": "retention", "requests": 20},
+  {"topic": "pricing", "requests": 18},
+  {"topic": "segment", "requests": 16},
+  {"topic": "anomaly", "requests": 14},
+  {"topic": "budget", "requests": 12},
+  {"topic": "trend", "requests": 11},
+  {"topic": "pipeline", "requests": 10},
+  {"topic": "ratio", "requests": 9},
+  {"topic": "outlier", "requests": 8},
+  {"topic": "survey", "requests": 7},
+  {"topic": "lift", "requests": 6},
+  {"topic": "mix", "requests": 5},
+  {"topic": "drift", "requests": 4}
+ ]
+}

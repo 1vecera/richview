@@ -1,0 +1,7 @@
+---
+title: Table from CSV
+---
+
+```table
+data: { csv: b06-table-csv.csv }
+```

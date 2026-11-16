@@ -1,0 +1,2065 @@
+{
+ "generator": "scripts/fonts/build.py",
+ "tools": {
+  "fonttools": "4.65.0",
+  "brotli": "1.2.0"
+ },
+ "required": {
+  "ranges": [
+   "0020-007E",
+   "00A0-00FF",
+   "0100-017F"
+  ],
+  "codepoints": [
+   "2007",
+   "2009",
+   "2010",
+   "2011",
+   "2013",
+   "2014",
+   "2018",
+   "2019",
+   "201A",
+   "201C",
+   "201D",
+   "201E",
+   "2026",
+   "202F",
+   "2030",
+   "2032",
+   "2033",
+   "20AC",
+   "2190",
+   "2191",
+   "2192",
+   "2193",
+   "2212",
+   "2248",
+   "2260",
+   "2264",
+   "2265"
+  ],
+  "report_sources": [
+   "examples/openai-vs-anthropic/report.rmd",
+   "examples/openai-vs-anthropic/data",
+   "examples/sales-report/report.rmd",
+   "examples/first-report/report.rmd",
+   "examples/first-report/data"
+  ],
+  "report_codepoints": [
+   "00B1",
+   "00B7",
+   "00D7",
+   "2013",
+   "2192",
+   "2212"
+  ],
+  "upstream_gaps_allowed": {
+   "0138": "kra",
+   "0166": "T with stroke",
+   "0167": "t with stroke",
+   "017F": "long s"
+  },
+  "monospace_gaps_allowed": {
+   "0132": "IJ",
+   "0133": "ij",
+   "013F": "L with middle dot",
+   "0140": "l with middle dot",
+   "0149": "n preceded by apostrophe"
+  },
+  "features": [
+   "kern",
+   "liga",
+   "tnum",
+   "lnum",
+   "pnum",
+   "onum",
+   "case"
+  ],
+  "features_omitted": {
+   "smcp": "not requested by any stylesheet or style token",
+   "c2sc": "not requested by any stylesheet or style token"
+  },
+  "kerning_threshold_em": 0.01
+ },
+ "sources": {
+  "stix-two-math": {
+   "repository": "https://github.com/stipub/stixfonts",
+   "release": "v2.13b171",
+   "commit": "744a22a4dd626cd14d75728aef34fc8ad7c85db0",
+   "files": [
+    {
+     "path": "fonts/static_ttf_woff2/STIXTwoMath-Regular.woff2",
+     "url": "https://raw.githubusercontent.com/stipub/stixfonts/744a22a4dd626cd14d75728aef34fc8ad7c85db0/fonts/static_ttf_woff2/STIXTwoMath-Regular.woff2",
+     "sha256": "5f8bdddc067dd82689d7247cc96e0be46fe4cec39974c649866aa391d8d5badd"
+    }
+   ],
+   "license": {
+    "path": "OFL.txt",
+    "url": "https://raw.githubusercontent.com/stipub/stixfonts/744a22a4dd626cd14d75728aef34fc8ad7c85db0/OFL.txt",
+    "sha256": "0c8825913b60d858aacdb33c4ca6660a7d64b0d6464702efbb19313f5765861a",
+    "copyright": "Copyright 2001-2021 The STIX Fonts Project Authors (https://github.com/stipub/stixfonts), with Reserved Font Name \"TM Math\". STIX Fonts™ is a trademark of The Institute of Electrical and Electronics Engineers, Inc.",
+    "reserved_font_names": [
+     "TM Math"
+    ]
+   }
+  },
+  "space-grotesk": {
+   "repository": "https://github.com/floriankarsten/space-grotesk",
+   "release": "2.0.0",
+   "commit": "7220f5d04813fe83babe76d4fd23e02275021280",
+   "files": [
+    {
+     "path": "fonts/ttf/SpaceGrotesk[wght].ttf",
+     "url": "https://raw.githubusercontent.com/floriankarsten/space-grotesk/7220f5d04813fe83babe76d4fd23e02275021280/fonts/ttf/SpaceGrotesk%5Bwght%5D.ttf",
+     "sha256": "acad6de1fc93436f5c0f1f4137751ef04f1aea3063e7036535970ffcfbd79f72"
+    }
+   ],
+   "license": {
+    "path": "OFL.txt",
+    "url": "https://raw.githubusercontent.com/floriankarsten/space-grotesk/7220f5d04813fe83babe76d4fd23e02275021280/OFL.txt",
+    "sha256": "564ce565c371c5e5bbf286006565a7c9aa55a9f56e7ca58d56e05d649dd61a72",
+    "copyright": "Copyright 2020 The Space Grotesk Project Authors (https://github.com/floriankarsten/space-grotesk)",
+    "reserved_font_names": []
+   }
+  },
+  "geist": {
+   "repository": "https://github.com/vercel/geist-font",
+   "release": "v1.7.2",
+   "commit": "a73329da8fc62afc917f796555202e4997f79b7c",
+   "files": [
+    {
+     "path": "fonts/Geist/variable/Geist-Italic[wght].ttf",
+     "url": "https://raw.githubusercontent.com/vercel/geist-font/a73329da8fc62afc917f796555202e4997f79b7c/fonts/Geist/variable/Geist-Italic%5Bwght%5D.ttf",
+     "sha256": "a464348abe41a6392f18d04c0ac2ad3c26619357ff5fdd76aff3059116f45e62"
+    },
+    {
+     "path": "fonts/GeistMono/variable/GeistMono[wght].ttf",
+     "url": "https://raw.githubusercontent.com/vercel/geist-font/a73329da8fc62afc917f796555202e4997f79b7c/fonts/GeistMono/variable/GeistMono%5Bwght%5D.ttf",
+     "sha256": "87c2aff9723544a9adaea19d92e42a33705c9723624801b6e0224c2206a6af0d"
+    },
+    {
+     "path": "fonts/Geist/variable/Geist[wght].ttf",
+     "url": "https://raw.githubusercontent.com/vercel/geist-font/a73329da8fc62afc917f796555202e4997f79b7c/fonts/Geist/variable/Geist%5Bwght%5D.ttf",
+     "sha256": "73894e0448cae90a92b6c2f8732b7bb9acb7b94c418bff559dad4a18e1de9659"
+    }
+   ],
+   "license": {
+    "path": "OFL.txt",
+    "url": "https://raw.githubusercontent.com/vercel/geist-font/a73329da8fc62afc917f796555202e4997f79b7c/OFL.txt",
+    "sha256": "c683bfbcc7e087f5d37a54ef628f10387c451a83ddc459b151403a164ac46c90",
+    "copyright": "Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font)",
+    "reserved_font_names": []
+   }
+  },
+  "source-serif-4": {
+   "repository": "https://github.com/adobe-fonts/source-serif",
+   "release": "4.005R",
+   "commit": "2823e993c53fca27c5c8749f529b56a5a7c77b6b",
+   "files": [
+    {
+     "path": "VAR/SourceSerif4Variable-Italic.ttf",
+     "url": "https://raw.githubusercontent.com/adobe-fonts/source-serif/2823e993c53fca27c5c8749f529b56a5a7c77b6b/VAR/SourceSerif4Variable-Italic.ttf",
+     "sha256": "6a059a64838978d54e8fab71ed86b0d82e948c0e12b2664d0c15166326dcff82"
+    },
+    {
+     "path": "VAR/SourceSerif4Variable-Roman.ttf",
+     "url": "https://raw.githubusercontent.com/adobe-fonts/source-serif/2823e993c53fca27c5c8749f529b56a5a7c77b6b/VAR/SourceSerif4Variable-Roman.ttf",
+     "sha256": "14d360ee1b76655da9276628b229e11671bc1f5d1083636144db6677d452cf55"
+    }
+   ],
+   "license": {
+    "path": "LICENSE.md",
+    "url": "https://raw.githubusercontent.com/adobe-fonts/source-serif/2823e993c53fca27c5c8749f529b56a5a7c77b6b/LICENSE.md",
+    "sha256": "75784a295293a8992f5a8d99210566e0064a012e6dab6731305e3787f15896c7",
+    "copyright": "Copyright 2014 - 2023 Adobe (http://www.adobe.com/), with Reserved Font Name ‘Source’. All Rights Reserved. Source is a trademark of Adobe in the United States and/or other countries.",
+    "reserved_font_names": [
+     "Source"
+    ]
+   }
+  },
+  "source-sans-3": {
+   "repository": "https://github.com/adobe-fonts/source-sans",
+   "release": "3.052R",
+   "commit": "ed1808970eb3c7301c9a523bee26473ba0bb62fa",
+   "files": [
+    {
+     "path": "VF/SourceSans3VF-Upright.ttf",
+     "url": "https://raw.githubusercontent.com/adobe-fonts/source-sans/ed1808970eb3c7301c9a523bee26473ba0bb62fa/VF/SourceSans3VF-Upright.ttf",
+     "sha256": "1147db9a3f0edd4956068de77930148acce2742dd76d57f7239b2b1c687ac63f"
+    }
+   ],
+   "license": {
+    "path": "LICENSE.md",
+    "url": "https://raw.githubusercontent.com/adobe-fonts/source-sans/ed1808970eb3c7301c9a523bee26473ba0bb62fa/LICENSE.md",
+    "sha256": "89ad2c4f66dd29127527493e729c31e731f111cf10faf5774c3db9275ed0c22c",
+    "copyright": "Copyright 2010-2022 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'. All Rights Reserved. Source is a trademark of Adobe in the United States and/or other countries.",
+    "reserved_font_names": [
+     "Source"
+    ]
+   }
+  },
+  "source-code-pro": {
+   "repository": "https://github.com/adobe-fonts/source-code-pro",
+   "release": "2.042R-u/1.062R-i/1.026R-vf",
+   "commit": "d3f1a5962cde503f9409c21e58527611d4a19ef1",
+   "files": [
+    {
+     "path": "TTF/SourceCodePro-Regular.ttf",
+     "url": "https://raw.githubusercontent.com/adobe-fonts/source-code-pro/d3f1a5962cde503f9409c21e58527611d4a19ef1/TTF/SourceCodePro-Regular.ttf",
+     "sha256": "74bd80d3e42a08517cd7e1108ba3d86f2da29ac0f3065be95e0357956ab9db37"
+    }
+   ],
+   "license": {
+    "path": "LICENSE.md",
+    "url": "https://raw.githubusercontent.com/adobe-fonts/source-code-pro/d3f1a5962cde503f9409c21e58527611d4a19ef1/LICENSE.md",
+    "sha256": "7c940e28a5388e9bba866cf0e408edda45fe0899ba98665b8f6ab31dc5e4b8ff",
+    "copyright": "© 2023 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'. All Rights Reserved. Source is a trademark of Adobe in the United States and/or other countries.",
+    "reserved_font_names": [
+     "Source"
+    ]
+   }
+  },
+  "newsreader": {
+   "repository": "https://github.com/productiontype/Newsreader",
+   "release": "1.003 (no tagged release; commit of the published fonts)",
+   "commit": "cfcb4f7af0e52c25e8df2a2431814c8e5fe2e155",
+   "files": [
+    {
+     "path": "fonts/variable/ttf/Newsreader-Italic[opsz,wght].ttf",
+     "url": "https://raw.githubusercontent.com/productiontype/Newsreader/cfcb4f7af0e52c25e8df2a2431814c8e5fe2e155/fonts/variable/ttf/Newsreader-Italic%5Bopsz%2Cwght%5D.ttf",
+     "sha256": "796668611f80b64d5adf182fde3b6f29ed83b4e7cbec7b96937e84ac01364792"
+    },
+    {
+     "path": "fonts/variable/ttf/Newsreader[opsz,wght].ttf",
+     "url": "https://raw.githubusercontent.com/productiontype/Newsreader/cfcb4f7af0e52c25e8df2a2431814c8e5fe2e155/fonts/variable/ttf/Newsreader%5Bopsz%2Cwght%5D.ttf",
+     "sha256": "8a08d13f8a6c0d51be379a60af84f945f65369a67e509ee3c3bdcc421254d7c1"
+    }
+   ],
+   "license": {
+    "path": "OFL.txt",
+    "url": "https://raw.githubusercontent.com/productiontype/Newsreader/cfcb4f7af0e52c25e8df2a2431814c8e5fe2e155/OFL.txt",
+    "sha256": "fdfad38143ec470553cae82a1e45320bdd1b9ec70415d37bd0171051d8a4ded8",
+    "copyright": "Copyright 2020 The Newsreader Project Authors (http://github.com/productiontype/Newsreader)",
+    "reserved_font_names": []
+   }
+  },
+  "big-shoulders": {
+   "repository": "https://github.com/xotypeco/big_shoulders",
+   "release": "2.002 (newer than the last tagged release v1.100; commit of the published fonts)",
+   "commit": "8ba99c9e347396d828b263b8b818269cb99eb27c",
+   "files": [
+    {
+     "path": "Big-Shoulders/fonts/variable/BigShoulders[opsz,wght].ttf",
+     "url": "https://raw.githubusercontent.com/xotypeco/big_shoulders/8ba99c9e347396d828b263b8b818269cb99eb27c/Big-Shoulders/fonts/variable/BigShoulders%5Bopsz%2Cwght%5D.ttf",
+     "sha256": "4b4b24aa6f799aa73cdcd5b6fa840cbcbbb38b81fa9fa82c25126a4530c1ba44"
+    }
+   ],
+   "license": {
+    "path": "OFL.txt",
+    "url": "https://raw.githubusercontent.com/xotypeco/big_shoulders/8ba99c9e347396d828b263b8b818269cb99eb27c/OFL.txt",
+    "sha256": "338f9c050f19daeda1d597243faf79f3a3d437c338af58cb7047617d0ce08771",
+    "copyright": "Copyright 2019 The Big Shoulders Project Authors (https://github.com/xotypeco/big_shoulders)",
+    "reserved_font_names": []
+   }
+  },
+  "space-mono": {
+   "repository": "https://github.com/googlefonts/spacemono",
+   "release": "1.003 (newer than the last tagged release v1.0; commit of the published fonts)",
+   "commit": "329858c2c4dbd3476f972a4ae00624b018cf4b81",
+   "files": [
+    {
+     "path": "fonts/ttf/SpaceMono-Regular.ttf",
+     "url": "https://raw.githubusercontent.com/googlefonts/spacemono/329858c2c4dbd3476f972a4ae00624b018cf4b81/fonts/ttf/SpaceMono-Regular.ttf",
+     "sha256": "95837e182baeeada83368f7748db28357f0a1b75c6b84ff7065b5edf933c8e18"
+    }
+   ],
+   "license": {
+    "path": "OFL.txt",
+    "url": "https://raw.githubusercontent.com/googlefonts/spacemono/329858c2c4dbd3476f972a4ae00624b018cf4b81/OFL.txt",
+    "sha256": "8e4ee42b2553e1e01504e61cb0d46d148cd8c9e5eacaa3622a7df2d4f2955b9f",
+    "copyright": "Copyright 2016 The Space Mono Project Authors (https://github.com/googlefonts/spacemono)",
+    "reserved_font_names": []
+   }
+  },
+  "ibm-plex-mono": {
+   "repository": "https://github.com/IBM/plex",
+   "release": "@ibm/plex-mono@2.5.0",
+   "commit": "2f9ba1b25957d958db71a849e85d72e3ecfb845a",
+   "files": [
+    {
+     "path": "packages/plex-mono/fonts/complete/ttf/IBMPlexMono-Regular.ttf",
+     "url": "https://raw.githubusercontent.com/IBM/plex/2f9ba1b25957d958db71a849e85d72e3ecfb845a/packages/plex-mono/fonts/complete/ttf/IBMPlexMono-Regular.ttf",
+     "sha256": "7c6fbddca4b700be918f5f6183d9bd4464fa427fe435f0b480d77fe2bb8c5a43"
+    },
+    {
+     "path": "packages/plex-mono/fonts/complete/ttf/IBMPlexMono-SemiBold.ttf",
+     "url": "https://raw.githubusercontent.com/IBM/plex/2f9ba1b25957d958db71a849e85d72e3ecfb845a/packages/plex-mono/fonts/complete/ttf/IBMPlexMono-SemiBold.ttf",
+     "sha256": "f04d7c488ddf7d1fa99f2574efc3406ea4cbe17bb1af3a1ab960f84d0c96a172"
+    }
+   ],
+   "license": {
+    "path": "LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/IBM/plex/2f9ba1b25957d958db71a849e85d72e3ecfb845a/LICENSE.txt",
+    "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da",
+    "copyright": "Copyright © 2017 IBM Corp. with Reserved Font Name \"Plex\"",
+    "reserved_font_names": [
+     "Plex"
+    ]
+   }
+  },
+  "patrick-hand": {
+   "repository": "https://github.com/google/fonts",
+   "release": "1.003 (no tagged release; commit of the Google Fonts directory)",
+   "commit": "bd8f81ddb5c74d5c8897b36ad88b440266245103",
+   "files": [
+    {
+     "path": "ofl/patrickhand/PatrickHand-Regular.ttf",
+     "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/patrickhand/PatrickHand-Regular.ttf",
+     "sha256": "0f173b3e6cb6d1af25babf7f0057c5ac4ee11f9992b0469bb817e967ef4ad0fc"
+    }
+   ],
+   "license": {
+    "path": "ofl/patrickhand/OFL.txt",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/patrickhand/OFL.txt",
+    "sha256": "377f4f9c19e935228552478eb68cc2ed82910988a60ba60e2ac73b09f32d02d1",
+    "copyright": "Copyright (c) 2010-2012 Patrick Wagesreiter (mail@patrickwagesreiter.at)",
+    "reserved_font_names": []
+   }
+  }
+ },
+ "faces": [
+  {
+   "family": "Space Grotesk",
+   "style": "normal",
+   "weight": 600,
+   "catalog": "fonts-sleek.css",
+   "monospace": false,
+   "source": "space-grotesk",
+   "file": "fonts/ttf/SpaceGrotesk[wght].ttf",
+   "location": {
+    "wght": 600
+   },
+   "name": "Space Grotesk SemiBold",
+   "postscript": "SpaceGrotesk-SemiBold",
+   "version": "Version 2.000",
+   "glyphs": 495,
+   "woff2_bytes": 16136,
+   "sha256": "db6f7f30f442b44ee3042af855a91622f19542fd8515303def9cc8f8ef5037da",
+   "features": [
+    "case",
+    "kern",
+    "liga",
+    "lnum",
+    "locl",
+    "onum",
+    "pnum",
+    "tnum"
+   ],
+   "source_features": [
+    "case",
+    "kern",
+    "liga",
+    "lnum",
+    "onum",
+    "pnum",
+    "tnum"
+   ],
+   "features_without_effect": [],
+   "kerning_pairs_below_threshold": 289,
+   "tabular_digits": true,
+   "cmap": "0020-007E,00A0-017F,0394,03A9,03C0,2007,2009,2010-2011,2013-2014,2018-201A,201C-201E,2026,202F-2030,2032-2033,2070,2074-2079,2080-2089,20AC,2190-2193,2212,2248,2260,2264-2265",
+   "greek": "0394,03A9,03C0",
+   "script_digits": "2070,2074-2079,2080-2089",
+   "synthesized": {
+    "alias": [
+     "2011",
+     "202F"
+    ]
+   },
+   "upstream_gaps": [],
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Space Grotesk",
+   "style": "normal",
+   "weight": 600,
+   "catalog": "fonts-sleek.css",
+   "monospace": false,
+   "source": "source-sans-3",
+   "file": "VF/SourceSans3VF-Upright.ttf",
+   "location": {
+    "wght": 600
+   },
+   "name": "RichView Sans Signs SemiBold",
+   "postscript": "RichViewSansSigns-SemiBold",
+   "version": "Version 3.052",
+   "glyphs": 5,
+   "woff2_bytes": 792,
+   "sha256": "f5b90183e3ef86acce8295a19679ea7c6482677d6d995db338c24137d74f7224",
+   "features": [],
+   "cmap": "207A-207B,208A-208B",
+   "script_digits": "207A-207B,208A-208B",
+   "borrowed_from": "RichView Sans",
+   "lends": "script signs",
+   "unicode_range": "U+207A-207B, U+208A-208B",
+   "signs_moved_em": {
+    "superior": -0.06,
+    "inferior": -0.038
+   },
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Geist",
+   "style": "normal",
+   "weight": 400,
+   "catalog": "fonts-sleek.css",
+   "monospace": false,
+   "source": "geist",
+   "file": "fonts/Geist/variable/Geist[wght].ttf",
+   "location": {
+    "wght": 400
+   },
+   "name": "Geist Regular",
+   "postscript": "Geist-Regular",
+   "version": "Version 1.800",
+   "glyphs": 423,
+   "woff2_bytes": 13248,
+   "sha256": "695ec3a7a6e20b3bf406c18fea4fccc2eb43410f64d887dc59fe7c835c4f64d3",
+   "features": [
+    "case",
+    "kern",
+    "liga",
+    "locl",
+    "pnum",
+    "tnum"
+   ],
+   "source_features": [
+    "case",
+    "kern",
+    "liga",
+    "pnum",
+    "tnum"
+   ],
+   "features_without_effect": [],
+   "kerning_pairs_below_threshold": 93,
+   "tabular_digits": true,
+   "cmap": "0020-007E,00A0-0137,0139-017E,039B,03A9,03BB-03BC,03C0,03C9,2007,2009,2010-2011,2013-2014,2018-201A,201C-201E,2026,202F-2030,2032-2033,2070,2074-2079,2080-2089,20AC,2190-2193,2212,2248,2260,2264-2265",
+   "greek": "039B,03A9,03BB-03BC,03C0,03C9",
+   "script_digits": "2070,2074-2079,2080-2089",
+   "synthesized": {
+    "alias": [
+     "00AD",
+     "2010",
+     "2011",
+     "202F"
+    ],
+    "space": [
+     "2009",
+     "2007"
+    ],
+    "accent": [
+     "0114",
+     "0115",
+     "012C",
+     "012D",
+     "014E",
+     "014F"
+    ],
+    "digraph": [
+     "0149",
+     "013F",
+     "0140"
+    ]
+   },
+   "upstream_gaps": [
+    "0138",
+    "017F"
+   ],
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Geist",
+   "style": "normal",
+   "weight": 400,
+   "catalog": "fonts-sleek.css",
+   "monospace": false,
+   "source": "source-sans-3",
+   "file": "VF/SourceSans3VF-Upright.ttf",
+   "location": {
+    "wght": 400
+   },
+   "name": "RichView Sans Signs Regular",
+   "postscript": "RichViewSansSigns-Regular",
+   "version": "Version 3.052",
+   "glyphs": 5,
+   "woff2_bytes": 784,
+   "sha256": "9f877f54899542d61f2fb130ebe92f66d7b552964b09af402c975f512beacd61",
+   "features": [],
+   "cmap": "207A-207B,208A-208B",
+   "script_digits": "207A-207B,208A-208B",
+   "borrowed_from": "RichView Sans",
+   "lends": "script signs",
+   "unicode_range": "U+207A-207B, U+208A-208B",
+   "signs_moved_em": {
+    "superior": -0.077,
+    "inferior": 0.079
+   },
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Geist",
+   "style": "italic",
+   "weight": 400,
+   "catalog": "fonts-sleek.css",
+   "monospace": false,
+   "source": "geist",
+   "file": "fonts/Geist/variable/Geist-Italic[wght].ttf",
+   "location": {
+    "wght": 400
+   },
+   "name": "Geist Italic",
+   "postscript": "Geist-Italic",
+   "version": "Version 1.800",
+   "glyphs": 422,
+   "woff2_bytes": 13884,
+   "sha256": "2c5aed508dee6cd9012b1cbde7e3d01069ba68bc7f9722e09d56e2fd785e8dd1",
+   "features": [
+    "case",
+    "kern",
+    "liga",
+    "locl",
+    "pnum",
+    "tnum"
+   ],
+   "source_features": [
+    "case",
+    "kern",
+    "liga",
+    "pnum",
+    "tnum"
+   ],
+   "features_without_effect": [],
+   "kerning_pairs_below_threshold": 11,
+   "tabular_digits": true,
+   "cmap": "0020-007E,00A0-0137,0139-017E,039B,03A9,03BB-03BC,03C0,03C9,2007,2009,2010-2011,2013-2014,2018-201A,201C-201E,2026,202F-2030,2032-2033,2070,2074-2079,2080-2089,20AC,2190-2193,2212,2248,2260,2264-2265",
+   "greek": "039B,03A9,03BB-03BC,03C0,03C9",
+   "script_digits": "2070,2074-2079,2080-2089",
+   "synthesized": {
+    "alias": [
+     "00AD",
+     "2010",
+     "2011",
+     "202F"
+    ],
+    "space": [
+     "2009",
+     "2007"
+    ],
+    "accent": [
+     "0114",
+     "0115",
+     "012C",
+     "012D",
+     "014E",
+     "014F"
+    ],
+    "digraph": [
+     "0149",
+     "013F",
+     "0140"
+    ],
+    "tabular": [
+     "seven.tf 610->600"
+    ]
+   },
+   "upstream_gaps": [
+    "0138",
+    "017F"
+   ],
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Geist",
+   "style": "italic",
+   "weight": 400,
+   "catalog": "fonts-sleek.css",
+   "monospace": false,
+   "source": "source-sans-3",
+   "file": "VF/SourceSans3VF-Upright.ttf",
+   "location": {
+    "wght": 400
+   },
+   "name": "RichView Sans Signs Italic",
+   "postscript": "RichViewSansSigns-Italic",
+   "version": "Version 3.052",
+   "glyphs": 5,
+   "woff2_bytes": 768,
+   "sha256": "deebeb0929377e6760fd5a0f8654081f19b123d136ec0fe58695c4b9bdc344f6",
+   "features": [],
+   "cmap": "207A-207B,208A-208B",
+   "script_digits": "207A-207B,208A-208B",
+   "borrowed_from": "RichView Sans",
+   "lends": "script signs",
+   "unicode_range": "U+207A-207B, U+208A-208B",
+   "signs_moved_em": {
+    "superior": -0.077,
+    "inferior": 0.079
+   },
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Geist",
+   "style": "normal",
+   "weight": 600,
+   "catalog": "fonts-sleek.css",
+   "monospace": false,
+   "source": "geist",
+   "file": "fonts/Geist/variable/Geist[wght].ttf",
+   "location": {
+    "wght": 600
+   },
+   "name": "Geist SemiBold",
+   "postscript": "Geist-SemiBold",
+   "version": "Version 1.800",
+   "glyphs": 423,
+   "woff2_bytes": 13624,
+   "sha256": "22fc8e507eb0d641021e4aaeded4149ff4c9213655fcb87fc56ce890e5256f86",
+   "features": [
+    "case",
+    "kern",
+    "liga",
+    "locl",
+    "pnum",
+    "tnum"
+   ],
+   "source_features": [
+    "case",
+    "kern",
+    "liga",
+    "pnum",
+    "tnum"
+   ],
+   "features_without_effect": [],
+   "kerning_pairs_below_threshold": 93,
+   "tabular_digits": true,
+   "cmap": "0020-007E,00A0-0137,0139-017E,039B,03A9,03BB-03BC,03C0,03C9,2007,2009,2010-2011,2013-2014,2018-201A,201C-201E,2026,202F-2030,2032-2033,2070,2074-2079,2080-2089,20AC,2190-2193,2212,2248,2260,2264-2265",
+   "greek": "039B,03A9,03BB-03BC,03C0,03C9",
+   "script_digits": "2070,2074-2079,2080-2089",
+   "synthesized": {
+    "alias": [
+     "00AD",
+     "2010",
+     "2011",
+     "202F"
+    ],
+    "space": [
+     "2009",
+     "2007"
+    ],
+    "accent": [
+     "0114",
+     "0115",
+     "012C",
+     "012D",
+     "014E",
+     "014F"
+    ],
+    "digraph": [
+     "0149",
+     "013F",
+     "0140"
+    ]
+   },
+   "upstream_gaps": [
+    "0138",
+    "017F"
+   ],
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Geist",
+   "style": "normal",
+   "weight": 600,
+   "catalog": "fonts-sleek.css",
+   "monospace": false,
+   "source": "source-sans-3",
+   "file": "VF/SourceSans3VF-Upright.ttf",
+   "location": {
+    "wght": 600
+   },
+   "name": "RichView Sans Signs SemiBold",
+   "postscript": "RichViewSansSigns-SemiBold",
+   "version": "Version 3.052",
+   "glyphs": 5,
+   "woff2_bytes": 788,
+   "sha256": "e34706f9de9bad81b4699947ddc38828f3cfafca6462de1afb7172bc1c838fd0",
+   "features": [],
+   "cmap": "207A-207B,208A-208B",
+   "script_digits": "207A-207B,208A-208B",
+   "borrowed_from": "RichView Sans",
+   "lends": "script signs",
+   "unicode_range": "U+207A-207B, U+208A-208B",
+   "signs_moved_em": {
+    "superior": -0.068,
+    "inferior": 0.082
+   },
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Geist Mono",
+   "style": "normal",
+   "weight": 400,
+   "catalog": "fonts-sleek.css",
+   "monospace": true,
+   "source": "geist",
+   "file": "fonts/GeistMono/variable/GeistMono[wght].ttf",
+   "location": {
+    "wght": 400
+   },
+   "name": "Geist Mono Regular",
+   "postscript": "GeistMono-Regular",
+   "version": "Version 1.700",
+   "glyphs": 462,
+   "woff2_bytes": 12760,
+   "sha256": "94cb0991027c587fdf6cb6afba3d148d4af010c2045ec6d0c5373990251efb9e",
+   "features": [
+    "liga",
+    "locl"
+   ],
+   "source_features": [
+    "case",
+    "liga"
+   ],
+   "features_without_effect": [
+    "case"
+   ],
+   "kerning_pairs_below_threshold": 0,
+   "tabular_digits": true,
+   "cmap": "0020-007E,00A0-0131,0134-0137,0139-013E,0141-0148,014A-017E,039B,03A9,03BB-03BC,03C0,2007,2009,2010-2011,2013-2014,2018-201A,201C-201E,2026,202F-2030,2032-2033,2070,2074-2079,2080-2089,20AC,2190-2193,2212,2248,2260,2264-2265",
+   "greek": "039B,03A9,03BB-03BC,03C0",
+   "script_digits": "2070,2074-2079,2080-2089",
+   "synthesized": {
+    "alias": [
+     "00AD",
+     "2010",
+     "2011",
+     "202F"
+    ],
+    "space": [
+     "2009",
+     "2007"
+    ],
+    "accent": [
+     "0114",
+     "0115",
+     "012C",
+     "012D",
+     "014E",
+     "014F"
+    ]
+   },
+   "upstream_gaps": [
+    "0132",
+    "0133",
+    "0138",
+    "013F",
+    "0140",
+    "0149",
+    "017F"
+   ],
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Geist Mono",
+   "style": "normal",
+   "weight": 400,
+   "catalog": "fonts-sleek.css",
+   "monospace": true,
+   "source": "source-sans-3",
+   "file": "VF/SourceSans3VF-Upright.ttf",
+   "location": {
+    "wght": 400
+   },
+   "name": "RichView Sans Signs Regular",
+   "postscript": "RichViewSansSigns-Regular",
+   "version": "Version 3.052",
+   "glyphs": 5,
+   "woff2_bytes": 768,
+   "sha256": "cc512dd4ddb6149a216c51c297497dff1f7063943f28c49c1bede1d10db992c8",
+   "features": [],
+   "cmap": "207A-207B,208A-208B",
+   "script_digits": "207A-207B,208A-208B",
+   "borrowed_from": "RichView Sans",
+   "lends": "script signs",
+   "unicode_range": "U+207A-207B, U+208A-208B",
+   "signs_moved_em": {
+    "superior": -0.077,
+    "inferior": 0.079
+   },
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "RichView Serif",
+   "style": "normal",
+   "weight": 400,
+   "catalog": "fonts-scientific.css",
+   "monospace": false,
+   "source": "source-serif-4",
+   "file": "VAR/SourceSerif4Variable-Roman.ttf",
+   "location": {
+    "wght": 400,
+    "opsz": 14
+   },
+   "name": "RichView Serif Regular",
+   "postscript": "RichViewSerif-Regular",
+   "version": "Version 4.005",
+   "glyphs": 539,
+   "woff2_bytes": 26312,
+   "sha256": "9c6a39e72478cf0bc735ba8290f4caa05f4b91a7bb41e30f073efd016cc3dac6",
+   "features": [
+    "case",
+    "kern",
+    "liga",
+    "lnum",
+    "locl",
+    "onum",
+    "pnum",
+    "tnum"
+   ],
+   "source_features": [
+    "case",
+    "kern",
+    "liga",
+    "lnum",
+    "onum",
+    "pnum",
+    "tnum"
+   ],
+   "features_without_effect": [],
+   "kerning_pairs_below_threshold": 824,
+   "tabular_digits": true,
+   "cmap": "0020-007E,00A0-0165,0168-017F,0374-0375,037E,0384-038A,038C,038E-03A1,03A3-03CE,03D7,03D9,03DB,03DD,03E1,2007,2009,2010-2011,2013-2014,2018-201A,201C-201E,2026,202F-2030,2032-2033,2070,2074-2079,2080-2089,20AC,2190-2193,2212,2248,2260,2264-2265",
+   "greek": "0374-0375,037E,0384-038A,038C,038E-03A1,03A3-03CE,03D7,03D9,03DB,03DD,03E1",
+   "script_digits": "2070,2074-2079,2080-2089",
+   "synthesized": {
+    "alias": [
+     "2011"
+    ],
+    "accent": [
+     "012C",
+     "012D"
+    ],
+    "digraph": [
+     "0132",
+     "0133"
+    ]
+   },
+   "upstream_gaps": [
+    "0166",
+    "0167"
+   ],
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "RichView Serif",
+   "style": "normal",
+   "weight": 400,
+   "catalog": "fonts-scientific.css",
+   "monospace": false,
+   "source": "source-sans-3",
+   "file": "VF/SourceSans3VF-Upright.ttf",
+   "location": {
+    "wght": 400
+   },
+   "name": "RichView Sans Signs Regular",
+   "postscript": "RichViewSansSigns-Regular",
+   "version": "Version 3.052",
+   "glyphs": 5,
+   "woff2_bytes": 776,
+   "sha256": "a4524a64cc741c107f0ef62d1e60a0c3f08f93e6259b4b572e61f51109d7f4fe",
+   "features": [],
+   "cmap": "207A-207B,208A-208B",
+   "script_digits": "207A-207B,208A-208B",
+   "borrowed_from": "RichView Sans",
+   "lends": "script signs",
+   "unicode_range": "U+207A-207B, U+208A-208B",
+   "signs_moved_em": {
+    "superior": 0.039,
+    "inferior": -0.014
+   },
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "RichView Serif",
+   "style": "italic",
+   "weight": 400,
+   "catalog": "fonts-scientific.css",
+   "monospace": false,
+   "source": "source-serif-4",
+   "file": "VAR/SourceSerif4Variable-Italic.ttf",
+   "location": {
+    "wght": 400,
+    "opsz": 14
+   },
+   "name": "RichView Serif Italic",
+   "postscript": "RichViewSerif-Italic",
+   "version": "Version 4.005",
+   "glyphs": 546,
+   "woff2_bytes": 27036,
+   "sha256": "d310d9af869320dd7a719c53f4c2809f008eb4bf0be655a202d13aa8c7a97324",
+   "features": [
+    "case",
+    "kern",
+    "liga",
+    "lnum",
+    "locl",
+    "onum",
+    "pnum",
+    "tnum"
+   ],
+   "source_features": [
+    "case",
+    "kern",
+    "liga",
+    "lnum",
+    "onum",
+    "pnum",
+    "tnum"
+   ],
+   "features_without_effect": [],
+   "kerning_pairs_below_threshold": 620,
+   "tabular_digits": true,
+   "cmap": "0020-007E,00A0-0165,0168-017F,0374-0375,037E,0384-038A,038C,038E-03A1,03A3-03CE,03D7,03D9,03DB,03DD,03E1,2007,2009,2010-2011,2013-2014,2018-201A,201C-201E,2026,202F-2030,2032-2033,2070,2074-2079,2080-2089,20AC,2190-2193,2212,2248,2260,2264-2265",
+   "greek": "0374-0375,037E,0384-038A,038C,038E-03A1,03A3-03CE,03D7,03D9,03DB,03DD,03E1",
+   "script_digits": "2070,2074-2079,2080-2089",
+   "synthesized": {
+    "alias": [
+     "2011"
+    ],
+    "accent": [
+     "012C",
+     "012D"
+    ],
+    "digraph": [
+     "0132",
+     "0133"
+    ]
+   },
+   "upstream_gaps": [
+    "0166",
+    "0167"
+   ],
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "RichView Serif",
+   "style": "italic",
+   "weight": 400,
+   "catalog": "fonts-scientific.css",
+   "monospace": false,
+   "source": "source-sans-3",
+   "file": "VF/SourceSans3VF-Upright.ttf",
+   "location": {
+    "wght": 400
+   },
+   "name": "RichView Sans Signs Italic",
+   "postscript": "RichViewSansSigns-Italic",
+   "version": "Version 3.052",
+   "glyphs": 5,
+   "woff2_bytes": 792,
+   "sha256": "4a61728ffb5e93d2918fb14fe1ce6debf4f6c2cb1ae79d7875acc3429fdb026c",
+   "features": [],
+   "cmap": "207A-207B,208A-208B",
+   "script_digits": "207A-207B,208A-208B",
+   "borrowed_from": "RichView Sans",
+   "lends": "script signs",
+   "unicode_range": "U+207A-207B, U+208A-208B",
+   "signs_moved_em": {
+    "superior": 0.038,
+    "inferior": -0.015
+   },
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "RichView Serif",
+   "style": "normal",
+   "weight": 600,
+   "catalog": "fonts-scientific.css",
+   "monospace": false,
+   "source": "source-serif-4",
+   "file": "VAR/SourceSerif4Variable-Roman.ttf",
+   "location": {
+    "wght": 600,
+    "opsz": 14
+   },
+   "name": "RichView Serif SemiBold",
+   "postscript": "RichViewSerif-SemiBold",
+   "version": "Version 4.005",
+   "glyphs": 539,
+   "woff2_bytes": 27464,
+   "sha256": "66e25b90b5f1fbaa06a4c908c9c71edfba98cb05e1e1e3979d3f7fda5680f74d",
+   "features": [
+    "case",
+    "kern",
+    "liga",
+    "lnum",
+    "locl",
+    "onum",
+    "pnum",
+    "tnum"
+   ],
+   "source_features": [
+    "case",
+    "kern",
+    "liga",
+    "lnum",
+    "onum",
+    "pnum",
+    "tnum"
+   ],
+   "features_without_effect": [],
+   "kerning_pairs_below_threshold": 703,
+   "tabular_digits": true,
+   "cmap": "0020-007E,00A0-0165,0168-017F,0374-0375,037E,0384-038A,038C,038E-03A1,03A3-03CE,03D7,03D9,03DB,03DD,03E1,2007,2009,2010-2011,2013-2014,2018-201A,201C-201E,2026,202F-2030,2032-2033,2070,2074-2079,2080-2089,20AC,2190-2193,2212,2248,2260,2264-2265",
+   "greek": "0374-0375,037E,0384-038A,038C,038E-03A1,03A3-03CE,03D7,03D9,03DB,03DD,03E1",
+   "script_digits": "2070,2074-2079,2080-2089",
+   "synthesized": {
+    "alias": [
+     "2011"
+    ],
+    "accent": [
+     "012C",
+     "012D"
+    ],
+    "digraph": [
+     "0132",
+     "0133"
+    ]
+   },
+   "upstream_gaps": [
+    "0166",
+    "0167"
+   ],
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "RichView Serif",
+   "style": "normal",
+   "weight": 600,
+   "catalog": "fonts-scientific.css",
+   "monospace": false,
+   "source": "source-sans-3",
+   "file": "VF/SourceSans3VF-Upright.ttf",
+   "location": {
+    "wght": 600
+   },
+   "name": "RichView Sans Signs SemiBold",
+   "postscript": "RichViewSansSigns-SemiBold",
+   "version": "Version 3.052",
+   "glyphs": 5,
+   "woff2_bytes": 784,
+   "sha256": "ed9a6b519c49ee0689afd1197729d60968e3ed7ce92bd49eeb8f709554560ecf",
+   "features": [],
+   "cmap": "207A-207B,208A-208B",
+   "script_digits": "207A-207B,208A-208B",
+   "borrowed_from": "RichView Sans",
+   "lends": "script signs",
+   "unicode_range": "U+207A-207B, U+208A-208B",
+   "signs_moved_em": {
+    "superior": 0.043,
+    "inferior": -0.013
+   },
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "RichView Sans",
+   "style": "normal",
+   "weight": 400,
+   "catalog": "fonts-scientific.css",
+   "monospace": false,
+   "source": "source-sans-3",
+   "file": "VF/SourceSans3VF-Upright.ttf",
+   "location": {
+    "wght": 400
+   },
+   "name": "RichView Sans Regular",
+   "postscript": "RichViewSans-Regular",
+   "version": "Version 3.052",
+   "glyphs": 574,
+   "woff2_bytes": 21160,
+   "sha256": "f222026525e74802447b475c1d0307cfc35234a4468f46f8e146b1c59e4f15c2",
+   "features": [
+    "case",
+    "kern",
+    "liga",
+    "locl",
+    "onum",
+    "pnum"
+   ],
+   "source_features": [
+    "case",
+    "kern",
+    "liga",
+    "onum",
+    "pnum"
+   ],
+   "features_without_effect": [],
+   "kerning_pairs_below_threshold": 64,
+   "tabular_digits": true,
+   "cmap": "0020-007E,00A0-017F,0374-0375,037A,037E,0384-038A,038C,038E-03A1,03A3-03D1,03D5,03D7,03D9,03DB,03DD,03E1,03F4,03F7-03F8,2007,2009,2010-2011,2013-2014,2018-201A,201C-201E,2026,202F-2030,2032-2033,2070,2074-207B,2080-208B,20AC,2190-2193,2212,2248,2260,2264-2265",
+   "greek": "0374-0375,037A,037E,0384-038A,038C,038E-03A1,03A3-03D1,03D5,03D7,03D9,03DB,03DD,03E1,03F4,03F7-03F8",
+   "script_digits": "2070,2074-207B,2080-208B",
+   "synthesized": {},
+   "upstream_gaps": [],
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "RichView Sans",
+   "style": "normal",
+   "weight": 600,
+   "catalog": "fonts-scientific.css",
+   "monospace": false,
+   "source": "source-sans-3",
+   "file": "VF/SourceSans3VF-Upright.ttf",
+   "location": {
+    "wght": 600
+   },
+   "name": "RichView Sans SemiBold",
+   "postscript": "RichViewSans-SemiBold",
+   "version": "Version 3.052",
+   "glyphs": 574,
+   "woff2_bytes": 21164,
+   "sha256": "1dcdd7f224fad6be7edf34f48b33805f0a453af128b7f1aa6cc1e66c31c766d3",
+   "features": [
+    "case",
+    "kern",
+    "liga",
+    "locl",
+    "onum",
+    "pnum"
+   ],
+   "source_features": [
+    "case",
+    "kern",
+    "liga",
+    "onum",
+    "pnum"
+   ],
+   "features_without_effect": [],
+   "kerning_pairs_below_threshold": 58,
+   "tabular_digits": true,
+   "cmap": "0020-007E,00A0-017F,0374-0375,037A,037E,0384-038A,038C,038E-03A1,03A3-03D1,03D5,03D7,03D9,03DB,03DD,03E1,03F4,03F7-03F8,2007,2009,2010-2011,2013-2014,2018-201A,201C-201E,2026,202F-2030,2032-2033,2070,2074-207B,2080-208B,20AC,2190-2193,2212,2248,2260,2264-2265",
+   "greek": "0374-0375,037A,037E,0384-038A,038C,038E-03A1,03A3-03D1,03D5,03D7,03D9,03DB,03DD,03E1,03F4,03F7-03F8",
+   "script_digits": "2070,2074-207B,2080-208B",
+   "synthesized": {},
+   "upstream_gaps": [],
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "RichView Code",
+   "style": "normal",
+   "weight": 400,
+   "catalog": "fonts-scientific.css",
+   "monospace": true,
+   "source": "source-code-pro",
+   "file": "TTF/SourceCodePro-Regular.ttf",
+   "location": {},
+   "name": "RichView Code Regular",
+   "postscript": "RichViewCode-Regular",
+   "version": "Version 2.042",
+   "glyphs": 512,
+   "woff2_bytes": 14992,
+   "sha256": "9d0952128086c29df74cc19dcc5136419316248c8acbe4194f19a6973d0652cb",
+   "features": [
+    "case",
+    "locl",
+    "onum"
+   ],
+   "source_features": [
+    "case",
+    "onum"
+   ],
+   "features_without_effect": [],
+   "kerning_pairs_below_threshold": 0,
+   "tabular_digits": true,
+   "cmap": "0020-007E,00A0-017F,0374-0375,037A,037E,0384-038A,038C,038E-03A1,03A3-03CE,03D0-03D1,03D5,03D7,03D9,03DB,03DD,03E1,2007,2009,2010-2011,2013-2014,2018-201A,201C-201E,2026,202F-2030,2032-2033,2070,2074-2079,2080-2089,20AC,2190-2193,2212,2248,2260,2264-2265",
+   "greek": "0374-0375,037A,037E,0384-038A,038C,038E-03A1,03A3-03CE,03D0-03D1,03D5,03D7,03D9,03DB,03DD,03E1",
+   "script_digits": "2070,2074-2079,2080-2089",
+   "synthesized": {
+    "alias": [
+     "2011"
+    ],
+    "space": [
+     "2009"
+    ]
+   },
+   "upstream_gaps": [],
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "RichView Code",
+   "style": "normal",
+   "weight": 400,
+   "catalog": "fonts-scientific.css",
+   "monospace": true,
+   "source": "source-sans-3",
+   "file": "VF/SourceSans3VF-Upright.ttf",
+   "location": {
+    "wght": 400
+   },
+   "name": "RichView Sans Signs Regular",
+   "postscript": "RichViewSansSigns-Regular",
+   "version": "Version 3.052",
+   "glyphs": 5,
+   "woff2_bytes": 776,
+   "sha256": "8b6a737c65150fe930e1b10f42655747720f2f5c1af0d0b7dd3304e8ee30b547",
+   "features": [],
+   "cmap": "207A-207B,208A-208B",
+   "script_digits": "207A-207B,208A-208B",
+   "borrowed_from": "RichView Sans",
+   "lends": "script signs",
+   "unicode_range": "U+207A-207B, U+208A-208B",
+   "signs_moved_em": {
+    "superior": -0.003,
+    "inferior": 0.004
+   },
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Big Shoulders",
+   "style": "normal",
+   "weight": 800,
+   "catalog": "fonts-brutalist.css",
+   "monospace": false,
+   "source": "big-shoulders",
+   "file": "Big-Shoulders/fonts/variable/BigShoulders[opsz,wght].ttf",
+   "location": {
+    "wght": 800,
+    "opsz": 14
+   },
+   "name": "Big Shoulders ExtraBold",
+   "postscript": "BigShoulders-ExtraBold",
+   "version": "Version 2.002",
+   "glyphs": 421,
+   "woff2_bytes": 15076,
+   "sha256": "f632c2a98d6fc5d0a1917707889b0187a9e39aca5ddc5aa4df4c4ac3463ac121",
+   "features": [
+    "case",
+    "kern",
+    "liga",
+    "locl"
+   ],
+   "source_features": [
+    "case",
+    "kern",
+    "liga"
+   ],
+   "features_without_effect": [],
+   "kerning_pairs_below_threshold": 0,
+   "tabular_digits": true,
+   "cmap": "0020-007E,00A0-017E,03C0,2007,2009,2010-2011,2013-2014,2018-201A,201C-201E,2026,202F-2030,2032-2033,2070,2074-2079,2080-2089,20AC,2190-2193,2212,2248,2260,2264-2265",
+   "greek": "03C0",
+   "script_digits": "2070,2074-2079,2080-2089",
+   "synthesized": {
+    "alias": [
+     "2011",
+     "202F"
+    ],
+    "digraph": [
+     "0132",
+     "0133",
+     "0149"
+    ],
+    "tabular": [
+     "zero 1016->1026",
+     "one 560->1026",
+     "two 977->1026",
+     "three 984->1026",
+     "five 1014->1026",
+     "six 1002->1026",
+     "seven 934->1026",
+     "eight 1002->1026",
+     "nine 1002->1026",
+     "digit kerning removed (22)"
+    ]
+   },
+   "upstream_gaps": [
+    "017F"
+   ],
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Big Shoulders",
+   "style": "normal",
+   "weight": 800,
+   "catalog": "fonts-brutalist.css",
+   "monospace": false,
+   "source": "source-sans-3",
+   "file": "VF/SourceSans3VF-Upright.ttf",
+   "location": {
+    "wght": 800
+   },
+   "name": "RichView Sans Signs ExtraBold",
+   "postscript": "RichViewSansSigns-ExtraBold",
+   "version": "Version 3.052",
+   "glyphs": 5,
+   "woff2_bytes": 800,
+   "sha256": "b59b6b180d8f1eb9f9caf9e14cd0c2a4a74cf4617586ac6152f785c90d271ef1",
+   "features": [],
+   "cmap": "207A-207B,208A-208B",
+   "script_digits": "207A-207B,208A-208B",
+   "borrowed_from": "RichView Sans",
+   "lends": "script signs",
+   "unicode_range": "U+207A-207B, U+208A-208B",
+   "signs_moved_em": {
+    "superior": 0.048,
+    "inferior": 0.171
+   },
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Space Mono",
+   "style": "normal",
+   "weight": 400,
+   "catalog": "fonts-brutalist.css",
+   "monospace": true,
+   "source": "space-mono",
+   "file": "fonts/ttf/SpaceMono-Regular.ttf",
+   "location": {},
+   "name": "Space Mono Regular",
+   "postscript": "SpaceMono-Regular",
+   "version": "Version 1.003",
+   "glyphs": 401,
+   "woff2_bytes": 10964,
+   "sha256": "a2c47859bb2ffb72c2e7461be66053bbbf2686b5871573f697bfaefeac95fc66",
+   "features": [
+    "case",
+    "locl",
+    "onum"
+   ],
+   "source_features": [
+    "case",
+    "onum"
+   ],
+   "features_without_effect": [],
+   "kerning_pairs_below_threshold": 0,
+   "tabular_digits": true,
+   "cmap": "0020-007E,00A0-013E,0141-017F,03C0,2007,2009,2010-2011,2013-2014,2018-201A,201C-201E,2026,202F-2030,2032-2033,2070,2074-2079,2080-2089,20AC,2190-2193,2212,2248,2260,2264-2265",
+   "greek": "03C0",
+   "script_digits": "2070,2074-2079,2080-2089",
+   "synthesized": {
+    "alias": [
+     "00AD",
+     "2010",
+     "2011",
+     "202F"
+    ],
+    "space": [
+     "2009",
+     "2007"
+    ]
+   },
+   "upstream_gaps": [
+    "013F",
+    "0140"
+   ],
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Space Mono",
+   "style": "normal",
+   "weight": 400,
+   "catalog": "fonts-brutalist.css",
+   "monospace": true,
+   "source": "source-sans-3",
+   "file": "VF/SourceSans3VF-Upright.ttf",
+   "location": {
+    "wght": 400
+   },
+   "name": "RichView Sans Signs Regular",
+   "postscript": "RichViewSansSigns-Regular",
+   "version": "Version 3.052",
+   "glyphs": 5,
+   "woff2_bytes": 800,
+   "sha256": "5e07381d323220d0e6eb9bbcebeb746a2fec34980117481d009cbe1fb253bce8",
+   "features": [],
+   "cmap": "207A-207B,208A-208B",
+   "script_digits": "207A-207B,208A-208B",
+   "borrowed_from": "RichView Sans",
+   "lends": "script signs",
+   "unicode_range": "U+207A-207B, U+208A-208B",
+   "signs_moved_em": {
+    "superior": -0.038,
+    "inferior": -0.071
+   },
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Newsreader",
+   "style": "normal",
+   "weight": 400,
+   "catalog": "fonts-editorial.css",
+   "monospace": false,
+   "source": "newsreader",
+   "file": "fonts/variable/ttf/Newsreader[opsz,wght].ttf",
+   "location": {
+    "wght": 400,
+    "opsz": 16
+   },
+   "name": "Newsreader Regular",
+   "postscript": "Newsreader-Regular",
+   "version": "Version 1.003",
+   "glyphs": 412,
+   "woff2_bytes": 24060,
+   "sha256": "ba49abe1cd7636e3a77a8c7b5984565b6a0fcaaaa666a7c1fa76c18c3ddb3709",
+   "features": [
+    "case",
+    "kern",
+    "liga",
+    "locl",
+    "pnum",
+    "tnum"
+   ],
+   "source_features": [
+    "case",
+    "kern",
+    "liga",
+    "pnum",
+    "tnum"
+   ],
+   "features_without_effect": [],
+   "kerning_pairs_below_threshold": 5545,
+   "tabular_digits": true,
+   "cmap": "0020-007E,00A0-017E,2007,2009,2010-2011,2013-2014,2018-201A,201C-201E,2026,202F-2030,2032-2033,2070,2074,20AC,2190-2193,2212,2248,2260,2264-2265",
+   "greek": "",
+   "script_digits": "2070,2074",
+   "synthesized": {
+    "alias": [
+     "2011",
+     "202F"
+    ],
+    "space": [
+     "2009",
+     "2007"
+    ],
+    "digraph": [
+     "0132",
+     "0133",
+     "0149"
+    ],
+    "arrow": [
+     "2190",
+     "2191",
+     "2192",
+     "2193"
+    ]
+   },
+   "upstream_gaps": [
+    "017F"
+   ],
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Newsreader",
+   "style": "normal",
+   "weight": 400,
+   "catalog": "fonts-editorial.css",
+   "monospace": false,
+   "source": "source-serif-4",
+   "file": "VAR/SourceSerif4Variable-Roman.ttf",
+   "location": {
+    "wght": 400,
+    "opsz": 14
+   },
+   "name": "RichView Serif Digits Regular",
+   "postscript": "RichViewSerifDigits-Regular",
+   "version": "Version 4.005",
+   "glyphs": 21,
+   "woff2_bytes": 1572,
+   "sha256": "a5a4f9af10d1ed384c5012e8b620b5c5ef7041439dc5ab1b6577a67fc6daa510",
+   "features": [],
+   "cmap": "00B2-00B3,00B9,2070,2074-2079,2080-2089",
+   "script_digits": "2070,2074-2079,2080-2089",
+   "borrowed_from": "RichView Serif",
+   "lends": "script digits",
+   "unicode_range": "U+00B2-00B3, U+00B9, U+2070, U+2074-2079, U+2080-2089",
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Newsreader",
+   "style": "normal",
+   "weight": 400,
+   "catalog": "fonts-editorial.css",
+   "monospace": false,
+   "source": "source-sans-3",
+   "file": "VF/SourceSans3VF-Upright.ttf",
+   "location": {
+    "wght": 400
+   },
+   "name": "RichView Sans Signs Regular",
+   "postscript": "RichViewSansSigns-Regular",
+   "version": "Version 3.052",
+   "glyphs": 5,
+   "woff2_bytes": 776,
+   "sha256": "d66bb749d3ea634c36178cd278fdf58b12324862cd819afe8c377425650e89f2",
+   "features": [],
+   "cmap": "207A-207B,208A-208B",
+   "script_digits": "207A-207B,208A-208B",
+   "borrowed_from": "RichView Sans",
+   "lends": "script signs",
+   "unicode_range": "U+207A-207B, U+208A-208B",
+   "signs_moved_em": {
+    "superior": 0.039,
+    "inferior": -0.015
+   },
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Newsreader",
+   "style": "italic",
+   "weight": 400,
+   "catalog": "fonts-editorial.css",
+   "monospace": false,
+   "source": "newsreader",
+   "file": "fonts/variable/ttf/Newsreader-Italic[opsz,wght].ttf",
+   "location": {
+    "wght": 400,
+    "opsz": 16
+   },
+   "name": "Newsreader Italic",
+   "postscript": "Newsreader-Italic",
+   "version": "Version 1.003",
+   "glyphs": 412,
+   "woff2_bytes": 26728,
+   "sha256": "0d454261a5cabd44310cedca1b45ec1fbfa52dbd6f4c475f6d7e89b4ab38f921",
+   "features": [
+    "case",
+    "kern",
+    "liga",
+    "locl",
+    "pnum",
+    "tnum"
+   ],
+   "source_features": [
+    "case",
+    "kern",
+    "liga",
+    "pnum",
+    "tnum"
+   ],
+   "features_without_effect": [],
+   "kerning_pairs_below_threshold": 6039,
+   "tabular_digits": true,
+   "cmap": "0020-007E,00A0-017E,2007,2009,2010-2011,2013-2014,2018-201A,201C-201E,2026,202F-2030,2032-2033,2070,2074,20AC,2190-2193,2212,2248,2260,2264-2265",
+   "greek": "",
+   "script_digits": "2070,2074",
+   "synthesized": {
+    "alias": [
+     "2011",
+     "202F"
+    ],
+    "space": [
+     "2009",
+     "2007"
+    ],
+    "digraph": [
+     "0132",
+     "0133",
+     "0149"
+    ],
+    "arrow": [
+     "2190",
+     "2191",
+     "2192",
+     "2193"
+    ],
+    "tabular": [
+     "seven 1300->1133"
+    ]
+   },
+   "upstream_gaps": [
+    "017F"
+   ],
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Newsreader",
+   "style": "italic",
+   "weight": 400,
+   "catalog": "fonts-editorial.css",
+   "monospace": false,
+   "source": "source-serif-4",
+   "file": "VAR/SourceSerif4Variable-Italic.ttf",
+   "location": {
+    "wght": 400,
+    "opsz": 14
+   },
+   "name": "RichView Serif Digits Italic",
+   "postscript": "RichViewSerifDigits-Italic",
+   "version": "Version 4.005",
+   "glyphs": 21,
+   "woff2_bytes": 1624,
+   "sha256": "bcd80b5212f70c169183bceda3c2f886c9d523af652e2841a7138ddfaf4c7151",
+   "features": [],
+   "cmap": "00B2-00B3,00B9,2070,2074-2079,2080-2089",
+   "script_digits": "2070,2074-2079,2080-2089",
+   "borrowed_from": "RichView Serif",
+   "lends": "script digits",
+   "unicode_range": "U+00B2-00B3, U+00B9, U+2070, U+2074-2079, U+2080-2089",
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Newsreader",
+   "style": "italic",
+   "weight": 400,
+   "catalog": "fonts-editorial.css",
+   "monospace": false,
+   "source": "source-sans-3",
+   "file": "VF/SourceSans3VF-Upright.ttf",
+   "location": {
+    "wght": 400
+   },
+   "name": "RichView Sans Signs Italic",
+   "postscript": "RichViewSansSigns-Italic",
+   "version": "Version 3.052",
+   "glyphs": 5,
+   "woff2_bytes": 792,
+   "sha256": "4a61728ffb5e93d2918fb14fe1ce6debf4f6c2cb1ae79d7875acc3429fdb026c",
+   "features": [],
+   "cmap": "207A-207B,208A-208B",
+   "script_digits": "207A-207B,208A-208B",
+   "borrowed_from": "RichView Sans",
+   "lends": "script signs",
+   "unicode_range": "U+207A-207B, U+208A-208B",
+   "signs_moved_em": {
+    "superior": 0.038,
+    "inferior": -0.015
+   },
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Newsreader",
+   "style": "normal",
+   "weight": 600,
+   "catalog": "fonts-editorial.css",
+   "monospace": false,
+   "source": "newsreader",
+   "file": "fonts/variable/ttf/Newsreader[opsz,wght].ttf",
+   "location": {
+    "wght": 600,
+    "opsz": 16
+   },
+   "name": "Newsreader SemiBold",
+   "postscript": "Newsreader-SemiBold",
+   "version": "Version 1.003",
+   "glyphs": 414,
+   "woff2_bytes": 25092,
+   "sha256": "d485164c71f06bc6f44a92e60b2f2792f58b6cdf7dd10104ad812eaef61d75bd",
+   "features": [
+    "case",
+    "kern",
+    "liga",
+    "locl",
+    "pnum",
+    "rvrn",
+    "tnum"
+   ],
+   "source_features": [
+    "case",
+    "kern",
+    "liga",
+    "pnum",
+    "tnum"
+   ],
+   "features_without_effect": [],
+   "kerning_pairs_below_threshold": 5477,
+   "tabular_digits": true,
+   "cmap": "0020-007E,00A0-017E,2007,2009,2010-2011,2013-2014,2018-201A,201C-201E,2026,202F-2030,2032-2033,2070,2074,20AC,2190-2193,2212,2248,2260,2264-2265",
+   "greek": "",
+   "script_digits": "2070,2074",
+   "synthesized": {
+    "alias": [
+     "2011",
+     "202F"
+    ],
+    "space": [
+     "2009",
+     "2007"
+    ],
+    "digraph": [
+     "0132",
+     "0133",
+     "0149"
+    ],
+    "arrow": [
+     "2190",
+     "2191",
+     "2192",
+     "2193"
+    ]
+   },
+   "upstream_gaps": [
+    "017F"
+   ],
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Newsreader",
+   "style": "normal",
+   "weight": 600,
+   "catalog": "fonts-editorial.css",
+   "monospace": false,
+   "source": "source-serif-4",
+   "file": "VAR/SourceSerif4Variable-Roman.ttf",
+   "location": {
+    "wght": 600,
+    "opsz": 14
+   },
+   "name": "RichView Serif Digits SemiBold",
+   "postscript": "RichViewSerifDigits-SemiBold",
+   "version": "Version 4.005",
+   "glyphs": 21,
+   "woff2_bytes": 1604,
+   "sha256": "ec7af73eacb2e59e850c1a15371c197c4bba738a07f516160cb0c42223b16c88",
+   "features": [],
+   "cmap": "00B2-00B3,00B9,2070,2074-2079,2080-2089",
+   "script_digits": "2070,2074-2079,2080-2089",
+   "borrowed_from": "RichView Serif",
+   "lends": "script digits",
+   "unicode_range": "U+00B2-00B3, U+00B9, U+2070, U+2074-2079, U+2080-2089",
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Newsreader",
+   "style": "normal",
+   "weight": 600,
+   "catalog": "fonts-editorial.css",
+   "monospace": false,
+   "source": "source-sans-3",
+   "file": "VF/SourceSans3VF-Upright.ttf",
+   "location": {
+    "wght": 600
+   },
+   "name": "RichView Sans Signs SemiBold",
+   "postscript": "RichViewSansSigns-SemiBold",
+   "version": "Version 3.052",
+   "glyphs": 5,
+   "woff2_bytes": 784,
+   "sha256": "f31555b0c9ceb50747637c8dcf3691d4131ec9458554d888902c923c9f524dfa",
+   "features": [],
+   "cmap": "207A-207B,208A-208B",
+   "script_digits": "207A-207B,208A-208B",
+   "borrowed_from": "RichView Sans",
+   "lends": "script signs",
+   "unicode_range": "U+207A-207B, U+208A-208B",
+   "signs_moved_em": {
+    "superior": 0.043,
+    "inferior": -0.012
+   },
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "RichView Mono",
+   "style": "normal",
+   "weight": 400,
+   "catalog": "fonts-editorial.css",
+   "monospace": true,
+   "source": "ibm-plex-mono",
+   "file": "packages/plex-mono/fonts/complete/ttf/IBMPlexMono-Regular.ttf",
+   "location": {},
+   "name": "RichView Mono Regular",
+   "postscript": "RichViewMono-Regular",
+   "version": "Version 2.005",
+   "glyphs": 409,
+   "woff2_bytes": 11412,
+   "sha256": "71c53602b9e4cb0edaa7218e27e624a3191b93b3b4325a60fe806f9e19b82e24",
+   "features": [
+    "lnum",
+    "locl",
+    "onum"
+   ],
+   "source_features": [
+    "lnum",
+    "onum"
+   ],
+   "features_without_effect": [],
+   "kerning_pairs_below_threshold": 0,
+   "tabular_digits": true,
+   "cmap": "0020-007E,00A0-017F,03C0,2007,2009,2010-2011,2013-2014,2018-201A,201C-201E,2026,202F-2030,2032-2033,2070,2074-2079,2080-2089,20AC,2190-2193,2212,2248,2260,2264-2265",
+   "greek": "03C0",
+   "script_digits": "2070,2074-2079,2080-2089",
+   "synthesized": {},
+   "upstream_gaps": [],
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "RichView Mono",
+   "style": "normal",
+   "weight": 400,
+   "catalog": "fonts-editorial.css",
+   "monospace": true,
+   "source": "source-sans-3",
+   "file": "VF/SourceSans3VF-Upright.ttf",
+   "location": {
+    "wght": 400
+   },
+   "name": "RichView Sans Signs Regular",
+   "postscript": "RichViewSansSigns-Regular",
+   "version": "Version 3.052",
+   "glyphs": 5,
+   "woff2_bytes": 792,
+   "sha256": "6c64c422b47df152cbfa4a1c635cd8103141472d1b8dd996fd24ce9aa0f5fa7d",
+   "features": [],
+   "cmap": "207A-207B,208A-208B",
+   "script_digits": "207A-207B,208A-208B",
+   "borrowed_from": "RichView Sans",
+   "lends": "script signs",
+   "unicode_range": "U+207A-207B, U+208A-208B",
+   "signs_moved_em": {
+    "superior": -0.08,
+    "inferior": 0.17
+   },
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "RichView Mono",
+   "style": "normal",
+   "weight": 600,
+   "catalog": "fonts-editorial.css",
+   "monospace": true,
+   "source": "ibm-plex-mono",
+   "file": "packages/plex-mono/fonts/complete/ttf/IBMPlexMono-SemiBold.ttf",
+   "location": {},
+   "name": "RichView Mono SemiBold",
+   "postscript": "RichViewMono-SemiBold",
+   "version": "Version 2.005",
+   "glyphs": 409,
+   "woff2_bytes": 11732,
+   "sha256": "36d036acaca9eeccef65019df4487a3cd15a08770c4a98b83c3e4afadd978ceb",
+   "features": [
+    "lnum",
+    "locl",
+    "onum"
+   ],
+   "source_features": [
+    "lnum",
+    "onum"
+   ],
+   "features_without_effect": [],
+   "kerning_pairs_below_threshold": 0,
+   "tabular_digits": true,
+   "cmap": "0020-007E,00A0-017F,03C0,2007,2009,2010-2011,2013-2014,2018-201A,201C-201E,2026,202F-2030,2032-2033,2070,2074-2079,2080-2089,20AC,2190-2193,2212,2248,2260,2264-2265",
+   "greek": "03C0",
+   "script_digits": "2070,2074-2079,2080-2089",
+   "synthesized": {},
+   "upstream_gaps": [],
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "RichView Mono",
+   "style": "normal",
+   "weight": 600,
+   "catalog": "fonts-editorial.css",
+   "monospace": true,
+   "source": "source-sans-3",
+   "file": "VF/SourceSans3VF-Upright.ttf",
+   "location": {
+    "wght": 600
+   },
+   "name": "RichView Sans Signs SemiBold",
+   "postscript": "RichViewSansSigns-SemiBold",
+   "version": "Version 3.052",
+   "glyphs": 5,
+   "woff2_bytes": 780,
+   "sha256": "6b458f48f594d7a881834f69e01ac03aac5f7669e09ee1e8f426e0d519b3bd67",
+   "features": [],
+   "cmap": "207A-207B,208A-208B",
+   "script_digits": "207A-207B,208A-208B",
+   "borrowed_from": "RichView Sans",
+   "lends": "script signs",
+   "unicode_range": "U+207A-207B, U+208A-208B",
+   "signs_moved_em": {
+    "superior": -0.071,
+    "inferior": 0.172
+   },
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Patrick Hand",
+   "style": "normal",
+   "weight": 400,
+   "catalog": "fonts-hand-drawn.css",
+   "monospace": false,
+   "source": "patrick-hand",
+   "file": "ofl/patrickhand/PatrickHand-Regular.ttf",
+   "location": {},
+   "name": "Patrick Hand Regular",
+   "postscript": "PatrickHand-Regular",
+   "version": "Version 1.003",
+   "glyphs": 370,
+   "woff2_bytes": 18208,
+   "sha256": "f2668a0e2b9084879028100b20dcf7e952ba058f63164437b1110b40bc1341ea",
+   "features": [
+    "liga",
+    "lnum",
+    "locl",
+    "onum"
+   ],
+   "source_features": [
+    "liga",
+    "lnum",
+    "onum"
+   ],
+   "features_without_effect": [],
+   "kerning_pairs_below_threshold": 0,
+   "tabular_digits": true,
+   "cmap": "0020-007E,00A0-017F,03A9,03BB-03BC,03C0,2007,2009,2010-2011,2013-2014,2018-201A,201C-201E,2026,202F-2030,2032-2033,2070,2074-2079,20AC,2190-2193,2212,2248,2260,2264-2265",
+   "greek": "03A9,03BB-03BC,03C0",
+   "script_digits": "2070,2074-2079",
+   "synthesized": {
+    "alias": [
+     "2010",
+     "2011",
+     "00B5",
+     "2032",
+     "2033",
+     "202F"
+    ],
+    "space": [
+     "2009",
+     "2007"
+    ],
+    "arrow": [
+     "2190",
+     "2191",
+     "2192",
+     "2193"
+    ],
+    "tabular": [
+     "zero 448->495",
+     "one 363->495",
+     "two 468->495",
+     "three 448->495",
+     "four 375->495",
+     "five 423->495",
+     "six 399->495",
+     "eight 433->495",
+     "nine 367->495"
+    ]
+   },
+   "upstream_gaps": [],
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "Patrick Hand",
+   "style": "normal",
+   "weight": 400,
+   "catalog": "fonts-hand-drawn.css",
+   "monospace": false,
+   "source": "source-sans-3",
+   "file": "VF/SourceSans3VF-Upright.ttf",
+   "location": {
+    "wght": 400
+   },
+   "name": "RichView Sans Digits Regular",
+   "postscript": "RichViewSansDigits-Regular",
+   "version": "Version 3.052",
+   "glyphs": 25,
+   "woff2_bytes": 1452,
+   "sha256": "eb5fbdb7c75feaa7defd3a23cb9f79470f0cee93fc7a1033f0c62d596a19ee57",
+   "features": [],
+   "cmap": "207A-207B,2080-208B",
+   "script_digits": "207A-207B,2080-208B",
+   "borrowed_from": "RichView Sans",
+   "lends": "script digits and signs",
+   "unicode_range": "U+207A-207B, U+2080-208B",
+   "signs_moved_em": {
+    "superior": -0.003,
+    "inferior": 0.003
+   },
+   "css_family_uses_reserved_name": false
+  },
+  {
+   "family": "STIX Two Math",
+   "style": "normal",
+   "weight": 400,
+   "catalog": "fonts-math.css",
+   "monospace": false,
+   "source": "stix-two-math",
+   "file": "fonts/static_ttf_woff2/STIXTwoMath-Regular.woff2",
+   "location": {},
+   "name": "STIX Two Math Regular",
+   "postscript": "STIXTwoMath-Regular",
+   "version": "Version 2.13 b171",
+   "glyphs": 6760,
+   "woff2_bytes": 558644,
+   "sha256": "5f8bdddc067dd82689d7247cc96e0be46fe4cec39974c649866aa391d8d5badd",
+   "features": [
+    "aalt",
+    "case",
+    "ccmp",
+    "cv01",
+    "cv02",
+    "cv03",
+    "cv04",
+    "dtls",
+    "flac",
+    "kern",
+    "locl",
+    "ss01",
+    "ss02",
+    "ss03",
+    "ss04",
+    "ss05",
+    "ss06",
+    "ss07",
+    "ss08",
+    "ss09",
+    "ss10",
+    "ss11",
+    "ss12",
+    "ss13",
+    "ss14",
+    "ss15",
+    "ss16",
+    "ss20",
+    "ssty"
+   ],
+   "source_features": [
+    "aalt",
+    "case",
+    "ccmp",
+    "cv01",
+    "cv02",
+    "cv03",
+    "cv04",
+    "dtls",
+    "flac",
+    "kern",
+    "locl",
+    "ss01",
+    "ss02",
+    "ss03",
+    "ss04",
+    "ss05",
+    "ss06",
+    "ss07",
+    "ss08",
+    "ss09",
+    "ss10",
+    "ss11",
+    "ss12",
+    "ss13",
+    "ss14",
+    "ss15",
+    "ss16",
+    "ss20",
+    "ssty"
+   ],
+   "features_without_effect": [],
+   "cmap": "0020-007E,00A0-0180,0188,0190,0192,0195,0199-019B,019E,01A0-01A1,01A5,01AA-01AB,01AD,01AF-01B0,01B5,01BA-01BB,01BE,01C0-01C3,01DE-01DF,01F0,01FA-01FF,0218-021B,0221,0228-0229,0234-0237,0250-02E9,02EC-02ED,02F7,0300-033F,0346-0347,034C-034D,0359,035C,0360-0362,037E,0384-038A,038C,038E-03A1,03A3-03CE,03D0-03D2,03D5-03D6,03D8-03E1,03F0-03F1,03F4-03F6,0400-045F,0462-0463,046A-046B,0472-0475,0490-0491,1D00,1D07,1D1C,1D81,1D84-1D85,1D8A,1D8D-1D8E,1D98,1D9B,1DA3,1E00-1EF9,2000-200D,2010-2022,2025-2026,202F-203C,203E,2040,2043-2044,2047,204B-2052,2057,205F,2061-2064,2070-2071,2074-208E,20A3-20A4,20A7,20AB-20AC,20B9-20BA,20BD,20D0-20DF,20E1,20E4-20F0,2100-214F,2153-215E,2190-21EA,21F4-23FF,2422-2423,2460-2500,2502,2506,2508,250A,250C,2510,2514,2518,251C,2524,252C,2534,253C,2550-256C,2571-2572,2580,2584,2588,258C,2590-2593,25A0-26FF,2702,2709,2713,2720,272A,2736,273D,2772-2773,2776-2793,279B,27C0-27C9,27CB-27CD,27D0-27FF,2900-2AFF,2B12-2B4C,2B50-2B54,3012,3030,306E,A727,A792,E000-E005,E00A-E00B,E00E-E011,E016,E018,E01E,E023,E025-E02B,E02F,E035,E037-E03D,E040-E046,E04B-E057,E059-E05E,E060-E068,E06B-E070,E075-E077,E07C-E089,E092-E09B,E09F-E0A2,E0A4-E0B9,E0BB-E0EF,E0F1-E10A,E10C-E10D,E110-E133,E13A,E13F,E14C-E1BB,E1BE-E1F6,E28C-E293,E2FC,E2FE,E300,E302,E304,E306,E308,E30A,E30C,E30E,E310,E312,E314,E316,E318,E31A,E31C,E31E,E320,E322,E324,E326,E328,E32A,E364,E368,E36C,E370,E3C2-E3C4,E3C7-E3C8,FB00-FB04,FFFD,1D400-1D454,1D456-1D49C,1D49E-1D49F,1D4A2,1D4A5-1D4A6,1D4A9-1D4AC,1D4AE-1D4B9,1D4BB,1D4BD-1D4C3,1D4C5-1D505,1D507-1D50A,1D50D-1D514,1D516-1D51C,1D51E-1D539,1D53B-1D53E,1D540-1D544,1D546,1D54A-1D550,1D552-1D6A5,1D6A8-1D7CB,1D7CE-1D7FF,1EEF0-1EEF1",
+   "unmodified": true
+  }
+ ]
+}

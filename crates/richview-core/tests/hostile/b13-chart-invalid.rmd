@@ -1,0 +1,29 @@
+---
+title: Invalid charts
+---
+
+```chart
+type: '"><script>HOSTILE_TYPE()</script>'
+title: '<script>HOSTILE_ITITLE()</script>'
+data: { inline: [{ x: 1 }] }
+encoding: { x: x }
+```
+
+```chart
+type: bar
+title: Bad data
+data: { inline: [{ x: '<script>HOSTILE_DATA()</script>' }] }
+encoding: { x: '<script>HOSTILE_ENC()</script>', y: '"><img src=x>' }
+unknown: '<script>HOSTILE_UNKNOWN_KEY()</script>'
+'<script>HOSTILE_KEYNAME()</script>': 1
+```
+
+```chart
+type: bar
+title: Bad annotations and bins
+data: { inline: [{ x: A, y: 1 }] }
+encoding: { x: x, y: y }
+annotations:
+  - { kind: '<script>HOSTILE_KIND()</script>', at: { x: A }, text: '"><script>HOSTILE_ATEXT()</script>' }
+binning: { count: '<script>HOSTILE_BINS()</script>' }
+```

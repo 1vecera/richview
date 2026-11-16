@@ -1,0 +1,15 @@
+layout:
+  report-max-width: '1px;} </style><script>HOSTILE_W()</script>'
+  margin-column: '</script><script>HOSTILE_MC()</script>'
+  '</style><script>HOSTILE_LAYOUT_KEY()</script>': true
+motion:
+  enabled: '</script><script>HOSTILE_ME()</script>'
+  '</style><script>HOSTILE_MOTION_KEY()</script>': 1
+components:
+  big: { style: '</style><script>HOSTILE_BIG()</script>' }
+  callout: { border-width: 'url(//evil.example/HOSTILE)', style: '</script>' }
+  title: { transform: '</script><script>HOSTILE_T()</script>', weight: '400;} evil {', letter-spacing: 'calc(1px)', font: '"><script>' }
+  heading: { font: "x;} </style><script>HOSTILE_H()</script>" }
+  header: { border-top: 'none;} </style><script>HOSTILE_HB()</script>' }
+  rules: { style: '</style>' }
+  '</style><script>HOSTILE_COMPONENT_KEY()</script>': { style: x }

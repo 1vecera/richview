@@ -1,0 +1,8 @@
+---
+title: Bubble reference spacing
+version: 0.0.1
+---
+
+```chart
+{"type": "scatter", "title": "Bubble reference with a complete caption", "encoding": {"x": "x", "y": "y", "size": "number_of_active_customers_in_the_reporting_period"}, "data": {"inline": [{"x": 1, "y": 2, "number_of_active_customers_in_the_reporting_period": 1}, {"x": 2, "y": 4, "number_of_active_customers_in_the_reporting_period": 4}, {"x": 3, "y": 8, "number_of_active_customers_in_the_reporting_period": 16}]}}
+```

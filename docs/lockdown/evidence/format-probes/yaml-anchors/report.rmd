@@ -1,0 +1,11 @@
+---
+title: Anchors
+---
+
+```table
+data:
+  inline:
+    - &row {k: a, v: 1}
+    - *row
+    - {<<: *row, k: b}
+```

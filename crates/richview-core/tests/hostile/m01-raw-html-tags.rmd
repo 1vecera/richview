@@ -1,0 +1,27 @@
+---
+title: Raw HTML tags
+---
+
+<script>HOSTILE_SCRIPT()</script>
+
+<div onclick="HOSTILE_CLICK()" style="background:url(//evil.example/HOSTILE)">kept block text HOSTILE_BLOCK</div>
+
+Inline <img src=x onerror=HOSTILE_ERROR()> and <b onmouseover="HOSTILE_OVER()">kept bold text</b> and <svg onload="HOSTILE_LOAD()"><circle r=1 /></svg> inside a paragraph.
+
+<iframe src="https://evil.example/HOSTILE"></iframe>
+
+<style>body { background: url(//evil.example/HOSTILE) }</style>
+
+<a href="javascript:HOSTILE_HREF()">raw link text</a> <form action="https://evil.example/HOSTILE"><input name=x onfocus=HOSTILE_FOCUS() autofocus></form>
+
+<object data="https://evil.example/HOSTILE"></object><embed src="https://evil.example/HOSTILE"><link rel=stylesheet href="https://evil.example/HOSTILE.css"><meta http-equiv=refresh content="0;url=https://evil.example/HOSTILE"><base href="https://evil.example/HOSTILE/">
+
+<details open ontoggle=HOSTILE_TOGGLE()><summary>kept summary text</summary>x</details>
+
+<math><mi xlink:href="javascript:HOSTILE_MATH()">x</mi></math>
+
+<table><tr><td onclick="HOSTILE_TD()">cell</td></tr></table>
+
+<video src="https://evil.example/HOSTILE.mp4" poster="https://evil.example/HOSTILE.png" autoplay onerror=HOSTILE_V()></video>
+<audio src="https://evil.example/HOSTILE.mp3"></audio>
+<img src="https://evil.example/HOSTILE.png">

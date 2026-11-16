@@ -1,0 +1,180 @@
+{
+  "status": "ACCEPT: isolated, corrected tiny and frozen PR40 composition",
+  "browser": "151.0.7922.173",
+  "base": "480af942714c16ce4c1f959c7f046344d4f8c99d",
+  "source": "aae91e069f49d2de8fca3cf064ce2bcb3eed3ffd",
+  "builds": {
+    "before": {
+      "head": "dad1615876cf05dccd7241da269fbf69cbc1ec31",
+      "wasm": "c415bc543db946539e4d1d2b8902935ba05a4d5ca1c60deb77456a8d64f89467",
+      "core_wasm": "624e5e9e829c3b6424cb362b1514120bc9c24094e9e6806dc2afce45227a498a",
+      "cli": "c3bc7b271d10a82a337f1cd0c0a112c2a81c893294fd6193e01ecd6b9aab39f6"
+    },
+    "after": {
+      "head": "aae91e069f49d2de8fca3cf064ce2bcb3eed3ffd",
+      "wasm": "82ac43ab81177b3f8bce617e24361496b328ed8c152983e36a76192851d33d4a",
+      "core_wasm": "977769e232a9c2bdf051200269b757b0d8a2693ca4d06897c0285628474c80f1",
+      "cli": "4eb83e7bfbcde58c47f259e4ad8f68be9734d8e41463db3473b5d5e63b786560"
+    }
+  },
+  "cases": [
+    {
+      "name": "hand-drawn",
+      "source": "hand-drawn.rmd",
+      "fixture": "signed-levels",
+      "theme": "hand-drawn",
+      "width": 320,
+      "motion": "reduce"
+    },
+    {
+      "name": "sleek",
+      "source": "sleek.rmd",
+      "fixture": "positive-midtones",
+      "theme": "sleek",
+      "width": 320,
+      "motion": "reduce"
+    }
+  ],
+  "files": {
+    "hand-drawn.rmd": "239baf98809c813f5b0adf2ef1e6f56601f4624ef09c116cda6e52528fed90d8",
+    "hand-drawn-before.png": "1c556536ce2ef38f93a43bdb9dce469158202291ef1fb20aa211e3c5f8ae8371",
+    "hand-drawn-after.png": "ae2be6fec13055589b2b2ad83d8ecfc24cf60f6135f7dfb3ad48d177edd90748",
+    "sleek.rmd": "21ae5e1cfe19cb324d02ff800f5af57abc2286c3758d30f31cb0b20e4284a90a",
+    "sleek-before.png": "7469d6a351b52de80567ccf13b1439c3e07b9606843d3c022b2c534e7a3d3ab7",
+    "sleek-after.png": "e62023bc046d63a16071c51c29d7bf3ebde207d7b567e8e0dc2ed39c8268cc4b",
+    "capture.mjs": "bc11284189c78a2791b22164ba50850e9d25d38553d5c8a94ee352d599b0ed84",
+    "README.md": "372b303acc0da893ad3ac9dc11cd0d0437bcc2ec7ff0b0490f9f50aa37864053"
+  },
+  "checks": {
+    "format": 0,
+    "clippy-native": 0,
+    "clippy-wasm": 0,
+    "workspace": 0,
+    "fixtures": 0,
+    "editor": 0,
+    "native": 0,
+    "compat": 0,
+    "types": 0,
+    "browser": 0,
+    "landing": 0,
+    "cloudflare": 0,
+    "showcase": 0,
+    "flagship": 0,
+    "reel": 0,
+    "browser-api": 0,
+    "motion-runtime": 0,
+    "docs": 0,
+    "release": 0
+  },
+  "main": {
+    "reports": 210,
+    "leaf_svgs": 225,
+    "identical_control_svg_png": 55,
+    "public_native_outputs": 215,
+    "interfaces": 39,
+    "source_rows": 654,
+    "keyboard_readouts": 78,
+    "paired_pointer_touch": 36,
+    "svg_states": 156,
+    "standalone_js_disabled_screen_print": 20,
+    "geometry_source_diagnostics_text_bounds_exact": true
+  },
+  "independent": {
+    "verdict": "ACCEPT isolated",
+    "native_pairs": 135,
+    "actual_records": 58,
+    "js_disabled_screen_print_cascade": 10,
+    "level_reports": 15,
+    "cells": 435,
+    "minimum_sample_ratios_after": [
+      4.7457752666,
+      4.664872026142,
+      4.738907682691,
+      4.707847726002,
+      4.850598737752
+    ]
+  },
+  "compositions": [
+    {
+      "name": "tiny",
+      "before_source": "cffbec9d4cdf154f69a5d764ecb1596c34a411c6",
+      "before_wasm": "68c0519fa74c5869d74b5b771fdd06aef3f73cf9302334c5b3858a7893f27fc8",
+      "source": "f60f48cfb3b8e00a1dc82703b042e48e10025e18",
+      "wasm": "1aac1b16e290712e481418f35952a27b89f286bbe60c51b33bc7a261062ab1ec",
+      "core_wasm": "57d6fb1e6d71304c44e6f4ce5013478daea9eb11ab78af46f07c1d043cf1f2be",
+      "native_pairs": 180,
+      "reports": 72,
+      "leaf_svgs": 78,
+      "identical_control_svg_png": 9,
+      "noncontrast_svg_and_diagnostics_exact": true,
+      "all_omitted_svg_exact_without_rule": true,
+      "checks": {
+        "fmt": 0,
+        "chart-tests": 0,
+        "native-clippy": 0,
+        "wasm-clippy": 0,
+        "build": 0,
+        "fixtures": 0,
+        "browser": 0,
+        "browser-api": 0,
+        "motion": 0
+      },
+      "independent": {
+        "verdict": "ACCEPT",
+        "native_pairs": 180,
+        "actual_records": 70,
+        "standalone_omission_fallback": 8
+      }
+    },
+    {
+      "name": "sibling",
+      "before_source": "b5f3a72879731fbb156ba9b757ec67c0f4c81f84",
+      "before_wasm": "d48345a3c45b46fbc236a968e12ff59f3160aef8274177b767d77ab7cf923bbb",
+      "source": "6b706750c9a8594e2c103d985cc493f9ddf6dcdc",
+      "wasm": "3cc3c0debccd4050e10e32b6d67a377b4bd8cd2cac39cc3a20f1c656e507d0eb",
+      "core_wasm": "7aa18dbc70dbb76a874759d2f6ea62c16453d632bee78a9c9c73edc4510a9daf",
+      "native_pairs": 180,
+      "reports": 72,
+      "leaf_svgs": 78,
+      "identical_control_svg_png": 9,
+      "noncontrast_svg_and_diagnostics_exact": true,
+      "all_omitted_svg_exact_without_rule": true,
+      "checks": {
+        "fmt": 0,
+        "chart-tests": 0,
+        "native-clippy": 0,
+        "wasm-clippy": 0,
+        "build": 0,
+        "fixtures": 0,
+        "browser": 0,
+        "browser-api": 0,
+        "motion": 0
+      },
+      "independent": {
+        "verdict": "ACCEPT",
+        "native_pairs": 180,
+        "actual_records": 70,
+        "standalone_omission_fallback": 8
+      }
+    }
+  ],
+  "limits": [
+    "Chromium 151 executed; literal-false support is a controlled fallback test, not another browser.",
+    "Contrast follows the emitted fill expression/ramp variables, not an independent rectangle-fill override.",
+    "No universal ratio, transparency, arbitrary font or downstream PDF-viewer promise.",
+    "Existing diagnostics and fitting omissions are retained exactly."
+  ],
+  "retained_history": [
+    "Superseded initial stylesheet insertion; final output checks for remaining labels after annotation omissions.",
+    "SVG document fullPage screenshot timeout; fixed-viewport capture succeeds.",
+    "Scratch XML local-name comparator and expected style-node normalization corrections.",
+    "Independent standalone inventory harness correction; no product change."
+  ],
+  "log_sources": {
+    "release_exit": "tmp/heatmap-contrast/final-checks.json: build",
+    "release_output": "tmp/heatmap-contrast/final-build.log",
+    "rust_checks": "tmp/heatmap-contrast/checks/rust-checks.json",
+    "fixtures_and_host_checks": "tmp/heatmap-contrast/checks/host-checks.json",
+    "final_documentation": "tmp/heatmap-contrast/docs-final.log"
+  }
+}

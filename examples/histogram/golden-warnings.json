@@ -1,0 +1,6 @@
+{
+  "chart.excluded-observations": {
+    "styles": "*",
+    "lines": [79]
+  }
+}

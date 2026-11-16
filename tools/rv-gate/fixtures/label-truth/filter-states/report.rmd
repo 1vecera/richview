@@ -1,0 +1,130 @@
+---
+title: Filter states
+---
+
+# Filter states
+
+Every chart is read with its second filter option chosen; the texts on the chart must be that option's values.
+
+```chart
+type: histogram
+title: Ages by region
+data:
+  inline:
+    - {region: North, age: 20}
+    - {region: North, age: 22}
+    - {region: North, age: 24}
+    - {region: North, age: 25}
+    - {region: North, age: 26}
+    - {region: North, age: 28}
+    - {region: North, age: 30}
+    - {region: North, age: 31}
+    - {region: South, age: 60}
+    - {region: South, age: 62}
+    - {region: South, age: 65}
+    - {region: South, age: 70}
+    - {region: South, age: 72}
+    - {region: South, age: 75}
+    - {region: South, age: 80}
+    - {region: South, age: 85}
+    - {region: South, age: 88}
+    - {region: South, age: 90}
+encoding: {x: age}
+controls:
+  - kind: filter
+    id: region
+    field: region
+    label: Region
+    options: [North, South]
+    initial: North
+```
+
+```chart
+type: pie
+title: Answers by region
+data:
+  inline:
+    - {region: North, a: Yes, n: 40}
+    - {region: North, a: No, n: 25}
+    - {region: North, a: Maybe, n: 20}
+    - {region: North, a: Later, n: 10}
+    - {region: North, a: Never, n: 6}
+    - {region: South, a: Yes, n: 5}
+    - {region: South, a: No, n: 5}
+    - {region: South, a: Maybe, n: 5}
+    - {region: South, a: Later, n: 5}
+    - {region: South, a: Never, n: 80}
+encoding: {x: a, y: n}
+controls:
+  - kind: filter
+    id: region
+    field: region
+    label: Region
+    options: [North, South]
+    initial: North
+```
+
+```chart
+type: bar
+title: Bars by region
+data:
+  inline:
+    - {region: North, k: A, v: 7}
+    - {region: North, k: B, v: 3}
+    - {region: South, k: A, v: 700}
+    - {region: South, k: B, v: 300}
+encoding: {x: k, y: v}
+controls:
+  - kind: filter
+    id: region
+    field: region
+    label: Region
+    options: [North, South]
+    initial: North
+```
+
+```chart
+type: pareto
+title: Causes by region
+data:
+  inline:
+    - {region: North, cause: Alpha, n: 100}
+    - {region: North, cause: Beta, n: 50}
+    - {region: North, cause: Gamma, n: 10}
+    - {region: South, cause: Alpha, n: 5}
+    - {region: South, cause: Beta, n: 50}
+    - {region: South, cause: Gamma, n: 500}
+encoding: {x: cause, y: n}
+controls:
+  - kind: filter
+    id: region
+    field: region
+    label: Region
+    options: [North, South]
+    initial: North
+```
+
+```chart
+type: boxplot
+title: Spread by region
+data:
+  inline:
+    - {region: North, g: G, v: 1}
+    - {region: North, g: G, v: 2}
+    - {region: North, g: G, v: 3}
+    - {region: North, g: G, v: 4}
+    - {region: North, g: G, v: 5}
+    - {region: South, g: G, v: 100}
+    - {region: South, g: G, v: 200}
+    - {region: South, g: G, v: 300}
+    - {region: South, g: G, v: 400}
+    - {region: South, g: G, v: 500}
+encoding: {x: g, y: v}
+controls:
+  - kind: filter
+    id: region
+    field: region
+    label: Region
+    options: [North, South]
+    initial: North
+```

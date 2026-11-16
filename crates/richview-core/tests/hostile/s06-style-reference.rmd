@@ -1,0 +1,6 @@
+---
+title: Style references
+styles: ['evil</style><script>HOSTILE_REF()</script>', '../../etc/passwd', 'https://evil.example/HOSTILE.rstyle.yaml']
+---
+
+A paragraph.

@@ -1,0 +1,259 @@
+{
+  "schema_version": 1,
+  "base_commit": "bb8b112c121eae1ec70d810df1b5e6a2070c9c4e",
+  "source_commit": "abf21b9910f44b58815fca7ab433c0d798fba4f9",
+  "wasm_sha256": "07ee1fe67330f0310f46d444639e222ded71a01b4ad7b198216edb1df4fb44af",
+  "capture": {
+    "browser": "151.0.7922.173",
+    "device_scale_factor": 2,
+    "motion": "reduce",
+    "kind": "Actual report figures with loaded fonts and current runtime; no image edits."
+  },
+  "pairs": [
+    {
+      "fixture": "axis.rmd",
+      "id": "percent-unit-bar",
+      "theme": "scientific",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 900
+      },
+      "source_sha256": "c11c44bc33037336a239c2a37f7cb37fe75b515e9dfd4f62e2afbe4352ce25ab",
+      "before": {
+        "image": "axis-before.png",
+        "image_sha256": "784c1c6f402ff9f589f46cacb0623ab23c2f6164679a031627be361959af48c9",
+        "figure_css_px": {
+          "width": 358,
+          "height": 274.25
+        },
+        "source_commit": "bb8b112c121eae1ec70d810df1b5e6a2070c9c4e",
+        "wasm_sha256": "1f278570318a19163969089bf4b8f1f694efe5b0f9b3ba04b2897912851458be",
+        "live_diagnostics": {
+          "checks": [],
+          "engine": "rust-svg",
+          "labels": 8,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "clean"
+        }
+      },
+      "after": {
+        "image": "axis-after.png",
+        "image_sha256": "422ec888b9fafcefd23acf601dab2d8b186ed9898e841ff35cda0059c674dc4e",
+        "figure_css_px": {
+          "width": 358,
+          "height": 274.25
+        },
+        "source_commit": "abf21b9910f44b58815fca7ab433c0d798fba4f9",
+        "wasm_sha256": "07ee1fe67330f0310f46d444639e222ded71a01b4ad7b198216edb1df4fb44af",
+        "live_diagnostics": {
+          "checks": [],
+          "engine": "rust-svg",
+          "labels": 8,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "clean"
+        }
+      }
+    },
+    {
+      "fixture": "key.rmd",
+      "id": "percent-unit-heatmap",
+      "theme": "scientific",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 900
+      },
+      "source_sha256": "adf23b1941a5072a697eb4df61aa4b14fc4f14c8d7bd65c014adee8ff32f8e37",
+      "before": {
+        "image": "key-before.png",
+        "image_sha256": "2f0e70d0dbe4bf65447da4335185e0a5e6f464b2e354f2ca92800ce0179d276b",
+        "figure_css_px": {
+          "width": 358,
+          "height": 223.25
+        },
+        "source_commit": "bb8b112c121eae1ec70d810df1b5e6a2070c9c4e",
+        "wasm_sha256": "1f278570318a19163969089bf4b8f1f694efe5b0f9b3ba04b2897912851458be",
+        "live_diagnostics": {
+          "checks": [],
+          "engine": "rust-svg",
+          "labels": 11,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "clean"
+        }
+      },
+      "after": {
+        "image": "key-after.png",
+        "image_sha256": "b0a8eb8ffa48ce05a9ef4ff534e96b684f52c31d380e1c6253d8e796a00596db",
+        "figure_css_px": {
+          "width": 358,
+          "height": 223.25
+        },
+        "source_commit": "abf21b9910f44b58815fca7ab433c0d798fba4f9",
+        "wasm_sha256": "07ee1fe67330f0310f46d444639e222ded71a01b4ad7b198216edb1df4fb44af",
+        "live_diagnostics": {
+          "checks": [],
+          "engine": "rust-svg",
+          "labels": 12,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "clean"
+        }
+      }
+    }
+  ],
+  "validation": {
+    "owner_current": {
+      "before": {
+        "head": "bb8b112c121eae1ec70d810df1b5e6a2070c9c4e",
+        "wasm_sha256": "1f278570318a19163969089bf4b8f1f694efe5b0f9b3ba04b2897912851458be"
+      },
+      "after": {
+        "head": "abf21b9910f44b58815fca7ab433c0d798fba4f9",
+        "wasm_sha256": "07ee1fe67330f0310f46d444639e222ded71a01b4ad7b198216edb1df4fb44af"
+      },
+      "pairs": 165,
+      "controls": 75,
+      "identical_control_svgs": 75,
+      "identical_control_pngs": 75,
+      "affected_changed_svgs": 90,
+      "native_diagnostic_changes": 0,
+      "before_glyph_checks": 0,
+      "after_glyph_checks": 0,
+      "browser_errors": [],
+      "overflow": [],
+      "new_glyph_checks": [],
+      "source_mismatch": []
+    },
+    "native_pairs": 11,
+    "native_byte_identical_controls": 5,
+    "independent_current": {
+      "verdict": "accept",
+      "matched_phone_views": 13,
+      "affected_views": 6,
+      "byte_identical_controls": 7,
+      "additional_small_percent_controls": 2,
+      "readouts": "unchanged"
+    },
+    "required_current": "All formatting, native/Wasm Clippy, workspace tests, release, fixtures and 13 host checks pass. The initial local Cloudflare process had a shared-port collision; the unchanged check passed with the campaign lock.",
+    "host_checks": [
+      {
+        "name": "editor",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 1117
+      },
+      {
+        "name": "native",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 4034
+      },
+      {
+        "name": "compat",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 260
+      },
+      {
+        "name": "types",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 2527
+      },
+      {
+        "name": "browser",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 96992
+      },
+      {
+        "name": "landing",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 79929
+      },
+      {
+        "name": "cloudflare",
+        "status": 13,
+        "signal": null,
+        "elapsed_ms": 4834
+      },
+      {
+        "name": "showcase",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 49944
+      },
+      {
+        "name": "flagship",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 27897
+      },
+      {
+        "name": "reel",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 10648
+      },
+      {
+        "name": "browser-api",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 5622
+      },
+      {
+        "name": "motion-runtime",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 3244
+      },
+      {
+        "name": "docs",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 22327
+      }
+    ],
+    "cloudflare_isolated_rerun": {
+      "command": "flock shared-campaign-lock node scripts/verify-cloudflare.mjs",
+      "exit": 0,
+      "recorded_at": "2026-10-11T22:03:42.237267+00:00",
+      "original_exit": 13,
+      "original_reason": "workerd bind Address already in use with simultaneous worktree checks; shutdown then reported unsettled top-level await",
+      "original_logs": [
+        "cloudflare.log",
+        "../../../cloudflare-review-DxnvK6/worker.log"
+      ]
+    },
+    "tracked_after_images_reproduced_byte_exactly": true
+  },
+  "historical_validation": {
+    "base_commit": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+    "source_commit": "7b7c26a68f488599bd478aaa7060e6dc6103a726",
+    "wasm_sha256": "0f368ec5b00d06cadee073be9aa0f88e28eb8d0e16ac508975303d4c568c4c3e",
+    "validation": {
+      "matched_views": 165,
+      "affected_views": 90,
+      "byte_identical_control_views": 75,
+      "themes": 5,
+      "viewport_widths": [
+        320,
+        390,
+        720
+      ],
+      "browser_errors": 0,
+      "overflow": 0,
+      "live_glyph_findings": 0,
+      "native_matched_pairs": 11,
+      "byte_identical_native_controls": 5,
+      "independent_views": 26,
+      "independent_unchanged_controls": 14,
+      "independent_verdict": "accept",
+      "required_checks": "Rust formatting, native/Wasm Clippy, workspace tests, release build, fixtures and 12 of 13 host checks pass. Existing motion-runtime assertion reads detached pie nodes; the same failure was reproduced on unchanged main. Separate test-only repair under review."
+    },
+    "frozen_ref": "review/chart-percent-unit-3c-frozen"
+  }
+}

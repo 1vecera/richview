@@ -1,0 +1,2128 @@
+{
+ "_source": {
+  "files": [
+   "tmp/performance/native-surfaces.json"
+  ],
+  "sha256": {
+   "tmp/performance/native-surfaces.json": "a1c9554b5c3512354f36be3cce6b9d8ade877b0353314db881a3c0a5fdabb52c"
+  },
+  "note": "uv run scripts/benchmark-native.py, b4db233, Claw Mini, 2026-10-21; per-request samples omitted"
+ },
+ "data": {
+  "status": "complete",
+  "profile": "final",
+  "started_utc": "2026-10-21T18:52:01.946533+00:00",
+  "hardware": {
+   "cpu_model": "Apple M4",
+   "logical_cpus": 10,
+   "physical_cores": 10,
+   "affinity_cpus": null,
+   "memory_total_kib": 16777216,
+   "os": "macOS-26.3-arm64-arm-64bit-Mach-O",
+   "architecture": "arm64",
+   "python": "3.14.6",
+   "cpu_governor": null,
+   "load_average": [
+    4.6572265625,
+    4.17431640625,
+    3.8017578125
+   ]
+  },
+  "software": {
+   "cli": {
+    "path": "target/release/richview",
+    "version": "richview 3.0.0-alpha.0",
+    "bytes": 8976352,
+    "mtime_ns": 1792607624774462624,
+    "sha256": "8d83286ad0df8d70de82e268f77435241354e1096ce5dd554ea29c784646103f"
+   },
+   "server": {
+    "path": "target/release/richview-server",
+    "version": "richview-server 3.0.0-alpha.0",
+    "bytes": 6638992,
+    "mtime_ns": 1792607613997987935,
+    "sha256": "d1eabb059da1b3bf897df2e2271c49eb7b55d36e3fd2f42dfecf4d85a9a35455"
+   },
+   "editor": {
+    "path": "target/release/richview-editor",
+    "protocol": "JSONL JSON-RPC2.0",
+    "bytes": 6443200,
+    "mtime_ns": 1792607613997789058,
+    "sha256": "07a2f87b4a82d9c7da6c0b80bad615224b531b6c0fc898245316acf3820e6f93"
+   }
+  },
+  "artifacts": {
+   "dist/web/richview_web.js": {
+    "bytes": 120030,
+    "mtime_ns": 1792607642892703818,
+    "sha256": "44c5c95f832793ab8837faad43e6d6c2c661c925b429688f0cd2bca74f8bde30"
+   },
+   "dist/web/richview_web_bg.wasm": {
+    "bytes": 4366342,
+    "mtime_ns": 1792607642892202065,
+    "sha256": "67270c8c8a4d9bd96c2a21662463467c4d465d4e2d19ce8f374cf0787bdfd8d5"
+   },
+   "dist/web/richview_web_bg.wasm.gz": {
+    "bytes": 1512537,
+    "mtime_ns": 1792607643092857163,
+    "sha256": "b9f1753810c88aaea40c7ac108ba8f33d1ca409372f87f687713e2fbcdfe6d69"
+   }
+  },
+  "inputs": {
+   "small": {
+    "path": "tmp/performance/fixtures/small/report.rmd",
+    "source_bytes": 2453,
+    "source_sha256": "74e0a922290ff3507e021d7bf80ba8db91848a4ab590f4f635a2f7090e67fb0a",
+    "chart_count": 1,
+    "style": "scientific"
+   },
+   "flagship": {
+    "path": "tmp/performance/fixtures/flagship/report.rmd",
+    "source_bytes": 124588,
+    "source_sha256": "ba49afeff1be32608493adc874760e7cdd9d51d3a3e7d590d50eebc3f59722cf",
+    "chart_count": 18,
+    "style": "scientific"
+   },
+   "dense": {
+    "path": "tmp/performance/fixtures/dense/report.rmd",
+    "source_bytes": 2033557,
+    "source_sha256": "d4a657d6b913733c23aeff611344b5d742e6de46f29a39f6c551c9c8b3630130",
+    "chart_count": 1,
+    "style": "scientific"
+   }
+  },
+  "method": {
+   "cli": "New process each sample; 3 warmups warm only OS cache. Wall time includes process startup, resource/style/runtime resolution, Rust rendering, verification and base64 packaging of precompressed Wasm, and HTML write. Static variant omits runtime packaging. Raw wait4 maxRSS is labeled conservatively because of possible inherited parent high-water floor.",
+   "http": "Persistent standard-library HTTP connections to isolated loopback server. Requests contain same inline-data source and scientific style. 20 sequential and 40 requests at 4 clients per workload/encoding. Wire latency includes complete response reception; decode and total latency expose client gzip/JSON cost. Throughput is observed end-to-end client throughput, not maximum server capacity.",
+   "memory": "macOS current process RSS sampled every20ms through psutil7.2.2, with user/system time deltas. Lifetime RSS and IO counters are unavailable and remain null. Sampler overhead included. Darwin wait4 maxRSS bytes are converted to KiB; the Linux VmHWM acceptance gate remains unverified.",
+   "isolation": "Task-local output/store, explicit127.0.0.1 bind, synthetic token used only for local report seeding. No hosted network calls, desktop automation, cache dropping or external publication."
+  },
+  "run_dir": "tmp/performance/native-run-1792608721946350000",
+  "cli": [
+   {
+    "workload": "small",
+    "runtime": "static_check",
+    "iterations": 100,
+    "warmups": 3,
+    "command": [
+     "<worktree>/target/release/richview",
+     "check",
+     "<worktree>/tmp/performance/fixtures/small/report.rmd",
+     "--style",
+     "scientific",
+     "--public-dir",
+     "<worktree>/tmp/performance/native-run-1792608721946350000/no-runtime",
+     "--format",
+     "json"
+    ],
+    "cold_process_wall": {
+     "count": 100,
+     "min_ms": 4.633791,
+     "median_ms": 4.951333,
+     "p95_ms": 5.336209,
+     "p99_ms": 11.375416,
+     "max_ms": 12.2885
+    },
+    "wait4_max_rss_kib": {
+     "min": 13136.0,
+     "median": 13248.0,
+     "max": 13344.0
+    },
+    "python_parent_before": {
+     "rss_kib": 80496.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.104899208,
+     "system_seconds": 0.053511084,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "python_parent_after": {
+     "rss_kib": 80512.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.116932208,
+     "system_seconds": 0.119090168,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "memory_note": "Darwin wait4 ru_maxrss is converted from bytes to KiB. Process snapshots expose current RSS, not a lifetime high-water counter. These records do not satisfy the Linux VmHWM gate.",
+    "output_bytes": 0,
+    "samples": {
+     "omitted_samples": 100
+    }
+   },
+   {
+    "workload": "small",
+    "runtime": "offline_runtime",
+    "iterations": 100,
+    "warmups": 3,
+    "command": [
+     "<worktree>/target/release/richview",
+     "generate",
+     "<worktree>/tmp/performance/fixtures/small/report.rmd",
+     "--style",
+     "scientific",
+     "--public-dir",
+     "<worktree>/dist/web",
+     "--format",
+     "json",
+     "--output",
+     "<worktree>/tmp/performance/fixtures/small/Rendered/small-offline_runtime.html"
+    ],
+    "cold_process_wall": {
+     "count": 100,
+     "min_ms": 19.922125,
+     "median_ms": 20.929603999999998,
+     "p95_ms": 23.628416,
+     "p99_ms": 24.586792,
+     "max_ms": 46.634375
+    },
+    "wait4_max_rss_kib": {
+     "min": 31152.0,
+     "median": 31248.0,
+     "max": 31344.0
+    },
+    "python_parent_before": {
+     "rss_kib": 80560.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.117676456,
+     "system_seconds": 0.12187996,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "python_parent_after": {
+     "rss_kib": 80560.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.137145872,
+     "system_seconds": 0.210509872,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "memory_note": "Darwin wait4 ru_maxrss is converted from bytes to KiB. Process snapshots expose current RSS, not a lifetime high-water counter. These records do not satisfy the Linux VmHWM gate.",
+    "output_bytes": 2370813,
+    "samples": {
+     "omitted_samples": 100
+    }
+   },
+   {
+    "workload": "flagship",
+    "runtime": "static_check",
+    "iterations": 100,
+    "warmups": 3,
+    "command": [
+     "<worktree>/target/release/richview",
+     "check",
+     "<worktree>/tmp/performance/fixtures/flagship/report.rmd",
+     "--style",
+     "scientific",
+     "--public-dir",
+     "<worktree>/tmp/performance/native-run-1792608721946350000/no-runtime",
+     "--format",
+     "json"
+    ],
+    "cold_process_wall": {
+     "count": 100,
+     "min_ms": 20.073,
+     "median_ms": 20.79925,
+     "p95_ms": 21.683084,
+     "p99_ms": 26.151083,
+     "max_ms": 26.489375
+    },
+    "wait4_max_rss_kib": {
+     "min": 25488.0,
+     "median": 25720.0,
+     "max": 25840.0
+    },
+    "python_parent_before": {
+     "rss_kib": 80560.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.138113792,
+     "system_seconds": 0.213934832,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "python_parent_after": {
+     "rss_kib": 80560.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.16046008,
+     "system_seconds": 0.30946592,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "memory_note": "Darwin wait4 ru_maxrss is converted from bytes to KiB. Process snapshots expose current RSS, not a lifetime high-water counter. These records do not satisfy the Linux VmHWM gate.",
+    "output_bytes": 0,
+    "samples": {
+     "omitted_samples": 100
+    }
+   },
+   {
+    "workload": "flagship",
+    "runtime": "offline_runtime",
+    "iterations": 100,
+    "warmups": 3,
+    "command": [
+     "<worktree>/target/release/richview",
+     "generate",
+     "<worktree>/tmp/performance/fixtures/flagship/report.rmd",
+     "--style",
+     "scientific",
+     "--public-dir",
+     "<worktree>/dist/web",
+     "--format",
+     "json",
+     "--output",
+     "<worktree>/tmp/performance/fixtures/flagship/Rendered/flagship-offline_runtime.html"
+    ],
+    "cold_process_wall": {
+     "count": 100,
+     "min_ms": 52.228042,
+     "median_ms": 54.2664585,
+     "p95_ms": 62.047209,
+     "p99_ms": 63.8995,
+     "max_ms": 114.151834
+    },
+    "wait4_max_rss_kib": {
+     "min": 39264.0,
+     "median": 39424.0,
+     "max": 39584.0
+    },
+    "python_parent_before": {
+     "rss_kib": 80576.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.161591008,
+     "system_seconds": 0.31268912,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "python_parent_after": {
+     "rss_kib": 80624.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.18758416,
+     "system_seconds": 0.403102848,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "memory_note": "Darwin wait4 ru_maxrss is converted from bytes to KiB. Process snapshots expose current RSS, not a lifetime high-water counter. These records do not satisfy the Linux VmHWM gate.",
+    "output_bytes": 4351128,
+    "samples": {
+     "omitted_samples": 100
+    }
+   },
+   {
+    "workload": "dense",
+    "runtime": "static_check",
+    "iterations": 100,
+    "warmups": 3,
+    "command": [
+     "<worktree>/target/release/richview",
+     "check",
+     "<worktree>/tmp/performance/fixtures/dense/report.rmd",
+     "--style",
+     "scientific",
+     "--public-dir",
+     "<worktree>/tmp/performance/native-run-1792608721946350000/no-runtime",
+     "--format",
+     "json"
+    ],
+    "cold_process_wall": {
+     "count": 100,
+     "min_ms": 101.4945,
+     "median_ms": 106.053792,
+     "p95_ms": 115.284459,
+     "p99_ms": 127.082875,
+     "max_ms": 129.833041
+    },
+    "wait4_max_rss_kib": {
+     "min": 113888.0,
+     "median": 115600.0,
+     "max": 115712.0
+    },
+    "python_parent_before": {
+     "rss_kib": 80624.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.188629376,
+     "system_seconds": 0.40621424,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "python_parent_after": {
+     "rss_kib": 71856.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.208596048,
+     "system_seconds": 0.50241488,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "memory_note": "Darwin wait4 ru_maxrss is converted from bytes to KiB. Process snapshots expose current RSS, not a lifetime high-water counter. These records do not satisfy the Linux VmHWM gate.",
+    "output_bytes": 0,
+    "samples": {
+     "omitted_samples": 100
+    }
+   },
+   {
+    "workload": "dense",
+    "runtime": "offline_runtime",
+    "iterations": 100,
+    "warmups": 3,
+    "command": [
+     "<worktree>/target/release/richview",
+     "generate",
+     "<worktree>/tmp/performance/fixtures/dense/report.rmd",
+     "--style",
+     "scientific",
+     "--public-dir",
+     "<worktree>/dist/web",
+     "--format",
+     "json",
+     "--output",
+     "<worktree>/tmp/performance/fixtures/dense/Rendered/dense-offline_runtime.html"
+    ],
+    "cold_process_wall": {
+     "count": 100,
+     "min_ms": 162.991,
+     "median_ms": 171.0875625,
+     "p95_ms": 191.937375,
+     "p99_ms": 198.291708,
+     "max_ms": 200.089166
+    },
+    "wait4_max_rss_kib": {
+     "min": 129888.0,
+     "median": 131600.0,
+     "max": 131696.0
+    },
+    "python_parent_before": {
+     "rss_kib": 71856.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.209805584,
+     "system_seconds": 0.505705472,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "python_parent_after": {
+     "rss_kib": 47648.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.23132216,
+     "system_seconds": 0.59945152,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "memory_note": "Darwin wait4 ru_maxrss is converted from bytes to KiB. Process snapshots expose current RSS, not a lifetime high-water counter. These records do not satisfy the Linux VmHWM gate.",
+    "output_bytes": 4341114,
+    "samples": {
+     "omitted_samples": 100
+    }
+   }
+  ],
+  "editor": [
+   {
+    "requests": 100,
+    "wall_seconds": 0.10681124999246094,
+    "requests_per_second": 936.230968245932,
+    "wire_latency": {
+     "count": 100,
+     "min_ms": 0.402375,
+     "median_ms": 0.5101249999999999,
+     "p95_ms": 0.694167,
+     "p99_ms": 0.863125,
+     "max_ms": 0.908792
+    },
+    "total_latency": {
+     "count": 100,
+     "min_ms": 0.692292,
+     "median_ms": 0.8441875,
+     "p95_ms": 1.220875,
+     "p99_ms": 1.4125,
+     "max_ms": 1.423917
+    },
+    "decode_latency": {
+     "count": 100,
+     "min_ms": 0.287625,
+     "median_ms": 0.333833,
+     "p95_ms": 0.549959,
+     "p99_ms": 0.681959,
+     "max_ms": 0.733875
+    },
+    "response_wire_bytes": {
+     "min": 239127,
+     "median": 239128.0,
+     "max": 239129
+    },
+    "response_decoded_bytes": {
+     "min": 239127,
+     "median": 239128.0,
+     "max": 239129
+    },
+    "samples": {
+     "omitted_samples": 100
+    },
+    "editor_process_before": {
+     "rss_kib": 12512.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.011006875,
+     "system_seconds": 0.009852416,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "editor_process_after": {
+     "rss_kib": 13456.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.053684916,
+     "system_seconds": 0.0192,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "editor_delta": {
+     "user_seconds": 0.042678041,
+     "system_seconds": 0.009347583999999999,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "editor_sampled_rss_kib": {
+     "min": 12512.0,
+     "max": 13456.0,
+     "median": 13408.0
+    },
+    "workload": "small",
+    "method": "JSONL",
+    "route": "preview",
+    "iterations": 100,
+    "warmups": 3,
+    "concurrency": 1,
+    "cold_first_response": {
+     "wire_ms": 371.842542,
+     "decode_ms": 1.147875,
+     "total_ms": 372.990417,
+     "wire_bytes": 239127,
+     "decoded_bytes": 239127,
+     "request_bytes": 2883,
+     "html_bytes": 234520,
+     "chart_count": 1,
+     "startup_to_first_response_ms": 374.724583,
+     "editor_process_after": {
+      "rss_kib": 12336.0,
+      "peak_rss_kib": null,
+      "user_seconds": 0.007048458,
+      "system_seconds": 0.008228375,
+      "read_bytes": null,
+      "write_bytes": null,
+      "read_chars": null,
+      "write_chars": null
+     }
+    },
+    "runtime_url": "http://127.0.0.1:9",
+    "runtime_fetches": 0,
+    "html_bytes": {
+     "min": 234520,
+     "median": 234520.0,
+     "max": 234520
+    },
+    "scope": "Fresh persistent native editor process per workload, then sequential source previews over real stdin/stdout JSONL. Trusted loopback runtime URL is emitted into HTML only; no server, DNS or HTTP fetch occurs. Includes source resolution, parse/render, response serialization and pipe transfer; JSON decode separate. Excludes real VS Code host, webview load, Wasm init and browser painting."
+   },
+   {
+    "requests": 100,
+    "wall_seconds": 1.977833416996873,
+    "requests_per_second": 50.560375378751175,
+    "wire_latency": {
+     "count": 100,
+     "min_ms": 14.7365,
+     "median_ms": 15.09,
+     "p95_ms": 16.596042,
+     "p99_ms": 16.697708,
+     "max_ms": 16.906875
+    },
+    "total_latency": {
+     "count": 100,
+     "min_ms": 17.259333,
+     "median_ms": 17.634854500000003,
+     "p95_ms": 19.498334,
+     "p99_ms": 19.5335,
+     "max_ms": 19.79525
+    },
+    "decode_latency": {
+     "count": 100,
+     "min_ms": 2.435208,
+     "median_ms": 2.5322709999999997,
+     "p95_ms": 2.922583,
+     "p99_ms": 2.949625,
+     "max_ms": 2.954625
+    },
+    "response_wire_bytes": {
+     "min": 2276808,
+     "median": 2276809.0,
+     "max": 2276810
+    },
+    "response_decoded_bytes": {
+     "min": 2276808,
+     "median": 2276809.0,
+     "max": 2276810
+    },
+    "samples": {
+     "omitted_samples": 100
+    },
+    "editor_process_before": {
+     "rss_kib": 36848.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.060836792,
+     "system_seconds": 0.005625541,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "editor_process_after": {
+     "rss_kib": 164320.0,
+     "peak_rss_kib": null,
+     "user_seconds": 1.48503168,
+     "system_seconds": 0.098256456,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "editor_delta": {
+     "user_seconds": 1.4241948880000002,
+     "system_seconds": 0.09263091500000001,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "editor_sampled_rss_kib": {
+     "min": 36848.0,
+     "max": 166496.0,
+     "median": 142352.0
+    },
+    "workload": "flagship",
+    "method": "JSONL",
+    "route": "preview",
+    "iterations": 100,
+    "warmups": 3,
+    "concurrency": 1,
+    "cold_first_response": {
+     "wire_ms": 21.743667,
+     "decode_ms": 3.215166,
+     "total_ms": 24.958833,
+     "wire_bytes": 2276808,
+     "decoded_bytes": 2276808,
+     "request_bytes": 126770,
+     "html_bytes": 2222572,
+     "chart_count": 18,
+     "startup_to_first_response_ms": 26.712916,
+     "editor_process_after": {
+      "rss_kib": 30096.0,
+      "peak_rss_kib": null,
+      "user_seconds": 0.017724376,
+      "system_seconds": 0.002970208,
+      "read_bytes": null,
+      "write_bytes": null,
+      "read_chars": null,
+      "write_chars": null
+     }
+    },
+    "runtime_url": "http://127.0.0.1:9",
+    "runtime_fetches": 0,
+    "html_bytes": {
+     "min": 2222572,
+     "median": 2222572.0,
+     "max": 2222572
+    },
+    "scope": "Fresh persistent native editor process per workload, then sequential source previews over real stdin/stdout JSONL. Trusted loopback runtime URL is emitted into HTML only; no server, DNS or HTTP fetch occurs. Includes source resolution, parse/render, response serialization and pipe transfer; JSON decode separate. Excludes real VS Code host, webview load, Wasm init and browser painting."
+   },
+   {
+    "requests": 100,
+    "wall_seconds": 10.811212166998303,
+    "requests_per_second": 9.249656602360869,
+    "wire_latency": {
+     "count": 100,
+     "min_ms": 92.828916,
+     "median_ms": 96.4400205,
+     "p95_ms": 108.989541,
+     "p99_ms": 119.017083,
+     "max_ms": 121.608458
+    },
+    "total_latency": {
+     "count": 100,
+     "min_ms": 97.460291,
+     "median_ms": 101.21083300000001,
+     "p95_ms": 113.947375,
+     "p99_ms": 124.218833,
+     "max_ms": 126.89975
+    },
+    "decode_latency": {
+     "count": 100,
+     "min_ms": 4.594208,
+     "median_ms": 4.825229500000001,
+     "p95_ms": 5.290708,
+     "p99_ms": 5.360042,
+     "max_ms": 5.407541
+    },
+    "response_wire_bytes": {
+     "min": 2491011,
+     "median": 2491012.0,
+     "max": 2491013
+    },
+    "response_decoded_bytes": {
+     "min": 2491011,
+     "median": 2491012.0,
+     "max": 2491013
+    },
+    "samples": {
+     "omitted_samples": 100
+    },
+    "editor_process_before": {
+     "rss_kib": 183792.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.374440192,
+     "system_seconds": 0.024932624,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "editor_process_after": {
+     "rss_kib": 1556608.0,
+     "peak_rss_kib": null,
+     "user_seconds": 9.758557184,
+     "system_seconds": 0.438153632,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "editor_delta": {
+     "user_seconds": 9.384116992000001,
+     "system_seconds": 0.413221008,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "editor_sampled_rss_kib": {
+     "min": 183792.0,
+     "max": 1575056.0,
+     "median": 1284736.0
+    },
+    "workload": "dense",
+    "method": "JSONL",
+    "route": "preview",
+    "iterations": 100,
+    "warmups": 3,
+    "concurrency": 1,
+    "cold_first_response": {
+     "wire_ms": 104.312167,
+     "decode_ms": 5.15075,
+     "total_ms": 109.462917,
+     "wire_bytes": 2491011,
+     "decoded_bytes": 2491011,
+     "request_bytes": 2139048,
+     "html_bytes": 2205392,
+     "chart_count": 1,
+     "startup_to_first_response_ms": 115.005208,
+     "editor_process_after": {
+      "rss_kib": 93984.0,
+      "peak_rss_kib": null,
+      "user_seconds": 0.095969752,
+      "system_seconds": 0.01141325,
+      "read_bytes": null,
+      "write_bytes": null,
+      "read_chars": null,
+      "write_chars": null
+     }
+    },
+    "runtime_url": "http://127.0.0.1:9",
+    "runtime_fetches": 0,
+    "html_bytes": {
+     "min": 2205392,
+     "median": 2205392.0,
+     "max": 2205392
+    },
+    "scope": "Fresh persistent native editor process per workload, then sequential source previews over real stdin/stdout JSONL. Trusted loopback runtime URL is emitted into HTML only; no server, DNS or HTTP fetch occurs. Includes source resolution, parse/render, response serialization and pipe transfer; JSON decode separate. Excludes real VS Code host, webview load, Wasm init and browser painting."
+   }
+  ],
+  "http": [
+   {
+    "requests": 20,
+    "wall_seconds": 0.13019158299721312,
+    "requests_per_second": 153.61976204274373,
+    "wire_latency": {
+     "count": 20,
+     "min_ms": 3.633208,
+     "median_ms": 4.122896000000001,
+     "p95_ms": 4.236,
+     "p99_ms": 4.306041,
+     "max_ms": 4.306041
+    },
+    "total_latency": {
+     "count": 20,
+     "min_ms": 6.015375,
+     "median_ms": 6.516125000000001,
+     "p95_ms": 6.674708,
+     "p99_ms": 6.700416,
+     "max_ms": 6.700416
+    },
+    "decode_latency": {
+     "count": 20,
+     "min_ms": 2.3565,
+     "median_ms": 2.392729,
+     "p95_ms": 2.496583,
+     "p99_ms": 2.513083,
+     "max_ms": 2.513083
+    },
+    "response_wire_bytes": {
+     "min": 2378379,
+     "median": 2378379.0,
+     "max": 2378379
+    },
+    "response_decoded_bytes": {
+     "min": 2378379,
+     "median": 2378379.0,
+     "max": 2378379
+    },
+    "samples": {
+     "omitted_samples": 20
+    },
+    "server_process_before": {
+     "rss_kib": 36240.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.022946624,
+     "system_seconds": 0.007775708,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_process_after": {
+     "rss_kib": 83456.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.08804304,
+     "system_seconds": 0.015932458,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_delta": {
+     "user_seconds": 0.065096416,
+     "system_seconds": 0.00815675,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_sampled_rss_kib": {
+     "min": 36240.0,
+     "max": 74048.0,
+     "median": 55200.0
+    },
+    "workload": "small",
+    "method": "POST",
+    "route": "/api/render",
+    "request_bytes": 2688,
+    "concurrency": 1,
+    "warmups": 3,
+    "requested_encoding": "identity"
+   },
+   {
+    "requests": 40,
+    "wall_seconds": 0.12510983299580403,
+    "requests_per_second": 319.71907436997003,
+    "wire_latency": {
+     "count": 40,
+     "min_ms": 5.690875,
+     "median_ms": 9.222625,
+     "p95_ms": 12.258084,
+     "p99_ms": 14.6505,
+     "max_ms": 14.6505
+    },
+    "total_latency": {
+     "count": 40,
+     "min_ms": 8.301083,
+     "median_ms": 11.913771,
+     "p95_ms": 14.875459,
+     "p99_ms": 17.330125,
+     "max_ms": 17.330125
+    },
+    "decode_latency": {
+     "count": 40,
+     "min_ms": 2.460459,
+     "median_ms": 2.6703330000000003,
+     "p95_ms": 2.745042,
+     "p99_ms": 2.759541,
+     "max_ms": 2.759541
+    },
+    "response_wire_bytes": {
+     "min": 2378379,
+     "median": 2378379.0,
+     "max": 2378379
+    },
+    "response_decoded_bytes": {
+     "min": 2378379,
+     "median": 2378379.0,
+     "max": 2378379
+    },
+    "samples": {
+     "omitted_samples": 40
+    },
+    "server_process_before": {
+     "rss_kib": 90512.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.09781992,
+     "system_seconds": 0.01715754,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_process_after": {
+     "rss_kib": 119008.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.244917168,
+     "system_seconds": 0.064485168,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_delta": {
+     "user_seconds": 0.14709724799999999,
+     "system_seconds": 0.047327628,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_sampled_rss_kib": {
+     "min": 90512.0,
+     "max": 118544.0,
+     "median": 117840.0
+    },
+    "workload": "small",
+    "method": "POST",
+    "route": "/api/render",
+    "request_bytes": 2688,
+    "concurrency": 4,
+    "warmups": 3,
+    "requested_encoding": "identity"
+   },
+   {
+    "requests": 20,
+    "wall_seconds": 0.47451095801079646,
+    "requests_per_second": 42.14865781781365,
+    "wire_latency": {
+     "count": 20,
+     "min_ms": 18.474709,
+     "median_ms": 18.818333,
+     "p95_ms": 19.358583,
+     "p99_ms": 19.62625,
+     "max_ms": 19.62625
+    },
+    "total_latency": {
+     "count": 20,
+     "min_ms": 23.151083,
+     "median_ms": 23.5950205,
+     "p95_ms": 24.218458,
+     "p99_ms": 24.50325,
+     "max_ms": 24.50325
+    },
+    "decode_latency": {
+     "count": 20,
+     "min_ms": 4.66225,
+     "median_ms": 4.748667,
+     "p95_ms": 4.877,
+     "p99_ms": 4.907708,
+     "max_ms": 4.907708
+    },
+    "response_wire_bytes": {
+     "min": 4423127,
+     "median": 4423127.0,
+     "max": 4423127
+    },
+    "response_decoded_bytes": {
+     "min": 4423127,
+     "median": 4423127.0,
+     "max": 4423127
+    },
+    "samples": {
+     "omitted_samples": 20
+    },
+    "server_process_before": {
+     "rss_kib": 132880.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.297230016,
+     "system_seconds": 0.070894248,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_process_after": {
+     "rss_kib": 172992.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.629002368,
+     "system_seconds": 0.109089376,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_delta": {
+     "user_seconds": 0.331772352,
+     "system_seconds": 0.038195127999999995,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_sampled_rss_kib": {
+     "min": 132880.0,
+     "max": 171008.0,
+     "median": 152112.0
+    },
+    "workload": "flagship",
+    "method": "POST",
+    "route": "/api/render",
+    "request_bytes": 1605631,
+    "concurrency": 1,
+    "warmups": 3,
+    "requested_encoding": "identity"
+   },
+   {
+    "requests": 40,
+    "wall_seconds": 0.3026662089978345,
+    "requests_per_second": 132.15879014854346,
+    "wire_latency": {
+     "count": 40,
+     "min_ms": 20.501541,
+     "median_ms": 22.0047915,
+     "p95_ms": 28.908292,
+     "p99_ms": 40.769542,
+     "max_ms": 40.769542
+    },
+    "total_latency": {
+     "count": 40,
+     "min_ms": 25.856958,
+     "median_ms": 27.818208,
+     "p95_ms": 34.15025,
+     "p99_ms": 45.89275,
+     "max_ms": 45.89275
+    },
+    "decode_latency": {
+     "count": 40,
+     "min_ms": 5.072125,
+     "median_ms": 5.7629585,
+     "p95_ms": 5.944792,
+     "p99_ms": 6.024166,
+     "max_ms": 6.024166
+    },
+    "response_wire_bytes": {
+     "min": 4423127,
+     "median": 4423127.0,
+     "max": 4423127
+    },
+    "response_decoded_bytes": {
+     "min": 4423127,
+     "median": 4423127.0,
+     "max": 4423127
+    },
+    "samples": {
+     "omitted_samples": 40
+    },
+    "server_process_before": {
+     "rss_kib": 178976.0,
+     "peak_rss_kib": null,
+     "user_seconds": 0.678909888,
+     "system_seconds": 0.114491544,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_process_after": {
+     "rss_kib": 229008.0,
+     "peak_rss_kib": null,
+     "user_seconds": 1.40269056,
+     "system_seconds": 0.19687312,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_delta": {
+     "user_seconds": 0.723780672,
+     "system_seconds": 0.08238157600000001,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_sampled_rss_kib": {
+     "min": 178976.0,
+     "max": 229008.0,
+     "median": 227712.0
+    },
+    "workload": "flagship",
+    "method": "POST",
+    "route": "/api/render",
+    "request_bytes": 1605631,
+    "concurrency": 4,
+    "warmups": 3,
+    "requested_encoding": "identity"
+   },
+   {
+    "requests": 20,
+    "wall_seconds": 2.1359142909932416,
+    "requests_per_second": 9.363671606270124,
+    "wire_latency": {
+     "count": 20,
+     "min_ms": 97.652125,
+     "median_ms": 99.2656255,
+     "p95_ms": 101.9375,
+     "p99_ms": 103.485167,
+     "max_ms": 103.485167
+    },
+    "total_latency": {
+     "count": 20,
+     "min_ms": 104.575084,
+     "median_ms": 106.2212085,
+     "p95_ms": 109.136209,
+     "p99_ms": 110.545917,
+     "max_ms": 110.545917
+    },
+    "decode_latency": {
+     "count": 20,
+     "min_ms": 6.773958,
+     "median_ms": 6.9879795,
+     "p95_ms": 7.155208,
+     "p99_ms": 7.198709,
+     "max_ms": 7.198709
+    },
+    "response_wire_bytes": {
+     "min": 4630810,
+     "median": 4630810.0,
+     "max": 4630810
+    },
+    "response_decoded_bytes": {
+     "min": 4630810,
+     "median": 4630810.0,
+     "max": 4630810
+    },
+    "samples": {
+     "omitted_samples": 20
+    },
+    "server_process_before": {
+     "rss_kib": 207888.0,
+     "peak_rss_kib": null,
+     "user_seconds": 1.698675584,
+     "system_seconds": 0.218417088,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_process_after": {
+     "rss_kib": 733648.0,
+     "peak_rss_kib": null,
+     "user_seconds": 3.582549248,
+     "system_seconds": 0.314703872,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_delta": {
+     "user_seconds": 1.8838736639999998,
+     "system_seconds": 0.09628678399999999,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_sampled_rss_kib": {
+     "min": 207888.0,
+     "max": 729120.0,
+     "median": 466240.0
+    },
+    "workload": "dense",
+    "method": "POST",
+    "route": "/api/render",
+    "request_bytes": 2138853,
+    "concurrency": 1,
+    "warmups": 3,
+    "requested_encoding": "identity"
+   },
+   {
+    "requests": 40,
+    "wall_seconds": 1.7257329170097364,
+    "requests_per_second": 23.178557704809847,
+    "wire_latency": {
+     "count": 40,
+     "min_ms": 135.162666,
+     "median_ms": 152.6931045,
+     "p95_ms": 222.660166,
+     "p99_ms": 237.825791,
+     "max_ms": 237.825791
+    },
+    "total_latency": {
+     "count": 40,
+     "min_ms": 142.298333,
+     "median_ms": 160.389271,
+     "p95_ms": 230.129291,
+     "p99_ms": 245.757541,
+     "max_ms": 245.757541
+    },
+    "decode_latency": {
+     "count": 40,
+     "min_ms": 7.135667,
+     "median_ms": 7.675771,
+     "p95_ms": 8.018875,
+     "p99_ms": 8.10375,
+     "max_ms": 8.10375
+    },
+    "response_wire_bytes": {
+     "min": 4630810,
+     "median": 4630810.0,
+     "max": 4630810
+    },
+    "response_decoded_bytes": {
+     "min": 4630810,
+     "median": 4630810.0,
+     "max": 4630810
+    },
+    "samples": {
+     "omitted_samples": 40
+    },
+    "server_process_before": {
+     "rss_kib": 812512.0,
+     "peak_rss_kib": null,
+     "user_seconds": 3.931415808,
+     "system_seconds": 0.328832416,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_process_after": {
+     "rss_kib": 504576.0,
+     "peak_rss_kib": null,
+     "user_seconds": 9.688462336,
+     "system_seconds": 0.759979072,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_delta": {
+     "user_seconds": 5.757046528,
+     "system_seconds": 0.431146656,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_sampled_rss_kib": {
+     "min": 325280.0,
+     "max": 1093696.0,
+     "median": 493648.0
+    },
+    "workload": "dense",
+    "method": "POST",
+    "route": "/api/render",
+    "request_bytes": 2138853,
+    "concurrency": 4,
+    "warmups": 3,
+    "requested_encoding": "identity"
+   },
+   {
+    "requests": 20,
+    "wall_seconds": 0.9967692079953849,
+    "requests_per_second": 20.064825277079187,
+    "wire_latency": {
+     "count": 20,
+     "min_ms": 42.760584,
+     "median_ms": 43.4492915,
+     "p95_ms": 44.012375,
+     "p99_ms": 44.098791,
+     "max_ms": 44.098791
+    },
+    "total_latency": {
+     "count": 20,
+     "min_ms": 49.0525,
+     "median_ms": 49.853812500000004,
+     "p95_ms": 50.2525,
+     "p99_ms": 50.548166,
+     "max_ms": 50.548166
+    },
+    "decode_latency": {
+     "count": 20,
+     "min_ms": 6.129875,
+     "median_ms": 6.3695,
+     "p95_ms": 6.638417,
+     "p99_ms": 6.776709,
+     "max_ms": 6.776709
+    },
+    "response_wire_bytes": {
+     "min": 1667305,
+     "median": 1667305.0,
+     "max": 1667305
+    },
+    "response_decoded_bytes": {
+     "min": 2378379,
+     "median": 2378379.0,
+     "max": 2378379
+    },
+    "samples": {
+     "omitted_samples": 20
+    },
+    "server_process_before": {
+     "rss_kib": 503872.0,
+     "peak_rss_kib": null,
+     "user_seconds": 9.815962624,
+     "system_seconds": 0.765752,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_process_after": {
+     "rss_kib": 503872.0,
+     "peak_rss_kib": null,
+     "user_seconds": 10.653203456,
+     "system_seconds": 0.796297344,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_delta": {
+     "user_seconds": 0.8372408319999991,
+     "system_seconds": 0.030545343999999974,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_sampled_rss_kib": {
+     "min": 501616.0,
+     "max": 503872.0,
+     "median": 503120.0
+    },
+    "workload": "small",
+    "method": "POST",
+    "route": "/api/render",
+    "request_bytes": 2688,
+    "concurrency": 1,
+    "warmups": 3,
+    "requested_encoding": "gzip"
+   },
+   {
+    "requests": 40,
+    "wall_seconds": 0.547254958000849,
+    "requests_per_second": 73.09207420636643,
+    "wire_latency": {
+     "count": 40,
+     "min_ms": 44.592625,
+     "median_ms": 45.157229,
+     "p95_ms": 48.650959,
+     "p99_ms": 50.62475,
+     "max_ms": 50.62475
+    },
+    "total_latency": {
+     "count": 40,
+     "min_ms": 51.117167,
+     "median_ms": 51.933479500000004,
+     "p95_ms": 58.755792,
+     "p99_ms": 62.1175,
+     "max_ms": 62.1175
+    },
+    "decode_latency": {
+     "count": 40,
+     "min_ms": 6.419542,
+     "median_ms": 6.683854500000001,
+     "p95_ms": 12.336041,
+     "p99_ms": 15.7965,
+     "max_ms": 15.7965
+    },
+    "response_wire_bytes": {
+     "min": 1667305,
+     "median": 1667305.0,
+     "max": 1667305
+    },
+    "response_decoded_bytes": {
+     "min": 2378379,
+     "median": 2378379.0,
+     "max": 2378379
+    },
+    "samples": {
+     "omitted_samples": 40
+    },
+    "server_process_before": {
+     "rss_kib": 503872.0,
+     "peak_rss_kib": null,
+     "user_seconds": 10.778811392,
+     "system_seconds": 0.800509312,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_process_after": {
+     "rss_kib": 501472.0,
+     "peak_rss_kib": null,
+     "user_seconds": 12.515893248,
+     "system_seconds": 0.864732928,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_delta": {
+     "user_seconds": 1.7370818559999996,
+     "system_seconds": 0.06422361600000004,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_sampled_rss_kib": {
+     "min": 496992.0,
+     "max": 503872.0,
+     "median": 498880.0
+    },
+    "workload": "small",
+    "method": "POST",
+    "route": "/api/render",
+    "request_bytes": 2688,
+    "concurrency": 4,
+    "warmups": 3,
+    "requested_encoding": "gzip"
+   },
+   {
+    "requests": 20,
+    "wall_seconds": 2.034992458007764,
+    "requests_per_second": 9.8280462521123,
+    "wire_latency": {
+     "count": 20,
+     "min_ms": 87.266625,
+     "median_ms": 88.62575,
+     "p95_ms": 94.291083,
+     "p99_ms": 95.334083,
+     "max_ms": 95.334083
+    },
+    "total_latency": {
+     "count": 20,
+     "min_ms": 99.165416,
+     "median_ms": 100.49229199999999,
+     "p95_ms": 106.766875,
+     "p99_ms": 106.954625,
+     "max_ms": 106.954625
+    },
+    "decode_latency": {
+     "count": 20,
+     "min_ms": 11.432792,
+     "median_ms": 11.889707999999999,
+     "p95_ms": 12.663542,
+     "p99_ms": 12.668584,
+     "max_ms": 12.668584
+    },
+    "response_wire_bytes": {
+     "min": 2825449,
+     "median": 2825449.0,
+     "max": 2825449
+    },
+    "response_decoded_bytes": {
+     "min": 4423127,
+     "median": 4423127.0,
+     "max": 4423127
+    },
+    "samples": {
+     "omitted_samples": 20
+    },
+    "server_process_before": {
+     "rss_kib": 504480.0,
+     "peak_rss_kib": null,
+     "user_seconds": 12.77613568,
+     "system_seconds": 0.872223488,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_process_after": {
+     "rss_kib": 504480.0,
+     "peak_rss_kib": null,
+     "user_seconds": 14.514910208,
+     "system_seconds": 0.927450432,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_delta": {
+     "user_seconds": 1.7387745280000004,
+     "system_seconds": 0.055226943999999945,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_sampled_rss_kib": {
+     "min": 502096.0,
+     "max": 504480.0,
+     "median": 504480.0
+    },
+    "workload": "flagship",
+    "method": "POST",
+    "route": "/api/render",
+    "request_bytes": 1605631,
+    "concurrency": 1,
+    "warmups": 3,
+    "requested_encoding": "gzip"
+   },
+   {
+    "requests": 40,
+    "wall_seconds": 1.0971019999997225,
+    "requests_per_second": 36.45969107704673,
+    "wire_latency": {
+     "count": 40,
+     "min_ms": 89.974459,
+     "median_ms": 92.423208,
+     "p95_ms": 97.245583,
+     "p99_ms": 101.681375,
+     "max_ms": 101.681375
+    },
+    "total_latency": {
+     "count": 40,
+     "min_ms": 102.759833,
+     "median_ms": 105.806979,
+     "p95_ms": 115.544542,
+     "p99_ms": 125.53975,
+     "max_ms": 125.53975
+    },
+    "decode_latency": {
+     "count": 40,
+     "min_ms": 11.951125,
+     "median_ms": 12.547896,
+     "p95_ms": 17.731625,
+     "p99_ms": 31.595208,
+     "max_ms": 31.595208
+    },
+    "response_wire_bytes": {
+     "min": 2825449,
+     "median": 2825449.0,
+     "max": 2825449
+    },
+    "response_decoded_bytes": {
+     "min": 4423127,
+     "median": 4423127.0,
+     "max": 4423127
+    },
+    "samples": {
+     "omitted_samples": 40
+    },
+    "server_process_before": {
+     "rss_kib": 504480.0,
+     "peak_rss_kib": null,
+     "user_seconds": 14.771290112,
+     "system_seconds": 0.936399104,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_process_after": {
+     "rss_kib": 531136.0,
+     "peak_rss_kib": null,
+     "user_seconds": 18.322180096,
+     "system_seconds": 1.034849344,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_delta": {
+     "user_seconds": 3.5508899839999994,
+     "system_seconds": 0.09845023999999991,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_sampled_rss_kib": {
+     "min": 504480.0,
+     "max": 531136.0,
+     "median": 529584.0
+    },
+    "workload": "flagship",
+    "method": "POST",
+    "route": "/api/render",
+    "request_bytes": 1605631,
+    "concurrency": 4,
+    "warmups": 3,
+    "requested_encoding": "gzip"
+   },
+   {
+    "requests": 20,
+    "wall_seconds": 3.6663777500070864,
+    "requests_per_second": 5.454975281791775,
+    "wire_latency": {
+     "count": 20,
+     "min_ms": 164.642291,
+     "median_ms": 168.4851875,
+     "p95_ms": 189.811791,
+     "p99_ms": 191.739834,
+     "max_ms": 191.739834
+    },
+    "total_latency": {
+     "count": 20,
+     "min_ms": 177.286,
+     "median_ms": 181.454375,
+     "p95_ms": 202.90475,
+     "p99_ms": 204.58675,
+     "max_ms": 204.58675
+    },
+    "decode_latency": {
+     "count": 20,
+     "min_ms": 12.478667,
+     "median_ms": 12.870437500000001,
+     "p95_ms": 13.192083,
+     "p99_ms": 13.659125,
+     "max_ms": 13.659125
+    },
+    "response_wire_bytes": {
+     "min": 2159057,
+     "median": 2159057.0,
+     "max": 2159057
+    },
+    "response_decoded_bytes": {
+     "min": 4630810,
+     "median": 4630810.0,
+     "max": 4630810
+    },
+    "samples": {
+     "omitted_samples": 20
+    },
+    "server_process_before": {
+     "rss_kib": 529536.0,
+     "peak_rss_kib": null,
+     "user_seconds": 18.800615424,
+     "system_seconds": 1.053652224,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_process_after": {
+     "rss_kib": 529536.0,
+     "peak_rss_kib": null,
+     "user_seconds": 22.046758912,
+     "system_seconds": 1.2137952,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_delta": {
+     "user_seconds": 3.2461434880000013,
+     "system_seconds": 0.16014297600000016,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_sampled_rss_kib": {
+     "min": 501888.0,
+     "max": 529536.0,
+     "median": 526464.0
+    },
+    "workload": "dense",
+    "method": "POST",
+    "route": "/api/render",
+    "request_bytes": 2138853,
+    "concurrency": 1,
+    "warmups": 3,
+    "requested_encoding": "gzip"
+   },
+   {
+    "requests": 40,
+    "wall_seconds": 2.430947874992853,
+    "requests_per_second": 16.45448691495189,
+    "wire_latency": {
+     "count": 40,
+     "min_ms": 179.310167,
+     "median_ms": 215.64768750000002,
+     "p95_ms": 250.847375,
+     "p99_ms": 251.214792,
+     "max_ms": 251.214792
+    },
+    "total_latency": {
+     "count": 40,
+     "min_ms": 192.778542,
+     "median_ms": 229.0303965,
+     "p95_ms": 287.075417,
+     "p99_ms": 287.711792,
+     "max_ms": 287.711792
+    },
+    "decode_latency": {
+     "count": 40,
+     "min_ms": 12.68575,
+     "median_ms": 13.4301045,
+     "p95_ms": 36.077375,
+     "p99_ms": 37.009375,
+     "max_ms": 37.009375
+    },
+    "response_wire_bytes": {
+     "min": 2159057,
+     "median": 2159057.0,
+     "max": 2159057
+    },
+    "response_decoded_bytes": {
+     "min": 4630810,
+     "median": 4630810.0,
+     "max": 4630810
+    },
+    "samples": {
+     "omitted_samples": 40
+    },
+    "server_process_before": {
+     "rss_kib": 529536.0,
+     "peak_rss_kib": null,
+     "user_seconds": 22.524360704,
+     "system_seconds": 1.239890944,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_process_after": {
+     "rss_kib": 567744.0,
+     "peak_rss_kib": null,
+     "user_seconds": 30.82948608,
+     "system_seconds": 1.612537088,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_delta": {
+     "user_seconds": 8.305125376,
+     "system_seconds": 0.37264614399999996,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_sampled_rss_kib": {
+     "min": 513120.0,
+     "max": 567744.0,
+     "median": 561472.0
+    },
+    "workload": "dense",
+    "method": "POST",
+    "route": "/api/render",
+    "request_bytes": 2138853,
+    "concurrency": 4,
+    "warmups": 3,
+    "requested_encoding": "gzip"
+   }
+  ],
+  "storage": [
+   {
+    "requests": 20,
+    "wall_seconds": 0.02721279200341087,
+    "requests_per_second": 734.9484756100435,
+    "wire_latency": {
+     "count": 20,
+     "min_ms": 1.042667,
+     "median_ms": 1.26125,
+     "p95_ms": 1.505125,
+     "p99_ms": 1.607833,
+     "max_ms": 1.607833
+    },
+    "total_latency": {
+     "count": 20,
+     "min_ms": 1.099542,
+     "median_ms": 1.338792,
+     "p95_ms": 1.638125,
+     "p99_ms": 1.696458,
+     "max_ms": 1.696458
+    },
+    "decode_latency": {
+     "count": 20,
+     "min_ms": 0.056875,
+     "median_ms": 0.077875,
+     "p95_ms": 0.133,
+     "p99_ms": 0.314583,
+     "max_ms": 0.314583
+    },
+    "response_wire_bytes": {
+     "min": 970,
+     "median": 970.0,
+     "max": 970
+    },
+    "response_decoded_bytes": {
+     "min": 5433,
+     "median": 5433.0,
+     "max": 5433
+    },
+    "samples": {
+     "omitted_samples": 20
+    },
+    "server_process_before": {
+     "rss_kib": 567200.0,
+     "peak_rss_kib": null,
+     "user_seconds": 30.909036544,
+     "system_seconds": 1.668144256,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_process_after": {
+     "rss_kib": 567200.0,
+     "peak_rss_kib": null,
+     "user_seconds": 30.9137408,
+     "system_seconds": 1.685607936,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_delta": {
+     "user_seconds": 0.004704256000000129,
+     "system_seconds": 0.017463680000000092,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_sampled_rss_kib": {
+     "min": 567200.0,
+     "max": 567200.0,
+     "median": 567200.0
+    },
+    "method": "GET",
+    "route": "/api/reports",
+    "concurrency": 1,
+    "warmups": 3,
+    "requested_encoding": "gzip"
+   },
+   {
+    "requests": 20,
+    "wall_seconds": 0.005007250001654029,
+    "requests_per_second": 3994.2083965037623,
+    "wire_latency": {
+     "count": 20,
+     "min_ms": 0.206916,
+     "median_ms": 0.21831299999999998,
+     "p95_ms": 0.261292,
+     "p99_ms": 0.280542,
+     "max_ms": 0.280542
+    },
+    "total_latency": {
+     "count": 20,
+     "min_ms": 0.22575,
+     "median_ms": 0.236854,
+     "p95_ms": 0.280292,
+     "p99_ms": 0.300167,
+     "max_ms": 0.300167
+    },
+    "decode_latency": {
+     "count": 20,
+     "min_ms": 0.017417,
+     "median_ms": 0.018896,
+     "p95_ms": 0.02025,
+     "p99_ms": 0.021542,
+     "max_ms": 0.021542
+    },
+    "response_wire_bytes": {
+     "min": 724,
+     "median": 724.0,
+     "max": 724
+    },
+    "response_decoded_bytes": {
+     "min": 1193,
+     "median": 1193.0,
+     "max": 1193
+    },
+    "samples": {
+     "omitted_samples": 20
+    },
+    "server_process_before": {
+     "rss_kib": 567200.0,
+     "peak_rss_kib": null,
+     "user_seconds": 30.914011136,
+     "system_seconds": 1.686019712,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_process_after": {
+     "rss_kib": 567200.0,
+     "peak_rss_kib": null,
+     "user_seconds": 30.915047424,
+     "system_seconds": 1.688019072,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_delta": {
+     "user_seconds": 0.0010362880000016617,
+     "system_seconds": 0.0019993599999998946,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_sampled_rss_kib": {
+     "min": 567200.0,
+     "max": 567200.0,
+     "median": 567200.0
+    },
+    "method": "GET",
+    "route": "/api/reports/benchmark-0",
+    "concurrency": 1,
+    "warmups": 3,
+    "requested_encoding": "gzip"
+   },
+   {
+    "requests": 20,
+    "wall_seconds": 1.5509230829920853,
+    "requests_per_second": 12.895546026315778,
+    "wire_latency": {
+     "count": 20,
+     "min_ms": 69.009167,
+     "median_ms": 70.402896,
+     "p95_ms": 73.822208,
+     "p99_ms": 74.305167,
+     "max_ms": 74.305167
+    },
+    "total_latency": {
+     "count": 20,
+     "min_ms": 75.337,
+     "median_ms": 77.0244795,
+     "p95_ms": 80.962083,
+     "p99_ms": 81.350875,
+     "max_ms": 81.350875
+    },
+    "decode_latency": {
+     "count": 20,
+     "min_ms": 6.327833,
+     "median_ms": 6.585875,
+     "p95_ms": 7.139875,
+     "p99_ms": 7.1945,
+     "max_ms": 7.1945
+    },
+    "response_wire_bytes": {
+     "min": 2820494,
+     "median": 2820494.0,
+     "max": 2820494
+    },
+    "response_decoded_bytes": {
+     "min": 4351128,
+     "median": 4351128.0,
+     "max": 4351128
+    },
+    "samples": {
+     "omitted_samples": 20
+    },
+    "server_process_before": {
+     "rss_kib": 567216.0,
+     "peak_rss_kib": null,
+     "user_seconds": 31.128518656,
+     "system_seconds": 1.693020928,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_process_after": {
+     "rss_kib": 535520.0,
+     "peak_rss_kib": null,
+     "user_seconds": 32.51641344,
+     "system_seconds": 1.72153472,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_delta": {
+     "user_seconds": 1.3878947840000002,
+     "system_seconds": 0.028513792000000038,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_sampled_rss_kib": {
+     "min": 535520.0,
+     "max": 567216.0,
+     "median": 535520.0
+    },
+    "method": "GET",
+    "route": "/r/benchmark-0/v/0.1.0",
+    "concurrency": 1,
+    "warmups": 3,
+    "requested_encoding": "gzip"
+   },
+   {
+    "requests": 20,
+    "wall_seconds": 0.03027358400868252,
+    "requests_per_second": 660.6419641052069,
+    "wire_latency": {
+     "count": 20,
+     "min_ms": 1.322125,
+     "median_ms": 1.43525,
+     "p95_ms": 1.531875,
+     "p99_ms": 1.5615,
+     "max_ms": 1.5615
+    },
+    "total_latency": {
+     "count": 20,
+     "min_ms": 1.386625,
+     "median_ms": 1.499646,
+     "p95_ms": 1.618834,
+     "p99_ms": 1.633292,
+     "max_ms": 1.633292
+    },
+    "decode_latency": {
+     "count": 20,
+     "min_ms": 0.056542,
+     "median_ms": 0.064021,
+     "p95_ms": 0.082042,
+     "p99_ms": 0.086959,
+     "max_ms": 0.086959
+    },
+    "response_wire_bytes": {
+     "min": 29950,
+     "median": 29950.0,
+     "max": 29950
+    },
+    "response_decoded_bytes": {
+     "min": 124588,
+     "median": 124588.0,
+     "max": 124588
+    },
+    "samples": {
+     "omitted_samples": 20
+    },
+    "server_process_before": {
+     "rss_kib": 535520.0,
+     "peak_rss_kib": null,
+     "user_seconds": 32.52066304,
+     "system_seconds": 1.721807488,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_process_after": {
+     "rss_kib": 535520.0,
+     "peak_rss_kib": null,
+     "user_seconds": 32.546793472,
+     "system_seconds": 1.722996096,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_delta": {
+     "user_seconds": 0.026130431999995096,
+     "system_seconds": 0.0011886079999998689,
+     "read_bytes": null,
+     "write_bytes": null,
+     "read_chars": null,
+     "write_chars": null
+    },
+    "server_sampled_rss_kib": {
+     "min": 535520.0,
+     "max": 535520.0,
+     "median": 535520.0
+    },
+    "method": "GET",
+    "route": "/raw/benchmark-0/v/0.1.0",
+    "concurrency": 1,
+    "warmups": 3,
+    "requested_encoding": "gzip"
+   }
+  ],
+  "server": {
+   "pid": 89614,
+   "bind": "127.0.0.1",
+   "ephemeral_port": 60718,
+   "startup": {
+    "rss_kib": 7312.0,
+    "peak_rss_kib": null,
+    "user_seconds": 0.001765666,
+    "system_seconds": 0.002855875,
+    "read_bytes": null,
+    "write_bytes": null,
+    "read_chars": null,
+    "write_chars": null
+   },
+   "final": {
+    "rss_kib": 535520.0,
+    "peak_rss_kib": null,
+    "user_seconds": 32.546797568,
+    "system_seconds": 1.722996608,
+    "read_bytes": null,
+    "write_bytes": null,
+    "read_chars": null,
+    "write_chars": null
+   }
+  },
+  "storage_fixture": {
+   "reports": 12,
+   "flagship_slug": "benchmark-0",
+   "version": "0.1.0"
+  },
+  "finished_utc": "2026-10-21T18:53:16.553009+00:00",
+  "hardware_after": {
+   "cpu_model": "Apple M4",
+   "logical_cpus": 10,
+   "physical_cores": 10,
+   "affinity_cpus": null,
+   "memory_total_kib": 16777216,
+   "os": "macOS-26.3-arm64-arm-64bit-Mach-O",
+   "architecture": "arm64",
+   "python": "3.14.6",
+   "cpu_governor": null,
+   "load_average": [
+    3.9697265625,
+    4.02490234375,
+    3.77001953125
+   ]
+  },
+  "artifact_signatures_stable": true
+ }
+}

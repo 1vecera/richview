@@ -1,0 +1,28 @@
+---
+title: German electricity prices also turn negative
+description: A year of day-ahead prices at 15-minute intervals, with load, wind and solar in the downloadable snapshot.
+styles: [scientific]
+---
+
+The day-ahead price crosses below zero in this record. Zoom into a few days to see those intervals alongside the daily price cycle; a negative value is an observed price, not missing data.
+
+```chart
+type: line
+title: German day-ahead electricity prices cross below zero
+data: { csv: data.csv }
+encoding: { x: time, y: price_eur_mwh }
+axes:
+  y: { label: Day-ahead price, unit: EUR/MWh, digits: 5 }
+```
+
+*Source: [Energy-Charts](https://api.energy-charts.info/) by Fraunhofer ISE; prices from Bundesnetzagentur / SMARD.de, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), retrieved 2 October 2026. Times mark interval starts in UTC, from October 2025 through September 2026. The CSV retains load, solar and wind generation in MW; wind combines the published onshore and offshore values.*
+
+## Work with this example
+
+Keep `report.rmd` and the [CSV observations](data.csv) together in one folder. To inspect generation, use `load_mw`, `solar_mw` or `wind_mw` as `encoding.y` and change the value-axis label and unit to MW.
+
+```sh
+richview generate report.rmd
+```
+
+Use zoom and keyboard or pointer inspection to read a specific interval. The chart's Table and CSV actions show the fields used here; the CSV above retains every original column.

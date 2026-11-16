@@ -1,0 +1,32 @@
+---
+title: Embeds
+---
+
+```embed
+url: 'javascript:HOSTILE_EMBED()'
+caption: '<script>HOSTILE_ECAPTION()</script>'
+```
+
+```embed
+url: 'https://evil.example/HOSTILE'
+caption: x
+```
+
+```embed
+url: 'https://www.youtube.com/embed/x" onload="HOSTILE_EURL()'
+caption: '"><img src=x onerror=HOSTILE_ECAPTION2()>'
+```
+
+```embed
+url: 'https://user:pass@www.youtube.com/embed/x'
+```
+
+```embed
+url: 'https://player.vimeo.com/video/1'
+allow: ['"><script>HOSTILE_ALLOW()</script>', 'player.vimeo.com']
+caption: 'ok "caption" <b>'
+```
+
+```embed
+url: 'http://www.youtube.com/embed/x'
+```

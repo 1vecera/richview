@@ -1,0 +1,149 @@
+{
+  "schema": "interface-v1",
+  "contracts": [
+    {
+      "id": "core.document",
+      "producer": "richview-core",
+      "kind": "rust",
+      "module": "richview_core::document",
+      "source": "crates/richview-core/src/document.rs",
+      "snapshot": "tools/api-contracts/snapshots/core-document.json",
+      "consumers": [
+        "richview-app",
+        "richview-bench",
+        "richview-build",
+        "richview-editor",
+        "richview-publish",
+        "richview-publish-server",
+        "richview-runtime",
+        "richview-share",
+        "richview-site"
+      ],
+      "declarations": [
+        {
+          "source": "crates/richview-core/src/folder.rs",
+          "items": [
+            "ReportFolder",
+            "ReportResource",
+            "attach_asset_findings",
+            "operation_result",
+            "report_relative_path",
+            "report_resources",
+            "validate_report_document",
+            "validate_report_folder"
+          ]
+        },
+        {
+          "source": "crates/richview-core/src/knowledge.rs",
+          "items": [
+            "LearnSection",
+            "learn_bundle",
+            "learn_section",
+            "learn_sections"
+          ]
+        },
+        {
+          "source": "crates/richview-core/src/parser.rs",
+          "items": [
+            "parse",
+            "validate",
+            "validate_publish"
+          ]
+        },
+        {
+          "source": "crates/richview-core/src/render.rs",
+          "items": [
+            "check",
+            "check_document",
+            "render",
+            "render_document"
+          ]
+        }
+      ],
+      "crateRoot": "crates/richview-core/src/lib.rs"
+    },
+    {
+      "id": "runtime.embed-files",
+      "producer": "richview-runtime",
+      "kind": "entries",
+      "entries": [
+        "richview_runtime.js",
+        "richview_runtime_bg.wasm.gz"
+      ],
+      "snapshot": "tools/api-contracts/snapshots/runtime-embed-files.json",
+      "bindings": [
+        {
+          "consumer": "richview-build",
+          "source": "crates/richview-build/src/main.rs",
+          "entry": "richview_runtime.js"
+        },
+        {
+          "consumer": "richview-build",
+          "source": "crates/richview-build/src/main.rs",
+          "entry": "richview_runtime_bg.wasm.gz"
+        },
+        {
+          "consumer": "richview-app",
+          "source": "crates/richview-app/build.rs",
+          "entry": "richview_runtime.js"
+        },
+        {
+          "consumer": "richview-app",
+          "source": "crates/richview-app/build.rs",
+          "entry": "richview_runtime_bg.wasm.gz"
+        },
+        {
+          "consumer": "richview-build",
+          "source": "crates/richview-build/src/runtime.rs",
+          "entry": "richview_runtime.js"
+        },
+        {
+          "consumer": "richview-build",
+          "source": "crates/richview-build/src/runtime.rs",
+          "entry": "richview_runtime_bg.wasm.gz"
+        }
+      ]
+    },
+    {
+      "id": "core.yaml",
+      "producer": "richview-core",
+      "kind": "rust",
+      "module": "richview_core::yaml",
+      "source": "crates/richview-core/src/yaml.rs",
+      "snapshot": "tools/api-contracts/snapshots/core-yaml.json",
+      "consumers": [
+        "richview-app",
+        "richview-bench",
+        "richview-editor",
+        "richview-publish"
+      ],
+      "crateRoot": "crates/richview-core/src/lib.rs"
+    },
+    {
+      "id": "chart.layout",
+      "producer": "richview-chart",
+      "kind": "rust",
+      "module": "richview_chart::layout",
+      "source": "richview-chart/src/layout/mod.rs",
+      "crateRoot": "richview-chart/src/lib.rs",
+      "snapshot": "tools/api-contracts/snapshots/chart-layout.json",
+      "consumers": ["richview-core", "richview-runtime"],
+      "declarations": [
+        {
+          "source": "richview-chart/src/geometry.rs",
+          "items": ["Item", "Observation", "Dot", "Readout", "ReadoutLine"]
+        }
+      ]
+    },
+    {
+      "id": "core.spec",
+      "producer": "richview-core",
+      "kind": "rust",
+      "module": "richview_core::spec",
+      "source": "crates/richview-core/src/spec.rs",
+      "snapshot": "tools/api-contracts/snapshots/core-spec.json",
+      "consumers": [],
+      "crateRoot": "crates/richview-core/src/lib.rs"
+    }
+  ]
+}

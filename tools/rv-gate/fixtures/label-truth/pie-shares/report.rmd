@@ -1,0 +1,18 @@
+---
+title: Survey shares that sum to 101
+---
+
+# Survey shares that sum to 101
+
+```chart
+type: pie
+title: Rounded survey answers, as published
+data:
+  inline:
+    - {answer: Yes, pct: 40}
+    - {answer: No, pct: 25}
+    - {answer: Unsure, pct: 20}
+    - {answer: Other, pct: 10}
+    - {answer: Refused, pct: 6}
+encoding: {x: answer, y: pct}
+```

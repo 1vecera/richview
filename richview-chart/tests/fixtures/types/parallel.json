@@ -1,0 +1,14 @@
+{
+ "spec": {"type": "parallel", "title": "Sports cars trade mileage for power and speed", "encoding": {"dimensions": ["mpg", "power", "weight", "accel"], "label": "model", "color": "class"}},
+ "rows": [
+  {"model": "Mini", "class": "Small", "mpg": 38, "power": 85, "weight": 1050, "accel": 12.5},
+  {"model": "Zip", "class": "Small", "mpg": 42, "power": 75, "weight": 980, "accel": 13.8},
+  {"model": "Kei", "class": "Small", "mpg": 35, "power": 95, "weight": 1120, "accel": 11.9},
+  {"model": "Estate", "class": "Family", "mpg": 28, "power": 140, "weight": 1550, "accel": 9.5},
+  {"model": "Tourer", "class": "Family", "mpg": 31, "power": 125, "weight": 1480, "accel": 10.2},
+  {"model": "Sedan", "class": "Family", "mpg": 26, "power": 160, "weight": 1700, "accel": 8.8},
+  {"model": "Coupe", "class": "Sport", "mpg": 19, "power": 330, "weight": 1450, "accel": 4.8},
+  {"model": "Roadster", "class": "Sport", "mpg": 22, "power": 280, "weight": 1380, "accel": 5.4},
+  {"model": "GT", "class": "Sport", "mpg": 17, "power": 410, "weight": 1500, "accel": 3.9}
+ ]
+}

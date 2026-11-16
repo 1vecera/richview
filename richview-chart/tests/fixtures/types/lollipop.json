@@ -1,0 +1,16 @@
+{
+ "spec": {
+  "type": "lollipop",
+  "title": "Orders by region",
+  "encoding": {"x": "region", "y": "orders", "color": "year"},
+  "axes": {"y": {"label": "Orders"}}
+ },
+ "rows": [
+  {"region": "North", "year": "2025", "orders": 120},
+  {"region": "North", "year": "2026", "orders": 150},
+  {"region": "South", "year": "2025", "orders": 90},
+  {"region": "South", "year": "2026", "orders": 70},
+  {"region": "East", "year": "2025", "orders": -20},
+  {"region": "East", "year": "2026", "orders": 45}
+ ]
+}

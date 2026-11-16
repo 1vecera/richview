@@ -1,0 +1,8 @@
+---
+title: Percentage unit examples
+version: 0.0.1
+---
+
+```chart
+{"type":"bar","title":"One percentage sign per value","encoding":{"x":"x","y":"y"},"axes":{"y":{"label":"Success rate","format":"percent","suffix":"%"}},"data":{"inline":[{"x":"A","y":0.05},{"x":"B","y":0.1},{"x":"C","y":0.15}]}}
+```

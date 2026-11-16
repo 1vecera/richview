@@ -1,0 +1,33 @@
+---
+title: Revenue rose in February
+description: Two observations kept in the source for quick editing.
+version: 0.0.1
+styles: [scientific, report.rstyle.yaml]
+---
+
+```chart
+type: bar
+title: Revenue rose in February
+data:
+  inline:
+    - month: Jan
+      value: 100
+    - month: Feb
+      value: 140
+encoding: {x: month, y: value}
+```
+
+```table
+data:
+  inline:
+    - month: Jan
+      value: 100
+    - month: Feb
+      value: 140
+columns:
+  - key: month
+    label: Month
+  - key: value
+    label: Value
+    align: right
+```

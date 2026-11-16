@@ -1,0 +1,292 @@
+{
+  "base": "bb8b112c121eae1ec70d810df1b5e6a2070c9c4e",
+  "code": "a625297a29582b842efae1ae50ede13de29bdbde",
+  "source_diff_sha256": "e35fb714073dd04d4765d9cab36b08ca176205c43a0cb548b382b40d648c93eb",
+  "before_wasm_sha256": "1f278570318a19163969089bf4b8f1f694efe5b0f9b3ba04b2897912851458be",
+  "after_wasm_sha256": "66b49763cc0673afbb56eae1ee0dcb5f2796ed83644786418c2827cdb8c0c6c7",
+  "native_sha256": "9f6f3ee8088515534bb580137dd051c97b07bfc1e4641dbeff1250a40d22b493",
+  "browser": "151.0.7922.173",
+  "matched_reports": 195,
+  "matched_figures": 195,
+  "child_glyph_checks": 210,
+  "empty_svgs_differ_only_by_note": 130,
+  "identical_positive_svgs_and_pngs": 50,
+  "matched_faceted_reports": 15,
+  "paths": {
+    "matched_panels": 72,
+    "empty_panels": 56,
+    "exact_keyboard_rows": 168,
+    "source_tables_and_csv": 72,
+    "downloaded_svgs": 72,
+    "reduced_and_ordinary_motion": true,
+    "errors": []
+  },
+  "native_cli": {
+    "views": 48,
+    "panels": 56,
+    "javascript_enabled_and_disabled": true,
+    "external_requests": [],
+    "errors": []
+  },
+  "global_empty_data_state": "byte-identical No observations",
+  "retained_live_source_checks": {
+    "views": 45,
+    "kinds": {
+      "negative-pie-value": 60
+    },
+    "changed_from_current_main": false
+  },
+  "historical_gate": {
+    "base": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+    "code": "7d8451faf1bc082a3ac5222d2dcdab2e7a5a1e90",
+    "published_head": "49864cfb3bc9816ec1f05249170ae97b5f86468a",
+    "frozen_ref": "review/chart-pie-empty-3c-frozen",
+    "status": "Independently accepted with complete required checks; original proof preserved in Git history."
+  },
+  "curated_pairs": [
+    {
+      "id": "pie-empty-no-title-sleek-320",
+      "source_sha256": "fead704afba944e5221ec63d3cf179d5f951734046458e060283718048b520b6",
+      "theme": "sleek",
+      "viewport_width": 320,
+      "device_scale_factor": 2,
+      "motion": "reduce",
+      "figure_bounds": {
+        "width": 288,
+        "height": 322.75
+      },
+      "native_checks": [
+        {
+          "chartId": "rv-chart-0",
+          "chartType": "pie",
+          "checks": [
+            {
+              "kind": "empty-region",
+              "message": "Pie total is zero",
+              "severity": "warning"
+            }
+          ],
+          "dimensions": {
+            "height": 320,
+            "width": 320
+          },
+          "droppedLabels": [],
+          "engine": "rust-svg",
+          "fontBounds": "estimated height; SVG textLength-constrained width",
+          "geometryMeasured": true,
+          "measured": false,
+          "measurement": "emitted mark geometry; label height is estimated, browser separately measures actual glyph bounds",
+          "sourceLine": 6,
+          "status": "issues"
+        }
+      ],
+      "live_checks": [
+        {
+          "checks": [],
+          "engine": "rust-svg",
+          "labels": 1,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "clean"
+        }
+      ],
+      "images": {
+        "before": {
+          "file": "phone-before.png",
+          "sha256": "4e10383b0da39c911fdfe04dfb01258ad24d72363ba3de1649729bcff6c9aca0"
+        },
+        "after": {
+          "file": "phone-after.png",
+          "sha256": "b6a6622c13f5f2d81bd032f9351ef05468c0c30b6af8dbdd5870ce127d55824d"
+        }
+      }
+    },
+    {
+      "id": "pie-empty-height-60-brutalist-272",
+      "source_sha256": "efe8ca8c6d4524dbcb252ef01ad865e48a6fc593e7283644c2c6d42e55aaa314",
+      "theme": "brutalist",
+      "viewport_width": 272,
+      "device_scale_factor": 2,
+      "motion": "reduce",
+      "figure_bounds": {
+        "width": 240,
+        "height": 121
+      },
+      "native_checks": [
+        {
+          "chartId": "rv-chart-0",
+          "chartType": "pie",
+          "checks": [
+            {
+              "kind": "empty-region",
+              "message": "Pie total is zero",
+              "severity": "warning"
+            }
+          ],
+          "dimensions": {
+            "height": 60,
+            "width": 272
+          },
+          "droppedLabels": [],
+          "engine": "rust-svg",
+          "fontBounds": "estimated height; SVG textLength-constrained width",
+          "geometryMeasured": true,
+          "measured": false,
+          "measurement": "emitted mark geometry; label height is estimated, browser separately measures actual glyph bounds",
+          "sourceLine": 6,
+          "status": "issues"
+        }
+      ],
+      "live_checks": [
+        {
+          "checks": [],
+          "engine": "rust-svg",
+          "labels": 1,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "clean"
+        }
+      ],
+      "images": {
+        "before": {
+          "file": "short-before.png",
+          "sha256": "376e6e0408f70416824821824682837f9f02acdfb4d1f63935af80d73892a369"
+        },
+        "after": {
+          "file": "short-after.png",
+          "sha256": "d2f988b002daa514d35c862be26d041bdf003d82badb2b41814039d4ea6caa5a"
+        }
+      }
+    }
+  ],
+  "local_tools": {
+    "node": "26.8.1",
+    "rust": "1.99.0",
+    "chromium": "151.0.7922.173"
+  },
+  "validation_status": "All current-main required and focused checks pass; independently accepted.",
+  "required_host_checks": [
+    {
+      "name": "editor",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 1092
+    },
+    {
+      "name": "native",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 4001
+    },
+    {
+      "name": "compat",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 184
+    },
+    {
+      "name": "types",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 2839
+    },
+    {
+      "name": "browser",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 98165
+    },
+    {
+      "name": "landing",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 78732
+    },
+    {
+      "name": "cloudflare",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 94981
+    },
+    {
+      "name": "showcase",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 41313
+    },
+    {
+      "name": "flagship",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 23853
+    },
+    {
+      "name": "reel",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 8064
+    },
+    {
+      "name": "browser-api",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 4496
+    },
+    {
+      "name": "motion-runtime",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 2429
+    },
+    {
+      "name": "docs",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 20363
+    }
+  ],
+  "required_rust_checks": [
+    {
+      "command": "cargo fmt --all --check",
+      "exit": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "cargo clippy --workspace --all-targets --locked -- -D warnings",
+      "exit": 0,
+      "log_sha256": "daed3caef84a3c00be4db59fc929d806da413ce1805a1c255578a79a046081c0"
+    },
+    {
+      "command": "cargo clippy -p richview-web --target wasm32-unknown-unknown --locked -- -D warnings",
+      "exit": 0,
+      "log_sha256": "aea5968c0dc22bc1b9530b5988dbfc0da8c71d5da5f1bc4a55e84d223f1554a6"
+    },
+    {
+      "command": "cargo test --workspace --locked",
+      "exit": 0,
+      "log_sha256": "a75a023007076844a53673b353b91e93197bf47cdb3d9d8cc6550b9c948c0684"
+    },
+    {
+      "command": "cargo run --release --locked -p richview-build",
+      "exit": 0,
+      "log_sha256": "2ff9acac9d2538472af9d89a82ae2bce86ace581791eba9bf11efe840a877010"
+    },
+    {
+      "command": "cargo run --release --locked -p richview-bench -- --write-fixtures --fixtures-only",
+      "exit": 0,
+      "log_sha256": "aaf817c8c0c66a07437266eaa76ee15f5005c6cc866965f921c64ed18bd64af7"
+    }
+  ],
+  "independent_review": {
+    "verdict": "ACCEPT",
+    "source": "a625297a29582b842efae1ae50ede13de29bdbde",
+    "matched_reports": 24,
+    "actual_leaf_svgs": 28,
+    "unchanged_populated_leaves": 12,
+    "retained_negative_error_views": 8,
+    "minimum_width_views": 4,
+    "global_empty_output": "byte-identical",
+    "report": "pie-empty-review.md in campaign run directory"
+  },
+  "verifier_refresh": "Offline verifier requires current-main negative-pie-value errors for both mixed and populated-with-negative controls. Its first two incomplete runs are retained in scratch; the final 48-view run passes."
+}

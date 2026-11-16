@@ -1,0 +1,13 @@
+Check stored objects against reference files (YAML or JSON)
+
+Usage: richview asset verify [OPTIONS] <REFERENCES>...
+
+Arguments:
+  <REFERENCES>...  
+
+Options:
+      --to <STORE>       Store profile that signs requests for private references
+      --hash             Stream each object and compare its SHA-256
+      --stores <FILE>    Store profiles file [default: $RICHVIEW_STORES, then $XDG_CONFIG_HOME/richview/stores.yaml]
+      --format <FORMAT>  [default: pretty] [possible values: pretty, json]
+  -h, --help             Print help

@@ -1,0 +1,31 @@
+---
+title: Show when each task runs and where the work overlaps
+description: A Gantt chart draws one bar per task from its start to its end on a time axis, with a diamond for a milestone.
+version: 0.0.1
+styles: [scientific]
+---
+
+## The build starts before the design ends
+
+These illustrative plan dates give every task a start and an end. Tasks keep the order of the source, so the plan reads from top to bottom, and a task that starts and ends on the same day is a milestone.
+
+```chart
+type: gantt
+title: The build overlaps the design and the launch lands on 1 July
+subtitle: Planned tasks by phase, illustrative dates
+data:
+  inline:
+    - {task: Research, phase: Plan, start: 2026-01-05, end: 2026-02-13}
+    - {task: Wireframes, phase: Plan, start: 2026-02-02, end: 2026-03-06}
+    - {task: Prototype, phase: Build, start: 2026-03-02, end: 2026-04-10}
+    - {task: Build API, phase: Build, start: 2026-03-16, end: 2026-05-29}
+    - {task: Build app, phase: Build, start: 2026-04-13, end: 2026-06-19}
+    - {task: Docs, phase: Ship, start: 2026-05-18, end: 2026-06-12}
+    - {task: Testing, phase: Ship, start: 2026-06-01, end: 2026-06-26}
+    - {task: Launch, phase: Ship, start: 2026-07-01, end: 2026-07-01}
+encoding: {label: task, start: start, end: end, color: phase}
+```
+
+*Source: Illustrative dates.*
+
+Use the keyboard or pointer to read each task's start, end and duration.

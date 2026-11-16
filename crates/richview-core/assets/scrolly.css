@@ -1,0 +1,30 @@
+/* Scrollytelling (FEA-RP-48). The figure stays in view while the steps scroll past: above the steps
+   on a phone, beside them on a wide screen. Only the figure moves, as the runtime changes the
+   custom properties on the block; the step text never animates. Without the runtime the figure
+   keeps the first step's state and the steps read in order. */
+.rv-report__body > .rv-scrolly { max-width: 100%; margin-block: calc(var(--rv-line) * 1.5); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--rv-line); }
+.rv-scrolly__stage { position: sticky; top: 0; z-index: 1; background: var(--rv-bg); padding-block: .5rem; }
+.rv-scrolly__stage > figure { margin: 0; }
+.rv-scrolly__frame { position: relative; overflow: hidden; width: fit-content; max-width: 100%; margin-inline: auto; }
+.rv-scrolly__frame img { display: block; max-width: 100%; max-height: 38vh; width: auto; height: auto; margin: 0; border-radius: 0;
+  transform-origin: 0 0;
+  transform: scale(var(--rv-vz, 1)) translate(calc(var(--rv-vx, 0) * -100%), calc(var(--rv-vy, 0) * -100%)); }
+/* The highlight box dims the rest of the picture; the frame clips the dimming to the picture. */
+.rv-scrolly__mark { position: absolute; left: var(--rv-ml, 0); top: var(--rv-mt, 0); width: var(--rv-mw, 0); height: var(--rv-mh, 0);
+  opacity: var(--rv-mo, 0); border: 2px solid var(--rv-accent); box-shadow: 0 0 0 100vmax color-mix(in oklch, var(--rv-bg) 55%, transparent); pointer-events: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .rv-scrolly__frame img { transition: transform 600ms cubic-bezier(.22, 1, .36, 1); }
+  .rv-scrolly__mark { transition: left 600ms cubic-bezier(.22, 1, .36, 1), top 600ms cubic-bezier(.22, 1, .36, 1), width 600ms cubic-bezier(.22, 1, .36, 1), height 600ms cubic-bezier(.22, 1, .36, 1), opacity 300ms linear; }
+}
+.rv-scrolly__steps { list-style: none; margin: 0; padding: 0; }
+.rv-scrolly__step { min-height: 50vh; padding: 1rem 0 1rem 1rem; border-inline-start: 2px solid var(--rv-rule); color: var(--rv-ink-soft); }
+.rv-scrolly__step[aria-current="step"] { border-inline-start-color: var(--rv-accent); color: var(--rv-ink); }
+.rv-scrolly__step-title { margin: 0 0 .35em; }
+.rv-scrolly__step > :last-child { margin-bottom: 0; }
+@media (min-width: 900px) {
+  .rv-report__body > .rv-scrolly { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); column-gap: 2rem; align-items: start; }
+  .rv-scrolly__stage { grid-column: 1; grid-row: 1; top: 1.5rem; }
+  .rv-scrolly__steps { grid-column: 2; grid-row: 1; }
+  .rv-scrolly__frame img { max-height: 70vh; }
+  .rv-scrolly__step { min-height: 70vh; }
+}

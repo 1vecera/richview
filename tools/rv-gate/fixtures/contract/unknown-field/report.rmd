@@ -1,0 +1,24 @@
+---
+title: Broken fixture
+description: A deliberately broken report for the contract step.
+version: 0.0.1
+slug: broken
+frobnicate: 1
+styles: [sleek]
+---
+
+# Broken fixture
+
+```chart
+type: bar
+title: Visits by source
+data: { csv: data/visits.csv }
+encoding: { x: source, y: visits }
+colour: red
+```
+
+```metric
+value: 910
+label: Visits
+bogus: 1
+```

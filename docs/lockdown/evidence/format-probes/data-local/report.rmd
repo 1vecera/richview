@@ -1,0 +1,13 @@
+---
+title: Data local
+---
+
+Intro.
+
+```table
+data: {url: "https://example.com/x.csv"}
+```
+
+```table
+data: {}
+```

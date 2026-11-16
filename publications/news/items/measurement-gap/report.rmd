@@ -1,0 +1,59 @@
+---
+title: "The number is precise. Is the question?"
+description: "An illustrative study of how a change in the denominator can reverse the story a metric appears to tell."
+version: 1.0.0
+styles: [scientific]
+publish:
+  id: "measurement-gap"
+  slug: "measurement-gap"
+  summary: "An illustrative study of how a change in the denominator can reverse the story a metric appears to tell."
+  byline: "RichView Example Desk"
+  section: "research"
+  tags: ["example", "method"]
+  published: "2026-10-18T09:00:00Z"
+  updated: "2026-10-18T09:00:00Z"
+  state: "published"
+  audience: "public"
+  figure: {value: "84%", label: "South completion rate, the highest once eligibility is counted", as_of: "Synthetic, Oct 2026"}
+  kind: "report"
+  aliases: []
+  corrections: []
+  cover: "cover.svg"
+  cover_alt: "An editorial diagram contrasting a numerator and its denominator."
+---
+
+**Example material · Synthetic observations · 18 October 2026**
+
+## When the denominator moves
+
+Precision is a property of a calculation. Relevance is a property of the question. Confusing them produces an impressive looking answer to something nobody needed to know.
+
+In this invented example, North has more completed orders than South. Once we divide by eligible opportunities, South has the higher completion rate. Neither figure is wrong; they answer different questions. A useful report keeps the numerator and denominator close enough for the reader to inspect both.
+
+```chart
+type: bar
+title: "Completion rate (%)"
+data:
+  inline:
+    - {category: "North", value: 78}
+    - {category: "South", value: 84}
+    - {category: "East", value: 72}
+    - {category: "West", value: 81}
+encoding: {x: category, y: value}
+axes:
+  x: {label: Category}
+  y: {label: "Completion rate (%)"}
+```
+
+*Source: The percentages are fictional. Each represents 100 eligible opportunities, so the chart can be read directly as completions per hundred.*
+
+A real export would come from a file such as `https://data.example.org/exports/completion/2026/10/eligible_opportunities_by_region_and_channel.csv`, with one row per region and channel:
+
+| Region | Channel | Eligible opportunities | Completed orders | Completion rate | Definition version | Last reviewed |
+|---|---|---|---|---|---|---|
+| North | Partner storefront | 100 | 78 | 78% | eligibility-rule-2026-10 | 2026-10-18 |
+| South | Direct marketplace | 100 | 84 | 84% | eligibility-rule-2026-10 | 2026-10-18 |
+
+## What to take away
+
+Before comparing teams, check that eligibility is defined in the same way. If the rule changes, publish the change with the data. A stable visual identity should never conceal a moving definition.

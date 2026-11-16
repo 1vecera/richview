@@ -1,0 +1,26 @@
+diff --git a/richview-chart/tests/bar_legend_decals.rs b/richview-chart/tests/bar_legend_decals.rs
+index 3edce4c..c007aed 100644
+--- a/richview-chart/tests/bar_legend_decals.rs
++++ b/richview-chart/tests/bar_legend_decals.rs
+@@ -114,10 +114,17 @@ fn decal_metadata_is_explicit_and_keeps_normalized_source_membership() {
+     ] {
+         let chart = json!({"type":kind,"encoding":{"x":"x","y":"y","color":"group"},"data":{"inline":rows}});
+         let out = render_rmd_chart(&chart, &rows, 390.0, &json!({"decals":mono}).to_string());
+-        assert_eq!(
+-            out.legend.iter().map(|item| item.key.as_str()).collect::<Vec<_>>(),
+-            ["7", "Unavailable", "South"]
+-        );
++        let svg = roxmltree::Document::parse(&out.svg).unwrap();
++        let rendered_keys = if out.legend.is_empty() {
++            assert!(matches!(kind, "line" | "area"), "only direct-label charts omit the key");
++            svg.descendants()
++                .filter(|node| node.attribute("class") == Some("rvc-endlabel"))
++                .filter_map(|node| node.attribute("data-series"))
++                .collect::<Vec<_>>()
++        } else {
++            out.legend.iter().map(|item| item.key.as_str()).collect()
++        };
++        assert_eq!(rendered_keys, ["7", "Unavailable", "South"], "{kind}");
+         let emitted = serde_json::to_value(&out.legend).unwrap();
+         for (slot, item) in emitted.as_array().unwrap().iter().enumerate() {
+             if kind == "bar" && mono {

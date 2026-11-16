@@ -1,0 +1,10 @@
+---
+title: Metric enums
+---
+
+```metric
+value: 1
+trend: '"><script>HOSTILE_TREND()</script>'
+format: '"><script>HOSTILE_FORMAT()</script>'
+unit: '"><script>HOSTILE_UNIT()</script>'
+```

@@ -1,0 +1,73 @@
+{
+ "spec": {
+  "type": "tree",
+  "title": "Three units, eleven teams",
+  "encoding": {
+   "label": "unit",
+   "parent": "reports_to",
+   "y": "headcount"
+  }
+ },
+ "rows": [
+  {
+   "unit": "Engineering",
+   "reports_to": null,
+   "headcount": null
+  },
+  {
+   "unit": "Platform",
+   "reports_to": "Engineering",
+   "headcount": null
+  },
+  {
+   "unit": "Core",
+   "reports_to": "Platform",
+   "headcount": 8
+  },
+  {
+   "unit": "Tooling",
+   "reports_to": "Platform",
+   "headcount": 6
+  },
+  {
+   "unit": "Product",
+   "reports_to": "Engineering",
+   "headcount": 22
+  },
+  {
+   "unit": "Data",
+   "reports_to": "Engineering",
+   "headcount": 9
+  },
+  {
+   "unit": "Sales",
+   "reports_to": null,
+   "headcount": null
+  },
+  {
+   "unit": "EMEA",
+   "reports_to": "Sales",
+   "headcount": 12
+  },
+  {
+   "unit": "Americas",
+   "reports_to": "Sales",
+   "headcount": 16
+  },
+  {
+   "unit": "Operations",
+   "reports_to": null,
+   "headcount": null
+  },
+  {
+   "unit": "People",
+   "reports_to": "Operations",
+   "headcount": 5
+  },
+  {
+   "unit": "Finance",
+   "reports_to": "Operations",
+   "headcount": 4
+  }
+ ]
+}

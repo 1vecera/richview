@@ -1,0 +1,8 @@
+---
+title: Chart refinement cases
+version: 0.0.1
+---
+
+```chart
+{"type": "scatter", "title": "Small units retain the same proportions", "data": {"inline": [{"x": 0, "value": 1, "quantity": 0.001}, {"x": 1, "value": 4, "quantity": 0.004}, {"x": 2, "value": 25, "quantity": 0.025}, {"x": 3, "value": 100, "quantity": 0.1}]}, "encoding": {"x": "x", "y": "value", "size": "quantity"}}
+```

@@ -1,0 +1,21 @@
+company,as_of,value_usd_bn,qualifier,source_id,note
+OpenAI,2024-12,5.5,about,C001,Company statement relayed by Reuters; CFO blog says $6bn (C008)
+OpenAI,2025-06,10,,C001,Company statement; excludes Microsoft licensing and one-time deals
+OpenAI,2025-07,12,,C003,The Information via Reuters
+OpenAI,2025-08,13,,C004,Epoch AI compilation of press reports
+OpenAI,2025-12,21.4,,C010,The Information via Reuters
+OpenAI,2026-02,25,more than,C010,The Information via Reuters
+OpenAI,2026-08,40,more than,C017,"Bloomberg, people familiar"
+OpenAI,2026-09,70,almost,C021,Axios scoop
+Anthropic,2024-12,1,about,C083,"Reuters, two sources"
+Anthropic,2025-03,2,,C083,"Reuters, two sources"
+Anthropic,2025-05,3,,C083,"Reuters, two sources"
+Anthropic,2025-07,4,,C090,"Bloomberg, people familiar"
+Anthropic,2025-08,5,more than,C085,Company statement
+Anthropic,2025-10,7,approaching,C087,Company statement to Reuters
+Anthropic,2025-12,9,about,C092,Reuters; company later confirmed ~$9bn (C105)
+Anthropic,2026-02,14,,C098,Company statement
+Anthropic,2026-04,30,more than,C105,Company statement
+Anthropic,2026-05,47,more than,C107,Company statement
+Anthropic,2026-07,65,more than,C112,"Reuters, one person familiar; Bloomberg same figure (C113)"
+Anthropic,2026-09,100,pacing above,C115,New York Times via Axios/Bloomberg; Bloomberg words it as expected this year (C114)

@@ -1,0 +1,270 @@
+{
+ "_source": {
+  "files": [
+   "tmp/prf-probe/t.txt",
+   "tmp/prf-probe/time.txt",
+   "tmp/prf-review-07/time-dense-1.txt",
+   "tmp/prf-review-07/time-dense-2.txt",
+   "tmp/prf-review-07/time-dense-3.txt",
+   "tmp/prf-review-07/time-dense-4.txt",
+   "tmp/prf-review-07/time-dense-5.txt",
+   "tmp/prf-review-07/time-flag-1.txt",
+   "tmp/prf-review-07/time-flag-2.txt",
+   "tmp/prf-review-07/time-flag-3.txt",
+   "tmp/prf-review-07/time-sales-1.txt",
+   "tmp/prf-review-07/time-sales-2.txt",
+   "tmp/prf-review-07/time-sales-3.txt",
+   "tmp/prf-review-07/time-sales-4.txt",
+   "tmp/prf-review-07/time-sales-5.txt",
+   "tmp/prf07-fidelity-1792620778/time-dense-1.txt",
+   "tmp/prf07-fidelity-1792620778/time-dense-2.txt",
+   "tmp/prf07-fidelity-1792620778/time-dense-3.txt",
+   "tmp/prf07-fidelity-1792620778/time-dense-4.txt",
+   "tmp/prf07-fidelity-1792620778/time-dense-5.txt",
+   "tmp/prf07-fidelity-1792620778/time-flag-1.txt",
+   "tmp/prf07-fidelity-1792620778/time-flag-2.txt",
+   "tmp/prf07-fidelity-1792620778/time-flag-3.txt",
+   "tmp/prf07-fidelity-1792620778/time-sales-1.txt",
+   "tmp/prf07-fidelity-1792620778/time-sales-2.txt",
+   "tmp/prf07-fidelity-1792620778/time-sales-3.txt",
+   "tmp/prf07-fidelity-1792620778/time-sales-4.txt",
+   "tmp/prf07-fidelity-1792620778/time-sales-5.txt"
+  ],
+  "sha256": {
+   "tmp/prf-probe/t.txt": "4f9357722d669b45f8065a694ec965ec9169b51b9674751a60f3cadf2ba0ba7a",
+   "tmp/prf-probe/time.txt": "a1e91269475882b577ff369bbb8b3ff89389de8ee87bb0b683e1138531f7bd40",
+   "tmp/prf-review-07/time-dense-1.txt": "386bdec1bcb92cad6a565114bbd66d32d652bae8d605ac422f340a689c259ca6",
+   "tmp/prf-review-07/time-dense-2.txt": "bd9b59f9fcdbef49469da94b69cd5d8fd0bd48a3c4a65eb3549a5994e0ab5cdd",
+   "tmp/prf-review-07/time-dense-3.txt": "c6425bdf39890ec628f14994d634f19a63a54a83b1a13cbd0ef61e6602ace9c0",
+   "tmp/prf-review-07/time-dense-4.txt": "c6495c67dd05a2de350764208927df1032b225c0a7e5790f834e16fd717f66c8",
+   "tmp/prf-review-07/time-dense-5.txt": "18402edc44fed2b995ae8299a780743d6906c5858cf467a70ae2431d0718ee30",
+   "tmp/prf-review-07/time-flag-1.txt": "bcd6cfd93b5b00b56da78e363c4d28e85a973d78d835ae601c9972001d994006",
+   "tmp/prf-review-07/time-flag-2.txt": "353992750db7ad37e4e9d0a44a1b16e994510389cfb0b12856987fbaa5d469a5",
+   "tmp/prf-review-07/time-flag-3.txt": "94dee1763c9b9dbce274a430dfd7a9e7d43cfffe23698ea5faa4d032dae0cfd4",
+   "tmp/prf-review-07/time-sales-1.txt": "d97b876ec995fd27c52b0ce2950cb91add67a95cddfea53979b7541ad8334534",
+   "tmp/prf-review-07/time-sales-2.txt": "42d8f6b02d05cb7ee78caa0ae16e12a700c17242c19ab327ea9d01f8b629e564",
+   "tmp/prf-review-07/time-sales-3.txt": "a1926b0eee07aeb2416dde9048ea061642d68921691603928f609f2911ea6a6b",
+   "tmp/prf-review-07/time-sales-4.txt": "cb0130a5466e92a26301da0b3e3c579e065505a306f696bd45e5eeff23c5ce2e",
+   "tmp/prf-review-07/time-sales-5.txt": "9e9be2001eb63d4cec6c7af013464c215f69d06f00b1fc904e1e0a9452ce9c77",
+   "tmp/prf07-fidelity-1792620778/time-dense-1.txt": "7048594d4e0ff3d2cd64bc5b54b9dceee607dc848aa734c7030da96ab6424041",
+   "tmp/prf07-fidelity-1792620778/time-dense-2.txt": "4964fe4bcaf563dc484ffe0d7bfbb0f95deb7632bae7b1db13dc2cbc7859ac30",
+   "tmp/prf07-fidelity-1792620778/time-dense-3.txt": "8496e588de86b6adb1c480c959a1b4322a0f5e84eb26e198aec60be1f9b065f1",
+   "tmp/prf07-fidelity-1792620778/time-dense-4.txt": "3f3fef175f8c59bb8ee6089953d4177399396850aca2fa079fed91c9ac10ee43",
+   "tmp/prf07-fidelity-1792620778/time-dense-5.txt": "7bf465aaa85b78c4b688a9ac56d59665acada7e2c79a43f27f2dcc3a68f44f0b",
+   "tmp/prf07-fidelity-1792620778/time-flag-1.txt": "027ce812736e723c46790f93548768c43e4772c974d3a40820fb729fa9a30aa9",
+   "tmp/prf07-fidelity-1792620778/time-flag-2.txt": "e10c351d0f4c53bf53981c61ebfedf4909b8cfcc5e11e8ce50ade71bfbf4c7fe",
+   "tmp/prf07-fidelity-1792620778/time-flag-3.txt": "5f520ef3de4d301801ad216d76d69a294a901d37b1c663e52c331b6486b2af31",
+   "tmp/prf07-fidelity-1792620778/time-sales-1.txt": "cf7c76fbda95ab1f8ceec884b2c1efb8ec5095e06cf00c813bebe5e325e1c985",
+   "tmp/prf07-fidelity-1792620778/time-sales-2.txt": "6d1e905fd8710c173b2c3acade76c4fe76cadb96bc81b7067861c698e142b0ba",
+   "tmp/prf07-fidelity-1792620778/time-sales-3.txt": "66d11098144a9d2797b3fe15caf02f83d1c996cf44f217bddeabe63d150ff878",
+   "tmp/prf07-fidelity-1792620778/time-sales-4.txt": "46fd5db8153d84b631b54c6f1a0e2954cd737d1c4f2f9c252e98480b7a20fa9f",
+   "tmp/prf07-fidelity-1792620778/time-sales-5.txt": "58d9588d5e7df70be2efb3ecb130df2b9f5d8ae117ec83c0cf8974472ffa2d81"
+  },
+  "note": "Parsed from the ignored text outputs listed in files"
+ },
+ "method": "/usr/bin/time -l richview generate <fixture> --style scientific (complete offline report with runtime), b4db233 on Claw Mini; fixture copies of tmp/performance/fixtures; file name says fixture (sales = small, flag = flagship) and run number",
+ "series": {
+  "2026-10-21 lockdown probe, single runs (t.txt flagship, time.txt small)": [
+   {
+    "file": "tmp/prf-probe/t.txt",
+    "real_s": 0.05,
+    "instructions_retired": 793324060,
+    "peak_footprint_bytes": 32031200,
+    "max_rss_bytes": 40468480
+   },
+   {
+    "file": "tmp/prf-probe/time.txt",
+    "real_s": 0.02,
+    "instructions_retired": 211163741,
+    "peak_footprint_bytes": 23937456,
+    "max_rss_bytes": 32014336
+   }
+  ],
+  "2026-10-21 review re-run": [
+   {
+    "file": "tmp/prf-review-07/time-dense-1.txt",
+    "real_s": 0.17,
+    "instructions_retired": 3164940203,
+    "peak_footprint_bytes": 125288976,
+    "max_rss_bytes": 133054464
+   },
+   {
+    "file": "tmp/prf-review-07/time-dense-2.txt",
+    "real_s": 0.16,
+    "instructions_retired": 3154240105,
+    "peak_footprint_bytes": 125354512,
+    "max_rss_bytes": 133120000
+   },
+   {
+    "file": "tmp/prf-review-07/time-dense-3.txt",
+    "real_s": 0.16,
+    "instructions_retired": 3152592120,
+    "peak_footprint_bytes": 126976528,
+    "max_rss_bytes": 134742016
+   },
+   {
+    "file": "tmp/prf-review-07/time-dense-4.txt",
+    "real_s": 0.16,
+    "instructions_retired": 3149629069,
+    "peak_footprint_bytes": 127042088,
+    "max_rss_bytes": 134791168
+   },
+   {
+    "file": "tmp/prf-review-07/time-dense-5.txt",
+    "real_s": 0.16,
+    "instructions_retired": 3145854167,
+    "peak_footprint_bytes": 127009296,
+    "max_rss_bytes": 134774784
+   },
+   {
+    "file": "tmp/prf-review-07/time-flag-1.txt",
+    "real_s": 0.05,
+    "instructions_retired": 737413391,
+    "peak_footprint_bytes": 31850976,
+    "max_rss_bytes": 40288256
+   },
+   {
+    "file": "tmp/prf-review-07/time-flag-2.txt",
+    "real_s": 0.09,
+    "instructions_retired": 803555161,
+    "peak_footprint_bytes": 31769032,
+    "max_rss_bytes": 40222720
+   },
+   {
+    "file": "tmp/prf-review-07/time-flag-3.txt",
+    "real_s": 0.05,
+    "instructions_retired": 815589466,
+    "peak_footprint_bytes": 31998408,
+    "max_rss_bytes": 40452096
+   },
+   {
+    "file": "tmp/prf-review-07/time-sales-1.txt",
+    "real_s": 0.07,
+    "instructions_retired": 241630096,
+    "peak_footprint_bytes": 23904688,
+    "max_rss_bytes": 31965184
+   },
+   {
+    "file": "tmp/prf-review-07/time-sales-2.txt",
+    "real_s": 0.01,
+    "instructions_retired": 211652584,
+    "peak_footprint_bytes": 23904688,
+    "max_rss_bytes": 31965184
+   },
+   {
+    "file": "tmp/prf-review-07/time-sales-3.txt",
+    "real_s": 0.02,
+    "instructions_retired": 211483177,
+    "peak_footprint_bytes": 23953864,
+    "max_rss_bytes": 31997952
+   },
+   {
+    "file": "tmp/prf-review-07/time-sales-4.txt",
+    "real_s": 0.02,
+    "instructions_retired": 212191689,
+    "peak_footprint_bytes": 23937480,
+    "max_rss_bytes": 31981568
+   },
+   {
+    "file": "tmp/prf-review-07/time-sales-5.txt",
+    "real_s": 0.02,
+    "instructions_retired": 213071873,
+    "peak_footprint_bytes": 23937456,
+    "max_rss_bytes": 31997952
+   }
+  ],
+  "2026-10-22 fidelity re-run": [
+   {
+    "file": "tmp/prf07-fidelity-1792620778/time-dense-1.txt",
+    "real_s": 0.19,
+    "instructions_retired": 3165097440,
+    "peak_footprint_bytes": 127009320,
+    "max_rss_bytes": 134758400
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/time-dense-2.txt",
+    "real_s": 0.17,
+    "instructions_retired": 3151099866,
+    "peak_footprint_bytes": 125289000,
+    "max_rss_bytes": 133038080
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/time-dense-3.txt",
+    "real_s": 0.2,
+    "instructions_retired": 3167932016,
+    "peak_footprint_bytes": 127058472,
+    "max_rss_bytes": 134807552
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/time-dense-4.txt",
+    "real_s": 0.2,
+    "instructions_retired": 3168530564,
+    "peak_footprint_bytes": 127025704,
+    "max_rss_bytes": 134774784
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/time-dense-5.txt",
+    "real_s": 0.17,
+    "instructions_retired": 3160054832,
+    "peak_footprint_bytes": 126992936,
+    "max_rss_bytes": 134742016
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/time-flag-1.txt",
+    "real_s": 0.06,
+    "instructions_retired": 733403890,
+    "peak_footprint_bytes": 31719904,
+    "max_rss_bytes": 40157184
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/time-flag-2.txt",
+    "real_s": 0.06,
+    "instructions_retired": 801355125,
+    "peak_footprint_bytes": 31801800,
+    "max_rss_bytes": 40255488
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/time-flag-3.txt",
+    "real_s": 0.05,
+    "instructions_retired": 790583052,
+    "peak_footprint_bytes": 31949256,
+    "max_rss_bytes": 40402944
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/time-sales-1.txt",
+    "real_s": 0.06,
+    "instructions_retired": 241398173,
+    "peak_footprint_bytes": 23937456,
+    "max_rss_bytes": 31997952
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/time-sales-2.txt",
+    "real_s": 0.02,
+    "instructions_retired": 210597172,
+    "peak_footprint_bytes": 23970224,
+    "max_rss_bytes": 32030720
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/time-sales-3.txt",
+    "real_s": 0.02,
+    "instructions_retired": 210733171,
+    "peak_footprint_bytes": 23888304,
+    "max_rss_bytes": 31948800
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/time-sales-4.txt",
+    "real_s": 0.01,
+    "instructions_retired": 210040572,
+    "peak_footprint_bytes": 23921072,
+    "max_rss_bytes": 31981568
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/time-sales-5.txt",
+    "real_s": 0.01,
+    "instructions_retired": 210152980,
+    "peak_footprint_bytes": 23904688,
+    "max_rss_bytes": 31965184
+   }
+  ]
+ }
+}

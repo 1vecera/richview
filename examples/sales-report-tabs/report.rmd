@@ -1,0 +1,104 @@
+---
+title: Q3 revenue, split three ways
+description: One report, three coordinated views over the same synthetic Q3 sales rows — overview, sales by segment, and customer composition.
+version: 0.0.1
+author: Daniel Vecera
+date: 2026-10-17
+slug: q3-tabbed-review
+tags: [sales, quarterly, tabs]
+tabs:
+  default: overview
+  export: all
+  panels:
+    - { id: overview,  label: Overview,  from: overview }
+    - { id: sales,     label: Sales,     from: sales }
+    - { id: customers, label: Customers, from: customers }
+format: rmd/1
+---
+One synthetic quarter, read three ways. Switch views with the tabs or the arrow keys, or link straight to one with `#tab=sales`.
+
+## Overview {#overview}
+
+The example closes September at **$630K MRR**, up **61.5% from July's $390K**. Enterprise supplied $140K of the $240K increase; mid-market supplied the remaining $100K.
+
+```metric
+value: 630000
+label: Q3 ending MRR
+format: number_compact
+unit: $
+delta: 0.6153846154
+delta_label: vs July
+trend: up
+```
+
+```callout
+kind: neutral
+title: Three coordinated views
+body: |
+  Overview sets the frame, Sales breaks the lift down by segment and Customers shows the ending book of business. Each view has its own link, such as `#tab=customers`, and its charts keep their state when you switch away and back.
+```
+
+## Sales {#sales}
+
+Enterprise MRR rose from $280K to $420K; mid-market rose from $110K to $210K. The rows establish those changes. They contain no customer, sales-cycle or intervention data, so they do not establish why the increases happened.
+
+```chart
+type: bar
+title: MRR by segment, Q3
+subtitle: Enterprise contributed 58.3% of the $240K increase from July to September
+data:
+  inline:
+    - { month: Jul, mrr: 280000, segment: enterprise }
+    - { month: Jul, mrr: 110000, segment: mid-market }
+    - { month: Aug, mrr: 340000, segment: enterprise }
+    - { month: Aug, mrr: 160000, segment: mid-market }
+    - { month: Sep, mrr: 420000, segment: enterprise }
+    - { month: Sep, mrr: 210000, segment: mid-market }
+encoding:
+  x: month
+  y: mrr
+  color: segment
+axes:
+  y: { label: MRR, format: number, unit: $ }
+annotations:
+  - { kind: point, at: { x: Aug, y: 340000 }, text: Enterprise reached $340K }
+  - { kind: point, at: { x: Sep, y: 420000 }, text: Enterprise reached $420K }
+style:
+  ratio: "16:9"
+```
+
+| Segment    | July MRR | September MRR | Growth  |
+|---         |---:      |---:           |---:     |
+| Enterprise | $280K    | $420K         | +50%    |
+| Mid-market | $110K    | $210K         | +90.9%  |
+| Total      | $390K    | $630K         | +61.5%  |
+
+## Customers {#customers}
+
+The ending book of business shifted toward enterprise accounts. The chart counts distinct customers paying in September; it does not establish retention or churn.
+
+```chart
+type: pie
+title: September customers by segment
+subtitle: Enterprise accounts made up 44% of the ending book
+data:
+  inline:
+    - { segment: Enterprise, customers: 22 }
+    - { segment: Mid-market, customers: 28 }
+encoding:
+  x: segment
+  y: customers
+style:
+  ratio: "1:1"
+```
+
+```callout
+kind: hold
+title: No causal conclusion from these rows
+body: |
+  These synthetic monthly rows contain no pricing or retention evidence. Check real source data and distinguish recurring revenue from one-time effects before using a similar report for planning.
+```
+
+## Verification
+
+Run `richview check` for source and chart-geometry diagnostics, then inspect each view at its intended desktop and phone widths. A printout or PDF shows all three views in order, and readers without JavaScript see them stacked. These checks do not certify the analysis.

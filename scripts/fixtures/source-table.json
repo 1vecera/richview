@@ -1,0 +1,39 @@
+{
+  "rows": [
+    {
+      "x": 1,
+      "y": 2
+    },
+    {
+      "x": 2,
+      "y": 3,
+      "note": "line 1,\nline \"2\"",
+      "metadata": {
+        "tags": [
+          1,
+          "A,B"
+        ],
+        "x": true
+      },
+      "array": [
+        "A,B",
+        "\""
+      ],
+      "flag": false,
+      "empty": "",
+      "late<key>": "<img id=\"source-injection\" src=x onerror=\"window.__bad=true\">"
+    }
+  ],
+  "columns": [
+    "array",
+    "empty",
+    "flag",
+    "late<key>",
+    "metadata",
+    "note",
+    "x",
+    "y"
+  ],
+  "csv": "\"array\",\"empty\",\"flag\",\"late<key>\",\"metadata\",\"note\",\"x\",\"y\"\n,,,,,,1,2\n\"[\"\"A,B\"\",\"\"\\\"\"\"\"]\",\"\",false,\"<img id=\"\"source-injection\"\" src=x onerror=\"\"window.__bad=true\"\">\",\"{\"\"tags\"\":[1,\"\"A,B\"\"],\"\"x\"\":true}\",\"line 1,\nline \"\"2\"\"\",2,3\n",
+  "oracle": "Python standard-library csv.writer quotes complete structured JSON cells; existing Rust scalar false spelling and empty missing cells retained; independent csv.reader verifies8columns and nested-value round trips."
+}

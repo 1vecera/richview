@@ -1,0 +1,88 @@
+{
+  "partId": "02-delivery",
+  "answers": {
+    "DEL-02": {
+      "decision": "edit",
+      "text": "Chosen option: Rename main to prod.\n\nTwo long-lived branches with continuous history and redirected links; open PRs retarget to `prod`, the legacy state is only a commit in its history, and a legacy hotfix needs a new branch.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"The main branch is production, and then we have one dev branch, and only from dev you can merge into main. Agents do crazy stuff on dev, and we merge into main only when we are ready for things to work. main renamed to prod.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "68fa7ded936882bc",
+      "updatedAt": "2026-10-26T15:03:10.244Z"
+    },
+    "DEL-03": {
+      "decision": "edit",
+      "text": "Chosen option: Squash through the gate, as proposed. Before merging, the agent completes every item of the PR checklist, including its set of tests. Open: the Linear board is private, so `Refs S27-<n>` in commits points nowhere for outside readers once the source is public (INT-38); how commits reference work then is still to be decided (DEL-44).",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"I like this, but I'm a bit scared about how we can keep the Linear references there, because the Linear board is not public. But this is fine, so we can merge, but the agent has to check all the PR boxes, where we will have a set of tests and stuff like that.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "e08437c24844214c",
+      "updatedAt": "2026-10-26T15:04:23.827Z"
+    },
+    "DEL-04": {
+      "decision": "edit",
+      "text": "Chosen option: An agent merges after Daniel's go. A second, automatic set of tests runs on the prod candidate (DEL-33); when it passes, Daniel tells an agent to merge, and the agent merges into `prod` with a single command. Only Daniel gives that go for now; named main collaborators may later. No agent moves `prod` on its own.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"We have another set of tests which are automatically done, and then we merge into prod based on those. It can be done by a single command, me telling it to an agent. But only I do it for now, or other named main collaborators in the future.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "3f6340c553a02c7f",
+      "updatedAt": "2026-10-26T15:05:12.787Z"
+    },
+    "DEL-05": {
+      "decision": "edit",
+      "text": "As proposed, with these changes. Agents may also, without asking:\n- delete other branches, not only their own merged task branch;\n- set up automations themselves (for example workflows and scheduled jobs), within the other limits of this card;\n- talk to other agents and collaborate on tasks: create communication tools such as message boards, and ping other agents with suggestions, through Linear and local helpers such as Herdr.\nEverything else in the \"Needs Daniel's explicit authorization\" column stays as proposed.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"All of those is true. But agents can delete other branches as well. They can do automations themselves as well. What they also can do: they can talk to other agents, create communication tools like message boards, ping other agents with suggestions, so collaborating on tasks is also allowed through both Linear and local helper connections, Herdr.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "5f07575168a87e15",
+      "updatedAt": "2026-10-26T15:06:35.029Z"
+    },
+    "DEL-06": {
+      "decision": "edit",
+      "text": "Chosen option: Merge into dev, review in the packet.\n\n`dev` evolves on its own against the lockdown's principles, documents and ideas. Feature and design changes merge into `dev` through the gates without asking or pinging Daniel, whether he asked for them or an autonomous loop generated and implemented the idea. Other agents may revert or remove them on `dev`. Gates always run.\n\nWebsite changes are always okay in `dev`: they merge through the gates like any other change, without a grant, and `dev` deploys to the hidden preview of richview.ai (DEL-40, ARC-22). Nothing becomes public before `prod`, and going public stays on Daniel's go: a `prod` merge or deploy, or a post, release or publication.\n\nDesign changes and feature changes are kept clearly separate. `dev` keeps a feature and design log, so Daniel can review every design change and every feature change one by one before anything goes to `prod`.\n\nWhen Daniel asks for something new that the lockdown does not cover, the agent also proposes the change to the lockdown documents, and Daniel looks at that first.\n\nThe trail is complete: every PR is part of the documentation, every change is tracked so any of them can be reverted, and one report shows before and after, both together and step by step, with what caused each change.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-27: \"Daniel, 2026-10-27: 'website changes in dev are ALWAYS OKAY and the dev page is deployed to preview - if that contradicts del 06, then fix that.' Replaces the website exception in his 2026-10-26 answer.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "81691aff9df06f19",
+      "updatedAt": "2026-10-27T11:59:50.364Z"
+    },
+    "DEL-07": {
+      "decision": "edit",
+      "text": "The setup steps are the agents' call: they pick the best order and method, following the accepted branch model (DEL-02: `main` renamed to `prod`, plus `dev`) and the authorization rules (DEL-05). Nothing is in production, so it is fine if things are down for a while during setup.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"This is up to you. Those are your details, up to the agents. What is the best idea? We are not in prod, so no one cares if it will be dead for a while.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "4708dc91d1937095",
+      "updatedAt": "2026-10-26T15:13:25.694Z"
+    },
+    "DEL-37": {
+      "decision": "edit",
+      "text": "A push block, with no extra user. A pre-push hook committed in the repository rejects pushes to `prod` and `dev` from agent checkouts. Only the gate's merge and Daniel's go move those branches.\n\nThere is no separate macOS user for the gate, no machine account and no paid plan. Daniel accepts the occasional mistake that slips past the hook, and the audit (DEL-38) catches it after the fact: a `dev` commit without a gate receipt, or a `prod` move without his recorded go. No GitHub login is removed from the agents' environment.\n\nAgents have all the access. The repository's `.claude/settings.json` carries no deny list, so agents may run `fly`, `wrangler`, `gh`, `curl` writes, publish commands and the rest. The committed pre-push hook on `prod` and `dev` is the only technical block. Outward actions still follow the go rules (DEL-04, DEL-40): the block is the agreement, not the tooling.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-27: \"Daniel, 2026-10-27: 'i want agents to have ALL the access thanks' (after seeing the repo's deny list block fly and wrangler)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "457a038ee893aab0",
+      "updatedAt": "2026-10-27T13:06:58.481Z"
+    },
+    "DEL-40": {
+      "decision": "edit",
+      "text": "Chosen option: Deploy on a separate go in the packet. Only `prod` deploys richview.ai, on Daniel's go. `dev` deploys to a preview of richview.ai (a separate hostname such as preview.richview.ai) behind a sign-in Daniel holds, enforced by Cloudflare Access; it serves as the pre-production check. The other targets follow the proposal's table.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Only prod deploys richview.ai. Dev basically should have a preview richview.ai, which is under a sign-in that I hold, blocked by Cloudflare. That's what we do.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "5fb30046941c7edf",
+      "updatedAt": "2026-10-26T17:28:34.905Z"
+    },
+    "DEL-68": {
+      "decision": "edit",
+      "text": "Chosen option: Gates decide none; you see design and feature one by one. The table stands, with two changes.\n\nTests are not sacred; the process is. Agents may delete tests freely when they are no longer needed: unit tests at will, and end-to-end tests whose feature no longer makes sense. A test audit, run by an agent or on Daniel's request, removes tests that are only formal, test the obvious, test the same thing several times or do not test real functionality. What an agent can never delete or skip is a step of the process: the gates themselves and the adversarial reviews. Elements inside a step may change; the steps stay.\n\nVisual and motion quality is checked automatically too: a review agent, using whichever model Daniel uses at the time (Opus, Codex or another), judges it, and it is handled like design and feature changes. Before anything goes to `prod`, Daniel sees one large document with every change and its details, and can adjust visual and motion quality independently.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"I would adjust one thing: weakening of tests. If an agent deletes a feature or anything not needed anymore, it deletes the test. Or I ask for checking if the tests are not just formal, not testing obvious things or the same things multiple times, but actually testing functionality; then they should delete them. Unit tests can be deleted freely at will, and end-to-end tests on features that don't make sense can be deleted. What cannot be skipped are adversarial reviews and such: parts of the process can't be skipped, but elements of that process can be deleted. Visual and motion quality the AI can test itself as well, using Opus or Codex, whatever I'm using at the moment, so I don't have to. I see a huge document with all of the changes before releasing into prod, with all the details, and visual and motion quality can be adjusted independently. The table is fine, but weakening can mostly be done; none of the check steps can be deleted by AI; visual and motion quality can be checked automatically by AI, same as design and feature.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "8dd4ca13b898048e",
+      "updatedAt": "2026-10-26T18:35:34.648Z"
+    },
+    "DEL-69": {
+      "decision": "accept",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel: 'Yeah, this is all right.' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "ccd40de04b9b90d2",
+      "updatedAt": "2026-10-26T18:37:42.673Z"
+    },
+    "DEL-71": {
+      "decision": "edit",
+      "text": "Amended 4 Nov 2026 (Daniel, live with the lead): one release round, no double testing. \"If all preprod gates passes, I just check the visuals and say go and we release without second round.\"\n\n- The full set runs once, on `dev`'s head, and a pass promotes that commit to `pre-prod`. That full is the release evidence; it is not re-run on the frozen candidate.\n- The candidate is cut from that `pre-prod` commit. Daniel checks the visuals in the release packet (the before-and-after report, DEL-69) and gives his go; `rv-gate merge-prod` accepts the full's receipt for the same commit and tree.\n- Every row of the full set must still pass in that one run: the browser matrix, motion, every chart type in every style, journeys and roles, connectors, PDF, install paths, budgets, accessibility and the merge audit. A row that cannot run fails it unless DELIVERY.md names it as a standing gap.\n\nEarlier answer (26 Oct), replaced: the full set re-ran once more on the combined candidate before `prod`.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel: 'all that is written here makes sense to me… the intent is not to have a super crazy new set of tests which are only run once we go into prod. It's more about re-running them again to make sure everything works… even after multiple things got merged into dev… ultra-fast tests for dev… before PR there's more things, and then before merging… adversary reviews, visual polishes… should be done more in dev' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "deed6bd50df53c89",
+      "updatedAt": "2026-11-04T14:52:39.585Z"
+    },
+    "DEL-81": {
+      "decision": "edit",
+      "text": "Three branches. Today's `dev` is renamed `pre-prod`; a new `dev` is created from it and becomes the default branch; `prod` moves only on Daniel's go.\n\n- **Development agents** run in parallel, as many as there are fully independent pieces of work, each in its own worktree. They merge into `dev` freely. No commit, pre-push or stop hooks slow them down.\n- **Testing in `dev` is at the agent's discretion.** The fast gate is unit tests only, ideally under five seconds. Agents run browser, visual or end-to-end checks when they judge it useful, for example to see a new chart.\n- **Impact tracing.** Dependencies between crates, modules and suites are traced automatically, so the fast gate and the release run only the tests a change can affect; tests that cannot be affected are not run.\n- **The release agent** merges `dev` into `pre-prod` after a batch of changes (three, five or ten, by their size and significance). It runs the long-running suites (end-to-end, browsers, visual, data integrity, PDF) on the combined state, for what the batch affects, and fixes forward until everything works together.\n- **`prod`** is cut from `pre-prod` on Daniel's go, after the full run (DEL-04, DEL-71 apply to that step).\n- **The lockdown session leads:** it splits the work into independent streams, briefs the agents, and relays Daniel.\n\nAmended by Daniel on 2026-10-27:\n- **Batches:** a release batch holds up to 20 merges.\n- **Anything that slows development can change:** steps, tiers, hooks, reviews and thresholds. Broad end-to-end coverage at release is what lets small changes move fast.\n- **Models**, amended by Daniel on 2026-10-29 (\"might change in the future, but this is now\"):\n  - The final reviewer, the checker and the adversarial reviews run on Claude Opus at xhigh effort.\n  - Design development runs on Claude Sonnet at xhigh effort: anything whose quality is judged by eye, such as how charts, styles, the site and any other surface look and move, but not the chart engine's correctness.\n  - Everything else runs on Codex (`gpt-6.1-sol`, reasoning effort xhigh) in the Codex TUI: the chart engine, format, renderer logic, app surfaces, Publish, the gate and the release work.\n  - At most two Opus agents run at once across the build.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-29: \"we have codex now as well, we use codex tui, codex 6.1 sol, only for things that have nothing to do with design quality. Final reviewer: always opus on xhigh, design devs --> sonnet on xhihg, all other stuff, codex 6.1 sol xhigh--> might hcnagei n the future but this is now\". Recorded by the lockdown agent at his request.\n\nEarlier: Dictated by Daniel in the review chat on 2026-10-27: \"Daniel, 2026-10-27, live: 'I would go up to 20 PRs at once in a batch… anything that can be changed can be changed… if we have the broad set of end-to-end tests, then we can build the short stuff much faster… switch most of the agents to Sonnet… the checker and adversarial reviews… have to be Opus… at max two Opus agents running'\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "02942db99566e97c",
+      "updatedAt": "2026-10-29T09:35:53.883Z"
+    }
+  }
+}

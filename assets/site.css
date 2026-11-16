@@ -1,0 +1,351 @@
+/*
+ * RichView site: one look for every page (STY-46). Original paper: eggshell, warm charcoal,
+ * hairline rules, the brand blue for links and the one primary button, Newsreader headlines,
+ * Geist for UI and body text, RichView Mono for code, all cut from the report font builds (STY-28). Light only (STY-47), opaque surfaces
+ * (STY-48), three radii (STY-66). Header and footer are injected by the build into every page.
+ */
+
+@font-face {
+	font-family: "Newsreader";
+	src: url("/fonts/newsreader-400.woff2") format("woff2");
+	font-weight: 400;
+	font-display: swap;
+}
+@font-face {
+	font-family: "Newsreader";
+	src: url("/fonts/newsreader-600.woff2") format("woff2");
+	font-weight: 600;
+	font-display: swap;
+}
+@font-face {
+	font-family: "Geist";
+	src: url("/fonts/geist-400.woff2") format("woff2");
+	font-weight: 400;
+	font-display: swap;
+}
+@font-face {
+	font-family: "Geist";
+	src: url("/fonts/geist-600.woff2") format("woff2");
+	font-weight: 600;
+	font-display: swap;
+}
+@font-face {
+	font-family: "RichView Mono";
+	src: url("/fonts/richview-mono-400.woff2") format("woff2");
+	font-weight: 400;
+	font-display: swap;
+}
+@font-face {
+	font-family: "RichView Mono";
+	src: url("/fonts/richview-mono-600.woff2") format("woff2");
+	font-weight: 600;
+	font-display: swap;
+}
+@font-face {
+	font-family: "RichView Serif";
+	src: url("/fonts/richview-serif-400.woff2") format("woff2");
+	font-weight: 400;
+	font-display: swap;
+}
+@font-face {
+	font-family: "Space Grotesk";
+	src: url("/fonts/space-grotesk-600.woff2") format("woff2");
+	font-weight: 600;
+	font-display: swap;
+}
+@font-face {
+	font-family: "Patrick Hand";
+	src: url("/fonts/patrick-hand-400.woff2") format("woff2");
+	font-weight: 400;
+	font-display: swap;
+}
+/* The home page's prompt boxes are set by hand: Caveat 500, a Latin subset, one file (OFL, see /licenses). */
+@font-face {
+	font-family: "Caveat";
+	src: url("/fonts/caveat-500.woff2") format("woff2");
+	font-weight: 500;
+	font-display: swap;
+}
+/* The hero's painted lettering: Caveat Brush 400, a Latin subset, one file (OFL, see /licenses). */
+@font-face {
+	font-family: "Caveat Brush";
+	src: url("/fonts/caveat-brush-400.woff2") format("woff2");
+	font-weight: 400;
+	font-display: swap;
+}
+/* The home page's headlines: Bricolage Grotesque, two static Latin cuts of the variable font: 600 at
+   its display optical size for headings, 400 at its text optical size for long statements (OFL, see
+   /licenses). */
+@font-face {
+	font-family: "Bricolage Grotesque";
+	src: url("/fonts/bricolage-grotesque-600.woff2") format("woff2");
+	font-weight: 600;
+	font-display: swap;
+}
+@font-face {
+	font-family: "Bricolage Grotesque";
+	src: url("/fonts/bricolage-grotesque-400.woff2") format("woff2");
+	font-weight: 400;
+	font-display: swap;
+}
+@font-face {
+	font-family: "Big Shoulders";
+	src: url("/fonts/big-shoulders-800.woff2") format("woff2");
+	font-weight: 800;
+	font-display: swap;
+}
+
+:root {
+	--paper: #faf9f6;
+	--paper-2: #f2eee7;
+	--panel: #fffefb;
+	--ink: #1f1c19;
+	--soft: #5e5750;
+	/* Helper text: 5.1:1 on the paper, 4.7:1 on the raised paper, 5.4:1 on the panel (WCAG AA). */
+	--faint: #706960;
+	--rule: #ddd5c9;
+	--blue: #1a6dac;
+	--blue-ink: #155a8f;
+	--clay: #c4613f;
+	--ok: #2f7d55;
+	--field-openai: #2b2724;
+	--field-anthropic: #c4613f;
+	--font-display: "Newsreader", "Iowan Old Style", Georgia, serif;
+	--font-ui: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+	--font-mono: "RichView Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+	--gutter: clamp(1.25rem, 5vw, 4.5rem);
+	--nav-h: 4rem;
+	--ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+	--ease-move: cubic-bezier(0.4, 0, 0.2, 1);
+	--r-pill: 999px;
+	--r-panel: 12px;
+	--r-small: 4px;
+	--shadow-float: 0 2px 8px oklch(0 0 0 / 0.12);
+	/* One code palette for the whole site (STY-59): five roles on the light code panel, each at
+	   least 4.5:1, keys in the brand blue. */
+	--code-bg: var(--paper-2);
+	--hl-key: oklch(0.47 0.1 245);
+	--hl-str: oklch(0.47 0.12 40);
+	--hl-num: oklch(0.47 0.1 155);
+	--hl-punc: oklch(0.5 0.01 80);
+	--hl-comment: oklch(0.5 0.01 80);
+	--hl-tag: oklch(0.5 0.14 40);
+	--hl-heading: var(--ink);
+	--hl-cmd: oklch(0.47 0.1 245);
+	--hl-flag: oklch(0.47 0.12 305);
+	color-scheme: light;
+}
+
+
+:focus-visible {
+	outline: 2px solid var(--blue);
+	outline-offset: 3px;
+	border-radius: var(--r-small);
+}
+
+.skip {
+	position: absolute;
+	left: 1rem;
+	top: -4rem;
+	z-index: 20;
+	padding: 0.6rem 1rem;
+	background: var(--ink);
+	color: var(--paper);
+	border-radius: var(--r-small);
+	text-decoration: none;
+}
+.skip:focus {
+	top: 1rem;
+}
+
+/* ------------------------------------------------------------------ header */
+
+.nav {
+	position: sticky;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 10;
+	height: var(--nav-h);
+	display: flex;
+	align-items: center;
+	gap: 1.5rem;
+	padding: 0 var(--gutter);
+	font: 400 1.0625rem / 1.2 var(--font-ui);
+	/* No line under the header: it sits on the page's paper (Daniel, 4 Nov). */
+	background: var(--paper);
+}
+body[data-richview-page="landing"] .nav {
+	position: fixed;
+}
+.nav__brand {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.6rem;
+	text-decoration: none;
+	color: var(--ink);
+	/* The wordmark is Geist 600 on every page, also where the frame takes the report's faces (STY-03, STY-60). */
+	font-family: "Geist", system-ui, sans-serif;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+}
+.nav__brand svg {
+	width: 1.45rem;
+	height: 1.45rem;
+}
+/* The mark is the brand blue, in the shade of the style the page wears (STY-01, S27-926). */
+.nav__brand svg g {
+	fill: var(--blue);
+}
+.nav__links {
+	display: flex;
+	align-items: center;
+	gap: 1.5rem;
+	margin: 0 0 0 auto;
+	font-size: 0.92rem;
+}
+.nav__links a {
+	text-decoration: none;
+	color: var(--soft);
+	white-space: nowrap;
+}
+.nav__links a:hover,
+.nav__links a:focus-visible,
+.nav__links a[aria-current="page"] {
+	color: var(--ink);
+}
+/* The repository, as the GitHub mark: small and muted beside the words. */
+.nav__links a.nav__github {
+	display: inline-flex;
+	align-items: center;
+	color: var(--faint);
+}
+.nav__links a.nav__github:hover,
+.nav__links a.nav__github:focus-visible {
+	color: var(--ink);
+}
+.nav__github svg {
+	width: 1.15rem;
+	height: 1.15rem;
+	fill: currentColor;
+}
+/* The hosted app's sign-in: a plain word like the others, set apart from the site's own links by a
+   hairline, so it reads as the way into an account and not as another page of the site. */
+.nav__links a.nav__signin {
+	padding-left: 1.5rem;
+	border-left: 1px solid var(--rule);
+	color: var(--ink);
+}
+.nav__links a.nav__signin:hover,
+.nav__links a.nav__signin:focus-visible {
+	color: var(--blue);
+}
+@media (max-width: 899px) {
+	:root {
+		--nav-h: 3.5rem;
+	}
+	.nav {
+		gap: 0.8rem;
+	}
+}
+@media (max-width: 640px) {
+	.nav__links {
+		gap: 0.9rem;
+		font-size: 0.86rem;
+	}
+	.nav__links a.nav__signin {
+		padding-left: 0.9rem;
+	}
+	.nav__brand svg {
+		width: 1.25rem;
+		height: 1.25rem;
+	}
+	.nav__brand {
+		font-size: 0.95rem;
+	}
+}
+
+/* ------------------------------------------------------------------ footer */
+
+.foot {
+	position: relative;
+	z-index: 3;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem 2rem;
+	align-items: baseline;
+	justify-content: space-between;
+	padding: 2.5rem var(--gutter) calc(2.5rem + env(safe-area-inset-bottom));
+	border-top: 1px solid var(--rule);
+	font-size: 0.88rem;
+	color: var(--soft);
+	background: var(--paper);
+}
+.foot div {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1.2rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.foot a {
+	color: var(--soft);
+}
+.foot__data {
+	flex-basis: 100%;
+	font-size: 0.78rem;
+	color: var(--faint);
+	max-width: 62rem;
+}
+
+
+
+@media (max-width: 480px) {
+	.nav {
+		gap: 0.5rem;
+		padding: 0 1rem;
+	}
+	.nav__links {
+		gap: 0.7rem;
+		font-size: 0.8rem;
+	}
+	.nav__links a.nav__signin {
+		padding-left: 0.7rem;
+	}
+	.nav__brand {
+		gap: 0.4rem;
+		font-size: 0.9rem;
+	}
+}
+@media (max-width: 360px) {
+	/* The mark alone; the link keeps its accessible name. */
+	.nav__brand {
+		font-size: 0;
+	}
+}
+
+/* Each style's name is set in that style's display face and case wherever the row appears, on the
+   landing demo and the flagship page alike (STY-08). Air shares Sleek's display face. */
+body .themes__group button[data-theme="sleek"],
+body .themes__group button[data-theme="air"] {
+	font-family: "Space Grotesk", var(--font-ui);
+	font-weight: 600;
+}
+body .themes__group button[data-theme="scientific"] {
+	font-family: "RichView Serif", Georgia, serif;
+	font-weight: 400;
+	font-size: 0.92rem;
+}
+body .themes__group button[data-theme="brutalist"] {
+	font-family: "Big Shoulders", "Arial Narrow", sans-serif;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	font-size: 0.92rem;
+}
+body .themes__group button[data-theme="hand-drawn"] {
+	font-family: "Patrick Hand", var(--font-ui);
+	font-weight: 400;
+	font-size: 1rem;
+}

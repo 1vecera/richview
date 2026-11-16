@@ -1,0 +1,33 @@
+---
+title: Show one number against the bands that give it meaning
+description: A gauge places a single value on an arc whose bands the author sets, so the reader sees where it stands without a grade the data did not carry.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Satisfaction sits in the fair band
+
+This illustrative survey score is 72 on a scale of 0 to 100. The bands are the team's own thresholds; RichView draws them as written and grades nothing itself.
+
+```chart
+type: gauge
+title: Customer satisfaction is fair, short of good
+subtitle: Survey score out of 100
+data:
+  inline:
+    - {measure: Satisfaction, score: 72}
+encoding: {x: measure, y: score}
+axes:
+  y: {label: Score}
+style:
+  min: 0
+  max: 100
+  bands:
+    - {to: 50, label: Poor}
+    - {to: 75, label: Fair}
+    - {to: 100, label: Good}
+```
+
+*Source: Illustrative values.*
+
+Use the keyboard or pointer to read the value, its band and the scale.

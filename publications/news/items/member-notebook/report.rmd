@@ -1,0 +1,47 @@
+---
+title: "Inside the example research notebook"
+description: "A safe synthetic member-only item for testing authenticated reading."
+version: 1.0.0
+styles: [scientific]
+publish:
+  id: "member-notebook"
+  slug: "member-notebook"
+  summary: "A safe synthetic member-only item for testing authenticated reading."
+  byline: "RichView Example Desk"
+  section: "research"
+  tags: ["example", "method"]
+  published: "2026-10-12T09:00:00Z"
+  updated: "2026-10-18T09:00:00Z"
+  state: "published"
+  audience: "members"
+  kind: "report"
+  aliases: []
+  corrections: []
+---
+
+**Example material · Synthetic observations · 18 October 2026**
+
+## The private reading room
+
+This item exists to demonstrate access control. Its content is deliberately harmless and synthetic. A private repository holds its source; the reader gateway protects the rendered report and its assets.
+
+An authenticated reader with the members entitlement can open it. An anonymous reader should not find its title in public search results, RSS or the sitemap.
+
+```chart
+type: bar
+title: "Synthetic sample items"
+data:
+  inline:
+    - {category: "Public", value: 3}
+    - {category: "Members", value: 2}
+encoding: {x: category, y: value}
+axes:
+  x: {label: Category}
+  y: {label: "Synthetic sample items"}
+```
+
+*Source: Safe synthetic fixture for access verification.*
+
+## What to take away
+
+Being hidden from a menu is not protection. The same entitlement is checked for direct report, asset and historical-release routes.

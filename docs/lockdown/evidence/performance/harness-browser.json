@@ -1,0 +1,241 @@
+{
+ "_source": {
+  "files": [
+   "tmp/performance/browser.json"
+  ],
+  "sha256": {
+   "tmp/performance/browser.json": "cb86ed5f5a3a45b575cc5f29e519d550dcc4ab643b16a5555473e1d4bee3b6c1"
+  },
+  "note": "node scripts/benchmark-browser.mjs, b4db233, Claw Mini, Chromium 153, 2026-10-21; per-event samples omitted"
+ },
+ "data": {
+  "browser": "153.0.8010.12",
+  "base": "http://127.0.0.1:60775",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "scope": "Real release Wasm, live Rust DOM charts. Warm interaction latency starts at DOM keyboard dispatch; two animation frames allow the changed DOM to be presented. Rust frame time includes layout and DOM writes, and excludes browser paint. No TypeScript comparison is inferred from these measurements.",
+  "errors": [],
+  "wasm": {
+   "sha256": "67270c8c8a4d9bd96c2a21662463467c4d465d4e2d19ce8f374cf0787bdfd8d5",
+   "delivered_identity_bytes": 4366342,
+   "delivered_identity_encoding": "identity",
+   "delivered_gzip_bytes": 1520124,
+   "delivered_gzip_encoding": "gzip",
+   "computed_gzip_bytes": 1515819
+  },
+  "cold_all_examples_mounted_ms": 277.2542090000002,
+  "first_mount": [
+   {
+    "example": "keeling",
+    "first_live_frame_ms": 183.79999999701977,
+    "rust_layout_dom_ms": 7
+   },
+   {
+    "example": "cpi",
+    "first_live_frame_ms": 187.79999999701977,
+    "rust_layout_dom_ms": 3.699999988079071
+   },
+   {
+    "example": "grid",
+    "first_live_frame_ms": 262.79999999701977,
+    "rust_layout_dom_ms": 3.2999999970197678
+   }
+  ],
+  "heap_after_mount": {
+   "scope": "Main page JavaScript isolate; separate worker and sandboxed preview heaps excluded",
+   "js_used_bytes": 3302788,
+   "js_total_bytes": 6422528,
+   "embedder_heap_used_bytes": 8875448,
+   "backing_storage_bytes": 3290101
+  },
+  "warm_100_dense_calendar_interactions": {
+   "workload": "35,040 quarter-hours, four series, two panes; alternating centered zoom in/out with reduced motion",
+   "rust_layout_dom": {
+    "samples": 100,
+    "p50_ms": 3.5,
+    "p95_ms": 4.5,
+    "min_ms": 2.300000011920929,
+    "max_ms": 4.899999991059303
+   },
+   "event_to_frame": {
+    "samples": 100,
+    "p50_ms": 19.799999997019768,
+    "p95_ms": 24.5,
+    "min_ms": 14.700000002980232,
+    "max_ms": 25.900000005960464
+   },
+   "event_to_two_animation_frames": {
+    "samples": 100,
+    "p50_ms": 49.8999999910593,
+    "p95_ms": 54.599999994039536,
+    "min_ms": 45.3999999910593,
+    "max_ms": 70.1000000089407
+   },
+   "samples": {
+    "omitted_samples": 100
+   }
+  },
+  "heap_after_100_interactions": {
+   "scope": "Main page JavaScript isolate; separate worker and sandboxed preview heaps excluded",
+   "js_used_bytes": 3433600,
+   "js_total_bytes": 5373952,
+   "embedder_heap_used_bytes": 5575328,
+   "backing_storage_bytes": 1536990
+  },
+  "direct_dense_csv_edit": {
+   "source_lines": 35045,
+   "visible_rows": 508,
+   "visible_csv_bytes": 23545,
+   "source_paged": "true",
+   "synchronous_input_ms": 35.3999999910593,
+   "input_to_rust_frame_ms": 40.5,
+   "rust_layout_dom_ms": 3.0999999940395355,
+   "long_tasks": [],
+   "source_rows": 35040,
+   "source_bytes": 1610725,
+   "source_sha256": "a47a4a513a361c1c52cacf03431b709a6ed41bc108c27fcf22a4832687cecd85"
+  },
+  "warm_20_flagship_theme_changes": {
+   "workload": "Invariant 18-chart flagship, all 23 target fonts warmed before timing;20 sequential theme changes. All-chart endpoint records each chart first frame after change; settled endpoint separately records latest frames after twoRAF (older harness mislabeled that latest-frame endpoint as first-all-chart).",
+   "event_to_all_chart_frames": {
+    "samples": 20,
+    "p50_ms": 39.7998046875,
+    "p95_ms": 44.399658203125,
+    "min_ms": 30.399658203125,
+    "max_ms": 47.39990234375
+   },
+   "event_to_settled_all_chart_frames": {
+    "samples": 20,
+    "p50_ms": 39.7998046875,
+    "p95_ms": 44.399658203125,
+    "min_ms": 30.399658203125,
+    "max_ms": 47.39990234375
+   },
+   "event_to_two_animation_frames": {
+    "samples": 20,
+    "p50_ms": 74.89990234375,
+    "p95_ms": 86.7998046875,
+    "min_ms": 58.899658203125,
+    "max_ms": 96.39990234375
+   },
+   "combined_rust_layout_dom": {
+    "samples": 20,
+    "p50_ms": 13.399999991059303,
+    "p95_ms": 15.900000020861626,
+    "min_ms": 10.700000032782555,
+    "max_ms": 17.599999994039536
+   },
+   "samples": {
+    "omitted_samples": 20
+   }
+  },
+  "warm_20_small_source_edits": {
+   "workload": "Same small report source with only title changed, 20 sequential native input events; cached external preview runtime",
+   "input_to_first_live_frame": {
+    "samples": 20,
+    "p50_ms": 135.199951171875,
+    "p95_ms": 148.89990234375,
+    "min_ms": 129.5,
+    "max_ms": 149.300048828125
+   },
+   "input_to_two_animation_frames": {
+    "samples": 20,
+    "p50_ms": 164.900146484375,
+    "p95_ms": 228.800048828125,
+    "min_ms": 160.099853515625,
+    "max_ms": 235
+   },
+   "samples": {
+    "omitted_samples": 20
+   }
+  },
+  "dense_source_live_edit": {
+   "input_to_interactive_preview_ms": 775.6999999880791,
+   "worker_requests": [
+    {
+     "id": 21,
+     "source_bytes": 2033557,
+     "at": 3823.4000000059605,
+     "source_sha256": "d4a657d6b913733c23aeff611344b5d742e6de46f29a39f6c551c9c8b3630130"
+    }
+   ],
+   "main_thread_long_tasks": [
+    {
+     "start_ms": 3725,
+     "duration_ms": 57
+    },
+    {
+     "start_ms": 4007.9000000059605,
+     "duration_ms": 57
+    }
+   ],
+   "main_thread_max_16ms_heartbeat_gap_ms": 103.70000000298023,
+   "synchronous_input_ms": 39.599999994039536,
+   "input_to_first_live_frame_ms": 547.400146484375,
+   "rust_layout_dom_ms": 27.80000001192093,
+   "source_bytes": 2033557,
+   "source_sha256": "d4a657d6b913733c23aeff611344b5d742e6de46f29a39f6c551c9c8b3630130"
+  },
+  "heap_after_dense_source_edit": {
+   "scope": "Main page JavaScript isolate; separate worker and sandboxed preview heaps excluded",
+   "js_used_bytes": 39444408,
+   "js_total_bytes": 55099392,
+   "embedder_heap_used_bytes": 3394224,
+   "backing_storage_bytes": 8859870
+  },
+  "preview_runtime_stats": {
+   "callbacks": 24,
+   "mountedCharts": 1,
+   "sourceRows": 35040,
+   "svgNodes": 0
+  },
+  "fixed_budgets": {
+   "dense_rust_dom_p95_ms": {
+    "actual": 4.5,
+    "maximum": 16,
+    "passed": true
+   },
+   "dense_two_animation_frames_p95_ms": {
+    "actual": 54.599999994039536,
+    "maximum": 100,
+    "passed": true
+   },
+   "theme_first_all_18_frames_p95_ms": {
+    "actual": 44.399658203125,
+    "maximum": 100,
+    "passed": true
+   },
+   "theme_settled_all_18_frames_p95_ms": {
+    "actual": 44.399658203125,
+    "maximum": 100,
+    "passed": true
+   },
+   "small_edit_first_live_p95_ms": {
+    "actual": 148.89990234375,
+    "maximum": 300,
+    "passed": true
+   },
+   "dense_edit_first_live_ms": {
+    "actual": 547.400146484375,
+    "maximum": 1000,
+    "passed": true
+   },
+   "cold_three_examples_ms": {
+    "actual": 277.2542090000002,
+    "maximum": 2500,
+    "passed": true
+   },
+   "delivered_gzip_wasm_bytes": {
+    "actual": 1520124,
+    "maximum": 1572864,
+    "passed": true
+   }
+  },
+  "status": "passed",
+  "browser_process_memory": {
+   "supported": false,
+   "scope": "Owned Chromium RSS/HWM sampling requires Linux /proc; memory is not measured on this host.",
+   "samples": []
+  }
+ }
+}

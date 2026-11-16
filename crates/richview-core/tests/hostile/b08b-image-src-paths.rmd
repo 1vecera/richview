@@ -1,0 +1,18 @@
+---
+title: Image source paths
+---
+
+```image
+src: 'javascript:HOSTILE_SRC()'
+alt: a
+```
+
+```image
+src: 'https://evil.example/HOSTILE.png'
+alt: c
+```
+
+```image
+src: '//evil.example/HOSTILE.png'
+alt: d
+```

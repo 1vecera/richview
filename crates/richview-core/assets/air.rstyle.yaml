@@ -1,0 +1,76 @@
+# Air: white surfaces, black chart ink and the vivid Sleek series palette.
+# Air shares Sleek's faces (STY-27): Space Grotesk 600 for display, Geist for text and UI, Geist Mono for data. White paper, black ink and a lighter shade of blue tell the two apart (STY-01, STY-02).
+colophon: show
+tokens:
+  scheme: light
+  bg: "oklch(1 0 0)"
+  bg-elev: "oklch(0.9769 0.0109 274.9)"
+  bg-chart: "oklch(1 0 0)"
+  ink: "oklch(0 0 0)"
+  ink-soft: "oklch(0.3313 0.0195 260.65)"
+  ink-faint: "oklch(0.5456 0.0327 268.08)"
+  rule: "oklch(0.8635 0.0277 267.5)"
+  rule-soft: "oklch(0.9399 0.0141 268.49)"
+  accent: "oklch(0.48 0.22 264)"
+  accent-soft: "oklch(0.48 0.22 264 / 0.12)"
+  link: "oklch(0.48 0.22 264)"
+  brand: "oklch(0.48 0.22 264)"
+  # Semantic colours set text (callout titles, deltas): at least 4.5:1 on white.
+  up: "oklch(0.52 0.13 150)"
+  down: "oklch(0.55 0.19 27)"
+  hold: "oklch(0.55 0.12 70)"
+  chart-ink: "oklch(0 0 0)"
+  font-ui: "Geist, Inter, system-ui, sans-serif"
+  font-text: "Geist, Inter, system-ui, sans-serif"
+  font-display: "Space Grotesk, Inter, sans-serif"
+  font-mono: "Geist Mono, JetBrains Mono, ui-monospace, monospace"
+  size-small: "15px"
+  size-base: "18px"
+  size-h3: "22px"
+  size-h2: "32px"
+  size-h1: "40px"
+  size-display: "50px"
+  size-small-phone: "14px"
+  size-base-phone: "17px"
+  size-h3-phone: "21px"
+  size-h2-phone: "28px"
+  size-h1-phone: "33px"
+  size-display-phone: "38px"
+  line-base: "1.65"
+  measure: "42rem"
+  radius-s: "12px"
+  radius-m: "12px"
+  shadow-float: "0 2px 8px oklch(0 0 0 / 0.12)"
+  density: 1.25
+  block-gap: "5rem"
+  block-gap-phone: "3rem"
+layout:
+  report-max-width: "880px"
+# Light and unhurried: a slower, shallower rise.
+motion:
+  character: gentle
+  duration: 640
+  easing: soft
+  stagger: 50
+  block-entrance: fade-up
+  distance: 10
+components:
+  thumbnail:
+    rule: none
+  figure:
+    frame: rule-above
+    title: above
+    description: above
+  metric:
+    style: rule
+  callout:
+    border-width: "1px"
+  title:
+    letter-spacing: "-0.035em"
+chart:
+  legend: bottom
+  palette: air
+  # Sequential ramp for heatmaps, mixed in OKLCH; salience rises with value (from a near-white tint to a deep accent).
+  ramp: ["oklch(0.965 0.015 262)", "oklch(0.72 0.12 262)", "oklch(0.46 0.21 264)"]
+  negative-ramp: ["oklch(0.965 0.015 52)", "oklch(0.72 0.12 52)", "oklch(0.46 0.112 54)"]
+  bar-radius: 3

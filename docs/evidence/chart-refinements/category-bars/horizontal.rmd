@@ -1,0 +1,8 @@
+---
+title: Category-colored bar examples
+version: 0.0.1
+---
+
+```chart
+{"type":"bar","title":"One observation per category","encoding":{"x":"category","y":"value","color":"category"},"data":{"inline":[{"category":"North","value":null},{"category":"South","value":"10.000"},{"category":"Unavailable","value":null},{"category":"Central","value":"20.500"}]},"style":{"orientation":"horizontal"}}
+```

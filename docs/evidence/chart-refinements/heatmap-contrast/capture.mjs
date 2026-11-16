@@ -1,0 +1,52 @@
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const [worktreeArg, outputArg, label] = process.argv.slice(2);
+assert(worktreeArg && outputArg && ['before', 'after'].includes(label), 'capture.mjs WORKTREE OUTPUT before|after');
+const worktree = resolve(worktreeArg), output = resolve(outputArg), evidence = dirname(fileURLToPath(import.meta.url));
+mkdirSync(output, { recursive: true });
+const hash = path => createHash('sha256').update(readFileSync(path)).digest('hex');
+const expected = JSON.parse(readFileSync(evidence + '/verification.json'));
+assert.equal(hash(worktree + '/dist/web/richview_web_bg.wasm'), expected.builds[label].wasm);
+assert.equal(hash(worktree + '/packages/core/dist/rust_bg.wasm'), expected.builds[label].core_wasm);
+for (const entry of expected.cases) assert.equal(hash(evidence + '/' + entry.source), expected.files[entry.source]);
+const { default: core } = await import(pathToFileURL(worktree + '/packages/core/dist/index.js'));
+const { chromium } = await import(pathToFileURL(worktree + '/node_modules/playwright/index.mjs'));
+const { serveStatic } = await import(pathToFileURL(worktree + '/scripts/browser-harness.mjs'));
+let html = '';
+const server = await serveStatic({ '/': worktree + '/dist/web' }, { route(path, _url, response) {
+  if (path === '/review') { response.writeHead(200, { 'content-type': 'text/html' }); response.end(html); return true; }
+  if (path === '/favicon.ico') { response.writeHead(204); response.end(); return true; }
+} });
+const browser = await chromium.launch({ headless: true, executablePath: '/usr/bin/chromium' });
+const errors = [], files = {};
+try {
+  assert.equal(browser.version(), expected.browser);
+  for (const entry of expected.cases) {
+    const report = JSON.parse(core.render_source(readFileSync(evidence + '/' + entry.source, 'utf8'), JSON.stringify({
+      width: entry.width, styles: [entry.theme], runtime_url: server.base + '/richview_web',
+      report_folder: { root: entry.fixture, source: 'report.rmd', files: ['report.rmd', 'reference.json'] },
+    })));
+    html = report.html;
+    const context = await browser.newContext({ viewport: { width: entry.width, height: 900 }, deviceScaleFactor: 2, reducedMotion: entry.motion });
+    const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
+    await page.goto(server.base + '/review', { waitUntil: 'networkidle' });
+    await page.evaluate(async () => {
+      await document.fonts.ready; await window.__richview.settled();
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      await Promise.allSettled(document.getAnimations().filter(a => a.playState === 'running' && a.effect?.getComputedTiming().iterations !== Infinity).map(a => a.finished));
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    });
+    const name = entry.name + '-' + label + '.png';
+    await page.locator('figure.rv-chart').screenshot({ path: output + '/' + name });
+    files[name] = hash(output + '/' + name); assert.equal(files[name], expected.files[name], name);
+    await context.close();
+  }
+  assert.deepEqual(errors, []);
+  writeFileSync(output + '/capture.json', JSON.stringify({ head: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: worktree, encoding: 'utf8' }).trim(), wasm: expected.builds[label].wasm, browser: browser.version(), files, status: 'PASS' }, null, 2) + '\n');
+  console.log(JSON.stringify({ label, files, status: 'PASS' }));
+} finally { await browser.close(); await server.close(); }

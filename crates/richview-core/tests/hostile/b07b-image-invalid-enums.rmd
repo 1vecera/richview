@@ -1,0 +1,13 @@
+---
+title: Image enums
+---
+
+```image
+src: 'data:image/png;base64,AAAA'
+alt: x
+fit: '"><script>HOSTILE_FIT()</script>'
+width: '"><script>HOSTILE_W()</script>'
+height: '<script>'
+color: '"><script>HOSTILE_COLOR()</script>'
+credit: '<script>HOSTILE_CREDIT()</script>'
+```

@@ -1,0 +1,17 @@
+---
+title: Funnel of rounded counts
+---
+
+# Funnel of rounded counts
+
+```chart
+type: funnel
+title: Visitors to subscribers
+data:
+  inline:
+    - {stage: Visit, n: 10000}
+    - {stage: Sign up, n: 4100}
+    - {stage: Trial, n: 1000}
+    - {stage: Pay, n: 507}
+encoding: {x: stage, y: n}
+```

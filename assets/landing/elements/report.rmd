@@ -1,0 +1,61 @@
+---
+title: Developer talk moved to Anthropic
+version: 1.0.0
+styles: [sleek]
+---
+
+Every month, Hacker News commenters write thousands of comments that mention OpenAI or Anthropic. Anthropic's share of those mentions passed half in July 2025, peaked in April 2026 and has fallen back since.
+
+```chart
+type: combo
+title: Anthropic's share of mentions passed half in July 2025
+subtitle: Comments that mention Anthropic each month (bars) and its share of OpenAI and Anthropic mentions (line), January 2023 to September 2026
+data: {csv: data/hn-comment-mentions-monthly.csv}
+encoding: {x: month, y: anthropic_comments, line: anthropic_share}
+axes:
+  y: {label: Comments}
+  y2: {label: Share of mentions, format: percent}
+```
+
+*Source: Hacker News items, ClickHouse public copy (sql-clickhouse.clickhouse.com), counted for the flagship report. A comment counts for a company when its text matches openai|chatgpt or anthropic|claude as whole words. Data: data/hn-comment-mentions-monthly.csv.*
+
+```metric
+value: 0.7334
+label: Anthropic's share of mentions at its peak, April 2026
+format: percent
+```
+
+```metric
+value: 0.5651
+label: Anthropic's share in September 2026
+format: percent
+delta: -0.1683
+delta_label: since April
+trend: down
+```
+
+```metric
+value: 9676
+label: Comments that mention Anthropic, September 2026
+format: number
+```
+
+```callout
+kind: hold
+title: One community, not the public.
+body: These are Hacker News comments. They show what one tech community talks about, not public opinion.
+```
+
+```table
+title: Mentions by month
+data: {csv: data/hn-comment-mentions-monthly.csv}
+columns:
+  - {key: month, label: Month}
+  - {key: openai_comments, label: OpenAI, format: number, align: right}
+  - {key: anthropic_comments, label: Anthropic, format: number, align: right}
+  - {key: anthropic_share, label: Anthropic share, format: percent, align: right}
+sort: {key: month, dir: desc}
+max_rows: 6
+```
+
+*Source: the same Hacker News counts. Click a column heading to sort.*

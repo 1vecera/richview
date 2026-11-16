@@ -1,0 +1,306 @@
+/*
+ * The playground, in the home page's look: a bold heading, one bar of style pills and actions, and two
+ * floating sheets, the source and the report, each under a quiet file bar. The sheets carry the site's
+ * one soft shadow (STY-48); the report renders in its own style inside.
+ */
+
+body[data-richview-page="playground"] {
+	margin: 0;
+	background: var(--paper);
+	color: var(--ink);
+	font: 400 1rem / 1.5 var(--font-ui);
+}
+.pg {
+	--font-display: "Bricolage Grotesque", "Geist", ui-sans-serif, system-ui, sans-serif;
+	--ink-strong: #15130f;
+	--measure: 1440px;
+	--pad-x: max(var(--gutter), (100% - var(--measure)) / 2);
+	display: flex;
+	flex-direction: column;
+	min-height: calc(100vh - var(--nav-h));
+	padding: clamp(1.5rem, 5vh, 3.5rem) var(--pad-x) clamp(2rem, 6vh, 4rem);
+	gap: 1rem;
+}
+
+/* ------------------------------------------------------------------ the heading */
+
+.pg__head {
+	display: grid;
+	grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+	align-items: end;
+	gap: 0.6rem clamp(1.5rem, 4vw, 4rem);
+	margin-bottom: clamp(0.75rem, 2.5vh, 1.75rem);
+}
+.pg h1 {
+	margin: 0;
+	font: 600 clamp(2.9rem, 7.4vw, 6.6rem) / 0.92 var(--font-display);
+	letter-spacing: -0.04em;
+	color: var(--ink-strong);
+}
+.pg__lede {
+	margin: 0 0 0.4rem;
+	max-width: 30em;
+	font-size: clamp(1.05rem, 1.3vw, 1.22rem);
+	line-height: 1.45;
+	color: var(--soft);
+	text-wrap: pretty;
+}
+
+/* ------------------------------------------------------------------ the bar: styles and actions */
+
+.pg__bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75rem 1rem;
+}
+/* The five styles, each named in its own face (site.css), on one pill. */
+.pg .themes__group {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.2rem;
+	padding: 0.25rem;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-pill);
+	background: var(--panel);
+}
+.pg .themes__group button {
+	font: 600 0.9rem / 1 var(--font-ui);
+	color: var(--soft);
+	background: none;
+	border: 0;
+	border-radius: var(--r-pill);
+	padding: 0.55rem 0.95rem;
+	cursor: pointer;
+	transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out);
+}
+.pg .themes__group button:hover {
+	color: var(--ink);
+	background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.pg .themes__group button[aria-checked="true"] {
+	color: var(--paper);
+	background: var(--ink);
+}
+.pg__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.45rem;
+	margin-left: auto;
+}
+/* The actions are pills drawn in ink; the report's download, what most readers came for, is the blue one. */
+.pg__actions button {
+	min-height: 2.6rem;
+	font: 600 0.92rem / 1.2 var(--font-ui);
+	color: var(--ink);
+	background: transparent;
+	border: 1.5px solid color-mix(in srgb, var(--ink) 78%, transparent);
+	border-radius: var(--r-pill);
+	padding: 0.55rem 1.1rem;
+	cursor: pointer;
+	transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out), border-color 150ms var(--ease-out);
+}
+.pg__actions button:hover {
+	color: var(--paper);
+	background: var(--ink);
+	border-color: var(--ink);
+}
+.pg__actions #download-html {
+	color: #fff;
+	background: var(--blue);
+	border-color: var(--blue);
+}
+.pg__actions #download-html:hover {
+	background: var(--blue-ink);
+	border-color: var(--blue-ink);
+}
+.pg .themes__group button:focus-visible,
+.pg__actions button:focus-visible {
+	outline: 2px solid var(--blue);
+	outline-offset: 2px;
+}
+.pg__status {
+	min-height: 1.2em;
+	margin: 0;
+	font-size: 0.9rem;
+	color: var(--soft);
+}
+
+/* ------------------------------------------------------------------ the two sheets */
+
+.pg__panes {
+	flex: 1;
+	display: grid;
+	grid-template-columns: minmax(300px, 0.82fr) minmax(0, 1.18fr);
+	gap: clamp(1.25rem, 2.6vw, 2.5rem);
+	min-height: 0;
+	margin-top: 0.25rem;
+}
+.pg__source,
+.pg__preview {
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	border-radius: var(--r-panel);
+	background: var(--panel);
+	overflow: hidden;
+}
+/* The site's one soft shadow, for its floating sheets (STY-48). */
+.pg .sheet--source,
+.pg .sheet--report {
+	border: 1px solid color-mix(in srgb, var(--rule) 70%, transparent);
+	box-shadow: var(--shadow-float);
+}
+/* Each sheet's bar: the file, in the code face, and what it is. */
+.pg__source label,
+.pg__frame-bar {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	margin: 0;
+	padding: 0.7rem 1.1rem 0.65rem;
+	border-bottom: 1px solid color-mix(in srgb, var(--rule) 70%, transparent);
+	font: 400 0.84rem / 1.3 var(--font-ui);
+	color: var(--soft);
+}
+.pg__file {
+	font: 400 0.84rem / 1 var(--font-mono);
+	color: var(--ink);
+	padding: 0.32rem 0.6rem;
+	border-radius: 4px;
+	background: var(--paper-2);
+}
+.pg__frame-bar span {
+	color: var(--faint);
+}
+.pg__source textarea {
+	flex: 1;
+	min-height: 22rem;
+	/* Its padding inside its width: the end of every line stays in the pane. */
+	box-sizing: border-box;
+	width: 100%;
+	resize: none;
+	border: 0;
+	padding: 1rem 1.1rem;
+	background: transparent;
+	color: var(--ink);
+	caret-color: var(--blue);
+	font: 400 13px / 22px var(--font-mono);
+	tab-size: 2;
+}
+.pg__source textarea::selection {
+	background: color-mix(in srgb, var(--blue) 22%, transparent);
+}
+.pg__source textarea:focus-visible {
+	outline: 2px solid color-mix(in srgb, var(--blue) 45%, transparent);
+	outline-offset: -2px;
+}
+#diagnostics {
+	margin: 0;
+	padding: 0.75rem 1.1rem;
+	max-height: 25vh;
+	overflow: auto;
+	white-space: pre-wrap;
+	border-top: 1px solid color-mix(in srgb, var(--rule) 70%, transparent);
+	font: 400 0.78rem / 1.5 var(--font-mono);
+	color: var(--soft);
+	background: color-mix(in srgb, var(--paper-2) 60%, var(--panel));
+}
+#diagnostics:empty {
+	display: none;
+}
+.pg__preview iframe {
+	display: block;
+	flex: 1;
+	width: 100%;
+	min-height: max(30rem, 64vh);
+	border: 0;
+	background: var(--paper-2);
+}
+
+/* ------------------------------------------------------------------ narrower screens */
+
+@media (max-width: 899px) {
+	.pg__head {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.pg__panes {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.pg__actions {
+		margin-left: 0;
+	}
+	.pg__preview iframe {
+		min-height: 70vh;
+	}
+}
+/* A phone: the five styles share one row across the width, each in its own face. */
+@media (max-width: 520px) {
+	.pg .themes__group {
+		flex: 1 1 100%;
+		flex-wrap: nowrap;
+		justify-content: space-between;
+		gap: 0;
+	}
+	.pg .themes__group button {
+		padding: 0.5rem 0.45rem;
+		font-size: 0.8rem;
+	}
+	.pg__actions button {
+		min-height: 2.4rem;
+		padding: 0.45rem 0.85rem;
+		font-size: 0.86rem;
+	}
+}
+/* Narrower than one row holds: two even rows in a rounded box. */
+@media (max-width: 359px) {
+	.pg .themes__group {
+		flex-wrap: wrap;
+		justify-content: center;
+		border-radius: var(--r-panel);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.pg .themes__group button,
+	.pg__actions button {
+		transition: none;
+	}
+}
+
+/* The source editor uses the home editor's syntax and completion, within the existing sheet. */
+.pg__code {
+	--code-font: 400 13px / 22px var(--font-mono);
+	position: relative;
+	flex: 1;
+	min-height: 22rem;
+}
+.pg__code .code__hl,
+.pg__code .code__mirror,
+.pg__code textarea {
+	position: absolute;
+	inset: 0;
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 1rem 1.1rem;
+	font: var(--code-font);
+	tab-size: 2;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+	letter-spacing: 0;
+	font-variant-ligatures: none;
+}
+.pg__code .code__hl {
+	display: none;
+	overflow: hidden;
+	pointer-events: none;
+	color: var(--ink);
+}
+.pg__code .code__hl code { font: inherit; }
+.pg__code.is-live .code__hl { display: block; }
+.pg__code.is-live textarea {
+	color: transparent;
+	-webkit-text-fill-color: transparent;
+}
+.pg__code.is-live textarea::selection { -webkit-text-fill-color: transparent; }

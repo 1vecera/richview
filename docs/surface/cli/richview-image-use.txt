@@ -1,0 +1,34 @@
+Choose a photo: register the download once and print the YAML with its credit
+
+If the download-tracking call fails, the command prints an error and no YAML, so retrying is safe, but Unsplash may then count the download twice.
+
+Usage: richview image use [OPTIONS] <PHOTO_ID>
+
+Arguments:
+  <PHOTO_ID>
+          
+
+Options:
+      --width <WIDTH>
+          Requested image width in pixels; the file is never enlarged past the original
+          
+          [default: 1600]
+
+      --alt <ALT>
+          Alt text; defaults to the photo's own description
+
+      --as <PLACEMENT>
+          A fenced image block or a title_image frontmatter mapping
+
+          Possible values:
+          - block:       A fenced `image` block
+          - title-image: A `title_image` frontmatter mapping
+          
+          [default: block]
+
+      --format <FORMAT>
+          [default: text]
+          [possible values: text, json]
+
+  -h, --help
+          Print help (see a summary with '-h')

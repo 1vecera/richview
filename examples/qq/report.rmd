@@ -1,0 +1,46 @@
+---
+title: Check whether a sample follows a normal curve
+description: A normal quantile plot lines each value up against the normal quantile at its rank, with a reference line through the quartiles.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Most deliveries follow the line; the slowest few do not
+
+These illustrative delivery times are plotted against what a normal distribution would give at the same ranks. Points on the dashed line are normal-like; points that curve away from it are not.
+
+```chart
+type: qq
+title: Most deliveries track a normal curve, but the slowest few fall well above it
+subtitle: Days to deliver against the normal quantile; the dashed line passes through the quartiles
+data:
+  inline:
+    - {days: 2.1}
+    - {days: 2.6}
+    - {days: 2.9}
+    - {days: 3.1}
+    - {days: 3.3}
+    - {days: 3.4}
+    - {days: 3.6}
+    - {days: 3.7}
+    - {days: 3.9}
+    - {days: 4.0}
+    - {days: 4.2}
+    - {days: 4.3}
+    - {days: 4.5}
+    - {days: 4.6}
+    - {days: 4.9}
+    - {days: 5.1}
+    - {days: 5.4}
+    - {days: 5.8}
+    - {days: 6.3}
+    - {days: 7.2}
+    - {days: 8.9}
+encoding: {y: days}
+axes:
+  y: {label: Days to deliver}
+```
+
+*Source: Illustrative values. The quantiles and the line are computed from them.*
+
+Use the keyboard or pointer to read each value, its quantile and its rank.

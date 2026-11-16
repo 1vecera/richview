@@ -1,0 +1,500 @@
+{
+ "_source": {
+  "files": [
+   "tmp/prf-probe/first-paint.json"
+  ],
+  "sha256": {
+   "tmp/prf-probe/first-paint.json": "a54eee63ea9f47cf8a0f8b221acda32af67280429b97e54e368dd3e1f6de94c7"
+  },
+  "note": "tmp/prf-probe/first-paint.mjs (script in the ignored tmp/prf-probe/), b4db233 dist/web, Claw Mini, 2026-10-21"
+ },
+ "data": {
+  "started": "2026-10-21T19:24:27.723Z",
+  "browser": "153.0.8010.12",
+  "host": {
+   "cpus": "Apple M4",
+   "count": 10,
+   "platform": "darwin"
+  },
+  "load_before": [
+   2.43212890625,
+   2.71240234375,
+   2.70556640625
+  ],
+  "runs": [
+   {
+    "page": "small-report",
+    "profile": "desktop-loopback",
+    "rep": 0,
+    "wire_bytes": 1764591,
+    "load_event_ms": 98,
+    "dcl_ms": 95,
+    "response_end_ms": 66,
+    "fcp_ms": 92,
+    "lcp_ms": 112,
+    "lcp_el": "P",
+    "cls": 0.0142,
+    "shifts": [
+     {
+      "t": 107.20000000298023,
+      "v": 0.014246038726262433,
+      "src": [
+       "MAIN.rv-report__body",
+       "P.rv-report__lede",
+       "P.rv-report__meta"
+      ]
+     }
+    ],
+    "first_chart_frame_ms": 151,
+    "chart_frames": 1,
+    "loaf_count_over_50": 0,
+    "loaf_max_ms": 0,
+    "richview": "object",
+    "errors": []
+   },
+   {
+    "page": "small-report",
+    "profile": "desktop-loopback",
+    "rep": 1,
+    "wire_bytes": 1764591,
+    "load_event_ms": 43,
+    "dcl_ms": 40,
+    "response_end_ms": 8,
+    "fcp_ms": 36,
+    "lcp_ms": 64,
+    "lcp_el": "P",
+    "cls": 0.0142,
+    "shifts": [
+     {
+      "t": 53.1000000089407,
+      "v": 0.014246038726262433,
+      "src": [
+       "MAIN.rv-report__body",
+       "P.rv-report__lede",
+       "P.rv-report__meta"
+      ]
+     }
+    ],
+    "first_chart_frame_ms": 97,
+    "chart_frames": 1,
+    "loaf_count_over_50": 0,
+    "loaf_max_ms": 0,
+    "richview": "object",
+    "errors": []
+   },
+   {
+    "page": "small-report",
+    "profile": "desktop-loopback",
+    "rep": 2,
+    "wire_bytes": 1764591,
+    "load_event_ms": 40,
+    "dcl_ms": 37,
+    "response_end_ms": 9,
+    "fcp_ms": 36,
+    "lcp_ms": 56,
+    "lcp_el": "P",
+    "cls": 0.0142,
+    "shifts": [
+     {
+      "t": 49,
+      "v": 0.014246038726262433,
+      "src": [
+       "MAIN.rv-report__body",
+       "P.rv-report__lede",
+       "P.rv-report__meta"
+      ]
+     }
+    ],
+    "first_chart_frame_ms": 98,
+    "chart_frames": 1,
+    "loaf_count_over_50": 0,
+    "loaf_max_ms": 0,
+    "richview": "object",
+    "errors": []
+   },
+   {
+    "page": "small-report",
+    "profile": "phone-4x-slow4g",
+    "rep": 0,
+    "wire_bytes": 1764591,
+    "load_event_ms": 8124,
+    "dcl_ms": 8122,
+    "response_end_ms": 8067,
+    "fcp_ms": 752,
+    "lcp_ms": 768,
+    "lcp_el": "P",
+    "cls": 0,
+    "shifts": [],
+    "first_chart_frame_ms": 8225,
+    "chart_frames": 1,
+    "loaf_count_over_50": 2,
+    "loaf_max_ms": 578,
+    "richview": "object",
+    "errors": []
+   },
+   {
+    "page": "small-report",
+    "profile": "phone-4x-slow4g",
+    "rep": 1,
+    "wire_bytes": 1764591,
+    "load_event_ms": 8131,
+    "dcl_ms": 8129,
+    "response_end_ms": 8073,
+    "fcp_ms": 760,
+    "lcp_ms": 780,
+    "lcp_el": "P",
+    "cls": 0,
+    "shifts": [],
+    "first_chart_frame_ms": 8228,
+    "chart_frames": 1,
+    "loaf_count_over_50": 1,
+    "loaf_max_ms": 585,
+    "richview": "object",
+    "errors": []
+   },
+   {
+    "page": "small-report",
+    "profile": "phone-4x-slow4g",
+    "rep": 2,
+    "wire_bytes": 1764591,
+    "load_event_ms": 8125,
+    "dcl_ms": 8123,
+    "response_end_ms": 8066,
+    "fcp_ms": 752,
+    "lcp_ms": 768,
+    "lcp_el": "P",
+    "cls": 0,
+    "shifts": [],
+    "first_chart_frame_ms": 8222,
+    "chart_frames": 1,
+    "loaf_count_over_50": 2,
+    "loaf_max_ms": 582,
+    "richview": "object",
+    "errors": []
+   },
+   {
+    "page": "flagship-report",
+    "profile": "desktop-loopback",
+    "rep": 0,
+    "wire_bytes": 3001685,
+    "load_event_ms": 192,
+    "dcl_ms": 192,
+    "response_end_ms": 109,
+    "fcp_ms": 156,
+    "lcp_ms": 188,
+    "lcp_el": "IMG",
+    "cls": 0.0018,
+    "shifts": [
+     {
+      "t": 168.6000000089407,
+      "v": 0.001813766584147805,
+      "src": [
+       "P.",
+       "H2.",
+       "ASIDE.rv-callout rv-callout--hold",
+       "TIME."
+      ]
+     }
+    ],
+    "first_chart_frame_ms": null,
+    "chart_frames": 0,
+    "loaf_count_over_50": 1,
+    "loaf_max_ms": 55,
+    "richview": "object",
+    "errors": []
+   },
+   {
+    "page": "flagship-report",
+    "profile": "desktop-loopback",
+    "rep": 1,
+    "wire_bytes": 3001685,
+    "load_event_ms": 81,
+    "dcl_ms": 80,
+    "response_end_ms": 14,
+    "fcp_ms": 44,
+    "lcp_ms": 80,
+    "lcp_el": "IMG",
+    "cls": 0.0018,
+    "shifts": [
+     {
+      "t": 52.900000005960464,
+      "v": 0.001813766584147805,
+      "src": [
+       "P.",
+       "H2.",
+       "ASIDE.rv-callout rv-callout--hold",
+       "TIME."
+      ]
+     }
+    ],
+    "first_chart_frame_ms": null,
+    "chart_frames": 0,
+    "loaf_count_over_50": 0,
+    "loaf_max_ms": 0,
+    "richview": "object",
+    "errors": []
+   },
+   {
+    "page": "flagship-report",
+    "profile": "desktop-loopback",
+    "rep": 2,
+    "wire_bytes": 3001685,
+    "load_event_ms": 77,
+    "dcl_ms": 77,
+    "response_end_ms": 18,
+    "fcp_ms": 44,
+    "lcp_ms": 76,
+    "lcp_el": "IMG",
+    "cls": 0.0018,
+    "shifts": [
+     {
+      "t": 55.20000000298023,
+      "v": 0.001813766584147805,
+      "src": [
+       "P.",
+       "H2.",
+       "ASIDE.rv-callout rv-callout--hold",
+       "TIME."
+      ]
+     }
+    ],
+    "first_chart_frame_ms": null,
+    "chart_frames": 0,
+    "loaf_count_over_50": 0,
+    "loaf_max_ms": 0,
+    "richview": "object",
+    "errors": []
+   },
+   {
+    "page": "flagship-report",
+    "profile": "phone-4x-slow4g",
+    "rep": 0,
+    "wire_bytes": 2990229,
+    "load_event_ms": 13607,
+    "dcl_ms": 13603,
+    "response_end_ms": 13530,
+    "fcp_ms": 1108,
+    "lcp_ms": 1172,
+    "lcp_el": "IMG",
+    "cls": 0,
+    "shifts": [],
+    "first_chart_frame_ms": null,
+    "chart_frames": 0,
+    "loaf_count_over_50": 1,
+    "loaf_max_ms": 551,
+    "richview": "object",
+    "errors": []
+   },
+   {
+    "page": "flagship-report",
+    "profile": "phone-4x-slow4g",
+    "rep": 1,
+    "wire_bytes": 2990229,
+    "load_event_ms": 13615,
+    "dcl_ms": 13612,
+    "response_end_ms": 13538,
+    "fcp_ms": 1120,
+    "lcp_ms": 1188,
+    "lcp_el": "IMG",
+    "cls": 0,
+    "shifts": [],
+    "first_chart_frame_ms": null,
+    "chart_frames": 0,
+    "loaf_count_over_50": 2,
+    "loaf_max_ms": 552,
+    "richview": "object",
+    "errors": []
+   },
+   {
+    "page": "flagship-report",
+    "profile": "phone-4x-slow4g",
+    "rep": 2,
+    "wire_bytes": 2990229,
+    "load_event_ms": 13618,
+    "dcl_ms": 13614,
+    "response_end_ms": 13538,
+    "fcp_ms": 1120,
+    "lcp_ms": 1188,
+    "lcp_el": "IMG",
+    "cls": 0,
+    "shifts": [],
+    "first_chart_frame_ms": null,
+    "chart_frames": 0,
+    "loaf_count_over_50": 1,
+    "loaf_max_ms": 552,
+    "richview": "object",
+    "errors": []
+   },
+   {
+    "page": "charts-page",
+    "profile": "desktop-loopback",
+    "rep": 0,
+    "wire_bytes": 2419215,
+    "load_event_ms": 37,
+    "dcl_ms": 37,
+    "response_end_ms": 2,
+    "fcp_ms": 44,
+    "lcp_ms": 44,
+    "lcp_el": "P",
+    "cls": 0.0026,
+    "shifts": [
+     {
+      "t": 226.59999999403954,
+      "v": 0.0023089476701817556,
+      "src": [
+       "DIV.facts",
+       "DIV.themes",
+       "#text."
+      ]
+     },
+     {
+      "t": 315,
+      "v": 0.00033463928473829736,
+      "src": [
+       "#text.",
+       "#text.",
+       "#text.",
+       "DIV.themes",
+       "#text."
+      ]
+     }
+    ],
+    "first_chart_frame_ms": 224,
+    "chart_frames": 6,
+    "loaf_count_over_50": 1,
+    "loaf_max_ms": 74,
+    "richview": "object",
+    "errors": []
+   },
+   {
+    "page": "charts-page",
+    "profile": "desktop-loopback",
+    "rep": 1,
+    "wire_bytes": 2419215,
+    "load_event_ms": 26,
+    "dcl_ms": 26,
+    "response_end_ms": 1,
+    "fcp_ms": 32,
+    "lcp_ms": 32,
+    "lcp_el": "P",
+    "cls": 0.0044,
+    "shifts": [
+     {
+      "t": 82.8999999910593,
+      "v": 0.004436091084212106,
+      "src": [
+       "DIV.facts",
+       "#text.",
+       "#text.",
+       "DIV.themes",
+       "#text."
+      ]
+     }
+    ],
+    "first_chart_frame_ms": 77,
+    "chart_frames": 6,
+    "loaf_count_over_50": 1,
+    "loaf_max_ms": 64,
+    "richview": "object",
+    "errors": []
+   },
+   {
+    "page": "charts-page",
+    "profile": "desktop-loopback",
+    "rep": 2,
+    "wire_bytes": 2419215,
+    "load_event_ms": 26,
+    "dcl_ms": 26,
+    "response_end_ms": 1,
+    "fcp_ms": 32,
+    "lcp_ms": 32,
+    "lcp_el": "P",
+    "cls": 0.0044,
+    "shifts": [
+     {
+      "t": 86.59999999403954,
+      "v": 0.004436091084212106,
+      "src": [
+       "DIV.facts",
+       "#text.",
+       "#text.",
+       "DIV.themes",
+       "#text."
+      ]
+     }
+    ],
+    "first_chart_frame_ms": 80,
+    "chart_frames": 4,
+    "loaf_count_over_50": 1,
+    "loaf_max_ms": 67,
+    "richview": "object",
+    "errors": []
+   },
+   {
+    "page": "charts-page",
+    "profile": "phone-4x-slow4g",
+    "rep": 0,
+    "wire_bytes": 24248,
+    "load_event_ms": 443,
+    "dcl_ms": 443,
+    "response_end_ms": 184,
+    "fcp_ms": 464,
+    "lcp_ms": 464,
+    "lcp_el": "P",
+    "cls": 0,
+    "shifts": [],
+    "first_chart_frame_ms": null,
+    "chart_frames": 0,
+    "loaf_count_over_50": 1,
+    "loaf_max_ms": 259,
+    "richview": "undefined",
+    "errors": []
+   },
+   {
+    "page": "charts-page",
+    "profile": "phone-4x-slow4g",
+    "rep": 1,
+    "wire_bytes": 24248,
+    "load_event_ms": 448,
+    "dcl_ms": 448,
+    "response_end_ms": 183,
+    "fcp_ms": 448,
+    "lcp_ms": 448,
+    "lcp_el": "P",
+    "cls": 0,
+    "shifts": [],
+    "first_chart_frame_ms": null,
+    "chart_frames": 0,
+    "loaf_count_over_50": 1,
+    "loaf_max_ms": 267,
+    "richview": "undefined",
+    "errors": []
+   },
+   {
+    "page": "charts-page",
+    "profile": "phone-4x-slow4g",
+    "rep": 2,
+    "wire_bytes": 24248,
+    "load_event_ms": 432,
+    "dcl_ms": 432,
+    "response_end_ms": 185,
+    "fcp_ms": 428,
+    "lcp_ms": 428,
+    "lcp_el": "P",
+    "cls": 0,
+    "shifts": [],
+    "first_chart_frame_ms": null,
+    "chart_frames": 0,
+    "loaf_count_over_50": 1,
+    "loaf_max_ms": 246,
+    "richview": "undefined",
+    "errors": []
+   }
+  ],
+  "load_after": [
+   2.60107421875,
+   2.58642578125,
+   2.64599609375
+  ]
+ }
+}

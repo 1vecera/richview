@@ -1,0 +1,12 @@
+---
+title: Title image
+title_image:
+  src: 'data:image/png;base64,AAAA'
+  alt: '"><script>HOSTILE_ALT()</script>'
+  caption: '<img src=x onerror=HOSTILE_CAPTION()>'
+  fit: '"><script>'
+  width: '"><script>'
+  color: 'red;}</style><script>HOSTILE_COLOR()</script>'
+---
+
+Body.

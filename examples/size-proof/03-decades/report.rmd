@@ -1,0 +1,41 @@
+---
+title: Changes in life expectancy by decade
+description: Changes between selected Gapminder regional estimates from 1950 to 2019.
+version: 0.1.0
+styles: [scientific]
+---
+
+## Changes differed across periods and regions
+
+Asia's estimated life expectancy fell by 4.9 years from 1950 to 1960, then rose by 14.5 years from 1960 to 1970. Africa gained 0.7 years from 1990 to 2000 and 5.4 from 2000 to 2010; the Americas and Europe gained in every interval. The last interval covers nine years, 2010–2019; the earlier intervals each cover ten. Each change is the end value minus the start value.
+
+```chart
+type: bar
+title: Life expectancy change by interval and region
+subtitle: Change in years; the last interval ends in 2019
+data: {csv: data.csv}
+encoding: {x: start_year, y: change, color: region}
+axes:
+  x: {label: Interval start, format: year}
+  y: {label: Change, unit: ' years'}
+```
+
+*Source: Gapminder, life expectancy at birth, version 15 (5 April 2026), regional averages weighted by population; [gapminder.org](https://www.gapminder.org/data/), CC BY 4.0. Changes are calculated by subtraction.*
+
+## Observations
+
+Life expectancy and differences are in years.
+
+```table
+title: Life expectancy changes by interval and region
+data: {csv: data.csv}
+columns:
+  - {key: region, label: 'Region'}
+  - {key: start_year, label: 'Start', format: year}
+  - {key: end_year, label: 'End', format: year}
+  - {key: life_start, label: 'Start estimate', format: number, digits: 3}
+  - {key: life_end, label: 'End estimate', format: number, digits: 3}
+  - {key: change, label: 'Change', format: number, digits: 3}
+```
+
+*Source: the same Gapminder data and calculations.*

@@ -1,0 +1,12 @@
+---
+title: Lists
+---
+
+- [x] <input type=text onfocus=HOSTILE_TASK() autofocus> done
+- [ ] [js](javascript:HOSTILE_TASK2()) open
+
+Term <script>HOSTILE_DT()</script>
+: Definition <img src=x onerror=HOSTILE_DD()>
+
+1. <li onclick=HOSTILE_LI()>item</li>
+2. second

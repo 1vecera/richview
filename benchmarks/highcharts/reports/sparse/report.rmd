@@ -1,0 +1,31 @@
+---
+title: Sparse monitoring observations
+format: rmd/1
+---
+
+```chart
+type: line
+title: Sparse monitoring observations
+subtitle: Irregular timestamps and missing values
+encoding:
+  x: date
+  y: value
+axes:
+  y:
+    label: Concentration
+    unit: ppm
+data:
+  inline:
+  - date: '2026-01-01'
+    value: 427.55
+  - date: '2026-01-03'
+    value: 428.12
+  - date: '2026-01-08'
+    value: null
+  - date: '2026-01-20'
+    value: 429.18
+  - date: '2026-02-03'
+    value: 428.85
+  - date: '2026-02-28'
+    value: 430.02
+```

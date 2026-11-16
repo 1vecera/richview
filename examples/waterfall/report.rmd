@@ -1,0 +1,38 @@
+---
+title: Follow revenue down to profit one step at a time
+description: A waterfall adds each step to the running sum, so the reader sees where a total came from.
+version: 0.0.1
+styles: [scientific]
+format: rmd/1
+---
+
+## Costs and tax take a third of revenue
+
+These illustrative figures start from revenue, subtract costs and tax, add a grant and end at profit. The chart adds the steps up and nothing else; a total that disagrees with the sum is reported, not replaced.
+
+```chart
+type: waterfall
+title: Profit is three quarters of revenue after a grant
+subtitle: Thousands of dollars; each bar starts where the last one ended
+data:
+  inline:
+    - step: Revenue
+      amount: 120
+      kind: start
+    - step: Costs
+      amount: -45.5
+    - step: Tax
+      amount: -14.5
+    - step: Grant
+      amount: 30
+    - step: Profit
+      amount: 90
+      kind: total
+encoding: {x: step, y: amount, measure: kind}
+axes:
+  y: {label: Amount, unit: k}
+```
+
+*Source: Illustrative values. Bars between the first and the last are signed changes.*
+
+Use the keyboard or pointer to read each step's change and the running total it leads to.

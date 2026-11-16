@@ -1,0 +1,13 @@
+{
+ "spec": {"type": "gantt", "title": "The build overlaps the design and the launch lands on 1 July", "encoding": {"label": "task", "start": "start", "end": "end", "color": "phase"}},
+ "rows": [
+  {"task": "Research", "phase": "Plan", "start": "2026-01-05", "end": "2026-02-13"},
+  {"task": "Wireframes", "phase": "Plan", "start": "2026-02-02", "end": "2026-03-06"},
+  {"task": "Prototype", "phase": "Build", "start": "2026-03-02", "end": "2026-04-10"},
+  {"task": "Build API", "phase": "Build", "start": "2026-03-16", "end": "2026-05-29"},
+  {"task": "Build app", "phase": "Build", "start": "2026-04-13", "end": "2026-06-19"},
+  {"task": "Docs", "phase": "Ship", "start": "2026-05-18", "end": "2026-06-12"},
+  {"task": "Testing", "phase": "Ship", "start": "2026-06-01", "end": "2026-06-26"},
+  {"task": "Launch", "phase": "Ship", "start": "2026-07-01", "end": "2026-07-01"}
+ ]
+}

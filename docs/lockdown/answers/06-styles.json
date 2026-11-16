@@ -1,0 +1,40 @@
+{
+  "partId": "06-styles",
+  "answers": {
+    "STY-01": {
+      "decision": "edit",
+      "text": "Chosen option: Brand layer over five styles, with these specifics.\n\nThe brand layer is abstract: only a mark (the RichView wordmark) and a colour, brand blue, in a distinct shade per style. RichView's design is driven by the LCH colour space and a set of cleanliness principles.\n\nThere are always five report styles, and each gets its own design review. Each style must feel very distinctive, beyond its fonts and colours: styles differ in structure too, for example outlines and shading or none, where the legend sits, and where chart titles sit. Scientific puts chart descriptions below the chart, sometimes with boxes around them, as scientific papers do.\n\nThe website and RichView's own presentations use one simple style.\n\nThe June warm-sand and indigo house identity is retired.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"The brand itself will have to be abstracted: it can only consist of a mark and a colour, given that we present so many different styles. We always review five styles, each style has its design review, and each style has to feel super distinctive, beyond fonts and colours: something can have outlines or shades, something not; legend position and chart title position can differ by style. Scientific should have descriptions of charts below the chart sometimes, because that's what scientific papers do, boxes around. The RichView wordmark in brand blue with different shades for different styles, distinct. LCH colour space and cleanliness principles drive RichView as a design. The website and our presentations have one simple style. The June warm sand goes into early retirement.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "c0fb87186e7cc5d4",
+      "updatedAt": "2026-10-26T17:31:58.892Z"
+    },
+    "STY-05": {
+      "decision": "edit",
+      "text": "Five main styles: Sleek (today's Sleek Dark), Air (today's Sleek Light, renamed: it must not be called \"Sleek\"), Scientific, Brutalist and Hand-drawn.\n\nThe showcase's studio themes are kept as extended themes. They are a real feature that shows how many variants RichView can produce, but they are not promoted much and do not appear in the normal style menus; at most they sit in a hidden or secondary style dropdown. The showcase keeps its side-by-side view of different styles and layers, which demonstrates the range.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"I hate that Sleek Dark and Sleek Light are both called Sleek. Sleek Dark should be Sleek; Sleek Light gets a different name. Scientific, Brutalist, Hand-drawn, exactly. We keep the showcase themes as extended themes; they don't show in random menus, maybe in a hidden style dropdown; I like the side-by-side options. Then, on the name: 'Air, let's go with Air.'\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "e0dc013be280efc7",
+      "updatedAt": "2026-10-26T17:51:38.885Z"
+    },
+    "STY-06": {
+      "decision": "edit",
+      "text": "Chosen option: Sleek (formerly Sleek Dark) is the default everywhere. A report without `styles` renders in it, `init` writes `styles: [sleek]`, and the playground, landing demo and flagship page open in it. Print and PDF use its light counterpart, Air (STY-05, STY-21).",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Sleek\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "4dd9d82dad0409cd",
+      "updatedAt": "2026-10-26T18:01:51.369Z"
+    },
+    "STY-14": {
+      "decision": "edit",
+      "text": "Style files are rich. Everything that differs between the built-in styles can also be changed in a style file: mostly fonts, colours, spacing and chart details, and the structural look choices too, such as outlines, shading and where legends and titles sit (STY-01). The rule of thumb: anything that is about how a report feels can be changed; anything that fixes underlying mechanics, such as phone width or page width, cannot.\n\nAgents get clear guidance on which settings are safe to play with and which are experimental. For example, centering a title may break the layout in ways nobody expects, so it is marked experimental. Every value still passes the closed, validated vocabulary (INT-28). The exact list is not over-specified here; it follows this intuition.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"All the things that are changed in different styles should be changeable also in the style sheets. I want good guidance for the agents so they know which things to play with and which are more experimental, for example centering: if you make the title central it might break in ways you don't expect. Fonts, colours, spaces, some of the chart details, all of that can be changed in the YAML. It should be very rich. Everything that feels like fixing underlying issues, like phone width or website width, should not be done. Everything that feels like feeling can be done. That's the intuition, without over-specifying it.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "87d8fc086c4297ab",
+      "updatedAt": "2026-10-26T18:04:06.613Z"
+    },
+    "STY-68": {
+      "decision": "edit",
+      "text": "Option 1, less strict. Each style gets one review sheet generated from the candidate. Show what makes sense rather than every variation:\n\n- the typography specimen, the every-block fixture, a representative majority of chart types (not necessarily all), the map, flow, a normal table and the pivot table, and the flagship, at phone and desktop widths and as PDF;\n- the same content in the other four styles beside it, so structural differences show: outlines and shading, legend and title positions, Scientific's captions below charts in boxes;\n- the style's declared structure (where legends and titles sit, outlines or none) verified against the geometry model, and STY-52's measured checks;\n- entrance clips in that style;\n- STY-51's three answers.\n\nThe agents choose the selection. Daniel reviews a sheet when a style is created and when its tokens or structure change. A review agent on the model he uses at the time judges the sheet first, including distinctiveness beyond the mechanical check, and its verdict sits on the sheet (DEL-68). A mechanical check flags two styles whose structural declarations are identical. Once a style is accepted, later changes reach Daniel one by one through the before-and-after report (DEL-69).",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel: 'I also want to have a normal table, not just the pivot table… you don't need every chart type. Majority of those. Whatever makes sense… this makes kind of sense, what you've wrote there, but… I would not be so strict… that I need to see every single variation' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "6aa8225e27b55027",
+      "updatedAt": "2026-10-26T19:18:29.140Z"
+    }
+  }
+}

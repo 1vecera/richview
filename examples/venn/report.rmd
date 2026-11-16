@@ -1,0 +1,32 @@
+---
+title: Show how groups overlap
+description: A Venn diagram draws two or three circles whose areas are the sizes of the sets, with their overlaps at their own sizes.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Three channels and the readers they share
+
+These illustrative counts give each channel its readers, and each overlap the readers it has in common. A row names the sets it counts, joined by an ampersand: a single set is its total, and two or three sets are the size of their overlap.
+
+```chart
+type: venn
+title: Web and email readers overlap the most
+subtitle: Readers by channel, a row for each set and each overlap, illustrative counts
+data:
+  inline:
+    - {channel: Email, readers: 620}
+    - {channel: App, readers: 480}
+    - {channel: Web, readers: 540}
+    - {channel: "Email & App", readers: 180}
+    - {channel: "Email & Web", readers: 210}
+    - {channel: "App & Web", readers: 150}
+    - {channel: "Email & App & Web", readers: 70}
+encoding: {sets: channel, y: readers}
+axes:
+  y: {label: Readers}
+```
+
+*Source: Illustrative counts.*
+
+Use the keyboard or pointer to read each channel and each overlap.

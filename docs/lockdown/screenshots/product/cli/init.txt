@@ -1,0 +1,51 @@
+$ richview init demo
+Created <scratch>/demo/report.rmd
+Try: richview serve <scratch>/demo/report.rmd
+(exit 0)
+
+$ richview init demo   # second run: never overwrites
+richview: [{"level":"error","code":"report.root.shared","message":"Duplicate report inventory path 'report.rmd'. Supply one unambiguous source and asset inventory.","path":"report.rmd"}]
+(exit 2)
+
+--- demo/report.rmd as created by init ---
+---
+title: My report turns in Q3
+description: One lede line beneath the title that defends the claim it makes.
+version: 0.0.1
+author: Your name
+theme: auto
+styles: [sleek]
+---
+
+# My report
+
+Replace this prose with your story. Plain Markdown works as expected.
+
+```big
+value: 1234
+label: Visits today
+delta: 0.12
+trend: up
+```
+
+```chart
+type: bar
+title: Visits by source
+data:
+  inline:
+    - source: Direct
+      visits: 420
+    - source: Search
+      visits: 310
+    - source: Social
+      visits: 180
+encoding: { x: source, y: visits }
+axes:
+  y: { label: Visits }
+```
+
+```callout
+kind: neutral
+title: Tip
+body: Edit this .rmd in any text editor. Preview with `richview serve`. Publish with `richview publish`.
+```

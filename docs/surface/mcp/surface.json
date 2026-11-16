@@ -1,0 +1,337 @@
+{
+  "protocolVersion": "2025-06-18",
+  "capabilities": {
+    "resources": {},
+    "tools": {}
+  },
+  "instructions": "Call richview_learn before drafting. Read data and save or edit the report's .rmd with your host's file tools, in its own report folder. Run richview_validate and richview_check after edits, including the final edit. Inspect structuredContent.status and diagnostics: status clean means no errors or warnings; ok true means no errors, and isError describes whether the call could execute. Repair warnings and errors, check again, then richview_render and inspect the output against the brief. Publish only when asked. The user chooses RichView-hosted Cowork at https://app.richview.ai or their own server, and configures RICHVIEW_SERVER and its RICHVIEW_TOKEN in the MCP host before publishing.",
+  "tools": [
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Upload a local data or media file to a configured S3-compatible store and return its integrity-pinned reference {url, bytes, sha256, type, visibility}. Private unless public is true. Calling again resumes an interrupted upload or reports the stored object. Progress notifications follow the request's progressToken.",
+      "inputSchema": {
+        "properties": {
+          "path": {
+            "description": "Local file to upload",
+            "type": "string"
+          },
+          "public": {
+            "description": "Serve under the public prefix with immutable caching",
+            "type": "boolean"
+          },
+          "store": {
+            "description": "Store profile name from stores.yaml",
+            "type": "string"
+          },
+          "type": {
+            "description": "Media type when the extension is ambiguous",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "store"
+        ],
+        "type": "object"
+      },
+      "name": "richview_asset_put"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Check a stored object against its reference: HEAD status, size, type and range support; with hash, stream the object and compare its SHA-256. Private references need store.",
+      "inputSchema": {
+        "properties": {
+          "asset": {
+            "description": "Reference {url, bytes, sha256, type, visibility}",
+            "type": "object"
+          },
+          "hash": {
+            "type": "boolean"
+          },
+          "store": {
+            "description": "Store profile that signs requests for private references",
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset"
+        ],
+        "type": "object"
+      },
+      "name": "richview_asset_verify"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "description": "Renders the saved report and checks provenance and chart geometry: clipping, collisions and dropped labels. Read structuredContent.status and diagnostics, repair warnings/errors, and check again after the final edit. A report finding returns isError: false; status: clean means no warnings or errors. Same result as `richview check`.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "chartWidth": {
+            "description": "Measure charts at this width in pixels instead of the widths readers get",
+            "maximum": 4096,
+            "minimum": 240,
+            "type": "number"
+          },
+          "inputPath": {
+            "description": "The report's .rmd, saved in its own report folder",
+            "type": "string"
+          },
+          "styles": {
+            "description": "Styles (a builtin name or a file in the report folder) replacing the source's `styles` for this call",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "inputPath"
+        ],
+        "type": "object"
+      },
+      "name": "richview_check"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "description": "Search Unsplash for photos. Returns candidates {id, description, author, author_url, width, height, color, thumb, regular, unsplash_url}. Show the user the photographer for each candidate and let them choose; searching does not register a download. Needs UNSPLASH_ACCESS_KEY in the server environment.",
+      "inputSchema": {
+        "properties": {
+          "orientation": {
+            "enum": [
+              "landscape",
+              "portrait",
+              "squarish"
+            ],
+            "type": "string"
+          },
+          "per_page": {
+            "description": "Results to return (default 6)",
+            "maximum": 10,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "query": {
+            "description": "What the photo should show",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "richview_image_search"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Use a chosen Unsplash photo: registers the download with Unsplash once (as the API guidelines require) and returns ready-to-paste YAML in `yaml`, an `image` block or a `title_image` frontmatter mapping, with a hotlinked src, width, height, the photo's dominant `color` (#rrggbb, omitted if the API gives none) and a visible credit (Photo by <name> on Unsplash). Reports may hotlink only credited images.unsplash.com photos. Paste the YAML into the .rmd unchanged and never download or rehost the image. Call it only for a photo that will appear in the report, once per photo. If it fails during download tracking it returns an error without YAML; retrying is safe but may count the download twice.",
+      "inputSchema": {
+        "properties": {
+          "alt": {
+            "description": "Alt text; defaults to the photo's description",
+            "type": "string"
+          },
+          "as": {
+            "description": "image fence (default) or title_image frontmatter",
+            "enum": [
+              "block",
+              "title-image"
+            ],
+            "type": "string"
+          },
+          "photo_id": {
+            "description": "id from richview_image_search",
+            "type": "string"
+          },
+          "width": {
+            "description": "Image width in pixels (default 1600)",
+            "maximum": 8192,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "photo_id"
+        ],
+        "type": "object"
+      },
+      "name": "richview_image_use"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "description": "Returns RichView's authoring guide, or one section of it. Call this first. Same text as `richview learn`.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "section": {
+            "enum": [
+              "grammar",
+              "chart-contract",
+              "style",
+              "workflow",
+              "anti-slop"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [],
+        "type": "object"
+      },
+      "name": "richview_learn"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": "Publishes a version of the report to the named RichView server. The token comes from the host environment (RICHVIEW_TOKEN), never from arguments. Same result as `richview publish`.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "inputPath": {
+            "description": "The report's .rmd, saved in its own report folder",
+            "type": "string"
+          },
+          "new": {
+            "description": "Create a report address the server has not stored before",
+            "type": "boolean"
+          },
+          "server": {
+            "description": "Server URL; defaults to RICHVIEW_SERVER and must equal it when that is set, so the token only goes to the configured server",
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "inputPath"
+        ],
+        "type": "object"
+      },
+      "name": "richview_publish"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "description": "Writes the self-contained HTML report, or a PDF printed by a local Chromium-family browser, into the report folder's Rendered/. Run richview_check after the final source edit for geometry and provenance findings before generating. Its result has ok, status, output (the file written) and the render diagnostics. Same result as `richview generate`.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "inputPath": {
+            "description": "The report's .rmd, saved in its own report folder",
+            "type": "string"
+          },
+          "output": {
+            "description": "report (default) or pdf",
+            "enum": [
+              "report",
+              "pdf"
+            ],
+            "type": "string"
+          },
+          "outputName": {
+            "description": "File name inside Rendered/; a .pdf name implies pdf",
+            "type": "string"
+          },
+          "page": {
+            "enum": [
+              "a4",
+              "letter"
+            ],
+            "type": "string"
+          },
+          "styles": {
+            "description": "Styles (a builtin name or a file in the report folder) replacing the source's `styles` for this call",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "inputPath"
+        ],
+        "type": "object"
+      },
+      "name": "richview_render"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "description": "Checks a report's structure and files without rendering it. With publish: true it adds the publish rules. Same result as `richview validate`.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "inputPath": {
+            "description": "The report's .rmd, saved in its own report folder",
+            "type": "string"
+          },
+          "publish": {
+            "description": "Also apply the publish rules: title, description, version and a valid slug",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "inputPath"
+        ],
+        "type": "object"
+      },
+      "name": "richview_validate"
+    }
+  ],
+  "resources": [
+    {
+      "description": "Reading this resource also returns its data/visits.csv companion; save both in the same report folder.",
+      "mimeType": "text/markdown",
+      "name": "Example: hello-world report.rmd",
+      "uri": "richview://examples/hello-world"
+    },
+    {
+      "mimeType": "text/markdown",
+      "name": "Rich Markdown format reference",
+      "uri": "richview://spec/rmd"
+    }
+  ],
+  "serverVersion": "<version>"
+}

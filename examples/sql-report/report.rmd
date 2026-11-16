@@ -1,0 +1,39 @@
+---
+title: Orders per month from a local SQL warehouse
+description: A small fictional DuckDB file, queried in-process; nothing calls out of the host.
+version: 0.0.1
+slug: sql-report
+styles: [scientific]
+---
+
+## Three months, one trend — read from DuckDB
+
+The report folder holds a local `data/warehouse.duckdb` file. The chart below is populated by a read-only SQL query executed by the native host's `local-duckdb` connector.
+
+```chart
+type: bar
+title: Orders increased from 120 to 180
+data:
+  sql:
+    connector: local-duckdb
+    query: queries/orders-by-month.sql
+    cache:
+      key: orders-by-month
+      ttl: 1h
+encoding:
+  x: month
+  y: orders
+axes:
+  x:
+    label: Month
+  y:
+    label: Orders
+```
+
+*Source: fictional monthly orders in the local DuckDB warehouse.*
+
+```callout
+kind: neutral
+title: Where the data comes from
+body: "The SQL text, DuckDB connection and captured rows stay on the native host; the rendered HTML carries only the rows and a Data source note. The rows are captured when the report renders and this chart reuses them for an hour (`cache.ttl`). Without a `cache` they are reused until the query changes, and `cache: { refresh: true }` runs the query on every render."
+```

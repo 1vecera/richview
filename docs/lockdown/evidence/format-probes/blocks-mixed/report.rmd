@@ -1,0 +1,67 @@
+---
+title: Calendar
+styles: scientific
+tags: [1]
+author: 42
+---
+
+```chart
+type: line
+title: Calendar default
+data:
+  inline:
+    - {month: "2026-01-01", v: 1}
+    - {month: "2026-02-01", v: 2}
+    - {month: "2026-03-01", v: 3}
+encoding: {x: month, y: v}
+```
+
+```chart
+type: line
+title: Calendar wide
+style: {ratio: wide}
+data:
+  inline:
+    - {month: "2026-01-01", v: 1}
+    - {month: "2026-02-01", v: 2}
+encoding: {x: month, y: v}
+```
+
+```chart
+type: bar
+data:
+  inline:
+    - {month: Jan, v: 1}
+    - {month: Feb, v: 2}
+encoding: {x: month, y: v}
+```
+
+```chart
+type: donut
+title: Not a type
+data:
+  inline:
+    - {month: Jan, v: 1}
+encoding: {x: month, y: v}
+```
+
+```chart
+type: bar
+title: Typo channel
+data:
+  inline:
+    - {region: A, year: "2024", v: 1}
+    - {region: A, year: "2025", v: 2}
+encoding: {x: region, y: v, colour: year}
+axes:
+  y: {lable: Value}
+```
+
+```callout
+kind: note
+body: Hello
+```
+
+```embed
+url: https://www.youtube-nocookie.com/embed/abc
+```

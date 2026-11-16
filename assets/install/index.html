@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Install RichView</title>
+    <meta name="description" content="Install the RichView command-line tool and make a local report." />
+    <link rel="icon" type="image/svg+xml" href="/landing/favicon.svg" />
+    <link rel="stylesheet" href="/site.css" />
+    <link rel="stylesheet" href="/legal.css" />
+  </head>
+  <body class="install-page" data-richview-page="legal">
+    <a class="skip" href="#main">Skip to content</a>
+    <!-- rv-site-header -->
+    <main id="main" class="legal">
+      <article>
+        <h1>Install RichView</h1>
+        <p>Make a report locally with the RichView command-line tool.</p>
+        <section>
+          <h2>Ask an agent</h2>
+          <p>Give your coding agent this instruction:</p>
+          <pre tabindex="0"><code><!-- rv-agent-prompt --></code></pre>
+        </section>
+        <section>
+          <h2>Install the command</h2>
+          <p>Install the latest <a href="https://github.com/1vecera/richview/releases/latest">GitHub release</a> on macOS Apple Silicon or Linux x64 with glibc 2.35 or newer. Linux SQL data sources also need kernel 6.2 or newer with Landlock ABI 3. Windows and Intel Mac are not supported yet.</p>
+          <pre class="shell" tabindex="0"><code>curl -fsSL https://github.com/1vecera/richview/releases/latest/download/install.sh | sh</code></pre>
+          <p>The installer verifies the archive and installs into a new <code>~/.richview</code> directory. It does not change your PATH or start a service. If that directory already exists, the installer will not overwrite it: update as below.</p>
+        </section>
+        <section>
+          <h2>Update</h2>
+          <p>To move an existing <code>~/.richview</code> to the latest release, uninstall it and install again. Your reports and RichView state are kept.</p>
+          <pre class="shell" tabindex="0"><code>sh "$HOME/.richview/uninstall.sh" --uninstall --prefix "$HOME/.richview"
+curl -fsSL https://github.com/1vecera/richview/releases/latest/download/install.sh | sh</code></pre>
+        </section>
+        <section>
+          <h2>Uninstall</h2>
+          <pre class="shell" tabindex="0"><code>sh "$HOME/.richview/uninstall.sh" --uninstall --prefix "$HOME/.richview"</code></pre>
+          <p>The uninstaller keeps your reports and RichView state, and refuses to remove changed, missing or extra installation files. Remove any PATH entry you added yourself.</p>
+        </section>
+        <section>
+          <h2>Make your first report</h2>
+          <p>Use the installed executable directly. Pick a new folder name if <code>richview-demo</code> already exists.</p>
+          <pre class="shell" tabindex="0"><code>~/.richview/bin/richview learn
+~/.richview/bin/richview init richview-demo
+~/.richview/bin/richview validate richview-demo/report.rmd --format json
+~/.richview/bin/richview check richview-demo/report.rmd --format json
+~/.richview/bin/richview generate richview-demo/report.rmd --format json</code></pre>
+          <p>Inspect the diagnostics, fix any issues and check again. Open <code>richview-demo/Rendered/report.html</code> in your browser. The starter data is fictional; replace it with your own data when ready.</p>
+        </section>
+        <section>
+          <p>For MCP and other tools, see the <a href="/docs/tools">tool guide</a>.</p>
+        </section>
+      </article>
+    </main>
+    <!-- rv-site-footer -->
+  </body>
+</html>

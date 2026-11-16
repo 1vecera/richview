@@ -1,0 +1,48 @@
+---
+title: Cost and retained audience
+format: rmd/1
+---
+
+```chart
+type: scatter
+title: Cost and retained audience
+subtitle: Bubble area encodes campaign volume
+encoding:
+  x: cost
+  y: audience
+  color: channel
+  size: volume
+axes:
+  x:
+    label: Cost
+    unit: CZK
+  y:
+    label: Audience
+    unit: k
+data:
+  inline:
+  - cost: 2500
+    audience: 12
+    channel: Organic
+    volume: 5
+  - cost: 7500
+    audience: 16
+    channel: Organic
+    volume: 8
+  - cost: 19000
+    audience: 22
+    channel: Organic
+    volume: 12
+  - cost: 3200
+    audience: 7
+    channel: Paid
+    volume: 15
+  - cost: 10000
+    audience: 18
+    channel: Paid
+    volume: 24
+  - cost: 22500
+    audience: 25
+    channel: Paid
+    volume: 40
+```

@@ -1,0 +1,20 @@
+{
+ "spec": {
+  "type": "radar",
+  "title": "Two frameworks across five skills",
+  "encoding": {"x": "skill", "y": "score", "color": "team"},
+  "axes": {"y": {"label": "Score"}}
+ },
+ "rows": [
+  {"skill": "Speed", "team": "Alpha", "score": 80},
+  {"skill": "Reliability", "team": "Alpha", "score": 65},
+  {"skill": "Cost", "team": "Alpha", "score": 40},
+  {"skill": "Documentation", "team": "Alpha", "score": 70},
+  {"skill": "Community support", "team": "Alpha", "score": 55},
+  {"skill": "Speed", "team": "Beta", "score": 50},
+  {"skill": "Reliability", "team": "Beta", "score": 90},
+  {"skill": "Cost", "team": "Beta", "score": 75},
+  {"skill": "Documentation", "team": "Beta", "score": 45},
+  {"skill": "Community support", "team": "Beta", "score": 85}
+ ]
+}

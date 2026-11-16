@@ -1,0 +1,58 @@
+[
+  {
+    "id": "pie-anchor-name",
+    "source": "---\ntitle: Pie annotation anchor study\nversion: 0.0.1\n---\n\n```chart\n{\"type\":\"pie\",\"title\":\"An annotation names only its authored category\",\"encoding\":{\"x\":\"category\",\"y\":\"value\"},\"data\":{\"inline\":[{\"category\":\"\",\"value\":1},{\"category\":\"North\",\"value\":2},{\"category\":\"South\",\"value\":3}]},\"annotations\":[{\"kind\":\"point\",\"at\":{\"name\":\"North\"},\"text\":\"Reviewed\"}]}\n```\n"
+  },
+  {
+    "id": "pie-anchor-field",
+    "source": "---\ntitle: Pie annotation anchor study\nversion: 0.0.1\n---\n\n```chart\n{\"type\":\"pie\",\"title\":\"An annotation names only its authored category\",\"encoding\":{\"x\":\"category\",\"y\":\"value\"},\"data\":{\"inline\":[{\"category\":\"\",\"value\":1},{\"category\":\"North\",\"value\":2},{\"category\":\"South\",\"value\":3}]},\"annotations\":[{\"kind\":\"text\",\"at\":{\"category\":\"North\"},\"text\":\"Reviewed\"}]}\n```\n"
+  },
+  {
+    "id": "pie-anchor-explicit-empty-name",
+    "source": "---\ntitle: Pie annotation anchor study\nversion: 0.0.1\n---\n\n```chart\n{\"type\":\"pie\",\"title\":\"An annotation names only its authored category\",\"encoding\":{\"x\":\"category\",\"y\":\"value\"},\"data\":{\"inline\":[{\"category\":\"\",\"value\":1},{\"category\":\"North\",\"value\":2},{\"category\":\"South\",\"value\":3}]},\"annotations\":[{\"kind\":\"point\",\"at\":{\"name\":\"\"},\"text\":\"Reviewed\"}]}\n```\n"
+  },
+  {
+    "id": "pie-anchor-explicit-empty-field",
+    "source": "---\ntitle: Pie annotation anchor study\nversion: 0.0.1\n---\n\n```chart\n{\"type\":\"pie\",\"title\":\"An annotation names only its authored category\",\"encoding\":{\"x\":\"category\",\"y\":\"value\"},\"data\":{\"inline\":[{\"category\":\"\",\"value\":1},{\"category\":\"North\",\"value\":2},{\"category\":\"South\",\"value\":3}]},\"annotations\":[{\"kind\":\"text\",\"at\":{\"category\":\"\"},\"text\":\"Reviewed\"}]}\n```\n"
+  },
+  {
+    "id": "pie-anchor-conflicting-aliases",
+    "source": "---\ntitle: Pie annotation anchor study\nversion: 0.0.1\n---\n\n```chart\n{\"type\":\"pie\",\"title\":\"An annotation names only its authored category\",\"encoding\":{\"x\":\"category\",\"y\":\"value\"},\"data\":{\"inline\":[{\"category\":\"\",\"value\":1},{\"category\":\"North\",\"value\":2},{\"category\":\"South\",\"value\":3}]},\"annotations\":[{\"kind\":\"point\",\"at\":{\"category\":\"North\",\"name\":\"South\"},\"text\":\"Reviewed\"}]}\n```\n"
+  },
+  {
+    "id": "pie-anchor-empty-and-named",
+    "source": "---\ntitle: Pie annotation anchor study\nversion: 0.0.1\n---\n\n```chart\n{\"type\":\"pie\",\"title\":\"An annotation names only its authored category\",\"encoding\":{\"x\":\"category\",\"y\":\"value\"},\"data\":{\"inline\":[{\"category\":\"\",\"value\":1},{\"category\":\"North\",\"value\":2},{\"category\":\"South\",\"value\":3}]},\"annotations\":[{\"kind\":\"point\",\"at\":{\"category\":\"\",\"name\":\"North\"},\"text\":\"Reviewed\"}]}\n```\n"
+  },
+  {
+    "id": "pie-anchor-no-alias",
+    "source": "---\ntitle: Pie annotation anchor study\nversion: 0.0.1\n---\n\n```chart\n{\"type\":\"pie\",\"title\":\"An annotation names only its authored category\",\"encoding\":{\"x\":\"category\",\"y\":\"value\"},\"data\":{\"inline\":[{\"category\":\"\",\"value\":1},{\"category\":\"North\",\"value\":2},{\"category\":\"South\",\"value\":3}]},\"annotations\":[{\"kind\":\"point\",\"at\":{},\"text\":\"Reviewed\"}]}\n```\n"
+  },
+  {
+    "id": "pie-anchor-unmatched-name",
+    "source": "---\ntitle: Pie annotation anchor study\nversion: 0.0.1\n---\n\n```chart\n{\"type\":\"pie\",\"title\":\"An annotation names only its authored category\",\"encoding\":{\"x\":\"category\",\"y\":\"value\"},\"data\":{\"inline\":[{\"category\":\"\",\"value\":1},{\"category\":\"North\",\"value\":2},{\"category\":\"South\",\"value\":3}]},\"annotations\":[{\"kind\":\"point\",\"at\":{\"name\":\"Absent\"},\"text\":\"Reviewed\"}]}\n```\n"
+  },
+  {
+    "id": "pie-anchor-matching-aliases",
+    "source": "---\ntitle: Pie annotation anchor study\nversion: 0.0.1\n---\n\n```chart\n{\"type\":\"pie\",\"title\":\"An annotation names only its authored category\",\"encoding\":{\"x\":\"category\",\"y\":\"value\"},\"data\":{\"inline\":[{\"category\":\"\",\"value\":1},{\"category\":\"North\",\"value\":2},{\"category\":\"South\",\"value\":3}]},\"annotations\":[{\"kind\":\"point\",\"at\":{\"category\":\"North\",\"name\":\"North\"},\"text\":\"Reviewed\"}]}\n```\n"
+  },
+  {
+    "id": "pie-anchor-color-field",
+    "source": "---\ntitle: Pie annotation anchor study\nversion: 0.0.1\n---\n\n```chart\n{\"type\":\"pie\",\"title\":\"An annotation names only its authored category\",\"encoding\":{\"x\":\"id\",\"y\":\"value\",\"color\":\"region\"},\"data\":{\"inline\":[{\"id\":\"row-1\",\"region\":\"\",\"value\":1},{\"id\":\"row-2\",\"region\":\"North\",\"value\":2},{\"id\":\"row-3\",\"region\":\"South\",\"value\":3}]},\"annotations\":[{\"kind\":\"point\",\"at\":{\"region\":\"North\"},\"text\":\"Reviewed\"}]}\n```\n"
+  },
+  {
+    "id": "pie-anchor-numeric-alias",
+    "source": "---\ntitle: Pie annotation anchor study\nversion: 0.0.1\n---\n\n```chart\n{\"type\":\"pie\",\"title\":\"An annotation names only its authored category\",\"encoding\":{\"x\":\"category\",\"y\":\"value\"},\"data\":{\"inline\":[{\"category\":\"\",\"value\":1},{\"category\":0,\"value\":2},{\"category\":\"0\",\"value\":3},{\"category\":\"North\",\"value\":4}]},\"annotations\":[{\"kind\":\"point\",\"at\":{\"name\":0},\"text\":\"Reviewed\"}]}\n```\n"
+  },
+  {
+    "id": "pie-anchor-field-is-name",
+    "source": "---\ntitle: Pie annotation anchor study\nversion: 0.0.1\n---\n\n```chart\n{\"type\":\"pie\",\"title\":\"An annotation names only its authored category\",\"encoding\":{\"x\":\"name\",\"y\":\"value\"},\"data\":{\"inline\":[{\"name\":\"\",\"value\":1},{\"name\":\"North\",\"value\":2},{\"name\":\"South\",\"value\":3}]},\"annotations\":[{\"kind\":\"point\",\"at\":{\"name\":\"North\"},\"text\":\"Reviewed\"}]}\n```\n"
+  },
+  {
+    "id": "pie-anchor-zero-empty",
+    "source": "---\ntitle: Pie annotation anchor study\nversion: 0.0.1\n---\n\n```chart\n{\"type\":\"pie\",\"title\":\"Zero shares keep their category identity\",\"encoding\":{\"x\":\"category\",\"y\":\"value\"},\"data\":{\"inline\":[{\"category\":\"\",\"value\":0},{\"category\":\"North\",\"value\":\"2.500\"},{\"category\":\"South\",\"value\":\"3.000\"}]},\"annotations\":[{\"kind\":\"point\",\"at\":{\"name\":\"North\"},\"text\":\"Reviewed\"}]}\n```\n"
+  },
+  {
+    "id": "pie-anchor-facets",
+    "source": "---\ntitle: Pie annotation anchor study\nversion: 0.0.1\n---\n\n```chart\n{\"type\":\"pie\",\"title\":\"Facet anchors use their own categories\",\"encoding\":{\"x\":\"category\",\"y\":\"value\",\"facet\":\"panel\"},\"data\":{\"inline\":[{\"panel\":\"Blank present\",\"category\":\"\",\"value\":1},{\"panel\":\"Blank present\",\"category\":\"North\",\"value\":2},{\"panel\":\"Blank present\",\"category\":\"South\",\"value\":3},{\"panel\":\"Named only\",\"category\":\"North\",\"value\":4},{\"panel\":\"Named only\",\"category\":\"South\",\"value\":5}]},\"annotations\":[{\"kind\":\"text\",\"at\":{\"name\":\"North\"},\"text\":\"Reviewed\"}]}\n```\n"
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "partId": "04a-features-chart",
+  "answers": {
+    "FEA-CH-01": {
+      "decision": "edit",
+      "text": "RichView aims to be the richest chart library: it supports at least every chart type the major charting packages define, namely ggplot2, Plotly, ECharts, Highcharts and Power BI. That is likely around 30 types rather than nine; the exact list is compiled from those libraries.\n\nBeyond charts, RichView adds:\n- a map element;\n- a flow element: flowcharts modelled on Nova flow, but done more meaningfully and fully ported to Rust;\n- much better tables, with the best styling, as both normal tables and pivot tables.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"I want to have at least as many chart types as are defined in major charting packages, all of them: ggplot, Plotly, ECharts, Highcharts. Richest chart library. It will be more like 30 than what you're stating. I want a map element as well. I want a flow element, which should copy Nova flow but in a much more meaningful manner, a flowchart element, but the full Rust port. Also everything in the major plot libraries, also in Power BI. And we have to have much improved tables: table styling has to be the best, and we have pivot tables and normal tables.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "b8d8a5c6d140e654",
+      "updatedAt": "2026-10-26T18:07:42.601Z"
+    },
+    "FEA-CH-37": {
+      "decision": "edit",
+      "text": "Numbers follow a three-digit rule by default: at most three significant digits, four at most, with a scale word, for example 1.23 million, 167.5 thousand or 167 thousand.\n\nReaders never get more precision than the author chose to show. Readouts, tooltips, the Table view, CSV and every export show values at the author's chosen precision; the underlying, more exact source values cannot be retrieved. Otherwise what a reader can dig out would differ from what the author and reviewers saw, and could disclose how precise the author's calculations are.\n\nThe author can set more or fewer digits, per chart or per element, and can give tooltips a higher precision than labels; readers then see that precision, and no more. There is no warning at publish time.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"The three-digit system I had: three digits, at max four, so you can have 1.23 million or 167.5 thousand, or just 167 thousand. If you want to see a table, there should be a way to explore the value that the author decided to put in. By default you should not be able to retrieve the underlying ultra-exact values, because that could show a difference between what the author and reviewer see at first level and could disclose things they don't want disclosed, like how precise their calculations are. The author needs to be able to set more or fewer digits, for example tooltip precision higher than the normal precision. Getting to the underlying data shouldn't give you more detail than the first way you see it. No warning when publishing.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "aa5be495d2cea1dc",
+      "updatedAt": "2026-10-26T18:14:31.946Z"
+    }
+  }
+}

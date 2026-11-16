@@ -1,0 +1,12 @@
+---
+title: Pie
+---
+
+```chart
+type: pie
+title: Slices share
+data:
+  inline:
+    - {a: 1}
+encoding: {x: a, y: a}
+```

@@ -1,0 +1,82 @@
+# RichView house style — "sleek".
+# Dark, cool-hued (260°) Material-grey surfaces + a single poppy-ultramarine accent.
+# Space Grotesk display + Geist sans body + Geist Mono labels.
+colophon: show
+tokens:
+  scheme: dark
+  print-as: air
+  bg: "oklch(0.16 0.015 260)"
+  bg-elev: "oklch(0.205 0.018 260)"
+  bg-chart: "oklch(0.19 0.016 260)"
+  ink: "oklch(0.95 0.005 260)"
+  ink-soft: "oklch(0.72 0.012 260)"
+  ink-faint: "oklch(0.51 0.014 260)"
+  rule: "oklch(0.30 0.016 260)"
+  rule-soft: "oklch(0.29 0.016 260)"
+  accent: "oklch(0.5464 0.2508 263.51)"
+  accent-soft: "oklch(0.5464 0.2508 263.51 / 0.149)"
+  # The accent hue lightened for text: 7:1 on the page.
+  link: "oklch(0.70 0.16 264)"
+  brand: "oklch(0.70 0.16 264)"
+  up: "oklch(0.70 0.15 150)"
+  down: "oklch(0.68 0.17 25)"
+  hold: "oklch(0.78 0.14 70)"
+  chart-ink: "oklch(1 0 0)"
+  font-ui: "Geist, Inter, system-ui, sans-serif"
+  font-text: "Geist, Inter, system-ui, sans-serif"
+  font-display: "Space Grotesk, Inter, sans-serif"
+  font-mono: "Geist Mono, JetBrains Mono, ui-monospace, monospace"
+  # One type scale: adjacent sizes at least 1.2x apart. The title uses size-display, the
+  # largest size at every width; stat numerals use size-h1.
+  size-small: "15px"
+  size-base: "18px"
+  size-h3: "22px"
+  size-h2: "32px"
+  size-h1: "40px"
+  size-display: "50px"
+  size-small-phone: "14px"
+  size-base-phone: "17px"
+  size-h3-phone: "21px"
+  size-h2-phone: "28px"
+  size-h1-phone: "33px"
+  size-display-phone: "38px"
+  line-base: "1.65"
+  # About 69 characters of Geist at 18px.
+  measure: "42rem"
+  radius-s: "12px"
+  radius-m: "12px"
+  shadow-float: "none"
+  density: 1
+  block-gap: "3rem"
+  block-gap-phone: "2rem"
+layout:
+  report-max-width: "880px"
+# Calm and precise: content eases up into place, Apple-site polish (INT-12).
+motion:
+  character: gentle
+  duration: 560
+  easing: out
+  stagger: 40
+  block-entrance: fade-up
+  distance: 14
+components:
+  thumbnail:
+    rule: none
+  figure:
+    frame: shaded
+    title: above
+    description: above
+  # Stat line under one hairline rule; callouts under a 1px rule.
+  metric:
+    style: rule
+  callout:
+    border-width: "1px"
+  title:
+    letter-spacing: "-0.02em"
+chart:
+  legend: top
+  palette: sleek
+  # Sequential ramp for heatmaps, mixed in OKLCH; salience rises with value (dark: low values recede into the surface, high values rise to a pale accent).
+  ramp: ["oklch(0.25 0.035 262)", "oklch(0.50 0.17 263)", "oklch(0.80 0.10 255)"]
+  negative-ramp: ["oklch(0.25 0.035 52)", "oklch(0.50 0.123 53)", "oklch(0.80 0.10 45)"]
+  bar-radius: 3

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Template for the weekly fresh-agent run on the pre-prod head (DEL-78, DEL-81). Not installed by
+  the repository: the release agent reviews it, then copies it to ~/Library/LaunchAgents and loads
+  it. Mondays 03:00 local time; a run that was missed while the machine slept starts on wake.
+  The runs use agent subscription capacity: Claude only since 1 Nov 2026 (Daniel: Codex is no longer used), three
+  runs, one at a time. They run under the clauth profile RV_AGENT_PROFILE names below (work unless Daniel names
+  another); clauth signs in from the Keychain, so the job also needs USER and LOGNAME.
+  Create ~/.local/share/richview-gate/logs first (launchd does not). Replace __HOME__ and __USER__, and edit the paths below if the checkout or the log folder lives elsewhere.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>uk.richview.agent-use-weekly</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>__HOME__/.local/share/richview-gate/bin/agent-use-weekly.sh</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Weekday</key><integer>1</integer>
+    <key>Hour</key><integer>3</integer>
+    <key>Minute</key><integer>0</integer>
+  </dict>
+  <key>RunAtLoad</key><false/>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key><string>__HOME__</string>
+    <key>USER</key><string>__USER__</string>
+    <key>LOGNAME</key><string>__USER__</string>
+    <key>RV_AGENT_PROFILE</key><string>work</string>
+  </dict>
+  <key>StandardOutPath</key><string>__HOME__/.local/share/richview-gate/logs/agent-use-weekly.log</string>
+  <key>StandardErrorPath</key><string>__HOME__/.local/share/richview-gate/logs/agent-use-weekly.log</string>
+</dict>
+</plist>

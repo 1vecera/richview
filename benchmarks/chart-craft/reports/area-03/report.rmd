@@ -1,0 +1,109 @@
+---
+title: "Area study 03: synthetic observations"
+version: 0.0.1
+format: rmd/1
+---
+
+```chart
+type: area
+title: 'Area study 03: synthetic observations'
+subtitle: Signed comparisons with long category names
+encoding:
+  x: x
+  y: y
+  color: series
+axes:
+  x:
+    locale: cs-CZ
+  y:
+    label: Measured value
+    unit: k
+style:
+  ratio: '16:9'
+data:
+  inline:
+  - x: '2024-01-01T00:00:00Z'
+    y: 50.0
+    series: North
+  - x: '2024-01-01T00:00:00Z'
+    y: 85.0
+    series: South
+  - x: '2024-01-01T06:00:00Z'
+    y: 51.9085
+    series: North
+  - x: '2024-01-01T06:00:00Z'
+    y: 86.9085
+    series: South
+  - x: '2024-01-01T12:00:00Z'
+    y: 53.7821
+    series: North
+  - x: '2024-01-01T12:00:00Z'
+    y: 88.7821
+    series: South
+  - x: '2024-01-01T18:00:00Z'
+    y: 55.5869
+    series: North
+  - x: '2024-01-01T18:00:00Z'
+    y: 90.5869
+    series: South
+  - x: '2024-01-02T00:00:00Z'
+    y: 57.29
+    series: North
+  - x: '2024-01-02T00:00:00Z'
+    y: 92.29
+    series: South
+  - x: '2024-01-02T06:00:00Z'
+    y: 58.8609
+    series: North
+  - x: '2024-01-02T06:00:00Z'
+    y: 93.8609
+    series: South
+  - x: '2024-01-02T12:00:00Z'
+    y: 60.2717
+    series: North
+  - x: '2024-01-02T12:00:00Z'
+    y: 95.2717
+    series: South
+  - x: '2024-01-02T18:00:00Z'
+    y: 61.4977
+    series: North
+  - x: '2024-01-02T18:00:00Z'
+    y: 96.4977
+    series: South
+  - x: '2024-01-03T00:00:00Z'
+    y: 62.5179
+    series: North
+  - x: '2024-01-03T00:00:00Z'
+    y: 97.5179
+    series: South
+  - x: '2024-01-03T06:00:00Z'
+    y: null
+    series: North
+  - x: '2024-01-03T06:00:00Z'
+    y: null
+    series: South
+  - x: '2024-01-03T12:00:00Z'
+    y: 63.8788
+    series: North
+  - x: '2024-01-03T12:00:00Z'
+    y: 98.8788
+    series: South
+  - x: '2024-01-03T18:00:00Z'
+    y: 64.2
+    series: North
+  - x: '2024-01-03T18:00:00Z'
+    y: 99.2
+    series: South
+  - x: '2024-01-04T00:00:00Z'
+    y: 64.2767
+    series: North
+  - x: '2024-01-04T00:00:00Z'
+    y: 99.2767
+    series: South
+  - x: '2024-01-04T06:00:00Z'
+    y: 64.1114
+    series: North
+  - x: '2024-01-04T06:00:00Z'
+    y: 99.1114
+    series: South
+```

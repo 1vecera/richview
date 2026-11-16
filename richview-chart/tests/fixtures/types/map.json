@@ -1,0 +1,98 @@
+{
+ "spec": {
+  "type": "map",
+  "title": "Broadband reaches most households in Europe",
+  "encoding": {
+   "region": "country",
+   "y": "share"
+  },
+  "axes": {
+   "y": {
+    "label": "Households with broadband",
+    "unit": "%"
+   }
+  }
+ },
+ "rows": [
+  {
+   "country": "Czechia",
+   "share": 91
+  },
+  {
+   "country": "Germany",
+   "share": 92
+  },
+  {
+   "country": "France",
+   "share": 86
+  },
+  {
+   "country": "Poland",
+   "share": 88
+  },
+  {
+   "country": "Spain",
+   "share": 96
+  },
+  {
+   "country": "Italy",
+   "share": 85
+  },
+  {
+   "country": "United Kingdom",
+   "share": 97
+  },
+  {
+   "country": "Norway",
+   "share": 98
+  },
+  {
+   "country": "Sweden",
+   "share": 95
+  },
+  {
+   "country": "Turkey",
+   "share": 90
+  },
+  {
+   "country": "Ukraine",
+   "share": 80
+  },
+  {
+   "country": "Egypt",
+   "share": 74
+  },
+  {
+   "country": "Brazil",
+   "share": 83
+  },
+  {
+   "country": "Japan",
+   "share": 93
+  },
+  {
+   "country": "Australia",
+   "share": 91
+  },
+  {
+   "country": "Canada",
+   "share": 94
+  },
+  {
+   "country": "Mexico",
+   "share": 72
+  },
+  {
+   "country": "India",
+   "share": 52
+  },
+  {
+   "country": "China",
+   "share": 75
+  },
+  {
+   "country": "USA",
+   "share": 93
+  }
+ ]
+}

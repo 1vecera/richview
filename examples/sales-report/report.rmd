@@ -1,0 +1,74 @@
+---
+title: MRR rose from $390K to $630K across Q3
+description: Synthetic sales rows show how enterprise and mid-market contributed to a $240K MRR increase.
+version: 0.0.1
+author: Daniel Vecera
+date: 2026-05-20
+slug: q3-sales-review
+tags: [sales, quarterly]
+format: rmd/1
+---
+
+# Q3 Sales Review
+
+This is a synthetic sales-report example. The figures illustrate report structure and are not company results.
+
+The example ends September at **$630K MRR**, up **61.5% from July's $390K**. Enterprise supplied $140K of the $240K increase; mid-market supplied the remaining $100K.
+
+```metric
+value: 630000
+label: Q3 ending MRR
+format: number_compact
+unit: $
+delta: 0.6153846154
+delta_label: vs July
+trend: up
+```
+
+## What drove the lift
+
+Enterprise MRR rose from $280K to $420K; mid-market rose from $110K to $210K. The rows establish those changes. They contain no customer, sales-cycle or intervention data, so they do not establish why the increases happened.
+
+```chart
+type: bar
+title: MRR by segment, Q3
+subtitle: Enterprise contributed 58.3% of the $240K increase from July to September
+data:
+  inline:
+    - { month: Jul, mrr: 280000, segment: enterprise }
+    - { month: Jul, mrr: 110000, segment: mid-market }
+    - { month: Aug, mrr: 340000, segment: enterprise }
+    - { month: Aug, mrr: 160000, segment: mid-market }
+    - { month: Sep, mrr: 420000, segment: enterprise }
+    - { month: Sep, mrr: 210000, segment: mid-market }
+encoding:
+  x: month
+  y: mrr
+  color: segment
+axes:
+  y: { label: MRR, format: number, unit: $ }
+annotations:
+  - { kind: point, at: { x: Aug, y: 340000 }, text: Enterprise reached $340K }
+  - { kind: point, at: { x: Sep, y: 420000 }, text: Enterprise reached $420K }
+style:
+  ratio: "16:9"
+```
+
+## Forward look
+
+```callout
+kind: hold
+title: No causal conclusion from these rows
+body: |
+  These synthetic monthly rows contain no pricing or retention evidence. Check real source data and distinguish recurring revenue from one-time effects before using a similar report for planning.
+```
+
+| Segment | July MRR | September MRR | Growth |
+|---|---:|---:|---:|
+| Enterprise | $280K | $420K | +50% |
+| Mid-market | $110K | $210K | +90.9% |
+| Total | $390K | $630K | +61.5% |
+
+## Verification
+
+Run `richview check` for source and chart-geometry diagnostics, then inspect the rendered chart at its intended desktop and phone widths. Native text bounds are estimates; browser measurements use the rendered glyphs. Neither certifies the analysis.

@@ -1,0 +1,52 @@
+# Security headers (FEA-SF-60). Every response keeps nosniff and the referrer policy.
+# Site pages add a policy: richview.ai's own scripts, styles, fonts, images and connections,
+# the renderer's inline styles and 'wasm-unsafe-eval'. Reports (the flagship's renders and the
+# home demo) carry their own policy (ARC-15) and are not listed here. The home page and the docs may
+# show a credited Unsplash photo, the one remote image origin a report may use. The build adds the exact inline
+# preview runtime's hash to the home, docs and playground policies for their sandboxed frames.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://images.unsplash.com; font-src 'self' data:; connect-src 'self'; frame-src 'self' blob: data: about:; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'
+
+/docs/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://images.unsplash.com; font-src 'self' data:; connect-src 'self'; frame-src 'self' blob: data: about:; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'
+
+# Exported example reports under the docs carry their own meta policy and run an inline module
+# (ARC-15), so the docs script policy does not apply to them. A meta policy cannot hold
+# frame-ancestors, so the header keeps that and base-uri; both policies apply.
+/docs/example/Rendered/*
+  ! Content-Security-Policy
+  Content-Security-Policy: base-uri 'none'; frame-ancestors 'self'
+
+/playground
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-src 'self' blob: data: about:; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'
+
+/impressum
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'
+
+/privacy
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'
+
+/install
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'
+
+/licenses
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'
+
+/showcase/openai-vs-anthropic/
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'
+
+# A linked report on another origin loads the report runtime with anonymous CORS.
+/richview_runtime.js
+  Access-Control-Allow-Origin: *
+
+/richview_runtime_bg.wasm
+  Access-Control-Allow-Origin: *
+
+# The home page's hero report and its styles scene's pages link a copy of the runtime in a folder named
+# by its content (PRF-31, S27-927, S27-926): it never changes under its name, so it is cached for ever.
+/landing/runtime/*
+  Cache-Control: public, max-age=31536000, immutable

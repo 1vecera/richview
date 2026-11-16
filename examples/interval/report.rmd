@@ -1,0 +1,43 @@
+---
+title: Compare supplied ranges with their estimates
+description: Each row supplies its bounds. The renderer preserves those values through inspection and export.
+version: 0.0.1
+styles: [scientific]
+format: rmd/1
+---
+
+## Delivery ranges overlap across routes
+
+These illustrative records provide a lower bound, upper bound and optional estimate. The chart does not calculate a confidence level or infer a distribution.
+
+```chart
+type: interval
+title: The east route has the widest supplied range
+subtitle: Authored bounds in days; dots show supplied estimates
+data:
+  inline:
+    - route: North
+      lower: 2
+      upper: 5
+      estimate: 3.5
+      note: Planned estimate
+    - route: South
+      lower: 3
+      upper: 7
+      estimate: 4.8
+      note: Planned estimate
+    - route: East
+      lower: 1
+      upper: 9
+      estimate: null
+      note: No estimate supplied
+encoding: {x: route, lower: lower, upper: upper, y: estimate}
+axes:
+  x: {label: Route}
+  y: {label: Estimate, unit: days}
+style: {orientation: horizontal}
+```
+
+*Source: Illustrative authored values. Bounds carry only the meaning supplied by the author.*
+
+Use the keyboard or pointer to inspect exact bounds. Table and CSV retain the original rows, including the missing estimate.

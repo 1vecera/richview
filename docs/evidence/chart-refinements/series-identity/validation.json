@@ -1,0 +1,199 @@
+{
+  "base": "159e3cbc01773c59891c984d3a485d089ac6372d",
+  "source_commit": "75e1b0c5f3308707a6663ac32c58338fb7d26541",
+  "source_files": [
+    "crates/richview-web/src/browser/charts.rs",
+    "richview-chart/src/rmd_render.rs",
+    "scripts/verify-browser.mjs",
+    "docs/RMD-SPEC.md"
+  ],
+  "source_diff_sha256": "5c3274b21debd0cc706f102235ac6f6c6a4afcdbaed2df59a096cb4e34fdfe2c",
+  "before_wasm_sha256": "8637409185519596f1860ab681101fb9845d97accc337ba8c91d39012524f8df",
+  "after_wasm_sha256": "3c7207d7ee5893f7f74df0f79142e9258371212c59b1e853de943a86b27d21ab",
+  "capture": {
+    "browser": "Chromium 151.0.7922.173",
+    "device_scale_factor": 2,
+    "motion": "reduce",
+    "fonts": "Packaged report fonts; document.fonts.ready, runtime and finite animations settled.",
+    "surface": "Actual report figure; identical source, theme, viewport and control action before and after."
+  },
+  "pairs": [
+    {
+      "source": "mixed-scientific-390.rmd",
+      "source_sha256": "a018d0be1203480c71ba8b13614feeb443afadcb683ee89bfd84c4ddd9bc9d03",
+      "theme": "scientific",
+      "viewport_width": 390,
+      "state": "toggle-0-1",
+      "files": {
+        "before": {
+          "path": "mixed-scientific-390-before.png",
+          "sha256": "68f7391de8f11b73bac7c3b6402b6fd194b40341a4e2e033774b2ce86c0de813",
+          "pixels": {
+            "width": 716,
+            "height": 704
+          }
+        },
+        "after": {
+          "path": "mixed-scientific-390-after.png",
+          "sha256": "eb1b5091f0181744dd023375ae73689187e6cc81963560027f03ff564e09ffde",
+          "pixels": {
+            "width": 716,
+            "height": 704
+          }
+        }
+      }
+    },
+    {
+      "source": "boolean-sleek-320.rmd",
+      "source_sha256": "ee39eed29a217b957e16d3fa7797ea1957f3d52a7e3c18cbbbc32ab25fd8626d",
+      "theme": "sleek",
+      "viewport_width": 320,
+      "state": "toggle-0-true",
+      "files": {
+        "before": {
+          "path": "boolean-sleek-320-before.png",
+          "sha256": "a17211dc5a6403487825ea62652f074e5cb4fd6cdb0e72e10d197c7157c598a3",
+          "pixels": {
+            "width": 576,
+            "height": 604
+          }
+        },
+        "after": {
+          "path": "boolean-sleek-320-after.png",
+          "sha256": "158197aed89fe525859daeccfc447a29919110a8b766b0667125edbbc440697a",
+          "pixels": {
+            "width": 576,
+            "height": 604
+          }
+        }
+      }
+    }
+  ],
+  "validation": {
+    "status": "pass",
+    "native_cases": 26,
+    "unchanged_native_svgs": 52,
+    "matched_reduced_views": 151,
+    "normal_motion_views": 60,
+    "themes": [
+      "scientific",
+      "sleek-dark (sleek compatibility name)",
+      "sleek-light",
+      "brutalist",
+      "hand-drawn"
+    ],
+    "viewport_widths": [
+      320,
+      390,
+      720
+    ],
+    "states": 1251,
+    "raw_table_csv_checks": 1040,
+    "export_geometry_and_visible_key_checks": 1040,
+    "source_keyboard_readouts": 6683,
+    "source_pointer_readouts": 2765,
+    "independent_fresh_current_states": 15,
+    "required_checks": [
+      {
+        "name": "fmt",
+        "status": "pass"
+      },
+      {
+        "name": "diff",
+        "status": "pass"
+      },
+      {
+        "name": "clippy-native",
+        "status": "pass"
+      },
+      {
+        "name": "clippy-wasm",
+        "status": "pass"
+      },
+      {
+        "name": "workspace-tests",
+        "status": "pass"
+      },
+      {
+        "name": "fixtures",
+        "status": "pass"
+      },
+      {
+        "name": "editor",
+        "status": "pass"
+      },
+      {
+        "name": "native",
+        "status": "pass"
+      },
+      {
+        "name": "compat",
+        "status": "pass"
+      },
+      {
+        "name": "types",
+        "status": "pass"
+      },
+      {
+        "name": "browser",
+        "status": "pass"
+      },
+      {
+        "name": "landing",
+        "status": "pass"
+      },
+      {
+        "name": "cloudflare",
+        "status": "pass"
+      },
+      {
+        "name": "showcase",
+        "status": "pass"
+      },
+      {
+        "name": "flagship",
+        "status": "pass"
+      },
+      {
+        "name": "reel",
+        "status": "pass"
+      },
+      {
+        "name": "browser-api",
+        "status": "pass"
+      },
+      {
+        "name": "motion-runtime",
+        "status": "pass"
+      },
+      {
+        "name": "docs",
+        "status": "pass"
+      }
+    ],
+    "release_build": "pass"
+  },
+  "carried_review": {
+    "reason": "Current production source and WebAssembly equal the independently accepted composition; only inherited test placement differs.",
+    "accepted_composition": "6449f6545c25cc6c35dfaa87074ee8759e10be53",
+    "wasm_sha256": "3c7207d7ee5893f7f74df0f79142e9258371212c59b1e853de943a86b27d21ab",
+    "independent_api_states": 50,
+    "independent_composition_states": 42,
+    "owner_monochrome_facet_touch_states": 26,
+    "owner_public_composition_records": 30,
+    "current_equivalence_sha256": "fa14d00a760d9f0f37087c57e4d1d2214ce48fbdc27f2aceac991b2171c8cc86",
+    "note": "These composition counts belong to the accepted frozen artifact, not a rerun relabeled as current evidence."
+  },
+  "historical_review": {
+    "branch": "review/series-identity-bb8-frozen",
+    "commit": "9185d31692308acd18c6e9cd23fc0bd6c5936b08",
+    "evidence_path_at_commit": "docs/evidence/chart-refinements/series-identity/README.md",
+    "scratch_copy": "tmp/series-identity-current/history-bb8b112/"
+  },
+  "notes": [
+    "Initial, zoomed and reset SVGs and glyph bounds are unchanged against current main. Only visibility/update behavior changes; automatic domain rescaling and original palette/pattern slots remain in use.",
+    "Generic Table/CSV retain all source rows and types. Temporal Table/CSV retain their established visible-series behavior. Empty/null-group source-row inspection is preserved.",
+    "Exports omit transient hover focus/dimming. Temporal path focus can alter DOM order; its unchanged baseline export and unordered geometry are checked.",
+    "Some runner wrappers reported SIGTERM. Final artifacts and child state were checked separately; two incomplete capture matrices resumed only missing identifiers on the same source/build, retaining completed records and original logs."
+  ]
+}

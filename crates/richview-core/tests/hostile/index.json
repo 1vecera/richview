@@ -1,0 +1,527 @@
+{
+  "cases": [
+    {
+      "case": "s01-opn16-palette",
+      "sink": "style file chart.palette (OPN-16 probe, ARC-12)",
+      "expect": [
+        "style.schema"
+      ],
+      "absent": [
+        "HOSTILE_PALETTE"
+      ]
+    },
+    {
+      "case": "s02-style-chart-keys",
+      "sink": "style file chart leaves: palette, ramp, negativeRamp, curve, fontFamily, figuresFont, legend, barRadius, line, unknown key",
+      "expect": [
+        "style.schema"
+      ]
+    },
+    {
+      "case": "s03-style-tokens",
+      "sink": "style file tokens: colours, fonts, dimensions, unknown key",
+      "expect": [
+        "style.schema"
+      ]
+    },
+    {
+      "case": "s04-style-layout-motion-components",
+      "sink": "style file layout, motion and components leaves and keys",
+      "expect": [
+        "style.schema"
+      ]
+    },
+    {
+      "case": "s05-style-unknown-section",
+      "sink": "style file top-level sections the contract does not know",
+      "expect": []
+    },
+    {
+      "case": "s06-style-reference",
+      "sink": "frontmatter styles references: script name, path escape, remote URL",
+      "expect": [
+        "report.asset.escape",
+        "report.asset.missing"
+      ],
+      "absent": [
+        "HOSTILE_REF",
+        "etc/passwd",
+        "evil.example"
+      ]
+    },
+    {
+      "case": "m01-raw-html-tags",
+      "sink": "Markdown raw HTML: script, handlers, style, iframe, form, object, embed, link, meta, base, svg, math, table, media",
+      "expect": [
+        "security.html"
+      ],
+      "present": [
+        "kept block text HOSTILE_BLOCK",
+        "kept bold text",
+        "kept summary text"
+      ]
+    },
+    {
+      "case": "m02-html-comments",
+      "sink": "Markdown HTML comments: inline, block, multi-line, unterminated, in a callout",
+      "expect": [],
+      "absent": [
+        "HOSTILE_COMMENT",
+        "private note"
+      ]
+    },
+    {
+      "case": "m03-html-ids-and-classes",
+      "sink": "Markdown raw HTML id and class attributes in the runtime namespace",
+      "expect": [
+        "security.html"
+      ],
+      "forbidden_ids": [
+        "rv-hostile-id",
+        "rv-chart-0",
+        "panel-hostile",
+        "tab-hostile"
+      ],
+      "forbidden_classes": [
+        "rv-chart",
+        "rv-tabpanel",
+        "rv-tabs__tab"
+      ],
+      "absent": [
+        "data-rv-tab",
+        "rv-hostile"
+      ]
+    },
+    {
+      "case": "m04-html-entities-and-text",
+      "sink": "Markdown entities and the text kept from removed tags",
+      "expect": [
+        "security.html"
+      ],
+      "present": [
+        "&nbsp;non",
+        "© 2026",
+        "kept span text HOSTILE_KEPT",
+        "kept block bold HOSTILE_KEPT_BLOCK",
+        "&lt;b&gt;"
+      ]
+    },
+    {
+      "case": "m05-link-schemes",
+      "sink": "Markdown link targets: javascript, data, vbscript, file, about, blob, obfuscated, autolink, reference, image link, title and quote injection",
+      "expect": [
+        "security.link"
+      ],
+      "present": [
+        "href=\"https://example.org/ok\"",
+        "href=\"mailto:a@example.org\"",
+        "href=\"tel:+420123456789\"",
+        "href=\"#section\""
+      ]
+    },
+    {
+      "case": "m05b-link-path-escapes",
+      "sink": "Markdown link targets that escape the report folder: protocol-relative, backslash, parent, missing, absolute",
+      "expect": [
+        "report.asset.escape",
+        "report.asset.missing"
+      ],
+      "absent": [
+        "evil.example",
+        "etc/passwd"
+      ]
+    },
+    {
+      "case": "m06-markdown-images",
+      "sink": "Markdown image sources and alt text: data:text/html, quote and angle injection, svg, wrong media type",
+      "expect": [
+        "security.image"
+      ],
+      "forbidden_classes": [],
+      "absent": [
+        "onerror=\"HOSTILE"
+      ]
+    },
+    {
+      "case": "m06b-markdown-image-sources",
+      "sink": "Markdown image sources: javascript, remote, protocol-relative, Unsplash, missing file",
+      "expect": [
+        "report.asset.remote",
+        "report.asset.missing",
+        "security.image"
+      ]
+    },
+    {
+      "case": "m07-heading-ids",
+      "sink": "Markdown heading {#id}, {.class} and attributes under tabs",
+      "expect": [
+        "security.id",
+        "security.class"
+      ],
+      "tab_ids": [
+        "overview",
+        "detail"
+      ],
+      "forbidden_ids": [
+        "rv-hostile-id",
+        "rv-chart-0",
+        "tab-detail"
+      ],
+      "forbidden_classes": [
+        "rv-chart"
+      ],
+      "absent": [
+        "HOSTILE_ATTR"
+      ]
+    },
+    {
+      "case": "m08-footnotes",
+      "sink": "Markdown footnote labels in the runtime namespace and with markup characters",
+      "expect": [
+        "security.id",
+        "security.html"
+      ],
+      "forbidden_ids": [
+        "rv-hostile-id",
+        "panel-x",
+        "tab-x"
+      ]
+    },
+    {
+      "case": "m09-wikilinks-and-quotes",
+      "sink": "Markdown wikilink targets and labels, [!quote] attribution",
+      "expect": [
+        "security.html"
+      ]
+    },
+    {
+      "case": "m10-code",
+      "sink": "Markdown code spans, fenced code info strings and bodies, indented code, unknown fence",
+      "expect": [],
+      "forbidden_classes": [
+        "rv-chart"
+      ],
+      "present": [
+        "&lt;script&gt;HOSTILE_FENCE()&lt;/script&gt;"
+      ]
+    },
+    {
+      "case": "m11-markdown-tables",
+      "sink": "Markdown table headers, cells and alignment",
+      "expect": [
+        "security.html",
+        "security.link"
+      ]
+    },
+    {
+      "case": "m12-math",
+      "sink": "Markdown inline and display math",
+      "expect": [],
+      "present": [
+        "<math"
+      ]
+    },
+    {
+      "case": "m13-lists",
+      "sink": "Markdown task lists, definition lists, ordered lists",
+      "expect": [
+        "security.html",
+        "security.link"
+      ],
+      "present": [
+        "Term HOSTILE_DT()"
+      ]
+    },
+    {
+      "case": "m14-source-note",
+      "sink": "Markdown source notes after rich blocks",
+      "expect": [
+        "security.html",
+        "security.link"
+      ],
+      "present": [
+        "rv-source__label"
+      ]
+    },
+    {
+      "case": "m15-placeholder-forgery",
+      "sink": "Rich-block placeholder comments typed into the body, a callout and code",
+      "expect": [],
+      "present": [
+        "rv-metric__value\">7"
+      ]
+    },
+    {
+      "case": "m16-urls-in-prose",
+      "sink": "Markdown bare URLs, smart punctuation, escaped and entity-encoded markup",
+      "expect": [
+        "security.html"
+      ]
+    },
+    {
+      "case": "f01-frontmatter-fields",
+      "sink": "frontmatter title, subtitle, description, author, date, version, slug, tags and an unknown key",
+      "expect": [
+        "frontmatter.renamed",
+        "frontmatter.version"
+      ],
+      "absent": [
+        "HOSTILE_CUSTOM() "
+      ],
+      "present": [
+        "&lt;/title&gt;&lt;script&gt;HOSTILE_TITLE()&lt;/script&gt;",
+        "&lt;/span&gt;&lt;script&gt;HOSTILE_AUTHOR()&lt;/script&gt;"
+      ]
+    },
+    {
+      "case": "f03-title-image",
+      "sink": "frontmatter title_image alt, caption, fit, width and colour",
+      "expect": []
+    },
+    {
+      "case": "f04-title-image-remote",
+      "sink": "frontmatter title_image remote URL",
+      "expect": [
+        "report.asset.remote"
+      ]
+    },
+    {
+      "case": "f04b-title-image-javascript",
+      "sink": "frontmatter title_image javascript: URL",
+      "expect": [
+        "security.media"
+      ]
+    },
+    {
+      "case": "f05-tabs-invalid-ids",
+      "sink": "frontmatter tabs id, from, default and export",
+      "expect": [
+        "frontmatter.tabs"
+      ],
+      "absent": [
+        "HOSTILE_TABID",
+        "HOSTILE_TABLABEL"
+      ]
+    },
+    {
+      "case": "f06-tabs-labels",
+      "sink": "frontmatter tabs labels",
+      "expect": [],
+      "tab_ids": [
+        "one",
+        "two"
+      ],
+      "present": [
+        "data-rv-tab-label=\"&lt;script&gt;HOSTILE_LABEL1()&lt;/script&gt;\""
+      ]
+    },
+    {
+      "case": "f07-tabs-anchor-missing",
+      "sink": "frontmatter tabs anchors that name reserved heading ids",
+      "expect": [
+        "security.id",
+        "tabs.anchor-missing"
+      ],
+      "forbidden_ids": [
+        "rv-chart-0",
+        "panel-two"
+      ]
+    },
+    {
+      "case": "b01-metric-text",
+      "sink": "metric and big block value, label, unit, delta_label",
+      "expect": [],
+      "absent": [
+        "HOSTILE_VALUE()</"
+      ],
+      "present": [
+        "&lt;script&gt;HOSTILE_VALUE()&lt;/script&gt;"
+      ]
+    },
+    {
+      "case": "b02-metric-invalid-enums",
+      "sink": "metric block trend, format, unit enums",
+      "expect": [
+        "block.schema"
+      ]
+    },
+    {
+      "case": "b04-scrolly-step",
+      "sink": "scrolly step Markdown beside callout and body footnotes",
+      "expect": [
+        "security.html",
+        "security.link"
+      ],
+      "forbidden_ids": [
+        "rv-hostile-step",
+        "rv-hostile-two",
+        "rv-hostile-three"
+      ],
+      "present": []
+    },
+    {
+      "case": "b03-callout-text",
+      "sink": "callout block title and Markdown body",
+      "expect": [
+        "security.html",
+        "security.link",
+        "security.id"
+      ],
+      "forbidden_ids": [
+        "rv-hostile-id"
+      ],
+      "present": [
+        "&lt;script&gt;HOSTILE_CALLOUT_TITLE()&lt;/script&gt;"
+      ]
+    },
+    {
+      "case": "b04-callout-kind",
+      "sink": "callout block kind (a class name)",
+      "expect": [
+        "block.schema"
+      ],
+      "absent": [
+        "rv-callout--up\""
+      ]
+    },
+    {
+      "case": "b05-table-block",
+      "sink": "table block cells, headers, column keys, formats, sort, address and date cells",
+      "expect": [],
+      "present": [
+        "&lt;img src=x onerror=HOSTILE_CELL()&gt;",
+        "&lt;script&gt;HOSTILE_HEADER()&lt;/script&gt;"
+      ]
+    },
+    {
+      "case": "b05b-table-invalid-enums",
+      "sink": "table block column align and format, sort dir, max_rows, total (enums and numbers)",
+      "expect": [
+        "block.schema"
+      ]
+    },
+    {
+      "case": "b06-table-csv",
+      "sink": "table block CSV headers and cells",
+      "expect": [],
+      "data": [],
+      "present": [
+        "&lt;img src=x onerror=HOSTILE_CSV_CELL()&gt;"
+      ]
+    },
+    {
+      "case": "b07-image-block",
+      "sink": "image block alt, caption, colour and credit",
+      "expect": [
+        "image.color-invalid"
+      ],
+      "present": [
+        "&lt;script&gt;HOSTILE_CAPTION()&lt;/script&gt;"
+      ]
+    },
+    {
+      "case": "b07b-image-invalid-enums",
+      "sink": "image block fit, width, height, colour and credit shape",
+      "expect": [
+        "block.schema"
+      ]
+    },
+    {
+      "case": "b08-image-src-data",
+      "sink": "image block data: sources",
+      "expect": [
+        "security.media"
+      ]
+    },
+    {
+      "case": "b08b-image-src-paths",
+      "sink": "image block javascript, remote and protocol-relative sources",
+      "expect": [
+        "report.asset.remote",
+        "security.media"
+      ]
+    },
+    {
+      "case": "b09-audio-video",
+      "sink": "audio and video block titles, alt, captions, posters and data sources",
+      "expect": [
+        "security.media"
+      ]
+    },
+    {
+      "case": "b09b-audio-video-paths",
+      "sink": "audio and video block javascript and remote sources and posters",
+      "expect": [
+        "report.asset.remote",
+        "security.media"
+      ]
+    },
+    {
+      "case": "b09c-audio-video-invalid-enums",
+      "sink": "audio and video block width, height, alt, title and caption types",
+      "expect": [
+        "block.schema"
+      ]
+    },
+    {
+      "case": "b10-embed",
+      "sink": "embed block url, caption, height, allow",
+      "expect": [
+        "security.embed"
+      ]
+    },
+    {
+      "case": "b10b-embed-height",
+      "sink": "embed block height",
+      "expect": [
+        "block.schema"
+      ]
+    },
+    {
+      "case": "b11-chart-text",
+      "sink": "chart title, subtitle, axis labels, formats, suffixes, data keys and cells, annotations, style",
+      "expect": [],
+      "present": [
+        "&lt;script&gt;HOSTILE_CTITLE()"
+      ]
+    },
+    {
+      "case": "b12-chart-types-data",
+      "browser_charts": 9,
+      "sink": "chart data cells and field names across line, area, scatter, pie, heatmap, histogram, boxplot, interval, bar and facets",
+      "expect": [],
+      "present": [
+        "&lt;script&gt;HOSTILE_PIE_TITLE()&lt;/script&gt;"
+      ]
+    },
+    {
+      "case": "b13-chart-invalid",
+      "sink": "invalid chart type, data, encoding, unknown keys, annotation kind and bins",
+      "expect": [
+        "block.schema"
+      ]
+    },
+    {
+      "case": "b13b-chart-data-paths",
+      "sink": "chart data csv escape and remote json",
+      "expect": [
+        "report.asset.escape"
+      ]
+    },
+    {
+      "case": "b14-chart-print-and-style-override",
+      "sink": "chart block style and a style file palette in the print override",
+      "expect": [
+        "style.schema"
+      ]
+    },
+    {
+      "case": "x01-everything-together",
+      "sink": "title, prolog, body, metric, callout and style file together",
+      "expect": [
+        "security.html",
+        "style.schema"
+      ]
+    }
+  ]
+}

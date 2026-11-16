@@ -1,0 +1,4 @@
+{
+	"7fe5bd185af94da9a172595be66e53b5955c8129": "Lockdown branch merged into dev by hand before the gate existed (DEL-07 bootstrap exception); checks: cargo fmt, clippy native and wasm, 534 Rust tests, lockdown app 52/52.",
+	"ee957669b91c4b087a4d668f442e2424da11fde3": "Regenerated lockdown merged into dev by hand before the gate existed (DEL-07 bootstrap exception); checks: lockdown app 52/52; docs and tooling only."
+}

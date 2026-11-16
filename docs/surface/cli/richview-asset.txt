@@ -1,0 +1,12 @@
+Upload, verify and abort integrity-pinned remote data and media
+
+Usage: richview asset <COMMAND>
+
+Commands:
+  put     Upload a data or media file and print its integrity-pinned reference
+  verify  Check stored objects against reference files (YAML or JSON)
+  abort   Abort journaled multipart uploads (all, or those whose SHA-256 starts with a prefix)
+  help    Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help  Print help

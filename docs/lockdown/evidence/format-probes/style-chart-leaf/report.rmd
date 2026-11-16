@@ -1,0 +1,6 @@
+---
+title: Chart leaf
+styles: [brutalist, s.rstyle.yaml]
+---
+
+Body.

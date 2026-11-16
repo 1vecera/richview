@@ -1,0 +1,41 @@
+---
+title: Show how a total splits into many parts of different size
+description: A packed bubble chart draws one circle per part, as large in area as its value, and packs the circles together.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Where the yearly spend goes
+
+These illustrative figures give each item of a yearly budget a spend and an area. Each circle has an area in proportion to its spend and a colour for its area; a name appears inside a circle that is large enough for it.
+
+```chart
+type: packed-bubble
+title: Hosting and the two apps take a third of the spend
+subtitle: Yearly spend by item in thousands of euros, illustrative figures
+data:
+  inline:
+    - {item: Cloud hosting, spend: 420, area: Operations}
+    - {item: Support, spend: 310, area: Operations}
+    - {item: Security, spend: 180, area: Operations}
+    - {item: Monitoring, spend: 90, area: Operations}
+    - {item: Mobile app, spend: 380, area: Product}
+    - {item: Web app, spend: 340, area: Product}
+    - {item: Search, spend: 150, area: Product}
+    - {item: Design, spend: 120, area: Product}
+    - {item: Ads, spend: 260, area: Sales}
+    - {item: Events, spend: 200, area: Sales}
+    - {item: Partners, spend: 140, area: Sales}
+    - {item: Hiring, spend: 230, area: People}
+    - {item: Training, spend: 80, area: People}
+    - {item: Legal, spend: 110, area: Admin}
+    - {item: Audit, spend: 60, area: Admin}
+    - {item: Rent, spend: 270, area: Admin}
+encoding: {label: item, y: spend, color: area}
+axes:
+  y: {label: Spend (k EUR)}
+```
+
+*Source: Illustrative figures.*
+
+Use the keyboard or pointer to read each item's spend and its share of the total.

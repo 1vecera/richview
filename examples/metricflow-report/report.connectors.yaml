@@ -1,0 +1,4 @@
+connectors:
+  okurka:
+    kind: metricflow
+    runtime: okurka-local

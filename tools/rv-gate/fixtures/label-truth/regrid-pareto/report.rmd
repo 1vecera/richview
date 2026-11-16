@@ -1,0 +1,28 @@
+---
+title: A Pareto stays sorted when two causes share a grid step
+---
+
+# A Pareto stays sorted when two causes share a grid step
+
+North prints "<0.1%" and ">99.9%", which are correct. South's Alpha and Beta differ by two defects, so Beta is the largest and is drawn first.
+
+```chart
+type: pareto
+title: Causes by region
+data:
+  inline:
+    - {region: North, c: Alpha, n: 100000}
+    - {region: North, c: Beta, n: 50000}
+    - {region: North, c: Gamma, n: 20}
+    - {region: South, c: Alpha, n: 1004}
+    - {region: South, c: Beta, n: 1006}
+    - {region: South, c: Gamma, n: 20}
+encoding: {x: c, y: n}
+controls:
+  - kind: filter
+    id: region
+    field: region
+    label: Region
+    options: [North, South]
+    initial: North
+```

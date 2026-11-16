@@ -1,0 +1,23 @@
+{
+ "spec": {"type": "alluvial", "title": "Referred users stay more often than users who came from ads", "encoding": {"dimensions": ["plan", "channel", "outcome"], "y": "users"}, "axes": {"y": {"label": "Users"}}},
+ "rows": [
+  {"plan": "Free", "channel": "Search", "outcome": "Stayed", "users": 120},
+  {"plan": "Free", "channel": "Search", "outcome": "Left", "users": 180},
+  {"plan": "Free", "channel": "Ads", "outcome": "Stayed", "users": 60},
+  {"plan": "Free", "channel": "Ads", "outcome": "Left", "users": 140},
+  {"plan": "Free", "channel": "Referral", "outcome": "Stayed", "users": 70},
+  {"plan": "Free", "channel": "Referral", "outcome": "Left", "users": 30},
+  {"plan": "Basic", "channel": "Search", "outcome": "Stayed", "users": 90},
+  {"plan": "Basic", "channel": "Search", "outcome": "Left", "users": 40},
+  {"plan": "Basic", "channel": "Ads", "outcome": "Stayed", "users": 50},
+  {"plan": "Basic", "channel": "Ads", "outcome": "Left", "users": 50},
+  {"plan": "Basic", "channel": "Referral", "outcome": "Stayed", "users": 60},
+  {"plan": "Basic", "channel": "Referral", "outcome": "Left", "users": 10},
+  {"plan": "Pro", "channel": "Search", "outcome": "Stayed", "users": 50},
+  {"plan": "Pro", "channel": "Search", "outcome": "Left", "users": 10},
+  {"plan": "Pro", "channel": "Ads", "outcome": "Stayed", "users": 20},
+  {"plan": "Pro", "channel": "Ads", "outcome": "Left", "users": 15},
+  {"plan": "Pro", "channel": "Referral", "outcome": "Stayed", "users": 45},
+  {"plan": "Pro", "channel": "Referral", "outcome": "Left", "users": 5}
+ ]
+}

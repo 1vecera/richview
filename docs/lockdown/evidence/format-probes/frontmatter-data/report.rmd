@@ -1,0 +1,9 @@
+---
+title: Header data
+data:
+  sales: {inline: [{a: 1}]}
+---
+
+```table
+data: {url: https://example.com/x.csv}
+```

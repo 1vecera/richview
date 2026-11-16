@@ -1,0 +1,1 @@
+Your shell commands were unavailable in this session. Use the Write tool to write report.html directly; embed the supplied data in the HTML and generate the full table and chart using inline JavaScript. Do not use shell commands. Keep the original report requirements, and do not modify data.csv.

@@ -1,0 +1,66 @@
+---
+title: Orders rose each month
+description: A small fictional dataset for learning RichView, not a business forecast.
+version: 0.0.1
+slug: first-report
+styles: [scientific, report.rstyle.yaml]
+---
+
+## Three months, one clear trend
+
+The example contains 450 orders. Every observation is invented for this tutorial.
+
+```metric
+value: 450
+label: Total orders
+```
+
+```chart
+type: bar
+title: Orders increased from 120 to 180
+data:
+  inline:
+    - month: Jul
+      orders: 120
+    - month: Aug
+      orders: 150
+    - month: Sep
+      orders: 180
+encoding:
+  x: month
+  y: orders
+axes:
+  x:
+    label: Month
+  y:
+    label: Orders
+```
+
+*Source: fictional observations invented for this tutorial.*
+
+## Check the observations
+
+The table reads the same values from a report-local CSV. The metric above is an authored value; RichView does not calculate it from the chart.
+
+```table
+data:
+  csv: data/orders.csv
+columns:
+  - key: month
+    label: Month
+  - key: orders
+    label: Orders
+    format: number
+    align: right
+total: true
+```
+
+*Source: data/orders.csv, containing the same fictional tutorial observations.*
+
+[Download the CSV](data/orders.csv) · [Read the styling YAML](report.rstyle.yaml)
+
+```callout
+kind: hold
+title: Keep the source and evidence together
+body: This is a fictional demonstration. Replace the observations and the authored total together before using it for a real decision.
+```

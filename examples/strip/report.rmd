@@ -1,0 +1,61 @@
+---
+title: Show every observation, not just a summary
+description: A strip chart draws each observation as a point, one strip per category, spreading overlapping points sideways in a fixed order.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Every score is on the page
+
+These illustrative scores show each team's spread and where scores tie. Overlapping points are moved sideways in value order, so the same data always gives the same picture; sideways position means nothing.
+
+```chart
+type: strip
+title: West scores bunch tightly; North and South spread wider
+subtitle: One point per score; points that would overlap are spread sideways
+data:
+  inline:
+    - {team: North, score: 62}
+    - {team: North, score: 65}
+    - {team: North, score: 65}
+    - {team: North, score: 68}
+    - {team: North, score: 70}
+    - {team: North, score: 70}
+    - {team: North, score: 70}
+    - {team: North, score: 72}
+    - {team: North, score: 75}
+    - {team: North, score: 78}
+    - {team: North, score: 81}
+    - {team: North, score: 90}
+    - {team: South, score: 55}
+    - {team: South, score: 58}
+    - {team: South, score: 60}
+    - {team: South, score: 61}
+    - {team: South, score: 63}
+    - {team: South, score: 63}
+    - {team: South, score: 66}
+    - {team: South, score: 69}
+    - {team: South, score: 74}
+    - {team: South, score: 77}
+    - {team: South, score: 80}
+    - {team: South, score: 84}
+    - {team: West, score: 70}
+    - {team: West, score: 72}
+    - {team: West, score: 73}
+    - {team: West, score: 73}
+    - {team: West, score: 74}
+    - {team: West, score: 75}
+    - {team: West, score: 75}
+    - {team: West, score: 76}
+    - {team: West, score: 78}
+    - {team: West, score: 79}
+    - {team: West, score: 83}
+    - {team: West, score: 88}
+encoding: {x: team, y: score}
+axes:
+  y: {label: Score}
+```
+
+*Source: Illustrative values.*
+
+Use the keyboard or pointer to read each point's value, team and row.

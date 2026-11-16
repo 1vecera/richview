@@ -1,0 +1,18 @@
+$ richview generate fixture/report.rmd --style sleek   # default pretty output
+Generated <scratch>/fixture/Rendered/report.html (22 rich blocks)
+[error] chart.type: expected line, bar, scatter, area, pie, heatmap, histogram, boxplot or interval
+[info] Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser
+[info] Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser
+[info] Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser
+[info] Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser
+[info] Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser
+[info] Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser
+[info] Histogram intervals are lower-inclusive and upper-exclusive; the final upper edge is included. Measures use accepted visible observations in this panel.
+[info] Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser
+[info] R-7 quartiles. Whiskers reach observed values within inclusive 1.5-IQR fences. Potential outliers are retained observations, not errors.
+[info] Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser
+[info] Authored lower and upper bounds; optional estimates are supplied values. No statistical meaning is inferred.
+[info] Chart marks checked against emitted geometry; glyph bounds remain estimates until measured by the browser
+[info] Embedded content from 'www.youtube.com' requires network access
+[warning] Embed blocked: host 'example.com' is not allowed or URL is not HTTPS
+(exit 1)

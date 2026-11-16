@@ -1,0 +1,14 @@
+---
+title: '</title><script>HOSTILE_TITLE()</script>'
+subtitle: '"><script>HOSTILE_SUBTITLE()</script>'
+description: '<img src=x onerror=HOSTILE_LEDE()> & "quoted"'
+author: '</span><script>HOSTILE_AUTHOR()</script>'
+date: '"><script>HOSTILE_DATE()</script>'
+version: '1.0.0"><script>HOSTILE_VERSION()</script>'
+slug: '"><script>HOSTILE_SLUG()</script>'
+tags: ['<script>HOSTILE_TAG()</script>', "a\" onmouseover=\"HOSTILE_TAG2()"]
+custom: '</script><script>HOSTILE_CUSTOM()</script>'
+format: rmd/1
+---
+
+Body text.

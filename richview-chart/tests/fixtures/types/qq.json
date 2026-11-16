@@ -1,0 +1,79 @@
+{
+ "spec": {
+  "type": "qq",
+  "title": "Delivery times lean right of a normal curve",
+  "encoding": {
+   "y": "days"
+  },
+  "axes": {
+   "y": {
+    "label": "Days to deliver"
+   }
+  }
+ },
+ "rows": [
+  {
+   "days": 2.1
+  },
+  {
+   "days": 2.6
+  },
+  {
+   "days": 2.9
+  },
+  {
+   "days": 3.1
+  },
+  {
+   "days": 3.3
+  },
+  {
+   "days": 3.4
+  },
+  {
+   "days": 3.6
+  },
+  {
+   "days": 3.7
+  },
+  {
+   "days": 3.9
+  },
+  {
+   "days": 4.0
+  },
+  {
+   "days": 4.2
+  },
+  {
+   "days": 4.3
+  },
+  {
+   "days": 4.5
+  },
+  {
+   "days": 4.6
+  },
+  {
+   "days": 4.9
+  },
+  {
+   "days": 5.1
+  },
+  {
+   "days": 5.4
+  },
+  {
+   "days": 5.8
+  },
+  {
+   "days": 6.3
+  },
+  {
+   "days": 7.2
+  },
+  {
+   "days": 8.9
+  }
+ ]
+}

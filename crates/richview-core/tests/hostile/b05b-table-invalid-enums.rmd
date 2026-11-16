@@ -1,0 +1,12 @@
+---
+title: Table enums
+---
+
+```table
+data: { inline: [{ a: 1 }] }
+columns:
+  - { key: a, label: A, align: '"><script>HOSTILE_ALIGN()</script>', format: '"><script>HOSTILE_FORMAT()</script>' }
+sort: { key: a, dir: '"><script>HOSTILE_DIR()</script>' }
+max_rows: '"><script>HOSTILE_ROWS()</script>'
+total: '<script>'
+```

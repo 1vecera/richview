@@ -1,0 +1,37 @@
+---
+title: Show a yearly cycle as a rose
+description: A rose gives each month a wedge whose reach is its value, so the cycle reads as one shape around the clock.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Rain peaks in July
+
+These illustrative rainfall totals give each month a wedge, clockwise from January at 12 o'clock. A wedge reaches out in proportion to its value from a zero centre.
+
+```chart
+type: rose
+title: Rain peaks in July
+subtitle: Rainfall per month
+data:
+  inline:
+    - {month: Jan, mm: 30}
+    - {month: Feb, mm: 25}
+    - {month: Mar, mm: 40}
+    - {month: Apr, mm: 55}
+    - {month: May, mm: 80}
+    - {month: Jun, mm: 95}
+    - {month: Jul, mm: 110}
+    - {month: Aug, mm: 100}
+    - {month: Sep, mm: 70}
+    - {month: Oct, mm: 50}
+    - {month: Nov, mm: 45}
+    - {month: Dec, mm: 35}
+encoding: {x: month, y: mm}
+axes:
+  y: {label: Rainfall (mm)}
+```
+
+*Source: Illustrative values.*
+
+Use the keyboard or pointer to read each month's total.

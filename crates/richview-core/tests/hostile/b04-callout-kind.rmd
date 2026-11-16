@@ -1,0 +1,14 @@
+---
+title: Callout kind
+---
+
+```callout
+kind: 'up"><script>HOSTILE_KIND()</script>'
+title: Title
+body: Body.
+```
+
+```callout
+kind: neutral rv-hostile-class
+body: Body.
+```

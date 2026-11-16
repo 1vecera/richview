@@ -1,0 +1,35 @@
+---
+title: Colour a map by the value you give each country
+description: A map colours regions by value and places points by latitude and longitude, from boundaries that ship with RichView.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Broadband is common in Europe and thinner elsewhere
+
+These illustrative shares give each country's households with broadband. A country the data does not name stays plain; a name that matches no boundary is reported, not guessed.
+
+```chart
+type: map
+title: Broadband reaches nine in ten households in much of Europe
+subtitle: Share of households; darker is higher
+data:
+  inline:
+    - {country: Czechia, share: 91}
+    - {country: Germany, share: 92}
+    - {country: France, share: 86}
+    - {country: Poland, share: 88}
+    - {country: Spain, share: 96}
+    - {country: Italy, share: 85}
+    - {country: Norway, share: 98}
+    - {country: Turkey, share: 90}
+    - {country: Egypt, share: 74}
+    - {country: India, share: 52}
+encoding: {region: country, y: share}
+axes:
+  y: {label: Households with broadband, unit: "%"}
+```
+
+*Source: Illustrative values. Boundaries: Natural Earth, public domain.*
+
+Use the keyboard or pointer to read a country's value.

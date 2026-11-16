@@ -1,0 +1,32 @@
+{
+  "phase": "prelaunch",
+  "since": "2026-10-30",
+  "by": "Daniel",
+  "rotation": [],
+  "freshAgentPause": {
+    "until": "2026-10-31T18:00:00.581308Z",
+    "reason": "Daniel 2026-10-30: fresh-agent paused until the personal quota resets; do not use work."
+  },
+  "prelaunchFull": {
+    "browsers": [
+      "chromium"
+    ],
+    "partialRetry": true
+  },
+  "affected": {
+    "failureThreshold": 5,
+    "fallback": {
+      "mode": "failure-threshold",
+      "realDefectSteps": [
+        "hostile",
+        "rust-tests",
+        "chart-type-pdf",
+        "exports",
+        "cross-style",
+        "perf",
+        "site",
+        "chromium"
+      ]
+    }
+  }
+}

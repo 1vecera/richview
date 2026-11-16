@@ -1,0 +1,51 @@
+---
+title: "A publication is a release, not a folder"
+description: "Why the front page, links and reader permissions need to change together."
+version: 1.0.0
+styles: [scientific]
+publish:
+  id: "release-not-a-folder"
+  slug: "release-not-a-folder"
+  summary: "Why the front page, links and reader permissions need to change together."
+  byline: "RichView Example Desk"
+  section: "systems"
+  tags: ["example", "method"]
+  published: "2026-10-15T09:00:00Z"
+  updated: "2026-10-18T09:00:00Z"
+  state: "published"
+  audience: "public"
+  kind: "report"
+  aliases: []
+  corrections: []
+  cover: "cover.svg"
+  cover_alt: "A diagram of separate pages coming together into a single release."
+---
+
+**Example material · Synthetic observations · 18 October 2026**
+
+## One coherent moment
+
+Publishing a file is simple. Publishing a collection means making a promise that the surrounding paths still make sense. The front page should not announce a report whose assets are still arriving.
+
+This fictional inventory separates content files from the routes that help readers discover them. Its values illustrate dependency counts, not a benchmark of a production service.
+
+```chart
+type: bar
+title: "Routes in this example"
+data:
+  inline:
+    - {category: "Stories", value: 12}
+    - {category: "Sections", value: 3}
+    - {category: "Feeds", value: 2}
+    - {category: "Static pages", value: 2}
+encoding: {x: category, y: value}
+axes:
+  x: {label: Category}
+  y: {label: "Routes in this example"}
+```
+
+*Source: Synthetic route inventory for the RichView News demonstration.*
+
+## What to take away
+
+RichView Publish builds a complete release before activation. A release pointer changes only after the objects exist and the expected generation still matches. The operator guide describes the actual implementation and its limits.

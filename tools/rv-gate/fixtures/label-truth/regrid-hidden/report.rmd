@@ -1,0 +1,22 @@
+---
+title: A hidden series leaves the bins counted by the rest
+---
+
+# A hidden series leaves the bins counted by the rest
+
+The first legend entry is switched off; the bars and the readouts must still agree.
+
+```chart
+type: histogram
+title: Values by group on fixed edges
+data:
+  inline:
+    - {g: A, v: 11}
+    - {g: A, v: 12}
+    - {g: A, v: 25}
+    - {g: B, v: 1}
+    - {g: B, v: 2}
+    - {g: B, v: 9.996}
+encoding: {x: v, color: g}
+binning: {edges: [0, 10, 20, 30]}
+```

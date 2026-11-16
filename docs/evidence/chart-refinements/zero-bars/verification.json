@@ -1,0 +1,144 @@
+{
+  "status": "accepted for draft review; no push or merge in this handoff",
+  "base": "b76885a66808956d7e7944b9923aacb445d72b66",
+  "source": "2221b07dc998e187e04cb1d79069dd5d148219ae",
+  "browser": "151.0.7922.173",
+  "node": "26.8.1",
+  "device_scale": 2,
+  "curated_motion": "reduce",
+  "builds": {
+    "before": {
+      "wasm_sha256": "1127df183cd5fd089014ed7fd76858792a61693cdb157ad8fd93631aac36ade1",
+      "native_sha256": "d59eb63ac7a780fc84837632bddbbf90afac228203fd16f1b77e0ab20aeb5213"
+    },
+    "after": {
+      "wasm_sha256": "6089241faf91c16f69447ed1611138e795d7bde66c30c8b8bfe1f4bf7a88fb4d",
+      "native_sha256": "e0958be814a4772b0d7bd580ef159546b72008856ccdea326e2550ab5721b118"
+    }
+  },
+  "pairs": [
+    {
+      "id": "bar-zero-craft-vertical-positive",
+      "source": "vertical.rmd",
+      "theme": "scientific",
+      "width": 320,
+      "source_sha256": "bd740e585b97c4cbc98009e26fbfe49571a2361ce42bcd16f7202e72208fe309",
+      "before": {
+        "file": "vertical-before.png",
+        "sha256": "b53821f4ac1534b7ce23e6356664c4bf70894befdfb66235bde2339d784bf649"
+      },
+      "after": {
+        "file": "vertical-after.png",
+        "sha256": "ce68c631671a6da5e4e29948a852bb5dad715ffa04c596d3b643d73ecbc6e81c"
+      }
+    },
+    {
+      "id": "bar-zero-craft-horizontal-mixed",
+      "source": "horizontal.rmd",
+      "theme": "scientific",
+      "width": 720,
+      "source_sha256": "dc96823ef652059c043b7ded7a8a1f0c750c901aa7e3c57f8ae46501529066b3",
+      "before": {
+        "file": "horizontal-before.png",
+        "sha256": "7cc3a0a6d9a4420cfe7f146a741b3c5ab717550ce62d350937d4f830648c4614"
+      },
+      "after": {
+        "file": "horizontal-after.png",
+        "sha256": "29c8d4d6267787b6ed4269a4e3ec96344a29f7ad3f37e7e6c2fede66ab8c9026"
+      }
+    }
+  ],
+  "validation": {
+    "release": 0,
+    "format": "pass",
+    "clippy_native": "pass",
+    "clippy_wasm": "pass",
+    "workspace": "pass on scoped rerun; first doctest E0463 cache failure retained",
+    "host_checks": {
+      "fixtures": 0,
+      "editor": 0,
+      "native": 0,
+      "compat": 0,
+      "types": 0,
+      "browser": 0,
+      "landing": 0,
+      "cloudflare": 0,
+      "showcase": 0,
+      "flagship": 0,
+      "reel": 0,
+      "browser-api": 0,
+      "motion-runtime": 0,
+      "docs": 0
+    },
+    "matched_current": {
+      "views": 390,
+      "panels": 420,
+      "zero_marks": 610,
+      "nonzero_marks": 830,
+      "same_accessible_names": 1440
+    },
+    "native": {
+      "snapshots": 102,
+      "all_hit_data_and_diagnostics": "equal",
+      "zero_marks": 138,
+      "nonzero_marks": 222
+    },
+    "interface": {
+      "panels": 44,
+      "keyboard": 216,
+      "pointer": 108,
+      "touch": 108,
+      "source_rows": 216,
+      "live_names": 176,
+      "exported_zero_geometry": 76
+    },
+    "offline": {
+      "native_reports": 12,
+      "views": 48,
+      "panels": 56,
+      "external_requests": 0,
+      "runtime_errors": 0
+    },
+    "independent_current": {
+      "panels": 6,
+      "role_name_checks": 96,
+      "source_rows": 30,
+      "states": "initial, hide/show, zero-to-positive-to-zero, Table/CSV, pointer/touch, export"
+    },
+    "frozen_sibling": {
+      "base": "7e153a2ae312521f309ff66d6bf047ff3f932932",
+      "product_source": "3ca3926ccd1fdceb34476c532760b2504dfc80b1",
+      "wasm_sha256": "658b57a378ea5dee4473abe85cb2310f4afc449052a8afa31853ee2238a4e806",
+      "views": 120,
+      "zero_marks": 180,
+      "nonzero_marks": 400,
+      "names": 580,
+      "independent_panels": 6,
+      "browser_exit": 0,
+      "test_reconciliation": "43eae2bc4f1dd151a555c248185bce31fc99cc94",
+      "chart_suite": "125 passed; one unrelated line-category oracle fails equally on unchanged 7e baseline and is already corrected at b19f92b",
+      "production_equivalence": "7e153a2 to b19f92b changes only heatmap(); bar/painter/browser/style/motion code is equal"
+    },
+    "evidence_reproduction": "All four PNG hashes reproduced exactly; documentation verifier passed after packaging"
+  },
+  "limits": [
+    "Parsed f64 zero includes inherited numeric-string underflow; every nonzero floor stays unchanged.",
+    "Inherited grouped n/a collisions and deliberately excluded-bound n/a clipping remain equal.",
+    "Native/downloaded SVGs retain existing absence of live per-mark accessibility decoration.",
+    "Linux Chromium only; no hosted CI, physical-device or performance result claimed."
+  ],
+  "local_proof_root": "/home/vecera/tmp/richview-chart-refinement-20261011",
+  "reports": [
+    "bar-zero-craft-final-verification-full.json",
+    "bar-zero-independent-review.md",
+    "bar-zero-craft-composition.md",
+    "bar-zero-craft-recipe.md"
+  ],
+  "first_failures": {
+    "accessible_names": "d677564/532c988 rejected; historical-aria-check and naming-boundary-reproduction preserved",
+    "workspace": "/home/vecera/code/richview-v3/.claude/worktrees/chart-zero-bars-20261012/tmp/zero-bars/first-failures/workspace.log",
+    "stale_sibling": "/home/vecera/code/richview-v3/.claude/worktrees/chart-zero-bars-compat-20261012/tmp/bar-zero-craft/rejected-stale-3ca",
+    "sibling_test": "/home/vecera/code/richview-v3/.claude/worktrees/chart-zero-bars-compat-20261012/tmp/bar-zero-craft/baseline-rule-contract.log",
+    "inherited_sibling_test": "/home/vecera/tmp/richview-chart-refinement-20261011/bar-zero-craft-sibling-baseline-test.log"
+  }
+}

@@ -1,0 +1,13 @@
+diff --git a/scripts/verify-browser.mjs b/scripts/verify-browser.mjs
+index ef992e7..a617ba1 100644
+--- a/scripts/verify-browser.mjs
++++ b/scripts/verify-browser.mjs
+@@ -517 +517 @@ try {
+-      return { ids, references, own: references.every(id => document.getElementById(id)?.closest('svg') === svg), bars: svg.querySelectorAll('.rv-bar').length, patterns: svg.querySelectorAll('pattern').length, gradients: svg.querySelectorAll('linearGradient').length };
++      return { ids, references, own: references.every(id => document.getElementById(id)?.closest('svg') === svg), bars: svg.querySelectorAll('.rv-bar').length, patterns: svg.querySelectorAll('pattern').length, gradients: svg.querySelectorAll('linearGradient').length, cells: svg.querySelectorAll('.rv-heat-cell').length };
+@@ -540,2 +540,3 @@ try {
+-  assert.equal(evidence.svg_resources.gradient.gradients, 1); assert.equal(evidence.svg_resources.gradient.own, true);
+-  check('Duplicate live SVGs own patterns and gradients through hide, resize, update and removal; standalone resources stay self-contained');
++  assert.equal(evidence.svg_resources.gradient.cells, 2); assert.equal(evidence.svg_resources.gradient.gradients, 0);
++  assert.deepEqual(evidence.svg_resources.gradient.ids, []); assert.deepEqual(evidence.svg_resources.gradient.references, []);
++  check('Duplicate live SVGs own patterns through hide, resize, update and removal; the key-free heatmap has no resources');

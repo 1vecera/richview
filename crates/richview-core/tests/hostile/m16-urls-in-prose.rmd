@@ -1,0 +1,9 @@
+---
+title: URLs in prose
+---
+
+Bare: http://example.org/a"onmouseover="HOSTILE_BARE() and www.example.org/"><script>HOSTILE_WWW()</script> and https://example.org/?q=<script>HOSTILE_Q()</script>.
+
+"Quoted" 'text' -- dashes --- and ... ellipsis with <script>HOSTILE_SMART()</script> and \<script>HOSTILE_ESCAPED()\</script>.
+
+&lt;script&gt;HOSTILE_ENTITY_SCRIPT()&lt;/script&gt; &#60;img src=x onerror=HOSTILE_ENTITY_IMG()&#62;

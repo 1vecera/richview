@@ -1,0 +1,30 @@
+---
+title: Chart integrity audit
+version: 0.0.1
+---
+
+```chart
+{
+  "type": "heatmap",
+  "title": "Reported values",
+  "encoding": {
+    "x": "column",
+    "y": "row",
+    "color": "score"
+  },
+  "data": {
+    "inline": [
+      {
+        "column": null,
+        "row": "A",
+        "score": "50.000"
+      },
+      {
+        "column": "Jan",
+        "row": null,
+        "score": "90.000"
+      }
+    ]
+  }
+}
+```

@@ -1,0 +1,39 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "richview-arc64-verdicts",
+	"title": "Library-comparison verdicts of one chart type (ARC-64, FEA-CH-75)",
+	"type": "object",
+	"required": ["type", "id", "reviewer", "reviewedAt", "comparedAgainst", "verdict", "criteria", "summary"],
+	"additionalProperties": false,
+	"properties": {
+		"type": { "type": "string", "description": "RichView chart type, as in comparison.json" },
+		"id": { "type": "string", "description": "Case id, as in comparison.json" },
+		"reviewer": { "type": "string", "description": "The model that judged, as named by the platform" },
+		"reviewedAt": { "type": "string", "format": "date-time" },
+		"comparedAgainst": { "type": "array", "items": { "enum": ["highcharts", "echarts"] }, "minItems": 1, "description": "Exactly the libraries comparison.json lists for the type" },
+		"verdict": { "enum": ["withstands", "close", "falls-short"], "description": "The overall verdict: the lowest verdict any reference-by-criterion cell earns at either width in any RichView style, unless a reason explains a higher one" },
+		"byStyle": { "type": "object", "description": "Overall verdict per RichView style (for example sleek, air); optional, absent in verdicts written before the Air capture", "additionalProperties": { "enum": ["withstands", "close", "falls-short"] } },
+		"criteria": {
+			"type": "object",
+			"required": ["craft", "legibility", "labels", "colour", "density", "phone"],
+			"additionalProperties": false,
+			"patternProperties": { "^(craft|legibility|labels|colour|density|phone)$": { "$ref": "#/$defs/criterion" } }
+		},
+		"summary": { "type": "string", "description": "Two or three sentences: what decides the verdict" },
+		"fixes": { "type": "array", "items": { "type": "string" }, "description": "Concrete RichView changes that would raise the verdict; empty when it withstands" },
+		"notComparable": { "type": "array", "items": { "type": "string" }, "description": "Differences the lab cannot judge fairly (reference configuration, missing mapping, library limits)" }
+	},
+	"$defs": {
+		"criterion": {
+			"type": "object",
+			"required": ["verdict", "reasons"],
+			"additionalProperties": false,
+			"properties": {
+				"verdict": { "enum": ["withstands", "close", "falls-short"] },
+				"reasons": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "Observations from the captures, each naming the width (720 or 390) and the reference it compares with" },
+				"byStyle": { "type": "object", "description": "Verdict per RichView style when the styles differ; optional", "additionalProperties": { "enum": ["withstands", "close", "falls-short"] } },
+				"against": { "type": "object", "additionalProperties": false, "properties": { "highcharts": { "enum": ["withstands", "close", "falls-short"] }, "echarts": { "enum": ["withstands", "close", "falls-short"] } } }
+			}
+		}
+	}
+}

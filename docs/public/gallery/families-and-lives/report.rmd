@@ -1,0 +1,30 @@
+---
+title: Families and longer lives
+description: Fertility and life expectancy across countries, 1960–2020.
+version: 1.0.0
+styles: [air]
+---
+
+In many countries, longer lives accompanied smaller families. Play the years or choose one frame to compare countries. Each bubble is one country; its area represents population and its colour represents Gapminder's world region. The axes are linear.
+
+```chart
+type: scatter
+title: Explore how countries moved over six decades
+subtitle: Country observations every year; bubble area represents population
+data: { csv: data/families-and-lives.csv }
+encoding: { x: babies_per_woman, y: life_expectancy, size: population, color: region, label: country }
+axes:
+  x: { label: Babies per woman }
+  y: { label: Life expectancy, unit: years }
+style: { ratio: '4:3' }
+controls:
+  - { kind: playback, id: year, field: year, label: Year, speed: 300, loop: true, initial: '2020' }
+```
+
+*Source: Based on free [Gapminder data](https://www.gapminder.org/data/), [fast-track snapshot](https://github.com/open-numbers/ddf--gapminder--fasttrack/tree/b840e5be), fertility v15, life expectancy v15 and population v8, with Gapminder's four world regions; [CC BY 4.0](https://www.gapminder.org/free-material/). This frozen extract includes entities marked `un_state` by Gapminder with all three measures in every year from 1960 to 2020.*
+
+## A relationship, not an explanation
+
+These observations do not establish why fertility or life expectancy changed. A bubble combines national estimates; it cannot show the distribution within a country. A country missing a required measure is absent from that frame. The CSV retains the extracted observations so you can inspect the coverage.
+
+Hover or focus a country for its values. Use the year control to compare years, and use the table or CSV for the observations behind the marks.

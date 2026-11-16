@@ -1,0 +1,3 @@
+# Redacting an answer
+
+Only use this operation after Daniel approves the replacement and redaction. Run one server for the checkout, with no other writer. POST JSON to `/api/redact/<partId>/<itemId>` with `{"confirm":"redact","text":"approved replacement"}`. It replaces the existing answer with that edit, clears its note, and replaces text and note on every matching log record with `[redacted]`; other log lines stay unchanged. It appends a redaction event without the answer text. A malformed log is refused. Both files are staged before the log is replaced, then the answer; if interrupted after the log change, retry the same request and verify both files before publishing. This does not remove data from Git history or other copies.

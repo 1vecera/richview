@@ -1,0 +1,39 @@
+---
+title: Readable magnitude labels
+version: 0.0.1
+---
+
+```chart
+{
+  "type": "line",
+  "title": "Compare the measured values",
+  "encoding": {
+    "x": "date",
+    "y": "value"
+  },
+  "data": {
+    "inline": [
+      {
+        "x": 0,
+        "value": 1e+20,
+        "date": "2026-01-01"
+      },
+      {
+        "x": 1,
+        "value": 2e+20,
+        "date": "2026-01-02"
+      },
+      {
+        "x": 2,
+        "value": 3e+20,
+        "date": "2026-01-03"
+      }
+    ]
+  },
+  "axes": {
+    "y": {
+      "format": "percent"
+    }
+  }
+}
+```

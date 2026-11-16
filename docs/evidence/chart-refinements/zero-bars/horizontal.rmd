@@ -1,0 +1,8 @@
+---
+title: Bar zero craft audit
+version: 0.0.1
+---
+
+```chart
+{"type":"bar","title":"Zero and small values","encoding":{"x":"category","y":"value"},"style":{"orientation":"horizontal"},"data":{"inline":[{"category":"Zero","value":0},{"category":"Tiny +","value":"0.0100"},{"category":"Tiny −","value":"-0.0100"},{"category":"Missing","value":null},{"category":"Large","value":100}]}}
+```

@@ -1,0 +1,12 @@
+---
+title: Chart style override
+styles: [sleek, b14-chart-print-and-style-override.rstyle.yaml]
+---
+
+```chart
+type: bar
+title: Override
+data: { inline: [{ x: A, y: 1 }, { x: B, y: 2 }] }
+encoding: { x: x, y: y }
+style: { palette: scientific, ratio: '16:9', orientation: vertical }
+```

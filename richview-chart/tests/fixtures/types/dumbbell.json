@@ -1,0 +1,14 @@
+{
+ "spec": {
+  "type": "dumbbell",
+  "title": "Score before and after",
+  "encoding": {"x": "team", "lower": "before", "upper": "after"},
+  "axes": {"y": {"label": "Score"}}
+ },
+ "rows": [
+  {"team": "Alpha", "before": 62, "after": 78},
+  {"team": "Beta", "before": 55, "after": 51},
+  {"team": "Gamma", "before": 70, "after": 88},
+  {"team": "Delta", "before": 48, "after": 66}
+ ]
+}

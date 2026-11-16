@@ -1,0 +1,17 @@
+[package]
+rust-version.workspace = true
+name = "richview-editor"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[features]
+embedded-runtime = ["richview-app/embedded-runtime"]
+
+[dependencies]
+richview-core = { path = "../richview-core" }
+richview-app = { path = "../richview-app" }
+richview-authoring = { path = "../richview-authoring" }
+serde_json = "1"
+tokio = { version = "1", features = ["rt", "time", "net"] }

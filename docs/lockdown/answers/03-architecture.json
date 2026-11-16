@@ -1,0 +1,19 @@
+{
+  "partId": "03-architecture",
+  "answers": {
+    "ARC-05": {
+      "decision": "edit",
+      "text": "Chosen option: Frame and notice only. RichView goes all in on WebGL for very high performance with many points. All major browsers must work, Safari, Firefox and Chrome in reasonably recent versions; where JavaScript or WebGL is unavailable, the chart's frame shows a notice that the chart cannot be displayed. No static snapshot, image or table fallback is built.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"We should strive for all major browsers to work, Safari, Mozilla and Chrome, with some reasonable build, but we should show a notice that stuff doesn't work if not. We should always strive for WebGL; let's go for WebGL. I want it super high performant with a lot of points.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "4999bc96a611b8ec",
+      "updatedAt": "2026-10-26T18:09:51.602Z"
+    },
+    "ARC-22": {
+      "decision": "edit",
+      "text": "Option 1, with these changes:\n\n| Host | Decision |\n| --- | --- |\n| richview.ai | Static site plus signup, deployed only from `prod` (ARC-55). |\n| richview-teaser.vecera.workers.dev | Kept and hidden (Cloudflare Access, DEL-40). It is the `dev` preview of richview.ai. It redeploys from `dev` only when the website's code changes, not on every `dev` change. |\n| Hosted RichView Cowork | At app.richview.ai, free up to limits and paid beyond (INT-36). Deploys from `prod` on Daniel's go. |\n| Publish servers for customers | Set up on request only, under the customer's DNS (INT-36). Nothing runs until a customer asks. |\n| news.richview.ai | RichView's own Publish server, public. It stays published. |\n| Managed hosting for large data and media | As proposed (INT-27, INT-36); not discussed further here. |\n| richview-v3.fly.dev | Shut down (after export, INT-47). |\n| richview.uk | 301 to richview.ai, as proposed. |\n| therichview.com | The domain is allowed to lapse; its redirect code is removed. |\n\nEvery production deployment goes through the `prod` gate on Daniel's go. Fly configuration is deleted (ARC-56).",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel clarified: 'news.richview.ai is always published… it's RichView's own publish server, exactly' — 'private version' meant RichView's own server, not private access (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "f8110f140d7ab76a",
+      "updatedAt": "2026-10-26T20:01:55.264Z"
+    }
+  }
+}

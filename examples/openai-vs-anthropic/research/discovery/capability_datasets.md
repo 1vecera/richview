@@ -1,0 +1,49 @@
+# Capability datasets (machine-readable sources)
+
+All files were downloaded on 2026-10-02 into `research/tmp/datasets/` by `research/collect_capability.py` (gitignored; rerun the collector to rebuild it) (about 125 MB in total, two LMArena parquet files are about 109 MB; not committed). Original filenames are kept; where a source uses generic names (LMArena `full-00000-of-00001.parquet`), the source's own subset folders are kept as the path. Rows in `capability.csv` whose `publisher` names one of these datasets were generated from the local copies: their `quote` is a verbatim excerpt of the record (leading CSV fields, YAML lines with indentation removed, or parquet field values), and whitespace inside web quotes was collapsed to single spaces.
+
+## Epoch AI Benchmarking Hub
+
+- Paths: `tmp/datasets/benchmark_data.zip` (original archive) and `tmp/datasets/benchmark_data/` (extracted, 89 files; archive members are timestamped 2026-10-02 12:24).
+- URL: https://epoch.ai/data/benchmark_data.zip (linked from https://epoch.ai/data and https://epoch.ai/benchmarks; the data page showed "Updated Sep. 21, 2026" when fetched, but the archive contents run to 2026-09-29).
+- License: Creative Commons Attribution 4.0 for Epoch AI's data (`benchmark_data/README.md`); data that Epoch collected from external projects keeps its original license, and benchmark questions belong to their creators (https://epoch.ai/benchmarks/about). Citation: Epoch AI, 'Capabilities & benchmarking', https://epoch.ai/benchmarks.
+- Epoch-run files (for example `gpqa_diamond.csv`, `swe_bench_verified.csv`, `frontiermath*.csv`, `simpleqa_verified.csv`): `Model version` (API model id plus a reasoning-effort suffix such as `_high`, `_xhigh`, `_max` or `_unknown`), `mean_score`, `Best score (across scorers)` (the score Epoch plots, from 0 to 1), `Release date`, `Organization`, `Country`, `Training compute (FLOP)`, `Training compute notes`, `stderr`, `Log viewer`, `Logs`, `Started at` (run timestamp) and `id`.
+- External files (`*_external.csv`, for example `arc_agi_2_external.csv`, `hle_external.csv`, `terminalbench_external.csv`, `metr_time_horizons_external.csv`, `os_world_external.csv`, `osworld_2_external.csv`, `vending_bench_2_external.csv`, `webdev_arena_external.csv`, `gdpval_external.csv`, `rli_external.csv`): a benchmark-specific score column (named in `benchmark_metadata.csv`), the same model, date and organization fields, and on many files `Source`, `Source link` and `Notes`. Terminal-Bench rows include third-party agent harnesses (`Agent`, `Agent Org`). `hle_external.csv` has no populated source column.
+- `benchmark_metadata.csv` lists `benchmark`, `in_eci`, `source_file`, `score_column`, `scale`, `random_baseline`, `score_ceiling`, `release_date` and `superseded_by` for 88 benchmarks; it is the key for reading every other file.
+- `model_metadata.csv` (1,123 rows) lists `model_version`, `model_group`, `date`, `display_name`, `organization`, `country`, `accessibility` and `training_compute_flop`.
+- `epoch_capabilities_index/eci_scores.csv` (270 models) lists `Model`, `Display name`, `eci`, `eci_ci_low`, `eci_ci_high`, `date`, `Organization`, `Country (of organization)`, `Model accessibility`, `Accessibility group` and `model_versions`. The same folder holds `edi_scores.csv`, `processed_data_for_eci.csv` (the model-by-benchmark inputs) and `eci_bootstraps.json`.
+- Coverage: model release dates from 2019-11-05 to 2026-09-29 (GPT-6.1 Sol); Epoch's GPQA Diamond runs date from 2025-01-27 to 2026-09-29.
+- What it allows: record-by-record frontier progressions per benchmark, the best score per lab at any date, comparisons at matched reasoning effort, the ECI composite with confidence intervals, and compute against capability.
+- Caveats: several models have many rows (effort levels, scaffolds, pre-release snapshots); ECI values move between refits (Epoch's 2026-09-01 insight put Claude Fable 5 at 162.48, the 2026-10-02 file has 162.22); coverage is uneven (no GPT-6 Astra row in `osworld_2_external.csv`, no recent OpenAI model in `cybench_external.csv`, METR rows stop at Claude Mythos Preview, and Epoch's own SWE-bench Verified runs stop at April 2026 models).
+
+## Epoch AI models database
+
+- Paths: `tmp/datasets/all_ai_models.csv` (3,626 rows, 57 columns), `tmp/datasets/notable_ai_models.csv` (1,078 rows), `tmp/datasets/frontier_ai_models.csv` (138 rows) and `tmp/datasets/large_scale_ai_models.csv` (532 rows).
+- URLs: https://epoch.ai/data/all_ai_models.csv, https://epoch.ai/data/notable_ai_models.csv, https://epoch.ai/data/frontier_ai_models.csv and https://epoch.ai/data/large_scale_ai_models.csv (listed on https://epoch.ai/data/ai-models).
+- License: Creative Commons Attribution 4.0 (https://epoch.ai/data/ai-models).
+- Key columns: `Model`, `Organization`, `Publication date`, `Domain`, `Task`, `Parameters`, `Training compute (FLOP)` with notes, `Training dataset size`, `Notability criteria`, `Model accessibility`, `Link` and `Citations`.
+- Coverage: publication dates from 1950-07-02 to 2026-09-30 (the frontier subset ends at 2026-09-03).
+- Use here: a cross-check for release dates and model naming. No `capability.csv` row is drawn from these files.
+
+## LMArena (Arena) leaderboard history
+
+- Paths: `tmp/datasets/lmarena-leaderboard-dataset/README.md`, `text/full-00000-of-00001.parquet` (1,157,599 rows; snapshots from 2023-05-08 to 2026-09-30), `text_style_control/full-00000-of-00001.parquet` (1,016,009 rows; 2024-08-28 to 2026-09-30) and `webdev/full-00000-of-00001.parquet` (25,712 rows; 2025-11-12 to 2026-10-01).
+- URL: https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset (files fetched from `/resolve/main/<subset>/full-00000-of-00001.parquet`; the dataset was last modified 2026-10-02T03:02:55Z). It was announced at https://arena.ai/blog/arena-leaderboard-dataset (2026-04-02).
+- License: CC-BY-4.0 (Hugging Face dataset card).
+- Columns: `model_name`, `organization` (lower-case lab), `license`, `rating` (the Arena score on the Bradley-Terry scale), `rating_lower` and `rating_upper` (confidence bounds), `variance`, `vote_count`, `rank`, `category` (`overall` plus 25 to 28 slices such as `coding`, `math`, `hard_prompts` and `expert`) and `leaderboard_publish_date`.
+- Method changes (from the README): Elo was replaced by Bradley-Terry on 2024-01-09; style control became the default view for text on 2025-05-16, with the scale re-offset; frequency-based re-weighting started on 2025-07-23; WebDev (Code Arena) data starts on 2025-11-12. Read `text` as the default leaderboard before 2025-05-16 and `text_style_control` after it.
+- What it allows: the #1 model and per-lab best rating at every published snapshot, rating confidence intervals, vote counts and category-level leadership (coding, math and others).
+- Caveats found during analysis: snapshots before December 2023 contain only open models (no GPT-4 or Claude), so they misstate the 2023 leader; deprecated experimental models are absent (for example `gemini-exp-1114` and `gemini-2.5-pro-exp-03-25`), which erases Google's documented #1 periods in late 2024 and spring 2025 (see K012 and K022); ratings are relative to the pool and drift over time. Other subsets on the hub (`agent`, `vision`, `search`, `document` and the image and video arenas) were not downloaded.
+
+## METR time-horizon data
+
+- `tmp/datasets/benchmark_results_1_1.yaml` from https://metr.org/assets/benchmark_results_1_1.yaml (linked as "Raw data" from https://metr.org/time-horizons/). It holds `benchmark_name` (METR-Horizon-v1.1); `doubling_time_in_days` (all-time stitched 187.8 days, and 128.7 days [104.4 to 158.0] from 2023 on, excluding central estimates above 16 hours); and, for each of 26 model keys, `metrics.average_score`, `metrics.is_sota`, `metrics.p50_horizon_length` and `metrics.p80_horizon_length` (each with `estimate`, `ci_low` and `ci_high`, in minutes), plus `release_date` and `scaffolds`. Coverage runs from GPT-2 (2019-02-14) to Claude Mythos Preview, early snapshot (2026-04-07).
+- `tmp/datasets/task_results_1_1.yaml` from https://metr.org/assets/task_results_1_1.yaml holds, for each of 23 agents, the logistic `coefficient` and `intercept`, `release_date` and per-task records (`task_id`, `human_minutes`, `n_successes`, `n_runs`, `task_weight`) over 213 to 228 tasks. It allows refitting horizons, other curve shapes or task subsets.
+- License: none stated on the files or the page, and the GitHub API reports no license for the companion repository https://github.com/METR/eval-analysis-public (whose `reports/time-horizon-1-*/data/raw/runs.jsonl` was not downloaded). Treat the data as citable but not openly licensed, and confirm with METR before redistributing.
+- Caveats: the page was last updated on 2026-05-08 and warns that "Measurements above 16 hrs are unreliable with our current task suite"; it lists Claude Opus 4.7, Grok 4.3 and GPT-5.5 as lacking horizons, and nothing newer is published. Confidence intervals are wide (Claude Opus 4.6: 317 to 3,634 minutes).
+
+## Looked for but not downloaded
+
+- Artificial Analysis: no public bulk file was found; its index figures in `capability.csv` come from its articles. The index was re-versioned several times in 2026 (v4.1, v4.3, v4.3.2), so scores from different versions are not comparable.
+- ARC Prize (https://arcprize.org/leaderboard and /results), Andon Labs Vending-Bench 2 (https://andonlabs.com/evals/vending-bench-2), the Terminal-Bench, SWE-bench and Humanity's Last Exam leaderboards: these were read as web pages; their histories are largely mirrored in Epoch's external files above.
+- Other copies of LMArena history (for example `nakasyou/lmarena-history`, `mathewhe/chatbot-arena-elo` and a Kaggle export) were not downloaded because the official Hugging Face dataset supersedes them.

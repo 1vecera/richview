@@ -1,0 +1,100 @@
+{
+	"id": "revenue-race",
+	"title": "Revenue growth, Anthropic and OpenAI",
+	"origin": "flagship evidence: examples/openai-vs-anthropic/data/charts/run-rate.csv and quarterly-revenue.csv",
+	"brief": "Tomás, who covers AI vendors for our investment committee, asked for a briefing on how fast the two leading model companies are growing, to be circulated before Thursday's meeting.\n\ndata/run-rate.csv holds reported annualized revenue run-rate in USD billions by quarter (a qualifier column such as \"about\" or \"more than\" says how the company or press worded it). data/quarterly-revenue.csv holds recognized revenue for Q1 and Q2 2026 as reported or leaked. data/sources.csv explains the source ids; every chart should name its sources by publisher.\n\nTomás wants three numbers: how many times larger Anthropic's run-rate is in 2026 Q3 than in 2024 Q4, the same multiple for OpenAI, and the growth of Anthropic's recognized revenue from Q1 to Q2 2026 in percent. Say plainly that the figures are reported, not audited.\n\nAudience: the investment committee, who know finance and not machine learning. Use at least three different chart types, add a table with every reported number, and name the source under every chart.",
+	"checks": {
+		"chartTypes": {
+			"minDistinct": 3
+		},
+		"tables": {
+			"min": 1
+		},
+		"sources": true,
+		"figures": [
+			{
+				"id": "anthropic-multiple",
+				"describe": "Anthropic run-rate, 2026 Q3 over 2024 Q4",
+				"key": "anthropic",
+				"compute": {
+					"op": "ratio",
+					"a": {
+						"file": "data/run-rate.csv",
+						"where": {
+							"company": "Anthropic",
+							"quarter": "2026 Q3"
+						},
+						"column": "run_rate_usd_bn"
+					},
+					"b": {
+						"file": "data/run-rate.csv",
+						"where": {
+							"company": "Anthropic",
+							"quarter": "2024 Q4"
+						},
+						"column": "run_rate_usd_bn"
+					}
+				},
+				"tolerance": {
+					"relative": 0.01
+				}
+			},
+			{
+				"id": "openai-multiple",
+				"describe": "OpenAI run-rate, 2026 Q3 over 2024 Q4",
+				"key": "openai",
+				"compute": {
+					"op": "ratio",
+					"a": {
+						"file": "data/run-rate.csv",
+						"where": {
+							"company": "OpenAI",
+							"quarter": "2026 Q3"
+						},
+						"column": "run_rate_usd_bn"
+					},
+					"b": {
+						"file": "data/run-rate.csv",
+						"where": {
+							"company": "OpenAI",
+							"quarter": "2024 Q4"
+						},
+						"column": "run_rate_usd_bn"
+					}
+				},
+				"tolerance": {
+					"relative": 0.01
+				}
+			},
+			{
+				"id": "anthropic-revenue-growth",
+				"describe": "Anthropic revenue growth Q1 to Q2 2026 (percent)",
+				"compute": {
+					"op": "pctChange",
+					"a": {
+						"file": "data/quarterly-revenue.csv",
+						"where": {
+							"company": "Anthropic",
+							"quarter": "Q1 2026"
+						},
+						"column": "revenue_usd_bn"
+					},
+					"b": {
+						"file": "data/quarterly-revenue.csv",
+						"where": {
+							"company": "Anthropic",
+							"quarter": "Q2 2026"
+						},
+						"column": "revenue_usd_bn"
+					}
+				},
+				"scales": [
+					0.01
+				],
+				"tolerance": {
+					"relative": 0.01
+				}
+			}
+		]
+	}
+}

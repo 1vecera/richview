@@ -1,0 +1,32 @@
+node_modules/
+dist/
+build/
+*.log
+.DS_Store
+.env
+.env.local
+.turbo/
+.wrangler/
+coverage/
+tmp/
+.vscode/
+!packages/vscode/.vscodeignore
+out/
+*.vsix
+__pycache__/
+*.py[cod]
+.claude/worktrees/
+# richview-chart (Rust engine + showcase build outputs)
+richview-chart/target/
+/target/
+/packages/vscode/bin/
+/packages/vscode/web/
+/packages/vscode/font-licenses/
+
+# Report source/assets are editable; materialized output is regenerated locally.
+Rendered/
+
+# Connector-generated local data
+examples/*/data/warehouse.duckdb
+examples/*/.richview-cache/
+/target

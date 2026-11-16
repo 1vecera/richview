@@ -1,0 +1,133 @@
+{
+ "_source": {
+  "files": [
+   "tmp/prf07-final/out-sizes.json"
+  ],
+  "sha256": {
+   "tmp/prf07-final/out-sizes.json": "73a6801a8bf83094e7bccb5b735c8157aff7ea1ea90a66f0f1ed042427a91125"
+  },
+  "note": "tmp/prf07-final/sizes_probe.py, b4db233 build and live richview.ai, 2026-10-22"
+ },
+ "data": {
+  "probe": "tmp/prf07-final/sizes_probe.py",
+  "date": "2026-10-21T23:35:45+00:00",
+  "commit": "b4db233",
+  "host": {
+   "machine": "arm64",
+   "os": "macOS-26.3-arm64-arm-64bit-Mach-O"
+  },
+  "binaries": {
+   "richview": {
+    "raw": 8976352,
+    "gzip9": 4422347
+   },
+   "richview-editor": {
+    "raw": 6443200,
+    "gzip9": 3195699
+   },
+   "richview-server": {
+    "raw": 6638992,
+    "gzip9": 3171499
+   }
+  },
+  "site_runtime_files": {
+   "richview_web_bg.wasm": {
+    "raw": 4366342,
+    "gzip9": 1505839
+   },
+   "richview_web.js": {
+    "raw": 120030,
+    "gzip9": 14779
+   },
+   "richview-fonts.css": {
+    "raw": 432785,
+    "gzip9": 325353
+   },
+   "worker.js": {
+    "raw": 444,
+    "gzip9": 292
+   },
+   "bootstrap.js": {
+    "raw": 57,
+    "gzip9": 76
+   }
+  },
+  "site_runtime_prebuilt_gzip": 1512537,
+  "vscode_package_folders": {
+   "bin": 6443200,
+   "web": 5998909,
+   "font-licenses": 71799
+  },
+  "vscode_extension_cjs": 16945,
+  "live": {
+   "https://richview.ai/richview_web_bg.wasm": {
+    "identity": {
+     "bytes": 4368091,
+     "content_encoding": null,
+     "cache_control": "public, max-age=0, must-revalidate"
+    },
+    "gzip": {
+     "bytes": 1508179,
+     "content_encoding": "gzip",
+     "cache_control": "public, max-age=0, must-revalidate"
+    },
+    "br": {
+     "bytes": 1403188,
+     "content_encoding": "br",
+     "cache_control": "public, max-age=0, must-revalidate"
+    }
+   },
+   "https://richview.ai/richview-fonts.css": {
+    "identity": {
+     "bytes": 432785,
+     "content_encoding": null,
+     "cache_control": "public, max-age=0, must-revalidate"
+    },
+    "gzip": {
+     "bytes": 325571,
+     "content_encoding": "gzip",
+     "cache_control": "public, max-age=0, must-revalidate"
+    },
+    "br": {
+     "bytes": 322214,
+     "content_encoding": "br",
+     "cache_control": "public, max-age=0, must-revalidate"
+    }
+   },
+   "https://richview.ai/richview_web.js": {
+    "identity": {
+     "bytes": 120030,
+     "content_encoding": null,
+     "cache_control": "public, max-age=0, must-revalidate"
+    },
+    "gzip": {
+     "bytes": 14790,
+     "content_encoding": "gzip",
+     "cache_control": "public, max-age=0, must-revalidate"
+    },
+    "br": {
+     "bytes": 15208,
+     "content_encoding": "br",
+     "cache_control": "public, max-age=0, must-revalidate"
+    }
+   },
+   "https://richview.ai/": {
+    "identity": {
+     "bytes": 28225,
+     "content_encoding": null,
+     "cache_control": "public, max-age=0, must-revalidate"
+    },
+    "gzip": {
+     "bytes": 7831,
+     "content_encoding": "gzip",
+     "cache_control": "public, max-age=0, must-revalidate"
+    },
+    "br": {
+     "bytes": 7907,
+     "content_encoding": "br",
+     "cache_control": "public, max-age=0, must-revalidate"
+    }
+   }
+  }
+ }
+}

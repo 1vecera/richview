@@ -1,0 +1,287 @@
+{
+ "_source": {
+  "files": [
+   "tmp/performance/gates.json"
+  ],
+  "sha256": {
+   "tmp/performance/gates.json": "954b10f5f623ad81065b53b8a14032b578c7e6b6797809defc5f3c650765a08d"
+  },
+  "note": "uv run scripts/check-performance.py --evidence-dir tmp/performance, 2026-10-21"
+ },
+ "data": {
+  "status": "failed",
+  "scope": "Fixed local budgets in docs/PERFORMANCE.md; all endpoints required. Node boundary, CSV edit, chart-kernel regression and browser RSS remain disclosures, not retroactive gates.",
+  "sources": {
+   "rust": {
+    "file": "rust.json",
+    "sha256": "1409d4d64f1cf8324c625547feb9d74c5bf8b934253b8bd3e7b7f1a264bd9bcb"
+   },
+   "native": {
+    "file": "native-surfaces.json",
+    "sha256": "a1c9554b5c3512354f36be3cce6b9d8ade877b0353314db881a3c0a5fdabb52c"
+   },
+   "browser": {
+    "file": "browser.json",
+    "sha256": "cb86ed5f5a3a45b575cc5f29e519d550dcc4ab643b16a5555473e1d4bee3b6c1"
+   }
+  },
+  "gates": [
+   {
+    "name": "native.small",
+    "endpoint": "Warm native report p95",
+    "operator": "<=",
+    "limit": 5,
+    "unit": "ms",
+    "value": 0.632292,
+    "passed": true
+   },
+   {
+    "name": "native.six-types",
+    "endpoint": "Warm native report p95",
+    "operator": "<=",
+    "limit": 10,
+    "unit": "ms",
+    "value": 0.684625,
+    "passed": true
+   },
+   {
+    "name": "native.flagship",
+    "endpoint": "Warm native report p95",
+    "operator": "<=",
+    "limit": 35,
+    "unit": "ms",
+    "value": 12.27675,
+    "passed": true
+   },
+   {
+    "name": "native.dense",
+    "endpoint": "Warm native report p95",
+    "operator": "<=",
+    "limit": 250,
+    "unit": "ms",
+    "value": 113.076083,
+    "passed": true
+   },
+   {
+    "name": "cli.small",
+    "endpoint": "Process-cold complete offline CLI p95",
+    "operator": "<=",
+    "limit": 150,
+    "unit": "ms",
+    "value": 23.628416,
+    "passed": true
+   },
+   {
+    "name": "cli.flagship",
+    "endpoint": "Process-cold complete offline CLI p95",
+    "operator": "<=",
+    "limit": 250,
+    "unit": "ms",
+    "value": 62.047209,
+    "passed": true
+   },
+   {
+    "name": "cli.dense",
+    "endpoint": "Process-cold complete offline CLI p95",
+    "operator": "<=",
+    "limit": 400,
+    "unit": "ms",
+    "value": 191.937375,
+    "passed": true
+   },
+   {
+    "name": "editor.small",
+    "endpoint": "Warm preview RPC total p95; cached external runtime",
+    "operator": "<=",
+    "limit": 10,
+    "unit": "ms",
+    "value": 1.220875,
+    "passed": true
+   },
+   {
+    "name": "editor.flagship",
+    "endpoint": "Warm preview RPC total p95; cached external runtime",
+    "operator": "<=",
+    "limit": 50,
+    "unit": "ms",
+    "value": 19.498334,
+    "passed": true
+   },
+   {
+    "name": "editor.dense",
+    "endpoint": "Warm preview RPC total p95; cached external runtime",
+    "operator": "<=",
+    "limit": 400,
+    "unit": "ms",
+    "value": 113.947375,
+    "passed": true
+   },
+   {
+    "name": "http.small.1-clients",
+    "endpoint": "Complete gzip loopback response + client decode p95",
+    "operator": "<=",
+    "limit": 200,
+    "unit": "ms",
+    "value": 50.2525,
+    "passed": true
+   },
+   {
+    "name": "http.small.4-clients",
+    "endpoint": "Complete gzip loopback response + client decode p95",
+    "operator": "<=",
+    "limit": 500,
+    "unit": "ms",
+    "value": 58.755792,
+    "passed": true
+   },
+   {
+    "name": "http.small.throughput",
+    "endpoint": "Four-client complete gzip loopback aggregate throughput",
+    "operator": ">=",
+    "limit": 10,
+    "unit": "requests/s",
+    "value": 73.09207420636643,
+    "passed": true
+   },
+   {
+    "name": "http.dense.1-clients",
+    "endpoint": "Complete gzip loopback response + client decode p95",
+    "operator": "<=",
+    "limit": 600,
+    "unit": "ms",
+    "value": 202.90475,
+    "passed": true
+   },
+   {
+    "name": "http.dense.4-clients",
+    "endpoint": "Complete gzip loopback response + client decode p95",
+    "operator": "<=",
+    "limit": 1500,
+    "unit": "ms",
+    "value": 287.075417,
+    "passed": true
+   },
+   {
+    "name": "http.dense.throughput",
+    "endpoint": "Four-client complete gzip loopback aggregate throughput",
+    "operator": ">=",
+    "limit": 4,
+    "unit": "requests/s",
+    "value": 16.45448691495189,
+    "passed": true
+   },
+   {
+    "name": "browser.dense-zoom.layout-dom",
+    "endpoint": "100 dense zooms Rust layout + DOM p95",
+    "operator": "<=",
+    "limit": 16,
+    "unit": "ms",
+    "value": 4.5,
+    "passed": true
+   },
+   {
+    "name": "browser.dense-zoom.two-frames",
+    "endpoint": "100 dense zooms event to two RAF p95",
+    "operator": "<=",
+    "limit": 100,
+    "unit": "ms",
+    "value": 54.599999994039536,
+    "passed": true
+   },
+   {
+    "name": "browser.theme.first-all-charts",
+    "endpoint": "20 warm themes event to first frame of all 18 charts p95",
+    "operator": "<=",
+    "limit": 100,
+    "unit": "ms",
+    "value": 44.399658203125,
+    "passed": true
+   },
+   {
+    "name": "browser.theme.latest-all-charts",
+    "endpoint": "20 warm themes latest chart frames observed after two RAF p95 (original endpoint)",
+    "operator": "<=",
+    "limit": 100,
+    "unit": "ms",
+    "value": 44.399658203125,
+    "passed": true
+   },
+   {
+    "name": "browser.small-edit",
+    "endpoint": "20 warm small source edits first live chart p95",
+    "operator": "<=",
+    "limit": 300,
+    "unit": "ms",
+    "value": 148.89990234375,
+    "passed": true
+   },
+   {
+    "name": "browser.dense-edit",
+    "endpoint": "Complete dense worker source edit to first live chart, single event",
+    "operator": "<=",
+    "limit": 1000,
+    "unit": "ms",
+    "value": 547.400146484375,
+    "passed": true
+   },
+   {
+    "name": "browser.cold-mount",
+    "endpoint": "Cold three-example chart page to all live mounts, loopback",
+    "operator": "<=",
+    "limit": 2500,
+    "unit": "ms",
+    "value": 277.2542090000002,
+    "passed": true
+   },
+   {
+    "name": "native.peak-memory",
+    "endpoint": "Complete native report workload sequence Linux VmHWM",
+    "operator": "<=",
+    "limit": 268435456,
+    "unit": "bytes",
+    "value": null,
+    "passed": false,
+    "error": "expected string or bytes-like object, got 'NoneType'"
+   },
+   {
+    "name": "browser.delivered-wasm",
+    "endpoint": "Complete actual gzip-delivered Wasm bytes",
+    "operator": "<=",
+    "limit": 1572864,
+    "unit": "bytes",
+    "value": 1520124,
+    "passed": true
+   }
+  ],
+  "integrity": [
+   {
+    "name": "native capture completed with stable artifacts",
+    "passed": true
+   },
+   {
+    "name": "native engine capture has stable artifacts",
+    "passed": true
+   },
+   {
+    "name": "browser behavioral assertions passed without errors",
+    "passed": true
+   },
+   {
+    "name": "delivery encoding is actually gzip",
+    "passed": true
+   },
+   {
+    "name": "native and browser captures use identical runtime bytes",
+    "passed": true
+   },
+   {
+    "name": "dense browser worker receives the measured native fixture",
+    "passed": true
+   },
+   {
+    "name": "native surface and engine captures use identical fixtures",
+    "passed": true
+   }
+  ]
+ }
+}

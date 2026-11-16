@@ -1,0 +1,21 @@
+{
+	"schema": "richview-design-review-cases/1",
+	"cases": [
+		{ "id": "openai-vs-anthropic", "output": "report", "source": "examples/openai-vs-anthropic/report.rmd", "about": "Flagship report: 9 charts, a scorecard, citations and source notes" },
+		{ "id": "first-report", "output": "report", "source": "examples/first-report/report.rmd", "about": "Tutorial report with a local style file, a metric and a CSV-backed table" },
+		{ "id": "sales-report", "output": "report", "source": "examples/sales-report/report.rmd", "about": "Short business report with metrics and one chart" },
+		{ "id": "craft-line-10", "output": "report", "source": "benchmarks/chart-craft/reports/line-10/report.rmd", "about": "Dense line: three series of 1,200 quarter-hour points, 138 missing readings, ja-JP dates" },
+		{ "id": "craft-line-04", "output": "report", "source": "benchmarks/chart-craft/reports/line-04/report.rmd", "about": "Sparse line: three series with gaps that must stay visible" },
+		{ "id": "craft-line-08", "output": "report", "source": "benchmarks/chart-craft/reports/line-08/report.rmd", "about": "Three close series at six-hour steps, cs-CZ dates, missing readings" },
+		{ "id": "craft-area-01", "output": "report", "source": "benchmarks/chart-craft/reports/area-01/report.rmd", "about": "Daily areas with missing readings" },
+		{ "id": "craft-area-05", "output": "report", "source": "benchmarks/chart-craft/reports/area-05/report.rmd", "about": "Dense areas: 2,400 samples with 114 gaps" },
+		{ "id": "craft-bar-01", "output": "report", "source": "benchmarks/chart-craft/reports/bar-01/report.rmd", "about": "Signed grouped bars with 33-character category names" },
+		{ "id": "craft-bar-10", "output": "report", "source": "benchmarks/chart-craft/reports/bar-10/report.rmd", "about": "Signed bars in three series with percent units" },
+		{ "id": "craft-scatter-08", "output": "report", "source": "benchmarks/chart-craft/reports/scatter-08/report.rmd", "about": "46 bubbles in three series with size encoding and currency units" },
+		{ "id": "craft-scatter-05", "output": "report", "source": "benchmarks/chart-craft/reports/scatter-05/report.rmd", "about": "34 bubbles with percent units" },
+		{ "id": "craft-pie-05", "output": "report", "source": "benchmarks/chart-craft/reports/pie-05/report.rmd", "about": "Seven slices including small ones" },
+		{ "id": "craft-heatmap-05", "output": "report", "source": "benchmarks/chart-craft/reports/heatmap-05/report.rmd", "about": "Dense heatmap: 15 × 8 cells" },
+		{ "id": "craft-heatmap-03", "output": "report", "source": "benchmarks/chart-craft/reports/heatmap-03/report.rmd", "about": "Heatmap with 11 × 6 cells" }
+	],
+	"quick": ["openai-vs-anthropic", "first-report", "craft-area-01", "craft-scatter-08", "craft-pie-05"]
+}

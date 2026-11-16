@@ -1,0 +1,361 @@
+{
+  "captured_at": "2026-10-11T20:05:27.173Z",
+  "base": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+  "implementation": "8c0419234d463cb841fa99e0c1440525cb725581",
+  "source_diff_sha256": "62de49dd57462a99b7d5e260b340e8b4ae10fad0235f93151383ff56b32cc0cc",
+  "source_files": {
+    "richview-chart/src/rmd_render.rs": "290e491454bf37efc62c2f14db4f49ca000d1019300427f58b38473424873cb7",
+    "docs/RMD-SPEC.md": "fa901cc72d0fa9d696b510dc9e0f2324b195f9bde9d74bfe4fc2076436738a8d"
+  },
+  "builds": {
+    "before": {
+      "target/release/richview": "874dd8ef1c126b140282f08258ccaff408be2b08092250f31bb5a0045c314d56",
+      "dist/web/richview_web_bg.wasm": "141dd99c023fc595e987febc299f4c7ce554912fd489d3ffe768a46ce939be4e",
+      "dist/web/richview_web.js": "e27789cab3ddf73a7ac983a2c4f47d9c8a1e3b18232a7e75eec9aec5c8a6d6c7",
+      "packages/core/dist/rust_bg.wasm": "15527a5daf3a8d6ad5eb10f597c501d82a6f881ee9724c9e937badae0522bd8d"
+    },
+    "after": {
+      "target/release/richview": "e2ac3acefc2c0fc564682f4c4cbcb9176408898256e15297428d274a12ba15b8",
+      "dist/web/richview_web_bg.wasm": "9ce3cf15487fde44419ece5612ec39e950d11c728b8e17ee1a0962eb06144406",
+      "dist/web/richview_web.js": "bdd26c00fcc0003534cdc3ed356d7bb830cc82c2fd6b880f0600ca423896b372",
+      "packages/core/dist/rust_bg.wasm": "3f5d00278464c149df333807ea482bec3acc9763a32005ed0c8e2b3ecb241e4b"
+    }
+  },
+  "browser": {
+    "version": "151.0.7922.173",
+    "executable": "/usr/bin/chromium",
+    "headless": true,
+    "isolated_context": true,
+    "device_scale_factor": 2,
+    "reduced_motion": true,
+    "packaged_fonts": true
+  },
+  "pairs": [
+    {
+      "id": "pie-05-scientific-390",
+      "fixture": "../../../../benchmarks/chart-craft/reports/pie-05/report.rmd",
+      "source_sha256": "8fad060950856d58b70294b58fd2f38b120c23c5032095b59b9927c409919897",
+      "theme": "scientific",
+      "viewport": 390,
+      "before": {
+        "image": "phone-before.png",
+        "sha256": "f83d1e2137b16169becdba41cbe4848a2e67e6fa737ada15a83e28da9f892c73",
+        "figure": {
+          "width": 358,
+          "height": 284.375
+        },
+        "radius": 24.974999999999998,
+        "native_diagnostics": [
+          {
+            "dimensions": {
+              "height": 219.375,
+              "width": 390
+            },
+            "status": "clean",
+            "checks": {},
+            "dropped_labels": 0
+          }
+        ],
+        "live_diagnostics": [
+          {
+            "status": "clean",
+            "checks": {}
+          }
+        ],
+        "page_errors": []
+      },
+      "after": {
+        "image": "phone-after.png",
+        "sha256": "1f2239034d37426b075d5e1f106fc6b5e36ac4f8c18f1c11ec93cc11effae614",
+        "figure": {
+          "width": 358,
+          "height": 521.46875
+        },
+        "radius": 100.24000000000001,
+        "native_diagnostics": [
+          {
+            "dimensions": {
+              "height": 456.40000000000003,
+              "width": 390
+            },
+            "status": "clean",
+            "checks": {},
+            "dropped_labels": 0
+          }
+        ],
+        "live_diagnostics": [
+          {
+            "status": "clean",
+            "checks": {}
+          }
+        ],
+        "page_errors": []
+      }
+    },
+    {
+      "id": "pie-many-sleek-720",
+      "fixture": "dense-report.rmd",
+      "source_sha256": "26e32296bad6b013c3d395b71a0f66dc70e889526edbf3cbb6f61563eb317cb9",
+      "theme": "sleek",
+      "viewport": 720,
+      "before": {
+        "image": "dense-before.png",
+        "sha256": "b341785965d5dfea1badfdaff9cd1042dc4c6dbf6eeb63ebf5f4319a2ccb0388",
+        "figure": {
+          "width": 672,
+          "height": 414.5
+        },
+        "radius": 131.76,
+        "native_diagnostics": [
+          {
+            "dimensions": {
+              "height": 405,
+              "width": 720
+            },
+            "status": "issues",
+            "checks": {
+              "clipping": 12,
+              "label-collision": 4
+            },
+            "dropped_labels": 0
+          }
+        ],
+        "live_diagnostics": [
+          {
+            "status": "issues",
+            "checks": {
+              "clipping": 15,
+              "label-collision": 7
+            }
+          }
+        ],
+        "page_errors": []
+      },
+      "after": {
+        "image": "dense-after.png",
+        "sha256": "244f298b44cbe398609d7684570b31c74735cb05c806d525d7ae1813228a86e9",
+        "figure": {
+          "width": 672,
+          "height": 728.5
+        },
+        "radius": 120,
+        "native_diagnostics": [
+          {
+            "dimensions": {
+              "height": 692,
+              "width": 720
+            },
+            "status": "clean",
+            "checks": {},
+            "dropped_labels": 0
+          }
+        ],
+        "live_diagnostics": [
+          {
+            "status": "clean",
+            "checks": {}
+          }
+        ],
+        "page_errors": []
+      }
+    }
+  ],
+  "matrix": {
+    "before": 195,
+    "after": 195,
+    "live_charts": 225,
+    "fixtures": [
+      "pie-01",
+      "pie-02",
+      "pie-03",
+      "pie-04",
+      "pie-05",
+      "pie-many",
+      "pie-long-names",
+      "pie-single-positive",
+      "pie-one",
+      "pie-unequal",
+      "pie-zero-total",
+      "pie-unbroken",
+      "pie-review-facets"
+    ],
+    "themes": [
+      "sleek",
+      "scientific",
+      "brutalist",
+      "sleek-light",
+      "hand-drawn"
+    ],
+    "widths": [
+      320,
+      390,
+      720
+    ],
+    "errors": [],
+    "horizontal_overflow": 0,
+    "active_animations": 0,
+    "native_warning_kinds": {
+      "empty-region": 15
+    }
+  },
+  "interaction": {
+    "static_live_svg_download": 32,
+    "motion_modes": [
+      "reduce",
+      "no-preference"
+    ],
+    "pointer_touch_cases": 18,
+    "positive_sector_hits": 96,
+    "keyboard_rows": 102,
+    "offline_native_cli_static_live": 12,
+    "native_external_requests": []
+  },
+  "local_checks": [
+    {
+      "id": "fixtures",
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--locked",
+        "-p",
+        "richview-bench",
+        "--",
+        "--write-fixtures",
+        "--fixtures-only"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "editor",
+      "command": [
+        "node",
+        "scripts/verify-editor.cjs"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "native",
+      "command": [
+        "node",
+        "scripts/verify-native.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "compat",
+      "command": [
+        "node",
+        "scripts/verify-compat.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "types",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--strict",
+        "--module",
+        "nodenext",
+        "--moduleResolution",
+        "nodenext",
+        "--target",
+        "es2022",
+        "--lib",
+        "es2022,dom",
+        "scripts/verify-types.ts"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "browser",
+      "command": [
+        "node",
+        "scripts/verify-browser.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "landing",
+      "command": [
+        "node",
+        "scripts/verify-landing.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "cloudflare",
+      "command": [
+        "node",
+        "scripts/verify-cloudflare.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "showcase",
+      "command": [
+        "node",
+        "scripts/verify-showcase.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "flagship",
+      "command": [
+        "node",
+        "scripts/verify-flagship.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "reel",
+      "command": [
+        "node",
+        "scripts/verify-reel.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "browser-api",
+      "command": [
+        "node",
+        "scripts/verify-browser-api.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "motion-runtime",
+      "command": [
+        "node",
+        "scripts/verify-motion-runtime.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "docs",
+      "command": [
+        "node",
+        "scripts/verify-docs.mjs"
+      ],
+      "exit": 0
+    }
+  ],
+  "rust_checks": [
+    "cargo fmt --all --check",
+    "cargo clippy --workspace --all-targets --locked -- -D warnings",
+    "cargo clippy -p richview-web --target wasm32-unknown-unknown --locked -- -D warnings",
+    "cargo test --workspace --locked",
+    "cargo run --release --locked -p richview-build"
+  ],
+  "evidence_root": "tmp/pie-room/current-main/",
+  "independent_review": "/home/vecera/tmp/richview-chart-refinement-20261011/pie-current-review-after/manifest.json",
+  "limits": [
+    "Complete keys can exceed the preferred ratio; very dense keys are intentionally taller.",
+    "Existing palette cycling, zero-total empty state and annotation placement are retained.",
+    "Static reports use the existing responsive fixed-frame contract; live charts use actual column width and SVG downloads compose the figure heading above the plot.",
+    "An undersized internal _renderHeight warns and grows to retain valid geometry.",
+    "PDF export and hosted CI are not established by these local chart captures."
+  ]
+}

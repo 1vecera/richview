@@ -1,0 +1,40 @@
+[
+  {
+    "state": "before",
+    "commit": "e9c6e7c8126c1fa5164e404670a06122f1e25bb6",
+    "browser": {
+      "engine": "chromium",
+      "version": "153.0.8010.12",
+      "platform": "darwin",
+      "architecture": "arm64"
+    },
+    "css_width": 360,
+    "raster_scale": 2,
+    "title_pixel": 151,
+    "marker_pixel": 143,
+    "delta": 8,
+    "anchor": "75.67721468099212",
+    "axis_text": null,
+    "axis_coordinate": null,
+    "png_sha256": "f8243fefaf558ac260178a5e43df432a16a86ff83a49a3449271656414694101"
+  },
+  {
+    "state": "after",
+    "commit": "a378c85ef2239a27310b3eb8351a5511fbe7d988",
+    "browser": {
+      "engine": "chromium",
+      "version": "153.0.8010.12",
+      "platform": "darwin",
+      "architecture": "arm64"
+    },
+    "css_width": 360,
+    "raster_scale": 2,
+    "title_pixel": 143,
+    "marker_pixel": 143,
+    "delta": 0,
+    "anchor": "71.33933982822019",
+    "axis_text": "Jan 6",
+    "axis_coordinate": 264,
+    "png_sha256": "87b09cb5e6044f28db9b7e82cb26dee6aa28061a537d311a3a490588d52b5037"
+  }
+]

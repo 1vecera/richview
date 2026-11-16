@@ -1,0 +1,319 @@
+[
+	{
+		"id": "share-over-time",
+		"type": "line",
+		"title": "Developer talk flipped to Anthropic in mid-2025; the wider public barely moved",
+		"subtitle": "Anthropic's share of OpenAI + Anthropic, by month and population",
+		"csv": "data/charts/share-over-time.csv",
+		"encoding": {
+			"x": "month",
+			"y": "anthropic_share_pct",
+			"color": "measure"
+		},
+		"axes": {
+			"x": {
+				"label": "Month"
+			},
+			"y": {
+				"label": "Anthropic share, %"
+			}
+		},
+		"annotations": [
+			{
+				"kind": "band",
+				"from": {
+					"x": "2024-06"
+				},
+				"to": {
+					"x": "2024-07"
+				},
+				"text": "Claude 3.5 Sonnet"
+			},
+			{
+				"kind": "band",
+				"from": {
+					"x": "2025-05"
+				},
+				"to": {
+					"x": "2025-06"
+				},
+				"text": "Claude 4, Claude Code GA"
+			},
+			{
+				"kind": "band",
+				"from": {
+					"x": "2026-02"
+				},
+				"to": {
+					"x": "2026-03"
+				},
+				"text": "Super Bowl ad, Pentagon split"
+			}
+		],
+		"ratio": "16:9",
+		"sources": ["D-HN", "D-NPM", "D-GT", "D-WIKI"],
+		"population": "Hacker News commenters; npm installs; Google searchers; English Wikipedia readers",
+		"window": "2023-01 to 2026-09",
+		"notes": "HN: comments matching openai|chatgpt vs anthropic|claude (whole words). npm: median daily downloads of @anthropic-ai/sdk vs openai. Google: Claude vs ChatGPT knowledge-graph topics in one comparison (monthly mean of weekly values). Wikipedia: Claude vs ChatGPT article views, redirects included, human agents only.",
+		"row_count": 175
+	},
+	{
+		"id": "share-by-population",
+		"type": "bar",
+		"title": "Anthropic's share of the race runs from 2.4% to 71%, depending on who is asked",
+		"subtitle": "Anthropic's share of OpenAI + Anthropic on the latest comparable measure for eight populations, %",
+		"csv": "data/charts/share-by-population.csv",
+		"encoding": {
+			"x": "measure",
+			"y": "anthropic_share_pct"
+		},
+		"axes": {
+			"x": {
+				"label": ""
+			},
+			"y": {
+				"label": "Anthropic share, %"
+			}
+		},
+		"annotations": [],
+		"ratio": "16:9",
+		"sources": ["C196", "D-GT", "D-HN", "D-ITUNES", "D-NPM", "D-PYPI", "S005", "S065"],
+		"population": "Eight of the sixteen measures in population-shares.csv, from US iPhone owners to professional developers",
+		"window": "Latest available period per measure (2025 to 2026-10-02)",
+		"notes": "Share = Anthropic / (Anthropic + OpenAI). Measures use different units; compare shares, not levels.",
+		"row_count": 8
+	},
+	{
+		"id": "pentagon-week",
+		"type": "line",
+		"title": "Claude's US search interest rose 3.5x around the Pentagon split; 44% held",
+		"subtitle": "Weekly US Google search interest in the Claude and ChatGPT topics (0-100, same comparison)",
+		"csv": "data/charts/pentagon-week.csv",
+		"encoding": {
+			"x": "week",
+			"y": "interest",
+			"color": "topic"
+		},
+		"axes": {
+			"x": {
+				"label": "Week starting"
+			},
+			"y": {
+				"label": "Search interest (0-100)"
+			}
+		},
+		"annotations": [
+			{
+				"kind": "band",
+				"from": {
+					"x": "2026-02-08"
+				},
+				"to": {
+					"x": "2026-03-01"
+				},
+				"text": "Super Bowl ad to Pentagon split"
+			}
+		],
+		"ratio": "16:9",
+		"sources": ["D-GT", "E078", "E088"],
+		"population": "US Google searchers",
+		"window": "2025-11 to 2026-09",
+		"notes": "Super Bowl 'no ads' campaign 2026-02-08 (E078); Pentagon supply-chain-risk designation 2026-02-27 (E088).",
+		"row_count": 96
+	},
+	{
+		"id": "coding-agents",
+		"type": "line",
+		"title": "Codex leads in talk, searches and installs; Claude Code still files more PRs",
+		"subtitle": "Claude Code's share of Claude Code + OpenAI Codex, by month and signal",
+		"csv": "data/charts/coding-agents.csv",
+		"encoding": {
+			"x": "month",
+			"y": "claude_code_share_pct",
+			"color": "measure"
+		},
+		"axes": {
+			"x": {
+				"label": "Month"
+			},
+			"y": {
+				"label": "Claude Code share, %"
+			}
+		},
+		"annotations": [
+			{
+				"kind": "line",
+				"at": {
+					"y": 50
+				},
+				"text": ""
+			}
+		],
+		"ratio": "16:9",
+		"sources": ["D-HN", "D-NPM", "D-GT", "D-GH"],
+		"population": "Hacker News commenters; npm installs; Google searchers; public GitHub repositories",
+		"window": "2025-04 to 2026-09",
+		"notes": "npm (median daily downloads) understates Claude Code after Anthropic moved users to a native installer. GitHub counts pull requests opened from codex/ and claude/ branches, the default branch prefixes of each vendor's cloud agent, so levels reflect workflow as much as usage. Compare each line's direction.",
+		"row_count": 65
+	},
+	{
+		"id": "quarterly-revenue",
+		"type": "bar",
+		"title": "In recognised revenue, Anthropic overtook OpenAI in Q2 2026",
+		"subtitle": "Quarterly revenue, $bn, from documents reported by Bloomberg (Anthropic) and the WSJ (OpenAI)",
+		"csv": "data/charts/quarterly-revenue.csv",
+		"encoding": {
+			"x": "quarter",
+			"y": "revenue_usd_bn",
+			"color": "company"
+		},
+		"axes": {
+			"x": {
+				"label": "Quarter"
+			},
+			"y": {
+				"label": "Revenue, $bn"
+			}
+		},
+		"annotations": [],
+		"ratio": "16:9",
+		"sources": ["C015", "C110"],
+		"population": "Company documents reported by the press; neither company has a public S-1",
+		"window": "2026 Q1 to 2026 Q2",
+		"notes": "Anthropic's Q2 figure is preliminary. For FY2025 OpenAI booked $13.07bn (C009) vs Anthropic ~$4.6bn (C093).",
+		"row_count": 4
+	},
+	{
+		"id": "ramp-adoption",
+		"type": "line",
+		"title": "US businesses now pay Anthropic more often than OpenAI",
+		"subtitle": "Share of US businesses on Ramp paying each vendor, % (card and bill-pay spend)",
+		"csv": "data/charts/ramp-adoption.csv",
+		"encoding": {
+			"x": "month",
+			"y": "share_pct",
+			"color": "company"
+		},
+		"axes": {
+			"x": {
+				"label": "Month"
+			},
+			"y": {
+				"label": "Businesses paying, %"
+			}
+		},
+		"annotations": [
+			{
+				"kind": "band",
+				"from": {
+					"x": "2026-04"
+				},
+				"to": {
+					"x": "2026-05"
+				},
+				"text": "method change"
+			}
+		],
+		"ratio": "16:9",
+		"sources": [
+			"C168",
+			"C169",
+			"C171",
+			"C172",
+			"C173",
+			"C178",
+			"C181",
+			"C182",
+			"C185",
+			"C187",
+			"C190",
+			"C194",
+			"C196"
+		],
+		"population": "US businesses using Ramp's corporate cards and bill pay (skews to tech-forward firms)",
+		"window": "2025-07 to 2026-08",
+		"notes": "Ramp added bill-pay capture in May 2026 (C187): levels before and after the break are not comparable.",
+		"row_count": 26
+	},
+	{
+		"id": "capability-frontier",
+		"type": "line",
+		"title": "On Epoch's composite index, OpenAI and Anthropic are in a dead heat",
+		"subtitle": "Best Epoch Capabilities Index score among models each lab had released by month end",
+		"csv": "data/charts/capability-frontier.csv",
+		"encoding": {
+			"x": "month",
+			"y": "best_eci",
+			"color": "lab"
+		},
+		"axes": {
+			"x": {
+				"label": "Month"
+			},
+			"y": {
+				"label": "Epoch Capabilities Index"
+			}
+		},
+		"annotations": [],
+		"ratio": "16:9",
+		"sources": ["D-EPOCH"],
+		"population": "Frontier models with enough benchmark coverage for Epoch's index",
+		"window": "2024-01 to 2026-09",
+		"notes": "Epoch's confidence intervals overlap: Claude Opus 5.5 164-172, GPT-6 Astra 163-171.",
+		"row_count": 99
+	},
+	{
+		"id": "hn-topics",
+		"type": "bar",
+		"title": "Anthropic draws complaints about reliability; OpenAI about money and hype",
+		"subtitle": "Share of negative Hacker News comments about each company that concern each topic, Oct 2025 to Sep 2026, %",
+		"csv": "data/charts/hn-topics.csv",
+		"encoding": {
+			"x": "topic",
+			"y": "share_of_negative_pct",
+			"color": "company"
+		},
+		"axes": {
+			"x": {
+				"label": ""
+			},
+			"y": {
+				"label": "% of negative comments"
+			}
+		},
+		"annotations": [],
+		"ratio": "16:9",
+		"sources": ["D-HN", "D-LABELS"],
+		"population": "Hacker News commenters (negative comments in the labelled sample)",
+		"window": "2025-10 to 2026-09",
+		"notes": "A comment can carry up to two topics, so shares do not sum to 100.",
+		"row_count": 16
+	},
+	{
+		"id": "reddit-communities",
+		"type": "line",
+		"title": "r/codex now out-posts r/ClaudeCode; r/ClaudeAI is down 48% from its peak",
+		"subtitle": "Posts per month in each product's home community on Reddit",
+		"csv": "data/charts/reddit-communities.csv",
+		"encoding": {
+			"x": "month",
+			"y": "posts",
+			"color": "community"
+		},
+		"axes": {
+			"x": {
+				"label": "Month"
+			},
+			"y": {
+				"label": "Posts per month"
+			}
+		},
+		"annotations": [],
+		"ratio": "16:9",
+		"sources": ["D-REDDIT"],
+		"population": "Reddit users posting in r/ChatGPT, r/ClaudeAI, r/ClaudeCode and r/codex",
+		"window": "2024-07 to 2026-09",
+		"notes": "Gaps are months the archive could not count (timeouts on the largest subreddit), not zero.",
+		"row_count": 104
+	}
+]

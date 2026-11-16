@@ -1,0 +1,11 @@
+---
+title: Footnotes
+---
+
+Reference[^rv-hostile-id] and another[^richview-font-notices] and a third[^panel-x] and a fourth[^tab-x] and fifth[^a"b<c>d].
+
+[^rv-hostile-id]: Note one HOSTILE_NOTE.
+[^richview-font-notices]: Note two <script>HOSTILE_NOTE_SCRIPT()</script>.
+[^panel-x]: Note three.
+[^tab-x]: Note four.
+[^a"b<c>d]: Note five.

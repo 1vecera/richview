@@ -1,0 +1,8 @@
+---
+title: Pie share craft audit
+version: 0.0.1
+---
+
+```chart
+{"type":"pie","title":"A complete label at its fit boundary","encoding":{"x":"segment","y":"count"},"data":{"inline":[{"segment":"A main","count":9999},{"segment":"Z small observations label","count":1}]}}
+```

@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-10-11T20:08:01.834Z",
+  "validated_at": "2026-10-11T20:19:21.176054+00:00",
+  "browser": "151.0.7922.173",
+  "device_scale_factor": 2,
+  "reduced_motion": "reduce",
+  "capture": "Actual report figure including controls; no image edits or synthetic styles.",
+  "pairs": [
+    {
+      "fixture": "points.rmd",
+      "source_sha256": "4810cf7bf5092dff26555f59047dd1fdd76a3d1658fd5c6beca5e0091e1ba7e5",
+      "theme": "scientific",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "before": {
+        "image": "points-before.png",
+        "image_sha256": "ae480f95515910bc6330990cf6af181b37d59a5bc560a9b5f1754b6fe2637689",
+        "figure_css_px": {
+          "width": 358,
+          "height": 301.75
+        },
+        "source_commit": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+        "wasm_sha256": "141dd99c023fc595e987febc299f4c7ce554912fd489d3ffe768a46ce939be4e"
+      },
+      "after": {
+        "image": "points-after.png",
+        "image_sha256": "ac1d1f579f2136f64a5a516b83eaa086a4a5cfdaf935f37a58b79a76f8cc4a71",
+        "figure_css_px": {
+          "width": 358,
+          "height": 301.75
+        },
+        "source_commit": "636e534255e6d2a4f75f25869e92cbebd70b82f0",
+        "wasm_sha256": "da3eb2a8ea08e5c915e2106587eb21cfc29d9c08cdd38c914b772cac257cc5c5"
+      },
+      "reproduction_png_bytes_match": true
+    },
+    {
+      "fixture": "bubbles.rmd",
+      "source_sha256": "7bc24a23468602eed20ea091e4446875e79e0f13690e7bcc13474e508a8519cb",
+      "theme": "hand-drawn",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "before": {
+        "image": "bubbles-before.png",
+        "image_sha256": "adf1e7176972b78cef13c8e7d1ca857bc2326afd3e8b06e35f98385436dd5435",
+        "figure_css_px": {
+          "width": 288,
+          "height": 250.75
+        },
+        "source_commit": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+        "wasm_sha256": "141dd99c023fc595e987febc299f4c7ce554912fd489d3ffe768a46ce939be4e"
+      },
+      "after": {
+        "image": "bubbles-after.png",
+        "image_sha256": "a7f26553ea420c0e3c35c824f95bba3f07d98344d3736153a07b5af874960e4b",
+        "figure_css_px": {
+          "width": 288,
+          "height": 250.75
+        },
+        "source_commit": "636e534255e6d2a4f75f25869e92cbebd70b82f0",
+        "wasm_sha256": "da3eb2a8ea08e5c915e2106587eb21cfc29d9c08cdd38c914b772cac257cc5c5"
+      },
+      "reproduction_png_bytes_match": true
+    }
+  ],
+  "validation": {
+    "required_checks": {
+      "status": "passed",
+      "commands": [
+        "cargo fmt --all --check",
+        "cargo clippy --workspace --all-targets --locked -- -D warnings",
+        "cargo clippy -p richview-web --target wasm32-unknown-unknown --locked -- -D warnings",
+        "cargo test --workspace --locked",
+        "cargo run --release --locked -p richview-build",
+        "node scripts/verify-editor.cjs",
+        "node scripts/verify-native.mjs",
+        "node scripts/verify-compat.mjs",
+        "tsc --noEmit --strict --module nodenext --moduleResolution nodenext --target es2022 --lib es2022,dom scripts/verify-types.ts",
+        "node scripts/verify-browser.mjs",
+        "node scripts/verify-landing.mjs",
+        "node scripts/verify-cloudflare.mjs (local only)",
+        "node scripts/verify-showcase.mjs",
+        "node scripts/verify-flagship.mjs",
+        "node scripts/verify-reel.mjs",
+        "node scripts/verify-browser-api.mjs",
+        "node scripts/verify-motion-runtime.mjs",
+        "node scripts/verify-docs.mjs"
+      ]
+    },
+    "native_full_html_metadata_comparisons": 42,
+    "runtime_svg_glyph_figure_comparisons": 135,
+    "paired_initial_zoom_reset_states": 81,
+    "widths": [
+      320,
+      390,
+      720
+    ],
+    "themes": [
+      "sleek",
+      "scientific",
+      "brutalist",
+      "sleek-light",
+      "hand-drawn"
+    ],
+    "console_or_page_errors": 0,
+    "horizontal_overflow": 0,
+    "invariant": "Only eligible lower-rule emissions differ. Native HTML/metadata, actual SVG/glyph/figure bounds and keyboard/export outputs otherwise match baseline.",
+    "independent_main_review": "accept",
+    "independent_current_main_matched_captures": 8
+  },
+  "bubble_composition": {
+    "baseline_capture_head": "bab1392be0114e97ad621a362d8b856e9ac3d890",
+    "baseline_production_commit": "81b544393f943b3bce8e72a92b33761e62bda1f4",
+    "baseline_wasm_sha256": "76b6f758e9ff523acfb28e0922c15af834f22c05486862e7b948a81654a0c699",
+    "candidate_working_diff_sha256": "4b3b9166dfb81a54a6f379c7a7d342692176bfb05324a02e3f3db70f96e34c50",
+    "wasm_sha256": "154bcf2c7df0058d67577f126bfdc394593f1e95cf064ccabeffff8bbc2a5f7c",
+    "native_comparisons": 42,
+    "runtime_comparisons": 135,
+    "paired_interaction_states": 81,
+    "themes": [
+      "sleek",
+      "scientific",
+      "brutalist",
+      "sleek-light",
+      "hand-drawn"
+    ],
+    "status": "passed",
+    "scope": "Same independently accepted predicate; composed geometry, exact readouts and exports match accepted bubble baseline except eligible lower rules. Matched automatic-positive and zero-size controls inspected."
+  },
+  "limitations": [
+    "Eligibility uses the lowest actual visible zero reference; a mid-plot or offscreen zero does not suppress the frame.",
+    "Default scatter data containing zero can have a negative lowest tick after padding, so these views remain unchanged.",
+    "All-zero Y values keep their existing signed domain and frame."
+  ],
+  "production_commit": "3ace349ba49ab0a8cdea00973255132bb97e629a"
+}

@@ -1,0 +1,46 @@
+diff --git a/richview-chart/src/rmd_render.rs b/richview-chart/src/rmd_render.rs
+index 2a609c2..c6a6280 100644
+--- a/richview-chart/src/rmd_render.rs
++++ b/richview-chart/src/rmd_render.rs
+@@ -3627,7 +3627,23 @@ mod tests {
+                 );
+                 let output = render_rmd_chart(&annotated, &rows, width, "");
+                 assert_eq!(output.hit_points, baseline.hit_points);
+-                let sectors = |output: &RmdChartOutput| {
++                let regions = |output: &RmdChartOutput| {
++                    assert_eq!(
++                        output
++                            .hit_regions
++                            .iter()
++                            .filter(|r| matches!(r, HitRegion::Sector { .. }))
++                            .count(),
++                        rows.len()
++                    );
++                    assert_eq!(
++                        output
++                            .hit_regions
++                            .iter()
++                            .filter(|r| matches!(r, HitRegion::Rect { .. }))
++                            .count(),
++                        output.svg.matches("class=\"rv-slice-key\"").count()
++                    );
+                     output
+                         .hit_regions
+                         .iter()
+@@ -3639,12 +3655,13 @@ mod tests {
+                                 r,
+                                 from,
+                                 to,
+-                            } => (index, [x, y, r, from, to]),
+-                            _ => panic!("Pie hits remain sectors"),
++                            } => json!(["sector", index, x, y, r, from, to]),
++                            HitRegion::Rect { index, x, y, w, h } => json!(["key", index, x, y, w, h]),
++                            _ => panic!("Pie hits remain sectors or category keys"),
+                         })
+                         .collect::<Vec<_>>()
+                 };
+-                assert_eq!(sectors(&output), sectors(&baseline));
++                assert_eq!(regions(&output), regions(&baseline));
+                 assert_eq!(output.hover_rows, baseline.hover_rows);
+                 assert!(
+                     output.diagnostics["checks"]

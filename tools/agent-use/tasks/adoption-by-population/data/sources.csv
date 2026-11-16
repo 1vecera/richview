@@ -1,0 +1,15 @@
+id,title,publisher,published,url
+D-HN,"Hacker News: every story and comment, 2022-01 to 2026-09",Y Combinator via ClickHouse public playground,,https://sql-clickhouse.clickhouse.com/
+D-WIKI,"Wikipedia pageviews, human agents, redirects summed, 12 languages",Wikimedia Foundation,,https://wikimedia.org/api/rest_v1/
+D-GT,Google Trends interest over time and by country (knowledge-graph topics and terms),Google,,https://trends.google.com/trends/explore
+D-NPM,"npm package downloads, daily","npm, Inc.",,https://api.npmjs.org/downloads/
+D-PYPI,"PyPI package downloads, daily",Python Software Foundation via ClickHouse public playground,,https://clickpy.clickhouse.com/
+D-ITUNES,App Store ratings count and average by country (snapshot),Apple iTunes Lookup API,,https://itunes.apple.com/lookup
+C110,quarterly revenue Q2 2026 (preliminary) and comparatives,CNBC (citing Bloomberg),2026-08-15,https://www.cnbc.com/2026/08/15/anthropic-revenue-jumps-to-over-11point5-billion-in-q2-report.html
+C174,"enterprise LLM API market share (Menlo, end-2025)",Menlo Ventures,2025-12-09,https://menlovc.com/perspective/2025-the-state-of-generative-ai-in-the-enterprise/
+C186,mobile app monthly active users (Sensor Tower),Reuters (via MarketScreener),2026-06-02,https://www.marketscreener.com/news/chatgpt-app-hits-1-billion-monthly-active-users-in-record-time-data-shows-ce7f5dded08bf222
+C195,Similarweb gen-AI website traffic share (latest),Similarweb (LinkedIn),2026-09-07,https://www.linkedin.com/posts/similarweb_gen-ai-website-traffic-share-update-august-activity-7502646378943401985-V6qg
+C196,Ramp AI Index business adoption share (latest),Ramp,2026-09-09,https://ramp.com/data/ai-index-sept-2026
+S005,Edison Research at SSRS AI User Metrics (May 2026 wave): Used AI platform in the past week,SSRS / Edison Research,2026-05-26,https://ssrs.com/wp-content/uploads/SSRS-AI-User-Metrics-Report-May-2026.pdf
+S054,Stack Overflow Developer Survey 2025 (LLM models): LLM models used for development work in the past year (all respondents),Stack Overflow,2025-07-29,https://survey.stackoverflow.co/2025/technology
+S065,JetBrains Developer Ecosystem Survey 2026: AI coding tool used at work (OpenAI Codex vs Claude Code),JetBrains,2026-08-01,https://blog.jetbrains.com/research/2026/08/ai-coding-agent-adoption-2026/

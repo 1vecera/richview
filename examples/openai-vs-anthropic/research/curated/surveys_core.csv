@@ -1,0 +1,9 @@
+measure,population,fieldwork,method,chatgpt_pct,claude_pct,source_id
+Ever used,"US adults (Pew, n=5,119)",2026-02,probability,44,6,S002
+Used in past week,"US adults (SSRS, n=991)",2026-02,probability,36,4,S004
+Used in past week,"US adults (SSRS, n=1,030)",2026-05,probability,43,9,S005
+Heard of,"US adults (SSRS, n=991)",2026-02,probability,88,21,S006
+Heard of,"US adults (SSRS, n=1,030)",2026-05,probability,90,42,S007
+"Weekly use, 6-country avg","Online adults (Reuters Institute/YouGov, n≈12,000)",2025-06,nationally_representative_panel,22,1,S015
+Used for development,"Developers (Stack Overflow, n=16,474)",2025-06,professional_opt_in,81.4,42.8,S054
+Coding agent used at work,"Professional developers (JetBrains, n>15,000)",2026-05..07,professional_opt_in,16,39,S065

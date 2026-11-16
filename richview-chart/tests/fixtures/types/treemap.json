@@ -1,0 +1,69 @@
+{
+ "spec": {
+  "type": "treemap",
+  "title": "Engineering takes the largest share",
+  "encoding": {
+   "label": "part",
+   "parent": "group",
+   "y": "budget",
+   "color": "group"
+  },
+  "axes": {
+   "y": {
+    "unit": "$"
+   }
+  }
+ },
+ "rows": [
+  {
+   "part": "Engineering",
+   "group": null,
+   "budget": null
+  },
+  {
+   "part": "Platform",
+   "group": "Engineering",
+   "budget": 420
+  },
+  {
+   "part": "Product",
+   "group": "Engineering",
+   "budget": 310
+  },
+  {
+   "part": "Data",
+   "group": "Engineering",
+   "budget": 150
+  },
+  {
+   "part": "Sales",
+   "group": null,
+   "budget": null
+  },
+  {
+   "part": "EMEA",
+   "group": "Sales",
+   "budget": 240
+  },
+  {
+   "part": "Americas",
+   "group": "Sales",
+   "budget": 260
+  },
+  {
+   "part": "Operations",
+   "group": null,
+   "budget": 180
+  },
+  {
+   "part": "People",
+   "group": null,
+   "budget": 90
+  },
+  {
+   "part": "Finance",
+   "group": null,
+   "budget": 60
+  }
+ ]
+}

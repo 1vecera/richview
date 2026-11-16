@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "base_commit": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+  "source_commit": "55796eb4dcdbf70c4c522587fc2a6cc2bf55adb2",
+  "wasm_sha256": "65dbfb9023ed58d618c7cd28600f770d82d8d923bda5e4aebedb94af3975b8a8",
+  "capture": {
+    "browser": "151.0.7922.173",
+    "device_scale_factor": 2,
+    "motion": "reduce",
+    "kind": "Actual report figures with loaded fonts and current runtime; no image edits."
+  },
+  "pairs": [
+    {
+      "fixture": "duplicate.rmd",
+      "id": "temporal-review-duplicate",
+      "theme": "scientific",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 900
+      },
+      "source_sha256": "6ade1040ebffbc29429ca8b6768e6a2797f05cc5a74a47501e2371b37c9b95f2",
+      "before": {
+        "image": "duplicate-before.png",
+        "image_sha256": "941e739a1388339d328f079a5e6e8764142776b94322a773dc45d58b97e9037f",
+        "figure_css_px": {
+          "width": 358,
+          "height": 259.625
+        },
+        "source_commit": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+        "wasm_sha256": "141dd99c023fc595e987febc299f4c7ce554912fd489d3ffe768a46ce939be4e"
+      },
+      "after": {
+        "image": "duplicate-after.png",
+        "image_sha256": "2f3c06e20fcfec400294422dbc1ab7c9bb6271e14c4ab28ca0055b341b1d64f3",
+        "figure_css_px": {
+          "width": 358,
+          "height": 259.625
+        },
+        "source_commit": "55796eb4dcdbf70c4c522587fc2a6cc2bf55adb2",
+        "wasm_sha256": "65dbfb9023ed58d618c7cd28600f770d82d8d923bda5e4aebedb94af3975b8a8"
+      },
+      "reproduction_png_bytes_match": true
+    },
+    {
+      "fixture": "facets.rmd",
+      "id": "temporal-review-facets",
+      "theme": "sleek",
+      "viewport_css_px": {
+        "width": 720,
+        "height": 900
+      },
+      "source_sha256": "e0e3916d749b500fc0c082d151541975262f0223608cfb6666708659fcb82e1c",
+      "before": {
+        "image": "facets-before.png",
+        "image_sha256": "c77a15beca430d9f0ffeed79b477b1bef763f24aeb2d0cef171ae90467cff561",
+        "figure_css_px": {
+          "width": 672,
+          "height": 323
+        },
+        "source_commit": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+        "wasm_sha256": "141dd99c023fc595e987febc299f4c7ce554912fd489d3ffe768a46ce939be4e"
+      },
+      "after": {
+        "image": "facets-after.png",
+        "image_sha256": "b5890ac192e79f347ac16fc690ba1cafed021cabda0c6fd16b9f634c2262a2a2",
+        "figure_css_px": {
+          "width": 672,
+          "height": 323
+        },
+        "source_commit": "55796eb4dcdbf70c4c522587fc2a6cc2bf55adb2",
+        "wasm_sha256": "65dbfb9023ed58d618c7cd28600f770d82d8d923bda5e4aebedb94af3975b8a8"
+      },
+      "reproduction_png_bytes_match": true
+    },
+    {
+      "fixture": "empty-facet.rmd",
+      "id": "temporal-empty-facet-valid",
+      "theme": "scientific",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 900
+      },
+      "source_sha256": "b62c3ef8c5f4a2e7005be475b2d0ff822aa244bdf691d7e94c5aabf430d66307",
+      "before": {
+        "image": "empty-facet-before.png",
+        "image_sha256": "9dd2ee4d4cb3ebc19046c5099c7cef48b859b652d9d249b362401b32ce98993e",
+        "figure_css_px": {
+          "width": 358,
+          "height": 259.625
+        },
+        "source_commit": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+        "wasm_sha256": "141dd99c023fc595e987febc299f4c7ce554912fd489d3ffe768a46ce939be4e"
+      },
+      "after": {
+        "image": "empty-facet-after.png",
+        "image_sha256": "1f4d18ba638c3e45eab75bff398b83691ea39233257250cbb88714d71e6f7ea0",
+        "figure_css_px": {
+          "width": 358,
+          "height": 308.25
+        },
+        "source_commit": "55796eb4dcdbf70c4c522587fc2a6cc2bf55adb2",
+        "wasm_sha256": "65dbfb9023ed58d618c7cd28600f770d82d8d923bda5e4aebedb94af3975b8a8"
+      },
+      "reproduction_png_bytes_match": true
+    }
+  ],
+  "validation": {
+    "required_rust_checks": [
+      "fmt",
+      "native Clippy",
+      "Wasm Clippy",
+      "workspace tests",
+      "release build",
+      "generated fixtures"
+    ],
+    "required_host_checks": {
+      "editor": "passed",
+      "native": "passed",
+      "compat": "passed",
+      "types": "passed",
+      "browser": "passed",
+      "landing": "passed",
+      "cloudflare": "passed",
+      "showcase": "passed",
+      "flagship": "passed",
+      "reel": "passed",
+      "browser-api": "passed",
+      "motion-runtime": "passed",
+      "docs": "passed"
+    },
+    "matched_live_views": 135,
+    "byte_identical_control_svgs": 45,
+    "expected_source_errors_retained": 90,
+    "unexpected_glyph_findings": 0,
+    "horizontal_overflow": 0,
+    "browser_or_capture_errors": 0,
+    "native_cli_commands": 18,
+    "offline_views": 36,
+    "native_failure_contract": "Invalid check and generate return exit 1; generate still writes the failure-state report for inspection.",
+    "independent_review": {
+      "verdict": "accept",
+      "reduced_motion_views": 40,
+      "normal_motion_phone_views": 10,
+      "reused_view_api_states": 9,
+      "checks": [
+        "Direct live SVG and owning chart diagnostics agree",
+        "Canonical timestamp error retains path, message and hint",
+        "Invalid facet stays local and valid neighbor draws",
+        "Source Table and failure SVG export remain usable",
+        "Valid updates clear previous source errors",
+        "Injected actual glyph collision remains visible beside source error"
+      ],
+      "report_sha256": "e730410687d1e019077355f11a34e9ddccb15ecfc4543a6598af6e309dfc8159"
+    },
+    "capture_reproduction": "All three current after PNGs reproduce byte-for-byte."
+  },
+  "limits": [
+    "The existing all-ISO line/area classifier is unchanged.",
+    "The visible failure message is concise; detailed repair information remains in author diagnostics.",
+    "Raw standalone SVG measurements have glyph checks only.",
+    "An outer facet container is measured through the public API; its children receive normal automatic measurements.",
+    "Native label-bound warnings are not copied into live measured diagnostics."
+  ],
+  "detailed_evidence_sha256": {
+    "owner_summary": "c480706551e8f373b17dc61f85775f6f3a4e431266d9786616bd9eacd8d346b6",
+    "native_offline": "9a09030a1e828af6c826938068786da241acb070a3dc14cf913fa634ca512c47",
+    "host_checks": "258fbd22d3c3339246aebb62da71dbe021fe558c33f3b762ea9af315c6cbbd9e"
+  }
+}

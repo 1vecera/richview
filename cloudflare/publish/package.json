@@ -1,0 +1,11 @@
+{
+  "name": "@richview/publish-cloudflare",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "jose": "6.2.12"
+  },
+  "scripts": {
+    "build:wasm": "cargo build --release --locked -p richview-publish-server --target wasm32-unknown-unknown && wasm-bindgen --target web --out-dir pkg ${CARGO_TARGET_DIR:-../../target}/wasm32-unknown-unknown/release/richview_publish_server.wasm"
+  }
+}

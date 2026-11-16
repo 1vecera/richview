@@ -1,0 +1,83 @@
+/* Shared syntax colours, completion list and announcements for Rich Markdown editors. */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* Syntax colours shared by the live editor and static examples. */
+.hl-key { color: var(--hl-key); }
+.hl-str { color: var(--hl-str); }
+.hl-num,
+.hl-bool { color: var(--hl-num); }
+.hl-punc,
+.hl-fm,
+.hl-fence,
+.hl-mark,
+.hl-esc { color: var(--hl-punc); }
+.hl-comment { color: var(--hl-comment); font-style: italic; }
+.hl-tag { color: var(--hl-tag); font-weight: 600; }
+.hl-info,
+.hl-flag { color: var(--hl-flag); }
+.hl-heading { color: var(--hl-heading); font-weight: 600; }
+.hl-strong { font-weight: 600; color: var(--ink); }
+.hl-em { font-style: italic; }
+.hl-inline { color: var(--hl-str); }
+.hl-link { color: var(--hl-key); }
+.hl-url,
+.hl-var { color: var(--hl-str); }
+.hl-cmd { color: var(--hl-cmd); font-weight: 600; }
+.hl-val,
+.hl-code { color: var(--ink); }
+
+/* ------------------------------------------------------------- completion (W3 scene 2, S27-931) */
+
+/* A small, light list under the caret while the reader types a key, a value, a block's tag or a
+   data field. The site runtime places it and the text area keeps the focus: the arrows move, Enter
+   or Tab puts the choice in, Escape closes, and nothing happens on hover (INT-59). */
+.complete {
+	position: absolute;
+	z-index: 3;
+	top: 0;
+	left: 0;
+	box-sizing: border-box;
+	min-width: 10ch;
+	max-width: min(36ch, calc(100% - 1rem));
+	max-height: calc(7 * 22px + 0.5rem);
+	overflow-y: auto;
+	margin: 0;
+	padding: 0.25rem;
+	list-style: none;
+	font: var(--code-font);
+	color: var(--ink);
+	background: var(--panel);
+	border: 1px solid var(--rule);
+	border-radius: var(--r-small);
+	scrollbar-width: thin;
+}
+.complete[hidden] {
+	display: none;
+}
+.complete li {
+	padding: 0 0.5rem;
+	border-radius: var(--r-small);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	cursor: default;
+}
+.complete li[aria-selected="true"] {
+	background: color-mix(in srgb, var(--blue) 12%, transparent);
+}
+
+/* Numbers belong to source lines, so wrapped continuation rows stay unnumbered. */
+.code__hl code { counter-reset: source-line; }
+.code__line { display: block; position: relative; counter-increment: source-line; }
+.code .code__line::before {
+ content: counter(source-line); position: absolute; right: calc(100% + 12px);
+ color: var(--faint); opacity: .75; font-weight: 400; font-style: normal;
+}
+.code__mirror { position: absolute; inset: 0; height: auto; visibility: hidden; pointer-events: none; overflow: hidden; }

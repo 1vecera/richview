@@ -1,0 +1,472 @@
+{
+  "schema_version": 1,
+  "base_commit": "bb8b112c121eae1ec70d810df1b5e6a2070c9c4e",
+  "source_commit": "c079c2cf917120aca1cb8700f8611f5069a719ed",
+  "wasm_sha256": "3b2296e6626b93f979a365d445b48b0b086acdd69c0316c767ec86487390f0b4",
+  "capture": {
+    "browser": "151.0.7922.173",
+    "device_scale_factor": 2,
+    "motion": "reduce",
+    "kind": "Actual chart figures with loaded fonts and current runtime; no image edits."
+  },
+  "pairs": [
+    {
+      "fixture": "vertical.rmd",
+      "id": "bar-category-vertical",
+      "theme": "scientific",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 900
+      },
+      "source_sha256": "79e4b2af021eb0719155c8169963d4311db5b3082309c46f0a16251cae37dcbe",
+      "before": {
+        "image": "vertical-before.png",
+        "image_sha256": "23d8bde0cbc3a4e5edc5624b368c5b22140af3161402037f1440a2edb6902fea",
+        "figure_css_px": {
+          "width": 358,
+          "height": 283.625
+        },
+        "source_commit": "bb8b112c121eae1ec70d810df1b5e6a2070c9c4e",
+        "wasm_sha256": "1f278570318a19163969089bf4b8f1f694efe5b0f9b3ba04b2897912851458be",
+        "live_diagnostics": {
+          "checks": [
+            {
+              "kind": "label-collision",
+              "message": "'n/a' overlaps 'n/a'",
+              "related": [
+                "n/a",
+                "n/a"
+              ],
+              "severity": "warning"
+            },
+            {
+              "kind": "label-collision",
+              "message": "'n/a' overlaps 'n/a'",
+              "related": [
+                "n/a",
+                "n/a"
+              ],
+              "severity": "warning"
+            },
+            {
+              "kind": "label-collision",
+              "message": "'n/a' overlaps 'n/a'",
+              "related": [
+                "n/a",
+                "n/a"
+              ],
+              "severity": "warning"
+            },
+            {
+              "kind": "label-collision",
+              "message": "'n/a' overlaps 'n/a'",
+              "related": [
+                "n/a",
+                "n/a"
+              ],
+              "severity": "warning"
+            },
+            {
+              "kind": "label-collision",
+              "message": "'n/a' overlaps 'n/a'",
+              "related": [
+                "n/a",
+                "n/a"
+              ],
+              "severity": "warning"
+            },
+            {
+              "kind": "label-collision",
+              "message": "'n/a' overlaps 'n/a'",
+              "related": [
+                "n/a",
+                "n/a"
+              ],
+              "severity": "warning"
+            },
+            {
+              "kind": "label-collision",
+              "message": "'n/a' overlaps 'n/a'",
+              "related": [
+                "n/a",
+                "n/a"
+              ],
+              "severity": "warning"
+            },
+            {
+              "kind": "label-collision",
+              "message": "'n/a' overlaps 'n/a'",
+              "related": [
+                "n/a",
+                "n/a"
+              ],
+              "severity": "warning"
+            },
+            {
+              "kind": "label-collision",
+              "message": "'n/a' overlaps 'n/a'",
+              "related": [
+                "n/a",
+                "n/a"
+              ],
+              "severity": "warning"
+            }
+          ],
+          "engine": "rust-svg",
+          "labels": 24,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "issues"
+        }
+      },
+      "after": {
+        "image": "vertical-after.png",
+        "image_sha256": "e8185251924425b332580cfefecb3db3c88bc5ae63dc01e2c991d22a13ece95c",
+        "figure_css_px": {
+          "width": 358,
+          "height": 283.625
+        },
+        "source_commit": "c079c2cf917120aca1cb8700f8611f5069a719ed",
+        "wasm_sha256": "3b2296e6626b93f979a365d445b48b0b086acdd69c0316c767ec86487390f0b4",
+        "live_diagnostics": {
+          "checks": [],
+          "engine": "rust-svg",
+          "labels": 12,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "clean"
+        }
+      }
+    },
+    {
+      "fixture": "horizontal.rmd",
+      "id": "bar-category-horizontal",
+      "theme": "scientific",
+      "viewport_css_px": {
+        "width": 390,
+        "height": 900
+      },
+      "source_sha256": "e40f80f425729e3b4c35fb2ff888d68b88b0043be4980b0f0e61783ce5e821c1",
+      "before": {
+        "image": "horizontal-before.png",
+        "image_sha256": "7bd291af05e56aeaf839dd1b3e0e5fa8e34a07d2f29e0520ef6b32206be2fed3",
+        "figure_css_px": {
+          "width": 358,
+          "height": 426.25
+        },
+        "source_commit": "bb8b112c121eae1ec70d810df1b5e6a2070c9c4e",
+        "wasm_sha256": "1f278570318a19163969089bf4b8f1f694efe5b0f9b3ba04b2897912851458be",
+        "live_diagnostics": {
+          "checks": [
+            {
+              "kind": "label-collision",
+              "message": "'n/a' overlaps 'n/a'",
+              "related": [
+                "n/a",
+                "n/a"
+              ],
+              "severity": "warning"
+            },
+            {
+              "kind": "label-collision",
+              "message": "'n/a' overlaps 'n/a'",
+              "related": [
+                "n/a",
+                "n/a"
+              ],
+              "severity": "warning"
+            },
+            {
+              "kind": "label-collision",
+              "message": "'n/a' overlaps 'n/a'",
+              "related": [
+                "n/a",
+                "n/a"
+              ],
+              "severity": "warning"
+            },
+            {
+              "kind": "label-collision",
+              "message": "'n/a' overlaps 'n/a'",
+              "related": [
+                "n/a",
+                "n/a"
+              ],
+              "severity": "warning"
+            },
+            {
+              "kind": "label-collision",
+              "message": "'n/a' overlaps 'n/a'",
+              "related": [
+                "n/a",
+                "n/a"
+              ],
+              "severity": "warning"
+            },
+            {
+              "kind": "label-collision",
+              "message": "'n/a' overlaps 'n/a'",
+              "related": [
+                "n/a",
+                "n/a"
+              ],
+              "severity": "warning"
+            },
+            {
+              "kind": "label-collision",
+              "message": "'n/a' overlaps 'n/a'",
+              "related": [
+                "n/a",
+                "n/a"
+              ],
+              "severity": "warning"
+            },
+            {
+              "kind": "label-collision",
+              "message": "'n/a' overlaps 'n/a'",
+              "related": [
+                "n/a",
+                "n/a"
+              ],
+              "severity": "warning"
+            },
+            {
+              "kind": "label-collision",
+              "message": "'n/a' overlaps 'n/a'",
+              "related": [
+                "n/a",
+                "n/a"
+              ],
+              "severity": "warning"
+            }
+          ],
+          "engine": "rust-svg",
+          "labels": 22,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "issues"
+        }
+      },
+      "after": {
+        "image": "horizontal-after.png",
+        "image_sha256": "a30d9b5a065acc671c9b06c04018a5d3d84448e59bbc3ca59e08498dd3fc124f",
+        "figure_css_px": {
+          "width": 358,
+          "height": 298.25
+        },
+        "source_commit": "c079c2cf917120aca1cb8700f8611f5069a719ed",
+        "wasm_sha256": "3b2296e6626b93f979a365d445b48b0b086acdd69c0316c767ec86487390f0b4",
+        "live_diagnostics": {
+          "checks": [],
+          "engine": "rust-svg",
+          "labels": 10,
+          "measured": true,
+          "measurement": "browser glyph bounding rectangles after font and transform resolution",
+          "status": "clean"
+        }
+      }
+    }
+  ],
+  "validation": {
+    "matched_reports": 240,
+    "byte_identical_control_reports": 45,
+    "themes": 5,
+    "viewport_widths": [
+      320,
+      390,
+      720
+    ],
+    "actual_facet_panels": 30,
+    "actual_monochrome_reports": 30,
+    "new_glyph_findings": 0,
+    "browser_errors": 0,
+    "overflow": 0,
+    "native_matched_pairs": 14,
+    "native_byte_identical_controls": 3,
+    "interaction_cases": 28,
+    "motion_modes": [
+      "reduce",
+      "no-preference"
+    ],
+    "keyboard_rows": 116,
+    "pointer_touch_checks": 56,
+    "independent_matched_reports": 22,
+    "independent_interface_cases": 8,
+    "independent_verdict": "accept",
+    "required_checks": "All current format, native/Wasm Clippy, workspace tests, release, fixture and host checks pass.",
+    "retained_limit": "90 live warnings remain in the deliberately distinct-fields/equal-values grouped control, exactly as on baseline. The alias rule does not infer dependencies between separate source fields."
+  },
+  "historical_validation": {
+    "base_commit": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+    "source_commit": "0476a958d81bc6f6755e6e897f5899c45c57a4df",
+    "wasm_sha256": "f327f3d8b1e79bbca958a6be379363ef825a7d9123c2b29c1b37f796ff555821",
+    "validation": {
+      "matched_reports": 240,
+      "byte_identical_control_reports": 45,
+      "themes": 5,
+      "viewport_widths": [
+        320,
+        390,
+        720
+      ],
+      "actual_facet_panels": 30,
+      "actual_monochrome_reports": 30,
+      "new_glyph_findings": 0,
+      "browser_errors": 0,
+      "overflow": 0,
+      "native_matched_pairs": 14,
+      "native_byte_identical_controls": 3,
+      "interaction_cases": 28,
+      "motion_modes": [
+        "reduce",
+        "no-preference"
+      ],
+      "keyboard_rows": 116,
+      "pointer_touch_checks": 56,
+      "independent_matched_reports": 22,
+      "independent_interface_cases": 8,
+      "independent_verdict": "accept",
+      "required_checks": "All current format, native/Wasm Clippy, workspace tests, release, fixture and host checks pass.",
+      "retained_limit": "90 live warnings remain in the deliberately distinct-fields/equal-values grouped control, exactly as on baseline. The alias rule does not infer dependencies between separate source fields."
+    },
+    "frozen_ref": "review/chart-category-bars-3c-frozen"
+  },
+  "current_validation": {
+    "owner": {
+      "before": {
+        "head": "bb8b112c121eae1ec70d810df1b5e6a2070c9c4e",
+        "wasm_sha256": "1f278570318a19163969089bf4b8f1f694efe5b0f9b3ba04b2897912851458be"
+      },
+      "after": {
+        "head": "c079c2cf917120aca1cb8700f8611f5069a719ed",
+        "wasm_sha256": "3b2296e6626b93f979a365d445b48b0b086acdd69c0316c767ec86487390f0b4"
+      },
+      "pairs": 240,
+      "controls": 45,
+      "identical_control_svgs": 45,
+      "identical_control_pngs": 45,
+      "affected_changed_svgs": 180,
+      "native_diagnostic_changes": 135,
+      "outer_facet_stages_excluded_from_glyph_counts": 15,
+      "before_glyph_checks": 1120,
+      "after_glyph_checks": 90,
+      "browser_errors": [],
+      "overflow": [],
+      "new_glyph_checks": [],
+      "source_mismatch": [],
+      "native_changes": "Only reduced collision estimates, status and compacted horizontal dimensions; source and unrelated label findings preserved."
+    },
+    "facets": {
+      "base": "bb8b112c121eae1ec70d810df1b5e6a2070c9c4e",
+      "candidate": "c079c2cf917120aca1cb8700f8611f5069a719ed",
+      "before_wasm": "1f278570318a19163969089bf4b8f1f694efe5b0f9b3ba04b2897912851458be",
+      "after_wasm": "3b2296e6626b93f979a365d445b48b0b086acdd69c0316c767ec86487390f0b4",
+      "reports": 15,
+      "actual_children": 30,
+      "before_checks": 270,
+      "after_checks": 0,
+      "browser_errors": []
+    },
+    "native_pairs": 14,
+    "native_byte_identical_controls": 3,
+    "interface_cases": 28,
+    "keyboard_rows": 116,
+    "pointer_touch_checks": 56,
+    "required_checks": "All current required Rust/build and 13 host checks pass.",
+    "host_checks": [
+      {
+        "name": "editor",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 1051
+      },
+      {
+        "name": "native",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 3709
+      },
+      {
+        "name": "compat",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 180
+      },
+      {
+        "name": "types",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 1506
+      },
+      {
+        "name": "browser",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 60451
+      },
+      {
+        "name": "landing",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 57733
+      },
+      {
+        "name": "cloudflare",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 63808
+      },
+      {
+        "name": "showcase",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 28201
+      },
+      {
+        "name": "flagship",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 16394
+      },
+      {
+        "name": "reel",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 6771
+      },
+      {
+        "name": "browser-api",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 4207
+      },
+      {
+        "name": "motion-runtime",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 1950
+      },
+      {
+        "name": "docs",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 15107
+      }
+    ],
+    "independent": {
+      "verdict": "accept",
+      "matched_reports": 26,
+      "actual_leaves": 28,
+      "byte_identical_controls": 6,
+      "interface_panels": 8,
+      "keyboard_rows": 32,
+      "pointer_touch_checks": 16,
+      "exact_formatted_controls": [
+        "$340,000.00100",
+        "0.234500%"
+      ],
+      "report": "bar-category-review.md in campaign run directory"
+    },
+    "tracked_after_images_reproduced_byte_exactly": true
+  }
+}

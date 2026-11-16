@@ -1,0 +1,33 @@
+{
+  "schema": "interface-v1",
+  "id": "core.spec",
+  "producer": "richview-core",
+  "kind": "rust",
+  "surface": {
+    "module": "richview_core::spec",
+    "registration": "pub mod spec ;",
+    "exports": [
+      {
+        "name": "fragment",
+        "kind": "fn",
+        "declaration": "pub fn fragment ( name : & str ) - > Option < String >"
+      },
+      {
+        "name": "fragment_names",
+        "kind": "fn",
+        "declaration": "pub fn fragment_names ( ) - > Vec < String >"
+      },
+      {
+        "name": "marked",
+        "kind": "fn",
+        "declaration": "pub fn marked ( doc : & str ) - > Vec < & str >"
+      },
+      {
+        "name": "splice",
+        "kind": "fn",
+        "declaration": "pub fn splice ( doc : & str ) - > Result < String , String >"
+      }
+    ],
+    "declarations": []
+  }
+}

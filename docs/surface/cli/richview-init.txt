@@ -1,0 +1,11 @@
+Start a report folder from the template, never overwriting
+
+Usage: richview init [OPTIONS] [DIR]
+
+Arguments:
+  [DIR]  Folder to create; defaults to the report name
+
+Options:
+      --name <NAME>      Name of the report file [default: report]
+      --format <FORMAT>  `pretty` for people, `json` for agents [default: pretty] [possible values: pretty, json]
+  -h, --help             Print help

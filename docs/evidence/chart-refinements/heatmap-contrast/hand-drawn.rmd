@@ -1,0 +1,165 @@
+---
+title: Heatmap text contrast
+version: 0.0.1
+---
+
+```chart
+{
+  "type": "heatmap",
+  "title": "Signed heatmap readings",
+  "encoding": {
+    "x": "column",
+    "y": "row",
+    "color": "value"
+  },
+  "data": {
+    "inline": [
+      {
+        "column": "A",
+        "row": "R1",
+        "value": -1
+      },
+      {
+        "column": "B",
+        "row": "R1",
+        "value": -0.9
+      },
+      {
+        "column": "C",
+        "row": "R1",
+        "value": -0.8
+      },
+      {
+        "column": "A",
+        "row": "R2",
+        "value": -0.75
+      },
+      {
+        "column": "B",
+        "row": "R2",
+        "value": -0.7
+      },
+      {
+        "column": "C",
+        "row": "R2",
+        "value": -0.69
+      },
+      {
+        "column": "A",
+        "row": "R3",
+        "value": -0.65
+      },
+      {
+        "column": "B",
+        "row": "R3",
+        "value": -0.6
+      },
+      {
+        "column": "C",
+        "row": "R3",
+        "value": -0.55
+      },
+      {
+        "column": "A",
+        "row": "R4",
+        "value": -0.5
+      },
+      {
+        "column": "B",
+        "row": "R4",
+        "value": -0.4
+      },
+      {
+        "column": "C",
+        "row": "R4",
+        "value": -0.3
+      },
+      {
+        "column": "A",
+        "row": "R5",
+        "value": -0.2
+      },
+      {
+        "column": "B",
+        "row": "R5",
+        "value": -0.1
+      },
+      {
+        "column": "C",
+        "row": "R5",
+        "value": 0
+      },
+      {
+        "column": "A",
+        "row": "R6",
+        "value": 0.1
+      },
+      {
+        "column": "B",
+        "row": "R6",
+        "value": 0.2
+      },
+      {
+        "column": "C",
+        "row": "R6",
+        "value": 0.3
+      },
+      {
+        "column": "A",
+        "row": "R7",
+        "value": 0.4
+      },
+      {
+        "column": "B",
+        "row": "R7",
+        "value": 0.5
+      },
+      {
+        "column": "C",
+        "row": "R7",
+        "value": 0.55
+      },
+      {
+        "column": "A",
+        "row": "R8",
+        "value": 0.6
+      },
+      {
+        "column": "B",
+        "row": "R8",
+        "value": 0.65
+      },
+      {
+        "column": "C",
+        "row": "R8",
+        "value": 0.69
+      },
+      {
+        "column": "A",
+        "row": "R9",
+        "value": 0.7
+      },
+      {
+        "column": "B",
+        "row": "R9",
+        "value": 0.75
+      },
+      {
+        "column": "C",
+        "row": "R9",
+        "value": 0.8
+      },
+      {
+        "column": "A",
+        "row": "R10",
+        "value": 0.9
+      },
+      {
+        "column": "B",
+        "row": "R10",
+        "value": 1
+      }
+    ]
+  }
+}
+```

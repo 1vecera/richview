@@ -1,0 +1,294 @@
+{
+ "_source": {
+  "files": [
+   "tmp/prf-review-07/pdftime-flag-1.txt",
+   "tmp/prf-review-07/pdftime-flag-2.txt",
+   "tmp/prf-review-07/pdftime-flag-3.txt",
+   "tmp/prf-review-07/pdftime-sales-1.txt",
+   "tmp/prf-review-07/pdftime-sales-2.txt",
+   "tmp/prf-review-07/pdftime-sales-3.txt",
+   "tmp/prf07-fidelity-1792620778/pdfhstime-flag-1.txt",
+   "tmp/prf07-fidelity-1792620778/pdfhstime-flag-2.txt",
+   "tmp/prf07-fidelity-1792620778/pdfhstime-flag-3.txt",
+   "tmp/prf07-fidelity-1792620778/pdfhstime-sales-1.txt",
+   "tmp/prf07-fidelity-1792620778/pdfhstime-sales-2.txt",
+   "tmp/prf07-fidelity-1792620778/pdfhstime-sales-3.txt",
+   "tmp/prf07-fidelity-1792620778/pdftime-flag-1.txt",
+   "tmp/prf07-fidelity-1792620778/pdftime-flag-2.txt",
+   "tmp/prf07-fidelity-1792620778/pdftime-flag-3.txt",
+   "tmp/prf07-fidelity-1792620778/pdftime-sales-1.txt",
+   "tmp/prf07-fidelity-1792620778/pdftime-sales-2.txt",
+   "tmp/prf07-fidelity-1792620778/pdftime-sales-3.txt",
+   "tmp/prf-probe/pdf-small.json",
+   "tmp/prf-probe/pdf-flag.json",
+   "tmp/prf07-fidelity-1792620778/pdf-flag-1.json",
+   "tmp/prf07-fidelity-1792620778/pdf-flag-2.json",
+   "tmp/prf07-fidelity-1792620778/pdf-flag-3.json",
+   "tmp/prf07-fidelity-1792620778/pdf-sales-1.json",
+   "tmp/prf07-fidelity-1792620778/pdf-sales-2.json",
+   "tmp/prf07-fidelity-1792620778/pdf-sales-3.json",
+   "tmp/prf07-fidelity-1792620778/pdfhs-flag-1.json",
+   "tmp/prf07-fidelity-1792620778/pdfhs-flag-2.json",
+   "tmp/prf07-fidelity-1792620778/pdfhs-flag-3.json",
+   "tmp/prf07-fidelity-1792620778/pdfhs-sales-1.json",
+   "tmp/prf07-fidelity-1792620778/pdfhs-sales-2.json",
+   "tmp/prf07-fidelity-1792620778/pdfhs-sales-3.json"
+  ],
+  "sha256": {
+   "tmp/prf-review-07/pdftime-flag-1.txt": "4faf9ab375d5cab8894d06f7810cb77278c21fc118cdf0dc04290ff2dff37ee8",
+   "tmp/prf-review-07/pdftime-flag-2.txt": "78d0285848b77ede45e042577d0748cc6bc61be31ac35758e206f554c14a2622",
+   "tmp/prf-review-07/pdftime-flag-3.txt": "9902f0e86f920354f35846695d6e95b782931f50b197d1736d34ef7161e3516e",
+   "tmp/prf-review-07/pdftime-sales-1.txt": "be2c82b48fd2672cd4c37deb58389ea73639cc54dd9236167b1a550f46dc47c1",
+   "tmp/prf-review-07/pdftime-sales-2.txt": "04689f7d9fde65d278b96b4e8130a6d9219528d17e8db5a354b4f74aae88ab62",
+   "tmp/prf-review-07/pdftime-sales-3.txt": "7a5abbb04b8856eccd613affc9dcd7f291cc11f99b2e88741c17169453874cb8",
+   "tmp/prf07-fidelity-1792620778/pdfhstime-flag-1.txt": "ab41230d6ddd8379fc6748e9a20d574b614404dc449c432df95af58d44ed62fb",
+   "tmp/prf07-fidelity-1792620778/pdfhstime-flag-2.txt": "fbf38c83572fcf642648a55484f36a894553f454bc85069dc39e91d89af5d610",
+   "tmp/prf07-fidelity-1792620778/pdfhstime-flag-3.txt": "8b03162b77371c3073cd8ca10b40094e56f7c82999ab248431c6bc755e5deab1",
+   "tmp/prf07-fidelity-1792620778/pdfhstime-sales-1.txt": "be70f35e704490905b3f59b63c694c432128201be6d4197ad515990b9af00b04",
+   "tmp/prf07-fidelity-1792620778/pdfhstime-sales-2.txt": "bf2cdfe0e8fcf3f7011003c2b72425c8decf19d2618b71619fb1e530dc0551e8",
+   "tmp/prf07-fidelity-1792620778/pdfhstime-sales-3.txt": "da4bc23ee34547d4f761efd6c0a4b51b6a125a93f8dbb43efdbbed15213b52f8",
+   "tmp/prf07-fidelity-1792620778/pdftime-flag-1.txt": "eaed8a5e28394b6906bb11a8fb461b25c21544810dfa1e7609cc153d1770b1e6",
+   "tmp/prf07-fidelity-1792620778/pdftime-flag-2.txt": "68f1838d5930a02c3b10ac0d67550458e1d55d9abfe269ff37a1ae9cf5f56ea0",
+   "tmp/prf07-fidelity-1792620778/pdftime-flag-3.txt": "e3568dbfacabcb8c7f6b61edbdb55b0831f5d7234cc2006e1a5dcc322412c53c",
+   "tmp/prf07-fidelity-1792620778/pdftime-sales-1.txt": "6f8ba4d8d96ffc96faaecc84043ec7c96db2e33ffd02daa123d1479d8d51037c",
+   "tmp/prf07-fidelity-1792620778/pdftime-sales-2.txt": "93278d824af3c359b52b0054863e22d366f1c376d45aada1d979cec6dda01c7a",
+   "tmp/prf07-fidelity-1792620778/pdftime-sales-3.txt": "eb3640542e7be716a686f60e0ded0e0ef09dd1fb5cee70793b4e7b37fe4d030c",
+   "tmp/prf-probe/pdf-small.json": "f78c26bfce5cb14f73aa4c062f5006af5d8fac68071f0bdbeb6eebab549481d3",
+   "tmp/prf-probe/pdf-flag.json": "c8c86de89c617cad7cc1f1536867d5c9bb48ab13183405ab9543f072c9b095a0",
+   "tmp/prf07-fidelity-1792620778/pdf-flag-1.json": "333767f12ce367f01a99ee6a7e19ff47c0d1d50de46ad310c77162af21b9ee3a",
+   "tmp/prf07-fidelity-1792620778/pdf-flag-2.json": "8d10f44067c03fe2495c28d2a74f0bcd2e535996224838d4d5f23b9248afd9d9",
+   "tmp/prf07-fidelity-1792620778/pdf-flag-3.json": "333767f12ce367f01a99ee6a7e19ff47c0d1d50de46ad310c77162af21b9ee3a",
+   "tmp/prf07-fidelity-1792620778/pdf-sales-1.json": "c58b6af8d592a0090c17a5cba655aa1acb79dac029a906dca398516ee78b111c",
+   "tmp/prf07-fidelity-1792620778/pdf-sales-2.json": "04ed1db969172f4df7836fb75d0abad23df4e2ad032bda1686048bc8f3d4a625",
+   "tmp/prf07-fidelity-1792620778/pdf-sales-3.json": "845cfaadc57b93a5ffd98a6543ce6757bc9cb00de195d33d431668be59153b1e",
+   "tmp/prf07-fidelity-1792620778/pdfhs-flag-1.json": "a5b971074a311b32a7c6596ace3e2d809c80e4b26282b6b84f79b590162f5f4f",
+   "tmp/prf07-fidelity-1792620778/pdfhs-flag-2.json": "cc2c669ae054b3418d8e93bda599b9cbefbed2880d75fb91bfc0f64b9fbcd461",
+   "tmp/prf07-fidelity-1792620778/pdfhs-flag-3.json": "b3cb7b99fc942209f28fce5b98a6e25cd5e12300797eb343bb118f07f60b02fa",
+   "tmp/prf07-fidelity-1792620778/pdfhs-sales-1.json": "bbabc89b7374d9fd70f749d3149a31c29b5b079c6fd46c321320850832775e8c",
+   "tmp/prf07-fidelity-1792620778/pdfhs-sales-2.json": "1040e8c2008cd9c5e9b7cd3ec77faa59f35bb388e7df8744e165ccf195783c5c",
+   "tmp/prf07-fidelity-1792620778/pdfhs-sales-3.json": "1040e8c2008cd9c5e9b7cd3ec77faa59f35bb388e7df8744e165ccf195783c5c"
+  },
+  "note": "Parsed from the ignored text and JSON outputs listed in files"
+ },
+ "method": "/usr/bin/time -l richview generate <fixture> --to pdf, b4db233 on Claw Mini; peak footprint is the richview process only, the browser's memory is not included",
+ "runs": {
+  "2026-10-21 review re-run, Playwright headless shell": [
+   {
+    "file": "tmp/prf-review-07/pdftime-flag-1.txt",
+    "real_s": 0.89,
+    "instructions_retired": 1005936349,
+    "peak_footprint_bytes": 33505760,
+    "max_rss_bytes": 288276480
+   },
+   {
+    "file": "tmp/prf-review-07/pdftime-flag-2.txt",
+    "real_s": 0.83,
+    "instructions_retired": 1007379611,
+    "peak_footprint_bytes": 33522120,
+    "max_rss_bytes": 288260096
+   },
+   {
+    "file": "tmp/prf-review-07/pdftime-flag-3.txt",
+    "real_s": 0.81,
+    "instructions_retired": 1006790890,
+    "peak_footprint_bytes": 33767880,
+    "max_rss_bytes": 293109760
+   },
+   {
+    "file": "tmp/prf-review-07/pdftime-sales-1.txt",
+    "real_s": 0.41,
+    "instructions_retired": 315012222,
+    "peak_footprint_bytes": 24461744,
+    "max_rss_bytes": 169181184
+   },
+   {
+    "file": "tmp/prf-review-07/pdftime-sales-2.txt",
+    "real_s": 0.32,
+    "instructions_retired": 299508839,
+    "peak_footprint_bytes": 24363440,
+    "max_rss_bytes": 169033728
+   },
+   {
+    "file": "tmp/prf-review-07/pdftime-sales-3.txt",
+    "real_s": 0.36,
+    "instructions_retired": 300106310,
+    "peak_footprint_bytes": 24412592,
+    "max_rss_bytes": 169345024
+   }
+  ],
+  "2026-10-22 fidelity re-run, Playwright headless shell": [
+   {
+    "file": "tmp/prf07-fidelity-1792620778/pdfhstime-flag-1.txt",
+    "real_s": 0.79,
+    "instructions_retired": 1002565932,
+    "peak_footprint_bytes": 33866184,
+    "max_rss_bytes": 288227328
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/pdfhstime-flag-2.txt",
+    "real_s": 0.78,
+    "instructions_retired": 1002314280,
+    "peak_footprint_bytes": 33767880,
+    "max_rss_bytes": 288292864
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/pdfhstime-flag-3.txt",
+    "real_s": 0.76,
+    "instructions_retired": 1000867203,
+    "peak_footprint_bytes": 33587656,
+    "max_rss_bytes": 288178176
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/pdfhstime-sales-1.txt",
+    "real_s": 0.58,
+    "instructions_retired": 295634867,
+    "peak_footprint_bytes": 24461744,
+    "max_rss_bytes": 168034304
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/pdfhstime-sales-2.txt",
+    "real_s": 0.28,
+    "instructions_retired": 299891294,
+    "peak_footprint_bytes": 24396208,
+    "max_rss_bytes": 169328640
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/pdfhstime-sales-3.txt",
+    "real_s": 0.26,
+    "instructions_retired": 298545733,
+    "peak_footprint_bytes": 24379824,
+    "max_rss_bytes": 169000960
+   }
+  ],
+  "2026-10-22 fidelity re-run, browser found by default": [
+   {
+    "file": "tmp/prf07-fidelity-1792620778/pdftime-flag-1.txt",
+    "real_s": 1.19,
+    "instructions_retired": 1110354571,
+    "peak_footprint_bytes": 33800648,
+    "max_rss_bytes": 329121792
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/pdftime-flag-2.txt",
+    "real_s": 1.19,
+    "instructions_retired": 1108146893,
+    "peak_footprint_bytes": 33276360,
+    "max_rss_bytes": 328974336
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/pdftime-flag-3.txt",
+    "real_s": 1.19,
+    "instructions_retired": 1109655653,
+    "peak_footprint_bytes": 33636808,
+    "max_rss_bytes": 328712192
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/pdftime-sales-1.txt",
+    "real_s": 2.47,
+    "instructions_retired": 431250901,
+    "peak_footprint_bytes": 24379824,
+    "max_rss_bytes": 214548480
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/pdftime-sales-2.txt",
+    "real_s": 0.61,
+    "instructions_retired": 402219785,
+    "peak_footprint_bytes": 24428976,
+    "max_rss_bytes": 228687872
+   },
+   {
+    "file": "tmp/prf07-fidelity-1792620778/pdftime-sales-3.txt",
+    "real_s": 0.6,
+    "instructions_retired": 402277745,
+    "peak_footprint_bytes": 24494536,
+    "max_rss_bytes": 229244928
+   }
+  ]
+ },
+ "outputs": {
+  "prf-probe/pdf-small.json": {
+   "bytes": 119761,
+   "pages": 2,
+   "ok": true,
+   "browser": "HeadlessChrome/153.0.8010.12"
+  },
+  "prf-probe/pdf-flag.json": {
+   "bytes": 1460365,
+   "pages": 32,
+   "ok": true,
+   "browser": "HeadlessChrome/153.0.8010.12"
+  },
+  "prf07-fidelity-1792620778/pdf-flag-1.json": {
+   "bytes": 1460685,
+   "pages": 32,
+   "ok": true,
+   "browser": "Chrome/155.0.8059.85"
+  },
+  "prf07-fidelity-1792620778/pdf-flag-2.json": {
+   "bytes": 1460685,
+   "pages": 32,
+   "ok": true,
+   "browser": "Chrome/155.0.8059.85"
+  },
+  "prf07-fidelity-1792620778/pdf-flag-3.json": {
+   "bytes": 1460685,
+   "pages": 32,
+   "ok": true,
+   "browser": "Chrome/155.0.8059.85"
+  },
+  "prf07-fidelity-1792620778/pdf-sales-1.json": {
+   "bytes": 121182,
+   "pages": 2,
+   "ok": true,
+   "browser": "Chrome/155.0.8059.85"
+  },
+  "prf07-fidelity-1792620778/pdf-sales-2.json": {
+   "bytes": 121182,
+   "pages": 2,
+   "ok": true,
+   "browser": "Chrome/155.0.8059.85"
+  },
+  "prf07-fidelity-1792620778/pdf-sales-3.json": {
+   "bytes": 121182,
+   "pages": 2,
+   "ok": true,
+   "browser": "Chrome/155.0.8059.85"
+  },
+  "prf07-fidelity-1792620778/pdfhs-flag-1.json": {
+   "bytes": 1460365,
+   "pages": 32,
+   "ok": true,
+   "browser": "HeadlessChrome/153.0.8010.12"
+  },
+  "prf07-fidelity-1792620778/pdfhs-flag-2.json": {
+   "bytes": 1460365,
+   "pages": 32,
+   "ok": true,
+   "browser": "HeadlessChrome/153.0.8010.12"
+  },
+  "prf07-fidelity-1792620778/pdfhs-flag-3.json": {
+   "bytes": 1460365,
+   "pages": 32,
+   "ok": true,
+   "browser": "HeadlessChrome/153.0.8010.12"
+  },
+  "prf07-fidelity-1792620778/pdfhs-sales-1.json": {
+   "bytes": 121053,
+   "pages": 2,
+   "ok": true,
+   "browser": "HeadlessChrome/153.0.8010.12"
+  },
+  "prf07-fidelity-1792620778/pdfhs-sales-2.json": {
+   "bytes": 121053,
+   "pages": 2,
+   "ok": true,
+   "browser": "HeadlessChrome/153.0.8010.12"
+  },
+  "prf07-fidelity-1792620778/pdfhs-sales-3.json": {
+   "bytes": 121053,
+   "pages": 2,
+   "ok": true,
+   "browser": "HeadlessChrome/153.0.8010.12"
+  }
+ }
+}

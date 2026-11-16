@@ -1,0 +1,11 @@
+---
+title: Math
+---
+
+Inline $\text{<script>HOSTILE_MATH1()</script>}$ and $\href{javascript:HOSTILE_MATH2()}{x}$ and $x^{<img src=x onerror=HOSTILE_MATH3()>}$.
+
+$$
+\text{</math><script>HOSTILE_MATH4()</script>} \unknown{<b onclick=HOSTILE_MATH5()>}
+$$
+
+$\mathrm{" onload="HOSTILE_MATH6()}$ and $\color{red;}</style>$ and $\url{javascript:HOSTILE_MATH7()}$.

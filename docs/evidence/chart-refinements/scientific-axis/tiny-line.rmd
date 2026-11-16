@@ -1,0 +1,37 @@
+---
+title: Readable extreme magnitude labels
+version: 0.0.1
+---
+
+```chart
+{
+  "type": "line",
+  "title": "Compare the measured values",
+  "encoding": {
+    "x": "x",
+    "y": "value"
+  },
+  "data": {
+    "inline": [
+      {
+        "x": 0,
+        "category": "A",
+        "period": "Now",
+        "value": 1e-12
+      },
+      {
+        "x": 1,
+        "category": "B",
+        "period": "Now",
+        "value": 2e-12
+      },
+      {
+        "x": 2,
+        "category": "C",
+        "period": "Now",
+        "value": 3e-12
+      }
+    ]
+  }
+}
+```

@@ -1,0 +1,20 @@
+{
+ "spec": {"type": "network", "title": "Dee and Gus link the most people in the team", "encoding": {"source": "from", "target": "to", "y": "msgs"}, "axes": {"y": {"label": "Messages"}}},
+ "rows": [
+  {"from": "Ada", "to": "Ben", "msgs": 12},
+  {"from": "Ada", "to": "Cai", "msgs": 8},
+  {"from": "Ada", "to": "Dee", "msgs": 15},
+  {"from": "Ben", "to": "Cai", "msgs": 5},
+  {"from": "Ben", "to": "Eli", "msgs": 9},
+  {"from": "Cai", "to": "Dee", "msgs": 6},
+  {"from": "Dee", "to": "Fay", "msgs": 11},
+  {"from": "Eli", "to": "Fay", "msgs": 4},
+  {"from": "Fay", "to": "Gus", "msgs": 7},
+  {"from": "Gus", "to": "Hana", "msgs": 10},
+  {"from": "Hana", "to": "Ivo", "msgs": 3},
+  {"from": "Ivo", "to": "Jo", "msgs": 6},
+  {"from": "Gus", "to": "Ivo", "msgs": 2},
+  {"from": "Dee", "to": "Gus", "msgs": 5},
+  {"from": "Kim", "to": "Lee", "msgs": 9}
+ ]
+}

@@ -1,0 +1,170 @@
+{
+  "base_commit": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+  "source_commit": "145d4794dfa28b472367385947ad3cdae14f9596",
+  "unchanged_web_wasm_sha256": "141dd99c023fc595e987febc299f4c7ce554912fd489d3ffe768a46ce939be4e",
+  "old_baseline_failure": {
+    "trial": 4,
+    "exit": 1,
+    "marks": [
+      {
+        "path_characters": 101,
+        "transform": "",
+        "connected": false,
+        "document_contains": false,
+        "live_count": 2,
+        "same_as_live": false
+      },
+      {
+        "path_characters": 116,
+        "transform": "",
+        "connected": false,
+        "document_contains": false,
+        "live_count": 2,
+        "same_as_live": false
+      }
+    ]
+  },
+  "new_lifecycle_trials": [
+    {"trial": 1,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]},
+    {"trial": 2,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]},
+    {"trial": 3,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]},
+    {"trial": 4,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]},
+    {"trial": 5,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]},
+    {"trial": 6,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]},
+    {"trial": 7,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]},
+    {"trial": 8,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]},
+    {"trial": 9,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]},
+    {"trial": 10,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]},
+    {"trial": 11,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]},
+    {"trial": 12,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]},
+    {"trial": 13,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]},
+    {"trial": 14,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]},
+    {"trial": 15,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]},
+    {"trial": 16,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]},
+    {"trial": 17,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]},
+    {"trial": 18,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]},
+    {"trial": 19,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]},
+    {"trial": 20,"exit": 0,"evidence_sha256": "3bb6eed2e4d7e69661358ee1431680c97d56bed9fffb9dc1d40b343f454e44e5","checks": ["synchronous_print","settled_facets","changed_motion_preference","failed_mount"],"marks": [{"path_characters": 101,"transform": "none","connected": true},{"path_characters": 116,"transform": "none","connected": true}]}
+  ],
+  "current_main": {
+    "base_commit": "bb8b112c121eae1ec70d810df1b5e6a2070c9c4e",
+    "source_commit": "7881a56a1f65efe8433dce81838882ada8111a11",
+    "unchanged_web_wasm_sha256": "1f278570318a19163969089bf4b8f1f694efe5b0f9b3ba04b2897912851458be",
+    "lifecycle_repeats": {
+      "head": "7881a56a1f65efe8433dce81838882ada8111a11",
+      "baseline": "bb8b112c121eae1ec70d810df1b5e6a2070c9c4e",
+      "wasm_sha256": "1f278570318a19163969089bf4b8f1f694efe5b0f9b3ba04b2897912851458be",
+      "product_identical": true,
+      "runs": [
+        {
+          "run": 1,
+          "exit": 0,
+          "elapsed_seconds": 4.39
+        },
+        {
+          "run": 2,
+          "exit": 0,
+          "elapsed_seconds": 3.65
+        },
+        {
+          "run": 3,
+          "exit": 0,
+          "elapsed_seconds": 4.16
+        },
+        {
+          "run": 4,
+          "exit": 0,
+          "elapsed_seconds": 3.68
+        },
+        {
+          "run": 5,
+          "exit": 0,
+          "elapsed_seconds": 3.44
+        }
+      ]
+    },
+    "independent_lifecycle_runs": 1,
+    "independent_verdict": "accept; connected current marks and no page errors",
+    "required_checks": "Formatting, native/Wasm Clippy, workspace tests, release build, generated fixtures and all 13 host checks pass.",
+    "host_checks": [
+      {
+        "name": "editor",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 1092
+      },
+      {
+        "name": "native",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 4008
+      },
+      {
+        "name": "compat",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 211
+      },
+      {
+        "name": "types",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 2398
+      },
+      {
+        "name": "browser",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 99084
+      },
+      {
+        "name": "landing",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 80045
+      },
+      {
+        "name": "cloudflare",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 96312
+      },
+      {
+        "name": "showcase",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 40131
+      },
+      {
+        "name": "flagship",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 23565
+      },
+      {
+        "name": "reel",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 7958
+      },
+      {
+        "name": "browser-api",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 4583
+      },
+      {
+        "name": "motion-runtime",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 2833
+      },
+      {
+        "name": "docs",
+        "status": 0,
+        "signal": null,
+        "elapsed_ms": 20348
+      }
+    ]
+  }
+}

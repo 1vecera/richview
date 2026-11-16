@@ -1,0 +1,99 @@
+---
+title: Viewing through the week
+---
+
+```chart
+type: heatmap
+title: Viewing through the week
+subtitle: Minutes per viewer, same values in both views
+encoding:
+  x: day
+  y: period
+  color: minutes
+data:
+  inline:
+  - day: Mon
+    period: Morning
+    minutes: 12.0
+  - day: Mon
+    period: Afternoon
+    minutes: 26.7
+  - day: Mon
+    period: Evening
+    minutes: 35.3
+  - day: Mon
+    period: Late night
+    minutes: 37.1
+  - day: Tue
+    period: Morning
+    minutes: 21.7
+  - day: Tue
+    period: Afternoon
+    minutes: 30.3
+  - day: Tue
+    period: Evening
+    minutes: 32.1
+  - day: Tue
+    period: Late night
+    minutes: 32.9
+  - day: Wed
+    period: Morning
+    minutes: 25.3
+  - day: Wed
+    period: Afternoon
+    minutes: 27.1
+  - day: Wed
+    period: Evening
+    minutes: 27.9
+  - day: Wed
+    period: Late night
+    minutes: 34.3
+  - day: Thu
+    period: Morning
+    minutes: 22.1
+  - day: Thu
+    period: Afternoon
+    minutes: 22.9
+  - day: Thu
+    period: Evening
+    minutes: 29.3
+  - day: Thu
+    period: Late night
+    minutes: 42.8
+  - day: Fri
+    period: Morning
+    minutes: 17.9
+  - day: Fri
+    period: Afternoon
+    minutes: 24.3
+  - day: Fri
+    period: Evening
+    minutes: 37.8
+  - day: Fri
+    period: Late night
+    minutes: 53.3
+  - day: Sat
+    period: Morning
+    minutes: 19.3
+  - day: Sat
+    period: Afternoon
+    minutes: 32.8
+  - day: Sat
+    period: Evening
+    minutes: 48.3
+  - day: Sat
+    period: Late night
+    minutes: 58.9
+  - day: Sun
+    period: Morning
+    minutes: 27.8
+  - day: Sun
+    period: Afternoon
+    minutes: 43.3
+  - day: Sun
+    period: Evening
+    minutes: 53.9
+  - day: Sun
+    period: Late night
+    minutes: 57.3
+```

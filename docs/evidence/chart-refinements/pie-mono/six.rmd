@@ -1,0 +1,8 @@
+---
+title: Monochrome pie craft audit
+version: 0.0.1
+---
+
+```chart
+{"type": "pie", "title": "Six equal", "encoding": {"x": "category", "y": "value"}, "data": {"inline": [{"category": "A", "value": 1}, {"category": "B", "value": 1}, {"category": "C", "value": 1}, {"category": "D", "value": 1}, {"category": "E", "value": 1}, {"category": "F", "value": 1}]}}
+```

@@ -1,0 +1,172 @@
+{
+ "_source": {
+  "files": [
+   "tmp/performance/boundary.json"
+  ],
+  "sha256": {
+   "tmp/performance/boundary.json": "5da53165a3dfcbeae241071cf0416731803383118f9195ab465372c321172ba5"
+  },
+  "note": "node scripts/benchmark-boundary.mjs, b4db233, Claw Mini, 2026-10-21"
+ },
+ "data": {
+  "engine": "shared Rust Wasm through generated Node bindings",
+  "node": "v26.5.0",
+  "peak_rss_kib": 585184,
+  "linux_vm_hwm_kib": null,
+  "notes": "Full API calls include source copies, Rust parsing/rendering and result conversion. Encode/decode columns isolate representative host serialization, not engine kernels.",
+  "results": [
+   {
+    "workload": "small",
+    "source_bytes": 2453,
+    "source_sha256": "74e0a922290ff3507e021d7bf80ba8db91848a4ab590f4f635a2f7090e67fb0a",
+    "ast_json_bytes": 3920,
+    "report_json_bytes": 239219,
+    "html_bytes": 233789,
+    "parse_with_js_objects": {
+     "iterations": 100,
+     "median_ms": 0.11904200000000031,
+     "p95_ms": 0.15595799999999826,
+     "min_ms": 0.09095899999999801
+    },
+    "ast_json_encode": {
+     "iterations": 100,
+     "median_ms": 0.0017500000000012506,
+     "p95_ms": 0.0027919999999994616,
+     "min_ms": 0.0016660000000001673
+    },
+    "ast_json_decode": {
+     "iterations": 100,
+     "median_ms": 0.0053339999999977294,
+     "p95_ms": 0.006292000000001963,
+     "min_ms": 0.004666999999997756
+    },
+    "rust_render_to_json_string": {
+     "iterations": 100,
+     "median_ms": 0.6534170000000046,
+     "p95_ms": 0.9754169999999931,
+     "min_ms": 0.5875000000000057
+    },
+    "legacy_render_with_js_objects": {
+     "iterations": 100,
+     "median_ms": 0.7804580000000101,
+     "p95_ms": 0.845832999999999,
+     "min_ms": 0.752332999999993
+    }
+   },
+   {
+    "workload": "six-types",
+    "source_bytes": 1140,
+    "source_sha256": "50b1386eeb85ecd8a8f4114105c433f05db8e719e6567b7e4d625c898d847805",
+    "ast_json_bytes": 2709,
+    "report_json_bytes": 280770,
+    "html_bytes": 267430,
+    "parse_with_js_objects": {
+     "iterations": 100,
+     "median_ms": 0.08999999999997499,
+     "p95_ms": 0.09679199999999355,
+     "min_ms": 0.0847090000000037
+    },
+    "ast_json_encode": {
+     "iterations": 100,
+     "median_ms": 0.0020409999999912998,
+     "p95_ms": 0.002165999999988344,
+     "min_ms": 0.001999999999981128
+    },
+    "ast_json_decode": {
+     "iterations": 100,
+     "median_ms": 0.006000000000000227,
+     "p95_ms": 0.006083000000018046,
+     "min_ms": 0.005374999999986585
+    },
+    "rust_render_to_json_string": {
+     "iterations": 100,
+     "median_ms": 1.1458749999999895,
+     "p95_ms": 1.2518330000000333,
+     "min_ms": 1.0782910000000356
+    },
+    "legacy_render_with_js_objects": {
+     "iterations": 100,
+     "median_ms": 1.350166999999999,
+     "p95_ms": 1.4166250000000105,
+     "min_ms": 1.3269590000000449
+    }
+   },
+   {
+    "workload": "dense",
+    "source_bytes": 2033557,
+    "source_sha256": "d4a657d6b913733c23aeff611344b5d742e6de46f29a39f6c551c9c8b3630130",
+    "ast_json_bytes": 3997128,
+    "report_json_bytes": 4348073,
+    "html_bytes": 2204090,
+    "parse_with_js_objects": {
+     "iterations": 100,
+     "median_ms": 91.313083,
+     "p95_ms": 95.5332499999995,
+     "min_ms": 89.38079199999993
+    },
+    "ast_json_encode": {
+     "iterations": 100,
+     "median_ms": 2.254541000000245,
+     "p95_ms": 2.5062920000000304,
+     "min_ms": 2.160249999998996
+    },
+    "ast_json_decode": {
+     "iterations": 100,
+     "median_ms": 4.960833999999522,
+     "p95_ms": 5.795625000000655,
+     "min_ms": 4.828417000000627
+    },
+    "rust_render_to_json_string": {
+     "iterations": 100,
+     "median_ms": 140.6575410000005,
+     "p95_ms": 149.80395800000042,
+     "min_ms": 137.51979199999914
+    },
+    "legacy_render_with_js_objects": {
+     "iterations": 100,
+     "median_ms": 160.6408330000013,
+     "p95_ms": 168.047083999998,
+     "min_ms": 158.0294580000009
+    }
+   },
+   {
+    "workload": "flagship",
+    "source_bytes": 124588,
+    "source_sha256": "ba49afeff1be32608493adc874760e7cdd9d51d3a3e7d590d50eebc3f59722cf",
+    "ast_json_bytes": 210083,
+    "report_json_bytes": 2338926,
+    "html_bytes": 2214104,
+    "parse_with_js_objects": {
+     "iterations": 100,
+     "median_ms": 3.604125000005297,
+     "p95_ms": 3.7501249999986612,
+     "min_ms": 3.5146250000034343
+    },
+    "ast_json_encode": {
+     "iterations": 100,
+     "median_ms": 0.14199999999982538,
+     "p95_ms": 0.16008299999521114,
+     "min_ms": 0.11883300000044983
+    },
+    "ast_json_decode": {
+     "iterations": 100,
+     "median_ms": 0.28787500000180444,
+     "p95_ms": 0.2989579999994021,
+     "min_ms": 0.2584999999962747
+    },
+    "rust_render_to_json_string": {
+     "iterations": 100,
+     "median_ms": 25.75054100000125,
+     "p95_ms": 26.809708000000683,
+     "min_ms": 24.769291999997222
+    },
+    "legacy_render_with_js_objects": {
+     "iterations": 100,
+     "median_ms": 28.582750000001397,
+     "p95_ms": 31.013083999998344,
+     "min_ms": 27.669832999999926
+    }
+   }
+  ]
+ }
+}

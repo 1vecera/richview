@@ -1,0 +1,37 @@
+---
+title: See where the budget goes by the angle it takes
+description: A sunburst gives each part an angle in proportion to its value, in rings from the whole outwards.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Engineering and sales hold two thirds of the budget
+
+These illustrative figures give each team its budget. A part with children takes the sum of them; the chart never invents a value.
+
+```chart
+type: sunburst
+title: Engineering is the largest group, then sales
+subtitle: Thousands of dollars; angle is budget, colour is the top-level group
+data:
+  inline:
+    - {part: Engineering}
+    - {part: Platform, group: Engineering}
+    - {part: Core, group: Platform, budget: 260}
+    - {part: Tooling, group: Platform, budget: 160}
+    - {part: Product, group: Engineering, budget: 310}
+    - {part: Data, group: Engineering, budget: 150}
+    - {part: Sales}
+    - {part: EMEA, group: Sales, budget: 240}
+    - {part: Americas, group: Sales, budget: 260}
+    - {part: Operations, budget: 180}
+    - {part: People, budget: 90}
+    - {part: Finance, budget: 60}
+encoding: {label: part, parent: group, y: budget}
+axes:
+  y: {unit: k}
+```
+
+*Source: Illustrative values.*
+
+Use the keyboard or pointer to read each part's value and its share of the whole.

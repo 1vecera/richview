@@ -1,0 +1,133 @@
+{
+  "base_commit": "159e3cbc01773c59891c984d3a485d089ac6372d",
+  "source_commit": "984f2233fe3065e152590d7f3c4515294b990c74",
+  "code_commit": "a2480c0bc0975d7da5c223affaef7e07c5ac5f83",
+  "runtime_patch_id": "4886480a7208d5e7f8542f0e386bda081ab8a505",
+  "wasm_sha256": {
+    "before": "8637409185519596f1860ab681101fb9845d97accc337ba8c91d39012524f8df",
+    "after": "1c6007f4ebc3b56d5c29a44554ecd34848061168bb71e163658ab47c754c6338"
+  },
+  "native_sha256": {
+    "before": "eabd6290312ea21059777b855bc76701fd7a7b6efa13e00433799c9720782ec9",
+    "after": "9f86bbc1a6c3aec2c1ac532e7b6996a5a5034e51dea8adb74f717164384626c2"
+  },
+  "capture": {
+    "browser": "151.0.7922.173",
+    "device_scale": 2,
+    "motion": "reduce",
+    "images": "Unmodified complete figures with loaded fonts"
+  },
+  "pairs": [
+    {
+      "id": "scatter-padding-positive-percent",
+      "source": "positive.rmd",
+      "source_sha256": "9fcc4eb971e9dc15c3fe7218d344d5c55230ee53c64cae54d1841e1c27eedb5a",
+      "theme": "scientific",
+      "width": 320,
+      "figure_css_px": {
+        "width": 288,
+        "height": 274.25
+      },
+      "before": {
+        "file": "positive-before.png",
+        "sha256": "f24099c23376d27e4590f1ccbb45197e2e5dc9f9ce15556eec8e21e1338b1406"
+      },
+      "after": {
+        "file": "positive-after.png",
+        "sha256": "fbc51488033a7424f2acb981e57380881cdb13a8eb2af9efd66e6d4abd320e7c"
+      }
+    },
+    {
+      "id": "scatter-padding-negative-bubbles",
+      "source": "negative.rmd",
+      "source_sha256": "19174810a88f6d6c49c936be10395b67ebf9698286dc1e873f1d6722e00610b4",
+      "theme": "sleek",
+      "width": 720,
+      "figure_css_px": {
+        "width": 672,
+        "height": 540.5
+      },
+      "before": {
+        "file": "negative-before.png",
+        "sha256": "11f29b32b0ffdb313afff54bf3d398aef069bfc8f5ba43da6957352f2932d2a8"
+      },
+      "after": {
+        "file": "negative-after.png",
+        "sha256": "30446be82b37c02e573110532d2a54bacc59bf376bfcea2d29e5f7e7e3e365c4"
+      }
+    }
+  ],
+  "matched": {
+    "configurations": 370,
+    "rejected_source_controls": 10,
+    "unchanged_panels": 205,
+    "trimmed_panels": 185,
+    "identical_pngs": 190
+  },
+  "interfaces": {
+    "interface_panels": 64,
+    "keyboard": 272,
+    "pointer": 256,
+    "touch": 256,
+    "source_rows": 272,
+    "offline_views": 96,
+    "offline_panels": 112,
+    "native_reports": 24
+  },
+  "independent": {
+    "status": "ACCEPT: current source, render, thresholds, interactions and complete required gates",
+    "native_cases": 27,
+    "interaction_states": 14,
+    "unit_views": 12,
+    "historical_named_composition": "749b063 on c49fe55 accepted, 60 owner and 12 independent views"
+  },
+  "required_checks": {
+    "rust": [
+      "format",
+      "clippy-native",
+      "clippy-wasm",
+      "workspace"
+    ],
+    "host": [
+      "fixtures",
+      "editor",
+      "native",
+      "compat",
+      "types",
+      "browser",
+      "landing",
+      "cloudflare",
+      "showcase",
+      "flagship",
+      "reel",
+      "browser-api",
+      "motion-runtime",
+      "docs"
+    ],
+    "release": "PASS",
+    "all_exit_codes": 0
+  },
+  "local_proof": {
+    "root": "/home/vecera/tmp/richview-chart-refinement-20261011/scatter-padding-current",
+    "checks": "tmp/scatter-padding/checks",
+    "review": "/home/vecera/tmp/richview-chart-refinement-20261011/scatter-padding-review.md",
+    "historical_archive": "archive/chart-scatter-padding-bb8b112 at db45d4b",
+    "tested_source_archive": "archive/chart-scatter-padding-159-proof at 984f223 (runtime identical to code_commit)"
+  },
+  "limitations": [
+    "Chromium on Linux only; no physical-device, hosted-CI or performance claim. Local Node 26.8.1 differs from CI Node 22.",
+    "The 60 px constrained-height control retains existing crowded axes; reversed bounds remain rejected.",
+    "A Rust runner exited 143 before a workspace result; no cargo-test child remained, and the scoped workspace rerun passed. Original partial logs retained."
+  ],
+  "toolchain": {
+    "rust": "1.99.0",
+    "wasm_bindgen": "0.2.129",
+    "node": "26.8.1"
+  },
+  "evidence_checks": {
+    "reproduction_before_exit": 0,
+    "reproduction_after_exit": 0,
+    "four_pngs_byte_identical": true,
+    "docs_exit": 0
+  }
+}

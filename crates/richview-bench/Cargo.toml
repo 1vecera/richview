@@ -1,0 +1,14 @@
+[package]
+rust-version.workspace = true
+name = "richview-bench"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+richview-core = { path = "../richview-core" }
+serde_json = "1"
+csv = "1"
+
+richview-app = { path = "../richview-app" }

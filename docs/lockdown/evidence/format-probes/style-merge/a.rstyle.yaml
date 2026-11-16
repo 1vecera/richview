@@ -1,0 +1,4 @@
+components:
+  title:
+    transform: uppercase
+    weight: bold

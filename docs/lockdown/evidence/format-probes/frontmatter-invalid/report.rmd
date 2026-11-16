@@ -1,0 +1,14 @@
+---
+title: [unclosed
+---
+
+Body after bad frontmatter.
+
+```Chart
+type: bar
+title: Upper-case tag
+data:
+  inline:
+    - {k: a, v: 1}
+encoding: {x: k, y: v}
+```

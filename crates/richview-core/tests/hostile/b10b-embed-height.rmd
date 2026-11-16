@@ -1,0 +1,9 @@
+---
+title: Embed height
+---
+
+```embed
+url: 'https://www.youtube.com/embed/x'
+height: '"><script>HOSTILE_EHEIGHT()</script>'
+caption: '<script>HOSTILE_EHCAPTION()</script>'
+```

@@ -1,0 +1,4 @@
+chart:
+  palette: ['</style><script>HOSTILE_ALL_STYLE()</script>', blue]
+tokens:
+  bg: '</style><script>HOSTILE_ALL_BG()</script>'

@@ -1,0 +1,199 @@
+{
+  "status": "PASS: required local checks, matched current and frozen sibling captures, print/monochrome proof and independent final reviews",
+  "baseline": "480af942714c16ce4c1f959c7f046344d4f8c99d",
+  "baseline_build_source": "dad1615876cf05dccd7241da269fbf69cbc1ec31",
+  "baseline_equivalence": "Entire tracked tree identical to main baseline",
+  "source_commit": "8c265566924b1b8ed9843d71c42fcdb19350f64c",
+  "before_wasm_sha256": "c415bc543db946539e4d1d2b8902935ba05a4d5ca1c60deb77456a8d64f89467",
+  "after_wasm_sha256": "6b5127fe53678fa3624a49b9effbdc1f9f5a97c8c35a87d428ac46ae53eb4bde",
+  "before_node_wasm_sha256": "624e5e9e829c3b6424cb362b1514120bc9c24094e9e6806dc2afce45227a498a",
+  "after_node_wasm_sha256": "a461f33fe98bcab301e67161f3d167a5d31f61aeb83b6c275ea6f290111ea864",
+  "browser": "Chromium 151.0.7922.173",
+  "device_scale_factor": 2,
+  "pairs": [
+    {
+      "id": "bubble-size-unexplained",
+      "source": "phone.rmd",
+      "source_sha256": "c5f3f96cc0d2a6d4930ffacfe7c238e88f7a616ccb3a83ba21a1eab7c428184a",
+      "theme": "scientific",
+      "width": 320,
+      "motion": "reduce",
+      "before": {
+        "file": "phone-before.png",
+        "sha256": "072b5b1ca6fc40e537255106901a19c0e1479ff48a337b0c3eb1708ff06d01ee"
+      },
+      "after": {
+        "file": "phone-after.png",
+        "sha256": "9af8f67c30900f0896eda9c83b9d6e92afc3a4dbafec0debcaed5e7636748de2"
+      }
+    },
+    {
+      "id": "bubble-facet-scales",
+      "source": "facets.rmd",
+      "source_sha256": "bf5f1fe507f341650ab617b6b97c1f4ebd004fc2c17f0923030156cebf7c0cd6",
+      "theme": "scientific",
+      "width": 720,
+      "motion": "reduce",
+      "before": {
+        "file": "facets-before.png",
+        "sha256": "9be017c9ac0f3a1fff0d9dfdf36babbd925c310f81d3baba9bd468417689869b"
+      },
+      "after": {
+        "file": "facets-after.png",
+        "sha256": "df0e1367c865a534be78925452c31affb8cd29f974188ee3f8972f38219e253d"
+      }
+    }
+  ],
+  "current_main": {
+    "reports": 255,
+    "leaf_charts": 270,
+    "guides": 210,
+    "exact_svg_png_controls": 60,
+    "exact_quantitative_svg_leaves": 270,
+    "max_live_region_roundoff": 0.010498046875,
+    "native_before": {
+      "invalid-bubble-size": 15,
+      "missing-bubble-size": 15,
+      "clipping": 155,
+      "label-collision": 60
+    },
+    "native_after": {
+      "invalid-bubble-size": 15,
+      "missing-bubble-size": 15,
+      "fixed-height": 15,
+      "clipping": 80,
+      "label-collision": 60
+    },
+    "live_before": {
+      "invalid-bubble-size": 15,
+      "clipping": 159,
+      "label-collision": 60
+    },
+    "live_after": {
+      "invalid-bubble-size": 15,
+      "clipping": 84,
+      "label-collision": 60
+    },
+    "status": "PASS",
+    "before_head": "dad1615876cf05dccd7241da269fbf69cbc1ec31",
+    "after_head": "8c265566924b1b8ed9843d71c42fcdb19350f64c",
+    "before_wasm": "c415bc543db946539e4d1d2b8902935ba05a4d5ca1c60deb77456a8d64f89467",
+    "after_wasm": "6b5127fe53678fa3624a49b9effbdc1f9f5a97c8c35a87d428ac46ae53eb4bde"
+  },
+  "frozen_sibling": {
+    "reports": 200,
+    "leaf_charts": 220,
+    "guides": 180,
+    "exact_svg_png_controls": 40,
+    "exact_quantitative_svg_leaves": 220,
+    "max_live_region_roundoff": 0.010498046875,
+    "native_before": {
+      "invalid-bubble-size": 10,
+      "missing-bubble-size": 10,
+      "clipping": 110,
+      "label-collision": 40
+    },
+    "native_after": {
+      "invalid-bubble-size": 10,
+      "missing-bubble-size": 10,
+      "fixed-height": 10,
+      "clipping": 60,
+      "label-collision": 40
+    },
+    "live_before": {
+      "invalid-bubble-size": 10,
+      "clipping": 114,
+      "label-collision": 40
+    },
+    "live_after": {
+      "invalid-bubble-size": 10,
+      "clipping": 64,
+      "label-collision": 40
+    },
+    "status": "PASS",
+    "before_head": "b19f92b340bf4987b5726898059ba15e9e528635",
+    "after_head": "2cb7f4b22fd80bf43d6daaaf8b90d819d703463e",
+    "before_wasm": "46551a3928a3e84250c61811deb08dcbb9be89b4e3aead3a3fd816f496fec96b",
+    "after_wasm": "8035814440f530d57a3605a7976615b8753eb07d77b2ca1624ca7678314fcbd1"
+  },
+  "public_interfaces": {
+    "before_records": 60,
+    "after_records": 60,
+    "scope": "Original Table/CSV and keyboard precision; pointer/touch rows; guide has no observation target; numeric/string/boolean group hide/restore; zoom/reset; zero/invalid/missing updates; independent facet scales; resize and repeated explicit-height updates; SVG export"
+  },
+  "monochrome_print": {
+    "views": 16,
+    "themes": [
+      "scientific",
+      "brutalist",
+      "sleek",
+      "hand-drawn"
+    ],
+    "widths": [
+      240,
+      720
+    ],
+    "native_quantitative_svg_exact": true,
+    "actual_glyph_findings": 0,
+    "no_page_errors": true,
+    "scope": "Decals enabled in all four treatments; Hand-drawn supplies the actual grayscale palette. Screen and print share the same source."
+  },
+  "required_local_checks": {
+    "source_commit": "8c265566924b1b8ed9843d71c42fcdb19350f64c",
+    "all_passed": true,
+    "checks": [
+      "fmt",
+      "clippy",
+      "clippy-wasm",
+      "tests",
+      "build",
+      "fixtures",
+      "editor",
+      "native",
+      "compat",
+      "types",
+      "browser",
+      "landing",
+      "cloudflare",
+      "showcase",
+      "flagship",
+      "reel",
+      "browser-api",
+      "motion-runtime",
+      "docs"
+    ]
+  },
+  "limitations": [
+    "The guide describes each panel’s existing local size denominator. Equal radii across facets or filtered views can represent different values.",
+    "The single maximum reference is not a graduated legend and does not make area comparison exact by sight.",
+    "Explicitly tiny chart heights retain earlier collisions and clipping. The enlarged viewport removes some clipping findings without moving their original labels.",
+    "The exact round-trip scale number reflects the finite numeric denominator, not an arbitrary source string’s trailing zeroes.",
+    "Measured legacy short-height regions differ by at most 0.010498046875 px; finding identity is exact and the comparison bound is 0.05 px.",
+    "A reference-circle single tap does not select an observation; existing chart-background gestures still apply."
+  ],
+  "history": [
+    "The initial quantitative equality test included a number-dependent textLength in the new guide; the corrected contract compares the old quantitative paint before the appended guide.",
+    "The palette gate rejected a hexadecimal fallback. Final source uses the existing OKLCH ink token; all 255 themed PNG/native/live records are exactly unchanged from the prototype.",
+    "The first owner point-picking oracle assumed source order matched grouped paint order; it now selects the actual radius-8 source point. Original failed records are retained in task scratch.",
+    "The initial fallback refresh assertion compared raw SVG strings; it now excludes only the intentionally changed reference-circle fallback token. Pixel and diagnostic checks remain exact.",
+    "Independent single-guide-touch checks corrected a two-tap sequence that invoked the existing reset gesture, and a raw-SVG empty-message assertion that ignored line wrapping; original failures are preserved."
+  ],
+  "independent_review": {
+    "verdict": "ACCEPT",
+    "main_interface_states": 30,
+    "sibling_interface_states": 30,
+    "sibling_matched_reports": 16,
+    "original_quantitative_and_label_svg_exact": true,
+    "reference_single_tap_preserves_window": true,
+    "source_table_csv_and_readouts_exact": true,
+    "frozen_sibling_base": "2badd2774f188b9dadfb4c47982d8e0197e1c8f9",
+    "before_artifact": "b19f92b340bf4987b5726898059ba15e9e528635",
+    "before_artifact_equivalence": "Product identical to frozen base; only docs and one optional-annotation test changed"
+  },
+  "curated_reproduction": {
+    "images": 4,
+    "exact_png_hashes": 4,
+    "before_exit": 0,
+    "after_exit": 0
+  }
+}

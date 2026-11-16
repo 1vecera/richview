@@ -1,0 +1,143 @@
+{
+ "_source": {
+  "files": [
+   "tmp/prf07-final/out-browser-memory.json"
+  ],
+  "sha256": {
+   "tmp/prf07-final/out-browser-memory.json": "b87dc1c49d2aa1f4ceb7978a824d71461c2fed6f1aeab3417d7326c6f4ba568c"
+  },
+  "note": "tmp/prf07-final/browser_memory.mjs, b4db233 dist/web, Claw Mini, Chromium 153, 2026-10-22"
+ },
+ "data": {
+  "probe": "tmp/prf07-final/browser_memory.mjs",
+  "commit": "b4db233",
+  "started": "2026-10-21T23:45:43.727Z",
+  "host": {
+   "cpus": "Apple M4",
+   "count": 10,
+   "platform": "darwin"
+  },
+  "load_before": [
+   1.9287109375,
+   2.12255859375,
+   2.21533203125
+  ],
+  "method": "new headless Chromium per page, 1440x900, settled() then 1.5 s; resident memory per process via ps for the PIDs from SystemInfo.getProcessInfo; MiB",
+  "pages": [
+   {
+    "page": "blank",
+    "path": null,
+    "renderer_rss_mib": [
+     78
+    ],
+    "total_rss_mib": 246,
+    "by_type": [
+     {
+      "type": "browser",
+      "rss_mib": 75
+     },
+     {
+      "type": "renderer",
+      "rss_mib": 78
+     },
+     {
+      "type": "GPU",
+      "rss_mib": 56
+     },
+     {
+      "type": "network.mojom.NetworkService",
+      "rss_mib": 37
+     }
+    ],
+    "js_heap_used_mib": 10
+   },
+   {
+    "page": "small-report",
+    "path": "/probe/small.html",
+    "renderer_rss_mib": [
+     153
+    ],
+    "total_rss_mib": 345,
+    "by_type": [
+     {
+      "type": "browser",
+      "rss_mib": 84
+     },
+     {
+      "type": "renderer",
+      "rss_mib": 153
+     },
+     {
+      "type": "GPU",
+      "rss_mib": 64
+     },
+     {
+      "type": "network.mojom.NetworkService",
+      "rss_mib": 44
+     }
+    ],
+    "js_heap_used_mib": 17
+   },
+   {
+    "page": "flagship-report",
+    "path": "/showcase/openai-vs-anthropic/Rendered/report.html",
+    "renderer_rss_mib": [
+     213
+    ],
+    "total_rss_mib": 410,
+    "by_type": [
+     {
+      "type": "browser",
+      "rss_mib": 85
+     },
+     {
+      "type": "renderer",
+      "rss_mib": 213
+     },
+     {
+      "type": "GPU",
+      "rss_mib": 66
+     },
+     {
+      "type": "network.mojom.NetworkService",
+      "rss_mib": 46
+     }
+    ],
+    "js_heap_used_mib": 21
+   },
+   {
+    "page": "charts-page",
+    "path": "/charts/",
+    "renderer_rss_mib": [
+     231
+    ],
+    "total_rss_mib": 455,
+    "by_type": [
+     {
+      "type": "browser",
+      "rss_mib": 84
+     },
+     {
+      "type": "renderer",
+      "rss_mib": 231
+     },
+     {
+      "type": "GPU",
+      "rss_mib": 90
+     },
+     {
+      "type": "network.mojom.NetworkService",
+      "rss_mib": 50
+     }
+    ],
+    "js_heap_used_mib": 10
+   }
+  ],
+  "browser": "153.0.8010.12",
+  "load_after": [
+   1.93408203125,
+   2.1201171875,
+   2.2138671875
+  ]
+ }
+}

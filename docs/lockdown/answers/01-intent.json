@@ -1,0 +1,232 @@
+{
+  "partId": "01-intent",
+  "answers": {
+    "INT-01": {
+      "decision": "edit",
+      "text": "Presentation layer for your agent",
+      "note": "I like, I like to say that it's a, it's a presentation layer for your agent, just because, yeah, this is the aim at it, and all the further families, tools around it, are just ways how to consume it and publish it, you know? It's a... All it should- Mm-hmm... come to the one way. You want... You have your agent, and, uh, you want to present things in a unified manner and be able to manage it, right? So this is kind of the things.",
+      "proposedHash": "f250e5fc1dccf508",
+      "updatedAt": "2026-10-23T13:03:30.097Z"
+    },
+    "INT-02": {
+      "decision": "edit",
+      "text": "The tagline is “Let your agent present.” with the line “Designed, reproducible, versioned.” beneath it.\n\nThe three words are product properties, and each must stay true:\n- **Designed:** every output comes from a designed style.\n- **Reproducible:** any report can be rendered again from its source.\n- **Versioned:** every published version is kept, so a report can be managed over the long term.\n\nThe page lede, `og:title`, share images, posts and the reel use both lines verbatim. “Your agent organizes the text. RichView makes it a story.” and “Your agent writes text. RichView renders the story.” are retired, the latter with its BETA label. The hero has no eyebrow above the H1: “Agentic data stories” is dropped.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel, after workshopping in chat: 'Let your agent present' plus 'designed, reproducible, versioned' — replaces his 2026-10-23 rejection (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "1bb81971c5f2c089",
+      "updatedAt": "2026-10-26T20:01:01.069Z"
+    },
+    "INT-03": {
+      "decision": "edit",
+      "text": "RichView makes three value claims. **Keep design consistent:** typography, chart conventions and styles are reusable decisions, made once and applied to every analysis. **Make the handoff inspectable:** words, chart definitions and data are plain text, and the rendered page travels with its source. **Stay in the workflow you know:** write with your agent, revise in your editor and version the report beside its evidence in Git. The renderer owns charts, layout and typography so the agent can concentrate on the analysis.",
+      "proposedHash": "2cf7d30b0c5870a6",
+      "updatedAt": "2026-11-11T21:30:38.167Z"
+    },
+    "INT-04": {
+      "decision": "edit",
+      "text": "Chosen option: Self-contained by default, linked on a server.\n\nSmaller served pages; two output modes to build and test.",
+      "proposedHash": "21babca72cf99890",
+      "updatedAt": "2026-10-26T11:15:29.745Z"
+    },
+    "INT-06": {
+      "decision": "edit",
+      "text": "RichView is built first for analysts, above all data analysts in every industry, who publish internal or external analysis and do that work with a coding agent such as Claude Code, Codex or Cursor. The agent writes and revises the source; the analyst directs, reviews the rendered story and owns its claims. Every authoring capability works for an agent without a GUI. Most of RichView's communication targets analysts.\n\nWriters in general can use it too: analysts and journalists, someone hosting their own small RichView server as a personal site or blog, and later a newsroom. Roles and approvals belong to RichView's servers, never to the core: RichView Publish (external-facing) and an internal-facing server (working name RichView Cowork, sharing much of Publish's core) both have a basic set of roles, such as reader, author, owner, and who may edit, delete and share. RichView is not built for zero-code business users.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26. First: \"the primary audience are analysts, even more data analysts, across all industries, publishing internal or external focused analysis\". Then, on whether Publish is an exception: writers in general can be users, analysts and journalists; people may host their own RichView server as a personal page or blog, or a newsroom later; target most communication at analysts; Publish can have roles and approvals while the core stays without them; the internal-facing server, maybe called RichView Cowork, also needs basic roles (reader, owner, who can edit, delete, share), so roles are part of RichView. Recorded by the lockdown agent at his request; this replaces the agent-recorded edit of 11:29.",
+      "proposedHash": "ae96515e271fac1b",
+      "updatedAt": "2026-10-26T11:42:37.652Z"
+    },
+    "INT-07": {
+      "decision": "edit",
+      "text": "Readers open a story on a phone, a desktop or as a PDF with nothing to install, and with no account unless its author shared it only with signed-in readers, such as their organization on RichView Cowork (OPN-54, INT-83). Every story reads completely from 320 px wide upward, works with a keyboard, gives charts and controls accessible names, honours reduced motion, and keeps text and tables legible with scripts disabled. Charts render with WebGL (INT-31) and must work in recent Safari, Firefox and Chrome; where JavaScript or WebGL is unavailable, each chart's frame keeps its title, caption and source note and shows a notice that the chart cannot be displayed, with no snapshot, image or table in its place (ARC-05). Readers can reach each chart’s values, at the precision the author chose (FEA-CH-37), and its sources. Every story with an address also unfurls as a rich link preview wherever its link is shared, in WhatsApp, Slack, iMessage, email or a social post: a designed thumbnail of the story, in its own style, with its title, like the card a shared song gets (FEA-SF-55, FEA-RP-51). A story shared only with signed-in readers shows its title and image only to them, so a link preview never reveals a private story. People who meet RichView through shared stories or posts are readers first. The stories come mostly from analysts and also from other writers, such as journalists and people running their own RichView site or blog (INT-06).",
+      "note": "Dictated by Daniel in the review chat on 2026-10-27: \"Exactly. And the two I would add on top, to the readers of stories, they also see a cool thumbnail for each story. You know, like, when you share a song, you get this, like, cool WhatsApp thumbnail, and I want the same thing to work for each view.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "5ac2f935b775c928",
+      "updatedAt": "2026-10-27T21:23:48.049Z"
+    },
+    "INT-08": {
+      "decision": "edit",
+      "text": "RichView does five jobs.\n- **Write:** the agent turns finished analysis into Rich Markdown with chart-local data, guided by `richview learn` and the skill.\n- **Check:** validation and chart diagnostics tell the agent, in machine-readable form, what is broken or unreadable.\n- **Present:** one source renders into a typeset, interactive story in any accepted style.\n- **Revise:** the human reviews the rendered story beside its source in the editor or browser, and the agent fixes it.\n- **Share:** the story leaves as a self-contained file, a PDF or a stable versioned URL.\n\nRichView is not a BI tool: it doesn't run the analysis, and the core never queries data. The one exception is on a RichView server. There, a report can link datasets through the server's connectors (OPN-63), so the server loads the data for it.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-27: \"Daniel, 2026-10-27, live: 'I love those. Write, check, present, revise, and share. Perfect. One note: … you can link datasets, so it can load the data for you if you use the server. That's the only thing… But it's not a BI tool.'\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "c1e9cfabd7e9816e",
+      "updatedAt": "2026-10-27T21:20:01.572Z"
+    },
+    "INT-11": {
+      "decision": "edit",
+      "text": "Truthfulness of the evidence is not something RichView maximizes; RichView maximizes other targets. What RichView guarantees is that a story stays traceable and editable: every chart and figure can show where its data came from, and the author can inspect and change every presentation choice. Presentation choices that trade literal precision for readability, such as smoothed curves on a line chart, are the author's to make and are not ruled out for fidelity.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: smooth line curves hide whether the data was that smooth, so fidelity is not a key value; it should be traceable and editable, but RichView maximizes other things. Recorded by the lockdown agent at his request.",
+      "proposedHash": "6958bd69798b07b4",
+      "updatedAt": "2026-10-26T11:34:31.740Z"
+    },
+    "INT-77": {
+      "decision": "edit",
+      "text": "RichView does not maximize storytelling, and it doesn't claim to. The story is the author's: the most beautiful pen does not write a great novel. RichView gives authors and their agents the right tools to argue clearly: headings, charts with their interpretation, annotations, callouts, emphasis, header imagery and the scrollytelling element (FEA-RP-48). `richview learn`, the skill and the flagship (INT-10) show how to use those tools well. Beyond syntax-level analysis (structure, missing sources, unlabelled charts), RichView makes no judgment of a story's quality, and nothing promises that a RichView report argues well. The LinkedIn carousel is dropped (FEA-RP-46).",
+      "note": "Dictated by Daniel in the review chat on 2026-10-27: \"Daniel, 2026-10-27, live: 'RichView can do, apart from some syntax analysis, the storytelling is up to [the author]. It gives you the right tools. But I would strive away by focusing on this too much, because it's just impossible… give a person the most beautiful pen, you don't make him to write a great novel… I think more honest in that terms.'\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "1bc70dc487054269",
+      "updatedAt": "2026-10-27T21:10:50.644Z"
+    },
+    "INT-12": {
+      "decision": "edit",
+      "text": "RichView maximizes visual and motion craft until its charts withstand side-by-side comparison with Highcharts and ECharts, and its typography and layout with FT-grade and Wall Street Journal editorial design, on desktop, phone and print. Those are the bar and Daniel's inspirations; they are quality benchmarks, never code or styling to copy. Animation is delightful and smooth: the whimsical quality of Studio Ghibli meets the polish of Apple's website animations, and that is what RichView strives for. Motion that explains structure or change and gives pleasure belongs to the craft (floor INT-61, controls INT-59). Daniel's own polish bar is Mluva. Restraint is part of craft: the right number of lines, marks and colours. A review agent on the model Daniel uses at the time judges craft on each design change, and Daniel sees every change in the before-and-after report before `prod` (INT-67, DEL-68, DEL-69); INT-67 to INT-70 are the bars for done.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-27: \"Daniel, 2026-10-27, live, adding to his INT-12 answer: 'delightful animation meets smooth animation… Studio Ghibli type… has this whimsical quality… Apple animations on their websites are top-notch… I would strive for something like that.'\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "f66a3d271d73f386",
+      "updatedAt": "2026-10-27T21:07:39.148Z"
+    },
+    "INT-13": {
+      "decision": "edit",
+      "text": "RichView does not maximize how little an author or agent writes; saving tokens is not a goal. It maximizes trust in the output: the same source renders consistently and to a high standard every time, so an author can rely on it without checking every page.\n\nA chart still needs its type, data, encodings, a title that states its claim, and a source note under it; `richview check` warns when the note is missing (TYP-12, TYP-13, FEA-RP-09). Good defaults and styles carry quality, so agents don't have to tune every chart. They may write as much as they need, and extra source never costs quality. Errors name the line, the problem and the fix. An agent that has read `richview learn` writes a correct first draft without outside examples. Field-level rules belong to part 05.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-27: \"Daniel, 2026-10-27, live: 'saving tokens is not a critical part for me… the critical part is that you can trust the quality of outputs, they are consistent and great every time… We don't care that much about the amount of tokens.'\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "7cf01d704663119f",
+      "updatedAt": "2026-10-27T21:17:28.067Z"
+    },
+    "INT-79": {
+      "decision": "accept",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Exactly. That's fairly obvious. Of course there has to be a set of constraints on those.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "d5deaece1afd031a",
+      "updatedAt": "2026-10-26T14:23:06.584Z"
+    },
+    "INT-17": {
+      "decision": "edit",
+      "text": "When targets conflict, visual and motion craft wins (INT-12): if a report looks bad, RichView has failed, while a report that is a bit slower or a file that is larger is something RichView survives. People come to RichView for how their analysis looks: perfect text rendering, beautiful charts and images, rich animation. The text carries a report's quality, so storytelling (INT-77) comes right after craft, but the old \"80% content, 20% style\" framing does not describe why people choose RichView.\n\nOrder: visual and motion craft (INT-12); storytelling (INT-77); a short authoring path (INT-13); extensibility (INT-78); low operating cost (INT-15); small footprint (INT-14); speed beyond the budgets (INT-16). Footprint, file size and speed yield to craft; a size or speed budget may be raised when craft needs it, and the change description records the trade.\n\nGuarantees outside the order: RichView is feature-complete for what it accepts and always works; traceability and editability hold (INT-11); safety is never traded (INT-79).",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"I think we go for richer animation. If it looks like shit, we will fail. If it's a bit slower, too large a file or something, it's fine, we will survive that. The 80% / 20% style is the wrong mark, because this is not why people come to us. Of course the quality of the report is based on the text, and text alone can be amazing, as a novel. But we have to have perfect text rendering, beautiful images, all that stuff. We have to be feature-complete. It always has to work.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "c0f91e3110c77edd",
+      "updatedAt": "2026-10-26T14:45:24.567Z"
+    },
+    "INT-21": {
+      "decision": "edit",
+      "text": "Yes, a headline bet, 100%. RichView is agent-native: an agent learns, writes, renders, checks and publishes RichView on its own. It learns the format from `richview learn` or the `richview_learn` MCP tool, works through MCP or CLI JSON output, and every error names the line and the fix. The learn bundle, skill and MCP tool descriptions are generated from, or tested against, the same code as the renderer (INT-66), so today's drift (six chart types and three styles in `llms.txt` and the skill, against nine and five in the code) is fixed and can't come back.\n\nRichView invests heavily in how agents discover, learn and use it. Measuring how well agents use RichView is a feature: fresh-agent runs on real tasks, scored and tracked over time, show where agents stumble, and RichView is changed so agents understand it as easily as possible. A fresh agent with only these surfaces produces a clean report (INT-69).",
+      "note": "Dictated by Daniel in the review chat on 2026-10-27: \"Daniel, 2026-10-27, live: 'Definitely this needs to be fixed, the conflict, and I agree with what is written there… agents need to learn, write, check and publish RichView on its own, 100%, and we need to invest heavily into automated understanding for agents, like learning on it and the discovery… one part of the feature is measuring how well agents use RichView and making it as easy for agents to understand RichView as possible.'\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "82833243e5e8b2d3",
+      "updatedAt": "2026-10-27T21:12:47.343Z"
+    },
+    "INT-24": {
+      "decision": "edit",
+      "text": "RichView presents analysis. By default it reads data the agent or the author's pipeline has exported into the report folder. Live connections to data sources are in scope as a secondary path: they belong to RichView Publish, so a CMS-style publishing setup can serve stories from live data. Connectors come from an existing third-party engine that already offers a set of connectors, so RichView does not build them from scratch. Exported data stays the default for every report.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: live connectors are definitely part of RichView; exported data is the default; live connections are secondary, part of RichView Publishing through a CMS setup, ideally using a third-party engine with existing connectors. Recorded by the lockdown agent at his request.",
+      "proposedHash": "80cf8f84c1c517ef",
+      "updatedAt": "2026-10-26T11:36:15.941Z"
+    },
+    "INT-25": {
+      "decision": "edit",
+      "text": "RichView is a tool the author's agent calls. People bring their own agent; RichView has no chat interface, makes no LLM or speech-to-text calls, stores no model keys (no BYOK), runs no agent loop and does not generate slides or decks from prompts. The author's own agent does all language work. The main way to work is local: the author's agent uses RichView through its CLI and MCP server. A RichView server may at most expose MCP to an agent; it never adds a chat interface. Voice and chat front ends are sibling demos, never core (INT-34).",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"People bring in the agent, and we will not have any chat interface. At max, if people will be using something like the server, it can work as a MCP on top of the agent itself. But the main way to work with this is locally, having an agent: MCP and CLI.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "80d998ce2f93057a",
+      "updatedAt": "2026-10-26T11:38:42.516Z"
+    },
+    "INT-26": {
+      "decision": "edit",
+      "text": "RichView has no WYSIWYG or full browser editor, and never will: people should see and touch what is underneath, the Rich Markdown source. Real authoring happens in the author's editor (VS Code with live preview, or possibly a RichView desktop app later) and through their agent, with Git as the history. The browser playground stays: a source pane with live preview for trying the format and styles, with loading, copying and downloading, and no accounts.\n\nOn a RichView server (Publish, Cowork), the browser offers only actions where they make sense:\n- approving what gets published: open the pending change online and click yes or no;\n- quick source edits by the page's author: when signed in as its author, Edit opens the page's Rich Markdown source in an embedded VS Code-style editor with syntax highlighting, and the server checks that the edited report still validates and renders before it is saved.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Avoid. I definitely want to avoid a full browser editor. If we would go with something, we will use VS Code, or have our own desktop app. The online editor can have only features where it makes sense, for example accepting something before it is published: you open it online and click yes or no. It will never be a full WYSIWYG. The only thing I want is that when you publish a page, want to edit it and are logged in as the author on the server, you can click edit and quickly rewrite things in YAML through an embedded VS Code editor, with syntax highlighting and verification that the report still compiles. We don't want full WYSIWYG because we want people to see and touch what is underneath, the Rich Markdown.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "c05aa92faa61d734",
+      "updatedAt": "2026-10-26T11:48:27.391Z"
+    },
+    "INT-27": {
+      "decision": "edit",
+      "text": "RichView works first as a single-user tool people download and use themselves, like Microsoft Word: a set of local tools (CLI, MCP, VS Code extension) that create one HTML file, which can be shared and works offline (INT-04). On top of that, like SharePoint on top of Word, RichView's servers (Cowork and Publish) add sharing, roles and approvals (INT-06, INT-83). RichView also runs paid hosted services: hosted Cowork (typically app.richview.ai, free up to limits), Publish servers set up under a customer's own DNS, and hosting for large data and media (INT-31, INT-36). Everything local works without them.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26 (INT-27): works foremost as a single-user tool like Word with a SharePoint function on top; one hosted service for data and media. Widened by the lockdown agent the same day to match his INT-36 dictation (hosted Cowork at app.richview.ai, paid after limits; managed Publish under the customer's DNS).",
+      "proposedHash": "3fcc968943f076dd",
+      "updatedAt": "2026-10-26T15:00:56.561Z"
+    },
+    "INT-28": {
+      "decision": "edit",
+      "text": "Authors customize through declared, validated vocabulary: block YAML, frontmatter and `.rstyle.yaml` keys. No report or style file can inject raw CSS, JavaScript or HTML, and charts accept no engine-level specs or raw SVG; the rewrite proves this with a hostile-input test on every style key and sink (ARC-12, ARC-13, TYP-51). When authors need more, RichView first adds a validated option or a better default. How much a style file may change is decided in part 06 (STY-14).\n\nLater, RichView may allow custom TypeScript components embedded in a report, so authors can build anything they want. That needs its own spec validation and agent skills, and the skills steer agents to use the defined vocabulary and components first and reach for custom code only when nothing defined fits. This is not part of the rewrite.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Yes. JavaScript and HTML are not allowed, exactly. In the future there can be custom TypeScript embedded components that allow people to do anything they want. For that there will be spec validation, a skill set and so on. So I want to allow any type of code, but there should be skills encouraging the agents to use the defined vocabulary before reaching for custom code.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "7f5cda9ee8f5e469",
+      "updatedAt": "2026-10-26T14:02:15.051Z"
+    },
+    "INT-31": {
+      "decision": "edit",
+      "text": "The rewrite builds RichView core and its servers:\n- the Rich Markdown format and style cascade, the chart engine and the report renderer;\n- the CLI with MCP and `learn`, the VS Code extension, the browser playground and preview, and PDF export;\n- RichView Cowork, the self-hostable internal server (INT-83), and RichView Publish (INT-35), which share their server core. RichView News is just one instance of Publish, not a separate product (INT-74);\n- richview.ai with its docs and the flagship.\n\nAlso in scope: scrollytelling, as one more element inside a broader report (FEA-RP-48); author-hosted assets and uploads (FEA-SF-50, TYP-41); and RichView-managed hosting for large data and media, which RichView runs as a service (this changes INT-27). The LinkedIn carousel output is dropped (FEA-RP-46). Live connectors stay a secondary path of Publish (INT-24, OPN-63). Dashboards and the voice demo stay on their own cards (INT-33, INT-34).\n\nCharts render with WebGL by default; RichView goes all in on it. Only PDF export converts charts to vector output, and that export may take time; it does not have to be instant.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"The core, CLI, MCP, learn, VS Code extension, browser playground and preview, PDF export and the self-hostable server (it should be called RichView Cowork) will be done, and Publish and Cowork as well. News should be just an instance of RichView Publish. Scrollytelling is just another element as part of a broader report, so it will be built. LinkedIn carousel dropped. RichView-managed hosting for large data and media will be running as a service. Author-hosted assets and uploads will be present. We go with WebGL by default, all in; only when you export the PDF do we convert to vector. It can take quite some time for the PDF to export; it doesn't have to be instant.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "219f721394cea663",
+      "updatedAt": "2026-10-26T14:39:36.506Z"
+    },
+    "INT-34": {
+      "decision": "edit",
+      "text": "The voice-to-dashboard demo (PR #64) does not enter RichView. It lives outside this repository, possibly in a separate repository of its own.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"The voice dashboard is outside. That will be a different repository or something; it doesn't enter.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "5e1f222c6dd71663",
+      "updatedAt": "2026-10-26T18:27:43.515Z"
+    },
+    "INT-35": {
+      "decision": "edit",
+      "text": "RichView Publish is a full member of the RichView family and part of the rewrite. PR #70 is merged into `main` (2026-10-26) and its work continues from there. RichView Publish and RichView Cowork (INT-83) share one RichView server core: an internal component, not a product of its own, that powers both. Publish carries the basic roles and approvals and the live-connector path (INT-06, INT-24); its brief and Git-native loop (INT-22, FEA-BR-26) remain the spec it is rebuilt against (INT-49, INT-52).",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"We have reached RichView Publish; PR 70 is already getting rewritten now, so we merge it in. We have RichView Publish and RichView Cowork, which should share a RichView server core, which is just an internal thing that powers both of those, shared work. So RichView Publish becomes a full, full-scale member of the rest of the family.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "68dcc8526e98dd11",
+      "updatedAt": "2026-10-26T14:53:28.292Z"
+    },
+    "INT-83": {
+      "decision": "edit",
+      "text": "Chosen option: Today's report host becomes Cowork, as the proposal says. The RichView server is the way people host their things, and it comes in exactly two forms: you run either RichView Cowork or RichView Publish. There is no third, stripped-down server. Cowork focuses on people publishing reports locally, inside their own organisation. Over time Cowork may also store data-source credentials, such as SQL credentials, so its reports can read live data, like Publish's connector path (INT-24); not in its first cut.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"RichView server is a way to host your things. RichView Cowork should be more focused on people publishing reports locally, and maybe over time have features like saving your SQL credentials. I agree with what's written there. Note: you either run RichView Cowork or you run RichView Publish; there isn't a third option of a stripped-down server.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "47f60953380eeed1",
+      "updatedAt": "2026-10-26T14:58:12.342Z"
+    },
+    "INT-36": {
+      "decision": "edit",
+      "text": "Stories are shared as the self-contained HTML file, as a PDF, and through RichView's servers, which come in two forms: RichView Cowork and RichView Publish (INT-83).\n- Anyone can self-host Cowork or Publish.\n- RichView also runs hosted Cowork itself, typically at app.richview.ai: people share reports there, including with outside parties. It is free up to limits and paid beyond them; the limits cover how many reports and files an account has and how large they are. Hosted RichView may later have features of its own.\n- RichView also sets up and runs a Publish server for a customer under the customer's own DNS records, so it lives on their website.\nThese paid services are how RichView makes money. Pricing, limits and which features are hosted-only are open.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"We also offer a hosted server on our server, and we run it, and it will be paid after some limit. We are a Cowork server where you can share it, and Cowork also offers sharing with outside parties. And we can also set up a RichView Publish server for you that lives under your DNS records, so it's on your webpage. We offer paid services because that's our way to pay. We limit how many reports you can have and how big, how many files you can have. In future we could also limit some features if you host on our end, because we have special features just for our website. We host it; typical would be app.richview.ai.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "711c5dfdbb3eaa39",
+      "updatedAt": "2026-10-26T15:00:50.701Z"
+    },
+    "INT-37": {
+      "decision": "edit",
+      "text": "Chosen option: MIT everywhere.\n\nMatches `LICENSE`, every crate, the impressum and News About; anyone may host RichView commercially.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Let's keep MIT. MIT for everything. We drop the Elastic 2.0.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "e9f5a107defc37c1",
+      "updatedAt": "2026-10-26T14:28:10.014Z"
+    },
+    "INT-38": {
+      "decision": "edit",
+      "text": "The docs and the website are always public. The source repository stays private until launch: when Daniel decides the work is done, he tells an agent to publish it all, and the source goes public then, as its own explicit step. Before it, the full history is checked for secrets and private data, knowing that the history up to 2026-06-10 was public and may already have been copied, and bundled fonts and assets are checked against their licences (INT-37).",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Once I'm done, I'm done, and I will tell Claude to publish it all. Docs and website stay always public, and the source will not be public until the launch.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "34a862734fae30b9",
+      "updatedAt": "2026-10-26T14:54:52.749Z"
+    },
+    "INT-71": {
+      "decision": "edit",
+      "text": "All three paths. The install page leads with one prompt people give their agent, plus a shell script they can run; both install the CLI with its MCP server, and RichView's servers (Cowork and Publish) where wanted. Building from source works once the source is public (INT-38). Builds from `prod` are offered. The VS Code extension is published on the VS Code Marketplace and on Open VSX. Working as agent plugins may come later, not now. This changes INT-41's \"no releases\" for these listings.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"All of these, exactly. We have a big prompt at the top of it and a shell script that people can run. We publish the VS Code extension in VS Code and on Open VSX, so we publish those. Hopefully later on we can also work as plugins, but not now.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "50767c52c08947b5",
+      "updatedAt": "2026-10-26T14:56:17.209Z"
+    },
+    "INT-43": {
+      "decision": "edit",
+      "text": "Launch is simple: it happens when Daniel says so, and everything goes live at once. That covers:\n- richview.ai drops \"Coming soon\";\n- the try path (the playground, INT-71's install prompt and script, builds from `prod`, the extension on the VS Code Marketplace and Open VSX, and the source build);\n- the flagship and the docs;\n- the public source (INT-38).\n\nNo date is set, and nothing else gates it. Agents keep everything ready so his one word makes it all live. The first posts still go out only after Daniel has reviewed them.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel: 'When I say I will launch it, it will get launched… it's super simple. And all will be live by making…' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "a31a3ce291f6bdf7",
+      "updatedAt": "2026-10-26T19:33:51.319Z"
+    },
+    "INT-46": {
+      "decision": "accept",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"richview.ai is home\". Recorded by the lockdown agent at his request.\n\napp.richview.ai is the hosted Cowork (INT-36).",
+      "proposedHash": "080ba42086b31eb5",
+      "updatedAt": "2026-10-26T15:01:52.469Z"
+    },
+    "INT-49": {
+      "decision": "edit",
+      "text": "Rebuild, porting proven modules. The rewrite rebuilds RichView against the accepted lockdown. Existing code and tests are evidence, not a base: a module is ported only when it already meets every accepted item it touches and its tests prove that; otherwise it is rewritten. Nothing survives merely because it exists. Existing tests and fixtures for accepted behaviour become acceptance tests for the new code; tests for rejected behaviour are deleted with it.\n\nRichView is not a production application yet, so nothing needs preservation tests: no test exists only to prove that old behaviour survived. Any feature that is not decided and tracked in the lockdown is dropped, even when today's code has it.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Yep. This is true. Given that this is not a production application, I don't want tests that things are preserved because they are preserved. So any features which are not decided right now and not tracked right now will get automatically dropped, even if they are present in current code.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "f7aa5f38d05f153f",
+      "updatedAt": "2026-10-26T14:25:39.592Z"
+    },
+    "INT-50": {
+      "decision": "edit",
+      "text": "Chosen option: Same repository, history kept.\n\nEvidence stays linkable; one place for everything.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Yeah, it'd be good. Make sure that we have all the code versions. I don't see a reason why we should delete it all. It happens in the current repo.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "9b07ee4c0d28cbc9",
+      "updatedAt": "2026-10-26T15:01:33.745Z"
+    },
+    "INT-52": {
+      "decision": "edit",
+      "text": "Wherever possible RichView makes the performant choice. The language itself does not matter, but Rust is the obvious way to be both stable and very fast, so RichView stays Rust: one shared core runs natively (CLI, server, MCP) and as WebAssembly in browsers and VS Code, and WebAssembly is what makes charts fast in the browser. Handwritten JavaScript exists only where part 03 allows it (ARC-03), and no product rule exists only in JavaScript in the rewrite's target.\n\nRichView Publish and News (PR #70) are merged now as they are, JavaScript included, so the News work done on other tickets lands and continues. The rewrite carries over what Publish strives for, its behaviour and decisions, not its code: Publish's JavaScript is ported to the Rust target when the rewrite reaches Publish (INT-49).",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"You can merge the current News in; nobody looks at it, so it can be merged and continue; we carry over not the code but the thing we strive for. Then: wherever possible we stay with performant choices. I do not care about the language, but Rust makes it the obvious way to be both stable and ultra-fast, so I go for that. And WebAssembly is needed to speed charts up.\" Recorded by the lockdown agent at his request.",
+      "proposedHash": "926c7b63674170e2",
+      "updatedAt": "2026-10-26T14:49:36.065Z"
+    },
+    "INT-67": {
+      "decision": "edit",
+      "text": "The rewrite is done when every accepted product item (feature, component, type, style, rule and budget) is implemented on `prod` with its evidence, every rejected product item is absent, deferred items are not built, and nothing outside the lockdown was added. One-off outward actions (archiving, redirects, shutdowns, deleting the pre-release) are tracked in part 08, and Daniel’s later calls (source visibility, launch) follow their own cards; neither gates done. Parity with the old code is not a goal beyond accepted items. An agent can judge design quality: a review agent on Daniel's current model judges visual and motion quality from rendered output on a phone and a desktop, and the result reaches Daniel in the before-and-after report (DEL-69) before `prod` (DEL-68). Passing tests alone never establish design quality. INT-68 to INT-70 are the specific bars.",
+      "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel: 'agent can judge design quality' — replaces the earlier rule that only his own review decides design quality; aligns INT-67 with DEL-68 (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
+      "proposedHash": "00fac49cc28ae15d",
+      "updatedAt": "2026-10-26T19:03:43.920Z"
+    }
+  }
+}

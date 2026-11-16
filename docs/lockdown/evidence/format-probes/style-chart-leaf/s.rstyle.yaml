@@ -1,0 +1,5 @@
+tokens:
+  accent: "#ff0000"
+chart:
+  line:
+    smoothing: wavy

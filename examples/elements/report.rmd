@@ -1,0 +1,116 @@
+---
+title: From evidence to explanation
+description: Nightingale's observations and Apollo 11 archive media, with every local resource included.
+version: 0.0.1
+styles: [scientific]
+---
+
+A report can place the observations beside their interpretation, an original document and a recording. Here the local media travels with the exported HTML; the external embed keeps its own availability.
+
+## Make the evidence inspectable
+
+```metric
+value: 8.4
+label: Annualized deaths per 1,000, April 1854
+```
+
+```chart
+type: bar
+title: Mortality varied through the first three recorded months
+data:
+  inline:
+    - { month: Apr, rate: 8.4 }
+    - { month: May, rate: 10.8 }
+    - { month: Jun, rate: 7.2 }
+encoding: { x: month, y: rate }
+axes: { y: { label: 'Annualized deaths per 1,000' } }
+```
+
+*Source: Nightingale's mortality record, April–June 1854; each displayed annualized rate sums the causes for that month.*
+
+```table
+title: The rates behind the chart, 1854
+data:
+  inline:
+    - { month: Apr, rate: 8.4 }
+    - { month: May, rate: 10.8 }
+    - { month: Jun, rate: 7.2 }
+columns:
+  - { key: month, label: Month }
+  - { key: rate, label: 'Annualized deaths per 1,000', format: number, align: right }
+```
+
+*Source: Florence Nightingale's Crimean War mortality record, via [HistData](https://vincentarelbundock.github.io/Rdatasets/doc/HistData/Nightingale.html). The displayed rates sum preventable disease, wounds and other causes in each of the first three months. They are annualized rates, not monthly death counts. The April metric is authored from the same observations.*
+
+```callout
+kind: hold
+title: Keep the unit with the number
+body: An annualized rate cannot be read as the number of people who died that month. Inspect the full observations before comparing periods.
+```
+
+## The original document
+
+```image
+src: media/nightingale.jpg
+alt: Florence Nightingale's 1858 diagram, with two circles of monthly mortality wedges and an explanatory legend.
+caption: Florence Nightingale, Diagram of the causes of mortality in the army in the East, 1858. Public domain; David Rumsey Map Collection, via Wikimedia Commons.
+```
+
+> The Areas of the blue, red, & black wedges are each measured from the centre as the common vertex.
+>
+> — Florence Nightingale, the diagram's legend (1858), [original image and credits](https://commons.wikimedia.org/wiki/File:Nightingale-mortality.jpg).
+
+## A recording gives a primary source a voice
+
+```audio
+src: media/apollo-step.mp3
+title: Neil Armstrong's first words on the Moon
+caption: Apollo 11, 21 July 1969 UTC. NASA Historical Sounds; public-domain mission recording.
+transcript: media/transcript.md
+```
+
+```video
+src: media/apollo-step.mp4
+title: Buzz Aldrin comes down the lunar module ladder
+caption: A 12-second silent excerpt from the Apollo 11 television video that NASA partially restored in 2009. NASA/Goddard Space Flight Center; public domain.
+poster: media/apollo-poster.jpg
+transcript: media/video-transcript.md
+captions: media/captions.vtt
+```
+
+The [NASA audio collection](https://www.nasa.gov/historical-sounds/) supplies the recording; the [NASA Image and Video Library](https://images.nasa.gov/details/Apollo_11_moonwalk_montage_720p) supplies the film, a two-minute montage of the moonwalk video that [NASA partially restored in 2009](https://svs.gsfc.nasa.gov/10451); [NASA's media guidelines](https://www.nasa.gov/nasa-brand-center/images-and-media/) say its footage is not subject to copyright in the United States. The silent film excerpt starts 41 seconds into `Apollo_11_moonwalk_montage_720p~orig.mov`; its original soundtrack is omitted. Captions describe the silent scene; the audio player has its own transcript.
+
+## An external embed
+
+```embed
+url: https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ
+height: 360
+caption: Big Buck Bunny, Blender Foundation (2008), CC BY 3.0. The external player remains network-dependent.
+```
+
+## Guide attention across the original diagram
+
+```scrolly
+title: Read Nightingale's comparison
+image:
+  src: media/nightingale.jpg
+  alt: Nightingale's original two-period mortality diagram.
+steps:
+  - title: Two periods, one unit
+    text: Begin with both circles. Each compares causes of mortality through an April-to-March year.
+    view: { x: 0, y: 0, zoom: 1 }
+  - title: The first winter
+    text: Focus on the larger right-hand diagram. Its blue area records deaths from preventable disease; the printed legend explains that the wedges encode area.
+    view: { x: 0.35, y: 0.05, zoom: 1.6 }
+    highlight: { x: 0.55, y: 0.1, w: 0.4, h: 0.7 }
+```
+
+## A formula needs its assumptions
+
+For an independent Bernoulli sample, the estimated standard error of a sample proportion is
+
+$$
+\operatorname{SE}(\hat p) = \sqrt{\frac{\hat p(1-\hat p)}{n}}
+$$
+
+Here $n$ is the sample size and $\hat p$ the observed proportion. It is an estimate under a sampling model, not a formula for Nightingale's annualized rates.

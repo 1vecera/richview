@@ -1,0 +1,97 @@
+{
+	"id": "business-adoption",
+	"title": "Business adoption of two AI vendors",
+	"origin": "flagship evidence: examples/openai-vs-anthropic/data/charts/ramp-adoption.csv",
+	"brief": "Nadia leads partnerships at a SaaS company and needs to decide which AI vendor to integrate first. She asked for a report on how many US businesses actually pay for each vendor, using the Ramp AI Index series we already have.\n\ndata/ramp-adoption.csv has monthly adoption (share_pct, the share of US businesses on Ramp that pay for the vendor) for Anthropic and OpenAI from July 2025 to August 2026. Some months are missing for one vendor, and the methodology column changes from v1 to v2 in May 2026; keep both facts visible rather than hiding them. Name the source as \"Ramp AI Index (Ramp Economics Lab)\".\n\nNadia wants three numbers: how many percentage points each vendor gained between July 2025 and August 2026, and the gap between the two vendors in August 2026.\n\nAudience: Nadia and the CEO, ten minutes of reading. Use at least three different chart types, add a table with each vendor's first and latest reading, and name the source under every chart.",
+	"checks": {
+		"chartTypes": {
+			"minDistinct": 3
+		},
+		"tables": {
+			"min": 1
+		},
+		"sources": true,
+		"figures": [
+			{
+				"id": "anthropic-gain",
+				"describe": "Anthropic gain July 2025 to August 2026 (points)",
+				"key": "anthropic",
+				"compute": {
+					"op": "diff",
+					"a": {
+						"file": "data/ramp-adoption.csv",
+						"where": {
+							"company": "Anthropic",
+							"month": "2026-08"
+						},
+						"column": "share_pct"
+					},
+					"b": {
+						"file": "data/ramp-adoption.csv",
+						"where": {
+							"company": "Anthropic",
+							"month": "2025-07"
+						},
+						"column": "share_pct"
+					}
+				},
+				"tolerance": {
+					"absolute": 0.06
+				}
+			},
+			{
+				"id": "openai-gain",
+				"describe": "OpenAI gain July 2025 to August 2026 (points)",
+				"key": "openai",
+				"compute": {
+					"op": "diff",
+					"a": {
+						"file": "data/ramp-adoption.csv",
+						"where": {
+							"company": "OpenAI",
+							"month": "2026-08"
+						},
+						"column": "share_pct"
+					},
+					"b": {
+						"file": "data/ramp-adoption.csv",
+						"where": {
+							"company": "OpenAI",
+							"month": "2025-07"
+						},
+						"column": "share_pct"
+					}
+				},
+				"tolerance": {
+					"absolute": 0.06
+				}
+			},
+			{
+				"id": "gap-latest",
+				"describe": "Anthropic minus OpenAI, August 2026 (points)",
+				"compute": {
+					"op": "diff",
+					"a": {
+						"file": "data/ramp-adoption.csv",
+						"where": {
+							"company": "Anthropic",
+							"month": "2026-08"
+						},
+						"column": "share_pct"
+					},
+					"b": {
+						"file": "data/ramp-adoption.csv",
+						"where": {
+							"company": "OpenAI",
+							"month": "2026-08"
+						},
+						"column": "share_pct"
+					}
+				},
+				"tolerance": {
+					"absolute": 0.06
+				}
+			}
+		]
+	}
+}

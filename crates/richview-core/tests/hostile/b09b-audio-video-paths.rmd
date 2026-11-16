@@ -1,0 +1,20 @@
+---
+title: Audio and video paths
+---
+
+```video
+src: 'javascript:HOSTILE_VSRC()'
+title: Clip
+poster: 'https://evil.example/HOSTILE.png'
+```
+
+```audio
+src: 'https://evil.example/HOSTILE.mp3'
+title: Sound
+```
+
+```video
+src: 'data:video/mp4;base64,AAAA'
+title: Clip
+poster: 'javascript:HOSTILE_POSTER()'
+```

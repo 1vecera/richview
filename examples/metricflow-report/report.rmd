@@ -1,0 +1,39 @@
+---
+title: Units sold by month from dbt MetricFlow
+description: Semantic-layer query against the Okurka synthetic project, executed through the native host's metricflow connector.
+version: 0.0.1
+slug: metricflow-report
+styles: [scientific]
+---
+
+## Metrics come from the semantic layer, not from invented SQL
+
+The chart below asks the `okurka` connector for the `okurka_units` metric grouped by month. The connector routes the request through the configured MetricFlow runtime so metric definitions, joins and dialect stay in the semantic layer.
+
+```chart
+type: bar
+title: Units sold by month
+data:
+  metricflow:
+    connector: okurka
+    metrics: [okurka_units]
+    group_by: [metric_time__month]
+    order_by: [metric_time__month]
+    limit: 6
+    cache:
+      ttl: 15m
+encoding:
+  x: metric_time__month
+  y: okurka_units
+axes:
+  x:
+    label: Month
+  y:
+    label: Units sold
+```
+
+```callout
+kind: neutral
+title: Reuse the materialized snapshot
+body: "A later block can declare `data.cache.key: <key>` to render the same observations without re-querying the semantic layer."
+```

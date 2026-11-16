@@ -1,0 +1,11 @@
+tokens:
+  bg: 'white;}</style><script>HOSTILE_BG()</script>'
+  ink: 'url(https://evil.example/HOSTILE)'
+  accent: 'var(--evil)'
+  link: 'expression(HOSTILE())'
+  font-text: "x;} </style><script>HOSTILE_FT()</script>"
+  font-mono: "url(//evil.example/HOSTILE.woff)"
+  measure: '60ch;} </style><script>HOSTILE_M()</script>'
+  radius-s: 'calc(1px)'
+  size-h2: '1rem}</style><script>HOSTILE_SZ()</script>'
+  '</style><script>HOSTILE_TOKEN_KEY()</script>': red

@@ -1,0 +1,49 @@
+---
+title: Compare whole distributions, not only averages
+description: A violin chart shows the shape of the values behind each category, with the median and the quartiles inside.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Premium scores spread wider
+
+These illustrative satisfaction scores come from eight customers on each plan. The width of a shape is how common a score is, the thick bar inside is the range between the quartiles, and the dot is the median.
+
+```chart
+type: violin
+title: Premium customers rate us higher and less evenly
+subtitle: Satisfaction score by plan, eight customers each
+data:
+  inline:
+    - {plan: Standard, score: 41}
+    - {plan: Standard, score: 47}
+    - {plan: Standard, score: 50}
+    - {plan: Standard, score: 52}
+    - {plan: Standard, score: 53}
+    - {plan: Standard, score: 55}
+    - {plan: Standard, score: 58}
+    - {plan: Standard, score: 63}
+    - {plan: Flex, score: 52}
+    - {plan: Flex, score: 57}
+    - {plan: Flex, score: 60}
+    - {plan: Flex, score: 61}
+    - {plan: Flex, score: 62}
+    - {plan: Flex, score: 64}
+    - {plan: Flex, score: 66}
+    - {plan: Flex, score: 70}
+    - {plan: Premium, score: 49}
+    - {plan: Premium, score: 60}
+    - {plan: Premium, score: 68}
+    - {plan: Premium, score: 74}
+    - {plan: Premium, score: 77}
+    - {plan: Premium, score: 82}
+    - {plan: Premium, score: 90}
+    - {plan: Premium, score: 94}
+encoding: {x: plan, y: score}
+axes:
+  y: {label: Satisfaction score}
+```
+
+*Source: Illustrative values.*
+
+Use the keyboard or pointer to read each plan's observations, median, quartiles and range.

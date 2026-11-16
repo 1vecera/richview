@@ -1,0 +1,97 @@
+# RichView house style — "brutalist".
+# Light warm paper, maximally high-contrast: rule == ink (black rules), 4px header bars,
+# uppercase condensed display. Big Shoulders display + Newsreader body + Space Mono labels.
+# This is the studio's BASE template.
+colophon: show
+tokens:
+  scheme: light
+  bg: "oklch(0.985 0.004 70)"
+  bg-elev: "oklch(0.97 0.005 70)"
+  bg-chart: "oklch(0.975 0.004 70)"
+  ink: "oklch(0.16 0.005 70)"
+  ink-soft: "oklch(0.40 0.006 70)"
+  ink-faint: "oklch(0.62 0.008 70)"
+  rule: "oklch(0.16 0.005 70)"
+  rule-soft: "oklch(0.88 0.004 70)"
+  accent: "oklch(0.4128 0.1233 255.65)"
+  accent-soft: "oklch(0.4128 0.1233 255.65 / 0.122)"
+  link: "oklch(0.4128 0.1233 255.65)"
+  brand: "oklch(0.4128 0.1233 255.65)"
+  up: "oklch(0.45 0.12 150)"
+  down: "oklch(0.50 0.16 25)"
+  hold: "oklch(0.55 0.13 70)"
+  chart-ink: "oklch(0 0 0)"
+  font-text: "Newsreader, Georgia, Palatino Linotype, serif"
+  font-display: "Big Shoulders, Arial Narrow, sans-serif"
+  font-ui: "Space Mono, ui-monospace, monospace"
+  font-mono: "Space Mono, ui-monospace, monospace"
+  # A steep scale: condensed capitals carry the hierarchy.
+  size-small: "14px"
+  size-base: "17px"
+  size-h3: "21px"
+  size-h2: "28px"
+  size-h1: "34px"
+  size-display: "52px"
+  size-small-phone: "14px"
+  size-base-phone: "17px"
+  size-h3-phone: "21px"
+  size-h2-phone: "26px"
+  size-h1-phone: "30px"
+  size-display-phone: "34px"
+  line-base: "1.65"
+  # About 68 characters of Newsreader at 17px.
+  measure: "38rem"
+  radius-s: "0px"
+  radius-m: "0px"
+  shadow-float: "none"
+  density: 1
+  block-gap: "4rem"
+  block-gap-phone: "2.5rem"
+layout:
+  report-max-width: "880px"
+# Abrupt but clean: marks arrive at once on a snapping curve; blocks do not animate.
+motion:
+  character: crisp
+  duration: 160
+  easing: snap
+  stagger: 0
+  block-entrance: none
+  distance: 0
+components:
+  thumbnail:
+    rule: ink-bars
+  figure:
+    frame: outline
+    title: above
+    description: above
+  # Knockout metric: a square accent block with a 2px ink border and white text (STY-33).
+  metric:
+    style: knockout
+  # The deck is set in the true Newsreader italic when the build embeds it.
+  deck:
+    style: italic
+  callout:
+    border-width: "2px"
+  header:
+    border-top: "4px"
+    border-bottom: "4px"
+  title:
+    transform: uppercase
+    weight: "800"
+    letter-spacing: "0.02em"
+  heading:
+    transform: uppercase
+    weight: "800"
+    letter-spacing: "0.02em"
+  # Space Mono ships at 400 only, so table heads stay at 400 (STY-27).
+  table-head:
+    transform: uppercase
+    weight: normal
+    letter-spacing: "0.06em"
+chart:
+  legend: bottom
+  palette: brutalist
+  # Sequential ramp for heatmaps, mixed in OKLCH; salience rises with value (ink blue, light to dark).
+  ramp: ["oklch(0.94 0.012 255)", "oklch(0.67 0.08 256)", "oklch(0.37 0.115 258)"]
+  negative-ramp: ["oklch(0.94 0.012 45)", "oklch(0.67 0.08 46)", "oklch(0.37 0.098 48)"]
+  bar-radius: 0

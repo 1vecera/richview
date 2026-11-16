@@ -1,0 +1,51 @@
+---
+title: Show direction and strength across a field
+description: A vector chart draws an arrow at each position, pointing in its direction and as long and as coloured as its value.
+version: 0.0.1
+styles: [scientific]
+---
+
+## Wind over a 5 km grid
+
+These illustrative readings give the direction of the wind at each point as an angle in degrees counter-clockwise from east, so 90 points north, and its speed. Longer, darker arrows are stronger wind, and a key decodes the colour.
+
+```chart
+type: vector
+title: The wind swings from east to north as it strengthens
+subtitle: Wind at a 5 km grid, direction in degrees counter-clockwise from east, illustrative values
+data:
+  inline:
+    - {east: 0, north: 0, direction: 10, speed: 2.0}
+    - {east: 5, north: 0, direction: 24, speed: 2.8}
+    - {east: 10, north: 0, direction: 38, speed: 3.6}
+    - {east: 15, north: 0, direction: 52, speed: 4.4}
+    - {east: 20, north: 0, direction: 66, speed: 5.2}
+    - {east: 25, north: 0, direction: 80, speed: 6.0}
+    - {east: 0, north: 5, direction: 4, speed: 2.4}
+    - {east: 5, north: 5, direction: 18, speed: 3.5}
+    - {east: 10, north: 5, direction: 32, speed: 4.6}
+    - {east: 15, north: 5, direction: 46, speed: 4.8}
+    - {east: 20, north: 5, direction: 60, speed: 5.9}
+    - {east: 25, north: 5, direction: 74, speed: 7.0}
+    - {east: 0, north: 10, direction: -2, speed: 2.8}
+    - {east: 5, north: 10, direction: 12, speed: 4.2}
+    - {east: 10, north: 10, direction: 26, speed: 4.7}
+    - {east: 15, north: 10, direction: 40, speed: 5.2}
+    - {east: 20, north: 10, direction: 54, speed: 6.6}
+    - {east: 25, north: 10, direction: 68, speed: 7.1}
+    - {east: 0, north: 15, direction: -8, speed: 3.2}
+    - {east: 5, north: 15, direction: 6, speed: 4.0}
+    - {east: 10, north: 15, direction: 20, speed: 4.8}
+    - {east: 15, north: 15, direction: 34, speed: 5.6}
+    - {east: 20, north: 15, direction: 48, speed: 6.4}
+    - {east: 25, north: 15, direction: 62, speed: 7.2}
+encoding: {x: east, y: north, angle: direction, size: speed}
+axes:
+  x: {label: East (km)}
+  y: {label: North (km)}
+  color: {label: Wind speed (m/s)}
+```
+
+*Source: Illustrative readings.*
+
+Use the keyboard or pointer to read the direction and speed at each point.

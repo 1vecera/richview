@@ -1,0 +1,14 @@
+[
+  {
+    "id": "pie-empty-positive-with-zeros",
+    "source": "---\ntitle: Empty pie boundary controls\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"pie\", \"title\": \"Published values\", \"encoding\": {\"x\": \"name\", \"y\": \"value\"}, \"data\": {\"inline\": [{\"name\": \"North\", \"value\": \"0.000\"}, {\"name\": \"South\", \"value\": \"12.500\"}, {\"name\": \"Central\", \"value\": 0}]}}\n```\n"
+  },
+  {
+    "id": "pie-empty-height-60",
+    "source": "---\ntitle: Empty pie boundary controls\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"pie\", \"title\": \"Published values\", \"encoding\": {\"x\": \"name\", \"y\": \"value\"}, \"data\": {\"inline\": [{\"name\": \"North\", \"value\": 0}, {\"name\": \"South\", \"value\": \"0.000\"}]}, \"_renderHeight\": 60}\n```\n"
+  },
+  {
+    "id": "pie-empty-wide-ratio",
+    "source": "---\ntitle: Empty pie boundary controls\nversion: 0.0.1\n---\n\n```chart\n{\"type\": \"pie\", \"title\": \"Published values\", \"encoding\": {\"x\": \"name\", \"y\": \"value\"}, \"data\": {\"inline\": [{\"name\": \"North\", \"value\": null}, {\"name\": \"South\", \"value\": null}]}, \"style\": {\"ratio\": \"4:1\"}}\n```\n"
+  }
+]

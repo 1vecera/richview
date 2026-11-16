@@ -1,0 +1,20 @@
+---
+title: Table block
+---
+
+```table
+data:
+  inline:
+    - { '<script>HOSTILE_KEY()</script>': '<img src=x onerror=HOSTILE_CELL()>', "a\" onclick=\"HOSTILE_KEY2()": 'javascript:HOSTILE_URL()', url: 'https://example.org/a"onmouseover="HOSTILE_ADDR()', plain: 'https://evil.example/HOSTILE"><script>HOSTILE_ADDR2()</script>', date: '2026-01-01"><script>HOSTILE_DATE()</script>', id: 'ID-1"><script>HOSTILE_ID()</script>' }
+    - { '<script>HOSTILE_KEY()</script>': '</td><script>HOSTILE_CELL2()</script>', "a\" onclick=\"HOSTILE_KEY2()": 5, url: 6, plain: 'x', date: 'y', id: 'z' }
+columns:
+  - { key: '<script>HOSTILE_KEY()</script>', label: '<script>HOSTILE_HEADER()</script>', format: '"><script>HOSTILE_FORMAT()</script>', align: right }
+  - { key: "a\" onclick=\"HOSTILE_KEY2()", label: '"><img src=x onerror=HOSTILE_HEADER2()>', align: center }
+  - { key: url, label: Url }
+  - { key: plain, label: Plain }
+  - { key: date, label: Date }
+  - { key: id, label: Id }
+sort: { key: '<script>HOSTILE_SORT()</script>', dir: desc }
+max_rows: 1
+total: true
+```

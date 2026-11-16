@@ -1,0 +1,224 @@
+{
+  "schema": "interface-v1",
+  "id": "chart.layout",
+  "producer": "richview-chart",
+  "kind": "rust",
+  "surface": {
+    "module": "richview_chart::layout",
+    "registration": "pub mod layout ;",
+    "exports": [
+      {
+        "name": "ChartTheme",
+        "kind": "struct",
+        "declaration": "# [ derive ( Debug , Clone , PartialEq , Serialize , Deserialize ) ] # [ serde ( rename_all = \"camelCase\" , default ) ] pub struct ChartTheme",
+        "publicFields": [
+          "pub surface : String",
+          "pub page : String",
+          "pub ink : String",
+          "pub ink_soft : String",
+          "pub ink_faint : String",
+          "pub rule : String",
+          "pub rule_soft : String",
+          "pub accent : String",
+          "pub palette : Vec < String >",
+          "pub ramp : Vec < String >",
+          "pub negative_ramp : Vec < String >",
+          "pub data_font : String",
+          "pub figures_font : Option < String >",
+          "pub ui_font : String",
+          "pub size : f64",
+          "pub bar_radius : f64",
+          "pub decals : bool",
+          "pub sign_hatch : bool",
+          "pub curve : String",
+          "pub curvature : f64",
+          "pub motion : bool",
+          "pub motion_profile : crate : : motion : : Profile",
+          "pub legend : String",
+          "pub down : String"
+        ],
+        "privateFields": false
+      },
+      {
+        "name": "Fit",
+        "kind": "struct",
+        "declaration": "# [ derive ( Debug , Clone , PartialEq , Serialize , Deserialize , Default ) ] # [ serde ( rename_all = \"camelCase\" , default ) ] pub struct Fit",
+        "publicFields": [
+          "pub x : Option < [ f64 ; 2 ] >",
+          "pub y : Option < [ f64 ; 2 ] >",
+          "pub size : Option < f64 >",
+          "pub size_min : Option < f64 >",
+          "pub color : Option < [ f64 ; 2 ] >",
+          "pub categories : Vec < String >",
+          "# [ serde ( skip_serializing_if = \"Vec::is_empty\" ) ] pub names : Vec < String >"
+        ],
+        "privateFields": false
+      },
+      {
+        "name": "Options",
+        "kind": "struct",
+        "declaration": "# [ derive ( Debug , Clone , PartialEq , Serialize , Deserialize , Default ) ] # [ serde ( rename_all = \"camelCase\" , default ) ] pub struct Options",
+        "publicFields": [
+          "pub width : f64",
+          "pub lang : String",
+          "pub colors : Vec < ( String , usize ) >",
+          "pub hidden : Vec < String >",
+          "pub zoom : Option < [ f64 ; 2 ] >",
+          "# [ serde ( skip_serializing_if = \"std::ops::Not::not\" ) ] pub aside : bool",
+          "pub fit : Option < Fit >",
+          "pub derived : Vec < crate : : derived : : Derived >",
+          "# [ serde ( skip_serializing_if = \"std::collections::BTreeMap::is_empty\" ) ] pub grids : std : : collections : : BTreeMap < String , crate : : payload : : Quant >"
+        ],
+        "privateFields": false
+      },
+      {
+        "name": "Prepared",
+        "kind": "struct",
+        "declaration": "# [ derive ( Default ) ] pub struct Prepared",
+        "publicFields": [],
+        "privateFields": true
+      },
+      {
+        "name": "flow_table_rows",
+        "kind": "fn",
+        "declaration": "pub fn flow_table_rows ( block : & Value ) - > Option < Vec < Value > >"
+      },
+      {
+        "name": "impl Default for ChartTheme",
+        "kind": "impl",
+        "types": [
+          "ChartTheme"
+        ],
+        "declaration": "impl Default for ChartTheme",
+        "members": [
+          {
+            "name": "default",
+            "kind": "fn",
+            "declaration": "fn default ( ) - > Self",
+            "default": true
+          }
+        ]
+      },
+      {
+        "name": "impl std : : fmt : : Debug for Prepared",
+        "kind": "impl",
+        "types": [
+          "Prepared"
+        ],
+        "declaration": "impl std : : fmt : : Debug for Prepared",
+        "members": [
+          {
+            "name": "fmt",
+            "kind": "fn",
+            "declaration": "fn fmt ( & self , f : & mut std : : fmt : : Formatter < ' _ > ) - > std : : fmt : : Result",
+            "default": true
+          }
+        ]
+      },
+      {
+        "name": "layout",
+        "kind": "fn",
+        "declaration": "pub fn layout ( block : & ChartBlock , rows : & [ Value ] , theme : & ChartTheme , opts : & Options ) - > Geometry"
+      },
+      {
+        "name": "layout_prepared",
+        "kind": "fn",
+        "declaration": "pub fn layout_prepared ( block : & ChartBlock , rows : & [ Value ] , theme : & ChartTheme , opts : & Options , prepared : & Prepared , ) - > Geometry"
+      },
+      {
+        "name": "layout_prepared_reusing",
+        "kind": "fn",
+        "declaration": "pub fn layout_prepared_reusing ( block : & ChartBlock , rows : & [ Value ] , theme : & ChartTheme , opts : & Options , prepared : & Prepared , observations : Vec < Vec < Observation > > , ) - > Geometry"
+      }
+    ],
+    "declarations": [
+      {
+        "name": "Dot",
+        "kind": "struct",
+        "declaration": "# [ derive ( Debug , Clone , Copy , PartialEq , Serialize ) ] pub struct Dot",
+        "publicFields": [
+          "pub at : [ f64 ; 2 ]",
+          "pub series : usize"
+        ],
+        "privateFields": false
+      },
+      {
+        "name": "Item",
+        "kind": "enum",
+        "declaration": "# [ derive ( Debug , Clone , PartialEq , Serialize ) ] # [ serde ( tag = \"kind\" , rename_all = \"lowercase\" ) ] pub enum Item",
+        "variants": [
+          "Rect { rect : Rect , fill : Fill , # [ serde ( skip_serializing_if = \"Option::is_none\" ) ] stroke : Option < Stroke > , radius : [ f64 ; 4 ] , role : Role , # [ serde ( skip_serializing_if = \"Option::is_none\" ) ] series : Option < usize > , # [ serde ( skip_serializing_if = \"Option::is_none\" ) ] obs : Option < usize > , }",
+          "Line { path : Path , stroke : Stroke , role : Role , # [ serde ( skip_serializing_if = \"Option::is_none\" ) ] series : Option < usize > , # [ serde ( skip_serializing_if = \"Option::is_none\" ) ] obs : Option < usize > , }",
+          "Area { path : Path , fill : Fill , role : Role , # [ serde ( skip_serializing_if = \"Option::is_none\" ) ] series : Option < usize > , # [ serde ( skip_serializing_if = \"Option::is_none\" ) ] obs : Option < usize > , }",
+          "Point { center : [ f64 ; 2 ] , radius : f64 , shape : Shape , # [ serde ( skip_serializing_if = \"Option::is_none\" ) ] fill : Option < Fill > , # [ serde ( skip_serializing_if = \"Option::is_none\" ) ] stroke : Option < Stroke > , role : Role , # [ serde ( skip_serializing_if = \"Option::is_none\" ) ] series : Option < usize > , # [ serde ( skip_serializing_if = \"Option::is_none\" ) ] obs : Option < usize > , }",
+          "Text ( Text )"
+        ]
+      },
+      {
+        "name": "Observation",
+        "kind": "struct",
+        "declaration": "# [ derive ( Debug , Clone , PartialEq , Serialize ) ] pub struct Observation",
+        "publicFields": [
+          "# [ serde ( skip_serializing_if = \"Option::is_none\" ) ] pub row : Option < usize >",
+          "# [ serde ( skip_serializing_if = \"Vec::is_empty\" ) ] pub dots : Vec < Dot >",
+          "# [ serde ( skip_serializing_if = \"Option::is_none\" ) ] pub series : Option < usize >",
+          "pub at : [ f64 ; 2 ]",
+          "# [ serde ( skip_serializing_if = \"Option::is_none\" ) ] pub area : Option < Rect >",
+          "# [ serde ( skip_serializing_if = \"Option::is_none\" ) ] pub wedge : Option < Wedge >",
+          "pub radius : f64",
+          "pub x : f64",
+          "pub readout : Rc < Readout >"
+        ],
+        "privateFields": false
+      },
+      {
+        "name": "Readout",
+        "kind": "struct",
+        "declaration": "# [ derive ( Debug , Clone , PartialEq , Serialize , Default ) ] pub struct Readout",
+        "publicFields": [
+          "pub heading : String",
+          "pub lines : Vec < ReadoutLine >"
+        ],
+        "privateFields": false
+      },
+      {
+        "name": "ReadoutLine",
+        "kind": "struct",
+        "declaration": "# [ derive ( Debug , Clone , PartialEq , Serialize ) ] pub struct ReadoutLine",
+        "publicFields": [
+          "pub name : String",
+          "pub value : String",
+          "# [ serde ( skip_serializing_if = \"Option::is_none\" ) ] pub series : Option < usize >",
+          "# [ serde ( skip_serializing_if = \"std::ops::Not::not\" ) ] pub names_series : bool",
+          "# [ serde ( skip_serializing_if = \"std::ops::Not::not\" ) ] pub derived : bool"
+        ],
+        "privateFields": false
+      },
+      {
+        "name": "impl Item",
+        "kind": "impl",
+        "types": [
+          "Item"
+        ],
+        "declaration": "impl Item",
+        "members": [
+          {
+            "name": "bounds",
+            "kind": "fn",
+            "declaration": "pub fn bounds ( & self ) - > Option < Rect >"
+          },
+          {
+            "name": "role",
+            "kind": "fn",
+            "declaration": "pub fn role ( & self ) - > Role"
+          },
+          {
+            "name": "series",
+            "kind": "fn",
+            "declaration": "pub fn series ( & self ) - > Option < usize >"
+          }
+        ]
+      }
+    ]
+  }
+}

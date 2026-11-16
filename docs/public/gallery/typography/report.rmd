@@ -1,0 +1,24 @@
+---
+title: Evidence, clearly
+description: A type specimen using the same words and observations in each style.
+styles: [scientific]
+---
+
+## Read the comparison
+
+A useful report keeps the number, its unit and its context together. This specimen compares headings, body type, a metric and one table row.
+
+```metric
+value: 8.4
+label: Annualized deaths per 1,000, April 1854
+```
+
+```table
+title: A row of observations
+data: { inline: [{ month: Apr, rate: 8.4 }] }
+columns:
+  - { key: month, label: Month }
+  - { key: rate, label: Rate, format: number }
+```
+
+*Source: Nightingale's mortality record, April 1854; rates sum across causes.*

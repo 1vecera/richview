@@ -1,0 +1,15 @@
+{
+ "spec": {
+  "type": "waffle",
+  "title": "How people get to work",
+  "encoding": {"x": "mode", "y": "trips"},
+  "axes": {"y": {"label": "Trips"}}
+ },
+ "rows": [
+  {"mode": "Car", "trips": 412},
+  {"mode": "Train", "trips": 236},
+  {"mode": "Bicycle", "trips": 118},
+  {"mode": "Walking", "trips": 97},
+  {"mode": "Bus", "trips": 61}
+ ]
+}

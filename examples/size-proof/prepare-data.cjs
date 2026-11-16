@@ -1,0 +1,17 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const { createHash } = require('node:crypto');
+const base = __dirname;
+const source = fs.readFileSync(path.join(base, '../../assets/landing/anchor/data/life-expectancy-by-region.csv'));
+const hash = createHash('sha256').update(source).digest('hex');
+if (hash !== 'fc4c21802abf26f80bbd95fa2097a58cd220c0831aa54ac6602286d4426e13b9') throw Error(`Unexpected anchor data SHA-256: ${hash}`);
+const data = source.toString('utf8').trim().split(/\r?\n/).slice(1).map(row => { const [year, region, life] = row.split(','); return {year: Number(year), region, life: Number(life)}; });
+const regions = ['Africa', 'Americas', 'Asia', 'Europe'];
+const value = (region, year) => {const row = data.find(d => d.region === region && d.year === year); if (!row) throw Error(`Missing ${region} ${year}`); return row.life;};
+const delta = (a, b) => ((Math.round(b * 10) - Math.round(a * 10)) / 10).toFixed(1);
+const write = (dir, headers, rows) => fs.writeFileSync(path.join(base, dir, 'data.csv'), headers.join(',') + '\n' + rows.map(r => r.join(',')).join('\n') + '\n');
+write('01-trends', ['year', 'region', 'life'], data.map(d => [d.year, d.region, d.life.toFixed(1)]));
+write('02-gains', ['region', 'life_1950', 'life_2019', 'gain'], regions.map(region => {const start=value(region,1950), end=value(region,2019); return [region,start.toFixed(1),end.toFixed(1),delta(start,end)];}));
+const breaks=[1950,1960,1970,1980,1990,2000,2010,2019];
+write('03-decades', ['region', 'start_year', 'end_year', 'life_start', 'life_end', 'change'], regions.flatMap(region => breaks.slice(1).map((end_year,i) => {const start_year=breaks[i], start=value(region,start_year), end=value(region,end_year); return [region,start_year,end_year,start.toFixed(1),end.toFixed(1),delta(start,end)];})));
+write('04-gap', ['year','europe','africa','gap'], Array.from({length:70},(_,i)=>{const year=1950+i, europe=value('Europe',year),africa=value('Africa',year);return [year,europe.toFixed(1),africa.toFixed(1),delta(africa,europe)];}));

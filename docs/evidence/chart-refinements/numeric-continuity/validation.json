@@ -1,0 +1,241 @@
+{
+  "status": "accepted; local delivery prepared, not pushed",
+  "base": "480af942714c16ce4c1f959c7f046344d4f8c99d",
+  "before": {
+    "head": "dad1615876cf05dccd7241da269fbf69cbc1ec31",
+    "relationship": "Entire tracked tree is byte-identical to base 480af942.",
+    "wasm_sha256": "c415bc543db946539e4d1d2b8902935ba05a4d5ca1c60deb77456a8d64f89467"
+  },
+  "after": {
+    "source_commit": "aa0d199aa2aacfda52debe7fe256101e2c68a8cb",
+    "reviewed_working_diff_sha256": "676dafd3a440d1efcd111d0c679ec3f5d87d411f86bc120d203ea952341c694a",
+    "wasm_sha256": "29fddf5c8674b8014bb15c08bf707fe699108536a8dc54cef9e47337e03197ea",
+    "native_sha256": "3d61f2d0f93f0724e9cf3a2837676c773b002e9127ad14b0a07a882bd0ebfebb",
+    "shared_render_wasm_sha256": "1ae7d379e7c606d1f3d4cc8a6bbefe129083d15cb80f59fb9c7c2df144beabf0"
+  },
+  "browser": "Chromium 151.0.7922.173 Arch Linux",
+  "captures": {
+    "scale": 2,
+    "pairs": [
+      {
+        "source": "line.rmd",
+        "theme": "scientific",
+        "viewport_width": 390,
+        "motion": "no-preference; settled",
+        "action": "Press Equal once; numeric window [2.5, 7.5]"
+      },
+      {
+        "source": "area.rmd",
+        "theme": "sleek",
+        "viewport_width": 320,
+        "motion": "reduce",
+        "action": "Press Equal once; numeric window [2.5, 7.5]"
+      }
+    ],
+    "files": [
+      {
+        "file": "line-before.png",
+        "sha256": "02dd394c2ded25885a9d05b97945908eacdf7bc6289f476bc43c3c30967ee66e",
+        "exact": true
+      },
+      {
+        "file": "line-after.png",
+        "sha256": "63b8d20564c87d54146c9a5ef37e971aa394639e9be2c41982273465ca086b95",
+        "exact": true
+      },
+      {
+        "file": "area-before.png",
+        "sha256": "c6a5872e09991fbf4c6ad82b19cc10d48276fac9875ef60115f9ee1eb15377a0",
+        "exact": true
+      },
+      {
+        "file": "area-after.png",
+        "sha256": "425f288388ce3e9d42b13619689c79813d0f3674a5b429e7d5e89c0b3d678299",
+        "exact": true
+      }
+    ],
+    "source_hashes": {
+      "line.rmd": "37596a3ee558539a9f9c6a51b45800685caa8b4fc4f5e0be48a618b38ecff700",
+      "area.rmd": "a47db8dbea5719c274f43a384c2170380c93c1a28303605012003c4d8b174ab7"
+    },
+    "reproduction": "Each PNG was generated twice with reproduce.mjs and verified byte-exact. The minimal helper creates a fresh control state; broad matrix screenshots also visit Table/CSV controls."
+  },
+  "results": {
+    "required_checks": [
+      {
+        "name": "release-build",
+        "result": "PASS"
+      },
+      {
+        "name": "fmt",
+        "result": "PASS"
+      },
+      {
+        "name": "clippy-native",
+        "result": "PASS"
+      },
+      {
+        "name": "clippy-wasm",
+        "result": "PASS"
+      },
+      {
+        "name": "workspace-tests",
+        "result": "PASS"
+      },
+      {
+        "name": "fixtures",
+        "result": "PASS"
+      },
+      {
+        "name": "editor",
+        "result": "PASS"
+      },
+      {
+        "name": "native",
+        "result": "PASS"
+      },
+      {
+        "name": "compat",
+        "result": "PASS"
+      },
+      {
+        "name": "types",
+        "result": "PASS"
+      },
+      {
+        "name": "browser",
+        "result": "PASS"
+      },
+      {
+        "name": "landing",
+        "result": "PASS"
+      },
+      {
+        "name": "cloudflare",
+        "result": "PASS"
+      },
+      {
+        "name": "showcase",
+        "result": "PASS"
+      },
+      {
+        "name": "flagship",
+        "result": "PASS"
+      },
+      {
+        "name": "reel",
+        "result": "PASS"
+      },
+      {
+        "name": "browser-api",
+        "result": "PASS"
+      },
+      {
+        "name": "motion-runtime",
+        "result": "PASS"
+      },
+      {
+        "name": "docs",
+        "result": "PASS"
+      }
+    ],
+    "extra_checks": [
+      "git diff --check: PASS",
+      "reproduce.mjs syntax: PASS",
+      "four PNG rerender hashes: exact",
+      "docs verifier after evidence packaging: PASS"
+    ],
+    "native_unzoomed_exact": 1560,
+    "matched_reports": 116,
+    "matched_states": 348,
+    "initial_png_svg_exact": true,
+    "reset_svg_exact": true,
+    "raw_source_table_csv_exact": true,
+    "public_interface_states": 98,
+    "faceted_child_controls": 2,
+    "dense_public_zoom_states": 96,
+    "themes": [
+      "scientific",
+      "sleek",
+      "brutalist",
+      "sleek-light",
+      "hand-drawn"
+    ],
+    "report_widths": [
+      320,
+      390,
+      720
+    ],
+    "native_additional_width": 240,
+    "source_pointer_touch_keyboard": "No outside or clipped-Y targets; selected missing-Y rows remain keyboard-readable; original finite boundary points are selectable.",
+    "quantitative_reference": {
+      "cases": 22,
+      "exact_rasters": 20,
+      "visible_source_segments": "all exact",
+      "area_winding_probes": 28670,
+      "dense_10000_one_unit": {
+        "full_path_characters": [
+          123578,
+          134908
+        ],
+        "emitted_path_characters": [
+          36,
+          41
+        ]
+      }
+    },
+    "review": {
+      "verdict": "ACCEPT",
+      "report": "/home/vecera/tmp/richview-chart-refinement-20261011/numeric-zoom-continuity-independent-plan-review.md",
+      "native_controls": 25,
+      "public_records": 36
+    }
+  },
+  "compatibility": {
+    "status": "ACCEPT; separate frozen sibling composition",
+    "base": "2badd2774f188b9dadfb4c47982d8e0197e1c8f9",
+    "source_commit": "da0d11badd97d88729e3531e92f7b903fdcdd7c2",
+    "wasm_sha256": "64f8a52c75acc29efe38fbd15fae2e721111f0c1626ed09d6fca327b6bf8440f",
+    "worktree": "/home/vecera/code/richview-v3/.claude/worktrees/chart-numeric-continuity-sibling-20261012/",
+    "native_unzoomed_exact": 1620,
+    "final_reports": 122,
+    "final_states": 366,
+    "matched_initial_png_svg_records": 70,
+    "public_interface_states": 110,
+    "faceted_child_controls": 2,
+    "dense_public_zoom_states": 96,
+    "full_reference_controls": 26,
+    "current_reference_svg_exact_to_reviewed_geometry": true,
+    "independent_curve_controls": 20,
+    "independent_endpoint_states": 48,
+    "checks": [
+      "fresh release build",
+      "chart tests",
+      "chart Clippy",
+      "format",
+      "matched actual source/interface/export gates"
+    ],
+    "presentation_policy": "During active numeric line/area zoom, use the existing legend if any resolved visible finite series lacks a selected finite endpoint, including wholly offscreen groups. Hidden and wholly unavailable groups do not trigger it.",
+    "curve_policy": "Preserve complete requested-transform M4 and full-run fallback; unchanged path function with one tangent-context sample per side only for genuinely curved runs."
+  },
+  "limitations": [
+    "Numeric line/area X zoom intentionally keeps automatic Y based on all currently visible source rows; hiding a series can still rescale Y.",
+    "Exact source Table/CSV is distinct from existing formatted readout text.",
+    "A 96 px private-height control keeps existing tick-collision warnings.",
+    "Repeated-outside reference stroke has 169/377 alpha-different edge pixels at 320/720, max 60/255 at right clip; every changed center is within 1.55 CSS px of the 2.5 px stroke center, with unchanged opaque interiors, exact retained coordinates and winding. Candidate equals an independent SVG line primitive. This specific Chromium coverage difference was independently accepted; no blanket image threshold is used.",
+    "Sibling curve-narrow reference has 3 edge pixels with maximum alpha delta 2/255 with exactly identical cubic controls and fill.",
+    "Full-source scanning remains necessary. Dense interaction wall times include scheduled paint, glyph measurement and settling on a shared machine and are not performance benchmark claims."
+  ],
+  "history": {
+    "audit": "/home/vecera/tmp/richview-chart-refinement-20261011/numeric-zoom-continuity-audit-20261012T001351Z",
+    "owner": "/home/vecera/code/richview-v3/.claude/worktrees/chart-numeric-continuity-20261012/tmp/numeric-continuity/",
+    "sibling": "/home/vecera/code/richview-v3/.claude/worktrees/chart-numeric-continuity-sibling-20261012/tmp/numeric-continuity/",
+    "retained_failures": [
+      "initial strict 8/255 raster mechanism assertion",
+      "scratch missing report_folder",
+      "scratch facet-parent and mutating locator oracles",
+      "scratch export CSS substring assertion; corrected by parsing XML elements",
+      "first sibling 668 artifact endpoint fallback boundary; corrected 64f8 artifact accepted"
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+Check the structure of a report without rendering it
+
+Usage: richview validate [OPTIONS] <INPUT>
+
+Arguments:
+  <INPUT>  The report's `.rmd`, saved in its own folder (a folder holding one `.rmd` also works)
+
+Options:
+      --publish          Also apply the publish rules: title, description, version and a valid slug
+      --format <FORMAT>  `pretty` for people, `json` for agents [default: pretty] [possible values: pretty, json]
+  -h, --help             Print help

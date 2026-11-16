@@ -1,0 +1,31 @@
+---
+title: "Pie study 03: synthetic observations"
+version: 0.0.1
+format: rmd/1
+---
+
+```chart
+type: pie
+title: 'Pie study 03: synthetic observations'
+subtitle: Signed comparisons with long category names
+encoding:
+  x: x
+  y: y
+axes:
+  y:
+    unit: subscribers
+style:
+  ratio: '16:9'
+data:
+  inline:
+  - x: Subscriptions
+    y: 54
+  - x: Events
+    y: 66
+  - x: Commercial
+    y: 86
+  - x: Research
+    y: 114
+  - x: Local projects
+    y: 150
+```

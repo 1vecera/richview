@@ -1,0 +1,68 @@
+{
+	"id": "adoption-by-population",
+	"title": "Anthropic's share depends on who you ask",
+	"origin": "flagship evidence: examples/openai-vs-anthropic/data/charts/share-by-population.csv and population-shares.csv",
+	"brief": "Priya, head of product at a developer-tools company, asked: \"People quote very different shares for how much of the market Anthropic has. Which is right?\" She wants a short evidence report for the leadership team that shows that the answer depends on which population is measured.\n\ndata/share-by-population.csv lists eight measures, each with Anthropic's share (anthropic_share_pct, of Anthropic plus OpenAI), the population it describes and a source_id. data/population-shares.csv has the underlying counts and each measure's definition. data/sources.csv explains the source ids; name sources by their publisher and title, not by id alone.\n\nPriya needs three numbers: the gap in percentage points between the highest and the lowest of the eight shares, the average of the eight shares, and the average share across the measures whose population is Developers.\n\nAudience: five leaders, non-technical, reading on a laptop. Use at least three different chart types, add a table of the eight measures with their populations, and name the source under every chart.",
+	"checks": {
+		"chartTypes": {
+			"minDistinct": 3
+		},
+		"tables": {
+			"min": 1
+		},
+		"sources": true,
+		"figures": [
+			{
+				"id": "spread",
+				"describe": "highest minus lowest share (points)",
+				"compute": {
+					"op": "diff",
+					"a": {
+						"file": "data/share-by-population.csv",
+						"where": {},
+						"column": "anthropic_share_pct",
+						"agg": "max"
+					},
+					"b": {
+						"file": "data/share-by-population.csv",
+						"where": {},
+						"column": "anthropic_share_pct",
+						"agg": "min"
+					}
+				},
+				"tolerance": {
+					"absolute": 0.1
+				}
+			},
+			{
+				"id": "mean-all",
+				"describe": "average of the eight shares",
+				"compute": {
+					"file": "data/share-by-population.csv",
+					"where": {},
+					"column": "anthropic_share_pct",
+					"agg": "mean"
+				},
+				"tolerance": {
+					"absolute": 0.1
+				}
+			},
+			{
+				"id": "mean-developers",
+				"describe": "average share, Developers measures",
+				"key": "developers",
+				"compute": {
+					"file": "data/share-by-population.csv",
+					"where": {
+						"population": "Developers"
+					},
+					"column": "anthropic_share_pct",
+					"agg": "mean"
+				},
+				"tolerance": {
+					"absolute": 0.1
+				}
+			}
+		]
+	}
+}

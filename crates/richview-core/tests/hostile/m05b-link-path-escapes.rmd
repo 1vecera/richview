@@ -1,0 +1,5 @@
+---
+title: Link path escapes
+---
+
+[proto](//evil.example/HOSTILE) [backslash](/\evil.example/HOSTILE) [backslash2](\\evil.example\HOSTILE) [parent](../../etc/passwd) [missing](missing.csv) [absolute](/etc/passwd)

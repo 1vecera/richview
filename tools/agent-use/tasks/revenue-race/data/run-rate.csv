@@ -1,0 +1,15 @@
+quarter,company,run_rate_usd_bn,reported_month,qualifier,source_id
+2024 Q4,Anthropic,1.0,2024-12,about,C083
+2024 Q4,OpenAI,5.5,2024-12,about,C001
+2025 Q1,Anthropic,2.0,2025-03,,C083
+2025 Q2,Anthropic,3.0,2025-05,,C083
+2025 Q2,OpenAI,10.0,2025-06,,C001
+2025 Q3,Anthropic,5.0,2025-08,more than,C085
+2025 Q3,OpenAI,13.0,2025-08,,C004
+2025 Q4,Anthropic,9.0,2025-12,about,C092
+2025 Q4,OpenAI,21.4,2025-12,,C010
+2026 Q1,Anthropic,14.0,2026-02,,C098
+2026 Q1,OpenAI,25.0,2026-02,more than,C010
+2026 Q2,Anthropic,47.0,2026-05,more than,C107
+2026 Q3,Anthropic,100.0,2026-09,pacing above,C115
+2026 Q3,OpenAI,70.0,2026-09,almost,C021

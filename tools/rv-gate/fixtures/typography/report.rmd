@@ -1,0 +1,133 @@
+---
+title: Typography specimen
+description: One editorial page that exercises every shape the RichView text cascade is responsible for — headings, measure-locked prose, numerics, inline code, quotes, lists, tables and callouts — so the five shipped identities can be compared on identical content.
+version: 1.0.0
+author: RichView
+date: 2026-10-17
+slug: typography
+tags: [gallery, typography]
+format: rmd/1
+---
+
+# One page, five voices
+
+A **report format** is not finished until the words sit well on the page. The five RichView identities are the same cascade with different voices: the measure stays readable, numerics stay aligned, and the headings keep their rank whether the page is the quiet Sleek Dark of a tooling dashboard or the deliberate Hand-Drawn of a studio memo.
+
+Every token below is rendered by the real style cascade — the words, the measure, the chart, the code block. Nothing is re-typeset for the screenshot.
+
+## The spoken register
+
+A paragraph is a conversation at a comfortable reading distance. Measure is capped near 64 characters; line height is set once at the identity, not per block. Short paragraphs read as instructions, long paragraphs read as thinking out loud.
+
+> "Design is as much a matter of finding problems as it is solving them." — Bryan Lawson, *How Designers Think*, 1980.
+
+The quote is a block, not an aside. It belongs to the voice, not to the chrome. The attribution sits with the quote so a reader can source it without hunting through the surrounding prose.
+
+## Hierarchy you can skim
+
+### Heading three
+Section-level headings have weight but not drama. They mark the next idea; they do not announce it.
+
+#### Heading four
+A fourth level is a sub-note. It should be rare; when it appears, the reader should still be able to find the paragraph that owns it.
+
+##### Heading five
+Reserved for appendices and reference tables. If you are nesting this deep in a management report, the report should probably be two reports.
+
+## Numerics that align
+
+Numbers in prose carry their units next to them: **€1,284** per customer, **4.2%** churn, **17m 42s** median time-to-first-insight. In tables, the digits line up:
+
+| Metric | July | August | September | Change |
+|---|---:|---:|---:|---:|
+| Monthly active users | 12,840 | 14,320 | 16,912 | +31.7% |
+| Median session (s) | 184 | 201 | 227 | +23.4% |
+| 7-day retention | 42.1% | 44.6% | 47.0% | +4.9 pp |
+| Infrastructure €/MAU | 0.138 | 0.129 | 0.116 | −15.9% |
+
+Right-aligned columns and a monospaced numeric face keep the comparison honest. The thousands separator and the percent-point suffix are part of the voice, not post-processing.
+
+## Code, inline and block
+
+Short code lives inside the sentence: `richview check report.rmd` validates the source without rendering. A block carries its own font, its own ruler and its own copy affordance:
+
+```yaml
+style:
+  ratio: "16:9"
+  measure: 64ch
+  numerics: tabular
+```
+
+The highlighter runs through the shared Rust pipeline, so YAML, Rust, TypeScript and JSON all share the same colour register per identity. No external syntax theme is loaded.
+
+## Lists that scan
+
+An **ordered list** carries sequence:
+
+1. Read the source — the `.rmd` file is the contract.
+2. Render the report with the author's chosen identity.
+3. Switch identities to check that the point still lands.
+4. Export, review, publish.
+
+An **unordered list** carries variety without rank:
+
+- Headings mark structure; weight marks emphasis.
+- Measure keeps the eye from drifting across the page.
+- Numerics keep the thinking honest.
+- Charts carry evidence; prose carries the argument.
+
+## A chart in the flow
+
+A chart in a typography specimen is not a decoration — it is the proof that type, number and geometry share a page without fighting. The chart below uses the same five identities as the prose; only the data is fixed.
+
+```chart
+type: bar
+title: Reading density across identities
+subtitle: Illustrative characters per line for the same paragraph
+data:
+  inline:
+    - { identity: Sleek Dark,   measure: 64 }
+    - { identity: Air,  measure: 64 }
+    - { identity: Scientific,   measure: 70 }
+    - { identity: Brutalist,    measure: 56 }
+    - { identity: Hand-Drawn,   measure: 58 }
+encoding:
+  x: identity
+  y: measure
+axes:
+  y: { label: Characters per line, format: number }
+style:
+  ratio: "16:9"
+```
+
+The point is small and the chart is small; the composition keeps both legible.
+
+## Callouts, aside and inline
+
+```callout
+kind: neutral
+title: The specimen is the test
+body: |
+  If a paragraph reads awkwardly under one identity but cleanly under the others, the identity needs work — not the paragraph. The specimen is where that difference becomes obvious.
+```
+
+```callout
+kind: hold
+title: Not a style guide
+body: |
+  This page is a type specimen, not a brand book. Identities carry a voice; a brand book carries a system. The two should agree, not duplicate each other.
+```
+
+## Footnotes and source links
+
+A sourced claim links to its source[^1]. Footnotes land under the paragraph that owns them when the identity renders in a wide column, and at the end of the section on a narrow screen. The link style is set once per identity and respected by every block that produces links.
+
+[^1]: Robert Bringhurst, *The Elements of Typographic Style*, 4th edition, Hartley & Marks, 2013. Pages 25 and 164 describe the measure-and-leading relationship this cascade honours.
+
+## Reduced motion, respected
+
+When a reader opts into reduced motion, chart transitions settle immediately. The settings respect the system preference without a per-page toggle.
+
+## What this page is not
+
+It is not a landing page, not a chart gallery, not a famous-chart recreation. It is the specimen the other two gallery pages inherit from — the proof that the same five identities can carry quiet prose, dense numerics and a chart on one page without a single element shouting over another.

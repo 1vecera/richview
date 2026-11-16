@@ -1,0 +1,168 @@
+{
+  "base_commit": "3c07128b7139687b754f6e1b5848c2a46c31cfe5",
+  "code_commit": "699d0480a00faf4d43cdde8ccccbb745b1856a84",
+  "built_source_diff_sha256": "88faec7be28a6c7de9ea88053d85446377dd3858381065fbef75f6ad4a9e8686",
+  "final_precommit_diff_sha256": "f09d354c69e206dd9bf0cc8b54e026340252ff6754bf5b4ee84b35ba9849f9ba",
+  "build_note": "After the release build, only an independently accepted author-documentation sentence was clarified; the generated reference was refreshed and the documentation check passed again. Product Rust/browser code and Wasm stayed unchanged.",
+  "before_wasm_sha256": "141dd99c023fc595e987febc299f4c7ce554912fd489d3ffe768a46ce939be4e",
+  "after_wasm_sha256": "6b4af8cc12f13e74acd47aa520195d51d10c975c058fc1b47f0f818d6d60f7ec",
+  "browser": "151.0.7922.173",
+  "device_scale": 2,
+  "source_sha256": "2f3a8e4b7027dff434f063b9a11bca2bf693dc988a778bd066166fea00092e65",
+  "images": [
+    {
+      "file": "before-scientific-390.png",
+      "sha256": "0c71a2d4d9b6db678c6c2261292618e0afbe6ebcc3ca03b879f75eef9ee70019",
+      "theme": "scientific",
+      "viewport_width": 390,
+      "png_width": 716,
+      "png_height": 656,
+      "svg_viewbox": "0 0 358 268.5",
+      "window": [
+        2.5,
+        7.5
+      ],
+      "visible_points": 0,
+      "source_sha256": "2f3a8e4b7027dff434f063b9a11bca2bf693dc988a778bd066166fea00092e65"
+    },
+    {
+      "file": "after-scientific-390.png",
+      "sha256": "0aac5e1aff440e6f48fa9314241c56f0dcbd5c058694cdcf4d8ac445fadab541",
+      "theme": "scientific",
+      "viewport_width": 390,
+      "png_width": 716,
+      "png_height": 656,
+      "svg_viewbox": "0 0 358 268.5",
+      "window": [
+        2.5,
+        7.5
+      ],
+      "visible_points": 2,
+      "source_sha256": "2f3a8e4b7027dff434f063b9a11bca2bf693dc988a778bd066166fea00092e65"
+    },
+    {
+      "file": "before-sleek-320.png",
+      "sha256": "f057ca69d252ab91fc2cfa2de63af90005339b598f7e2fd3762d954573657a7f",
+      "theme": "sleek",
+      "viewport_width": 320,
+      "png_width": 576,
+      "png_height": 608,
+      "svg_viewbox": "0 0 288 216",
+      "window": [
+        2.5,
+        7.5
+      ],
+      "visible_points": 0,
+      "source_sha256": "2f3a8e4b7027dff434f063b9a11bca2bf693dc988a778bd066166fea00092e65"
+    },
+    {
+      "file": "after-sleek-320.png",
+      "sha256": "61d43234a13a765bf02d3fc5e3a93056f4b8572993fc4eb8f3569f0d8a8ab1a6",
+      "theme": "sleek",
+      "viewport_width": 320,
+      "png_width": 576,
+      "png_height": 608,
+      "svg_viewbox": "0 0 288 216",
+      "window": [
+        2.5,
+        7.5
+      ],
+      "visible_points": 2,
+      "source_sha256": "2f3a8e4b7027dff434f063b9a11bca2bf693dc988a778bd066166fea00092e65"
+    }
+  ],
+  "verification": {
+    "native_sources": 41,
+    "native_svg_frames": 82,
+    "native_frames_byte_identical": true,
+    "reduced_motion_matched_views": 250,
+    "normal_motion_settled_views": 75,
+    "themes": [
+      "scientific",
+      "sleek",
+      "brutalist",
+      "sleek-light",
+      "hand-drawn"
+    ],
+    "viewport_widths": [
+      320,
+      390,
+      720
+    ],
+    "states": 1099,
+    "source_table_csv_and_svg_exports": 681,
+    "keyboard_readouts": 1075,
+    "pointer_readouts": 286,
+    "resting_reset_svgs_byte_identical": true,
+    "numeric_string_mixed_zoom_geometry_equal": true,
+    "valid_case_page_errors": 0,
+    "overflow_or_glyph_issues": 0,
+    "active_animations_after_settle": 0,
+    "transition_probe_states": 19,
+    "facet_children": 2,
+    "actual_drag_update_new_brushes": 0,
+    "failures": []
+  },
+  "required_local_checks": {
+    "release_build": "pass",
+    "fmt": "pass",
+    "diff": "pass",
+    "clippy-native": "pass",
+    "clippy-wasm": "pass",
+    "workspace-tests": "pass",
+    "fixtures": "pass",
+    "editor": "pass",
+    "native": "pass",
+    "compat": "pass",
+    "types": "pass",
+    "browser": "pass",
+    "landing": "pass",
+    "cloudflare": "pass",
+    "showcase": "pass",
+    "flagship": "pass",
+    "reel": "pass",
+    "browser-api": "pass",
+    "motion-runtime": "pass",
+    "docs": "pass",
+    "docs_wording_refresh": "pass"
+  },
+  "independent_review": {
+    "status": "accepted",
+    "matched_normal_motion_reports": 8,
+    "live_states": 28,
+    "additional_api_cases": "Nine numeric/string/mixed type combinations; mixed-year selected rows; nominal restoration and last-series guard; retained numeric windows; failed calendar exclusion; two facets; real mouse drag/update cancellation."
+  },
+  "limits": [
+    {
+      "case": "scatter-large-finite",
+      "source_equal": true,
+      "all_svg_equal": true,
+      "before_page_errors": 28,
+      "after_page_errors": 28,
+      "numeric_window_disabled": true
+    },
+    {
+      "case": "line/area crossing-only windows",
+      "unchanged": "No clipping neighbors or synthesized endpoints are added when the selected window contains no source observation."
+    },
+    {
+      "case": "calendar source validation",
+      "unchanged": "Failed calendar sources stay excluded from numeric zoom; existing fallback/source-error diagnostics are a separate package."
+    },
+    {
+      "case": "readout text",
+      "unchanged": "Readouts use original rows with existing formatting; full Table and CSV preserve original numeric strings."
+    }
+  ],
+  "capture_notes": [
+    "Native source diagnostics and browser glyph diagnostics are separate checks.",
+    "The initial ordinary-motion capture observed transient tooltip CSS fades after Rust motion settled. Final ordinary-motion screenshots also await actual finite DOM animations; no product animation override was used.",
+    "An initial scratch probe omitted report_folder metadata, and an initial comparator incorrectly required the existing windowed calendar Table to be full-source. Both harness assumptions were corrected without product changes; original failed results remain in local scratch."
+  ],
+  "tracked_product_files": {
+    "richview-chart/src/rmd_render.rs": "0b692f6b9bf9613521e09216059f6af0768ff939704fe70c018a255a52698da4",
+    "crates/richview-web/src/browser/charts.rs": "64d5caf82954c419633c55a09398498443a0f023e5eb9ff2fd1c7dd4661bcde7",
+    "scripts/verify-browser.mjs": "d1b33693121b0f62a855cd362a6d733912dc1973692f5843aa5a37e9b788a6d9",
+    "docs/RMD-SPEC.md": "afa157459b2823ac00688e939b2cf1b3f770a12ba79de8374ed269a4776e115f"
+  }
+}

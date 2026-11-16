@@ -1,0 +1,23 @@
+---
+title: Image data sources
+---
+
+```image
+src: 'data:text/html;base64,PHNjcmlwdD5IT1NUSUxFPC9zY3JpcHQ+'
+alt: b
+```
+
+```image
+src: 'data:image/png;base64,AAAA" onerror="HOSTILE_DATA()'
+alt: e
+```
+
+```image
+src: 'data:image/svg+xml;utf8,<svg onload=HOSTILE_SVG()>'
+alt: f
+```
+
+```image
+src: 'data:audio/mpeg;base64,AAAA'
+alt: g
+```

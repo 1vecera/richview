@@ -1,0 +1,43 @@
+---
+title: Probe title
+description: Probe lede
+subtitle: Probe subtitle
+author: Probe Author
+date: 2026-10-04
+version: 0.0.1
+custom_key: kept
+---
+
+Body paragraph.
+
+```chart
+type: bar
+title: Revenue by month
+data:
+  inline:
+    - {month: Jan, revenue: 100}
+    - {month: Feb, revenue: 140}
+encoding: {x: month, y: revenue}
+```
+
+```big
+value: 0.682
+format: percent
+unit: "%"
+label: Share
+```
+
+```metric
+value: "n/a"
+format: percent
+unit: "%"
+label: Missing
+delta: -0.05
+trend: up
+```
+
+```metric
+value: 12
+label: No trend
+delta: 0.1
+```

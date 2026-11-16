@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>One sourced report in <!-- rv-style-count --> styles · RichView</title>
+<meta name="description" content="One sourced report in RichView's <!-- rv-style-count --> styles: <!-- rv-style-list -->. Read the same evidence in each, side by side or one at a time.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RichView">
+<meta property="og:title" content="One sourced report in <!-- rv-style-count --> styles · RichView">
+<meta property="og:description" content="One sourced report in RichView's <!-- rv-style-count --> styles: <!-- rv-style-list -->.">
+<meta property="og:url" content="https://richview.ai/showcase/openai-vs-anthropic/">
+<meta property="og:image" content="https://richview.ai/share/flagship.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://richview.ai/showcase/openai-vs-anthropic/">
+<link rel="icon" type="image/svg+xml" href="/landing/favicon.svg">
+<link rel="stylesheet" href="/site.css">
+<link rel="stylesheet" href="/richview-fonts.css">
+<link rel="stylesheet" href="/showcase/showcase.css">
+<style><!-- rv-initial-frame-style --></style>
+</head>
+<body data-richview-page="showcase">
+<a class="skip" href="#showcase-panes">Skip to the report</a>
+<!-- rv-site-header -->
+<nav id="style-rail" class="style-rail" aria-label="Report styles">
+<div class="themes__group" id="style-pills" role="radiogroup" aria-label="Style"><!-- rv-style-pills --></div>
+<label class="style-more"><span class="sr-only">Extended themes</span><select id="theme"><option value="">Extended themes</option><!-- rv-extended-options --></select></label>
+<button type="button" id="compare-toggle" aria-pressed="false">Compare</button>
+</nav>
+<main id="showcase-panes" data-compare="false">
+<section id="report-pane" class="report-pane" aria-label="Report">
+<div class="pane-label"><span id="pane-a-name"></span></div>
+<div class="frame-host" id="frame-host-a"><iframe id="report-frame" src="Rendered/sleek.html" title="Sourced report"></iframe></div>
+</section>
+<section id="compare-pane" class="report-pane" aria-label="Comparison" hidden>
+<div class="pane-label"><label for="compare-theme">Compare with</label><select id="compare-theme"><!-- rv-compare-options --></select></div>
+<div class="frame-host" id="frame-host-b"></div>
+</section>
+</main>
+<div class="flag-foot">
+<span>The wording, figures and evidence stay fixed.</span>
+<a href="ledger/sources.csv" download id="source-count">Source ledger</a>
+<a href="ledger/collection-runs.csv" download>Collection runs</a>
+<a href="report.rmd" download>report.rmd</a>
+<span>Content hash <code><!-- rv-content-hash --></code></span>
+<span id="showcase-live" class="sr-only" role="status" aria-live="polite"></span>
+</div>
+<div id="citation-card" class="citation-card" role="tooltip" hidden></div>
+<!-- rv-site-footer -->
+<script id="showcase-tokens" type="application/json"><!-- rv-showcase-tokens --></script>
+<script src="/richview_site.js"></script><script src="/bootstrap.js"></script>
+</body>
+</html>

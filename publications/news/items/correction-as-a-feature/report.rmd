@@ -1,0 +1,47 @@
+---
+title: "A correction is part of the product"
+description: "Readers need to see what changed without losing the link that brought them to the story."
+version: 1.0.0
+styles: [scientific]
+publish:
+  id: "correction-as-a-feature"
+  slug: "correction-as-a-feature"
+  summary: "Readers need to see what changed without losing the link that brought them to the story."
+  byline: "RichView Example Desk"
+  section: "fieldnotes"
+  tags: ["example", "method"]
+  published: "2026-10-13T09:00:00Z"
+  updated: "2026-10-18T09:00:00Z"
+  state: "published"
+  audience: "public"
+  kind: "report"
+  aliases: []
+  corrections: [{"date": "2026-10-18T09:00:00Z", "note": "Illustrative correction: the example count is 30. The earlier version used 28. Both are synthetic."}]
+---
+
+**Example material · Synthetic observations · 18 October 2026**
+
+## Keep the address; explain the revision
+
+A stable link is a small editorial commitment. It lets a reader return to the same item after an update and understand the change in context.
+
+This example uses fictional counts to demonstrate correction notes. The table is the evidence for this particular edition, and the dated note below records the illustrative adjustment.
+
+```chart
+type: bar
+title: "Illustrative count"
+data:
+  inline:
+    - {category: "Initial", value: 28}
+    - {category: "Corrected", value: 30}
+encoding: {x: category, y: value}
+axes:
+  x: {label: Category}
+  y: {label: "Illustrative count"}
+```
+
+*Source: Synthetic correction example. The two values do not describe a real event.*
+
+## What to take away
+
+Publishing a correction should update the story, its summary where necessary and the publication’s discovery surfaces together. Older hosted releases remain subject to today’s access decisions.

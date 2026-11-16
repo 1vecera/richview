@@ -1,0 +1,166 @@
+{
+	"name": "richview-vscode",
+	"displayName": "RichView (.rmd)",
+	"description": "Rich Markdown in VS Code: live diagnostics, formatting, completion, outline and a live preview, from the native RichView editor service.",
+	"version": "3.0.0-alpha.1",
+	"publisher": "richview",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/richview-universe/richview-v3"
+	},
+	"engines": {
+		"vscode": "^1.90.0"
+	},
+	"categories": [
+		"Programming Languages",
+		"Other",
+		"Snippets"
+	],
+	"main": "./dist/extension.js",
+	"activationEvents": [
+		"onLanguage:richview"
+	],
+	"contributes": {
+		"languages": [
+			{
+				"id": "richview",
+				"aliases": [
+					"Rich Markdown"
+				],
+				"extensions": [
+					".rmd"
+				],
+				"configuration": "./language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "richview",
+				"scopeName": "text.rmd",
+				"path": "./syntaxes/rmd.tmLanguage.json"
+			}
+		],
+		"snippets": [
+			{
+				"language": "richview",
+				"path": "./snippets/rmd.json"
+			}
+		],
+		"commands": [
+			{
+				"command": "richview.preview",
+				"title": "RichView: Open Live Preview",
+				"category": "RichView",
+				"icon": "$(open-preview)"
+			},
+			{
+				"command": "richview.insertBlock",
+				"title": "RichView: Insert Block",
+				"category": "RichView"
+			},
+			{
+				"command": "richview.export",
+				"title": "RichView: Export to Rendered",
+				"category": "RichView"
+			},
+			{
+				"command": "richview.publish",
+				"title": "RichView: Publish to Server",
+				"category": "RichView",
+				"icon": "$(cloud-upload)"
+			}
+		],
+		"menus": {
+			"editor/title": [
+				{
+					"command": "richview.preview",
+					"when": "editorLangId == richview",
+					"group": "navigation"
+				},
+				{
+					"command": "richview.publish",
+					"when": "editorLangId == richview",
+					"group": "navigation"
+				}
+			],
+			"commandPalette": [
+				{
+					"command": "richview.preview",
+					"when": "editorLangId == richview"
+				},
+				{
+					"command": "richview.insertBlock",
+					"when": "editorLangId == richview"
+				},
+				{
+					"command": "richview.export",
+					"when": "editorLangId == richview"
+				},
+				{
+					"command": "richview.publish",
+					"when": "editorLangId == richview"
+				}
+			],
+			"editor/context": [
+				{
+					"command": "richview.publish",
+					"when": "editorLangId == richview",
+					"group": "richview"
+				},
+				{
+					"command": "richview.export",
+					"when": "editorLangId == richview",
+					"group": "richview"
+				}
+			],
+			"explorer/context": [
+				{
+					"command": "richview.publish",
+					"when": "resourceExtname == .rmd",
+					"group": "richview"
+				},
+				{
+					"command": "richview.export",
+					"when": "resourceExtname == .rmd",
+					"group": "richview"
+				}
+			]
+		},
+		"configuration": {
+			"title": "RichView",
+			"properties": {
+				"richview.server": {
+					"type": "string",
+					"default": "",
+					"description": "URL of your RichView server, used by Publish. There is no default; publishing needs a server you name.",
+					"scope": "machine"
+				},
+				"richview.binary": {
+					"type": "string",
+					"default": "",
+					"description": "Path to the native richview-editor binary. Uses the packaged binary by default.",
+					"scope": "machine"
+				}
+			}
+		}
+	},
+	"scripts": {
+		"build": "cargo run --manifest-path ../../Cargo.toml -p richview-build -- --editor-only",
+		"bundle": "esbuild extension.cjs --bundle --platform=node --format=cjs --external:vscode --outfile=dist/extension.js --metafile=dist/bundle-meta.json && node ../../scripts/vscode-notices.cjs dist/bundle-meta.json dist/THIRD-PARTY-NOTICES.txt",
+		"package": "npm run bundle && vsce package --no-dependencies"
+	},
+	"devDependencies": {
+		"@vscode/vsce": "4.1.0",
+		"esbuild": "0.28.2"
+	},
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": false,
+			"description": "The native renderer resolves task-local report assets and requires a trusted workspace."
+		}
+	},
+	"dependencies": {
+		"vscode-languageclient": "9.0.1"
+	}
+}

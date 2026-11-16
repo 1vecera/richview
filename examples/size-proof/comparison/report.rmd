@@ -1,0 +1,42 @@
+---
+title: How large are the report files?
+description: Measured raw bytes for four agent-authored HTML reports and RichView equivalents.
+version: 0.1.0
+styles: [scientific]
+---
+
+These four examples compare real generated HTML with RichView reports using the same datasets and the same chart-and-table brief. The RichView reports are independently authored equivalents, not identical reproductions. Results depend on the prompts, models and selected reports; they are not a general benchmark. See the accompanying README and `sizes.csv` for the method and gzip sizes.
+
+## Authoring files
+
+This compares each standalone agent HTML file with the RichView `.rmd` and CSV data combined. It does not compare the size of the delivered reports.
+
+```chart
+type: bar
+title: Authoring files, in bytes
+data: {csv: authoring.csv}
+encoding: {x: report, y: bytes, color: artifact}
+axes:
+  x: {label: Report}
+  y: {label: Raw bytes}
+style: {orientation: horizontal}
+```
+
+*Source: measured files in this example; see `sizes.csv`.*
+
+## Delivered HTML
+
+This compares the standalone HTML produced by the agent with the generated RichView HTML. These are the files a reader opens.
+
+```chart
+type: bar
+title: Delivered HTML, in bytes
+data: {csv: delivery.csv}
+encoding: {x: report, y: bytes, color: artifact}
+axes:
+  x: {label: Report}
+  y: {label: Raw bytes}
+style: {orientation: horizontal}
+```
+
+*Source: measured files in this example; see `sizes.csv`.*

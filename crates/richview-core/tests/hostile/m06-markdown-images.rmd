@@ -1,0 +1,15 @@
+---
+title: Markdown images
+---
+
+![html data](data:text/html;base64,PHNjcmlwdD5IT1NUSUxFPC9zY3JpcHQ+)
+
+![alt "onerror="HOSTILE_ALT()><script>HOSTILE_ALT_SCRIPT()</script>](data:image/png;base64,AAAA "title "onload="HOSTILE_TITLE()")
+
+![svg data](data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9SE9TVElMRT4=)
+
+![quote](data:image/png;base64,AAAA"onerror="HOSTILE_DATA_QUOTE())
+
+![audio as image](data:audio/mpeg;base64,AAAA) ![no base64](data:image/png,HOSTILE) ![angle](data:image/png;base64,<script>)
+
+[![linked](data:image/png;base64,AAAA)](https://example.org/)

@@ -1,0 +1,17 @@
+topic,company,share_of_negative_pct,negative_comments
+Quality,Anthropic,21.9,384
+Quality,OpenAI,17.6,449
+Business,Anthropic,16.9,384
+Business,OpenAI,21.8,449
+Safety,Anthropic,20.3,384
+Safety,OpenAI,21.4,449
+Hype,Anthropic,13.5,384
+Hype,OpenAI,19.4,449
+Reliability,Anthropic,19.0,384
+Reliability,OpenAI,10.7,449
+Product,Anthropic,14.3,384
+Product,OpenAI,9.6,449
+Pricing,Anthropic,13.5,384
+Pricing,OpenAI,8.7,449
+Coding,Anthropic,13.0,384
+Coding,OpenAI,4.0,449

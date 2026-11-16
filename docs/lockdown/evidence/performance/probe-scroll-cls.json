@@ -1,0 +1,290 @@
+{
+ "_source": {
+  "files": [
+   "tmp/prf07-final/out-scroll-cls.json"
+  ],
+  "sha256": {
+   "tmp/prf07-final/out-scroll-cls.json": "369cc5a64c9e3b0f596440b5b0674e068eb777877075f3a0646de402e66ac5e4"
+  },
+  "note": "tmp/prf07-final/scroll_cls.mjs, b4db233 dist/web, Claw Mini, Chromium 153, 2026-10-22"
+ },
+ "data": {
+  "probe": "tmp/prf07-final/scroll_cls.mjs",
+  "commit": "b4db233",
+  "started": "2026-10-22T00:09:58.516Z",
+  "browser": "153.0.8010.12",
+  "host": {
+   "cpus": "Apple M4",
+   "count": 10,
+   "platform": "darwin"
+  },
+  "load_before": [
+   2.80322265625,
+   2.37646484375,
+   2.23583984375
+  ],
+  "method": "loopback, gzip, no throttling; scroll 80 % of the viewport every 250 ms to the end, then settled() and 1 s; CLS as session windows (1 s gap, 5 s cap) over shifts without recent input",
+  "runs": [
+   {
+    "page": "small-report",
+    "profile": "desktop",
+    "rep": 0,
+    "cls": 0.0146,
+    "shift_count": 1,
+    "largest_shifts": [
+     {
+      "t_ms": 117,
+      "v": 0.0146,
+      "src": [
+       "MAIN.rv-report__body",
+       "P.rv-report__lede",
+       "P.rv-report__meta"
+      ]
+     }
+    ],
+    "chart_frames": 1,
+    "settled": {
+     "charts": {
+      "mounted": 1,
+      "painted": 1
+     }
+    },
+    "errors": []
+   },
+   {
+    "page": "small-report",
+    "profile": "desktop",
+    "rep": 1,
+    "cls": 0.0146,
+    "shift_count": 1,
+    "largest_shifts": [
+     {
+      "t_ms": 46,
+      "v": 0.0146,
+      "src": [
+       "MAIN.rv-report__body",
+       "P.rv-report__lede",
+       "P.rv-report__meta"
+      ]
+     }
+    ],
+    "chart_frames": 1,
+    "settled": {
+     "charts": {
+      "mounted": 1,
+      "painted": 1
+     }
+    },
+    "errors": []
+   },
+   {
+    "page": "small-report",
+    "profile": "desktop",
+    "rep": 2,
+    "cls": 0.0146,
+    "shift_count": 1,
+    "largest_shifts": [
+     {
+      "t_ms": 44,
+      "v": 0.0146,
+      "src": [
+       "MAIN.rv-report__body",
+       "P.rv-report__lede",
+       "P.rv-report__meta"
+      ]
+     }
+    ],
+    "chart_frames": 1,
+    "settled": {
+     "charts": {
+      "mounted": 1,
+      "painted": 1
+     }
+    },
+    "errors": []
+   },
+   {
+    "page": "small-report",
+    "profile": "phone-viewport",
+    "rep": 0,
+    "cls": 0,
+    "shift_count": 0,
+    "largest_shifts": [],
+    "chart_frames": 1,
+    "settled": {
+     "charts": {
+      "mounted": 1,
+      "painted": 1
+     }
+    },
+    "errors": []
+   },
+   {
+    "page": "small-report",
+    "profile": "phone-viewport",
+    "rep": 1,
+    "cls": 0,
+    "shift_count": 0,
+    "largest_shifts": [],
+    "chart_frames": 1,
+    "settled": {
+     "charts": {
+      "mounted": 1,
+      "painted": 1
+     }
+    },
+    "errors": []
+   },
+   {
+    "page": "small-report",
+    "profile": "phone-viewport",
+    "rep": 2,
+    "cls": 0,
+    "shift_count": 0,
+    "largest_shifts": [],
+    "chart_frames": 1,
+    "settled": {
+     "charts": {
+      "mounted": 1,
+      "painted": 1
+     }
+    },
+    "errors": []
+   },
+   {
+    "page": "flagship-report",
+    "profile": "desktop",
+    "rep": 0,
+    "cls": 0.0025,
+    "shift_count": 1,
+    "largest_shifts": [
+     {
+      "t_ms": 168,
+      "v": 0.0025,
+      "src": [
+       "ASIDE.rv-callout rv-callout--hold",
+       "P.",
+       "H2.",
+       "TIME."
+      ]
+     }
+    ],
+    "chart_frames": 18,
+    "settled": {
+     "charts": {
+      "mounted": 18,
+      "painted": 18
+     }
+    },
+    "errors": []
+   },
+   {
+    "page": "flagship-report",
+    "profile": "desktop",
+    "rep": 1,
+    "cls": 0.0025,
+    "shift_count": 1,
+    "largest_shifts": [
+     {
+      "t_ms": 65,
+      "v": 0.0025,
+      "src": [
+       "ASIDE.rv-callout rv-callout--hold",
+       "P.",
+       "H2.",
+       "TIME."
+      ]
+     }
+    ],
+    "chart_frames": 18,
+    "settled": {
+     "charts": {
+      "mounted": 18,
+      "painted": 18
+     }
+    },
+    "errors": []
+   },
+   {
+    "page": "flagship-report",
+    "profile": "desktop",
+    "rep": 2,
+    "cls": 0.0025,
+    "shift_count": 1,
+    "largest_shifts": [
+     {
+      "t_ms": 57,
+      "v": 0.0025,
+      "src": [
+       "ASIDE.rv-callout rv-callout--hold",
+       "P.",
+       "H2.",
+       "TIME."
+      ]
+     }
+    ],
+    "chart_frames": 18,
+    "settled": {
+     "charts": {
+      "mounted": 18,
+      "painted": 18
+     }
+    },
+    "errors": []
+   },
+   {
+    "page": "flagship-report",
+    "profile": "phone-viewport",
+    "rep": 0,
+    "cls": 0,
+    "shift_count": 0,
+    "largest_shifts": [],
+    "chart_frames": 18,
+    "settled": {
+     "charts": {
+      "mounted": 18,
+      "painted": 18
+     }
+    },
+    "errors": []
+   },
+   {
+    "page": "flagship-report",
+    "profile": "phone-viewport",
+    "rep": 1,
+    "cls": 0,
+    "shift_count": 0,
+    "largest_shifts": [],
+    "chart_frames": 18,
+    "settled": {
+     "charts": {
+      "mounted": 18,
+      "painted": 18
+     }
+    },
+    "errors": []
+   },
+   {
+    "page": "flagship-report",
+    "profile": "phone-viewport",
+    "rep": 2,
+    "cls": 0,
+    "shift_count": 0,
+    "largest_shifts": [],
+    "chart_frames": 18,
+    "settled": {
+     "charts": {
+      "mounted": 18,
+      "painted": 18
+     }
+    },
+    "errors": []
+   }
+  ],
+  "load_after": [
+   2.5908203125,
+   2.50390625,
+   2.3076171875
+  ]
+ }
+}

@@ -1,0 +1,79 @@
+---
+title: "Bar study 04: synthetic observations"
+version: 0.0.1
+format: rmd/1
+---
+
+```chart
+type: bar
+title: 'Bar study 04: synthetic observations'
+subtitle: Sparse observations without interpolation
+encoding:
+  x: x
+  y: y
+  color: series
+axes:
+  x:
+    label: Observation
+  y:
+    label: Measured value
+    unit: ppm
+style:
+  ratio: '16:9'
+data:
+  inline:
+  - x: Alpha
+    y: -46
+    series: North
+  - x: Alpha
+    y: -39
+    series: South
+  - x: Alpha
+    y: -32
+    series: Central
+  - x: Beta
+    y: -23
+    series: North
+  - x: Beta
+    y: -16
+    series: South
+  - x: Beta
+    y: -9
+    series: Central
+  - x: Gamma
+    y: 0
+    series: North
+  - x: Gamma
+    y: 7
+    series: South
+  - x: Gamma
+    y: 14
+    series: Central
+  - x: Delta
+    y: 23
+    series: North
+  - x: Delta
+    y: 30
+    series: South
+  - x: Delta
+    y: 37
+    series: Central
+  - x: Epsilon
+    y: 46
+    series: North
+  - x: Epsilon
+    y: 53
+    series: South
+  - x: Epsilon
+    y: 60
+    series: Central
+  - x: Zeta
+    y: 69
+    series: North
+  - x: Zeta
+    y: 76
+    series: South
+  - x: Zeta
+    y: 83
+    series: Central
+```

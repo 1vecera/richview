@@ -1,0 +1,189 @@
+$ richview --version
+richview 3.0.0-alpha.0
+
+$ richview --help
+Rich Markdown: native Rust generation, publishing and agent tools
+
+Usage: richview <COMMAND>
+
+Commands:
+  generate  
+  validate  
+  check     
+  init      
+  learn     
+  mcp       
+  publish   
+  serve     
+  server    
+  asset     Upload, verify and abort integrity-pinned remote data and media
+  help      Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help     Print help
+  -V, --version  Print version
+
+$ richview generate --help
+Usage: richview generate [OPTIONS] <INPUT>
+
+Arguments:
+  <INPUT>
+          
+
+Options:
+      --theme <THEME>
+          [possible values: auto, light, dark]
+
+      --style <STYLES>
+          
+
+      --public-dir <PUBLIC_DIR>
+          [env: RICHVIEW_PUBLIC_DIR=]
+          [default: dist/web]
+
+      --allow-network
+          
+
+      --format <FORMAT>
+          [default: pretty]
+          [possible values: pretty, json]
+
+  -o, --output <OUTPUT>
+          Output file inside the report's Rendered folder; a name ending in .pdf implies --to pdf
+
+      --report-card
+          
+
+      --to <TO>
+          Write the interactive report (default) or a PDF printed by a local Chromium-family browser
+
+          Possible values:
+          - report: The interactive HTML report
+          - pdf:    A PDF printed by a local Chromium-family browser
+
+      --page <PAGE>
+          Paper size of a PDF
+          
+          [default: a4]
+          [possible values: a4, letter]
+
+      --browser <BROWSER>
+          Chromium, Google Chrome or Microsoft Edge executable for PDF output (or RICHVIEW_BROWSER)
+
+      --settle-timeout <SETTLE_TIMEOUT>
+          Seconds a PDF waits for fonts and charts to settle
+          
+          [default: 30]
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+$ richview validate --help
+Usage: richview validate [OPTIONS] <INPUT>
+
+Arguments:
+  <INPUT>  
+
+Options:
+      --format <FORMAT>  [default: pretty] [possible values: pretty, json]
+  -h, --help             Print help
+
+$ richview check --help
+Usage: richview check [OPTIONS] <INPUT>
+
+Arguments:
+  <INPUT>  
+
+Options:
+      --theme <THEME>              [possible values: auto, light, dark]
+      --style <STYLES>             
+      --public-dir <PUBLIC_DIR>    [env: RICHVIEW_PUBLIC_DIR=] [default: dist/web]
+      --allow-network              
+      --format <FORMAT>            [default: pretty] [possible values: pretty, json]
+      --chart-width <CHART_WIDTH>  [default: 720]
+  -h, --help                       Print help
+
+$ richview init --help
+Usage: richview init [OPTIONS] [DIR]
+
+Arguments:
+  [DIR]  
+
+Options:
+      --name <NAME>  [default: report]
+  -h, --help         Print help
+
+$ richview learn --help
+Usage: richview learn [SECTION]
+
+Arguments:
+  [SECTION]  
+
+Options:
+  -h, --help  Print help
+
+$ richview publish --help
+Usage: richview publish [OPTIONS] <INPUT>
+
+Arguments:
+  <INPUT>  
+
+Options:
+      --theme <THEME>            [possible values: auto, light, dark]
+      --style <STYLES>           
+      --public-dir <PUBLIC_DIR>  [env: RICHVIEW_PUBLIC_DIR=] [default: dist/web]
+      --allow-network            
+      --format <FORMAT>          [default: pretty] [possible values: pretty, json]
+      --server <SERVER>          [env: RICHVIEW_SERVER=] [default: https://richview.uk]
+      --token <TOKEN>            [env: RICHVIEW_TOKEN]
+      --slug <SLUG>              
+  -h, --help                     Print help
+
+$ richview serve --help
+Usage: richview serve [OPTIONS] <INPUT>
+
+Arguments:
+  <INPUT>  
+
+Options:
+      --theme <THEME>            [possible values: auto, light, dark]
+      --style <STYLES>           
+      --public-dir <PUBLIC_DIR>  [env: RICHVIEW_PUBLIC_DIR=] [default: dist/web]
+      --allow-network            
+      --format <FORMAT>          [default: pretty] [possible values: pretty, json]
+  -p, --port <PORT>              [default: 4711]
+      --bind <BIND>              [default: 127.0.0.1]
+  -h, --help                     Print help
+
+$ richview server --help
+Usage: richview server [OPTIONS]
+
+Options:
+  -p, --port <PORT>              [env: PORT=] [default: 8080]
+      --bind <BIND>              [env: RICHVIEW_BIND=] [default: 127.0.0.1]
+      --data-dir <DATA_DIR>      [env: RICHVIEW_DATA_DIR=] [default: ./data]
+      --token <TOKEN>            [env: RICHVIEW_TOKEN]
+      --public-dir <PUBLIC_DIR>  [env: RICHVIEW_PUBLIC_DIR=] [default: dist/web]
+      --public-url <PUBLIC_URL>  [env: RICHVIEW_PUBLIC_URL=]
+  -h, --help                     Print help
+  -V, --version                  Print version
+
+$ richview mcp --help
+Usage: richview mcp
+
+Options:
+  -h, --help  Print help
+
+$ richview asset --help
+Upload, verify and abort integrity-pinned remote data and media
+
+Usage: richview asset <COMMAND>
+
+Commands:
+  put     Upload a data or media file and print its integrity-pinned reference
+  verify  Check stored objects against reference files (YAML or JSON)
+  abort   Abort journaled multipart uploads (all, or those whose SHA-256 starts with a prefix)
+  help    Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help  Print help

@@ -1,0 +1,2665 @@
+{
+  "id": "07-performance",
+  "order": 10,
+  "title": "Performance",
+  "status": "ready",
+  "summary": "This part settles how fast, small and lean RichView must be after the rewrite, how that is measured, which numbers run in the fast gate, the release run per `pre-prod` batch and the full capture before a `prod` merge (DEL-81). It covers every budget in `docs/PERFORMANCE.md`, the measurements that never had one (MCP tools, CLI checks, the chart kernel, PDF export, report and site weight, first paint, layout shift, hydration, frame pacing, interaction and preview latency, editor, MCP, server and browser memory, install size, build and test time) and targets beyond today. Which checks run in which test tier is part 02's; PRF-51 only sets durations.\n\nState on 2026-10-21: on Claw Mini, `b4db233` passes 24 of 25 budgets; the 25th, a Linux-only memory gate, cannot run on macOS. The last recorded capture (Linux, 2026-10-12) failed 6 of 25, and no budget has ever blocked a merge: PR #22 merged with the Wasm over its limit. Costs drift inside the headroom: the Wasm uses 96.6 % of its budget since the font catalog moved out of it; the small report's HTML without the runtime doubled since 2026-10-04, mostly because its style, scientific, now embeds six faces instead of three; the dense editor and the MCP server each hold about 1.5 GiB after a session; and on the phone profile the small report's first chart turns live after 8.2 s.\n\nThe decisions that matter most: Claw Mini as the reference host, with a lock and an outside-CPU check instead of waiting for a quiet machine (PRF-01, PRF-02); no timing budget in the fast gate, a short performance set in each release run and the full capture, phone profile and WebKit included, daily on a changed `pre-prod` head and before each `prod` merge (PRF-04); a ratchet from the legacy baseline whose regressions merge only on the feature or design card that needs them (PRF-05, PRF-08); a report runtime of at most 512 KiB embedded in every report (PRF-31); and memory budgets on physical footprint for native processes and on renderer memory for browser pages (PRF-03, PRF-40 to PRF-44).\n\nAnswer together with other parts: PRF-02, PRF-04 and PRF-24 with DEL-08, DEL-33, DEL-51 and DEL-62; PRF-05 and PRF-08 with DEL-34 and DEL-36; PRF-31 with INT-04, ARC-06, ARC-24 and FEA-RP-38; PRF-07, PRF-20 and PRF-33 with the removal of `/charts/` (ARC-40, FEA-SF-44); PRF-14 with FEA-SF-17; PRF-17 with ARC-48 and ARC-49; PRF-18 with INT-35.\n\nCaptures cited in the cards: **10-04 Linux** is the integration capture `faff365` on an Intel i7-12700H, Linux, powersave governor, load 0.9 at start and 9.7 at the end; values quoted from `docs/PERFORMANCE.md` at `2c926b0` come from the first capture on the same host that day and say so. **10-12 Linux** is `9b300f0` on the same CPU as a shared host with four pinned cores, not quiet. **10-21 M4** is `b4db233` on Claw Mini (Apple M4, 10 cores, 16 GiB, macOS 26.3): the harness ran at load 3.7–4.7 and the whole checks session at 2.6–7.3. Lockdown probes ran on 2026-10-21 at load 2.0–4.7 and on 2026-10-22 at 1.8–3.1. Hosts and some fixtures differ, so read the columns as ranges, not a trend. Compact copies of the 2026-10-21 capture and of every probe, with their methods, are in `docs/lockdown/evidence/performance/`.\n\nHow to answer: accept keeps the proposal as written; edit rewrites it (a number, a scope or a method); reject drops it from the rewrite; defer leaves it open. Budgets for surfaces whose survival parts 03 and 04 decide (editor service, render API, published-report serving, Publish, PDF export, Node packages, the landing demo) apply only if the surface stays. Items marked informational never block a merge. Part 08's cross-part contradiction cards (OPN-50 to OPN-68) decide conflicts involving this part's cards and should be answered first.",
+  "items": [
+    {
+      "id": "PRF-01",
+      "kind": "decision",
+      "importance": "important",
+      "refId": "P-REFERENCE-HOST",
+      "group": "Measurement policy",
+      "title": "Reference host for every budget",
+      "question": "Which machine's measurements decide whether a performance budget passes?",
+      "why": "`docs/PERFORMANCE.md` names no machine, so the same budgets pass or fail by host: every endpoint that failed on the shared Linux host on 2026-10-12 ran 2.8–4.6× faster on the M4 on 2026-10-21 and passed. A budget can only gate merges if one host owns it. Part 02 already runs the gate only on Claw Mini (DEL-22). The answer also decides where test-tier durations (PRF-51) are judged.",
+      "proposed": "Claw Mini (Mac mini, Apple M4, 10 cores, 16 GiB, macOS) is the reference host. Every budget in this part is defined, measured and gated there, under PRF-02's lock and outside-CPU check, with the Rust toolchain and Playwright browsers pinned by the repository. A capture from any other machine is a disclosure that names its host and is never compared with reference numbers. Replacing the host, its macOS major version, the toolchain or the Playwright version re-captures every budget and starts a new baseline, reported in the next review packet.",
+      "options": [
+        {
+          "label": "Claw Mini (M4, macOS)",
+          "detail": "Agents already build and merge RichView here (DEL-22), and it holds the only complete current capture. It is never idle: every capture so far ran beside other agents and services (load 1.8–7.3), so it needs PRF-02's lock and outside-CPU check, and memory needs macOS measures (PRF-03)."
+        },
+        {
+          "label": "Lenovo (i7-12700H, Linux)",
+          "detail": "Continuity with the 2026-10-04 and 2026-10-12 captures and Linux `VmHWM`. It is Daniel's work machine, was a shared host on 2026-10-12 and has no 2026-10-21 timings."
+        },
+        {
+          "label": "Dedicated Linux runner",
+          "detail": "Most reproducible and closest to Linux hosting; needs a spare machine or a paid runner, and hosted CI is not unblocked by spending."
+        }
+      ],
+      "recommendation": "Claw Mini (M4, macOS): the gate runs where agents merge (DEL-22), and it is the only host with a complete current capture.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "No reference machine; timings 'on a quiet machine'",
+          "ref": "docs/PERFORMANCE.md:27",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "10-04 host: i7-12700H, 14 cores, Linux, powersave governor (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L22",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "10-12 host: 'Intel Core i7-12700H, Linux, shared host', quiet_machine false, 19 of 25",
+          "ref": "docs/evidence/chart-review/verification.json",
+          "date": "2026-10-12"
+        },
+        {
+          "label": "10-21 capture on Claw Mini: load 4.66 at start; 24 of 25 budgets pass",
+          "ref": "docs/lockdown/evidence/performance/harness-native.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "The gate runs only on Claw Mini, the reference host",
+          "ref": "docs/lockdown/parts/02-delivery.json (DEL-22)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Fast tier judged 'on Lenovo including startup'",
+          "ref": "DANIEL-PREFERENCES.md, Coding progress and verification (quoted in docs/lockdown/evidence/checks-performance.md, Measured test tiers)",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "Daniel's tier rule names Lenovo. Accepting Claw Mini means judging tier durations on Claw Mini too (PRF-51), or keeping Lenovo as a second host for tier timings only; no Lenovo timings exist for 2026-10-21. Cross-part contradiction: answer OPN-55 first; it decides this card's conflict.",
+      "images": []
+    },
+    {
+      "id": "PRF-02",
+      "kind": "rule",
+      "importance": "important",
+      "refId": "P-QUIET-CPU",
+      "group": "Measurement policy",
+      "title": "Timing captures on a busy host",
+      "question": "When does a timing capture count, and what happens when the host is busy?",
+      "why": "Claw Mini runs several agents and system services at once. The 2026-10-21 harness started at load 4.66, the whole session ran at 2.6–7.3 and the probes at 2.0–4.7; a two-minute sample on 2026-10-22 showed load 1.8–2.6 with 0.5–1.4 cores busy, the largest share from a macOS file-provider daemon that no RichView lock controls. The harness itself raises load (0.9 to 9.7 during the 2026-10-04 capture), so a load threshold cannot separate foreign work from the benchmark, and none of the cited captures would have met a start threshold of 2.0. Instruction counts of repeated CLI renders vary by at most 1.5 % once the first run is discarded, while wall-time p95 sits 4–14 % above the median within one capture (PRF-05). S27-652 asked for 'resource-aware build coordination'.",
+      "proposed": "A timing capture holds the RichView build coordinator's exclusive lock while it measures, so no RichView agent build, test or browser starts during that window; other projects' agents and system services are outside the lock. Under DEL-81 captures run once per release batch into `pre-prod` and in the full run before a candidate, not on every merge into `dev`, so development agents wait only for those windows; the release run builds in its own target folder, so its build never holds the streams' lock. During the capture, CPU used outside the harness's process tree is sampled every second; if it averages more than one core, or any sample exceeds four, the capture is inconclusive and repeats once, and a second inconclusive capture holds the merge as 'performance inconclusive'. In the release run, native costs are judged by instruction counts and browser timings against the base build measured interleaved in the same capture (PRF-05), so a busy host slows a capture without changing its verdict; absolute millisecond limits are judged on the full capture (PRF-04). A day of logged host activity confirms or resets the one-core and four-core thresholds before the gate is switched on. Size, memory and instruction-count checks run regardless of load, and every capture records load and outside CPU before, during and after.",
+      "options": [
+        {
+          "label": "Lock, outside-CPU check and interleaved base runs",
+          "detail": "Verdicts do not depend on other agents; a capture repeats when the host is very busy, and the lock binds only RichView agents."
+        },
+        {
+          "label": "Wait for a load average of 2.0 first",
+          "detail": "Today's DEL-51 rule; none of the 2026-10-12 to 2026-10-22 captures started that quiet, so merges would wait often."
+        },
+        {
+          "label": "Run anyway and record load",
+          "detail": "Never waits; verdicts depend on other agents, as on 2026-10-12 (6 of 25 failed)."
+        }
+      ],
+      "recommendation": "Lock, outside-CPU check and interleaved base runs: the host is never quiet, so release verdicts must not depend on it.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Daniel's DEL-81 answer (amended 2026-10-27): dev takes only the fast gate, the release agent runs the long suites per pre-prod batch of up to 20 merges, prod moves on his go",
+          "ref": "docs/lockdown/answers/02-delivery.json (DEL-81)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "'run the timing harnesses on a quiet machine'",
+          "ref": "docs/PERFORMANCE.md:27",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Load 0.92 at start and 9.69 at the end of the 10-04 capture",
+          "ref": "https://github.com/1vecera/richview/blob/faff365/docs/evidence/integration/performance/native.json",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "10-21 capture: load 4.66 at start, 3.97 at the end; CLI p95 4–14 % above median",
+          "ref": "docs/lockdown/evidence/performance/harness-native.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Load 1.77–2.62, 0.51–1.43 cores busy, fileproviderd about 0.4 core on average",
+          "ref": "docs/lockdown/evidence/performance/probe-host-activity.json",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Instruction counts across repeated CLI renders",
+          "ref": "docs/lockdown/evidence/performance/cli-time-series.json; docs/lockdown/evidence/performance/probe-cli.json",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "'resource-aware build coordination and correct artifact provenance'",
+          "ref": "S27-652",
+          "date": "2026-10-18"
+        },
+        {
+          "label": "Performance step waits for a 1-minute load of 2.0 or less",
+          "ref": "docs/lockdown/parts/02-delivery.json (DEL-51, DEL-62)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "quiet_machine false; 6 of 25 failed",
+          "ref": "docs/evidence/chart-review/verification.json",
+          "date": "2026-10-12"
+        }
+      ],
+      "conflicts": "`docs/PERFORMANCE.md:27` requires a quiet machine, but none of the 2026-10-12, 2026-10-21 and 2026-10-22 captures had one. DEL-51 waits for a load average of 2.0 before capturing, and DEL-62 caps agent work to reach it; this card drops the wait, so answer those two with it. Cross-part contradiction: answer OPN-50 first; it decides this card's conflict.",
+      "images": []
+    },
+    {
+      "id": "PRF-03",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "P-OS-SCOPE",
+      "group": "Measurement policy",
+      "title": "Memory and timing measures on macOS",
+      "question": "How does RichView measure memory and timing on the reference host, and what is left for Linux captures?",
+      "why": "The only memory gate parses Linux `VmHWM`, so on the reference host it fails closed by design. macOS reports a process's physical footprint, which counts the memory the process holds, including what its allocator keeps after freeing: `/usr/bin/time -l` prints the peak for a process that exits, and `footprint` and `vmmap` sample a live one. Allocators differ: the dense editor peaked at 98.6 MiB `VmHWM` on Linux (2026-10-04, `2c926b0`) but held a 1,538 MiB footprint after 100 previews on macOS (2026-10-22), almost all of it freed blocks the allocator keeps (PRF-41). For browser pages, Chromium reports its process IDs over the DevTools protocol and `ps` reads their resident memory.",
+      "proposed": "Native processes are budgeted on peak physical footprint as macOS reports it on the reference host: at exit for processes that end (CLI, PDF export), and sampled through the session for long-lived ones (editor service, MCP server, server). Browser pages are budgeted on the resident memory of their renderer process. Timing runs discard the first launch of every newly built binary, which costs 0.2–0.6 s on macOS. Linux peak-memory captures may be kept as disclosures, separate and never compared with macOS numbers; the Linux-only memory gate is retired.",
+      "options": [
+        {
+          "label": "macOS measures",
+          "detail": "Gates run on the reference host; stricter than Linux where the macOS allocator keeps freed memory."
+        },
+        {
+          "label": "Keep the Linux VmHWM gate",
+          "detail": "Continuity with earlier captures; every release run then needs a Linux host."
+        },
+        {
+          "label": "Gate on both",
+          "detail": "Two hosts and two baselines for every release run."
+        }
+      ],
+      "recommendation": "macOS measures, following PRF-01.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "macOS captures 'do not replace the Linux VmHWM gate'",
+          "ref": "docs/PERFORMANCE.md:39",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Memory gate accepts only `/proc` VmHWM",
+          "ref": "scripts/check-performance.py:209-223",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "'Owned Chromium RSS/HWM sampling requires Linux /proc'",
+          "ref": "scripts/benchmark-browser.mjs:26",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Dense editor 98.6 MiB VmHWM on Linux (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L62",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "Editor footprint, its peak and the vmmap malloc rows after 100 previews",
+          "ref": "docs/lockdown/evidence/performance/probe-editor-memory.json",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Renderer memory from the process IDs Chromium reports",
+          "ref": "docs/lockdown/evidence/performance/probe-browser-memory.json",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "First launch of a newly linked binary costs 0.2–0.6 s",
+          "ref": "docs/lockdown/evidence/checks-performance.md (Measured test tiers)",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "`docs/PERFORMANCE.md:39` keeps Linux `VmHWM` as the acceptance gate; accepting this retires it.",
+      "images": []
+    },
+    {
+      "id": "PRF-04",
+      "kind": "decision",
+      "importance": "important",
+      "refId": "P-GATE-SCOPE",
+      "group": "Measurement policy",
+      "title": "Which budgets run in the fast gate, the release run and the full run",
+      "question": "Which performance checks run in the fast gate, which in the release run that takes a batch of `dev` merges into `pre-prod`, and which only in the full run before a prod merge?",
+      "why": "Development agents merge into `dev` after the fast gate alone (unit tests, ideally under five seconds), and the release agent runs the long suites on each batch of up to 20 merges before `pre-prod` takes it (Daniel's DEL-81 answer). Daniel reviews only design and feature decisions (S27-677). Today no budget blocks anything: CI never runs the checker, the 2026-10-12 capture failed 6 of 25 without consequence, and PR #22 merged with the Wasm at 1,601,334 B against a 1,572,864 B limit. Today's harness took 157.2 s on 2026-10-21 for 25 endpoints, one engine and the desktop only. This part adds repeats (PRF-06), interleaved base runs (PRF-05), the phone profile, WebKit, PDF, memory sessions, build and tier timings and new endpoints: about 15–20 minutes in all, by this part's estimate. DEL-08's former per-merge gate took about 12.5–15 minutes with today's harness; DEL-81 replaces it with the fast gate and the release run.",
+      "proposed": "| Set | Runs on | Budgets | Estimated capture |\n| --- | --- | --- | --- |\n| Fast gate | every push to `dev` (`rv-gate fast`, DEL-81) | none: unit tests of what the change can affect; an agent may run a budget check by hand when it judges that useful | none |\n| Release run | each batch merged from `dev` into `pre-prod` (`rv-gate release`, DEL-81), for what the batch affects | sizes (PRF-30 to PRF-32, PRF-39); instruction counts and footprints of CLI renders and the chart kernel (PRF-05, PRF-19, PRF-40); native, CLI and MCP latency (PRF-10 to PRF-13); Chromium desktop timings against interleaved base runs (PRF-20 to PRF-23, PRF-25, PRF-29, PRF-33, PRF-38) | about 4 minutes |\n| Full | on `pre-prod` before a candidate and on each prod candidate (`rv-gate full` and `rv-gate prod`, DEL-33), and once a day on a changed `pre-prod` head | everything above, plus the phone profile (PRF-26, PRF-34 to PRF-36), WebKit (PRF-24, PRF-27), PDF (PRF-16), memory sessions (PRF-41 to PRF-44), server and published reads (PRF-14, PRF-15), build and tier durations (PRF-50, PRF-51), and every absolute millisecond limit | about 15–20 minutes |\n\nA release-run failure fails the batch: the release agent bisects it to the merge that caused it and fixes forward on `dev` or reverts that merge (DEL-81). A full-run failure is bisected the same way, before the review packet is built (DEL-34); `prod` is cut only from a `pre-prod` head with a passing full receipt for the exact candidate (DEL-04, DEL-71). Informational items (PRF-60 to PRF-62) are reported and never block. No budget is waived for a single batch; changing a limit is an edit to this lockdown, held for Daniel under DEL-36.",
+      "options": [
+        {
+          "label": "Release-run set and full set",
+          "detail": "About 4 minutes per batch; phone, WebKit, PDF, memory-session and build regressions surface in the full run and are bisected."
+        },
+        {
+          "label": "Everything per release batch",
+          "detail": "Catches every regression at the batch that caused it; about 15–20 minutes of exclusive capture per batch, which slows the release agent's fix-forward loop."
+        },
+        {
+          "label": "Inform only",
+          "detail": "Today's practice; budgets drift until Daniel notices."
+        }
+      ],
+      "recommendation": "Release-run set and full set: the fast gate stays under five seconds (DEL-81), release verdicts stay short and independent of host load, and the slow or load-sensitive checks still run before anything reaches Daniel.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Daniel's DEL-81 answer (amended 2026-10-27): dev takes only the fast gate, the release agent runs the long suites per pre-prod batch of up to 20 merges, prod moves on his go",
+          "ref": "docs/lockdown/answers/02-delivery.json (DEL-81)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Agents merge into dev; only Daniel merges dev into prod",
+          "ref": "S27-677",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "'The fixed local acceptance limits are enforced by check-performance.py'",
+          "ref": "docs/PERFORMANCE.md:3",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "CI does not run the checker; hosted CI has not run since 2026-10-13",
+          "ref": "docs/lockdown/evidence/checks-performance.md (Key findings; Performance budgets)",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "10-12 capture failed 6 of 25, described as 'a limitation, not a claimed improvement'",
+          "ref": "docs/evidence/chart-review/README.md",
+          "date": "2026-10-12"
+        },
+        {
+          "label": "'Current combined Wasm is 1,601,334 bytes gzip'; merged",
+          "ref": "PR #22",
+          "date": "2026-10-11"
+        },
+        {
+          "label": "Performance harness and checker: 157.2 s",
+          "ref": "docs/lockdown/evidence/checks-performance.md (Measured test tiers)",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Dev gate steps and durations; the performance step at 157.2 s",
+          "ref": "docs/lockdown/parts/02-delivery.json (DEL-08, DEL-51)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Prod-candidate gate needs the performance receipt for the exact dev head",
+          "ref": "docs/lockdown/parts/02-delivery.json (DEL-33)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "DEL-08 and DEL-51 run every budget on every merge, with a short WebKit probe; DEL-81 replaces that per-merge gate with the fast gate and the release run, and under this card the phone profile, WebKit, PDF, memory sessions and builds move to the full run, which also runs daily on `pre-prod`, something DEL-33 does not do. Answer DEL-51 with this card. The duration estimates are this part's arithmetic, not a measurement. Cross-part contradiction: answer OPN-50 and OPN-51 first; they decide this card's conflict.",
+      "images": []
+    },
+    {
+      "id": "PRF-05",
+      "kind": "gate",
+      "importance": "important",
+      "refId": "P-REGRESSION-GATE",
+      "group": "Measurement policy",
+      "title": "Regression gate against an accepted baseline",
+      "question": "Besides absolute limits, how much may a single merge make RichView slower, bigger or hungrier, and who accepts a regression?",
+      "why": "Absolute timing limits leave 1.8–15× headroom on the M4 and the Wasm limit 3.4 %, so a merge can double a cost and still pass, and growth adds up: the small report's HTML without the runtime doubled between 2026-10-04 and 2026-10-21 (117,450 to 233,789 B), mainly because the scientific style the fixtures use went from 3 to 6 embedded faces (beb330f), while the flagship grew 1.7× and the dense fixture 1.1× on fixtures that also changed. The CPU instruction count of a CLI render is stable once the first run of a new binary is discarded: 0.1–0.4 % across 7 runs on 2026-10-22, and at most 1.5 % in earlier 3- and 5-run series, whose first runs differed by +15 % (small) and −7 % (flagship). The 2026-10-04 chart-kernel regressions of 24.7–28.1 % were disclosed and never gated.",
+      "proposed": "Each release run compares the batch's combined `pre-prod` state with the accepted baseline, a stored receipt that changes only as described here; PRF-08 names the first one. The release run fails, and the release agent bisects it to the merge that caused the regression (DEL-81), when the Wasm or any fixture's HTML grows by more than 16 KiB, a shipped binary by more than 64 KiB after gzip, the CPU instructions a CLI render or the chart-kernel benchmark executes (median of 7 runs after one discarded run) by more than 5 %, or peak footprint by more than 10 %, or when a browser endpoint's p95 is more than 20 % slower than the base build measured interleaved in the same capture. An improvement beyond these margins lowers the baseline automatically. A regression beyond them stays only when the merge that caused it is a declared feature or design PR (DEL-32) whose card states the cost; otherwise the release agent fixes it forward or reverts that merge (DEL-81). Daniel's answer to the feature or design card accepts the cost and raises the baseline, which is the hold DEL-36 requires for a raised baseline. Fixes and refactors (`decision: none`) never raise it.",
+      "options": [
+        {
+          "label": "Ratchet, cost on the feature or design card",
+          "detail": "Stops creep; Daniel sees a cost only with the feature or design that needs it, and fixes can never add one."
+        },
+        {
+          "label": "Ratchet, agents accept up to the absolute limits",
+          "detail": "Fewer cards; each accepted regression goes with its reason to the DEL-34 appendix, and DEL-36 must exempt performance baselines."
+        },
+        {
+          "label": "Compare with the previous `pre-prod` head",
+          "detail": "Simpler; allows unlimited creep in steps below the margins."
+        },
+        {
+          "label": "Absolute limits only",
+          "detail": "Today's rule; regressions hide inside the headroom."
+        }
+      ],
+      "recommendation": "Ratchet, cost on the feature or design card: regressions stay visible, and Daniel decides them only where he already decides the feature.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Daniel's DEL-81 answer (amended 2026-10-27): dev takes only the fast gate, the release agent runs the long suites per pre-prod batch of up to 20 merges, prod moves on his go",
+          "ref": "docs/lockdown/answers/02-delivery.json (DEL-81)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Instruction counts and footprint across repeated CLI renders",
+          "ref": "docs/lockdown/evidence/performance/probe-cli.json; docs/lockdown/evidence/performance/cli-time-series.json",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "10-04 HTML sizes: small 117,450 B, dense 1,996,972 B, flagship 438,877 B (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L35",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "10-21 HTML sizes without the runtime",
+          "ref": "docs/lockdown/evidence/performance/harness-rust.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Scientific's embedded faces 3 to 6 (46,258 to 140,334 B of CSS)",
+          "ref": "beb330f",
+          "date": "2026-10-11"
+        },
+        {
+          "label": "Headroom per budget on 2026-10-21",
+          "ref": "docs/lockdown/evidence/performance/harness-gates.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Chart-kernel layout regressions 24.7–28.1 %, disclosed only (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L50",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "'regression detection/recovery'",
+          "ref": "S27-652",
+          "date": "2026-10-18"
+        },
+        {
+          "label": "A raised threshold, budget or baseline holds the PR as a card for Daniel; performance deltas need no answer",
+          "ref": "docs/lockdown/parts/02-delivery.json (DEL-32, DEL-34, DEL-36)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "`docs/PERFORMANCE.md:21` says 'Do not widen a limit to fit a result' but has no rule for growth inside a limit. DEL-34 lists performance deltas in an appendix that needs no answer; under this card, a delta beyond the margins appears on its feature or design card instead.",
+      "images": []
+    },
+    {
+      "id": "PRF-06",
+      "kind": "rule",
+      "importance": "detail",
+      "refId": "P-EVIDENCE-INTEGRITY",
+      "group": "Measurement policy",
+      "title": "Evidence integrity, sample sizes and harnesses",
+      "question": "What makes a performance capture valid evidence, and which harnesses stay?",
+      "why": "The checker's seven integrity checks flagged the 2026-10-12 capture (6 of 7 passed). The browser harness keeps its own copy of eight limits and throws when one fails, so a slow run surfaces as an integrity failure in addition to the budget verdicts, and the limits are defined twice. Dense edit and cold mount each rest on a single event. Some harnesses only compare with implementations the rewrite retires: `scripts/benchmark-baseline.mjs` with the TypeScript renderer and `scripts/benchmark-preview.py` with the archived Rust preview; the Node boundary harness takes 49 s per capture and gates nothing.",
+      "proposed": "A capture is valid only when it records the commit, artifact and fixture hashes, host, OS, toolchain and browser versions, load and outside CPU before, during and after (PRF-02), and sample counts, and the seven integrity checks pass. Limits live in one file; harnesses measure and never judge. Every p95 uses at least 20 samples, and at least 100 when the value is under 10 ms. Single-event endpoints (large-source edit, cold mount, first paint, PDF export) repeat at least 5 times: the median must meet the limit and no repeat may exceed 1.5× it. Missing evidence fails. Every harness feeds a budget in this part or is deleted: the boundary harness goes with the Node packages (PRF-17), the TypeScript and archived-preview comparisons are deleted, and the chart-kernel benchmark feeds PRF-19. Each capture's compact outputs are kept with its gate receipt (DEL-20).",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Seven integrity checks",
+          "ref": "scripts/check-performance.py:232-296",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Hard-coded limits asserted inside the harness",
+          "ref": "scripts/benchmark-browser.mjs:306-317",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "10-12: six over-budget verdicts plus a failed browser integrity check",
+          "ref": "docs/evidence/chart-review/verification.json; docs/evidence/chart-review/README.md:23",
+          "date": "2026-10-12"
+        },
+        {
+          "label": "'25 endpoints plus seven evidence-integrity checks'; missing evidence fails",
+          "ref": "docs/PERFORMANCE.md:21",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Integrity 6 of 7 on 9b300f0, 7 of 7 on b4db233",
+          "ref": "docs/lockdown/evidence/checks-performance.md (Performance budgets)",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Cold page and dense edit measured once each (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L94-L98",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "Comparison with the TypeScript baseline checkout",
+          "ref": "scripts/benchmark-baseline.mjs:1",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Comparison with the archived PR 9 Rust preview",
+          "ref": "scripts/benchmark-preview.py:2",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Boundary is a disclosure, not a gate",
+          "ref": "scripts/check-performance.py:305",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Gate receipts kept for the life of the repository",
+          "ref": "docs/lockdown/parts/02-delivery.json (DEL-20)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "Captures claim exact input signatures, yet the dense fixture bytes differ between 2026-10-12 and 2026-10-21 (sha256 `8089599d…` against `d4a657d6…`; checks-performance.md, Performance budgets).",
+      "images": []
+    },
+    {
+      "id": "PRF-07",
+      "kind": "decision",
+      "importance": "important",
+      "refId": "P-FIXTURES",
+      "group": "Measurement policy",
+      "title": "Benchmark fixtures and device profiles",
+      "question": "Which inputs and device profiles do the budgets measure?",
+      "why": "The six-types fixture covers six of the nine chart types and no table, metric, callout or image. Native endpoints, the editor and the large-source edit use the 2.03 MB inline-YAML dense fixture (35,040 points in two alternating groups), while browser zoom and cold mount use the `/charts/` grid example (35,040 rows × 4 series in two panes, from CSV), a page ARC-40 drops. Every fixture renders in scientific; the same small source ranges from 182,342 B (sleek light) to 277,904 B (hand-drawn) without the runtime across the builtin styles. Browser timing runs at 1440×1000 with reduced motion, so no animated frame is ever measured, and no phone profile exists.",
+      "proposed": "| Fixture | Content | Style | Measures |\n| --- | --- | --- | --- |\n| small | `examples/sales-report` | scientific | every report budget |\n| all-types | every chart type and every rich block type, once each | scientific; every builtin style for PRF-35 | native render, chart mount |\n| flagship | `examples/openai-vs-anthropic` with its assets | scientific | report, theme, memory and first-visit budgets |\n| dense | today's 2.03 MB inline-YAML source, 35,040 points in two groups | scientific | native, CLI, MCP, editor, server and large-source edit |\n| grid | 35,040 rows × 4 series in two panes from a chart-local CSV, an `.rmd` example of the docs chart gallery (ARC-40) | scientific | zoom, transitions, pacing, interactions |\n| gallery | the docs chart gallery page with the three time-series examples (FEA-SF-43) | site | cold mount, browser memory |\n\nDesktop profile: 1440×1000 at 1×, no throttling, loopback, as today. Phone profile: 390×844 at 2× with touch, 4× CPU throttling and Slow 4G (150 ms round trip, 1.6 Mbit/s down, 750 kbit/s up), in Chromium. Each endpoint names its motion mode: zoom, theme, edit and cold mount keep reduced motion as measured today; transitions, pacing, first visit, layout shift and interactions run with motion on. Fixtures are versioned with hashes; changing one resets its baseline and re-confirms its limits on the first capture.",
+      "options": [
+        {
+          "label": "Real-data fixtures and two profiles",
+          "detail": "Budgets follow what readers and agents do; the dense fixture keeps its meaning, so today's limits stay valid."
+        },
+        {
+          "label": "Keep today's synthetic set",
+          "detail": "Continuity across three captures; three chart types, four block types, motion and phones stay unmeasured."
+        }
+      ],
+      "recommendation": "Real-data fixtures and two profiles.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Daniel's ARC-05 answer: all in on WebGL for high performance with many points; recent Safari, Firefox and Chrome must work; without JavaScript or WebGL the chart's frame shows a notice; no snapshot, image or table fallback",
+          "ref": "docs/lockdown/answers/03-architecture.json (ARC-05)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Fixtures: small, six types (line, bar, scatter, area, pie, heatmap), dense, flagship; scientific style",
+          "ref": "crates/richview-bench/src/main.rs:35,88-125,149",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Nine chart types, line to interval",
+          "ref": "crates/richview-core/src/parser.rs:309-327",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Browser context 1440×1000 with reducedMotion 'reduce'; cold mount on /charts/",
+          "ref": "scripts/benchmark-browser.mjs:79-92",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Grid data: 35,040 quarter-hours, load, wind, solar and price",
+          "ref": "richview-chart/web/data/de-power-15min.csv; richview-chart/web/examples/grid.json",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Small fixture in each builtin style",
+          "ref": "docs/lockdown/evidence/performance/probe-style-sizes.json",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Phone profile used by the lockdown probes",
+          "ref": "docs/lockdown/evidence/performance/probe-first-paint.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "/charts/ is dropped; its datasets become gallery examples and fixtures",
+          "ref": "docs/lockdown/parts/03-architecture.json (ARC-40); docs/lockdown/parts/04c-features-surfaces.json (FEA-SF-43, FEA-SF-44)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "Fixtures that change content need their limits confirmed on the first capture: all-types replaces six-types under PRF-10's 10 ms, and the grid moves from `/charts/` to the docs gallery (ARC-40, FEA-SF-44). The lockdown probes ran at 1440×900; their desktop values are disclosures. Daniel's ARC-05 answer withdraws PRF-38's hydration match, so the all-types fixture measures the chart mount instead.",
+      "images": [
+        "docs/lockdown/screenshots/product/fixture/fixture-scientific-desktop-full.jpg"
+      ]
+    },
+    {
+      "id": "PRF-08",
+      "kind": "decision",
+      "importance": "important",
+      "refId": "P-REWRITE-BASELINE",
+      "group": "Measurement policy",
+      "title": "First baseline and the rewrite period",
+      "question": "Which capture starts the regression ratchet, and how do budgets apply while the rewrite replaces legacy code on `dev`?",
+      "why": "`dev` starts from `main` as DEL-02 renames it `prod`, which part 08 first makes equal to richview.ai: `b4db233` plus PR #69 (OPN-01; FEA-SF-30 rules out any hotfix), and which since 2026-10-26 also holds PR #70 (97ac0d0, INT-52). INT-70 measures the rewrite against `b4db233`. PRF-05 needs a first accepted baseline, and during the rewrite most merges replace a legacy component or rebuild a feature, so most change a measured cost. That legacy tree already fails several budgets proposed here (editor and MCP memory, phone long frames, landing weight, WebKit pacing). Endpoints of dropped surfaces (`/charts/`, the render API, the Node packages) lose their baseline, and new ones (docs gallery, landing first visit, MCP memory) have none.",
+      "proposed": "The first accepted baseline is the full capture of the commit `dev` starts from (D-PROD-BASELINE). From the first release run (DEL-81), PRF-05's ratchet compares each release batch with it. A budget that baseline already fails is listed as a known failure in every review packet: a merge may not make it worse, and once a capture meets it, it gates like any other. Rewriting a component is a feature PR under DEL-32, so a cost it adds rides on its feature card (PRF-05). An endpoint whose surface is dropped leaves the baseline with the merge that drops it; a new endpoint enters with its first full capture, and until then only its absolute limits apply. Each review packet also reports the INT-70 comparison with `b4db233` for every endpoint both trees have.",
+      "options": [
+        {
+          "label": "Legacy capture as the first baseline",
+          "detail": "The rewrite cannot end bigger or slower than today without a card that says why; known failures can only improve."
+        },
+        {
+          "label": "First complete rewrite capture as the baseline",
+          "detail": "Absolute limits only until the rewritten product has every endpoint; regressions against legacy show only in INT-70's report."
+        }
+      ],
+      "recommendation": "Legacy capture as the first baseline: it is the option that enforces INT-70's rule that any growth is explained by an accepted feature.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Daniel's OPN-01 answer: accepted; production is the Worker version richview.ai serves, built from #69's branch; `main` is made equal to it by merging #69 without a legacy hotfix, then renamed `prod`, and `dev` is created from it",
+          "ref": "docs/lockdown/answers/08-open-work.json (OPN-01)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's OPN-13 answer: accepted; #69 is merged into `main` as it stands, as the record of production, before the rewrite starts; its features enter the rewrite through their own cards",
+          "ref": "docs/lockdown/answers/08-open-work.json (OPN-13)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's DEL-02 answer: `main` renamed to `prod`, plus one `dev` branch; only `dev` merges into `prod`, and a legacy hotfix needs a new branch",
+          "ref": "docs/lockdown/answers/02-delivery.json (DEL-02)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "PR #70 merged into `main` as merge commit 97ac0d0 on 2026-10-26; its branch has no commits outside `main`, and `main` now holds `publications/news/`, `cloudflare/publish/` and `publish.yml`",
+          "ref": "git log origin/main; git rev-list --count origin/main..origin/feat/s27-655-richview-publish (0)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "dev and prod start from the frozen legacy main",
+          "ref": "docs/lockdown/parts/02-delivery.json (DEL-02)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "main is made equal to richview.ai before the rewrite",
+          "ref": "docs/lockdown/parts/08-open-work.json (OPN-01, OPN-13)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "The rewrite reports against b4db233; any growth is explained by an accepted feature",
+          "ref": "docs/lockdown/parts/01-intent.json (INT-14, INT-70)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Implementing an accepted lockdown item is a feature PR",
+          "ref": "docs/lockdown/parts/02-delivery.json (DEL-32)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "The legacy capture includes surfaces this lockdown drops; their budgets lapse with them, so the ratchet covers only what survives. Since #70's merge (97ac0d0, 2026-10-26) `main` is `b4db233` plus #70's Publish code, and OPN-01 and OPN-13 (accepted) add PR #69 and no legacy hotfix, so the baseline `dev` starts from differs from `b4db233` by both PRs.",
+      "images": []
+    },
+    {
+      "id": "PRF-09",
+      "kind": "decision",
+      "importance": "important",
+      "refId": "P-REAL-DEVICE",
+      "group": "Measurement policy",
+      "title": "Real-phone check",
+      "question": "Does a real phone confirm the emulated phone budgets, and which phone?",
+      "why": "INT-16 makes smoothness on a mid-range phone a floor, INT-61 and FEA-BR-21 ship motion only when it is smooth on a real phone, and DEL-30 has Daniel judge smoothness on a real phone at prod candidate. This part only emulates a phone: an M4 with 4× CPU throttling and Slow 4G in Chromium (PRF-07). Playwright cannot throttle WebKit, the engine of every iPhone browser (PRF-24). Daniel rejected the 2026-10-18 site for 'visible ticking' on mobile scroll that no capture had measured (S27-653).",
+      "proposed": "Emulated profiles gate release runs and prod candidates. A real phone is an optional look, not a step: a review agent judges visual and motion quality so Daniel does not have to (Daniel's DEL-68 answer), and pacing in WebKit (PRF-24, PRF-27) and the iOS Simulator's Safari smoke (DEL-74) cover the iPhone's engine without hands. When Daniel opens a candidate or the report on his phone, through the `dev` preview (DEL-31) or from the gate host over the local network (`serve --bind`, FEA-SF-08), a jump, a tick or a dropped frame he sees is a defect against PRF-27 and INT-61, filed like any other. He names one mid-range reference phone once, so such reports compare like with like. The phone never passes or fails a budget automatically.",
+      "options": [
+        {
+          "label": "Emulation gates; the phone is your optional look",
+          "detail": "No manual step in the process; real-phone pacing is checked only when you choose to look."
+        },
+        {
+          "label": "Emulation gates, a named phone confirms at each candidate",
+          "detail": "The phone catches what emulation misses, for a few minutes per packet; a step that needs your hands, which your DEL-68 answer wants to avoid."
+        },
+        {
+          "label": "Hosted real-device service",
+          "detail": "Automated real devices, from a paid service that INT-15's low-cost rule argues against."
+        }
+      ],
+      "recommendation": "Emulation gates; the phone is your optional look: your DEL-68 answer takes visual and motion judgement off you, and a step that needs your phone could not run without you.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Daniel's DEL-68 answer: gates decide `none` changes and design and feature changes are seen one by one; tests may be deleted when obsolete or merely formal, but no gate step or adversarial review is ever skipped; a review agent on the model Daniel uses at the time judges visual and motion quality, and Daniel sees one large report before `prod`",
+          "ref": "docs/lockdown/answers/02-delivery.json (DEL-68)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Smooth on a mid-range phone; motion ships only when smooth on a real phone",
+          "ref": "docs/lockdown/parts/01-intent.json (INT-16, INT-61)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Landing scroll motion must pass Safari on a real iPhone",
+          "ref": "docs/lockdown/parts/04d-features-branches.json (FEA-BR-21)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Daniel judges smoothness on a real phone at prod candidate",
+          "ref": "docs/lockdown/parts/02-delivery.json (DEL-30)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "'mobile scroll animations look jumpy/weird with visible ticking'",
+          "ref": "S27-653",
+          "date": "2026-10-18"
+        },
+        {
+          "label": "serve binds to 127.0.0.1; `--bind` stays for checking on a phone",
+          "ref": "docs/lockdown/parts/04c-features-surfaces.json (FEA-SF-08)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "INT-61's bar is smoothness on a real phone; with the phone optional, emulation, WebKit pacing and the review agent stand in for it, and iPhone pacing on real hardware is verified only when Daniel looks. Cross-part contradiction: answer OPN-66 first; it decides this card's conflict.",
+      "images": []
+    },
+    {
+      "id": "PRF-10",
+      "kind": "performance",
+      "importance": "important",
+      "refId": "P-NATIVE-RENDER",
+      "group": "Render latency",
+      "title": "Warm native render",
+      "question": "Keep the warm native render budgets per fixture?",
+      "why": "| p95, ms | 10-04 Linux | 10-12 Linux | 10-21 M4 | Limit |\n| --- | --- | --- | --- | --- |\n| small | 0.52 | 1.86 | 0.63 | 5 |\n| six types | 0.43 | 2.42 | 0.68 | 10 |\n| flagship | 7.16 | 25.0 | 12.28 | 35 |\n| dense | 125.1 | **420.4** | 113.1 | 250 |\n\n100 warm iterations in one process (`crates/richview-bench`); bold fails. Today's build passes with 2.2× (dense) to 15× (six types) headroom. The flagship fixture changed between captures, so its rise from 7.2 to 12.3 ms is not a like-for-like regression. Dense is the 2.03 MB inline-YAML fixture, which PRF-07 keeps. Replaces P-NATIVE-SMALL, P-NATIVE-SIX, P-NATIVE-FLAGSHIP and P-NATIVE-DENSE.",
+      "proposed": "Warm native render p95 over 100 iterations in one process on the reference host: small ≤ 5 ms, all-types ≤ 10 ms, flagship ≤ 35 ms, dense ≤ 250 ms. The limits are unchanged from `docs/PERFORMANCE.md`; all-types replaces six-types, and its first capture confirms the 10 ms limit.",
+      "options": [
+        {
+          "label": "Keep the limits",
+          "detail": "Ceilings with headroom; growth inside them is caught by PRF-05."
+        },
+        {
+          "label": "Tighten to about 2× today",
+          "detail": "Small 1.5, all-types 2, flagship 25, dense 230 ms; stricter, but PRF-05 already covers drift."
+        }
+      ],
+      "recommendation": "Keep the limits.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Limits 5 / 10 / 35 / 250 ms",
+          "ref": "docs/PERFORMANCE.md:7",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Reasons, e.g. dense 'makes complete authoring practical against a roughly 40-second baseline' (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L115-L118",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "10-04 values",
+          "ref": "https://github.com/1vecera/richview/blob/faff365/docs/evidence/integration/performance/gates.json",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "10-12 values",
+          "ref": "docs/evidence/chart-review/verification.json",
+          "date": "2026-10-12"
+        },
+        {
+          "label": "10-21 values",
+          "ref": "docs/lockdown/evidence/performance/harness-gates.json",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "",
+      "images": []
+    },
+    {
+      "id": "PRF-11",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-CLI-COLD",
+      "group": "Render latency",
+      "title": "Process-cold CLI commands",
+      "question": "Keep the process-cold CLI budgets for a complete offline report, and add `check` and `validate`?",
+      "why": "| p95, ms | 10-04 Linux | 10-12 Linux | 10-21 M4 | Limit |\n| --- | --- | --- | --- | --- |\n| `generate`, small | 38.6 | 54.9 | 23.6 | 150 |\n| `generate`, flagship | 42.0 | 121.9 | 62.0 | 250 |\n| `generate`, dense | 201.6 | **652.0** | 191.9 | 400 |\n| `check`, small / flagship / dense | not recorded | not recorded | 5.3 / 21.7 / 115.3 | none |\n| `validate`, small / flagship / dense | not recorded | not recorded | 3.6 / 7.8 / 56.7 (2026-10-22) | none |\n\nA new process per run, 100 runs after 3 warm-ups; bold fails. `generate` includes startup, resource checks, runtime packaging and the written file. `check` renders and checks without writing a file, so the 18–77 ms between `check` and `generate` covers runtime packaging and export together. Agents call `check` and `validate` in their loops (INT-69). Replaces P-CLI-SMALL, P-CLI-FLAGSHIP and P-CLI-DENSE.",
+      "proposed": "Process-cold CLI p95 on the reference host, 100 runs after 3 warm-ups: a complete offline `generate` small ≤ 150 ms, flagship ≤ 250 ms, dense ≤ 400 ms (unchanged); `check` and `validate` each at most half of that, small ≤ 75 ms, flagship ≤ 125 ms, dense ≤ 200 ms. The offline file always embeds its runtime (PRF-31).",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Limits 150 / 250 / 400 ms",
+          "ref": "docs/PERFORMANCE.md:8",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "'Includes startup, asset validation, runtime embedding and output writes' (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L119",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "10-04 and 10-12 values",
+          "ref": "https://github.com/1vecera/richview/blob/faff365/docs/evidence/integration/performance/gates.json; docs/evidence/chart-review/verification.json",
+          "date": "2026-10-12"
+        },
+        {
+          "label": "10-21 `generate` (offline_runtime) and `check` (static_check, no output file) rows",
+          "ref": "docs/lockdown/evidence/performance/harness-native.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "`validate` and `check` latency, 100 runs each",
+          "ref": "docs/lockdown/evidence/performance/probe-cli.json",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "`check` renders through check_document and writes no file",
+          "ref": "crates/richview-app/src/cli.rs:221-328",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "",
+      "images": []
+    },
+    {
+      "id": "PRF-12",
+      "kind": "performance",
+      "importance": "important",
+      "refId": "P-MCP-TOOLS",
+      "group": "Render latency",
+      "title": "MCP tool latency",
+      "question": "Should the MCP tools, the surface agents actually call, get latency budgets?",
+      "why": "No budget or harness covers MCP. Lockdown probe on 2026-10-22 (M4, load 2.0–2.4), one persistent `richview mcp` process, 100 calls per tool after 3 warm-ups (20 for dense), p95 in ms:\n\n| Tool | small | flagship | dense |\n| --- | --- | --- | --- |\n| `richview_render` | 7.3 | 40.9 | 195.5 |\n| `richview_check` | 0.5 | 15.5 | 138.8 |\n| `richview_validate` | 0.3 | 6.3 | 139.7 |\n\nAcross four runs on 2026-10-21 and 2026-10-22, render p95 ranged 4.4–9.1 ms (small) and 36.8–52.2 ms (flagship); only this series was saved. Agents call these tools in loops (INT-69), so a regression multiplies across every task. The server lists seven tools today; FEA-SF-09 proposes nine with the two image tools of FEA-RP-62.",
+      "proposed": "Warm MCP tool latency over one persistent stdio server on the reference host, p95 of 100 calls after 3 warm-ups (20 for dense): `richview_render` small ≤ 50 ms, flagship ≤ 150 ms, dense ≤ 400 ms; `richview_check` and `richview_validate` small ≤ 25 ms, flagship ≤ 100 ms, dense ≤ 300 ms.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Tool definitions: render, validate, check, publish, learn",
+          "ref": "crates/richview-app/src/mcp.rs:11-43",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Tool list and contracts",
+          "ref": "docs/lockdown/parts/04c-features-surfaces.json (FEA-SF-09); docs/lockdown/parts/05-types.json (TYP-69)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Warm tool latency per fixture",
+          "ref": "docs/lockdown/evidence/performance/probe-mcp-latency.json",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "",
+      "images": []
+    },
+    {
+      "id": "PRF-13",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-EDITOR-RPC",
+      "group": "Render latency",
+      "title": "Editor preview call",
+      "question": "Keep the editor service's preview latency budgets?",
+      "why": "| p95, ms | 10-04 Linux | 10-12 Linux | 10-21 M4 | Limit |\n| --- | --- | --- | --- | --- |\n| small | 3.74 | 2.40 | 1.22 | 10 |\n| flagship | 37.2 | 46.8 | 19.5 | 50 |\n| dense | 352.2 | 298.4 | 114.0 | 400 |\n\nA fresh editor process per fixture, 100 sequential previews over stdin and stdout after 3 warm-ups, including serialization, pipe transfer and decode. On 2026-10-21 the cold first response took 372 ms for small, the editor binary's first launch in that capture, against 25 ms (flagship) and 109 ms (dense). Diagnostics, completion and formatting requests were never timed. ARC-44 moves the editor service to the Language Server Protocol, with renders coalesced to the latest edit. Replaces P-EDITOR-SMALL, P-EDITOR-FLAGSHIP and P-EDITOR-DENSE.",
+      "proposed": "If the editor service stays (ARC-44): warm `richview/preview` p95 on the reference host, small ≤ 10 ms, flagship ≤ 50 ms, dense ≤ 400 ms, including serialization, transfer and decode (unchanged). Diagnostics, completion and formatting requests get limits at 2× their first capture. The time from an edit to the painted preview is PRF-28's.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Limits 10 / 50 / 400 ms",
+          "ref": "docs/PERFORMANCE.md:9",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Scope excludes VS Code webview mount and paint (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L54",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "10-21 values and cold first responses",
+          "ref": "docs/lockdown/evidence/performance/harness-native.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Editor service on the Language Server Protocol with `richview/preview`",
+          "ref": "docs/lockdown/parts/03-architecture.json (ARC-44)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "VS Code extension cannot run headless on Claw Mini",
+          "ref": "docs/lockdown/screenshots/INDEX.md:446",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "Whether the editor service and the VS Code preview survive is decided by ARC-44 (C-RICHVIEW-EDITOR), FEA-SF-21 (D-VSCODE) and FEA-SF-23; these limits were set on today's stdin and stdout protocol.",
+      "images": []
+    },
+    {
+      "id": "PRF-14",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-HTTP-RENDER",
+      "group": "Render latency",
+      "title": "HTTP render API",
+      "question": "Keep the latency and throughput budgets for the server's render API?",
+      "why": "| Endpoint | 10-04 Linux | 10-12 Linux | 10-21 M4 | Limit |\n| --- | --- | --- | --- | --- |\n| one client, small p95 ms | 89.2 | 112.9 | 50.3 | 200 |\n| one client, dense p95 ms | 258.8 | 446.7 | 202.9 | 600 |\n| four clients, small p95 ms | 138.7 | 165.4 | 58.8 | 500 |\n| four clients, dense p95 ms | 377.1 | 608.9 | 287.1 | 1,500 |\n| four-client throughput, small req/s | 35.5 | 28.4 | 73.1 | ≥ 10 |\n| four-client throughput, dense req/s | 11.7 | 6.8 | 16.5 | ≥ 4 |\n\n`POST /api/render` with complete gzip responses on loopback, including client decode. Every response embeds the 2.1 MB runtime and the server gzips it per request: on 2026-10-21 the same renders without compression took 6.7 ms (small) and 109 ms (dense) p95, so compressing the embedded runtime is most of the cost. Replaces P-HTTP1-SMALL, P-HTTP1-DENSE, P-HTTP4-SMALL, P-HTTP4-DENSE, P-HTTP-TPUT-SMALL and P-HTTP-TPUT-DENSE.",
+      "proposed": "If the render API stays: complete gzip HTTP render on loopback on the reference host, total p95 with one client small ≤ 200 ms and dense ≤ 600 ms, with four clients ≤ 500 ms and ≤ 1,500 ms, and four-client throughput ≥ 10 and ≥ 4 requests/s (unchanged).",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Limits",
+          "ref": "docs/PERFORMANCE.md:10-12",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Method: 20 sequential and 40 four-client samples, gzip slower than identity on loopback (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L64-L73",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "10-21 gzip and identity rows",
+          "ref": "docs/lockdown/evidence/performance/harness-native.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Response compression layer",
+          "ref": "crates/richview-app/src/server.rs:64-133",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Drop `POST /api/render`",
+          "ref": "docs/lockdown/parts/04c-features-surfaces.json (FEA-SF-17)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "FEA-SF-17 proposes dropping `POST /api/render`; accepting it voids this budget.",
+      "images": []
+    },
+    {
+      "id": "PRF-15",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-HTTP-READ",
+      "group": "Render latency",
+      "title": "Serving a published report",
+      "question": "Should reading a published report have a latency budget?",
+      "why": "No budget covers reads. On 2026-10-21 (M4, 20 sequential requests) the flagship permalink `/r/:slug/v/:version` took 81 ms p95, 74 ms of it on the wire, because the server gzips the 4.35 MB file on every request; list, detail and raw source took 0.3–1.6 ms. On 2026-10-04 the permalink took 91.5 ms (`2c926b0`). Versioned permalinks already send `Cache-Control: public, max-age=31536000, immutable`, so a reader's repeat visit costs nothing; the first visit pays the compression.",
+      "proposed": "RichView's servers serve published reports (INT-31, INT-36). On loopback on the reference host, the flagship permalink's total p95 including client decode is ≤ 25 ms over 20 requests on RichView Cowork (INT-83), and list, detail and raw source stay ≤ 5 ms over 100 requests. A story's link-preview thumbnail (ARC-69, Daniel's INT-07 answer) is stored with its version and read like raw source, ≤ 5 ms over 100 requests; rendering it adds to a publish, and its limit is 2× its first capture, as for every unmeasured budget here (PRF-18).",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's INT-07 answer: every story with an address unfurls as a rich link preview with a designed thumbnail in its own style",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-07)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Daniel's INT-31 answer: the rewrite builds the core plus RichView Cowork and Publish (News is a Publish instance), scrollytelling, uploads and a managed hosting service; the LinkedIn carousel is dropped",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Permalink 91.546 ms including gzip transfer and decompression (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L75",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "10-21 storage reads: permalink total 81.0 ms, wire 73.8 ms, decode 7.1 ms",
+          "ref": "docs/lockdown/evidence/performance/harness-native.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Immutable cache header for versioned permalinks",
+          "ref": "crates/richview-app/src/server.rs:432-445",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Self-hostable server with immutable versions; no operated service",
+          "ref": "docs/lockdown/parts/01-intent.json (INT-36); docs/lockdown/parts/03-architecture.json (ARC-21)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "Today's 81 ms fails 25 ms. Passing needs each immutable version compressed once when it is stored instead of on every read, a change the store and host cards (ARC-21, ARC-24) do not propose yet.",
+      "images": []
+    },
+    {
+      "id": "PRF-16",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-PDF-EXPORT",
+      "group": "Render latency",
+      "title": "PDF export",
+      "question": "Should PDF export get a wall-time budget, now that Daniel's INT-31 answer lets it take time?",
+      "why": "PDF export had no measurement. Two saved three-run series on 2026-10-21 and 2026-10-22 (M4, Playwright's Chromium headless shell 153), `generate --to pdf`: small 0.26–0.58 s (a two-page PDF of about 120 KB), flagship 0.76–0.89 s (32 pages, about 1.46 MB); the first run of each series was the slowest. The richview process peaked at 23.2–23.3 MiB (small) and 31.9–32.3 MiB (flagship) footprint; the browser's memory is not included. With Google Chrome 155, which the CLI finds by default on Claw Mini, the same exports took 0.60–2.47 s and 1.19 s. Export verification (`scripts/verify-exports.mjs`) needs `qpdf`, which Claw Mini lacks.",
+      "proposed": "PDF export carries no absolute wall-time limit: Daniel's INT-31 answer lets the vector conversion take time, and the export does not have to be instant. The full capture (PRF-04), as part of DEL-33's PDF step, records `generate --to pdf` wall time for the small and flagship fixtures on the reference host with the pinned Playwright Chromium (median of 5 runs after one warm-up), including the vector conversion, browser start, fonts and the written file. It fails only when a run exceeds the settle timeout (FEA-SF-06) or the median more than doubles against the accepted baseline (PRF-05).",
+      "options": [
+        {
+          "label": "Recorded, with a regression bound",
+          "detail": "Slow exports stay allowed; a doubling between captures is caught and bisected."
+        },
+        {
+          "label": "Recorded only",
+          "detail": "No limit at all; an export can grow arbitrarily slower between captures without failing anything."
+        }
+      ],
+      "recommendation": "Recorded, with a regression bound: INT-31 accepts a slow export, not one that silently gets twice as slow.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's INT-31 answer: charts render with WebGL by default; only PDF export converts to vector, and may be slow",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "PDF export through a local Chromium over a CDP pipe",
+          "ref": "crates/richview-app/src/export_pdf.rs:16-18,404",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "PDF export kept with its pagination gate; one browser host service",
+          "ref": "docs/lockdown/parts/04b-features-report.json (FEA-RP-43); docs/lockdown/parts/03-architecture.json (ARC-30)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Timings, footprints and output sizes per run and browser",
+          "ref": "docs/lockdown/evidence/performance/pdf-export.json",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "verify-exports.mjs not run: `qpdf` missing on this host",
+          "ref": "docs/lockdown/evidence/checks-performance.md (Checks outside CI)",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "PDF export runs in the prod-candidate gate",
+          "ref": "docs/lockdown/parts/02-delivery.json (DEL-33)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "The CLI prints with whichever Chromium-family browser it finds (ARC-30), so readers' timings depend on their browser: up to 2.47 s for the small report with Google Chrome 155. The gate measures only the pinned browser, and needs `qpdf` installed before DEL-33 can verify exports.\n\nThis card's measurements are of today's path, where charts are already SVG; the vector conversion INT-31 asks for is unmeasured, and the earlier proposal of small ≤ 1.5 s and flagship ≤ 3 s is withdrawn under that answer.",
+      "images": []
+    },
+    {
+      "id": "PRF-17",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "P-NODE-BOUNDARY",
+      "group": "Render latency",
+      "title": "Node package boundary",
+      "question": "Does the Node boundary keep a harness once the Node packages leave?",
+      "why": "ARC-48, ARC-49 and FEA-SF-49 drop both npm packages. `scripts/benchmark-boundary.mjs` takes 49 s per capture and gates nothing. On 2026-10-21 (M4) dense render-to-JSON took 149.8 ms p95 and the Node process peaked at 571 MiB resident. On 2026-10-04 (Linux, `2c926b0`) it peaked at 468.8 MiB `VmHWM`, 3.7 % above the TypeScript sequence it replaced, which the record calls a regression.",
+      "proposed": "The boundary harness is deleted with the Node packages (ARC-48, ARC-49). If a generated package returns (FEA-SF-49), it gets budgets in the same change: dense render-to-JSON p95 ≤ 250 ms and Node peak footprint ≤ 512 MiB over the four-fixture sequence.",
+      "options": [
+        {
+          "label": "Delete with the packages",
+          "detail": "Follows ARC-48 and ARC-49; 49 s less per capture."
+        },
+        {
+          "label": "Keep as a disclosure",
+          "detail": "49 s per capture that nobody acts on, against PRF-06's rule that every harness feeds a budget."
+        }
+      ],
+      "recommendation": "Delete with the packages.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Boundary is a disclosure, not a gate",
+          "ref": "scripts/check-performance.py:305",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Node VmHWM 468.8 MiB, 3.7 % above TypeScript (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L86",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "Dense render-to-JSON p95 149.8 ms; peak RSS 585,184 KiB",
+          "ref": "docs/lockdown/evidence/performance/harness-boundary.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Node package facade and bindings",
+          "ref": "crates/richview-build/src/main.rs:120-226",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Both npm packages dropped; a package returns only for an outside consumer",
+          "ref": "docs/lockdown/parts/03-architecture.json (ARC-48, ARC-49); docs/lockdown/parts/04c-features-surfaces.json (FEA-SF-49)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "Today's 571 MiB peak fails the 512 MiB limit a returning package would get.",
+      "images": []
+    },
+    {
+      "id": "PRF-18",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-PUBLISH-SCALE",
+      "group": "Render latency",
+      "title": "Publish build at site scale",
+      "question": "What build-time budget comes with the rewrite's Publish?",
+      "why": "S27-655 accepts 'a correct bounded full build' for hundreds of items and records 300 varied fixtures passing, without a time. Publish exists today as PR #70's code, merged into `main` as it is on 2026-10-26 (INT-35, INT-52), while the rewrite carries over its behaviour, not its code; Daniel's INT-31 answer builds Publish in the rewrite, with RichView News as its first instance.",
+      "proposed": "The rewrite's Publish (INT-31, INT-35) carries this budget: the reference capture measures a 300-item full build and a one-item update, their limits are 2× the first capture, and both gate like the rest from the first release run that builds a publication. A one-item update does not rebuild unchanged items. RichView makes no site-scale claim before the first capture.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "Daniel's INT-31 answer: the rewrite builds the core plus RichView Cowork and Publish (News is a Publish instance), scrollytelling, uploads and a managed hosting service; the LinkedIn carousel is dropped",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's INT-35 answer: Publish is a full member of the family and part of the rewrite; PR #70 is merged into `main` (2026-10-26); Publish and Cowork share one internal server core",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-35)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's INT-52 answer: RichView stays Rust; Publish and News (PR #70) are merged now as they are, and the rewrite carries over what Publish strives for, not its code",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-52)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Hundreds of items; bounded full build acceptable for v1; 300 fixtures passed",
+          "ref": "S27-655",
+          "date": "2026-10-18"
+        },
+        {
+          "label": "Publish caps: 1,000 items, 20 MiB per object, 256 MiB per release",
+          "ref": "docs/lockdown/parts/04d-features-branches.json (FEA-BR-29)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "RichView Publish branch",
+          "ref": "PR #70",
+          "date": "2026-10-18"
+        },
+        {
+          "label": "Publish is a later sibling; PR #70 is never merged",
+          "ref": "docs/lockdown/parts/01-intent.json (INT-35); docs/lockdown/parts/08-open-work.json (OPN-14)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "#70 rebuilds every item on each change, a bounded full build (FEA-BR-29), so the one-item rule is new work rather than a port (INT-49).",
+      "images": []
+    },
+    {
+      "id": "PRF-19",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-CHART-KERNEL",
+      "group": "Render latency",
+      "title": "Chart kernel",
+      "question": "Does the chart-kernel benchmark become a budget instead of a disclosure?",
+      "why": "`cargo run --release -p richview-chart --example benchmark` measures native CSV ingestion, scene layout over 100 viewports at 390 and 1,280 px, and nearest-observation hover on the Keeling (822 rows), CPI (836 rows) and grid (35,040 rows × 4 series) data; it excludes the DOM, Wasm start and source parsing. It is a disclosure (`richview-chart/README.md:81`) and was not run in the 2026-10-21 capture. Lockdown run on 2026-10-22 (M4, load 2.7–3.1, 6 runs after a warm-up):\n\n| Workload | 10-04 Linux (`2c926b0`) | 10-22 M4 |\n| --- | --- | --- |\n| grid ingestion, median ms | 21.5 | 13.2–13.6 |\n| grid layout p95 at 390 / 1,280 px, ms | 0.79 / 1.16 | 0.80–0.84 / 0.99–1.02 |\n| Keeling and CPI layout p95, ms | not recorded | 0.10–0.27 |\n| hover median, ms | under 0.003 | 0.0006–0.0021 |\n\nInstruction counts varied by 0.03 % across the 6 runs. On 2026-10-04 the kernel was 24.7–28.1 % slower in grid layout and 23.2 % (grid) and 64.5 % (Keeling) slower in ingestion than the archived Rust preview, disclosed and never gated.",
+      "proposed": "The kernel benchmark joins the release-run set (PRF-04). On the reference host, median over the PRF-05 runs: grid ingestion ≤ 30 ms; layout p95 ≤ 2 ms for the grid and ≤ 0.5 ms for Keeling and CPI, at 390 and 1,280 px; hover median ≤ 0.01 ms. PRF-05's instruction-count margin applies to the whole benchmark. The comparison with the archived preview is retired (PRF-06).",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Benchmark example: committed CSVs, 100 distinct layouts, no SVG or DOM work",
+          "ref": "richview-chart/examples/benchmark.rs:1-2",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Kernel benchmark exists as a disclosure",
+          "ref": "richview-chart/README.md:81",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "10-04 ingestion, layout and hover values (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L39",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "Layout 24.7–28.1 % and ingestion 23.2 % and 64.5 % slower than the archived preview (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L50",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "Not run in the 2026-10-21 capture",
+          "ref": "docs/lockdown/evidence/checks-performance.md (Benchmarks and performance harness)",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Seven runs with time -l and the example's JSON",
+          "ref": "docs/lockdown/evidence/performance/probe-kernel-benchmark.json",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "The limits rest on one M4 series from 2026-10-22; the 2026-10-04 values come from another host and are shown for orientation only.",
+      "images": []
+    },
+    {
+      "id": "PRF-20",
+      "kind": "performance",
+      "importance": "important",
+      "refId": "P-ZOOM",
+      "group": "Browser interaction",
+      "title": "Dense zoom response",
+      "question": "Tighten the dense zoom budget from a whole 60 Hz frame to half of one?",
+      "why": "| p95, ms | 10-04 Linux | 10-12 Linux | 10-21 M4 | Limit |\n| --- | --- | --- | --- | --- |\n| Rust layout + DOM | 3.9 | 8.7 | 4.5 | 16 |\n| event to two animation frames | 50.2 | 51.4 | 54.6 | 100 |\n\n100 keyboard zoom steps on the dense `/charts/` grid with reduced motion, so each step is an instant relayout. The 16 ms limit equals a whole 60 Hz frame and leaves the browser no time for style, paint and composite; at 120 Hz a frame lasts 8.3 ms. ARC-40 drops `/charts/`; the grid becomes a docs gallery example (PRF-07). Replaces P-ZOOM-LAYOUT and P-ZOOM-FRAMES.",
+      "proposed": "Dense zoom on the grid fixture, desktop profile with reduced motion as today, 100 keyboard steps: Rust layout plus drawing (WebGL updates, and DOM writes for any text overlay) p95 ≤ 8 ms (was 16 ms), and input event to two animation frames p95 ≤ 100 ms (unchanged). Animated zoom with motion on is PRF-21's.",
+      "options": [
+        {
+          "label": "8 ms",
+          "detail": "Fits half a 60 Hz frame or a whole 120 Hz frame; 44 % headroom on the M4."
+        },
+        {
+          "label": "16 ms",
+          "detail": "Today's limit; a step can take the whole frame and still pass."
+        }
+      ],
+      "recommendation": "8 ms.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's INT-31 answer: charts render with WebGL by default; only PDF export converts to vector, and may be slow",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Limits 16 / 100 ms",
+          "ref": "docs/PERFORMANCE.md:13",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "'Layout must fit a 60 Hz frame' (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L123",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "10-04 values",
+          "ref": "https://github.com/1vecera/richview/blob/faff365/docs/evidence/integration/performance/gates.json",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "10-12 values",
+          "ref": "docs/evidence/chart-review/verification.json",
+          "date": "2026-10-12"
+        },
+        {
+          "label": "10-21 values",
+          "ref": "docs/lockdown/evidence/performance/harness-gates.json; docs/lockdown/evidence/performance/harness-browser.json",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "The 2026-10-12 Linux capture (8.7 ms) would fail the tighter limit; the reference host measures 4.5 ms. The endpoint moves with the grid from `/charts/` to the docs gallery (ARC-40).\n\nThe 4.5 ms and 8.7 ms values were measured with SVG DOM writes; under Daniel's INT-31 answer drawing is WebGL work, unmeasured, and its timing depends on the GPU path (PRF-24).",
+      "images": [
+        "docs/lockdown/screenshots/product/charts/charts-desktop-full.jpg"
+      ]
+    },
+    {
+      "id": "PRF-21",
+      "kind": "performance",
+      "importance": "important",
+      "refId": "P-CHART-FRAME",
+      "group": "Browser interaction",
+      "title": "Script per animated frame",
+      "question": "How much script may each frame of a chart transition, entrance or animated zoom take, with motion on?",
+      "why": "No gate measures animated frames: the browser harness runs with reduced motion, and the design-review pacing tool fails before measuring (`scripts/design-review/pacing.mjs:43,107`). `docs/MOTION.md:83` states a transition budget nobody checks. Lockdown probes on 2026-10-21 (M4, load 2.1–4.2), animated range presets on `/charts/`, Rust layout and DOM writes per frame, p95: 0.9 ms (Keeling, 822 rows) and 3.0 ms (grid) at 1× CPU and 3.1 and 12.9 ms at 4× in Chromium; 3 and 6 ms at 1× in WebKit, at most 13 ms. Animated zoom produced only 6 frames per run, too few for a p95; its slowest frames took 5.1 ms (Keeling) and 5.8 ms (grid) at 1×.",
+      "proposed": "With motion on, script per frame (Rust layout, WebGL buffer updates and draw calls, and DOM writes for any text overlay) during chart transitions, entrances and animated zoom is p95 ≤ 4 ms and never over 16.7 ms for charts up to 1,000 rows, and p95 ≤ 8 ms at 1× and ≤ 16 ms at 4× CPU for the grid fixture, in Chromium at 1× and 4× and in WebKit at 1×. A maintained pacing probe in the performance harness measures it, with at least 20 frames per transition type.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's INT-12 answer: animation is delightful and smooth, Studio Ghibli whimsy with the polish of Apple's website animations; motion that explains and gives pleasure belongs to the craft (floor INT-61)",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-12)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Daniel's INT-31 answer: charts render with WebGL by default; only PDF export converts to vector, and may be slow",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Chromium: automatic SwiftShader fallback for WebGL is deprecated; without a usable GPU, WebGL context creation fails unless `--enable-unsafe-swiftshader` is passed; “Chromium and other browsers do not guarantee WebGL availability”",
+          "ref": "https://chromium.googlesource.com/chromium/src/+/main/docs/gpu/swiftshader.md",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "'at most 4 ms of script per frame (p95) and no frame over 16.7 ms, including with 4× CPU throttling'",
+          "ref": "docs/MOTION.md:83",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Full-year frames median 1.2–1.6 ms, p95 3.7–4.6 ms (prototype)",
+          "ref": "S27-572",
+          "date": "2026-10-02"
+        },
+        {
+          "label": "Pacing tool defects: headless shell rejects `chrome://gpu`; `view` read inside `page.evaluate`",
+          "ref": "scripts/design-review/pacing.mjs:43,107",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Range-preset transitions in Chromium at 1× and 4×",
+          "ref": "docs/lockdown/evidence/performance/probe-preset-pacing.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Range-preset transitions in WebKit 26.6",
+          "ref": "docs/lockdown/evidence/performance/probe-preset-pacing-webkit.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Animated zoom frames",
+          "ref": "docs/lockdown/evidence/performance/probe-zoom-pacing.json",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "`docs/MOTION.md:83` sets the transition budget for three 24-point series; this card applies it to every chart up to 1,000 rows. Keeling's slowest animated-zoom frame (5.1 ms) is over the 4 ms p95; it fails the card if more than one frame in 20 is that slow. Frame pacing is PRF-27's and page-load frames PRF-26's. These budgets are the smoothness floor (INT-61), not the craft bar: Daniel's INT-12 answer asks for animation that is delightful and smooth, Studio Ghibli whimsy with the polish of Apple's website animations, which a review agent judges on each design change; a budget may be raised when that craft needs it, with the trade recorded (INT-17).\n\nEvery probe above measured SVG DOM writes. Under Daniel's INT-31 answer the frame cost is WebGL work, unmeasured, and GPU time is not script time; headless Chromium gets WebGL only from a GPU or, with `--enable-unsafe-swiftshader`, from a software rasteriser, so each probe names its GPU path (PRF-24).",
+      "images": [
+        "docs/lockdown/screenshots/product/charts/charts-desktop-full.jpg"
+      ]
+    },
+    {
+      "id": "PRF-22",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-THEME-SWITCH",
+      "group": "Browser interaction",
+      "title": "Theme and style switch",
+      "question": "Merge the two theme-switch endpoints into one and keep 100 ms?",
+      "why": "18-chart flagship, 20 warm switches. The first-all-charts and latest-after-two-frames p95 were identical in every capture: 58.9 ms (10-04 Linux), 202.9 ms (10-12 Linux, both failing) and 44.4 ms (10-21 M4), so two endpoints count one measurement twice. 2026-10-21 disclosures: combined Rust and DOM work p95 15.9 ms; event to two animation frames p95 86.8 ms. Replaces P-THEME-FIRST and P-THEME-LATEST.",
+      "proposed": "A warm theme or style switch on the 9-chart flagship, desktop profile with reduced motion as today, 20 switches: event to every chart's first new frame p95 ≤ 100 ms.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Limits 100 / 100 ms",
+          "ref": "docs/PERFORMANCE.md:14",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "'A multi-chart theme switch should stay visibly responsive' (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L124",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "10-21 theme rows",
+          "ref": "docs/lockdown/evidence/performance/harness-browser.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "10-12 values",
+          "ref": "docs/evidence/chart-review/verification.json",
+          "date": "2026-10-12"
+        }
+      ],
+      "conflicts": "",
+      "images": [
+        "docs/lockdown/screenshots/product/showcase/showcase-sleek-desktop-viewport.jpg"
+      ]
+    },
+    {
+      "id": "PRF-23",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-EDIT",
+      "group": "Browser interaction",
+      "title": "Small edit to live chart",
+      "question": "What latency must a small edit in the playground meet before its chart is live again?",
+      "why": "| p95 of 20 edits, ms | 10-04 Linux | 10-12 Linux | 10-21 M4 | Limit |\n| --- | --- | --- | --- | --- |\n| small edit to first live chart | 162.9 | **416.5** | 148.9 | 300 |\n\nBold fails. The playground debounces 32 ms, and every edit replaces the preview document and remounts the runtime. The landing page promises 'Edit the source and the report follows as you type'. The large-source edit is PRF-29's; the CSV edit in the `/charts/` editor, recorded twice as a disclosure (35.2 and 40.5 ms to the first frame), goes with that page (ARC-40, FEA-SF-44). Replaces P-EDIT-SMALL.",
+      "proposed": "In the playground on the desktop profile with reduced motion as today: a small source edit reaches its first live chart in p95 ≤ 200 ms over 20 edits (was 300 ms).",
+      "options": [
+        {
+          "label": "200 ms",
+          "detail": "Today's p95 is 148.9 ms and its maximum 149.3 ms; closer to 'as you type'."
+        },
+        {
+          "label": "Keep 300 ms",
+          "detail": "More headroom; a 50 % slowdown would pass unnoticed by the absolute limit."
+        }
+      ],
+      "recommendation": "200 ms.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Limit 300 ms",
+          "ref": "docs/PERFORMANCE.md:15",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "32 ms debounce before rendering",
+          "ref": "crates/richview-web/src/browser/authoring.rs:523",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Small edit median 135.2 ms, p95 148.9 ms, maximum 149.3 ms; CSV edit first frame 40.5 ms",
+          "ref": "docs/lockdown/evidence/performance/harness-browser.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Direct 1.61 MB CSV edit: first Rust frame 35.2 ms, a disclosure",
+          "ref": "https://github.com/1vecera/richview/blob/faff365/docs/evidence/integration/performance/browser.json",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "'Edit the source and the report follows as you type'",
+          "ref": "assets/landing/index.html:91",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "/charts/ and its editor are dropped",
+          "ref": "docs/lockdown/parts/03-architecture.json (ARC-40); docs/lockdown/parts/04c-features-surfaces.json (FEA-SF-44)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "",
+      "images": [
+        "docs/lockdown/screenshots/product/playground/playground-desktop-default.jpg"
+      ]
+    },
+    {
+      "id": "PRF-24",
+      "kind": "decision",
+      "importance": "important",
+      "refId": "P-ENGINES",
+      "group": "Browser interaction",
+      "title": "Browser engines with timing budgets",
+      "question": "Which browser engines must meet the timing budgets, and in which capture?",
+      "why": "Every timing so far comes from Chromium; WebKit and Firefox run functional suites only, and Firefox is not installed on Claw Mini. Every iPhone browser uses WebKit. Lockdown probe on 2026-10-21 (WebKit 26.6, M4, load 2.1–2.6), the PRF-21 transitions at 1×: script per frame p95 3 ms (Keeling) and 6 ms (grid), at most 13 ms, and one frame interval over 25 ms (31 and 38 ms) in each run, which Chromium never showed. WebKit's clock has 1 ms resolution, and Playwright cannot throttle its CPU or network.",
+      "proposed": "The frame budgets at 1× CPU (PRF-21, PRF-27) and the layout-shift budget (PRF-35) hold in Chromium and WebKit, both pinned through Playwright. Chromium runs in the release run; WebKit runs in the full run, daily and at each prod candidate (PRF-04), and in the release run when the batch changes motion (DEL-30). Throttled profiles run in Chromium only. Firefox runs the functional suites and carries no timing budget.",
+      "options": [
+        {
+          "label": "Chromium and WebKit",
+          "detail": "Covers desktop Chrome and every iPhone reader; WebKit already shows an occasional late frame."
+        },
+        {
+          "label": "Chromium only",
+          "detail": "One engine to tune; iPhone smoothness unverified."
+        },
+        {
+          "label": "All three engines",
+          "detail": "Matches the browsers ARC-05 says must work; Firefox is not installed on the reference host yet (DEL-07) and carries the smallest reader share."
+        }
+      ],
+      "recommendation": "Chromium and WebKit.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's ARC-05 answer: all in on WebGL for high performance with many points; recent Safari, Firefox and Chrome must work; without JavaScript or WebGL the chart's frame shows a notice; no snapshot, image or table fallback",
+          "ref": "docs/lockdown/answers/03-architecture.json (ARC-05)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's INT-31 answer: charts render with WebGL by default; only PDF export converts to vector, and may be slow",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Chromium: automatic SwiftShader fallback for WebGL is deprecated; without a usable GPU, WebGL context creation fails unless `--enable-unsafe-swiftshader` is passed; “Chromium and other browsers do not guarantee WebGL availability”",
+          "ref": "https://chromium.googlesource.com/chromium/src/+/main/docs/gpu/swiftshader.md",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "WebKit transition frames",
+          "ref": "docs/lockdown/evidence/performance/probe-preset-pacing-webkit.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Firefox loop not run; browser not installed",
+          "ref": "docs/lockdown/evidence/checks-performance.md (Run context; Gaps)",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Motion evidence in Chromium and WebKit",
+          "ref": "S27-653",
+          "date": "2026-10-18"
+        },
+        {
+          "label": "WebKit outside the dev gate, in the prod-candidate gate; filmstrips for motion PRs",
+          "ref": "docs/lockdown/parts/02-delivery.json (DEL-08, DEL-30, DEL-33)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "A short WebKit probe on every merge",
+          "ref": "docs/lockdown/parts/02-delivery.json (DEL-51)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "WebKit fails PRF-27 today (one 31 ms and one 38 ms frame interval). DEL-08 keeps WebKit out of the dev gate and DEL-33 runs it at prod candidate, as this card does, and DEL-81 keeps every browser run out of the fast gate; DEL-51 adds a short WebKit probe to every merge, which this card does not. Cross-part contradiction: answer OPN-50 first; it decides this card's conflict.\n\nUnder Daniel's INT-31 answer chart timings depend on the WebGL path: headless Chromium gets WebGL only from a GPU or, with `--enable-unsafe-swiftshader`, from a software rasteriser whose timings are not a reader's, and WebGL under Playwright's WebKit on the reference host is unverified. Each timing run names its GPU path, or its numbers do not compare.\n\nDaniel's ARC-05 answer requires recent Safari, Firefox and Chrome to work and asks for very high performance with many points. This card still puts timing budgets on Chromium and WebKit only; Firefox is proven functionally (DEL-74). The third option follows ARC-05's browser list more closely.",
+      "images": []
+    },
+    {
+      "id": "PRF-25",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-INTERACTION",
+      "group": "Browser interaction",
+      "title": "Hover, toggle, table and chart actions",
+      "question": "What response must chart interactions other than zoom and theme meet?",
+      "why": "`docs/MOTION.md:40` promises that the crosshair and hover dot snap to the nearest observation on the next frame. Series toggle (FEA-CH-33), Table view (FEA-CH-45), the expanded view (FEA-CH-44) and the chart action row (FEA-CH-43) respond to a click, tap or key. None has a browser measurement: only the native kernel is timed, where nearest-observation hover takes under 0.003 ms (PRF-19), without DOM writes or paint. The grid's Table view holds 35,040 rows.",
+      "proposed": "On the desktop profile with motion on, at 1× CPU: over 100 pointer moves on the grid and the flagship, the first animation frame after a move shows the crosshair and readout at the new observation in at least 95 % of moves. Series toggle, Table view, expanded view and every chart action show their first changed frame within 100 ms p95 over 20 events, and the grid's Table view within 200 ms.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Crosshair and hover dot 'snap to the nearest observation on the next frame'",
+          "ref": "docs/MOTION.md:40",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Data update, series toggle and zoom timings",
+          "ref": "docs/MOTION.md:55-57",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Legend, chart actions, expanded view and Table view",
+          "ref": "docs/lockdown/parts/04a-features-chart.json (FEA-CH-33, FEA-CH-39, FEA-CH-43, FEA-CH-44, FEA-CH-45)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Kernel hover under 0.003 ms median (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L39",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "Kernel hover 0.0006–0.0021 ms median",
+          "ref": "docs/lockdown/evidence/performance/probe-kernel-benchmark.json",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "Unmeasured today; the first capture confirms the limits.",
+      "images": [
+        "docs/lockdown/screenshots/product/interactions/interaction-hover-readout-line.jpg",
+        "docs/lockdown/screenshots/product/interactions/interaction-table-action-bar.jpg"
+      ]
+    },
+    {
+      "id": "PRF-26",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-LOAD-FRAMES",
+      "group": "Browser interaction",
+      "title": "Long frames while a page loads",
+      "question": "How long may the main thread block while a report or site page loads, on the desktop and on a phone?",
+      "why": "`docs/MOTION.md:83` sets 'no long animation frame over 50 ms at 1× CPU' as the load target and says the flagship exceeds it; nothing sets a phone limit. Lockdown probes on 2026-10-21 and 2026-10-22 (M4, Chromium 153), longest animation frame per load:\n\n| Page | Desktop, 1× | Phone profile, 4× CPU |\n| --- | --- | --- |\n| small report | 0 | 578–585 ms |\n| flagship report | 0–55 ms | 551–552 ms |\n| `/charts/` | 64–74 ms | 240–267 ms |\n| landing | 0–104 ms | 520–526 ms |\n| playground | 0–99 ms | 92–95 ms |\n\nA 0 means no frame over 50 ms, the shortest the browser reports as long. The desktop maxima of 55, 99 and 104 ms came from the first load after the browser started. On the phone profile a tap during the long frame waits over half a second.",
+      "proposed": "From navigation until the page is settled, no long animation frame exceeds 50 ms on the desktop profile and 200 ms on the phone profile, for the small and flagship reports, the landing page, the playground and the docs chart gallery (median of 5 loads, no load over 1.5× the limit).",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Load target 'no long animation frame over 50 ms at 1× CPU'; the flagship exceeds it",
+          "ref": "docs/MOTION.md:83",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Reports and /charts/ on both profiles",
+          "ref": "docs/lockdown/evidence/performance/probe-first-paint.json; docs/lockdown/evidence/performance/probe-charts-mobile.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Landing on both profiles",
+          "ref": "docs/lockdown/evidence/performance/probe-landing.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Playground on both profiles",
+          "ref": "docs/lockdown/evidence/performance/probe-playground-cold.json",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "Today the phone profile fails for both reports (551–585 ms) and the landing page (520–526 ms), and `/charts/` fails on both profiles; `docs/MOTION.md:83` already records the flagship's desktop overrun.",
+      "images": []
+    },
+    {
+      "id": "PRF-27",
+      "kind": "performance",
+      "importance": "important",
+      "refId": "P-FRAME-PACING",
+      "group": "Browser interaction",
+      "title": "Frame pacing in motion and scrolling",
+      "question": "May a frame arrive late while charts animate or a page scrolls?",
+      "why": "Daniel rejected the 2026-10-18 site because 'mobile scroll animations look jumpy/weird with visible ticking' (S27-653); scroll pacing has never been measured. Lockdown probes on 2026-10-21, animated range presets on `/charts/`: no frame interval over 25 ms in Chromium at 1× and 4× CPU (at most 16.8 ms over about 400 frames per run), but one interval of 31 ms (Keeling) and 38 ms (grid) in each WebKit run. `b4db233` has no landing scroll motion; live richview.ai runs PR #69's restored scroll story, which STY-44 and FEA-BR-21 hold back until it is smooth.",
+      "proposed": "With motion on, no animation frame interval exceeds 25 ms during a chart transition, entrance or animated zoom, or while a report scrolls at 2 px/ms in either direction, on the desktop and phone profiles in Chromium and at 1× in WebKit. If the landing keeps a scroll story (STY-44), the same rule covers its scroll on the build that carries it. The pacing probe of PRF-21 measures it.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's INT-12 answer: animation is delightful and smooth, Studio Ghibli whimsy with the polish of Apple's website animations; motion that explains and gives pleasure belongs to the craft (floor INT-61)",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-12)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Daniel's INT-31 answer: charts render with WebGL by default; only PDF export converts to vector, and may be slow",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "'mobile scroll animations look jumpy/weird with visible ticking'",
+          "ref": "S27-653",
+          "date": "2026-10-18"
+        },
+        {
+          "label": "Chromium transitions: no interval over 25 ms",
+          "ref": "docs/lockdown/evidence/performance/probe-preset-pacing.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "WebKit transitions: one interval of 31 and 38 ms",
+          "ref": "docs/lockdown/evidence/performance/probe-preset-pacing-webkit.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Landing motion ships only after the real-phone bar",
+          "ref": "docs/lockdown/parts/06-styles.json (STY-44); docs/lockdown/parts/04d-features-branches.json (FEA-BR-21)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Filmstrips and frame pacing for motion PRs",
+          "ref": "docs/lockdown/parts/02-delivery.json (DEL-30)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "WebKit fails today (31 and 38 ms). On the phone profile, pacing runs at 4× CPU in Chromium only; a real phone is PRF-09's. No late frame is part of the craft Daniel's INT-12 answer sets (delightful and smooth animation), so this rule is the floor under it (INT-61), not its limit.\n\nThese values come from SVG charts; under Daniel's INT-31 answer pacing depends on WebGL drawing and the GPU path, unmeasured (PRF-21, PRF-24).",
+      "images": []
+    },
+    {
+      "id": "PRF-28",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-PREVIEW-LIVE",
+      "group": "Browser interaction",
+      "title": "Edit to preview outside the playground",
+      "question": "How soon must an edit show in `serve`, the VS Code preview and the landing demo?",
+      "why": "Each surface promises speed, and none is measured. `richview serve` reloads 'within a second' (FEA-SF-08) through a 500 ms poll. The VS Code preview renders 150 ms after the last change and lints after 250 ms; its webview mount and paint were never measured. The landing demo re-renders 140 ms after typing stops (FEA-SF-29). PRF-13 times only the editor's preview call, and PRF-23 only the playground.",
+      "proposed": "On the desktop profile, small fixture, p95 of 20 edits from the last keystroke (for `serve`, from the file write) to the first painted frame of the updated preview: VS Code preview ≤ 400 ms, landing demo ≤ 400 ms, `serve` ≤ 1,000 ms. The VS Code preview is measured by loading the editor service's preview HTML in Playwright Chromium, so no headless VS Code is needed.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "serve reloads within a second",
+          "ref": "docs/lockdown/parts/04c-features-surfaces.json (FEA-SF-08)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "500 ms revision poll, then reload",
+          "ref": "crates/richview-web/src/browser/authoring.rs:1276-1278",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Lint 250 ms and preview 150 ms after a change",
+          "ref": "packages/vscode/extension.cjs:144,188",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "VS Code webview mount and paint excluded from every capture (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L54",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "Landing demo renders 140 ms after typing stops; preview keeps the last good render",
+          "ref": "docs/lockdown/parts/04c-features-surfaces.json (FEA-SF-23, FEA-SF-29)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "VS Code extension cannot run headless on Claw Mini",
+          "ref": "docs/lockdown/screenshots/INDEX.md:446",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "Applies only to surfaces that stay (FEA-SF-08, FEA-SF-23, FEA-SF-29). The limits sit on top of today's debounces and have no capture yet.",
+      "images": []
+    },
+    {
+      "id": "PRF-29",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-EDIT-LARGE",
+      "group": "Browser interaction",
+      "title": "Large-source edit and main-thread blocking",
+      "question": "What must an edit to a 2 MB source meet, and may it block the main thread?",
+      "why": "| One event, ms | 10-04 Linux | 10-12 Linux | 10-21 M4 | Limit |\n| --- | --- | --- | --- | --- |\n| large-source edit to first live chart | 602.3 | **2,011.5** | 547.4 | 1,000 |\n\nThe 2.03 MB inline-YAML dense source in the playground, with reduced motion; bold fails. Rendering runs in a worker, yet during the 2026-10-21 edit the main thread was blocked twice for 57 ms and missed a 16 ms heartbeat for 103.7 ms, so typing stutters while the edit renders. Replaces P-EDIT-DENSE.",
+      "proposed": "In the playground on the desktop profile with reduced motion, the large-source edit reaches its first live chart in ≤ 1,000 ms (median of 5, no repeat over 1.5 s), and no main-thread task during it exceeds 50 ms.",
+      "options": [
+        {
+          "label": "1,000 ms and a 50 ms task cap",
+          "detail": "Typing stays responsive during big edits; fails today by 7 ms, twice."
+        },
+        {
+          "label": "1,000 ms and a 100 ms task cap",
+          "detail": "Passes today; a 100 ms freeze is visible while typing."
+        },
+        {
+          "label": "1,000 ms only",
+          "detail": "Today's rule; main-thread blocking stays unmeasured."
+        }
+      ],
+      "recommendation": "1,000 ms and a 50 ms task cap: rendering already runs in a worker, so a 57 ms task is main-thread work that can be split or moved.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Limit 1,000 ms",
+          "ref": "docs/PERFORMANCE.md:16",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Long tasks 57 ms and 57 ms; heartbeat gap 103.7 ms; first live chart 547.4 ms",
+          "ref": "docs/lockdown/evidence/performance/harness-browser.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "10-04 value",
+          "ref": "https://github.com/1vecera/richview/blob/faff365/docs/evidence/integration/performance/gates.json",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "10-12 value",
+          "ref": "docs/evidence/chart-review/verification.json",
+          "date": "2026-10-12"
+        }
+      ],
+      "conflicts": "Today's two 57 ms tasks fail the 50 ms cap.",
+      "images": []
+    },
+    {
+      "id": "PRF-30",
+      "kind": "performance",
+      "importance": "important",
+      "refId": "P-WASM-GZIP",
+      "group": "Load, size and first paint",
+      "title": "Site runtime payload",
+      "question": "What may a site page download before it can render: the site runtime, its JavaScript and the font catalog?",
+      "why": "Today's limit covers only `richview_web_bg.wasm`. Delivered gzip bytes against 1,572,864: 1,467,850 (2026-10-04, `2c926b0`), 1,542,659 (`faff365`), 1,601,334 (PR #22, merged 2026-10-11 over the limit), 1,404,354 (2026-10-12) and 1,520,124 (2026-10-21, 96.6 %, 3.4 % headroom). On 2026-10-04 the font catalog was compiled into that module; on 2026-10-11, after beb330f enlarged the bundled faces, 767d0fe moved it into `richview-fonts.css`, so the Wasm fit again while the catalog left the budget. A site page now loads 1,845,971 B after gzip -9: Wasm 1,505,839, catalog 325,353, JavaScript 14,779. Raw, the module is 4,366,342 B: 72 % code, 27 % data. Live richview.ai (PR #69 build) serves its runtime as about 1.40 MB Brotli. Replaces P-WASM-SIZE.",
+      "proposed": "Everything a site page loads before it renders with the site runtime (ARC-06): the Wasm module, its JavaScript and the font catalog, built for production, total ≤ 1.875 MiB (1,966,080 B) after gzip -9 of the built files; Brotli sizes are recorded. A release run whose build crosses 90 % puts a warning in the review packet. The limit is raised only when visual and motion craft needs it, with the trade recorded in the change description (INT-17) and held for Daniel like any budget change (PRF-04, DEL-36); any other growth past it is paid for by removing code or bytes. The report runtime has its own budget (PRF-31).",
+      "options": [
+        {
+          "label": "Whole payload, 1.875 MiB",
+          "detail": "Counts the catalog again; today 93.9 %."
+        },
+        {
+          "label": "Whole payload, 1.5 MiB",
+          "detail": "The original limit with its original scope; fails today by about 273 KB, which per-style catalogs or a smaller site runtime would have to remove."
+        },
+        {
+          "label": "Wasm only, 1.5 MiB",
+          "detail": "Today's rule; the 318 KiB catalog and the JavaScript stay unbudgeted."
+        }
+      ],
+      "recommendation": "Whole payload, 1.875 MiB: it closes the gap the catalog move opened without pretending today's payload fits 1.5 MiB.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's INT-17 answer: visual and motion craft wins; footprint, file size and speed yield, and a size or speed budget may be raised for craft with the trade recorded; RichView is feature-complete and always works",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-17)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Limit; Wasm built at opt-level s 'to stay within the unchanged transfer budget'",
+          "ref": "docs/PERFORMANCE.md:19,25",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "1,467,850 B delivered gzip; 'cache reuse remains required' (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L105",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "1,542,659 B delivered gzip",
+          "ref": "https://github.com/1vecera/richview/blob/faff365/docs/evidence/integration/performance/browser.json",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "Over budget with fonts compiled in",
+          "ref": "S27-616",
+          "date": "2026-10-11"
+        },
+        {
+          "label": "'Current combined Wasm is 1,601,334 bytes gzip'",
+          "ref": "PR #22",
+          "date": "2026-10-11"
+        },
+        {
+          "label": "Font catalogs delivered to Wasm hosts instead of compiled in",
+          "ref": "767d0fe",
+          "date": "2026-10-11"
+        },
+        {
+          "label": "Built file sizes, gzip -9, and live Brotli and cache headers",
+          "ref": "docs/lockdown/evidence/performance/probe-sizes.json",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Delivered gzip 1,520,124 B",
+          "ref": "docs/lockdown/evidence/performance/harness-browser.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Site runtime and report runtime",
+          "ref": "docs/lockdown/parts/03-architecture.json (ARC-06, ARC-36)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "ARC-06 names this module the site runtime and ARC-36 gives the editor preview the report runtime, so this budget covers site pages only (playground, landing, docs, showcase).",
+      "images": []
+    },
+    {
+      "id": "PRF-31",
+      "kind": "decision",
+      "importance": "important",
+      "refId": "P-RUNTIME-DELIVERY",
+      "group": "Load, size and first paint",
+      "title": "Report runtime size and delivery",
+      "question": "How large may the report runtime be, and how do exported and hosted reports load it?",
+      "why": "Every report embeds the same 2,137,024-byte base64 runtime: 90 % of the small offline report (2,370,813 B). Next to the chart engine it exports the parser, renderer, validator, checker, knowledge bundle, publish-request builder and reel, and its data section carries a 66 KB HTML entity table and font licence texts. Inline base64 is neither cached across reports nor compiled while streaming. On the phone profile the small report paints text in 0.75 s but its chart turns live at 8.2 s (2026-10-21). ARC-06 splits off a report runtime without authoring code; the archived chart-only preview module was 202,298 B after gzip (recorded 2026-10-04), before nine chart types, motion and tables.",
+      "proposed": "The report runtime (ARC-06) is ≤ 512 KiB after gzip -9 of the built module and its JavaScript. Exported reports embed it (INT-04, FEA-RP-38). A report host serves it once from a content-hashed URL with immutable caching, so a reader's second hosted report costs only its HTML (INT-04, ARC-06, ARC-24); trusted previews link their host's copy (ARC-06).\n\nOpen question for Daniel: whether 512 KiB still holds now that his INT-31 answer adds a WebGL renderer, its shaders and the text rendering it needs (FEA-CH-30) to this runtime. Options: keep 512 KiB and choose the WebGL stack to fit it (ARC-18); or build a WebGL prototype first and set the limit from its measured size; Daniel's INT-17 answer lets a size budget rise when craft needs it, with the trade recorded. Nothing has been measured: raw WebGL2 calls from Rust through `web-sys` add the thinnest layer, `wgpu` brings its own abstraction and shader translation, and glyph data for text drawn in WebGL grows with each bundled face.",
+      "options": [
+        {
+          "label": "Embedded everywhere",
+          "detail": "One identical, self-contained artifact everywhere; no cache across reports, so every hosted view moves up to about 0.54 MB of runtime."
+        },
+        {
+          "label": "Shared from a URL on a host",
+          "detail": "A second report costs only its HTML; the host must serve a content-hashed runtime forever with immutable caching (ARC-21), and INT-04, ARC-06, ARC-24 and FEA-RP-38 change with it."
+        }
+      ],
+      "recommendation": "Shared from a URL on a host: Daniel's INT-04 answer (2026-10-26) keeps exports self-contained and makes hosted reports small automatically; the size limit still sets the first-visit cost (PRF-60).",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Daniel's INT-31 answer: charts render with WebGL by default; only PDF export converts to vector, and may be slow",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's INT-17 answer: visual and motion craft wins; a size or speed budget may be raised when craft needs it, and the change records the trade",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-17)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's INT-04 answer: self-contained by default; served from a server, the report automatically links the runtime and stays small",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-04)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "'Native generated reports embed cached gzip-compressed WebAssembly'",
+          "ref": "docs/RUST-ARCHITECTURE.md:21",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Runtime script position and size in the small and flagship reports",
+          "ref": "docs/lockdown/evidence/performance/report-layout.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Runtime exports and data-section contents",
+          "ref": "build output of b4db233 (dist/web/richview_web_bg.wasm), generated by cargo run --release --locked -p richview-build",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Phone-profile first live chart 8,222–8,228 ms; FCP 752–760 ms",
+          "ref": "docs/lockdown/evidence/performance/probe-first-paint.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Archived chart-only module 576,519 raw / 202,298 gzip bytes (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L50",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "Self-contained output, not traded for a linked runtime; low, explainable cost",
+          "ref": "docs/lockdown/parts/01-intent.json (INT-04, INT-15, INT-36)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Report runtime embedded in exported and stored reports; no runtime route on the report host",
+          "ref": "docs/lockdown/parts/03-architecture.json (ARC-06, ARC-24)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Nothing is fetched at runtime",
+          "ref": "docs/lockdown/parts/04b-features-report.json (FEA-RP-38)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "`docs/RUST-ARCHITECTURE.md:21` makes embedding the full gzip runtime the design, and the 2026-10-04 reason 'cache reuse remains required' (`2c926b0`) cannot hold for an embedded runtime. Whether 512 KiB is reachable is unmeasured, and PRF-60's 3 s phone target needs the runtime slightly under it. Rust and JavaScript boundaries are INT-52's (D-RUNTIME). Following INT-04, ARC-06, ARC-24, FEA-RP-38, FEA-SF-20 and TYP-70 describe the hosted link. Cross-part contradiction: answer OPN-53 first; it decides this card's conflict.\n\nDaniel's INT-31 answer grows this runtime by an unmeasured amount, which also changes what OPN-53's single runtime costs a report without charts.",
+      "images": []
+    },
+    {
+      "id": "PRF-32",
+      "kind": "performance",
+      "importance": "important",
+      "refId": "P-HTML-SIZE",
+      "group": "Load, size and first paint",
+      "title": "Report HTML size",
+      "question": "Give rendered report HTML a size budget per fixture, cap each builtin style's embedded fonts, and budget a hosted page with its linked runtime and fonts?",
+      "why": "No HTML budget exists, although `docs/RUST-ARCHITECTURE.md:45` says the font-notice block 'counts toward the HTML budget'. On 2026-10-21, without the runtime: small 233,789 B, of which 140,203 B are six embedded faces and 50,726 B notices for all 11 bundled families; flagship 736,787 B plus about 1.48 MB of inline images; dense 2,204,090 B. The complete offline flagship is 4,351,128 B. On 2026-10-04 (`2c926b0`) small was 117,450 B and flagship 438,877 B, before scientific's embedded faces grew from 3 to 6 (beb330f, 2026-10-11). Across the builtin styles the small fixture ranges from 182,342 B (sleek light) to 277,904 B (hand-drawn), and the embedded faces from 88,719 B (sleek, 5 faces) to 155,054 B (hand-drawn, 6 faces).",
+      "proposed": "Rendered HTML per fixture in its pinned style (PRF-07), excluding the runtime and media data: small ≤ 224 KiB, flagship ≤ 768 KiB, dense ≤ 2.5 MiB. Each builtin style's embedded faces take ≤ 160 KiB. The complete offline flagship, runtime and images included, is ≤ 5 MB. The small fixture as a hosted page (INT-04, ARC-24), its HTML plus the linked report runtime and font files after gzip -9 of each, is ≤ 2,304 KiB on a first visit; a repeat visit, or a second hosted report in the same style, adds only its HTML (inferred, unmeasured: no host links them yet). The 2,304 KiB adds PRF-31's 2 MiB runtime (Daniel's answer, 2026-10-28), 120 KiB of fonts (the 160 KiB face cap as WOFF2 files, without the base64 third the inline faces carry) and 136 KiB for the HTML, which is 93,586 B today before compression, without runtime and faces. Authors' own fonts (STY-16) count in their reports but fall outside these fixture budgets. Which notices a report carries is FEA-RP-38's, and the product's output limit is TYP-43's 64 MiB.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's INT-04 answer: self-contained by default; served from a server, the report automatically links the runtime and stays small",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-04)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "'the cached notice block counts toward the HTML budget'",
+          "ref": "docs/RUST-ARCHITECTURE.md:45",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "10-21 HTML sizes without the runtime",
+          "ref": "docs/lockdown/evidence/performance/harness-rust.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Byte layout of the small and flagship reports: faces, notices, images",
+          "ref": "docs/lockdown/evidence/performance/report-layout.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Small fixture and embedded faces per builtin style",
+          "ref": "docs/lockdown/evidence/performance/probe-style-sizes.json",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "10-04 static HTML sizes (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L35",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "Scientific's embedded faces 3 to 6",
+          "ref": "beb330f",
+          "date": "2026-10-11"
+        },
+        {
+          "label": "2026-07-07 font-budget decision: 'the real budget is rendered-report size (≤5MB hard ceiling)'",
+          "ref": "https://github.com/1vecera/richview/commit/5ceb7d4",
+          "date": "2026-07-07"
+        },
+        {
+          "label": "Notices only for embedded faces; output and data limits",
+          "ref": "docs/lockdown/parts/04b-features-report.json (FEA-RP-38); docs/lockdown/parts/05-types.json (TYP-43)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Brand fonts are embedded and counted in the size budget",
+          "ref": "docs/lockdown/parts/06-styles.json (STY-16, STY-27)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "Today's small report (228.3 KiB) fails 224 KiB until notices cover only the embedded faces, as FEA-RP-38 proposes (about 192 KiB then). The 5 MB figure comes from the 2026-07-07 font-budget decision, which retired the earlier 48 KB per-style font ceiling and meant 5 MB for any report; here it budgets only the flagship fixture, because the dense fixture is already 4.34 MB offline and larger data stories need TYP-43's 64 MiB. Following INT-04, the fixture budgets measure the exported file; the hosted budget is new and needs its first capture on a report host.",
+      "images": []
+    },
+    {
+      "id": "PRF-33",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-COLD-MOUNT",
+      "group": "Load, size and first paint",
+      "title": "Cold gallery mount",
+      "question": "What cold-load budget does the page that hosts the time-series examples meet?",
+      "why": "Fresh browser context on loopback until all three `/charts/` examples are live, one event per capture: 460.2 ms (10-04 Linux), 1,122.8 ms (10-12 Linux), 277.3 ms (10-21 M4). The 2,500 ms limit leaves 9× headroom on the reference host, so a large regression passes. ARC-40 drops `/charts/` and moves this benchmark to the docs chart gallery (FEA-SF-43), which has never been measured.",
+      "proposed": "Cold load of the docs chart gallery with the three time-series examples (PRF-07) on the desktop profile with reduced motion, fresh browser context on loopback: every example on the page is live in ≤ 1,000 ms or 2× the gallery's first capture, whichever is lower (median of 5, no repeat over 1.5×); was 2,500 ms from a single run on `/charts/`.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Limit 2,500 ms",
+          "ref": "docs/PERFORMANCE.md:17",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "'Includes delivery, Wasm initialization, data and actual DOM charts' (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L127",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "10-04 value",
+          "ref": "https://github.com/1vecera/richview/blob/faff365/docs/evidence/integration/performance/gates.json",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "10-12 value",
+          "ref": "docs/evidence/chart-review/verification.json",
+          "date": "2026-10-12"
+        },
+        {
+          "label": "10-21 value",
+          "ref": "docs/lockdown/evidence/performance/harness-gates.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Cold-mount benchmark moves to the docs gallery page",
+          "ref": "docs/lockdown/parts/03-architecture.json (ARC-40); docs/lockdown/parts/04c-features-surfaces.json (FEA-SF-43, FEA-SF-44)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "The 2026-10-12 Linux capture (1,122.8 ms) would fail 1,000 ms. If `/charts/` survives (ARC-40 rejected), the budget stays on it.",
+      "images": [
+        "docs/lockdown/screenshots/product/charts/charts-desktop-viewport.jpg"
+      ]
+    },
+    {
+      "id": "PRF-34",
+      "kind": "performance",
+      "importance": "important",
+      "refId": "P-FIRST-PAINT",
+      "group": "Load, size and first paint",
+      "title": "First paint on a phone",
+      "question": "What first-paint budget do reports meet, and what may precede the first content?",
+      "why": "No budget covers first paint; the April target 'LCP < 1.5s on 3G' predates the Wasm runtime. Lockdown probe on 2026-10-21 (M4, load 2.4–2.7), three runs each: on the phone profile LCP was 768–780 ms (small, a paragraph) and 1,172–1,188 ms (flagship, an image); on the desktop profile 56–188 ms. In the small report the style block with embedded fonts ends at byte 167,798, and 50,726 B of font notices follow before `<body` at byte 218,607, so about 219 KB arrive before the first content; that accounts for most of the 0.75 s before first paint on the phone profile.",
+      "proposed": "On the phone profile, first visit, the largest contentful paint of the small and flagship fixtures is ≤ 1.5 s; on the desktop profile it is ≤ 200 ms (median of 5, no repeat over 1.5×). Only CSS and embedded fonts precede the first content; inert data such as font notices and chart payloads follows it.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "'LCP < 1.5s on 3G' (RV2 target)",
+          "ref": "S27-432",
+          "date": "2026-04-10"
+        },
+        {
+          "label": "LCP, FCP and element per run",
+          "ref": "docs/lockdown/evidence/performance/probe-first-paint.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Byte offsets: `</style>` 167,798, notices 167,806, `<body` 218,607",
+          "ref": "docs/lockdown/evidence/performance/report-layout.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Reports embed their faces with font-display block",
+          "ref": "docs/lockdown/parts/06-styles.json (STY-29)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "Today the font notices precede `<body>`, so the ordering rule fails until they move after the content or shrink to the embedded faces (FEA-RP-38).",
+      "images": [
+        "docs/lockdown/screenshots/product/showcase/showcase-scientific-mobile-viewport.jpg"
+      ]
+    },
+    {
+      "id": "PRF-35",
+      "kind": "performance",
+      "importance": "important",
+      "refId": "P-LAYOUT-SHIFT",
+      "group": "Load, size and first paint",
+      "title": "Layout shift through every chart mount",
+      "question": "How much layout shift may a report show from navigation until all of its charts are mounted and settled?",
+      "why": "`docs/MOTION.md:69` promises that 'the figure never jumps' when the runtime replaces the static frame. S27-616 recorded flagship desktop CLS falling from 0.072 to 0.014. Lockdown probes on the M4, page loaded without scrolling: small report 0.014 on desktop and 0 on the phone profile; the flagship's first viewport holds no chart, so its 0.002 (desktop) and 0 (phone) cover no chart mount; `/charts/` 0.003–0.004 on desktop and 0.025 on the phone profile, when the runtime mounts at 8.1 s and the heading, lede and facts move. Scrolling through the whole report until all 18 flagship charts mounted (2026-10-22, 1× CPU) gave 0.0025 on desktop, from one shift of a callout and heading in the first 170 ms, and 0 at phone width; the small report's desktop shift (body, lede and meta, 44–117 ms after navigation) recurred. CLS cannot see movement inside a figure; that is PRF-38's.",
+      "proposed": "Cumulative layout shift from navigation until every chart is mounted and settled, scrolling through the page, is ≤ 0.01 on the desktop and phone profiles for every fixture page, in Chromium and WebKit, including the moment the WebGL renderer takes over each figure (ARC-05). Each figure reserves its final box, from the geometry model's aspect ratio, before the runtime starts, so neither the canvas nor ARC-05's notice resizes it.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's ARC-05 answer: all in on WebGL for high performance with many points; recent Safari, Firefox and Chrome must work; without JavaScript or WebGL the chart's frame shows a notice; no snapshot, image or table fallback",
+          "ref": "docs/lockdown/answers/03-architecture.json (ARC-05)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's INT-31 answer: charts render with WebGL by default; only PDF export converts to vector, and may be slow",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "'the figure never jumps'",
+          "ref": "docs/MOTION.md:69",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Flagship desktop CLS 0.072 to 0.014",
+          "ref": "S27-616",
+          "date": "2026-10-11"
+        },
+        {
+          "label": "CLS on load per page and profile, with shifted elements",
+          "ref": "docs/lockdown/evidence/performance/probe-first-paint.json; docs/lockdown/evidence/performance/probe-charts-mobile.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "CLS while scrolling until every chart mounted",
+          "ref": "docs/lockdown/evidence/performance/probe-scroll-cls.json",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "Today the small report on desktop (0.014–0.015) and `/charts/` on the phone (0.025) fail, although `docs/MOTION.md:69` claims no jump.\n\nToday's values measure SVG frames replaced by hydration. Under Daniel's ARC-05 answer no snapshot is drawn: the WebGL canvas mounts into the empty reserved box, and the notice sits in the same box.",
+      "images": []
+    },
+    {
+      "id": "PRF-36",
+      "kind": "performance",
+      "importance": "important",
+      "refId": "P-SITE-FIRST-VISIT",
+      "group": "Load, size and first paint",
+      "title": "Landing and playground first visit",
+      "question": "What must a first visit to the landing page and the playground meet?",
+      "why": "ARC-39 keeps the landing page and ARC-38 the playground, but no budget covers either. Lockdown probes on the M4 (Chromium 153, loopback with gzip, 2026-10-21 landing, 2026-10-22 playground):\n\n| | Landing, desktop | Landing, phone profile | Playground, desktop | Playground, phone profile |\n| --- | --- | --- | --- | --- |\n| Bytes transferred | 3,793,608 | 3,793,608 | 1,858,444 | 1,858,444 |\n| First contentful paint | 48–152 ms | 708–712 ms | 25–143 ms | 244–248 ms |\n| Layout shift | 0.023 | 0.035 | not measured | not measured |\n| Load event | 67–286 ms | 16.3 s | 22–265 ms | 422–431 ms |\n| First live chart | demo not seen live | demo not seen live | 140–474 ms | 10.1 s |\n\nThe landing moves the runtime twice: its demo frame embeds the full runtime (1,620,570 B) and the page loads the Wasm again (1,516,078 B), plus the font catalog (325,607 B). The playground fetches the Wasm once for page, worker and preview. The slowest desktop value of each page comes from the first load after the browser started.",
+      "proposed": "On a first visit, median of 5 loads with no load over 1.5× the limit: the landing page's largest contentful paint is ≤ 1.5 s on the phone profile and ≤ 200 ms on the desktop profile, its layout shift is ≤ 0.01, and it transfers ≤ 1 MB before the reader scrolls or types; the playground's first live preview chart appears in ≤ 500 ms on the desktop profile. On the phone profile the playground is reported, not gated, because the site runtime alone takes about 9 s at Slow 4G (PRF-30).",
+      "options": [
+        {
+          "label": "1 MB before interaction",
+          "detail": "The demo's runtimes load when the reader nears or uses the demo; phones see the page sooner and pay for the demo only if they use it."
+        },
+        {
+          "label": "No byte limit",
+          "detail": "Simpler page; every visitor downloads about 3.5 MB of site runtime, report runtime and catalog, whether or not they touch the demo."
+        }
+      ],
+      "recommendation": "1 MB before interaction: the landing is the first impression on phones, and FEA-SF-29's pre-rendered report already shows the demo before any runtime runs.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Landing page and playground kept as site pages",
+          "ref": "docs/lockdown/parts/03-architecture.json (ARC-38, ARC-39)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Demo first shows the pre-rendered report of the exact source",
+          "ref": "docs/lockdown/parts/04c-features-surfaces.json (FEA-SF-29)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Landing bytes, paints, layout shift and long frames per profile",
+          "ref": "docs/lockdown/evidence/performance/probe-landing.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Playground bytes, paints and first live preview chart per profile",
+          "ref": "docs/lockdown/evidence/performance/probe-playground-cold.json",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Demo iframe loads a rendered report with its embedded runtime",
+          "ref": "assets/landing/index.html:134",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Landing page starts the homepage runtime after the font catalog",
+          "ref": "crates/richview-web/src/browser.rs:449-455",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "Today the landing transfers 3.79 MB and fails the byte and layout-shift limits. Whether the demo and the scroll story stay is FEA-SF-29's and STY-44's.",
+      "images": [
+        "docs/lockdown/screenshots/product/landing/landing-mobile-viewport.jpg",
+        "docs/lockdown/screenshots/product/playground/playground-desktop-default.jpg"
+      ]
+    },
+    {
+      "id": "PRF-37",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "P-SITE-DELIVERY",
+      "group": "Load, size and first paint",
+      "title": "Site caching, compression and bytes per view",
+      "question": "How do richview.ai and the report host serve their runtime and font files, and how are bytes per view tracked?",
+      "why": "On 2026-10-22 live richview.ai (PR #69 build) served its HTML and runtime files with `cache-control: public, max-age=0, must-revalidate` under fixed names such as `richview_web_bg.wasm`, so every visit revalidates each file before using it. It does serve Brotli: the Wasm arrives as 1,403,188 B against 4,368,091 B raw and the font catalog as 322,214 B. Loopback probes measured 3.79 MB for a first landing visit, 1.86 MB for the playground and 1.76–3.00 MB for the small and flagship reports. INT-15 asks for low, explainable operating cost with a written estimate for each hosted feature. `docs/PERFORMANCE.md:21` says loopback results are not production guarantees, and nothing measures the live host after a deploy; DEL-40 checks the live routes against the gate's captures.",
+      "proposed": "Site files other than HTML get content-hashed names and `Cache-Control: public, max-age=31536000, immutable`; HTML pages revalidate on every visit. Text, JavaScript, CSS and Wasm are served Brotli-compressed. The report host serves its report runtime and font routes the same way (ARC-24): content-hashed URLs with that immutable `Cache-Control`, the runtime Brotli-compressed and the WOFF2 fonts as stored, each kept while a stored report links it (ARC-21). A story's pages and each version's link-preview thumbnail (ARC-69) are not site files: they sit behind the story's access check (TYP-70), at routes named by slug and version, never by content hash. A story shared with anyone on the web sends `public, max-age=31536000, immutable` on the versioned routes and `no-cache` on the latest routes; a story shared only with signed-in readers sends `private, no-store` on every one of them, and every response varies on the session, so no shared cache can keep a private story or answer a later request after the story is unshared; report pages follow TYP-70. After each deploy (DEL-40), a check fetches the live landing, playground and docs pages and records bytes, encodings and cache headers against the gate's capture; a mismatch is a defect. Each review packet reports bytes per first and repeat visit for those pages, the report fixtures and the hosted small fixture (PRF-32), the basis of INT-15's cost estimate.",
+      "options": [
+        {
+          "label": "Hashed names, immutable caching",
+          "detail": "Repeat visits move no runtime bytes and make no revalidation round trips; every build renames the changed files, which the build manifest records (ARC-46)."
+        },
+        {
+          "label": "Revalidate every visit",
+          "detail": "Today's headers; a repeat visit waits for a round trip per file before it can use its cached copy."
+        }
+      ],
+      "recommendation": "Hashed names, immutable caching.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's INT-04 answer: self-contained by default; served from a server, the report automatically links the runtime and stays small",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-04)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Live headers and identity, gzip and Brotli sizes",
+          "ref": "docs/lockdown/evidence/performance/probe-sizes.json",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Bytes per first visit: landing, playground, reports",
+          "ref": "docs/lockdown/evidence/performance/probe-landing.json; docs/lockdown/evidence/performance/probe-playground-cold.json; docs/lockdown/evidence/performance/probe-first-paint.json",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Low, explainable cost with a written estimate per hosted feature",
+          "ref": "docs/lockdown/parts/01-intent.json (INT-15)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "'Local Linux/loopback results are not production or mobile-network guarantees'",
+          "ref": "docs/PERFORMANCE.md:21",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Deploy records and live-route checks; site Worker; build manifest",
+          "ref": "docs/lockdown/parts/02-delivery.json (DEL-40); docs/lockdown/parts/03-architecture.json (ARC-46, ARC-55)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "ARC-55 serves the site through Workers Static Assets and says nothing about headers or file names; accepting this card adds both to the site build. ARC-24 and TYP-70 name the report host's runtime and font routes but not their headers; this card sets them.",
+      "images": []
+    },
+    {
+      "id": "PRF-38",
+      "kind": "performance",
+      "importance": "important",
+      "refId": "P-HYDRATION-MATCH",
+      "group": "Load, size and first paint",
+      "title": "Static frame matches the hydrated chart",
+      "question": "If ARC-05 keeps a static snapshot, how closely must it match the WebGL chart that replaces it?",
+      "why": "ARC-05 asks pre-hydration frames to match the hydrated layout 'closely enough to pass the budget in part 07'; FEA-CH-64 asks chart text before hydration to be within 5 % of its final size, with no visible movement of titles, axes or labels; `docs/MOTION.md:69` promises that 'the figure never jumps'. Layout shift (PRF-35) cannot see this, because the figure keeps its box while its contents rescale. Today default figures sit in a 512–576 px measure while static frames are drawn at 358 and 832 px, so chart text shows at 67–69 % (sleek, scientific) or 143–152 % (brutalist, hand-drawn) of its final size until the runtime repaints (ARC-05). Time-series frames laid out with an estimated character width move by a few pixels in brutalist and take a cross-fade instead (`docs/MOTION.md:93`).",
+      "proposed": "Withdrawn. Daniel's ARC-05 answer builds no static snapshot, so there is no static frame to compare with the WebGL chart. What remains of the bar moves to PRF-35: the figure's HTML frame (title, subtitle, caption, source note) and its reserved box do not move when the WebGL chart mounts.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "Daniel's ARC-05 answer: all in on WebGL for high performance with many points; recent Safari, Firefox and Chrome must work; without JavaScript or WebGL the chart's frame shows a notice; no snapshot, image or table fallback",
+          "ref": "docs/lockdown/answers/03-architecture.json (ARC-05)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Daniel's INT-31 answer: charts render with WebGL by default; only PDF export converts to vector, and may be slow",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Pre-hydration frames match the hydrated layout closely enough to pass part 07's budget; text at 67–69 % or 143–152 % today",
+          "ref": "docs/lockdown/parts/03-architecture.json (ARC-05)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Static frames at the widths figures occupy; text within 5 %",
+          "ref": "docs/lockdown/parts/04a-features-chart.json (FEA-CH-64)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "'the figure never jumps'",
+          "ref": "docs/MOTION.md:69",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Estimated 0.6 em advance; brutalist charts take the cross-fade",
+          "ref": "docs/MOTION.md:93",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "Settled by ARC-05. FEA-CH-64 is withdrawn with it, and the all-types fixture no longer measures a hydration match (PRF-07).",
+      "images": []
+    },
+    {
+      "id": "PRF-39",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-INSTALL-SIZE",
+      "group": "Load, size and first paint",
+      "title": "Install and package size",
+      "question": "Do the shipped binaries and the VS Code package get size budgets?",
+      "why": "Nothing budgets download size. The `b4db233` release binaries are: CLI 8,976,352 B (4,422,347 B after gzip -9), editor service 6,443,200 B (3,195,699 B), server 6,638,992 B (3,171,499 B). The VS Code package folder holds the editor binary, 5,998,909 B of web runtime files, 71,799 B of font licences and the 16,945 B activation module, about 12.5 MB before packaging; no VSIX was built for this lockdown. `docs/RUST-ARCHITECTURE.md:49` calls the activation module 'approximately 8 KiB'. INT-14 asks for the smallest footprint the accepted features allow.",
+      "proposed": "After gzip -9, on the reference host: CLI ≤ 5 MiB, editor service ≤ 4 MiB, server ≤ 4 MiB, and each platform VSIX (FEA-SF-21) ≤ 8 MiB. Growth beyond 64 KiB in one release batch follows PRF-05.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Binary, runtime and VS Code package sizes, raw and gzip -9",
+          "ref": "docs/lockdown/evidence/performance/probe-sizes.json",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "'The approximately 8 KiB VS Code activation module'",
+          "ref": "docs/RUST-ARCHITECTURE.md:49",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Smallest footprint the accepted features allow",
+          "ref": "docs/lockdown/parts/01-intent.json (INT-14)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "One VSIX per platform carrying its editor binary",
+          "ref": "docs/lockdown/parts/04c-features-surfaces.json (FEA-SF-21)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "The editor and server limits apply only if those binaries ship (ARC-44, ARC-56).",
+      "images": []
+    },
+    {
+      "id": "PRF-40",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-NATIVE-MEMORY",
+      "group": "Memory",
+      "title": "CLI render memory",
+      "question": "Replace the Linux-only benchmark memory gate with per-fixture CLI footprint budgets?",
+      "why": "The only memory gate is the benchmark process's Linux `VmHWM` ≤ 256 MiB: 93.9 MiB (10-04), 155.1 MiB (10-12), not measurable on macOS (10-21). On 2026-10-22 (M4), complete offline CLI render, 7 runs after a warm-up: peak footprint 22.8–22.9 MiB small, 30.4–30.5 MiB flagship, 119.5–121.4 MiB dense; the 3- and 5-run series of 2026-10-21 and 2026-10-22 agree within 0.2 MiB.",
+      "proposed": "Peak physical footprint of one complete offline CLI render on the reference host: small ≤ 64 MiB, flagship ≤ 96 MiB, dense ≤ 256 MiB. This replaces the Linux `VmHWM` gate on the benchmark process.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Native process peak, Linux VmHWM ≤ 256 MiB",
+          "ref": "docs/PERFORMANCE.md:18",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "'Meaningfully below the independently measured 452 MiB TypeScript peak' (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L128",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "10-04 98,414,592 B",
+          "ref": "https://github.com/1vecera/richview/blob/faff365/docs/evidence/integration/performance/gates.json",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "10-12 162,652,160 B",
+          "ref": "docs/evidence/chart-review/verification.json",
+          "date": "2026-10-12"
+        },
+        {
+          "label": "CLI peak footprint per fixture, 8 runs each",
+          "ref": "docs/lockdown/evidence/performance/probe-cli.json",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Earlier 3- and 5-run series",
+          "ref": "docs/lockdown/evidence/performance/cli-time-series.json",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "CLI peak RSS 12.8–30.6 / 24.9–38.7 / 111.2–128.6 MiB (check and generate rows), disclosure only",
+          "ref": "docs/lockdown/evidence/performance/harness-native.json",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "",
+      "images": []
+    },
+    {
+      "id": "PRF-41",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-EDITOR-MEMORY",
+      "group": "Memory",
+      "title": "Editor memory over a session",
+      "question": "What memory may the editor service hold over a long editing session?",
+      "why": "No budget covers the editor, although ARC-44 leaves its memory budget to this part. Lockdown probe on 2026-10-22 (M4), 100 sequential previews in one fresh process per fixture, physical footprint: small 4.8–5.3 MiB, flat; flagship 22 MiB after the first preview and 153 MiB from the 75th on (peak 155 MiB); dense 18 MiB after the first, 671 after 25, 1,355 after 50 and 1,538 after 75 and 100 (peak 1,564 MiB). In the dense process, freed large blocks the macOS allocator keeps take about 1.1 GiB resident plus 316 MiB swapped out, while live small allocations stay under 80 MiB, so the footprint is mostly retained free memory, not live data. The 2026-10-21 harness recorded 1,520 MiB resident after 100 dense previews. On Linux on 2026-10-04 (`2c926b0`) the dense editor peaked at 98.6 MiB `VmHWM`.",
+      "proposed": "If the editor service stays: after 100 sequential previews of one fixture, its physical footprint is ≤ 32 MiB (small), ≤ 96 MiB (flagship) and ≤ 256 MiB (dense), and it grows by at most 10 % between the 50th and 100th preview.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Footprint checkpoints and vmmap malloc rows per fixture",
+          "ref": "docs/lockdown/evidence/performance/probe-editor-memory.json",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Editor resident 13 / 160 / 1,520 MiB after 100 previews",
+          "ref": "docs/lockdown/evidence/performance/harness-native.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Dense editor 98.6 MiB VmHWM on Linux (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L62",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "Editor service memory budget in part 07",
+          "ref": "docs/lockdown/parts/03-architecture.json (ARC-44)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "Today flagship (153 MiB) and dense (1,538 MiB) fail. The footprint counts allocator retention as well as live data, so meeting it needs memory released after each preview, not only fewer allocations.",
+      "images": []
+    },
+    {
+      "id": "PRF-42",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-SERVER-MEMORY",
+      "group": "Memory",
+      "title": "Server memory under publishes and reads",
+      "question": "What memory may the native server use while it renders publishes and serves reads, and when idle?",
+      "why": "No budget covers the server. On 2026-10-21 (M4), resident memory sampled through the harness's HTTP sequence: 35 MiB at start, 716 MiB after the sequential dense renders, 1,068 MiB peak during four concurrent dense renders and 523 MiB at the end. On Linux on 2026-10-04: 414–426 MiB peak and 164–190 MiB at the end (`2c926b0`, `faff365`). That sequence uses `POST /api/render`, which FEA-SF-17 drops; publishing renders on the server instead (ARC-20). `packages/server/fly.toml` sets no VM memory size, and ARC-56 deletes it.",
+      "proposed": "The native server stays as RichView Cowork (INT-31, INT-83): its physical footprint is ≤ 512 MiB at peak while it handles four concurrent publishes of the dense fixture, each rendering its story's link-preview thumbnail (ARC-69), followed by 100 permalink reads, and ≤ 128 MiB ten seconds after the sequence ends.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's INT-31 answer: the rewrite builds the core plus RichView Cowork and Publish (News is a Publish instance), scrollytelling, uploads and a managed hosting service; the LinkedIn carousel is dropped",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "Server VmHWM 413.9 MiB on Linux (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L73",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "Server peak 435,856 KiB and final 194,660 KiB on Linux",
+          "ref": "https://github.com/1vecera/richview/blob/faff365/docs/evidence/integration/performance/native.json",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "Final server RSS 168,216 KiB on Linux (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/evidence/performance/native.json",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "Sampled server RSS per HTTP phase; final 535,520 KiB",
+          "ref": "docs/lockdown/evidence/performance/harness-native.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "No memory setting in the Fly configuration",
+          "ref": "packages/server/fly.toml",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Render API dropped; the host renders on publish; Fly configuration deleted",
+          "ref": "docs/lockdown/parts/04c-features-surfaces.json (FEA-SF-17); docs/lockdown/parts/03-architecture.json (ARC-20, ARC-56)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "Today's resident peak (1,068 MiB) and end (523 MiB) under concurrent dense renders fail both limits; the publish workload has never been measured. Daniel's INT-31 answer keeps the self-hostable server as RichView Cowork; whether Publish, which shares its server core, runs in the same process and takes the same budget is open (INT-35).",
+      "images": []
+    },
+    {
+      "id": "PRF-43",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-BROWSER-MEMORY",
+      "group": "Memory",
+      "title": "Browser memory per page",
+      "question": "What memory may a settled report use in the reader's browser, and how much may it grow?",
+      "why": "Browser memory was only disclosed: the Linux sum of Chromium processes reached 1.683 GiB across the whole 2026-10-04 browser sequence (`2c926b0`), and the harness cannot measure it on macOS. Lockdown probes on 2026-10-21 and 2026-10-22 (M4, Chromium 153), settled page in a fresh context, renderer resident memory: small report 153 MiB, flagship 213–226 MiB, `/charts/` 227–231 MiB, against 78 MiB for a blank page; JS heap 17, 21–26 and 10 MiB. For the playground only the main page's JS heap is known: 39 MB after the large-source edit, worker and preview excluded. Growth across interactions was never measured, although the runtime exposes `runtime_stats()` and releases a view's work on `destroy` for lifetime checks.",
+      "proposed": "The renderer process of a settled report or the docs chart gallery on the desktop profile uses ≤ 256 MiB resident memory, read from the process IDs Chromium reports, and grows by at most 10 % over 100 zooms, theme switches or source edits. The playground with the large-source fixture gets its own limit at 1.25× its first reference capture, page, worker and preview included.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's INT-31 answer: charts render with WebGL by default; only PDF export converts to vector, and may be slow",
+          "ref": "docs/lockdown/answers/01-intent.json (INT-31)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "1,806,893,056 B sampled sum; 'Browser memory is substantial' (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L107",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "Linux-only process memory sampling",
+          "ref": "scripts/benchmark-browser.mjs:26",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Renderer memory per page; blank page",
+          "ref": "docs/lockdown/evidence/performance/probe-browser-memory.json",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Main-page JS heap after the large-source edit",
+          "ref": "docs/lockdown/evidence/performance/harness-browser.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "`destroy` releases a view's work; `runtime_stats()` for lifetime checks",
+          "ref": "richview-chart/README.md:56-68",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "The 10 % growth limit and the playground limit have no capture yet.\n\nUnder Daniel's INT-31 answer chart buffers and glyph textures live partly in the GPU process, which a renderer-process reading does not include; whether the budget also counts GPU-process memory is open.",
+      "images": []
+    },
+    {
+      "id": "PRF-44",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-MCP-MEMORY",
+      "group": "Memory",
+      "title": "MCP server memory over a session",
+      "question": "What memory may the MCP server hold over a long agent session?",
+      "why": "The MCP server is a long-lived process (ARC-33) with the editor's memory pattern (PRF-41), and no budget covers it. Lockdown probe on 2026-10-21 (M4, load 3.2–3.4), one `richview mcp` process rendering the dense fixture 50 times: physical footprint 3 MiB idle, 32 after one render, 750 after 10, 1,567 after 20 and 1,510 after 50; renders took 183–236 ms. In the 2026-10-22 latency probe, resident memory rose from 8 to 168 MiB over 100 small renders and to 294 MiB after 100 flagship renders.",
+      "proposed": "After 100 sequential `richview_render` calls on one fixture in one MCP server on the reference host, its physical footprint is ≤ 32 MiB (small), ≤ 96 MiB (flagship) and ≤ 256 MiB (dense), and it grows by at most 10 % between the 50th and 100th call.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "MCP server kept as a thin transport",
+          "ref": "docs/lockdown/parts/03-architecture.json (ARC-33)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Footprint and resident memory over 50 dense renders",
+          "ref": "docs/lockdown/evidence/performance/probe-mcp-memory.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Resident memory before and after each latency series",
+          "ref": "docs/lockdown/evidence/performance/probe-mcp-latency.json",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "Today dense (1,510–1,567 MiB after 20–50 renders) fails, and small already holds 168 MiB resident after 100 renders. As with the editor, meeting it needs memory released after each render.",
+      "images": []
+    },
+    {
+      "id": "PRF-50",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-BUILD-TIME",
+      "group": "Build and verification time",
+      "title": "Optimized build time",
+      "question": "What build times must the workspace meet on the reference host, and in which capture are they checked?",
+      "why": "Gates measure the exact optimized artifacts, so every release run builds them (the fast gate builds none, DEL-81). On 2026-10-21 on Claw Mini, with 4 Cargo jobs at reduced priority and load 2.6–7.3: 153.9 s cold, 105.9 s after touching one file in `richview-chart`, 2.1 s with nothing changed; the build peaked at 1.6 GB of memory. The optimized profile links the whole program as one unit (`Cargo.toml:12-17`), so any edit relinks all of it. On Claw Mini every stream and subagent builds through the shared helper into one shared Cargo target, one build at a time, with two Cargo jobs and incremental builds off, and the release run builds in its own target folder (DEL-22, DEL-81); no capture under those settings exists.",
+      "proposed": "An optimized build of every shipped artifact on the reference host with 4 Cargo jobs takes ≤ 180 s cold, ≤ 60 s after a one-file edit and ≤ 5 s with nothing changed. It is checked in the full run (PRF-04); the release run reports its build time without judging it. Gates always measure the exact production artifacts; any faster profile serves only the edit loop.",
+      "options": [
+        {
+          "label": "Budget in the full run",
+          "detail": "Build time is tracked without adding about 4 minutes of cold and edit builds to every release run."
+        },
+        {
+          "label": "Budget per release run",
+          "detail": "Every release run pays a cold and a one-file build, about 4 minutes."
+        },
+        {
+          "label": "No build budget",
+          "detail": "Build time grows unseen, and every release run pays it."
+        }
+      ],
+      "recommendation": "Budget in the full run.",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's DEL-81 answer (amended 2026-10-27): dev takes only the fast gate, the release agent runs the long suites per pre-prod batch of up to 20 merges, prod moves on his go",
+          "ref": "docs/lockdown/answers/02-delivery.json (DEL-81)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Whole-program optimization, one code-generation unit",
+          "ref": "Cargo.toml:12-17",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Build 2.1 / 105.9 / 153.9 s, peak RSS 1.6 GB, 4 jobs at nice 10",
+          "ref": "docs/lockdown/evidence/checks-performance.md:16,58",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Shared helper: two Cargo jobs, incremental builds off, 5 GiB disk floor",
+          "ref": "origin/feat/s27-652-development-harness:docs/development-harness.md",
+          "date": "2026-10-18"
+        },
+        {
+          "label": "Build profiles; profile changes need before-and-after numbers from part 07",
+          "ref": "docs/lockdown/parts/03-architecture.json (ARC-04)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "The 60 s edit build fails today (105.9 s). Meeting it needs a cheaper native profile, with lighter whole-program optimization or more code-generation units, that keeps PRF-10 and PRF-11 passing; ARC-04 owns the build profiles and asks this part for the before-and-after numbers. Agents' everyday builds through the helper are slower than these numbers.",
+      "images": []
+    },
+    {
+      "id": "PRF-51",
+      "kind": "performance",
+      "importance": "important",
+      "refId": "P-TEST-TIERS",
+      "group": "Build and verification time",
+      "title": "Verification tier durations",
+      "question": "What wall-time budgets do the verification tiers have on the reference host?",
+      "why": "Daniel's rule: a fast tier 'under 10 s where possible and 30 s at most on Lenovo including startup', with speed from fixing measured waste, never from dropped coverage. Daniel's DEL-81 answer narrows the fast gate to unit tests, ideally under five seconds, and moves the long suites to the release run on `pre-prod`. Part 02 decides what runs in each tier and how its waste is removed (DEL-24, DEL-25), and measured the tiers on Claw Mini on 2026-10-21. The checks evidence ran with 4 Cargo jobs; agents' builds through the shared helper (two jobs, incremental builds off) are slower. This card sets only the wall-time budgets.",
+      "proposed": "| Tier | Budget on the reference host | Measured 2026-10-21 |\n| --- | --- | --- |\n| Fast gate after a one-file edit, rebuild included (`rv-gate fast`, DEL-81) | ≤ 5 s target, ≤ 30 s maximum | 36.6–61.3 s; 9.7–13.7 s warm (DEL-24) |\n| All Rust tests after a one-file edit | ≤ 60 s | 83.3 s after a relink; 44.2–47.0 s warm (DEL-08) |\n| Release run, build to receipt (`rv-gate release`, one batch, DEL-81) | ≤ 45 min as an upper bound, set by the first release receipt | about 12.5–15 min for DEL-08's former per-merge gate; a batch is not measured |\n| Prod-candidate gate with the full capture (DEL-33, PRF-04) | ≤ 45 min | not measured; about 35–40 min by estimate |",
+      "options": [],
+      "recommendation": "",
+      "confidence": "observed",
+      "sources": [
+        {
+          "label": "Daniel's DEL-81 answer (amended 2026-10-27): dev takes only the fast gate, the release agent runs the long suites per pre-prod batch of up to 20 merges, prod moves on his go",
+          "ref": "docs/lockdown/answers/02-delivery.json (DEL-81)",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Tier rule",
+          "ref": "DANIEL-PREFERENCES.md, Coding progress and verification (quoted in docs/lockdown/evidence/checks-performance.md, Measured test tiers)",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Tier contents and measured durations; fast-tier remedies",
+          "ref": "docs/lockdown/parts/02-delivery.json (DEL-24, DEL-25)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Dev gate steps and durations",
+          "ref": "docs/lockdown/parts/02-delivery.json (DEL-08)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Prod-candidate gate contents",
+          "ref": "docs/lockdown/parts/02-delivery.json (DEL-33)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Cargo settings of the measurements",
+          "ref": "docs/lockdown/evidence/checks-performance.md:16",
+          "date": "2026-10-21"
+        }
+      ],
+      "conflicts": "The rule names Lenovo; these budgets apply on the reference host chosen in PRF-01. No tier meets its budget after an edit today. The release-run limit is an upper bound taken from the prod-candidate row, since a batch of up to 20 merges (DEL-81) has no measurement yet. Cross-part contradiction: answer OPN-51 and OPN-55 first; they decide this card's conflict.",
+      "images": []
+    },
+    {
+      "id": "PRF-60",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-MOBILE-FIRST-VISIT",
+      "group": "Beyond today",
+      "title": "Interactive on a phone in 3 seconds",
+      "question": "Adopt a phone first-visit target for live charts as RichView's informational goal beyond today?",
+      "why": "On the phone profile (2026-10-21) the small report's chart turns live at 8.2 s and the chart page's at 8.4 s, because 1.6–1.8 MB of document and runtime arrive first. Static frames already paint at about 0.75 s, so the gap is interactivity, and bytes set it: the small report's 1.76 MB took 8.2 s, about 4.7 ms per KB on this profile. At PRF-31's 512 KiB limit the small report would move about 0.66 MB (120 KB of HTML after gzip plus about 0.54 MB of embedded runtime), about 3.1 s at the same rate, so 3 s needs the runtime slightly under the limit. The flagship's runtime script comes after 1.48 MB of inline images (byte 2,214,089 of 4,351,128) and runs only once the whole document has arrived, about 14 s today.",
+      "proposed": "Informational target: on the phone profile, the small report's first chart is interactive ≤ 3.0 s after navigation on a first visit and ≤ 1.0 s on a repeat visit from the browser cache; the flagship's first chart, scrolled into view at once, is interactive ≤ 4.0 s after navigation on a first visit. Every capture reports progress against these targets in the review packet.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Daniel's ARC-05 answer: all in on WebGL for high performance with many points; recent Safari, Firefox and Chrome must work; without JavaScript or WebGL the chart's frame shows a notice; no snapshot, image or table fallback",
+          "ref": "docs/lockdown/answers/03-architecture.json (ARC-05)",
+          "date": "2026-10-26"
+        },
+        {
+          "label": "First live chart 8,222–8,228 ms (small); load event 13.6 s (flagship); wire bytes",
+          "ref": "docs/lockdown/evidence/performance/probe-first-paint.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "First live chart 8,403–8,404 ms on /charts/",
+          "ref": "docs/lockdown/evidence/performance/probe-charts-mobile.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Runtime script after the inline images in the flagship",
+          "ref": "docs/lockdown/evidence/performance/report-layout.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Static frames at 358 px and 832 px paint without JavaScript",
+          "ref": "docs/MOTION.md:69",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "The flagship target is out of reach at any runtime size while the runtime runs only after the whole document; meeting it needs the runtime to start before the inline media finish arriving, which is a report-rendering decision (part 04b).\n\nUnder Daniel's ARC-05 answer no static frame paints first, so a phone reader sees no chart at all until the runtime draws it; this target is now also when the first chart becomes visible.",
+      "images": []
+    },
+    {
+      "id": "PRF-61",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-EDIT-INSTANT",
+      "group": "Beyond today",
+      "title": "Edits live within 100 ms",
+      "question": "Adopt 'a one-line edit is live within 100 ms' as the informational authoring target?",
+      "why": "The landing page promises that the report follows as you type. Today a small edit reaches its live chart in 135 ms median and 149 ms p95; 32 ms of that is debounce, and every edit replaces the preview document and remounts the runtime.",
+      "proposed": "Informational target: a one-line edit in the small fixture updates the live chart in p95 ≤ 100 ms on the desktop profile.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "'Edit the source and the report follows as you type'",
+          "ref": "assets/landing/index.html:91",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "'Complete preview replacement with cached external runtime' (2c926b0)",
+          "ref": "https://github.com/1vecera/richview/blob/2c926b0/docs/PERFORMANCE.md#L97",
+          "date": "2026-10-04"
+        },
+        {
+          "label": "Small edit median 135.2 ms, p95 148.9 ms",
+          "ref": "docs/lockdown/evidence/performance/harness-browser.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Playground preview design",
+          "ref": "docs/lockdown/parts/03-architecture.json (ARC-38); docs/lockdown/parts/04c-features-surfaces.json (FEA-SF-34)",
+          "date": "2026-10-22"
+        }
+      ],
+      "conflicts": "Reaching 100 ms likely needs the preview updated in place instead of replaced; how the preview updates is the playground's design (ARC-38, FEA-SF-34), not this card's.",
+      "images": []
+    },
+    {
+      "id": "PRF-62",
+      "kind": "performance",
+      "importance": "detail",
+      "refId": "P-DATA-SCALE",
+      "group": "Beyond today",
+      "title": "Ten years of quarter-hours in one chart",
+      "question": "How much data should one chart handle smoothly, as an informational target beyond today?",
+      "why": "The largest measured chart is the grid, 35,040 rows × 4 series from a 1,610,725 B CSV: animated range transitions take 3.0 ms p95 of script per frame, and animated zoom 5.8 ms at its slowest frame (PRF-21). TYP-43 caps one resolved dataset at 16 MiB and report output at 64 MiB. Dense views already aggregate per pixel (FEA-CH-17), so frame cost need not grow with rows; parsing, embedding and memory still do.",
+      "proposed": "Informational target: a chart over ten years of quarter-hours (350,400 rows × 4 series, about 15.4 MiB of CSV) renders natively in ≤ 1 s, mounts in the browser in ≤ 2 s on the desktop profile and zooms at ≤ 8 ms of script per frame p95, inside TYP-43's limits.",
+      "options": [],
+      "recommendation": "",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "MAX_SOURCE_BYTES and MAX_REPORT_BYTES",
+          "ref": "crates/richview-core/src/lib.rs:54-56",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "16 MiB per resolved dataset; 64 MiB report HTML",
+          "ref": "docs/lockdown/parts/05-types.json (TYP-43)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Per-pixel aggregation and M4 sampling",
+          "ref": "docs/lockdown/parts/04a-features-chart.json (FEA-CH-17)",
+          "date": "2026-10-22"
+        },
+        {
+          "label": "Grid frame cost in transitions and animated zoom",
+          "ref": "docs/lockdown/evidence/performance/probe-preset-pacing.json; docs/lockdown/evidence/performance/probe-zoom-pacing.json",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Grid CSV, 1,610,725 B",
+          "ref": "richview-chart/web/data/de-power-15min.csv",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "The ten-year file sits within 4 % of TYP-43's 16 MiB dataset limit, so any growth of the row format crosses it, and a larger target needs that limit raised first.",
+      "images": []
+    }
+  ]
+}

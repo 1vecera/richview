@@ -1,0 +1,9 @@
+measure,anthropic_share_pct,population,source_id
+Ratings,2.4,Consumers,D-ITUNES
+Search,8.7,Searchers,D-GT
+Weekly,17.3,US adults,S005
+PyPI,33.7,Developers,D-PYPI
+npm,49.8,Developers,D-NPM
+Firms,52.4,Businesses,C196
+HN,64.9,Developers,D-HN
+Agents,70.9,Developers,S065
