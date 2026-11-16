@@ -167,6 +167,26 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         // Parents first so children paint over them.
         let mut order: Vec<usize> = (0..nodes.len()).filter(|&k| visible(ctx, nodes, k)).collect();
         order.sort_by_key(|&k| nodes[k].depth);
+        // The five largest tiles are the ones whose value may print under the name; under 480 px
+        // of plot width only the three largest do (FEA-CH-28, chart design 16 Nov 2026). One of
+        // the five that prints no value records it as dropped, so the numbers a treemap prints or
+        // records are the same at every width. The author's `auto_annotations: false` prints and
+        // records none.
+        let mut wanted: Vec<usize> = if block.auto_annotations {
+            order
+                .iter()
+                .copied()
+                .filter(|&k| nodes[k].children.is_empty() && nodes[k].total > 0.0)
+                .collect()
+        } else {
+            Vec::new()
+        };
+        wanted.sort_by(|&a, &b| {
+            let area = |k: usize| nodes[k].rect.w * nodes[k].rect.h;
+            area(b).total_cmp(&area(a)).then(a.cmp(&b))
+        });
+        wanted.truncate(5);
+        let valued = &wanted[..wanted.len().min(if plot.w < 480.0 { 3 } else { 5 })];
         for &k in &order {
             let n = &nodes[k];
             if n.total <= 0.0 {
@@ -182,6 +202,13 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 if n.children.is_empty() {
                     untiled += 1;
                     ctx.drop_label(&n.name, DropReason::Density, "tile", Some(n.rect));
+                    if wanted.contains(&k) {
+                        ctx.drop_label(&texts[k][0], DropReason::Density, "value", Some(n.rect));
+                        if let Some(dropped) = ctx.dropped.last_mut() {
+                            dropped.observation = Some([fi, observations.len()]);
+                            dropped.series = Some(slot);
+                        }
+                    }
                     let at = if n.rect.w > 0.0 || n.rect.h > 0.0 {
                         n.rect.center()
                     } else {
@@ -279,7 +306,29 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     Role::Label,
                     ink,
                 );
-                if label.bounds.inside(&n.rect.inflate(-3.0), 0.0) {
+                let named = label.bounds.inside(&n.rect.inflate(-3.0), 0.0);
+                if wanted.contains(&k) {
+                    // The value on a second line, in the name's ink, where the tile holds both.
+                    let value = ctx.text(
+                        &texts[k][0],
+                        label.x,
+                        label.y + ctx.line_height(),
+                        Anchor::Start,
+                        Face::Figures,
+                        Role::Label,
+                        ink,
+                    );
+                    if named && valued.contains(&k) && value.bounds.inside(&n.rect.inflate(-3.0), 0.0) {
+                        items.push(Item::Text(value));
+                    } else {
+                        ctx.drop_label(&texts[k][0], DropReason::Density, "value", Some(n.rect));
+                        if let Some(dropped) = ctx.dropped.last_mut() {
+                            dropped.observation = Some([fi, observations.len() - 1]);
+                            dropped.series = Some(slot);
+                        }
+                    }
+                }
+                if named {
                     items.push(Item::Text(label));
                 } else {
                     ctx.drop_label(&n.name, DropReason::Density, "tile", Some(n.rect));

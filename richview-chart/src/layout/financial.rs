@@ -11,7 +11,7 @@ use super::types::Facets;
 use super::{Ctx, Painted, Style};
 use crate::axis::Zero;
 use crate::diag::Level;
-use crate::geometry::{Fill, Item, Observation, Path, Readout, ReadoutLine, Rect, Role, Stroke, Swatch};
+use crate::geometry::{Anchor, Face, Fill, Item, Observation, Path, Readout, ReadoutLine, Rect, Role, Stroke, Swatch};
 use crate::numbers;
 use crate::rows::{self, Num};
 use serde_json::json;
@@ -21,6 +21,8 @@ const CHANNELS: [&str; 4] = ["open", "high", "low", "close"];
 const KINDS: [&str; 2] = ["Up", "Down"];
 /// A body is hollow from this width on; thinner bodies are too small to read as an outline.
 const HOLLOW_FROM: f64 = 4.0;
+/// The gap between the plot's right edge and the last close printed beside it.
+const TAG_GAP: f64 = 6.0;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Glyph {
@@ -302,6 +304,29 @@ fn paint(ctx: &mut Ctx, facets: &Facets, glyph: Glyph) -> Painted {
     let shared = derived_extent(ctx, 0, "financial.shared", &all, extent);
     let frames = plan.frames(facets.len(), ctx.opts.width);
     let title = block.y.label.clone().unwrap_or_else(|| fields[3].clone());
+    // Each panel's last drawn period, the one whose close is printed (FEA-CH-28).
+    let closing: Vec<Option<usize>> = panels_candles
+        .iter()
+        .zip(&moves)
+        .map(|(candles, moves)| {
+            (0..candles.len()).rev().find(|&c| {
+                let kind = moves.get(c).map_or_else(|| candles[c].kind(), |m| m.0);
+                !ctx.is_hidden(slot_of(kind))
+            })
+        })
+        .collect();
+    // The last close stands right of the plot at the close's own height, where a price tag
+    // stands, so an upright chart keeps the width of the widest one beside its plot. The
+    // author's `auto_annotations: false` keeps the whole width for the plot.
+    let tag_room = if block.auto_annotations && !plan.horizontal {
+        closing
+            .iter()
+            .zip(&panels_candles)
+            .filter_map(|(c, candles)| c.map(|c| ctx.text_width(&numbers::value(candles[c].close, &readout))))
+            .fold(0.0f64, f64::max)
+    } else {
+        0.0
+    };
     let mut panels = Vec::new();
     for (fi, ((name, _), outer)) in facets.iter().zip(&frames).enumerate() {
         if let Some(reason) = &failures[fi] {
@@ -329,12 +354,16 @@ fn paint(ctx: &mut Ctx, facets: &Facets, glyph: Glyph) -> Painted {
             min: block.y.min,
             max: block.y.max,
         };
-        let frame = kit::frame(ctx, &plan, outer, &side, fi == 0);
+        let inner = Rect::new(outer.x, outer.y, (outer.w - tag_room).max(outer.w / 2.0), outer.h);
+        let frame = kit::frame(ctx, &plan, &inner, &side, fi == 0);
         let t = frame.thickness(1, glyph.cap()).max(1.0);
         let line_width = if t >= 6.0 { 1.5 } else { 1.0 };
         let surface = Style::rgba(ctx.style.surface);
         let mut marks: Vec<Item> = Vec::new();
         let mut observations = Vec::new();
+        // The last drawn period: its series slot, observation, close and the far edge of its
+        // mark along the category axis.
+        let mut last: Option<(usize, usize, f64, f64)> = None;
         for (c, s) in candles.iter().enumerate() {
             let (kind, change_text) = moves[fi].get(c).cloned().unwrap_or_else(|| (s.kind(), String::new()));
             let slot = slot_of(kind);
@@ -399,6 +428,9 @@ fn paint(ctx: &mut Ctx, facets: &Facets, glyph: Glyph) -> Painted {
                 names_series: false,
                 derived: false,
             };
+            if closing[fi] == Some(c) {
+                last = Some((slot, observations.len(), s.close, c0 + t));
+            }
             observations.push(Observation {
                 row: Some(s.row),
                 dots: vec![],
@@ -432,7 +464,50 @@ fn paint(ctx: &mut Ctx, facets: &Facets, glyph: Glyph) -> Painted {
                 .into(),
             });
         }
-        panels.push(kit::panel(ctx, outer, frame, marks, observations, name));
+        // The one automatic value: the last close at the close's own height (chart design,
+        // 16 Nov 2026). Four numbers a period would be noise, so no other value is printed. An
+        // upright chart sets it in the room it kept beside the plot, as a price tag, or 4 px
+        // past the mark when periods this panel lacks follow it. A horizontal chart prints it
+        // under the last row where the plot has room, and records it as dropped where it has
+        // none.
+        let plot = frame.plot;
+        let value = last.map(|(slot, observation, close, edge)| {
+            let text = numbers::value(close, &readout);
+            let [x, y] = frame.pt(edge + 4.0, close);
+            let ink = ctx.style.ink;
+            let mut place = if frame.horizontal {
+                let lh = ctx.line_height();
+                ctx.text_mid(&text, x, y + lh / 2.0, Anchor::Middle, Face::Figures, Role::Label, ink)
+            } else {
+                let x = if closing[fi].is_some_and(|c| c + 1 == names.len()) {
+                    plot.right() + TAG_GAP
+                } else {
+                    x
+                };
+                ctx.text_mid(&text, x, y, Anchor::Start, Face::Figures, Role::Label, ink)
+            };
+            // A close at the plot's end keeps its value inside the plot along the value axis.
+            let b = place.bounds;
+            if frame.horizontal {
+                let dx = (plot.x - b.x).max(0.0) - (b.right() - plot.right()).max(0.0);
+                place.x += dx;
+                place.bounds.x += dx;
+            } else {
+                let dy = (plot.y - b.y).max(0.0) - (b.bottom() - plot.bottom()).max(0.0);
+                place.y += dy;
+                place.bounds.y += dy;
+            }
+            super::place::SparseValue {
+                text,
+                series: slot,
+                observation,
+                places: vec![place],
+            }
+        });
+        let mut panel = kit::panel(ctx, outer, frame, marks, observations, name);
+        let bounds = Rect::new(plot.x, plot.y, (outer.right() - plot.x).max(plot.w), plot.h);
+        super::place::sparse_values_in(ctx, fi, &mut panel, 1, value.into_iter().collect(), &|_| true, bounds);
+        panels.push(panel);
     }
     ctx.summary = match all.last() {
         Some(l) => format!(

@@ -25,7 +25,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
-/// The task guides, in reading order: file stem under `docs/`, label.
+/// The task guides, in the sidebar's order, which the pager follows: file stem under `docs/`,
+/// label.
 const GUIDES: &[(&str, &str)] = &[
     ("index", "Report gallery"),
     ("elements", "Elements gallery"),
@@ -38,16 +39,16 @@ const GUIDES: &[(&str, &str)] = &[
     ("styles", "Styles & your brand"),
     ("export", "Export HTML & PDF"),
     ("publishing", "Publish: walkthrough"),
+    ("tools", "CLI & MCP reference"),
+    ("style-yaml", "Style YAML reference"),
     ("authoring", "Rich Markdown"),
     ("blocks", "Blocks & media"),
     ("chart-reference", "Charts & interaction"),
     ("data", "Data & connectors"),
     ("storage", "Asset storage"),
-    ("style-yaml", "Style YAML reference"),
     ("recovery", "Diagnostics & repair"),
     ("access", "Server, access and API"),
     ("architecture", "Architecture & performance"),
-    ("tools", "CLI & MCP reference"),
 ];
 
 const FEATURED: &[(&str, &str, &str, usize)] = &[
@@ -114,7 +115,11 @@ const REPORTS: &[(&str, &[&str])] = &[
     ),
     (
         "longer-lives",
-        &["report.rmd", "data/life-expectancy-by-region.csv"],
+        &[
+            "report.rmd",
+            "data/regions-by-decade.csv",
+            "data/life-expectancy-by-region.csv",
+        ],
     ),
     (
         "air-we-changed",
@@ -147,6 +152,60 @@ const TIME_SERIES: [&str; 3] = [
     "de-power-15min",
 ];
 
+/// The elements a report is made of, as the elements gallery overviews them: the heading's
+/// anchor on that page and the label. The sidebar lists them under the gallery: charts and
+/// flow charts open their own pages, the others move the reader within the page.
+const ELEMENTS: &[(&str, &str)] = &[
+    ("charts", "Charts"),
+    ("flow-charts", "Flow charts"),
+    ("tables", "Tables"),
+    ("type-and-fonts", "Type and fonts"),
+    ("pictures", "Pictures"),
+    ("players-and-blocks", "Players and blocks"),
+];
+
+/// The chart types that are elements of their own (Daniel, 16 Nov 2026): chart type and the
+/// element it belongs to. Their pages sit under that element, not in the chart gallery.
+const ELEMENT_PAGES: &[(&str, &str)] = &[("flow", "flow-charts"), ("pivot", "tables")];
+
+/// The element a chart type's page belongs to, when it is not a chart of the chart gallery.
+fn element_of(chart: &str) -> Option<&'static str> {
+    ELEMENT_PAGES
+        .iter()
+        .find(|(name, _)| *name == chart)
+        .map(|(_, element)| *element)
+}
+
+/// The chart types the chart gallery lists: every type but the elements of their own.
+fn gallery_charts(charts: &[ChartPage]) -> impl Iterator<Item = &ChartPage> {
+    charts
+        .iter()
+        .filter(|page| element_of(&page.name).is_none())
+}
+
+/// The sidebar's groups of guides; the galleries and the playground have their own entries.
+const HOW_TO: &[&str] = &[
+    "install",
+    "first-report",
+    "cli",
+    "mcp",
+    "vscode",
+    "styles",
+    "export",
+    "publishing",
+];
+const REFERENCES: &[&str] = &["tools", "style-yaml"];
+const NITTY_GRITTY: &[&str] = &[
+    "authoring",
+    "blocks",
+    "chart-reference",
+    "data",
+    "storage",
+    "recovery",
+    "access",
+    "architecture",
+];
+
 /// The URL of a guide: the index is the docs root, the rest are clean URLs.
 fn guide_url(stem: &str) -> String {
     if stem == "index" {
@@ -165,7 +224,10 @@ enum Place<'a> {
     ChartType(&'a str),
     Example(&'a str),
     Report(&'a str),
+    /// The format reference's index and its chart field pages.
     Reference,
+    /// One topic page of the format reference.
+    Topic(&'a str),
 }
 
 /// One chart type's page, read from `docs/public/charts/<type>.md`.
@@ -217,7 +279,18 @@ pub fn stage(root: &Path, public: &Path, flags: BuildFlags) -> Result<()> {
                 .strip_prefix("---\n")
                 .and_then(|text| text.split_once("\n---\n"))
                 .ok_or("block tour needs frontmatter")?;
-            source.push_str(&body.replace("media/", "gallery/blocks/media/"));
+            // The tour reads as one part of the page: its sections sit under "Players and
+            // blocks", so the page's headings stay the elements.
+            source.push_str(
+                &body
+                    .replace("media/", "gallery/blocks/media/")
+                    .replace("\n## ", "\n### "),
+            );
+            // Each element shows the live example of its own page.
+            for page in &charts {
+                source =
+                    source.replace(&format!("{{{{example:{}}}}}", page.name), &page.chart_fence);
+            }
             let mut options = documentation_options();
             let file = report_source_folder(root, "blocks").join("report.rmd");
             let (_, media) = richview_app::resolver::resolve_document_options_policy(
@@ -509,7 +582,7 @@ fn feedback(place: Place, flags: BuildFlags, name: &str) -> String {
         Place::Example(name) => format!("/docs/examples/{name}/"),
         Place::Report(name) => format!("/docs/gallery/{name}/"),
         Place::Reference if name == "reference" => "/docs/reference".into(),
-        Place::Reference => format!("/docs/reference/{name}"),
+        Place::Reference | Place::Topic(_) => format!("/docs/reference/{name}"),
     };
     let issue = if flags.repository_public {
         format!(
@@ -688,6 +761,179 @@ fn showcase(root: &Path) -> Result<String> {
     ))
 }
 
+/// How many countries the gallery's live play chart keeps. All 194 on one page weigh more than
+/// every other chart of the gallery together, and the gallery once overwhelmed a phone, so the
+/// page plays the most populous and links to the full chart.
+const PLAY_COUNTRIES: usize = 30;
+
+/// The line above the gallery's zoom chart: the gesture, the way back and the phone equivalent
+/// (Daniel, 15 Nov: the gallery should show off the interaction features). Inline, touch
+/// scrolls the page, so a phone zooms in the expanded view (FEA-CH-49).
+const ZOOM_CUE: &str = "Drag across the plot to zoom, and double-click to go back. On a phone, expand it first, then pinch.";
+
+/// What marks a paragraph of the gallery as a cue; the page gives it the cue's class.
+const CUE: &str = "{{cue}}";
+
+/// The line above the gallery's play chart, naming the years its data really has.
+fn play_cue(first: &str, last: &str) -> String {
+    format!(
+        "Press Play to run {first} to {last}, or drag the year. Hover or tap a country to read its values."
+    )
+}
+
+/// The countries the gallery's play chart keeps.
+struct PlayData {
+    /// Their records, unchanged and in the file's order.
+    csv: String,
+    first: String,
+    last: String,
+    /// How many countries the whole file has.
+    all: usize,
+}
+
+/// The year of a `year,country,…` record.
+fn year(line: &str) -> &str {
+    line.split_once(',').map_or("", |(year, _)| year)
+}
+
+/// The second field of a CSV record, without its quotes.
+fn second_field(line: &str) -> Option<&str> {
+    let rest = line.split_once(',')?.1;
+    match rest.strip_prefix('"') {
+        Some(quoted) => quoted.split_once('"').map(|(name, _)| name),
+        None => rest.split_once(',').map(|(name, _)| name),
+    }
+}
+
+/// The records of the `count` countries with the largest population in the last year of a
+/// `year,country,…,population` CSV.
+fn most_populous(csv: &str, count: usize) -> Result<PlayData> {
+    let mut lines = csv.lines();
+    let header = lines.next().unwrap_or_default();
+    if !(header.starts_with("year,country,") && header.ends_with(",population")) {
+        return Err(
+            "the play chart's data needs year, country and a last population column".into(),
+        );
+    }
+    let rows: Vec<&str> = lines.filter(|line| !line.is_empty()).collect();
+    let years = || rows.iter().map(|line| year(line));
+    let (first, last) = years()
+        .min()
+        .zip(years().max())
+        .ok_or("the play chart's data has no rows")?;
+    let mut ranked = Vec::new();
+    for line in rows.iter().filter(|line| year(line) == last) {
+        let population: f64 = line
+            .rsplit_once(',')
+            .and_then(|(_, value)| value.parse().ok())
+            .ok_or_else(|| format!("no population in `{line}`"))?;
+        let country = second_field(line).ok_or_else(|| format!("no country in `{line}`"))?;
+        ranked.push((population, country));
+    }
+    let all = ranked.len();
+    ranked.sort_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(b.1)));
+    if all < count {
+        return Err(format!("the play chart's data has only {all} countries").into());
+    }
+    let keep: std::collections::BTreeSet<&str> = ranked
+        .iter()
+        .take(count)
+        .map(|(_, country)| *country)
+        .collect();
+    let mut subset = format!("{header}\n");
+    for line in rows {
+        if second_field(line).is_some_and(|country| keep.contains(country)) {
+            subset.push_str(line);
+            subset.push('\n');
+        }
+    }
+    Ok(PlayData {
+        csv: subset,
+        first: first.to_owned(),
+        last: last.to_owned(),
+        all,
+    })
+}
+
+/// The first chart of a report and the source note under it.
+fn first_chart(root: &Path, report: &str) -> Result<(serde_json::Value, String)> {
+    let source = fs::read_to_string(root.join(report))?;
+    let chart = richview_core::document::parse(&source)
+        .map_err(|errors| format!("{report}: {errors:?}"))?
+        .blocks
+        .into_iter()
+        .find(|block| block.tag == "chart")
+        .ok_or_else(|| format!("{report} has no chart"))?
+        .value;
+    let note = source
+        .split("```chart")
+        .nth(1)
+        .and_then(|part| part.split_once("```"))
+        .and_then(|(_, after)| after.trim_start().lines().next())
+        .filter(|line| line.starts_with("*Source:"))
+        .ok_or_else(|| format!("{report}: its chart needs a source note"))?;
+    Ok((chart, note.to_owned()))
+}
+
+/// "Try it yourself" as Rich Markdown: a chart that plays and a chart that zooms, live under the
+/// showcase, each under a line that names the gesture, so a visitor finds the interactions before
+/// the menu (Daniel, 15 Nov). The play chart opens on its last year and waits for Play; the link
+/// to every country stands under it. Their observations are registered in `options`.
+fn interactions(root: &Path, options: &mut RenderOptions) -> Result<String> {
+    let mut register = |key: &str, data: String| {
+        if let Some(folder) = options.report_folder.as_mut() {
+            folder.files.push(key.to_owned());
+        }
+        options.data.insert(key.to_owned(), data);
+    };
+    let (mut play, play_note) =
+        first_chart(root, "docs/public/gallery/families-and-lives/report.rmd")?;
+    let observations = fs::read_to_string(
+        root.join("docs/public/gallery/families-and-lives/data/families-and-lives.csv"),
+    )?;
+    let countries = most_populous(&observations, PLAY_COUNTRIES)?;
+    let key = "gallery/families-and-lives/most-populous.csv";
+    play["data"]["csv"] = key.into();
+    play["wide"] = true.into();
+    // The example's own page is 4:3; at the gallery's width that is taller than a window, and
+    // 16:9 leaves a phone too flat a plot (Chart design, 16 Nov).
+    play["style"]["ratio"] = "3:2".into();
+    play["title"] = "Press Play: six decades of smaller families and longer lives".into();
+    play["subtitle"] = format!(
+        "The {PLAY_COUNTRIES} most populous countries of {}, every year; bubble area represents population",
+        countries.last
+    )
+    .into();
+    let cue = play_cue(&countries.first, &countries.last);
+    let all = countries.all;
+    register(key, countries.csv);
+
+    let (mut zoom, zoom_note) = first_chart(
+        root,
+        "docs/public/examples/co2-mauna-loa-monthly/report.rmd",
+    )?;
+    let key = "examples/co2-mauna-loa-monthly/data.csv";
+    zoom["data"]["csv"] = key.into();
+    zoom["wide"] = true.into();
+    // The reader hovers and zooms for values here; on a phone the automatic end values crowd.
+    zoom["auto_annotations"] = false.into();
+    zoom["title"] = "Drag to zoom: a seasonal cycle on a long rise in CO₂".into();
+    let monthly =
+        fs::read_to_string(root.join("benchmarks/fixtures/time-series/co2-mauna-loa-monthly.csv"))?
+            .lines()
+            .skip_while(|line| line.starts_with('#'))
+            .collect::<Vec<_>>()
+            .join("\n")
+            + "\n";
+    register(key, monthly);
+
+    Ok(format!(
+        "\n## Try it yourself\n\nTwo charts to play with before you browse.\n\n{CUE}{cue}\n\n```chart\n{}\n```\n\n[See all {all} countries play](https://richview.ai/docs/charts/gapminder).\n\n{play_note}\n\n{CUE}{ZOOM_CUE}\n\n```chart\n{}\n```\n\n[Zoom from a year down to one day of German electricity prices](https://richview.ai/docs/charts/german-electricity).\n\n{zoom_note}\n",
+        serde_json::to_string_pretty(&play)?,
+        serde_json::to_string_pretty(&zoom)?
+    ))
+}
+
 fn stage_gallery(
     root: &Path,
     public: &Path,
@@ -699,7 +945,9 @@ fn stage_gallery(
     let featured_at = index
         .find("\n## Featured charts")
         .ok_or("docs/public/charts.md needs a Featured charts section")?;
-    index.insert_str(featured_at, &showcase(root)?);
+    let mut gallery_options = documentation_options();
+    let opening = showcase(root)? + &interactions(root, &mut gallery_options)?;
+    index.insert_str(featured_at, &opening);
     index.push('\n');
     let folder = docs.join("charts");
     fs::create_dir_all(&folder)?;
@@ -821,8 +1069,8 @@ fn stage_gallery(
         fs::write(folder.join(format!("{slug}.html")), html)?;
         fs::write(folder.join(format!("{slug}.md")), featured)?;
     }
-    index.push_str("\n## Every chart type\n\nKeep scrolling: every supported type is rendered here. Each also has a deep link with its complete source, important fields and style comparison. These compact examples use illustrative data.\n");
-    for page in charts {
+    index.push_str("\n## Every chart type\n\nKeep scrolling: every supported type is rendered here. Each also has a deep link with its complete source, important fields and style comparison. These compact examples use illustrative data. [Flow charts](https://richview.ai/docs/charts/flow) and [pivot tables](https://richview.ai/docs/charts/pivot) are elements of their own: the [elements gallery](https://richview.ai/docs/elements) shows them.\n");
+    for page in gallery_charts(charts) {
         index.push_str(&format!(
             "\n### [{}](https://richview.ai/docs/charts/{})\n\n{}\n\n{}\n\n*Source: [the {} example](https://richview.ai/docs/charts/{}), illustrative data.*\n",
             page.title, page.name, page.use_when, page.chart_fence, page.title, page.name
@@ -839,7 +1087,14 @@ fn stage_gallery(
             "\n- [{title}](https://richview.ai/docs/examples/{name}/) — {description}\n"
         ));
     }
-    let html = render_page(&index, "charts", Place::Gallery, charts, flags)?;
+    let html = render_page_with_options(
+        &index,
+        "charts",
+        Place::Gallery,
+        charts,
+        &gallery_options,
+        flags,
+    )?;
     fs::write(docs.join("charts.html"), html)?;
     fs::write(docs.join("charts.md"), index)?;
     for page in charts {
@@ -971,7 +1226,7 @@ fn render_page_with_options(
     let (decorated, mut toc) = decorate(source, &rendered.html)?;
     if place == Place::Gallery {
         toc.push_str("<details><summary>Chart types</summary>");
-        for page in charts {
+        for page in gallery_charts(charts) {
             toc.push_str(&format!(
                 "<a href=\"#{}\">{}</a>",
                 reference::slug(&page.title),
@@ -982,6 +1237,7 @@ fn render_page_with_options(
     }
     let decorated = report_frames(&decorated);
     let decorated = decorated
+        .replace(&format!("<p>{CUE}"), "<p class=\"docs-cue\">")
         .replace("<p>{{featured-menu}}</p>", &previews::featured_menu())
         .replace("<p>{{report-grid}}</p>", &previews::report_grid())
         .replace("<p>{{docs-doors}}</p>", &previews::doors())
@@ -998,11 +1254,20 @@ fn render_page_with_options(
                     1,
                 ),
         );
-    let decorated = decorated.replace("<p>{{typography}}</p>", &typography_frames());
+    let decorated = decorated
+        .replace("<p>{{typography}}</p>", &typography_frames())
+        .replace("<p>{{elements}}</p>", &previews::elements_grid());
+    if place == Place::Guide("elements") {
+        for (anchor, label) in ELEMENTS {
+            if !toc.contains(&format!("href=\"#{anchor}\"")) {
+                return Err(format!("the elements gallery needs a `## {label}` section").into());
+            }
+        }
+    }
     let sidebar = sidebar(place, charts, flags);
     let source_link = match place {
         Place::Guide(stem) => format!("/docs/{stem}.md"),
-        Place::Reference => "/docs/reference.md".into(),
+        Place::Reference | Place::Topic(_) => "/docs/reference.md".into(),
         Place::Featured(name) => format!("/docs/charts/{name}.md"),
         Place::ChartType(chart) => format!("/examples/charts/{chart}/report.rmd"),
         Place::Example(name) => format!("/docs/examples/{name}/report.rmd"),
@@ -1189,34 +1454,63 @@ fn sidebar(place: Place, charts: &[ChartPage], flags: BuildFlags) -> String {
         "Reports",
         matches!(place, Place::Guide("index") | Place::Report(_)),
     ));
-    html.push_str(&link(
-        "/docs/charts",
-        "Chart gallery",
-        matches!(
+    // A flow chart's or a pivot table's page belongs to its element, not to the chart gallery.
+    let own_element = match place {
+        Place::ChartType(chart) => element_of(chart),
+        _ => None,
+    };
+    let in_gallery = own_element.is_none()
+        && matches!(
             place,
-            Place::Gallery | Place::Featured(_) | Place::Example(_) | Place::ChartType(_)
-        ),
-    ));
-    let in_gallery = matches!(
-        place,
-        Place::Gallery | Place::Featured(_) | Place::ChartType(_) | Place::Example(_)
-    );
-    if in_gallery {
-        html.push_str("<details class=\"docs-chart-types\"><summary>Chart types</summary><div class=\"docs-nav__sub\">");
-        for page in charts {
-            html.push_str(&link(
-                &format!("/docs/charts/{}", page.name),
-                &page.title,
-                place == Place::ChartType(&page.name),
-            ));
-        }
-        html.push_str("</div></details>");
-    }
+            Place::Gallery | Place::Featured(_) | Place::ChartType(_) | Place::Example(_)
+        );
+    // The elements gallery overviews everything a report is made of; each element under it
+    // is a way in.
     html.push_str(&link(
         "/docs/elements",
         "Elements gallery",
         place == Place::Guide("elements"),
     ));
+    html.push_str("<div class=\"docs-nav__sub\" data-nav=\"elements\">");
+    for &(anchor, label) in ELEMENTS {
+        match anchor {
+            "charts" => html.push_str(&link("/docs/charts", label, in_gallery)),
+            "flow-charts" => html.push_str(&link(
+                "/docs/charts/flow",
+                label,
+                place == Place::ChartType("flow"),
+            )),
+            // A part of the elements gallery; a page that belongs to it marks it as its place.
+            _ => html.push_str(&format!(
+                "<a href=\"/docs/elements#{anchor}\"{}>{}</a>",
+                if own_element == Some(anchor) {
+                    " aria-current=\"true\""
+                } else {
+                    ""
+                },
+                escape(label)
+            )),
+        }
+        if anchor == "charts" && in_gallery {
+            html.push_str("<div class=\"docs-nav__sub\"><details class=\"docs-nav__more docs-chart-types\"><summary>Chart types</summary><div class=\"docs-nav__sub\">");
+            for page in gallery_charts(charts) {
+                // On the gallery every type is on the page: the list moves the reader to it.
+                // From a type's own page it opens the other types' pages.
+                let url = if place == Place::Gallery {
+                    format!("#{}", reference::slug(&page.title))
+                } else {
+                    format!("/docs/charts/{}", page.name)
+                };
+                html.push_str(&link(
+                    &url,
+                    &page.title,
+                    place == Place::ChartType(&page.name),
+                ));
+            }
+            html.push_str("</div></details></div>");
+        }
+    }
+    html.push_str("</div>");
     html.push_str("<p class=\"docs-nav__group\">Playground</p>");
     html.push_str(&link(
         "/docs/playground",
@@ -1224,50 +1518,45 @@ fn sidebar(place: Place, charts: &[ChartPage], flags: BuildFlags) -> String {
         place == Place::Guide("playground"),
     ));
     html.push_str(&link("/playground", "Open playground", false));
+    let guides = |html: &mut String, stems: &[&str]| {
+        for (stem, label) in GUIDES.iter().filter(|(stem, _)| stems.contains(stem)) {
+            html.push_str(&link(&guide_url(stem), label, place == Place::Guide(stem)));
+        }
+    };
     html.push_str("<p class=\"docs-nav__group\">How to use</p>");
-    for (stem, label) in GUIDES.iter().filter(|(stem, _)| {
-        !matches!(
-            *stem,
-            "index"
-                | "elements"
-                | "playground"
-                | "authoring"
-                | "blocks"
-                | "chart-reference"
-                | "data"
-                | "storage"
-                | "style-yaml"
-                | "recovery"
-                | "access"
-                | "architecture"
-                | "tools"
-        )
-    }) {
-        html.push_str(&link(&guide_url(stem), label, place == Place::Guide(stem)));
-    }
-    html.push_str("<p class=\"docs-nav__group\">Nitty-gritty</p>");
-    for (stem, label) in GUIDES.iter().filter(|(stem, _)| {
-        matches!(
-            *stem,
-            "authoring"
-                | "blocks"
-                | "chart-reference"
-                | "data"
-                | "storage"
-                | "style-yaml"
-                | "recovery"
-                | "access"
-                | "architecture"
-                | "tools"
-        )
-    }) {
-        html.push_str(&link(&guide_url(stem), label, place == Place::Guide(stem)));
-    }
+    guides(&mut html, HOW_TO);
+    // The references stand above the deeper guides, with the format reference's topic pages
+    // under it: open inside the reference, one click away everywhere else.
+    html.push_str("<p class=\"docs-nav__group\">Reference</p>");
     html.push_str(&link(
         "/docs/reference",
         "Format reference",
         place == Place::Reference,
     ));
+    html.push_str(&format!(
+        "<div class=\"docs-nav__sub\"><details class=\"docs-nav__more\" data-nav=\"topics\"{}><summary>Topics</summary><div class=\"docs-nav__sub\">",
+        if matches!(place, Place::Reference | Place::Topic(_)) {
+            " open"
+        } else {
+            ""
+        }
+    ));
+    for (name, title) in reference::topic_pages() {
+        html.push_str(&link(
+            &format!("/docs/reference/{name}"),
+            title,
+            place == Place::Topic(name),
+        ));
+    }
+    html.push_str(&link(
+        "/docs/reference#chart-specific-fields",
+        "Chart-specific fields",
+        false,
+    ));
+    html.push_str("</div></details></div>");
+    guides(&mut html, REFERENCES);
+    html.push_str("<p class=\"docs-nav__group\">Nitty-gritty</p>");
+    guides(&mut html, NITTY_GRITTY);
     html.push_str("</nav>");
     if !flags.install_enabled {
         html.push_str("<p class=\"docs-sidebar__note\">Hosted installer: at launch</p>");
@@ -1554,13 +1843,35 @@ mod tests {
             assert!(!index.contains("{{report:"));
             assert!(index.contains("/docs/gallery/longer-lives/Rendered/report.html"));
             let gallery = fs::read_to_string(docs.join("charts.html")).unwrap();
+            let pages = read_chart_pages(&root).unwrap();
             assert_eq!(
                 gallery.matches("data-rv-payload>").count(),
-                read_chart_pages(&root).unwrap().len() + 1,
-                "the gallery opens with the flagship showcase and keeps every chart type inline after the featured menu"
+                gallery_charts(&pages).count() + 3,
+                "the gallery opens with the flagship showcase, a chart to play and a chart to zoom, and keeps every chart type inline after the featured menu"
             );
+            // A flow chart and a pivot table are elements of their own: the gallery links
+            // their pages and draws neither, and the elements gallery draws both.
+            assert_eq!(
+                gallery_charts(&pages).count(),
+                pages.len() - ELEMENT_PAGES.len()
+            );
+            let live = fs::read_to_string(docs.join("elements.html")).unwrap();
+            for &(chart, _) in ELEMENT_PAGES {
+                let page = pages.iter().find(|page| page.name == chart).unwrap();
+                let heading = format!("<h3 id=\"{}\"", reference::slug(&page.title));
+                assert!(
+                    !gallery.contains(&heading),
+                    "{chart} is in the chart gallery"
+                );
+                assert!(gallery.contains("<h3 id=\"bar-chart\""));
+                assert!(gallery.contains(&format!("href=\"/docs/charts/{chart}\"")));
+                assert!(docs.join(format!("charts/{chart}.html")).is_file());
+                assert!(live.contains(&format!("\"type\":\"{chart}\"")), "{chart}");
+            }
             let showcase = gallery.find(SHOWCASE_TITLE).unwrap();
-            assert!(showcase < gallery.find("docs-featured-grid").unwrap());
+            let invitation = gallery.find("Try it yourself").unwrap();
+            assert!(showcase < invitation);
+            assert!(invitation < gallery.find("docs-featured-grid").unwrap());
             assert!(gallery.contains("rv-chart rv-chart--full"));
             for name in [
                 "playfair",
@@ -1697,12 +2008,28 @@ mod tests {
             use_when: String::new(),
             chart_fence: String::new(),
         }];
+        // On the gallery the list moves the reader to the type on the page; from a type's own
+        // page it opens the other types' pages.
+        let gallery = sidebar(Place::Gallery, &pages, BuildFlags::default());
+        assert!(gallery.contains("<a href=\"#line-chart\">Line chart</a>"));
+        assert!(!gallery.contains("/docs/charts/line"));
         assert!(
-            sidebar(Place::Gallery, &pages, BuildFlags::default()).contains("/docs/charts/line")
+            sidebar(Place::ChartType("line"), &pages, BuildFlags::default())
+                .contains("href=\"/docs/charts/line\" aria-current=\"page\"")
         );
         assert!(
-            !sidebar(Place::Guide("index"), &pages, BuildFlags::default())
-                .contains("/docs/charts/line")
+            !sidebar(Place::Guide("index"), &pages, BuildFlags::default()).contains("Line chart")
+        );
+        // A flow chart is an element of its own: the chart types do not list it.
+        let with_flow = [ChartPage {
+            name: "flow".into(),
+            title: "Flow chart".into(),
+            source: String::new(),
+            use_when: String::new(),
+            chart_fence: String::new(),
+        }];
+        assert!(
+            !sidebar(Place::Gallery, &with_flow, BuildFlags::default()).contains("#flow-chart\"")
         );
         assert!(
             sidebar(Place::Gallery, &pages, BuildFlags::default())
@@ -1719,6 +2046,184 @@ mod tests {
             )
             .contains("Hosted installer: at launch")
         );
+    }
+
+    #[test]
+    fn the_sidebar_lists_the_elements_under_their_gallery_in_the_pages_order() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let page = fs::read_to_string(root.join("docs/public/elements.md")).unwrap();
+        let side = sidebar(Place::Guide("elements"), &[], BuildFlags::default());
+        let at = |text: &str| side.find(text).unwrap_or_else(|| panic!("no `{text}`"));
+        let mut last = at("href=\"/docs/elements\" aria-current=\"page\"");
+        let mut section = 0;
+        for &(anchor, label) in ELEMENTS {
+            // Charts and flow charts have pages of their own; the others are parts of the page.
+            let link = match anchor {
+                "charts" => "href=\"/docs/charts\"".to_owned(),
+                "flow-charts" => "href=\"/docs/charts/flow\"".to_owned(),
+                _ => format!("href=\"/docs/elements#{anchor}\""),
+            };
+            assert!(at(&link) > last, "{label} is out of order in the sidebar");
+            last = at(&link);
+            assert_eq!(reference::slug(label), anchor);
+            let heading = page
+                .find(&format!("\n## {label}\n"))
+                .unwrap_or_else(|| panic!("the elements gallery has no `## {label}`"));
+            assert!(heading > section, "{label} is out of order on the page");
+            section = heading;
+        }
+        assert!(last < at(">Playground<"));
+        assert_eq!(side.matches("aria-current").count(), 1);
+        // Inside the chart gallery the charts are the current element.
+        let gallery = sidebar(Place::Gallery, &[], BuildFlags::default());
+        assert!(gallery.contains("href=\"/docs/charts\" aria-current=\"page\""));
+        assert!(!gallery.contains("href=\"/docs/elements\" aria-current"));
+        // A flow chart's and a pivot table's page sit under their element, not under the charts.
+        let flow = sidebar(Place::ChartType("flow"), &[], BuildFlags::default());
+        assert!(flow.contains("href=\"/docs/charts/flow\" aria-current=\"page\""));
+        let pivot = sidebar(Place::ChartType("pivot"), &[], BuildFlags::default());
+        assert!(pivot.contains("href=\"/docs/elements#tables\" aria-current=\"true\""));
+        for side in [flow, pivot] {
+            assert_eq!(side.matches("aria-current").count(), 1);
+            assert!(!side.contains("docs-chart-types"));
+        }
+        for &(chart, element) in ELEMENT_PAGES {
+            assert!(ELEMENTS.iter().any(|(anchor, _)| *anchor == element));
+            assert!(
+                root.join(format!("docs/public/charts/{chart}.md"))
+                    .is_file()
+            );
+        }
+        // The overview has a card for each, in the same order.
+        let grid = previews::elements_grid();
+        let mut last = 0;
+        for &(_, label) in ELEMENTS {
+            let card = grid
+                .find(&format!("<h3>{label}</h3>"))
+                .unwrap_or_else(|| panic!("no card for {label}"));
+            assert!(card > last);
+            last = card;
+        }
+        assert_eq!(
+            grid.matches("docs-chart-card__link").count(),
+            ELEMENTS.len()
+        );
+    }
+
+    #[test]
+    fn the_sidebar_sets_the_references_above_the_deeper_guides_with_the_topics_under_them() {
+        let closed = sidebar(Place::Guide("index"), &[], BuildFlags::default());
+        let at = |text: &str| closed.find(text).unwrap_or_else(|| panic!("no `{text}`"));
+        assert!(at(">How to use<") < at(">Reference<") && at(">Reference<") < at(">Nitty-gritty<"));
+        // The format reference, its topic pages, then the two other references.
+        let topics = at("<details class=\"docs-nav__more\" data-nav=\"topics\">");
+        assert!(at("href=\"/docs/reference\"") < topics);
+        assert!(topics < at("href=\"/docs/reference/charts\""));
+        assert!(at("href=\"/docs/reference/diagnostic-codes\"") < at("href=\"/docs/tools\""));
+        assert!(at("href=\"/docs/tools\"") < at("href=\"/docs/style-yaml\""));
+        assert!(at("href=\"/docs/style-yaml\"") < at(">Nitty-gritty<"));
+        // Every guide has one entry, and the pager walks them in the sidebar's order.
+        let mut last = 0;
+        for &(stem, _) in GUIDES {
+            let link = format!("href=\"{}\"", guide_url(stem));
+            assert_eq!(closed.matches(&link).count(), 1, "{stem}");
+            assert!(at(&link) > last, "{stem} is out of the sidebar's order");
+            last = at(&link);
+        }
+        // Inside the reference the topics are open and the page is marked.
+        let open = sidebar(Place::Topic("charts"), &[], BuildFlags::default());
+        assert!(open.contains("data-nav=\"topics\" open>"));
+        assert!(open.contains("href=\"/docs/reference/charts\" aria-current=\"page\""));
+        assert_eq!(open.matches("aria-current").count(), 1);
+        assert!(
+            sidebar(Place::Reference, &[], BuildFlags::default())
+                .contains("href=\"/docs/reference\" aria-current=\"page\"")
+        );
+    }
+
+    #[test]
+    fn the_play_chart_keeps_whole_countries_of_the_last_years_largest() {
+        let csv = "year,country,region,population\n\
+            1960,Small,Asia,9\n1960,\"Big, Dem. Rep.\",Africa,1\n1960,Middle,Europe,5\n\
+            2020,Small,Asia,2\n2020,\"Big, Dem. Rep.\",Africa,30\n2020,Middle,Europe,7\n";
+        let kept = most_populous(csv, 2).unwrap();
+        assert_eq!(
+            (kept.first.as_str(), kept.last.as_str(), kept.all),
+            ("1960", "2020", 3)
+        );
+        assert_eq!(
+            kept.csv,
+            "year,country,region,population\n\
+             1960,\"Big, Dem. Rep.\",Africa,1\n1960,Middle,Europe,5\n\
+             2020,\"Big, Dem. Rep.\",Africa,30\n2020,Middle,Europe,7\n",
+            "the largest of the last year keep every year's record, unchanged and in order"
+        );
+        assert!(
+            most_populous(csv, 4).is_err(),
+            "more countries than the data has"
+        );
+        assert!(
+            most_populous("country,year\nA,1\n", 1).is_err(),
+            "other columns"
+        );
+    }
+
+    #[test]
+    fn the_gallery_invites_play_and_zoom_with_a_cue_each() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let mut options = documentation_options();
+        let section = interactions(&root, &mut options).unwrap();
+        assert!(section.starts_with("\n## Try it yourself\n"));
+        assert_eq!(section.matches("```chart\n").count(), 2);
+        // The line that names the gesture stands above each chart, with the years the data has;
+        // the way to the whole example and the source note follow the chart.
+        let at = |text: &str| section.find(text).unwrap_or_else(|| panic!("no `{text}`"));
+        let play_cue = at(&format!(
+            "{CUE}Press Play to run 1960 to 2020, or drag the year."
+        ));
+        let play = at("\"kind\": \"playback\"");
+        let every = at("](https://richview.ai/docs/charts/gapminder)");
+        let zoom_cue = at(&format!("{CUE}{ZOOM_CUE}"));
+        let zoom = at("Drag to zoom: a seasonal cycle");
+        let finer = at("](https://richview.ai/docs/charts/german-electricity)");
+        assert!(play_cue < play && play < every && every < zoom_cue);
+        assert!(zoom_cue < zoom && zoom < finer);
+        assert_eq!(section.matches("*Source:").count(), 2);
+        // The chart opens on the last year and plays only when asked (FEA-BR-02).
+        assert!(section.contains("\"initial\": \"2020\""));
+        // The gallery's copies: the play chart fits a window, the zoom chart prints no values.
+        assert!(section.contains("\"ratio\": \"3:2\""));
+        assert!(section.contains("\"auto_annotations\": false"));
+        assert!(section.contains("See all 194 countries play"));
+
+        // The play chart carries the most populous countries only, every year of each.
+        let subset = &options.data["gallery/families-and-lives/most-populous.csv"];
+        let countries: std::collections::BTreeSet<&str> =
+            subset.lines().skip(1).filter_map(second_field).collect();
+        assert_eq!(countries.len(), PLAY_COUNTRIES);
+        assert!(countries.contains("India") && countries.contains("Congo, Dem. Rep."));
+        let years: std::collections::BTreeSet<&str> = subset
+            .lines()
+            .skip(1)
+            .filter_map(|line| line.split_once(',').map(|(year, _)| year))
+            .collect();
+        assert_eq!(subset.lines().count(), 1 + PLAY_COUNTRIES * years.len());
+        assert!(section.contains(&format!(
+            "The {PLAY_COUNTRIES} most populous countries of {}, every year",
+            years.last().unwrap()
+        )));
+        // The page stays light: both charts' observations together are a small part of what
+        // the full play chart alone would add.
+        let weight: usize = options.data.values().map(String::len).sum();
+        assert!(weight < 120_000, "{weight} bytes of observations");
+
+        // Both charts draw from the registered observations without a hard failure.
+        let page = format!("---\ntitle: The chart gallery\nstyles: [scientific]\n---\n{section}");
+        let rendered = richview_core::document::render(&page, &options).unwrap();
+        ensure_clean("gallery invitation", &rendered.diagnostics).unwrap();
+        assert_eq!(rendered.html.matches("data-rv-payload>").count(), 2);
+        // Each cue is a paragraph of its own, which the page turns into the cue line.
+        assert_eq!(rendered.html.matches(&format!("<p>{CUE}")).count(), 2);
     }
 
     #[test]

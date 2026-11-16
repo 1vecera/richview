@@ -259,7 +259,7 @@ pub const TAGS: &[Tag] = &[
                 Ty::Bool,
                 false,
                 Some("true"),
-                "Draws the automatic values on bars, lines, unstacked areas and density curves and the automatic point names of a scatter; `false` leaves the authored `annotations`, the `highlight` names and the series names."
+                "Prints the values and point names a chart adds by itself, such as bar and line values, heatmap cell values, pie shares and a scatter's point names; `false` prints none of them and leaves the authored `annotations`, the `highlight` names and the series and category names."
             ),
             field!(
                 "digits",

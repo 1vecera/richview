@@ -7,7 +7,9 @@ use super::types::Facets;
 use super::{Ctx, Painted, Style};
 use crate::axis::Zero;
 use crate::diag::Level;
-use crate::geometry::{Fill, Item, Observation, Path, Readout, ReadoutLine, Rect, Role, Shape, Stroke, Swatch};
+use crate::geometry::{
+    Anchor, Face, Fill, Item, Observation, Path, Readout, ReadoutLine, Rect, Role, Shape, Stroke, Swatch,
+};
 use crate::numbers;
 use crate::rows::{self, Num};
 use serde_json::json;
@@ -210,7 +212,31 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         if multi { groups.len() as f64 * 0.7 } else { 1.0 },
         block.style.ratio.unwrap_or(RATIO),
     );
+    // Few enough rows print both end values beyond their dots (FEA-CH-28), so the value axis
+    // keeps `room` pixels for one beyond its first and last dot.
+    let most = panels_bells
+        .iter()
+        .map(|bells| bells.iter().filter(|b| visible.contains(&b.group)).count())
+        .max()
+        .unwrap_or(0);
     let frames = plan.frames(facets.len(), ctx.opts.width);
+    let budget = if frames.first().is_some_and(|f| f.w - 30.0 < 480.0) {
+        3
+    } else {
+        5
+    };
+    let mut room = 0.0;
+    if block.auto_annotations && (1..=budget).contains(&most) {
+        let text = if plan.horizontal {
+            all.iter()
+                .flat_map(|b| [b.lower, b.upper])
+                .map(|v| ctx.text_width(&numbers::value(v, &readout)))
+                .fold(0.0f64, f64::max)
+        } else {
+            ctx.line_height()
+        };
+        room = RADIUS + 6.0 + text;
+    }
     let mut panels = Vec::new();
     for (fi, ((name, _), outer)) in facets.iter().zip(&frames).enumerate() {
         if let Some(reason) = &failures[fi] {
@@ -227,6 +253,23 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         if !data[0].is_finite() {
             data = ctx.wanted().y.unwrap_or([0.0, 1.0]);
         } else {
+            if room > 0.0 && data[1] > data[0] {
+                // The extent grows by the room in the axis's own units, judged against a plot of
+                // seven tenths of the panel, and never across zero (FEA-CH-19).
+                let length = 0.7 * if plan.horizontal { outer.w } else { outer.h };
+                let pad = room * (data[1] - data[0]) / (length - 2.0 * room).max(room);
+                let low = if data[0] >= 0.0 {
+                    (data[0] - pad).max(0.0)
+                } else {
+                    data[0] - pad
+                };
+                let high = if data[1] <= 0.0 {
+                    (data[1] + pad).min(0.0)
+                } else {
+                    data[1] + pad
+                };
+                data = [low, high];
+            }
             data = super::Fit::widen(data, ctx.wanted().y);
         }
         ctx.fit.y = Some(data);
@@ -243,6 +286,9 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         let line_width = if multi && visible.len() > 1 { LINE.min(t) } else { LINE };
         let mut marks: Vec<Item> = Vec::new();
         let mut observations = Vec::new();
+        // Both end values of each row, outside its dots (FEA-CH-28, chart design 16 Nov 2026).
+        let mut wanted: Vec<super::place::SparseValue> = Vec::new();
+        let lh = ctx.line_height();
         for (bi, b) in bells.iter().enumerate() {
             let Some(slot) = visible.iter().position(|g| *g == b.group) else {
                 continue;
@@ -294,6 +340,38 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             } else {
                 String::new()
             };
+            // The lesser value before its dot and the greater after it; equal values print once.
+            let gap = r + 4.0;
+            let ends = if b.lower == b.upper {
+                vec![(b.upper, true)]
+            } else {
+                vec![(b.lower.min(b.upper), false), (b.lower.max(b.upper), true)]
+            };
+            for (v, after) in ends {
+                let text = numbers::value(v, &readout);
+                let end = frame.at(v);
+                let place = if frame.horizontal {
+                    let (x, anchor) = if after {
+                        (end + gap, Anchor::Start)
+                    } else {
+                        (end - gap, Anchor::End)
+                    };
+                    ctx.text_mid(&text, x, cm, anchor, Face::Figures, Role::Label, ctx.style.ink)
+                } else {
+                    let y = if after {
+                        end - gap - lh / 2.0
+                    } else {
+                        end + gap + lh / 2.0
+                    };
+                    ctx.text_mid(&text, cm, y, Anchor::Middle, Face::Figures, Role::Label, ctx.style.ink)
+                };
+                wanted.push(super::place::SparseValue {
+                    text,
+                    series: b.group,
+                    observation: observations.len(),
+                    places: vec![place],
+                });
+            }
             observations.push(Observation {
                 row: Some(b.row),
                 dots: vec![],
@@ -332,7 +410,10 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 .into(),
             });
         }
-        panels.push(kit::panel(ctx, outer, frame, marks, observations, name));
+        let rows = observations.len();
+        let mut panel = kit::panel(ctx, outer, frame, marks, observations, name);
+        super::place::sparse_values(ctx, fi, &mut panel, rows, wanted, &|_| true);
+        panels.push(panel);
     }
     ctx.summary = format!(
         "{} {} from {lo_field} to {hi_field} across {} categories.",

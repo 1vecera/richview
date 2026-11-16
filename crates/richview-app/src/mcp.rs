@@ -2,9 +2,10 @@
 use crate::{
     asset_upload, cli,
     ops::{self, Failure},
+    resolver::Target,
 };
 use serde_json::{Value, json};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
 
 /// Protocol versions the server speaks, newest first (FEA-SF-10).
@@ -14,8 +15,9 @@ const INSTRUCTIONS: &str = "Call richview_learn before drafting. Read data and s
 
 /// The seven tools of D-MCP-SURFACE plus the Unsplash pair (FEA-RP-62), each twin to a command.
 pub fn tool_definitions() -> Vec<Value> {
-    let input_path =
-        json!({"type":"string","description":"The report's .rmd, saved in its own report folder"});
+    let input_path = json!({"type":"string","description":"The report's .rmd, saved in its own report folder, or that folder"});
+    // The tools that take every report below a folder, as their commands do (FEA-SF-01).
+    let input_paths = json!({"type":"string","description":"The report's .rmd or the folder holding it; a folder of report folders stands for every report below it, and the result then holds each report's own result in `reports`"});
     let styles = json!({"type":"array","items":{"type":"string"},"description":"Styles (a builtin name or a file in the report folder) replacing the source's `styles` for this call"});
     let tool = |name: &str,
                 description: &str,
@@ -39,7 +41,7 @@ pub fn tool_definitions() -> Vec<Value> {
         tool(
             "richview_validate",
             "Checks a report's structure and files without rendering it. With publish: true it adds the publish rules. Same result as `richview validate`.",
-            json!({"inputPath":input_path,"publish":{"type":"boolean","description":"Also apply the publish rules: title, description, version and a valid slug"}}),
+            json!({"inputPath":input_paths,"publish":{"type":"boolean","description":"Also apply the publish rules: title, description, version and a valid slug"}}),
             vec!["inputPath"],
             true,
             true,
@@ -48,7 +50,7 @@ pub fn tool_definitions() -> Vec<Value> {
         tool(
             "richview_check",
             "Renders the saved report and checks provenance and chart geometry: clipping, collisions and dropped labels. Read structuredContent.status and diagnostics, repair warnings/errors, and check again after the final edit. A report finding returns isError: false; status: clean means no warnings or errors. Same result as `richview check`.",
-            json!({"inputPath":input_path,"styles":styles,"chartWidth":{"type":"number","minimum":240,"maximum":4096,"description":"Measure charts at this width in pixels instead of the widths readers get"}}),
+            json!({"inputPath":input_paths,"styles":styles,"chartWidth":{"type":"number","minimum":240,"maximum":4096,"description":"Measure charts at this width in pixels instead of the widths readers get"}}),
             vec!["inputPath"],
             true,
             true,
@@ -57,7 +59,7 @@ pub fn tool_definitions() -> Vec<Value> {
         tool(
             "richview_render",
             "Writes the self-contained HTML report, or a PDF printed by a local Chromium-family browser, into the report folder's Rendered/. Run richview_check after the final source edit for geometry and provenance findings before generating. Its result has ok, status, output (the file written) and the render diagnostics. Same result as `richview generate`.",
-            json!({"inputPath":input_path,"styles":styles,"output":{"type":"string","enum":["report","pdf"],"description":"report (default) or pdf"},"outputName":{"type":"string","description":"File name inside Rendered/; a .pdf name implies pdf"},"page":{"type":"string","enum":["a4","letter"]}}),
+            json!({"inputPath":input_paths,"styles":styles,"output":{"type":"string","enum":["report","pdf"],"description":"report (default) or pdf"},"outputName":{"type":"string","description":"File name inside Rendered/; a .pdf name implies pdf"},"page":{"type":"string","enum":["a4","letter"]}}),
             vec!["inputPath"],
             false,
             false,
@@ -162,7 +164,8 @@ fn arg_str<'a>(args: &'a Value, key: &str) -> Result<Option<&'a str>, Failure> {
     }
 }
 
-fn input_of(args: &Value) -> Result<ops::Input, Failure> {
+/// What `inputPath` names, read as the commands read their input, and the `styles` of the call.
+fn input_of(args: &Value) -> Result<(Target, Vec<String>), Failure> {
     let path = arg_str(args, "inputPath")?
         .ok_or_else(|| Failure::usage("inputPath is required: the report's saved .rmd."))?;
     let styles = match args.get("styles") {
@@ -170,16 +173,21 @@ fn input_of(args: &Value) -> Result<ops::Input, Failure> {
         Some(v) => serde_json::from_value(v.clone())
             .map_err(|_| Failure::usage("styles must be an array of strings."))?,
     };
-    Ok(ops::Input {
-        path: PathBuf::from(path),
-        styles,
-        connectors: None,
-    })
+    let target = Target::of(Path::new(path)).map_err(Failure::Usage)?;
+    Ok((target, styles))
 }
 
-/// One summary line for a report result.
+/// One summary line for a report result, or for the reports of a folder.
 fn summary_of(what: &str, result: &Value) -> String {
     let count = |key| result[key].as_array().map_or(0, Vec::len);
+    if let Some(reports) = result["reports"].as_array() {
+        return format!(
+            "{what}: {} reports, {} with errors (status: {}).",
+            reports.len(),
+            reports.iter().filter(|report| !ops::is_ok(report)).count(),
+            result["status"].as_str().unwrap_or("issues")
+        );
+    }
     format!(
         "{what}: {}, {} diagnostics (status: {}).",
         if ops::is_ok(result) {
@@ -197,8 +205,32 @@ async fn dispatch(name: &str, args: &Value) -> Result<(Value, String), Failure> 
         let text = ops::learn(arg_str(args, "section")?)?;
         return Ok((json!({"ok":true,"text":text}), text));
     }
-    let input = input_of(args)?;
-    let result = match name {
+    let (target, styles) = input_of(args)?;
+    let input = |report: &Path| ops::Input {
+        path: report.to_path_buf(),
+        styles: styles.clone(),
+        connectors: None,
+    };
+    let result = match target {
+        Target::Folder { reports, .. } if name != "richview_publish" => {
+            let mut run = ops::FolderRun::default();
+            for report in &reports {
+                run.keep(report, report_tool(name, args, input(report)).await)?;
+            }
+            run.result()
+        }
+        target => {
+            let report = target.one(name).map_err(Failure::Usage)?;
+            report_tool(name, args, input(&report)).await?
+        }
+    };
+    let summary = summary_of(name.trim_start_matches("richview_"), &result);
+    Ok((result, summary))
+}
+
+/// Runs one report tool on one report.
+async fn report_tool(name: &str, args: &Value, input: ops::Input) -> ops::Outcome {
+    Ok(match name {
         "richview_validate" => ops::validate(
             &input,
             args.get("publish")
@@ -280,9 +312,7 @@ async fn dispatch(name: &str, args: &Value) -> Result<(Value, String), Failure> 
             .await?
         }
         _ => return Err(Failure::usage(format!("Unknown tool: {name}"))),
-    };
-    let summary = summary_of(name.trim_start_matches("richview_"), &result);
-    Ok((result, summary))
+    })
 }
 
 pub async fn serve_stdio() -> Result<(), String> {

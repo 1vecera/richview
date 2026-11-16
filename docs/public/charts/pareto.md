@@ -47,6 +47,7 @@ axes:
 - `type: pareto` with `encoding.x` for the cause and `encoding.y` for its nonnegative value
 - Bars are sorted from the largest down, and a line at the right adds them up as a share of the total on a 0 to 100 % axis
 - Only sorting and adding up are done for you; a negative value fails the chart
+- Each bar prints its value; `auto_annotations: false` leaves the values to the readout
 - The chart summary says how many causes were needed to pass most of the total
 - `axes.y` sets `label`, `format`, `unit`, `min` and `max`; `encoding.facet` makes one panel per value and `style.facet_scale: free` gives each its own value scale; `style.ratio` sets the width to height ratio
 

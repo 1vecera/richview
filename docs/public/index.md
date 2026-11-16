@@ -18,7 +18,7 @@ Markdown in. Interactive report out. Every preview below is a working RichView r
 
 ## Longer lives
 
-**Sleek · A story across generations.** Gapminder's regional life expectancies show both decades of progress and the limits of a regional average. A photograph opens the report; a chart and a small table carry the evidence.
+**Sleek · A story across generations.** Gapminder's regional life expectancies show both decades of progress and the limits of a regional average. A photograph opens the report; a combination chart you can filter by region leads, and a second chart and four tables carry the evidence.
 
 {{report:longer-lives}}
 

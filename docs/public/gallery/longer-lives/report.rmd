@@ -1,9 +1,9 @@
 ---
 title: Longer lives
-description: Life expectancy at birth in Gapminder's four world regions, 1950 to 2019.
-version: 1.0.0
+description: People, births and life expectancy in Gapminder's four world regions, 1950 to 2020.
+version: 1.1.0
 author: RichView example
-date: 2026-11-07
+date: 2026-11-16
 styles: [sleek]
 title_image:
   src: https://images.unsplash.com/photo-1658909913848-1680f5d1af61?ixid=M3wxMTE0NDQ4fDB8MXxhbGx8fHx8fHx8fHwxNzk0MjMzMTAzfA&ixlib=rb-4.1.0&w=1920&q=80&fm=jpg&fit=max
@@ -19,6 +19,57 @@ title_image:
     source: Unsplash
     source_url: https://unsplash.com/?utm_source=richview&utm_medium=referral
 ---
+
+In 1960 the world had 3.0 billion people, and a newborn could expect 50 years of life. In 2020 it had 7.85 billion, and a newborn could expect 73. Over the same sixty years the number of babies per woman more than halved. This report follows the three measures through Gapminder's four world regions.
+
+```chart
+type: combo
+title: More people, smaller families, longer lives
+subtitle: Bars on the left axis, life expectancy at birth as the line on the right axis; every ten years
+data:
+  csv: data/regions-by-decade.csv
+encoding: { x: year, y: population, line: life }
+axes:
+  x: { format: year }
+  y: { label: People, unit: bn }
+  y2: { label: "Life expectancy, years" }
+style: { ratio: "2:1" }
+controls:
+  - { kind: filter, id: region, field: region, label: Region, options: [World, Africa, Americas, Asia, Europe], initial: World, as: buttons }
+  - kind: metric
+    id: bars
+    label: Bars
+    initial: people
+    as: buttons
+    options:
+      - { value: people, label: People, field: population, axis: { label: People, unit: bn } }
+      - { value: babies, label: Babies per woman, field: babies, axis: { label: Babies per woman } }
+```
+
+*Source: Based on free material from [Gapminder](https://www.gapminder.org/data/), [fast-track snapshot](https://github.com/open-numbers/ddf--gapminder--fasttrack/tree/b840e5be): fertility v15, life expectancy v15 and population v8; [CC BY 4.0](https://www.gapminder.org/free-material/). Population: the 194 countries of the extract, summed by region, in billions. Window: 1960 to 2020, every tenth year. Life expectancy and babies per woman are country values averaged with population as the weight.*
+
+The bars and the line have their own scales, so read each against its own axis. Choose a region to see its path, and switch the bars from people to babies per woman: the bars then fall while the line keeps rising.
+
+```metric
+value: 7.85
+unit: bn
+label: People in 2020, from 3.0 bn in 1960
+```
+
+```metric
+value: 73.2
+unit: years
+label: World life expectancy at birth in 2020, from 50.3 in 1960
+```
+
+```metric
+value: 2.28
+label: Babies per woman in 2020, from 4.74 in 1960
+```
+
+## Four regions, one direction
+
+The regional record starts in 1950, ten years before the country extract, and every year is drawn.
 
 ```chart
 type: line
@@ -37,9 +88,7 @@ annotations:
 
 *Source: Based on free material from [Gapminder](https://www.gapminder.org/data/), life expectancy at birth v15 (5 April 2026), regional averages weighted by population; [CC BY 4.0](https://www.gapminder.org/free-material/).*
 
-A newborn in Asia could expect to live 46 years in 1950 and 75 years in 2019: a gain of 29 years, the most of any region. Africa gained 22 years, the Americas 17 and Europe, which started highest, 14. The world as a whole went from 52 to 74 years. The sharp dip in Asia around 1960 is the Great Chinese Famine of 1959–61.
-
-Gapminder's regions are wide: its Asia includes Australia and the Pacific Islands, and its Europe all of Russia and Central Asia.
+A newborn in Asia could expect to live 46 years in 1950 and 75 years in 2019: a gain of 29 years, the most of any region. Africa gained 22 years, the Americas 17 and Europe, which started highest, 14. The sharp dip in Asia around 1960 is the Great Chinese Famine of 1959–61.
 
 ```table
 title: Years gained, 1950 to 2019
@@ -57,3 +106,95 @@ columns:
 ```
 
 *Source: the chart's Gapminder data, at one decimal.*
+
+## Smaller families
+
+Babies per woman fell in every region: from 4.7 to 2.3 for the world, from 5.1 to 1.9 in Asia and from 4.9 to 1.8 in the Americas. Africa moved least, from 6.7 to 4.3, and grew most: 0.28 billion people in 1960, 1.38 billion in 2020. Europe added a third, from 0.64 to 0.85 billion.
+
+```table
+title: People and babies per woman, 1960 and 2020
+data:
+  inline:
+    - { region: Asia, people60: "1.65", people20: "4.60", babies60: "5.13", babies20: "1.93" }
+    - { region: Africa, people60: "0.28", people20: "1.38", babies60: "6.67", babies20: "4.30" }
+    - { region: Americas, people60: "0.41", people20: "1.02", babies60: "4.90", babies20: "1.76" }
+    - { region: Europe, people60: "0.64", people20: "0.85", babies60: "2.79", babies20: "1.52" }
+    - { region: World, people60: "3.00", people20: "7.85", babies60: "4.74", babies20: "2.28" }
+columns:
+  - { key: region, label: Region }
+  - { key: people60, label: "People 1960, bn", align: right }
+  - { key: people20, label: "People 2020, bn", align: right }
+  - { key: babies60, label: "Babies 1960", align: right }
+  - { key: babies20, label: "Babies 2020", align: right }
+```
+
+*Source: the first chart's Gapminder extract. Babies per woman is the population-weighted mean of country values, not a regional fertility rate of its own.*
+
+The two movements go together in these data; the data do not say which caused which. [Families and longer lives](https://richview.ai/docs/gallery/families-and-lives/) plays the same extract country by country.
+
+## 2020: the first fall in sixty years
+
+World life expectancy fell from 74.0 years in 2019 to 73.2 in 2020, the first year of the Covid-19 pandemic. It is the only year in the extract in which the world figure falls.
+
+```callout
+kind: down
+title: The Americas lost 2.3 years in one year.
+body: Life expectancy there fell from 77.5 to 75.2 years, back to its level of the early 2000s. Europe lost 1.0 year, Africa 0.9 and Asia 0.4.
+```
+
+```table
+title: Life expectancy at birth, 2019 and 2020
+data:
+  inline:
+    - { region: Americas, y2019: "77.5", y2020: "75.2", change: "−2.3" }
+    - { region: Europe, y2019: "78.8", y2020: "77.8", change: "−1.0" }
+    - { region: Africa, y2019: "65.2", y2020: "64.3", change: "−0.9" }
+    - { region: Asia, y2019: "74.9", y2020: "74.5", change: "−0.4" }
+    - { region: World, y2019: "74.0", y2020: "73.2", change: "−0.8" }
+columns:
+  - { key: region, label: Region }
+  - { key: y2019, label: "2019", align: right }
+  - { key: y2020, label: "2020", align: right }
+  - { key: change, label: Change in years, align: right }
+```
+
+*Source: the first chart's Gapminder extract, every year, at one decimal.*
+
+## The ten largest countries
+
+Ten countries held 58% of the extract's people in 2020. China's gain of 54 years is the largest and is overstated: its 1960 value, 26.4 years, is the low of the famine. Russia gained 3.5 years in sixty years and the USA 7.2.
+
+```table
+title: The ten most populous countries, 1960 to 2020
+data:
+  inline:
+    - { country: China, people: 1426, life60: "26.4", life20: "80.7", gain: "54.3" }
+    - { country: India, people: 1403, life60: "43.4", life20: "70.3", gain: "26.9" }
+    - { country: USA, people: 339, life60: "69.9", life20: "77.1", gain: "7.2" }
+    - { country: Indonesia, people: 275, life60: "46.9", life20: "71.4", gain: "24.5" }
+    - { country: Pakistan, people: 235, life60: "49.0", life20: "66.8", gain: "17.8" }
+    - { country: Nigeria, people: 214, life60: "43.0", life20: "63.0", gain: "20.0" }
+    - { country: Brazil, people: 209, life60: "57.5", life20: "75.2", gain: "17.7" }
+    - { country: Bangladesh, people: 166, life60: "47.0", life20: "69.6", gain: "22.6" }
+    - { country: Russia, people: 146, life60: "68.5", life20: "72.0", gain: "3.5" }
+    - { country: Mexico, people: 127, life60: "58.4", life20: "71.4", gain: "13.0" }
+columns:
+  - { key: country, label: Country }
+  - { key: people, label: "People 2020, m", format: number, align: right }
+  - { key: life60, label: "Life 1960", align: right }
+  - { key: life20, label: "Life 2020", align: right }
+  - { key: gain, label: Years gained, align: right }
+```
+
+*Source: the first chart's Gapminder extract, country rows. People in millions; life expectancy in years.*
+
+## Read the averages with care
+
+- **The regions are wide.** Gapminder's Asia includes Australia and the Pacific Islands, and its Europe all of Russia and Central Asia.
+- **Large countries carry a region.** China and India hold six in ten of Asia's people, so Asia's line is mostly theirs.
+- **The starting year matters.** 1960 lies inside the Chinese famine. Asia's life expectancy was 45.6 years in 1950 and 40.7 in 1960, so a gain measured from 1960 is larger than one measured from 1950.
+- **Life expectancy at birth is not a forecast.** It is the age a newborn would reach if each year of life carried that year's death rates.
+
+## Data
+
+Both files travel with the report. `data/regions-by-decade.csv` holds the first chart's rows: region, year, people in billions, life expectancy and babies per woman. `data/life-expectancy-by-region.csv` holds the yearly regional record from 1950 to 2019. The country rows behind the tables are the [Families and longer lives](https://richview.ai/docs/gallery/families-and-lives/) data: 194 countries that Gapminder marks as UN states and that have all three measures in every year from 1960 to 2020.

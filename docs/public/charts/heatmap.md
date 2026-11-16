@@ -51,6 +51,7 @@ encoding: { x: hour, y: weekday, color: deploys }
 - `axes.color` sets `format` and `unit` for cell values
 - One numeric value per cell; repeated coordinates reject the chart
 - Missing values show as a neutral `n/a` cell
+- Cells with room print their value; `auto_annotations: false` prints none and draws the colour key instead
 - The default palette is monotone, and heatmaps have no color bar
 
 ## Interactions

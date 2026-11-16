@@ -201,7 +201,44 @@ fn bind_search() {
     });
 }
 
+/// Whether a link moves the reader within the page at `pathname`: it names a part of the page,
+/// with no address before the `#` or with this page's own (clean, or as the file is named).
+fn stays_on_page(href: &str, pathname: &str) -> bool {
+    let Some((path, part)) = href.split_once('#') else {
+        return false;
+    };
+    let page = |path: &str| {
+        let path = path.strip_suffix(".html").unwrap_or(path);
+        path.strip_suffix('/').unwrap_or(path).to_owned()
+    };
+    !part.is_empty() && (path.is_empty() || page(path) == page(pathname))
+}
+
+/// On a phone the documentation menu opens over the page. An entry that moves within the page
+/// closes it, so the reader sees where the tap took them; an entry that opens another page
+/// leaves with the page.
+fn bind_menu() {
+    let Some(menu) = query(".docs-mobile-menu") else {
+        return;
+    };
+    let opened = menu.clone();
+    on(&menu.into(), "click", move |event| {
+        let link = event
+            .target()
+            .and_then(|target| target.dyn_into::<Element>().ok())
+            .and_then(|target| target.closest("a[href]").ok().flatten());
+        let Some(href) = link.and_then(|link| link.get_attribute("href")) else {
+            return;
+        };
+        let here = window().location().pathname().unwrap_or_default();
+        if stays_on_page(&href, &here) {
+            let _ = opened.remove_attribute("open");
+        }
+    });
+}
+
 pub(crate) fn start() -> Result<(), JsValue> {
+    bind_menu();
     bind_style_links();
     bind_search();
     bind_thumbnail_scales();
@@ -422,4 +459,31 @@ fn bind_feedback() -> Result<(), JsValue> {
         });
     });
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::stays_on_page;
+
+    #[test]
+    fn a_link_to_a_part_of_this_page_stays_on_it() {
+        assert!(stays_on_page("#sankey-diagram", "/docs/charts"));
+        assert!(stays_on_page("/docs/elements#tables", "/docs/elements"));
+        assert!(stays_on_page(
+            "/docs/elements#tables",
+            "/docs/elements.html"
+        ));
+        assert!(stays_on_page("/docs/elements#tables", "/docs/elements/"));
+        // Another page's part, a page of its own and a bare `#` leave or do nothing.
+        assert!(!stays_on_page(
+            "/docs/elements#tables",
+            "/docs/charts/pivot"
+        ));
+        assert!(!stays_on_page(
+            "/docs/reference#chart-specific-fields",
+            "/docs/"
+        ));
+        assert!(!stays_on_page("/docs/charts/flow", "/docs/charts/flow"));
+        assert!(!stays_on_page("#", "/docs/charts"));
+    }
 }

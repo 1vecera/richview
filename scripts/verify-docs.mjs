@@ -17,6 +17,10 @@ const accepted = existsSync(acceptedFile) ? readFileSync(acceptedFile, 'utf8').s
 const chartTypes = readdirSync(join(root, 'docs/public/charts')).filter(name => name.endsWith('.md')).map(name => name.slice(0, -3)).filter(type => !accepted || accepted.includes(type)).sort();
 assert.ok(chartTypes.length, 'No public chart types to exercise; an empty accepted set is not docs interaction evidence');
 
+// A flow chart's and a pivot table's page belong to their element, not to the chart gallery: the sidebar
+// marks that element's entry on them and lists no chart types.
+const elementPages = { 'charts/flow': '/docs/charts/flow', 'charts/pivot': '/docs/elements#tables' };
+
 const phases = ['native', 'main', 'desktop', 'phone', 'no-js'];
 // A selector alone cannot turn the ordinary complete check into a partial pass.
 const affected = process.env.RICHVIEW_VERIFY_PARENT === 'affected-docs';
@@ -270,14 +274,37 @@ async function startNavigation() {
   for (const width of navigationWidths) {
     await page.setViewportSize({ width, height: 1000 });
     for (const name of navigationPages) {
-      // The chart pages list every chart type under the gallery; the other pages list the guides and the two references.
-      const navLinks = docPages + 1 /* the Playground link */ + (name.startsWith('charts') ? chartTypes.length : 0);
       const response = await page.goto(`${h.base}/docs/${name === 'index' ? '' : name}`);
       assert.equal(response.status(), 200);
+      // Every page lists the galleries, the guides and the references, and under the elements gallery the
+      // elements: the charts (the chart gallery's own entry), the flow chart's page and the parts of that
+      // gallery's page. A chart page also lists the chart types, and the format reference its topic pages,
+      // each in a list that opens.
+      const menu = width < 980 ? '.docs-mobile-menu' : '.docs-sidebar';
+      const elements = await page.locator(`${menu} [data-nav=elements] > a`).evaluateAll(nodes => nodes.map(node => node.getAttribute('href')));
+      assert.ok(elements.includes('/docs/charts') && elements.length > 1, `${name} lists the elements: ${elements}`);
+      const navLinks = docPages + 1 /* the Playground link */ + elements.length - 1 /* the chart gallery is a page already counted */;
+      const inGallery = name.startsWith('charts') && !elementPages[name];
+      const opened = async () => {
+        const types = await page.locator(`${menu} .docs-chart-types[open] a:visible`).count();
+        const topics = await page.locator(`${menu} [data-nav=topics][open] a:visible`).count();
+        assert.equal(types, inGallery ? chartTypes.length - Object.keys(elementPages).length : 0, `${name} chart types listed`);
+        assert.ok(name === 'reference' ? topics > 1 : topics === 0, `${name} lists ${topics} reference topics`);
+        return types + topics;
+      };
       await page.evaluate(() => document.fonts.ready);
-      const activeLinks = await page.locator('.docs-sidebar .docs-nav a[aria-current=page]').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')));
+      const activeLinks = await page.locator('.docs-sidebar .docs-nav a[aria-current]').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')));
       const current = name === 'index' ? '/docs/' : `/docs/${name}`;
-      assert.deepEqual(activeLinks, name.startsWith('charts/') ? ['/docs/charts', current] : [current], `${name} active navigation`);
+      const active = elementPages[name] ? [elementPages[name]] : name.startsWith('charts/') ? ['/docs/charts', current] : [current];
+      assert.deepEqual(activeLinks, active, `${name} active navigation`);
+      if (name === 'charts') {
+        // On the gallery the chart types list moves the reader within the page: every entry names a chart on it.
+        const types = await page.locator(`${menu} .docs-chart-types a`).evaluateAll(nodes => nodes.map(node => node.getAttribute('href')));
+        for (const href of types) assert.equal(href.startsWith('#') ? await page.locator(`[id="${href.slice(1)}"]`).count() : 0, 1, `Chart types entry ${href} is not on the gallery page`);
+      }
+      if (name === 'elements') {
+        for (const href of elements.filter(href => href.startsWith('/docs/elements#'))) assert.equal(await page.locator(`[id="${href.split('#')[1]}"]`).count(), 1, `Broken element link ${href}`);
+      }
       const icon = await page.locator('link[rel=icon]').getAttribute('href');
       assert.equal(icon, '/landing/favicon.svg');
       assert.equal((await page.request.get(h.base + icon)).status(), 200);
@@ -287,13 +314,13 @@ async function startNavigation() {
       assert.ok(await page.evaluate(() => document.fonts.check('16px Geist')), `${name} does not load Geist`);
       if (width < 980) {
         await page.locator('.docs-mobile-menu > summary').click();
-        if (name.startsWith('charts')) await page.locator('.docs-mobile-menu .docs-chart-types summary').click();
-        assert.equal(await page.locator('.docs-mobile-menu nav a:visible').count(), navLinks);
-        assert.equal(await page.locator('.docs-mobile-menu a[aria-current=page]:visible').count(), name.startsWith('charts/') ? 2 : 1);
+        if (inGallery) await page.locator('.docs-mobile-menu .docs-chart-types summary').click();
+        assert.equal(await page.locator('.docs-mobile-menu nav a:visible').count(), navLinks + await opened());
+        assert.equal(await page.locator('.docs-mobile-menu a[aria-current]:visible').count(), active.length);
         await page.locator('.docs-mobile-menu > summary').click();
       } else {
-        if (name.startsWith('charts')) await page.locator('.docs-sidebar .docs-chart-types summary').click();
-        assert.equal(await page.locator('.docs-nav a:visible').count(), navLinks);
+        if (inGallery) await page.locator('.docs-sidebar .docs-chart-types summary').click();
+        assert.equal(await page.locator('.docs-nav a:visible').count(), navLinks + await opened());
       }
       for (const href of await page.locator('.docs-toc nav a').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')))) {
         // An id may start with a digit ("2-d-bin-chart"), which a `#id` CSS selector cannot name.

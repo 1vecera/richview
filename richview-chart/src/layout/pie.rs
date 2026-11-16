@@ -366,12 +366,13 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)]) -> 
             overflow: !grand.is_finite(),
         }
     });
-    // Each key entry: a name and, for one disk, its share.
+    // Each key entry: a name and, for one disk, its share. The share is a value the chart prints
+    // by itself, so the author's `auto_annotations: false` leaves the name alone.
     let key_labels: Vec<String> = names
         .iter()
         .enumerate()
         .map(|(k, name)| match overall.key.get(k) {
-            Some(share) if !share.is_empty() => format!("{name} {share}"),
+            Some(share) if !share.is_empty() && block.auto_annotations => format!("{name} {share}"),
             _ => name.clone(),
         })
         .collect();
@@ -692,9 +693,12 @@ fn wanted_labels(ctx: &Ctx, angles: &Angles, totals: &[f64], total: f64, shares:
         if ctx.is_hidden(k) || *v <= 0.0 {
             continue;
         }
-        let share_label = shares.get(k).cloned().unwrap_or_default();
         let [a, b] = angles.at(k);
-        let text = format!("{} {share_label}", ctx.series[k].name);
+        // A slice is named with its share; the author's `auto_annotations: false` keeps the name.
+        let text = match shares.get(k) {
+            Some(share) if ctx.block.auto_annotations => format!("{} {share}", ctx.series[k].name),
+            _ => ctx.series[k].name.clone(),
+        };
         // Whether names sit beside the slices or in a key must not depend on the style's face
         // (DEL-52), so the choice reckons with the larger of the measured text and a reference.
         let width = ctx.text_width(&text);

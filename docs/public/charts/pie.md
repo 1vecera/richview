@@ -40,6 +40,7 @@ encoding: { x: activity, y: hours }
 - Slices follow the order of the rows; past eight slices the palette repeats and `richview check` warns (`chart.series-differentiation`), so merge small categories first
 - `style.ratio` defaults to 1:1
 - Labels sit around the disk when names and percentages fit; otherwise a wrapped key is used
+- `auto_annotations: false` leaves the percentages to the readout and keeps the names
 - `chart.decals` in a style adds hatch patterns for slices and key swatches
 
 ## Interactions

@@ -173,12 +173,18 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         .collect();
     let all: Vec<&Stage> = stages_by_panel.iter().flatten().collect();
     let name_w = widest(&all, &|s| s.name.clone()).min(pw * NAME_SHARE);
-    let value_w = texts
-        .iter()
-        .flat_map(|t| &t.labels)
-        .map(|l| ctx.text_width(l))
-        .fold(0.0f64, f64::max)
-        .min(pw * VALUE_SHARE);
+    // The author's `auto_annotations: false` draws no value column and keeps no room for one.
+    let values = block.auto_annotations;
+    let value_w = if values {
+        texts
+            .iter()
+            .flat_map(|t| &t.labels)
+            .map(|l| ctx.text_width(l))
+            .fold(0.0f64, f64::max)
+            .min(pw * VALUE_SHARE)
+    } else {
+        0.0
+    };
     let shared_max = all.iter().map(|s| s.value).fold(0.0f64, f64::max);
     let surface = Style::rgba(ctx.style.surface);
     let slot = 0usize;
@@ -272,20 +278,22 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 let bounds = Rect::new(outer.x + LABEL_GAP, cy - lh / 2.0, ctx.text_width(&s.name), lh);
                 ctx.drop_label(&s.name, DropReason::Density, "name", Some(bounds));
             }
-            let value_text = texts[fi].labels[k].clone();
-            let t = ctx.text_mid(
-                &value_text,
-                outer.right() - LABEL_GAP,
-                cy,
-                Anchor::End,
-                Face::Figures,
-                Role::Label,
-                ctx.style.ink,
-            );
-            if t.bounds.w <= value_w + 0.5 && t.bounds.inside(outer, 0.5) {
-                items.push(Item::Text(t));
-            } else {
-                ctx.drop_label(&value_text, DropReason::OutOfBounds, "value", Some(t.bounds));
+            if values {
+                let value_text = texts[fi].labels[k].clone();
+                let t = ctx.text_mid(
+                    &value_text,
+                    outer.right() - LABEL_GAP,
+                    cy,
+                    Anchor::End,
+                    Face::Figures,
+                    Role::Label,
+                    ctx.style.ink,
+                );
+                if t.bounds.w <= value_w + 0.5 && t.bounds.inside(outer, 0.5) {
+                    items.push(Item::Text(t));
+                } else {
+                    ctx.drop_label(&value_text, DropReason::OutOfBounds, "value", Some(t.bounds));
+                }
             }
             let mut lines = vec![ReadoutLine {
                 name: block.y.label.clone().unwrap_or_else(|| y_field.clone()),

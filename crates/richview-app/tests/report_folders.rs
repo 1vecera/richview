@@ -704,6 +704,186 @@ fn a_report_folder_stands_for_its_one_rmd_file() {
     assert!(text.contains("no .rmd file"), "{text}");
 }
 
+/// A parent folder `reports` in `f` holding a clean report, one with a block error and a hidden
+/// folder that is not a report.
+fn folder_of_reports(f: &Folder) -> PathBuf {
+    let root = f.0.join("reports");
+    for (name, body) in [
+        ("q1", "Body text.\n"),
+        (
+            "q2",
+            "```chart\ntype: donut\ndata: {inline: [{x: a, y: 1}]}\nencoding: {x: x, y: y}\n```\n",
+        ),
+        (".drafts", "Body text.\n"),
+    ] {
+        fs::create_dir_all(root.join(name)).unwrap();
+        fs::write(
+            root.join(name).join("report.rmd"),
+            format!("---\ntitle: Results\n---\n\n{body}"),
+        )
+        .unwrap();
+    }
+    root
+}
+
+/// Runs `verb` on the folder of reports in both formats and holds each to the folder contract.
+fn assert_folder_run(f: &Folder, root: &std::path::Path, verb: &str) {
+    use serde_json::{Value, json};
+    let (q1, q2) = (root.join("q1/report.rmd"), root.join("q2/report.rmd"));
+    // One object: every report's own result in path order, and `ok` and `status` for all.
+    let result = f.cli(verb, root);
+    let value: Value = serde_json::from_slice(&result.stdout)
+        .unwrap_or_else(|e| panic!("{verb} {e}: {}", String::from_utf8_lossy(&result.stdout)));
+    assert_eq!(result.status.code(), Some(1), "{verb}: {value}");
+    assert_eq!(
+        (
+            &value["ok"],
+            &value["status"],
+            &value["output"],
+            &value["diagnostics"]
+        ),
+        (&json!(false), &json!("issues"), &Value::Null, &json!([])),
+        "{verb}"
+    );
+    let reports = value["reports"].as_array().unwrap();
+    assert_eq!(
+        reports
+            .iter()
+            .map(|r| (&r["input"], &r["ok"], &r["status"]))
+            .collect::<Vec<_>>(),
+        [
+            (&json!(q1), &json!(true), &json!("clean")),
+            (&json!(q2), &json!(false), &json!("issues")),
+        ],
+        "{verb}: {value}"
+    );
+    assert_eq!(
+        reports[1]["diagnostics"][0]["level"], "error",
+        "{verb}: {value}"
+    );
+
+    // For people: findings and result lines both name their report, then the count.
+    let pretty = Command::new(env!("CARGO_BIN_EXE_richview"))
+        .args([verb, root.to_str().unwrap(), "--format", "pretty"])
+        .output()
+        .unwrap();
+    assert_eq!(pretty.status.code(), Some(1), "{verb}");
+    let lines: Vec<String> = String::from_utf8(pretty.stdout)
+        .unwrap()
+        .lines()
+        .map(str::to_owned)
+        .collect();
+    assert_eq!(lines.len(), 3, "{verb}: {lines:?}");
+    assert!(
+        lines[0].starts_with(&format!("{}: ", q1.display())),
+        "{verb}: {lines:?}"
+    );
+    assert!(
+        lines[1].starts_with(&format!("{}: ", q2.display())),
+        "{verb}: {lines:?}"
+    );
+    assert_eq!(lines[2], "2 reports, 1 with errors", "{verb}");
+    let findings = String::from_utf8(pretty.stderr).unwrap();
+    assert!(
+        findings
+            .lines()
+            .any(|line| line.starts_with(&format!("{}:", q2.display()))),
+        "{verb}: {findings}"
+    );
+    assert!(
+        !findings.contains(&q1.display().to_string()),
+        "{verb}: {findings}"
+    );
+}
+
+#[test]
+fn a_folder_of_report_folders_runs_every_report_below_it() {
+    use serde_json::{Value, json};
+    let f = Folder::new();
+    let root = folder_of_reports(&f);
+    for verb in ["validate", "check"] {
+        assert_folder_run(&f, &root, verb);
+    }
+    // Neither command writes into a report folder.
+    assert!(!root.join("q1/Rendered").exists());
+
+    // Without the report that has an error, the folder is clean and the command exits 0.
+    fs::remove_dir_all(root.join("q2")).unwrap();
+    let clean = f.cli("check", &root);
+    let value: Value = serde_json::from_slice(&clean.stdout).unwrap();
+    assert_eq!(clean.status.code(), Some(0), "{value}");
+    assert_eq!(
+        (&value["ok"], &value["status"]),
+        (&json!(true), &json!("clean"))
+    );
+    assert_eq!(value["reports"].as_array().unwrap().len(), 1);
+}
+
+#[test]
+#[ignore = "release: needs the real embedded report runtime staged by richview-build (ARC-07)"]
+fn generate_writes_every_report_of_a_folder_into_its_own_rendered() {
+    let f = Folder::new();
+    let root = folder_of_reports(&f);
+    assert_folder_run(&f, &root, "generate");
+    // `generate` wrote each report into its own folder, the draft with the error too.
+    for report in ["q1", "q2"] {
+        assert!(
+            root.join(report).join("Rendered/report.html").is_file(),
+            "{report}"
+        );
+    }
+    assert!(!root.join(".drafts/Rendered").exists());
+}
+
+#[test]
+fn a_wrong_call_on_a_folder_of_reports_is_one_usage_error() {
+    let f = Folder::new();
+    let root = folder_of_reports(&f);
+    let wrong = Command::new(env!("CARGO_BIN_EXE_richview"))
+        .args([
+            "check",
+            root.to_str().unwrap(),
+            "--chart-width",
+            "10",
+            "--format",
+            "json",
+        ])
+        .output()
+        .unwrap();
+    assert_eq!(wrong.status.code(), Some(2));
+    let value: serde_json::Value = serde_json::from_slice(&wrong.stdout).unwrap();
+    assert!(value.get("reports").is_none(), "{value}");
+    assert!(
+        value["error"]
+            .as_str()
+            .is_some_and(|e| e.contains("Chart width")),
+        "{value}"
+    );
+}
+
+#[test]
+fn serve_and_publish_take_one_report_and_name_the_reports_a_folder_holds() {
+    let f = Folder::new();
+    let root = folder_of_reports(&f);
+    for verb in ["serve", "publish"] {
+        let refused = Command::new(env!("CARGO_BIN_EXE_richview"))
+            .args([verb, root.to_str().unwrap()])
+            .env_remove("RICHVIEW_SERVER")
+            .env_remove("RICHVIEW_TOKEN")
+            .output()
+            .unwrap();
+        assert_eq!(refused.status.code(), Some(2), "{verb}");
+        let text = String::from_utf8(refused.stderr).unwrap();
+        assert!(text.contains("holds 2 reports"), "{verb}: {text}");
+        for report in ["q1", "q2"] {
+            assert!(
+                text.contains(&root.join(report).join("report.rmd").display().to_string()),
+                "{verb}: {text}"
+            );
+        }
+    }
+}
+
 #[test]
 fn publish_refuses_a_draft_with_errors_before_any_request() {
     // `generate` writes this draft and exits 1 (FEA-RP-30); publishing it is refused (TYP-54),

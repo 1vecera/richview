@@ -54,6 +54,7 @@ axes:
 - A part with children takes the sum of them and needs no value of its own; a row with no parent is a root
 - A parent that is not in the data, a repeated name, a cycle or a negative value is reported and the chart is not drawn
 - Colour follows the top-level group, and a legend appears when there is more than one
+- The five largest rectangles, three on a narrow chart, print their value under the name where both lines fit; `auto_annotations: false` leaves it to the readout
 - `axes.y.unit` and `format` describe the value; `encoding.facet` makes one panel per value; `style.ratio` sets the width to height ratio
 
 ## Interactions

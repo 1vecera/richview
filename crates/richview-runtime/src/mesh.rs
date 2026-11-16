@@ -180,8 +180,9 @@ impl State {
         }
     }
 
-    /// The share of its alpha `item` loses now, 0 to 1.
-    fn dim_of(&self, panel: usize, item: &Item) -> f32 {
+    /// How far the emphasis keeps `item` at full strength now, 0 to 1: what has arrived of the
+    /// marks emphasised now, or what the marks emphasised before still hold.
+    fn light_of(&self, panel: usize, item: &Item) -> f32 {
         let Some(focus) = &self.emphasis else {
             return 0.0;
         };
@@ -195,13 +196,21 @@ impl State {
         {
             light = light.max(*held);
         }
+        light.clamp(0.0, 1.0)
+    }
+
+    /// The share of its alpha `item` loses now, 0 to 1.
+    fn dim_of(&self, panel: usize, item: &Item) -> f32 {
+        if self.emphasis.is_none() {
+            return 0.0;
+        }
         // A flow's nodes keep the general floor, so the diagram's skeleton stays readable
         // while its unconnected ribbons go further back.
         let floor = match item {
             Item::Rect { .. } => self.floor.max(self.node_floor),
             _ => self.floor,
         };
-        (1.0 - floor) * self.dim * (1.0 - light.clamp(0.0, 1.0))
+        (1.0 - floor) * self.dim * (1.0 - self.light_of(panel, item))
     }
 }
 
@@ -1233,6 +1242,16 @@ fn build_inner(
         } else {
             Vec::new()
         };
+        // A 3-D bar's rows are its series, and the rows nearer the viewer paint over the row the
+        // reader emphasises. That row is painted a second time on top, as opaque as the others
+        // have stepped back, so it shows in its own colour and nothing changes places: at rest
+        // the drawing is the model's, and a bar of the row still hides the bars behind it
+        // (FEA-CH-52).
+        let over_rows = g.kind == "bar3d"
+            && panel_index < g.panels.len()
+            && state.emphasis.is_some()
+            && state.dim > 0.0;
+        let mut again = Vec::new();
         for (item_index, item) in panel_items.iter().enumerate() {
             if before_marks == Some(item_index) {
                 b.close();
@@ -1268,6 +1287,15 @@ fn build_inner(
             if item.role() == Role::Mark {
                 mark_index += 1;
             }
+            push_item(&mut b, item, clip, dim, motion, anchor, delay, tol);
+            if over_rows && item.series().is_some() && !matches!(item, Item::Text(_)) {
+                let shown = state.dim * state.light_of(panel_index, item);
+                if shown > 0.0 {
+                    again.push((item, clip, 1.0 - shown, motion, anchor, delay));
+                }
+            }
+        }
+        for (item, clip, dim, motion, anchor, delay) in again {
             push_item(&mut b, item, clip, dim, motion, anchor, delay, tol);
         }
         if panel_index < g.panels.len()
@@ -2028,6 +2056,69 @@ mod tests {
         assert!(
             alphas.iter().any(|a| (*a - 0.2).abs() < 1e-6)
                 && alphas.iter().any(|a| (*a - 1.0).abs() < 1e-6)
+        );
+    }
+
+    #[test]
+    fn an_emphasised_bar3d_row_is_painted_again_over_the_rows_that_step_back() {
+        let input: serde_json::Value = serde_json::from_str(include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../richview-chart/tests/fixtures/types/bar3d.json"
+        )))
+        .unwrap();
+        let mut g = chart(input["spec"].clone(), input["rows"].as_array().unwrap());
+        // The panel's items end the mesh, so the second painting is its tail.
+        g.figure_items.clear();
+        let row = g.panels[0].observations[0].series.expect("a bar has a row");
+        let state = |dim: f32| State {
+            emphasis: Some(Focus::SeriesOf {
+                series: row,
+                panel: 0,
+                observation: 0,
+            }),
+            dim,
+            floor: DIM_FLOOR,
+            node_floor: DIM_FLOOR,
+            arrive: 1.0,
+            leaving: None,
+        };
+        let rest = build(&g, &State::default(), 1.0).vertices;
+        // The row's faces and hairlines alone, in the model's order.
+        let mut only = g.clone();
+        only.panels[0]
+            .items
+            .retain(|item| item.series() == Some(row));
+        let kept = build(&only, &State::default(), 1.0).vertices;
+        assert!(!kept.is_empty() && kept.len() < rest.len());
+        // Before the others step back nothing is added: the drawing is the model's.
+        assert_eq!(build(&g, &state(0.0), 1.0).vertices.len(), rest.len());
+        for dim in [0.5_f32, 1.0] {
+            let mesh = build(&g, &state(dim), 1.0).vertices;
+            assert_eq!(mesh.len(), rest.len() + kept.len(), "dim {dim}");
+            // The copy is the row itself, as opaque as the others have stepped back.
+            for (over, own) in mesh[rest.len()..].chunks(FLOATS).zip(kept.chunks(FLOATS)) {
+                for k in 0..FLOATS {
+                    let expected = if k == 5 { own[k] * dim } else { own[k] };
+                    assert!(
+                        (over[k] - expected).abs() < 1e-6,
+                        "dim {dim}, float {k}: {} for {expected}",
+                        over[k]
+                    );
+                }
+            }
+        }
+        // Other chart types keep one painting: their marks do not hide each other.
+        let rows: Vec<_> = ["A", "B"]
+            .iter()
+            .flat_map(|c| ["x", "y"].map(|s| json!({"c": c, "v": 2, "s": s})))
+            .collect();
+        let bar = chart(
+            json!({"type": "bar", "title": "T", "encoding": {"x": "c", "y": "v", "color": "s"}}),
+            &rows,
+        );
+        assert_eq!(
+            build(&bar, &State::emphasis(Some(0)), 1.0).vertices.len(),
+            build(&bar, &State::default(), 1.0).vertices.len()
         );
     }
 

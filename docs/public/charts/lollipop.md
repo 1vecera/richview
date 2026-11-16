@@ -53,6 +53,7 @@ axes:
 - `type: lollipop` with `encoding.x` for the category and `encoding.y` for the value
 - `encoding.color` groups the dots side by side within each category
 - Stems start at the zero baseline, and negative values hang below it
+- One lollipop per category prints its value beyond the dot; `auto_annotations: false` leaves the values to the readout
 - A repeated category and group is rejected
 - `axes.y` sets `label`, `format`, `unit`, `min` and `max`; `style.ratio` sets the width to height ratio
 

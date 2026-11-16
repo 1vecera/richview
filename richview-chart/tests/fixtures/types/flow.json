@@ -2,7 +2,7 @@
  "spec": {
   "type": "flow",
   "title": "Nothing is written until every check passes",
-  "subtitle": "The nightly import. A red line is a failure; the dashed line waits and asks again.",
+  "subtitle": "The nightly import. A failed check ends the run before anything is written; the dashed line waits and asks again.",
   "nodes": [
    {
     "title": "Nightly run starts",

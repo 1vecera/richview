@@ -9,7 +9,7 @@ Use a flow chart to show what happens in which order, where the process decides,
 ```chart
 type: flow
 title: Nothing is written until every check passes
-subtitle: A red line is a failure; the dashed line waits and asks again.
+subtitle: A failed check ends the run before anything is written; the dashed line waits and asks again.
 nodes:
   - {title: Nightly run starts, kind: start}
   - {id: fresh, title: "New files since the last run?", kind: decision}
@@ -40,7 +40,7 @@ edges:
 ```chart
 type: flow
 title: Nothing is written until every check passes
-subtitle: A red line is a failure; the dashed line waits and asks again.
+subtitle: A failed check ends the run before anything is written; the dashed line waits and asks again.
 nodes:
   - {title: Nightly run starts, kind: start}
   - {id: fresh, title: "New files since the last run?", kind: decision}
@@ -75,15 +75,15 @@ edges:
 - `tone`: `alert` takes the style's colour for bad news, for a failure and the path to it; `muted` greys a card outside the subject. Groups take the style's palette in order.
 - `direction: right` runs the flow across the page; where it does not fit, it turns down.
 - With `nodes` the chart takes no `data` or `encoding`; its Table view and CSV list the cards, then the edges.
-- A flow can also come from data rows: `encoding.label` names steps, `source` and `target` connections, `lane` lanes drawn as bands and `y` the connection labels. A connection that closes a cycle there is drawn dashed and reported.
+- A flow can also come from data rows: `encoding.label` names steps, `source` and `target` connections, `lane` lanes drawn as bands with their cards on each band's centre line and `y` the connection labels. A connection that closes a cycle there is drawn dashed and reported.
 - An edge to no card, a repeated id, a card in two groups or a line that is not `from -> to` is reported at its path, and the rest of the flow draws. A flow takes at most 150 steps and 600 connections.
 
 ## How it is drawn
 
-- Cards sit in ranks along the flow: each one after every card that leads to it. A loop back runs round the outside of the drawing.
-- Lines are right-angled, never cross a card, meet each card at their own point and run straight between cards that line up. A decision answers by its corners.
-- A label sits on free paper set into or beside its line; when there is none the gap grows. It never covers a card, another label or another line.
-- Cards wrap their text narrower before the drawing shrinks; a flow too wide for a phone is scaled down whole. The same block gives the same layout.
+- Cards sit in ranks along the flow: each one after every card that leads to it. The main path, the first answer of each question, runs straight down one column; branches stand beside it, a failure to its right. A loop back runs round the outside of the drawing.
+- Lines are right-angled, never cross a card, meet each card at their own point and run straight between cards that line up. A question is a flat diamond: it goes on by its bottom corner and branches by the side corner facing the branch, and a loop back to it joins the line into its top. A branch that skips ahead and comes back to the main path meets that card by its side, so the top keeps the main path's arrow.
+- A label sits on free paper set into or beside its line, an answer's name beside its corner; when there is none the gap grows. It never covers a card, another label or another line, and keeps clear of every card.
+- On a narrow page paper gives way before type. Cards wrap narrower, a question takes a third line, the space between and inside cards tightens, and a lane becomes one column, its cards one under the other. Only then is the drawing scaled, with its text set larger by as much, so titles stay within 2 px of the style's size and no text falls more than 1 px under its smallest; a flow of about five columns on a phone is past that and shrinks whole. A card is as wide as its column already is, and its title takes three lines at most. The same block gives the same layout.
 
 ## Interactions
 

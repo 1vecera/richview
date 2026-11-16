@@ -46,6 +46,7 @@ axes:
 - `encoding.lower` is the start value (hollow dot) and `encoding.upper` the end value (filled dot); the change is signed, so the order matters
 - `encoding.color` splits each category into groups
 - `axes.y` sets `label`, `format`, `unit`, `min` and `max`; the value axis does not need zero
+- Up to five rows, three on a narrow chart, print both values beyond their dots, all rows or none; `auto_annotations: false` leaves them to the readout
 - `style.ratio` sets the width to height ratio, and `style.facet_scale: free` gives each facet its own scale
 
 ## Interactions

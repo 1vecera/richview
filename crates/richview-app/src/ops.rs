@@ -146,6 +146,47 @@ pub fn is_ok(result: &Value) -> bool {
     result["ok"].as_bool().unwrap_or(false)
 }
 
+/// One command's outcomes over the reports of a folder, in the order they ran (FEA-SF-01).
+#[derive(Default)]
+pub struct FolderRun(Vec<(PathBuf, Outcome)>);
+
+impl FolderRun {
+    /// Keeps a report's outcome. A wrong call is wrong for every report, so it ends the run.
+    pub fn keep(&mut self, report: &Path, outcome: Outcome) -> Result<(), Failure> {
+        if let Err(Failure::Usage(message)) = outcome {
+            return Err(Failure::Usage(message));
+        }
+        self.0.push((report.to_path_buf(), outcome));
+        Ok(())
+    }
+    pub fn outcomes(&self) -> &[(PathBuf, Outcome)] {
+        &self.0
+    }
+    /// The one object a folder run returns (TYP-68): `reports` holds each report's own result, or
+    /// its failure as the same object, with the report it read in `input`. `ok` and `status` speak
+    /// for all of them; `diagnostics` stays empty, because a finding belongs to its report.
+    pub fn result(&self) -> Value {
+        let reports: Vec<Value> = self
+            .0
+            .iter()
+            .map(|(report, outcome)| {
+                let mut value = match outcome {
+                    Ok(value) => value.clone(),
+                    Err(failure) => failure.to_json(),
+                };
+                value["input"] = json!(report.display().to_string());
+                value
+            })
+            .collect();
+        let status = if reports.iter().all(|report| report["status"] == "clean") {
+            "clean"
+        } else {
+            "issues"
+        };
+        json!({"ok": reports.iter().all(is_ok), "status": status, "output": null, "diagnostics": [], "reports": reports})
+    }
+}
+
 fn render_meta<'a>(
     report: &'a richview_core::document::RenderedReport,
     key: &str,

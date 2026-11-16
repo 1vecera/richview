@@ -718,6 +718,12 @@ pub struct Dropped {
     /// The observation's primary readout line, including a recorded density evaluation.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub series: Option<usize>,
+    /// The observation's readout line this value is, when its mark prints more than one value of
+    /// a series and this is not the first: a dumbbell's upper end. It names the line whose
+    /// canonical text [`Geometry::restore_value_drop_text`] gives back; it is no part of the
+    /// model's JSON.
+    #[serde(skip)]
+    pub line: Option<usize>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -892,7 +898,8 @@ impl Geometry {
         all
     }
 
-    /// Restores dropped values and their diagnostics from the canonical observation readouts.
+    /// Restores dropped values and their diagnostics from the canonical observation readouts: a
+    /// value takes the text of the readout line it names, else of the first line of its series.
     pub fn restore_value_drop_text(&mut self) {
         let mut changed = false;
         for dropped in &mut self.dropped {
@@ -903,7 +910,11 @@ impl Geometry {
                     .get(panel)
                     .and_then(|p| p.observations.get(observation))
                     .map(|o| &o.readout)
-                && let Some(line) = readout.lines.iter().find(|line| line.series == Some(series))
+                && let Some(line) = dropped
+                    .line
+                    .and_then(|n| readout.lines.get(n))
+                    .filter(|line| line.series == Some(series))
+                    .or_else(|| readout.lines.iter().find(|line| line.series == Some(series)))
                 && dropped.text != line.value
             {
                 dropped.text.clone_from(&line.value);

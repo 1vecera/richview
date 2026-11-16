@@ -303,13 +303,13 @@ body.docs-page .docs-nav summary:focus-visible {
 	outline-offset: -2px;
 	border-radius: var(--r-pill);
 }
-body.docs-page .docs-nav a[aria-current="page"],
-body.docs-page .docs-mobile-menu nav a[aria-current="page"] {
+body.docs-page .docs-nav a[aria-current],
+body.docs-page .docs-mobile-menu nav a[aria-current] {
 	background: var(--wash);
 	color: var(--blue-ink);
 	font-weight: 600;
 }
-.docs-chart-types > summary {
+.docs-nav__more > summary {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -320,11 +320,11 @@ body.docs-page .docs-mobile-menu nav a[aria-current="page"] {
 	border-radius: var(--r-pill);
 	transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out);
 }
-.docs-chart-types > summary:hover {
+.docs-nav__more > summary:hover {
 	background: var(--paper-2);
 	color: var(--ink);
 }
-.docs-chart-types > summary::after,
+.docs-nav__more > summary::after,
 .docs-toc details > summary::after,
 .docs-feedback > summary::before {
 	content: "";
@@ -336,7 +336,7 @@ body.docs-page .docs-mobile-menu nav a[aria-current="page"] {
 	transform: rotate(-45deg);
 	transition: transform 150ms var(--ease-out);
 }
-.docs-chart-types[open] > summary::after,
+.docs-nav__more[open] > summary::after,
 .docs-toc details[open] > summary::after,
 .docs-feedback[open] > summary::before {
 	transform: rotate(45deg);
@@ -348,6 +348,11 @@ body.docs-page .docs-mobile-menu nav a[aria-current="page"] {
 	margin: 0.15rem 0 0.35rem 1rem;
 	padding-left: 0.25rem;
 	border-left: 1px solid var(--rule);
+}
+/* An open list draws its own rule only: the lists it stands in give theirs up, so one rule
+   runs beside the entries, never two or three side by side. */
+.docs-nav__sub:has(details[open]) {
+	border-left-color: transparent;
 }
 .docs-sidebar__note {
 	margin: 1.5rem 0 0;
@@ -518,6 +523,18 @@ body.docs-page .rv-report__body > :is(.docs-doors, .docs-featured-grid, .docs-re
 body.docs-page .rv-report__body :is(p, ul, ol, blockquote, dl):not(.rv-chart__readout *) {
 	max-width: var(--docs-measure);
 	margin: 0 0 1.15rem;
+}
+/* A cue names the gesture of the live chart under it: one quiet line that belongs to the chart
+   and may run the column's width. */
+body.docs-page .rv-report__body p.docs-cue {
+	max-width: none;
+	margin: 0;
+	color: var(--soft);
+	font-size: 0.875rem;
+	line-height: 1.45;
+}
+body.docs-page .rv-report__body p.docs-cue + figure {
+	margin-top: 0.625rem;
 }
 body.docs-page .rv-report__body > :first-child {
 	margin-top: 0;
@@ -1034,13 +1051,13 @@ body.docs-page .docs-chart-card__link:focus-visible {
 	outline-offset: -3px;
 	border-radius: 0;
 }
-/* The frame reads on paper whatever the report inside wears, dark or light. */
+/* A preview is the report's own page set on the docs' paper, with no border or panel around it
+   (Daniel, 16 Nov: the reports looked odd inside boxes). The raised paper shows only while the
+   frame loads. */
 .docs-thumbnail {
 	position: relative;
 	aspect-ratio: 1000 / 620;
 	overflow: hidden;
-	border: 1px solid var(--rule);
-	border-radius: var(--r-panel);
 	background: var(--paper-2);
 }
 /* The flagship's card shows the cover the report opens with, whole. */
@@ -1129,6 +1146,25 @@ body.docs-page .rv-report__body .docs-chart-card p.docs-chart-card__style {
 	background: var(--paper-2);
 	color: var(--soft);
 	font: 600 0.72rem / 1.4 var(--font-ui);
+}
+
+/* The elements overview lays a live frame out half as wide as a gallery card's and shows it
+   twice as large, so an element fills its card. The docs script scales a frame by its box. */
+.docs-elements-grid .docs-thumbnail__near {
+	position: absolute;
+	inset: 0 auto auto 0;
+	width: 200%;
+}
+.docs-elements-grid .docs-thumbnail__near iframe {
+	width: 500px;
+	height: 310px;
+}
+/* The elements overview shows a picture where an element is one. */
+.docs-elements-grid .docs-thumbnail img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
 }
 
 /* ------------------------------------------------------------------ the pager */
@@ -1281,8 +1317,6 @@ html:not(.js) .docs-styles,
 .docs-report-preview__viewport {
 	aspect-ratio: 1000 / 750;
 	overflow: hidden;
-	border: 1px solid var(--rule);
-	border-radius: var(--r-panel);
 	background: var(--paper-2);
 }
 .docs-report-preview iframe {

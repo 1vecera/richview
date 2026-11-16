@@ -1,0 +1,43 @@
+---
+title: A release through three gates
+description: A denser flow chart with three decisions in a row, a group and a loop back.
+version: 0.0.1
+styles: [scientific]
+---
+
+## A change reaches production only through three yeses
+
+```chart
+type: flow
+title: A change reaches production only through three yeses
+subtitle: Any no goes back to its author; a migration that cannot be undone holds the release.
+nodes:
+  - {title: Change pushed, kind: start}
+  - {id: build, title: Build and test, lines: "unit and contract tests, about 6 minutes"}
+  - {id: green, title: "Tests green?", kind: decision}
+  - {id: review, title: "Review approved?", kind: decision}
+  - {id: safe, title: "Migration reversible?", kind: decision}
+  - {id: fix, title: Fix and push again, lines: "the author gets the failing step", tone: muted}
+  - {id: hold, title: Release held, lines: "a person signs the migration off", tone: alert}
+  - {id: stage, title: Deploy to staging, lines: "same image, staging data"}
+  - {id: image, title: Release image, kind: object, lines: "tagged with the commit"}
+  - {id: log, title: Release log, kind: store, lines: "who, what, when"}
+  - {id: done, title: Live, kind: end}
+groups:
+  - {label: Gate · three yeses before staging, nodes: [green, review, safe]}
+edges:
+  - Change pushed -> build
+  - build -> green
+  - "green -> review: yes"
+  - "green -> fix: no"
+  - "review -> safe: yes"
+  - "review -> fix: no"
+  - "safe -> stage: yes"
+  - {edge: "safe -> hold: no", tone: alert}
+  - "fix ..> build: push again"
+  - stage -> image
+  - image -> done
+  - "stage ..> log: record"
+```
+
+*Source: Illustrative pipeline.*

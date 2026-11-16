@@ -1043,11 +1043,13 @@ pub(crate) const FIGURE_CSS: &str = concat!(
     // A swatch that carries its series' hatch, dash or marker is that drawing (FEA-CH-57).
     ".rv-chart__swatch--cue{width:auto;height:auto;background:none;border-radius:0}",
     ".rv-chart__swatch--cue>svg{display:block}",
-    ".rv-chart__readout{position:absolute;left:0;top:0;z-index:2;box-sizing:border-box;max-width:min(18rem,calc(100% - 16px));padding:8px;background:color-mix(in oklch,var(--rv-bg-elev,var(--rv-bg)) 100%,transparent);border:1px solid var(--rv-rule);border-radius:min(var(--rv-radius-s,4px),4px);box-shadow:var(--rv-shadow-float,none);font:12px/1.35 var(--rv-font-ui,system-ui);color:var(--rv-ink);font-variant-numeric:tabular-nums lining-nums;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;pointer-events:none}",
+    ".rv-chart__readout{position:absolute;left:0;top:0;z-index:2;box-sizing:border-box;max-width:min(18rem,calc(100% - 16px));padding:8px;background:color-mix(in oklch,var(--rv-bg-elev,var(--rv-bg)) 100%,transparent);border:1px solid var(--rv-readout-rule,var(--rv-rule));border-radius:min(var(--rv-radius-s,4px),4px);box-shadow:var(--rv-shadow-float,none);font:12px/1.35 var(--rv-font-ui,system-ui);color:var(--rv-ink);font-variant-numeric:tabular-nums lining-nums;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;pointer-events:none}",
     // One labelled value shares a wrapping row with its heading (S27-900, STY-41 amendment).
     ".rv-chart__readout--compact{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;padding:6px 8px}",
     ".rv-chart__readout--compact>p{min-width:0}",
     ".rv-chart__readout--compact .rv-chart__readout-line{gap:6px}",
+    // Two name and value pairs on one row stand twice as far apart as a name from its value.
+    ".rv-chart__readout--compact .rv-chart__readout-line:not(:last-child){margin-right:6px}",
     ".rv-chart__readout--compact .rv-chart__readout-value{margin-left:0}",
     // Between observations the readout glides; reduced motion moves it at once (FEA-CH-42).
     "@media (prefers-reduced-motion:no-preference){.rv-chart__readout{transition:transform 180ms cubic-bezier(.22,1,.36,1),opacity 100ms linear}}",
@@ -1064,8 +1066,10 @@ pub(crate) const FIGURE_CSS: &str = concat!(
     "@media print{.rv-chart__names{display:none}}",
     ".rv-chart__readout p{margin:0;display:flex;gap:.5rem;align-items:baseline}",
     ".rv-chart__readout-head{font-weight:600}",
-    // One derived value may follow a single mark's own, in soft ink (FEA-CH-40).
-    ".rv-chart__readout-line--soft{color:var(--rv-ink-soft)}",
+    // A name (series, field or measure) is set in the soft ink and its value in the full ink, so
+    // a row reads value first. The derived value that may follow a single mark's own is set the
+    // same way (FEA-CH-40, STY-41 as assumed).
+    ".rv-chart__readout-name{color:var(--rv-ink-soft)}",
     // Rows for the series behind an emphasised one step back with them (FEA-CH-52).
     ".rv-chart__readout-line--back{color:var(--rv-ink-soft)}",
     "@media (prefers-reduced-motion:no-preference){.rv-chart__readout-line{transition:color 150ms linear}}",
@@ -1079,7 +1083,11 @@ pub(crate) const FIGURE_CSS: &str = concat!(
     ".rv-chart-dialog{--rv-target:32px;width:min(96vw,1400px);max-width:none;max-height:92vh;border:1px solid var(--rv-rule);border-radius:0;background:var(--rv-bg);color:var(--rv-ink);padding:0}",
     ".rv-chart-dialog::backdrop{background:color-mix(in oklch,var(--rv-bg) 94%,transparent)}",
     ".rv-chart-dialog__head{position:sticky;top:0;z-index:4;display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;background:var(--rv-bg);border-bottom:1px solid var(--rv-rule-soft,var(--rv-rule))}",
-    ".rv-chart-dialog__title{margin:0;flex:1;font:600 calc(var(--rv-size-base,1rem) * .9)/1.3 var(--rv-font-display,inherit)}",
+    // The head holds the chart's title and, under it, its subtitle, set as the inline figure sets
+    // them; Close stays beside the pair.
+    ".rv-chart-dialog__titles{flex:1;min-width:0}",
+    ".rv-chart-dialog__title{margin:0;font:600 calc(var(--rv-size-base,1rem) * .9)/1.3 var(--rv-font-display,inherit)}",
+    ".rv-chart-dialog__subtitle{margin:.125rem 0 0;font:var(--rv-size-small,14px)/1.45 var(--rv-font-text,inherit);color:var(--rv-ink-soft)}",
     ".rv-chart.rv-chart--expanded{margin:0;padding:1rem}",
     // On a phone the report's column keeps a 1rem margin each side (report.css, up to 640 px),
     // and the dialog, 96 % of the window wide with a 1 px border, keeps 2 % of the window, so the
@@ -1129,7 +1137,14 @@ pub(crate) const FIGURE_CSS: &str = concat!(
     // A set width, not only a least one: engines size the row's content without the buttons'
     // least width, so the last button would overhang Close.
     ".rv-chart-dialog[data-rv-turned] .rv-chart__actions .rv-chart__action,.rv-chart-dialog[data-rv-short-wide] .rv-chart__actions .rv-chart__action,.rv-chart-dialog[data-rv-turned] .rv-chart-dialog__close,.rv-chart-dialog[data-rv-short-wide] .rv-chart-dialog__close{font-size:0;gap:0;padding:0;width:var(--rv-target);height:var(--rv-target);justify-content:center}",
-    ".rv-chart-dialog[data-rv-turned] .rv-chart-dialog__title,.rv-chart-dialog[data-rv-short-wide] .rv-chart-dialog__title{padding-right:calc(4 * var(--rv-target) + 3 * .375rem + .75rem)}",
+    // There the subtitle costs the plot no height: it stands on the title's line, in the room the
+    // title leaves, cut with an ellipsis where it does not all fit, and is left out when fewer
+    // than 20 characters of it would show (the dialog still names the whole of it as its
+    // description). On a phone held sideways one more line made the dialog scroll for most chart
+    // types. Without script: the row wraps, the subtitle asks for at least 20ch and gives its
+    // own line no height, so a subtitle sent to a second line is clipped away.
+    ".rv-chart-dialog[data-rv-turned] .rv-chart-dialog__titles,.rv-chart-dialog[data-rv-short-wide] .rv-chart-dialog__titles{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 .75rem;overflow:hidden;padding-right:calc(4 * var(--rv-target) + 3 * .375rem + .75rem)}",
+    ".rv-chart-dialog[data-rv-turned] .rv-chart-dialog__title,.rv-chart-dialog[data-rv-short-wide] .rv-chart-dialog__title{flex:0 1 auto;min-width:0}.rv-chart-dialog[data-rv-turned] .rv-chart-dialog__subtitle,.rv-chart-dialog[data-rv-short-wide] .rv-chart-dialog__subtitle{flex:1 1 20ch;min-width:20ch;margin:0 0 -1.3em;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
     // In a short, wide window an expanded chart narrowed to fit the dialog's height leaves width on
     // its sides. Its legend and note then stand in a column beside the plot, legend first, the
     // pair centred and top-aligned, and the plot takes the height they took (S27-875). The column

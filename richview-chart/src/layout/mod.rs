@@ -565,6 +565,7 @@ impl<'a> Ctx<'a> {
             would_be_at: at,
             observation: None,
             series: None,
+            line: None,
         });
     }
 

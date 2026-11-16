@@ -424,6 +424,12 @@
         "geometry"
       ]
     },
+    "FEA-CH-04": {
+      "checks": [
+        "rust-tests:richview-chart layout::cartesian",
+        "geometry"
+      ]
+    },
     "FEA-CH-05": {
       "checks": [
         "rust-tests:richview-chart layout::cartesian",
@@ -3306,6 +3312,15 @@
         "tool-tests:tools/rv-gate/test/late-outputs.test.mjs"
       ],
       "partial": "Local loopback native server and actual Publish Worker/Wasm only. Deployed DNS/TLS/Cloudflare Access, live-service probe accounts/cross-account limits, managed data/media lifecycle, hosted-store restore drills, post-deploy/scheduled execution, rollback/incident wiring and positive shared-story link-preview thumbnail delivery remain unrun. No deployed acceptance or operational wiring is established."
+    },
+    "FEA-SF-01": {
+      "checks": [
+        "surface",
+        "rust-tests:crates/richview-app/tests/report_folders.rs::a_folder_of_report_folders_runs_every_report_below_it",
+        "rust-tests:crates/richview-app/tests/report_folders.rs::serve_and_publish_take_one_report_and_name_the_reports_a_folder_holds",
+        "rust-slow:crates/richview-app/tests/report_folders.rs::generate_writes_every_report_of_a_folder_into_its_own_rendered"
+      ],
+      "partial": "The surface snapshots pin every command's help and flags. The native tests cover what a report command reads from its input: a report, the folder holding it, and a folder of report folders on validate, check and generate, with serve and publish taking one report. They do not prove that every flag the card says leaves is gone."
     },
     "FEA-SF-02": {
       "checks": [

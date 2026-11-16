@@ -644,8 +644,10 @@ fn cross_at(a: [f64; 2], b: [f64; 2], c: [f64; 2], d: [f64; 2]) -> Option<f64> {
     ((0.0..=1.0).contains(&t) && (0.0..=1.0).contains(&u)).then_some(t)
 }
 
-/// The faces of other 3-D bars painted after the observation's own, near enough to its
-/// contour to meet its ring.
+/// The faces of other 3-D bars painted after the observation's own that still hide it, near
+/// enough to its contour to meet its ring. While a bar is selected the other rows step back
+/// (`select` gives bar3d `SeriesOf`), so only bars of its own row, at full strength, hide it;
+/// with one row that is every bar.
 fn front_faces(items: &[Item], observation: usize, own: &[Part]) -> Vec<Part> {
     let mine = |item: &Item| matches!(item, Item::Area { role: Role::Mark, obs: Some(o), .. } if *o == observation);
     let (Some(last), Some(near)) = (
@@ -654,6 +656,7 @@ fn front_faces(items: &[Item], observation: usize, own: &[Part]) -> Vec<Part> {
     ) else {
         return Vec::new();
     };
+    let row = items[last].series();
     let near = near.inflate(RING_GAP + RING_WIDTH + 1.0);
     items[last + 1..]
         .iter()
@@ -662,8 +665,9 @@ fn front_faces(items: &[Item], observation: usize, own: &[Part]) -> Vec<Part> {
                 path,
                 role: Role::Mark,
                 obs: Some(o),
+                series,
                 ..
-            } if *o != observation => Some(path.flatten(0.25)),
+            } if *o != observation && *series == row => Some(path.flatten(0.25)),
             _ => None,
         })
         .flatten()
@@ -1186,7 +1190,9 @@ fn select(
             }
             (!series.is_empty()).then_some((Focus::SeriesSet(series), DIM_FLOOR))
         }
-        kind @ ("scatter" | "bar" | "ribbon" | "chord" | "lollipop" | "waffle"
+        // A 3-D bar's row is its series: the rows in front turn translucent and the selected
+        // bar shows through them.
+        kind @ ("scatter" | "bar" | "bar3d" | "ribbon" | "chord" | "lollipop" | "waffle"
         | "packed-bubble") => {
             let series = o.series?;
             let floor = if matches!(kind, "scatter" | "packed-bubble") {
@@ -1606,22 +1612,87 @@ mod tests {
             .collect()
     }
 
+    /// The bar3d fixture with its three rows of bars, or as one row without `color`.
+    fn bar3d(rows: bool) -> Geometry {
+        let mut input: serde_json::Value = serde_json::from_str(include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../richview-chart/tests/fixtures/types/bar3d.json"
+        )))
+        .unwrap();
+        if !rows {
+            input["spec"]["encoding"]
+                .as_object_mut()
+                .unwrap()
+                .remove("color");
+        }
+        layout(
+            &ChartBlock::from_value(&input["spec"]).unwrap(),
+            input["rows"].as_array().unwrap(),
+            &ChartTheme::default(),
+            &Options::default(),
+        )
+    }
+
+    /// The outermost line of each ring.
+    fn outer_ring(outlines: &[Outline]) -> Vec<Vec<[f64; 2]>> {
+        ring_lines(outlines)
+            .into_iter()
+            .flat_map(|levels| levels.into_iter().next_back())
+            .flatten()
+            .collect()
+    }
+
+    #[test]
+    fn a_selected_bar3d_bar_dims_the_other_rows_and_one_row_dims_nothing() {
+        let g = bar3d(true);
+        let panel = &g.panels[0];
+        for (observation, o) in panel.observations.iter().enumerate() {
+            let t = Target {
+                panel: 0,
+                observation,
+            };
+            let (focus, floor) =
+                select("bar3d", &g, None, Some(t)).expect("the other rows step back");
+            assert_eq!(floor, DIM_FLOOR);
+            assert!(
+                matches!(focus, Focus::SeriesOf { series, .. } if Some(series) == o.series),
+                "bar3d {observation}: {focus:?}"
+            );
+            // Faces and their hairlines step back with their row; the box, ticks and labels stay.
+            for item in &panel.items {
+                assert_eq!(
+                    focus.keeps(0, item),
+                    item.series().is_none_or(|s| Some(s) == o.series),
+                    "bar3d {observation}: {item:?}"
+                );
+            }
+            assert!(
+                panel
+                    .items
+                    .iter()
+                    .any(|item| item.role() == Role::Grid && !focus.keeps(0, item)),
+                "bar3d {observation}: the other rows' hairlines step back with their faces"
+            );
+        }
+        let one = bar3d(false);
+        let t = Target {
+            panel: 0,
+            observation: 0,
+        };
+        assert_eq!(select("bar3d", &one, None, Some(t)), None);
+    }
+
     #[test]
     fn a_hidden_bar3d_ring_goes_round_only_what_shows() {
-        let fixture = std::fs::read_to_string(format!(
-            "{}/../../richview-chart/tests/fixtures/types/bar3d.json",
-            env!("CARGO_MANIFEST_DIR")
-        ))
-        .unwrap();
-        let g = chart(&fixture);
+        // With one row nothing steps back and every nearer bar hides; with several, the bars of
+        // the selected one's own row do.
+        for rows in [false, true] {
+            hidden_bar3d_ring_goes_round_only_what_shows(&bar3d(rows), rows);
+        }
+    }
+
+    fn hidden_bar3d_ring_goes_round_only_what_shows(g: &Geometry, rows: bool) {
         let panel = &g.panels[0];
-        let outer_ring = |outlines: &[Outline]| -> Vec<Vec<[f64; 2]>> {
-            ring_lines(outlines)
-                .into_iter()
-                .flat_map(|levels| levels.into_iter().next_back())
-                .flatten()
-                .collect()
-        };
         let mut hidden = Vec::new();
         let mut crossing = 0.0_f64;
         for observation in 0..panel.observations.len() {
@@ -1629,7 +1700,7 @@ mod tests {
                 panel: 0,
                 observation,
             };
-            let outlines = outlines("bar3d", &g, t, None, true);
+            let outlines = outlines("bar3d", g, t, None, true);
             let [Outline::Parts(parts)] = outlines.as_slice() else {
                 panic!("bar3d {observation}: one traced outline, {outlines:?}")
             };
@@ -1674,17 +1745,88 @@ mod tests {
                 .fold(0.0, f64::max);
             crossing = crossing.max(deepest);
         }
+        // The whole silhouette's ring would run into the bar in front past the ring's own reach.
         assert!(
-            crossing > 2.0 * (RING_GAP + RING_WIDTH),
-            "the full silhouette's ring runs only {crossing} px past what shows"
+            crossing > RING_GAP + RING_WIDTH,
+            "rows {rows}: the full silhouette's ring runs only {crossing} px past what shows"
         );
         assert!(
             !hidden.is_empty(),
-            "the fixture has a bar partly behind another"
+            "rows {rows}: the fixture has a bar partly behind another"
         );
         assert!(
             hidden.iter().all(|&(_, loops)| loops == 1),
-            "each partly hidden bar gets one closed ring: {hidden:?}"
+            "rows {rows}: each partly hidden bar gets one closed ring: {hidden:?}"
+        );
+    }
+
+    #[test]
+    fn a_selected_bar3d_ring_goes_over_the_rows_that_step_back() {
+        let g = bar3d(true);
+        let panel = &g.panels[0];
+        let (mut whole, mut over) = (0, 0);
+        for (observation, o) in panel.observations.iter().enumerate() {
+            let t = Target {
+                panel: 0,
+                observation,
+            };
+            let outlines = outlines("bar3d", &g, t, None, true);
+            let [Outline::Parts(parts)] = outlines.as_slice() else {
+                panic!("bar3d {observation}: one traced outline, {outlines:?}")
+            };
+            // The faces of the other rows painted after it, dimmed while it is selected.
+            let mine = |item: &Item| matches!(item, Item::Area { role: Role::Mark, obs: Some(k), .. } if *k == observation);
+            let last = panel.items.iter().rposition(mine).unwrap();
+            let dimmed: Vec<Vec<[f64; 2]>> = panel.items[last + 1..]
+                .iter()
+                .filter_map(|item| match item {
+                    Item::Area {
+                        path,
+                        role: Role::Mark,
+                        series,
+                        ..
+                    } if *series != o.series => Some(path.flatten(0.25)),
+                    _ => None,
+                })
+                .flatten()
+                .collect();
+            let dimmed: Vec<&Vec<[f64; 2]>> = dimmed.iter().collect();
+            for face in front_of(parts) {
+                assert!(
+                    !dimmed.contains(&face),
+                    "bar3d {observation}: a dimmed row trims its ring"
+                );
+            }
+            let own: Vec<Part> = parts
+                .iter()
+                .filter(|part| !matches!(part, Part::Front { .. }))
+                .cloned()
+                .collect();
+            let covered = own.iter().any(|part| match part {
+                Part::Shape { loops, .. } => loops.iter().flatten().any(|v| within(&dimmed, *v)),
+                _ => false,
+            });
+            let rings = outer_ring(&outlines);
+            if covered && front_of(parts).is_empty() {
+                // Only dimmed rows lie in front of it: the ring goes round the whole bar.
+                assert_eq!(
+                    rings,
+                    outer_ring(&[Outline::Parts(own)]),
+                    "bar3d {observation}: the ring goes round the whole bar"
+                );
+                whole += 1;
+            }
+            if rings.iter().flatten().any(|p| within(&dimmed, *p)) {
+                over += 1;
+            }
+        }
+        assert!(
+            whole > 0,
+            "a bar only the dimmed rows cover keeps its whole ring"
+        );
+        assert!(
+            over > 0,
+            "a ring runs over the dimmed rows in front of its bar"
         );
     }
 

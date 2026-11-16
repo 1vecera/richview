@@ -436,39 +436,42 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 series: Some(slot),
                 obs: Some(observations.len()),
             });
-            // The change, set beyond the bar's far end when it fits the plot and its band.
-            let label = text_of.label.clone();
-            let up = text_of.up;
-            let (x, y, anchor) = if frame.horizontal {
-                let edge = if up { rect.right() + 4.0 } else { rect.x - 4.0 };
-                (edge, rect.center()[1], if up { Anchor::Start } else { Anchor::End })
-            } else {
-                let edge = if up {
-                    rect.y - 4.0
+            // The change, set beyond the bar's far end when it fits the plot and its band. The
+            // author's `auto_annotations: false` draws none and records no drop.
+            if ctx.block.auto_annotations {
+                let label = text_of.label.clone();
+                let up = text_of.up;
+                let (x, y, anchor) = if frame.horizontal {
+                    let edge = if up { rect.right() + 4.0 } else { rect.x - 4.0 };
+                    (edge, rect.center()[1], if up { Anchor::Start } else { Anchor::End })
                 } else {
-                    rect.bottom() + 4.0 + lh * 0.8
+                    let edge = if up {
+                        rect.y - 4.0
+                    } else {
+                        rect.bottom() + 4.0 + lh * 0.8
+                    };
+                    (cm, edge, Anchor::Middle)
                 };
-                (cm, edge, Anchor::Middle)
-            };
-            let text = if frame.horizontal {
-                ctx.text_mid(&label, x, y, anchor, Face::Figures, Role::Label, ctx.style.ink)
-            } else {
-                ctx.text(&label, x, y, anchor, Face::Figures, Role::Label, ctx.style.ink)
-            };
-            let fits_band = if frame.horizontal {
-                text.bounds.h <= frame.band
-            } else {
-                text.bounds.w <= frame.band
-            };
-            if fits_band && text.bounds.inside(&frame.plot, 0.5) {
-                marks.push(Item::Text(text));
-            } else {
-                let reason = if fits_band {
-                    DropReason::OutOfBounds
+                let text = if frame.horizontal {
+                    ctx.text_mid(&label, x, y, anchor, Face::Figures, Role::Label, ctx.style.ink)
                 } else {
-                    DropReason::Density
+                    ctx.text(&label, x, y, anchor, Face::Figures, Role::Label, ctx.style.ink)
                 };
-                ctx.drop_label(&label, reason, "value", Some(text.bounds));
+                let fits_band = if frame.horizontal {
+                    text.bounds.h <= frame.band
+                } else {
+                    text.bounds.w <= frame.band
+                };
+                if fits_band && text.bounds.inside(&frame.plot, 0.5) {
+                    marks.push(Item::Text(text));
+                } else {
+                    let reason = if fits_band {
+                        DropReason::OutOfBounds
+                    } else {
+                        DropReason::Density
+                    };
+                    ctx.drop_label(&label, reason, "value", Some(text.bounds));
+                }
             }
             let mut lines = Vec::new();
             match s.measure {

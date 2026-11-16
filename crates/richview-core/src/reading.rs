@@ -93,7 +93,7 @@ pub(crate) const READING_CSS: &str = r#".rv-toc,.rv-toc-fold{font-size:var(--rv-
 .rv-toc-fold a{padding-block:.3rem}
 @media screen{.rv-report .rv-toc-fold{margin-inline:auto}}
 @media screen and (min-width:1100px){
-.rv-report--toc{max-width:calc(var(--rv-report-max-width,980px) + 15rem);grid-template-columns:minmax(0,1fr) 12rem;column-gap:3rem}
+.rv-report--toc{--rv-column-w:calc(min(var(--rv-report-max-width,980px) + 15rem,100vw) - 18rem);max-width:calc(var(--rv-report-max-width,980px) + 15rem);grid-template-columns:minmax(0,1fr) 12rem;column-gap:3rem}
 .rv-report--toc>:is(.rv-report__header,.rv-report__body,.rv-report__footer){grid-column:1}
 .rv-report--toc>.rv-toc-fold{display:none}
 .rv-report--toc>.rv-toc{display:block;grid-column:2;grid-row:1 / span 2;align-self:start;position:sticky;top:2rem;max-height:calc(100vh - 4rem);overflow-y:auto}

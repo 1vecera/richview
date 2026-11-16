@@ -82,10 +82,12 @@ pub(super) fn bar(
                 },
             ),
         };
+        // The author navigates from here too (Daniel, 16 Nov): back to the list, then Share. A
+        // phone has room for one of them beside the badge, and keeps Share, which leads to the app.
         return Some(render(
             &format!("Your report {badge}<span class=\"rv-soft rv-wide\"> · {who}</span>"),
             &format!(
-                "<a class=\"rv-pill\" href=\"{app}/reports/{}\">Share</a>",
+                "<a class=\"rv-wide\" href=\"{app}/\">All reports</a><a class=\"rv-pill\" href=\"{app}/reports/{}\">Share</a>",
                 escape(key)
             ),
         ));

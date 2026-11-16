@@ -187,6 +187,23 @@ try {
     const dialog = page.locator('dialog.rv-chart-dialog[open]');
     assert.equal(await dialog.count(), 1, 'Expansion opens one modal');
     assert.equal(await dialog.locator('canvas').count(), 1, 'The modal draws the chart');
+    // The subtitle follows its title into the modal's head, named as the description. Upright it
+    // stands whole under the title. Turned or short and wide it takes no height from the plot: it
+    // shares the title's line, at least 20 characters of it, or is left out.
+    const heading = await dialog.evaluate(node => {
+      const subtitle = node.querySelector('.rv-chart-dialog__head .rv-chart-dialog__title + .rv-chart-dialog__subtitle'), box = subtitle?.getBoundingClientRect();
+      const title = node.querySelector('.rv-chart-dialog__title').getBoundingClientRect(), both = node.querySelector('.rv-chart-dialog__titles').getBoundingClientRect();
+      const turned = node.hasAttribute('data-rv-turned'), oneLine = turned || node.hasAttribute('data-rv-short-wide');
+      const tall = r => turned ? r.width : r.height, wide = r => turned ? r.height : r.width;
+      const ch = subtitle ? parseFloat(getComputedStyle(subtitle).fontSize) * 0.45 : 0;
+      // On the title's line: inside the pair's box. Left out: sent past it, where the pair clips.
+      const onLine = !!box && (turned ? box.left >= both.left - 1 && box.right <= both.right + 1 : box.top >= both.top - 1 && box.bottom <= both.bottom + 1);
+      return {
+        text: subtitle?.textContent, described: !!subtitle && node.getAttribute('aria-describedby') === subtitle.id,
+        placed: !!box && (oneLine ? tall(both) <= tall(title) + 1 && (!onLine || wide(box) >= 20 * ch) : box.width > 0 && box.top >= title.bottom - 1 && subtitle.scrollWidth <= subtitle.clientWidth + 1),
+      };
+    });
+    assert.deepEqual(heading, { text: chart.subtitle, described: true, placed: true }, `${theme}/${width}: the modal's head shows the chart's subtitle`);
     assert.equal((await page.evaluate(() => window.__richview.charts()))[0].expanded, true);
     const expandedBox = await plotBox();
     assert.ok(expandedBox.width >= before.figure.width * .7, `${theme}/${width}: the modal offers a plotting area`);

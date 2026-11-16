@@ -57,6 +57,7 @@ encoding: { x: region, y: ms }
 - `encoding.color` and `encoding.facet` split boxes and panels
 - Quartiles use R-7 interpolation; whiskers end at the most extreme observed values within 1.5 IQR
 - Observations beyond the fences are drawn individually
+- Up to five boxes, three on a narrow chart, print their median beside the box, all boxes or none; `auto_annotations: false` leaves it to the readout
 - `style.orientation` is `auto` (default), `vertical` or `horizontal`
 
 ## Interactions

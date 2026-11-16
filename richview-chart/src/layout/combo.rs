@@ -10,7 +10,9 @@ use super::{Ctx, LINE_WIDTH, POINT_RADIUS, Painted, Style};
 use crate::axis::Zero;
 use crate::block::Axis;
 use crate::diag::Level;
-use crate::geometry::{Fill, Item, Observation, Path, Readout, ReadoutLine, Rect, Role, Shape, Stroke, Swatch};
+use crate::geometry::{
+    Anchor, Face, Fill, Item, Observation, Path, Readout, ReadoutLine, Rect, Role, Shape, Stroke, Swatch, Text,
+};
 use crate::numbers::{self, Kind, Locale};
 use crate::rows::{self, Num};
 use serde_json::{Value, json};
@@ -340,6 +342,9 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         let mut observations = Vec::new();
         // The line of each group: its point per category, or none where a value is missing.
         let mut tracks: Vec<Vec<Option<[f64; 2]>>> = vec![vec![None; categories.len()]; groups.len()];
+        // Each line's last point: its category, observation, readout text and the far edge of
+        // its column along the category axis (FEA-CH-28).
+        let mut last: Vec<Option<(usize, usize, String, f64)>> = vec![None; groups.len()];
         for e in entries {
             let Some(slot) = visible.iter().position(|g| *g == e.group) else {
                 continue;
@@ -388,6 +393,12 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             if let Some(v) = e.line {
                 let p = frame.pt2(cm, v);
                 tracks[e.group][e.category] = Some(p);
+                if last[e.group]
+                    .as_ref()
+                    .is_none_or(|(category, ..)| *category <= e.category)
+                {
+                    last[e.group] = Some((e.category, observations.len(), numbers::value(v, &readout2), c0 + t));
+                }
                 if e.bar.is_none() {
                     at = p;
                 }
@@ -472,7 +483,81 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             }
         }
         marks.extend(points);
-        panels.push(kit::panel(ctx, outer, frame, marks, observations, name));
+        let horizontal = frame.horizontal;
+        let mut panel = kit::panel(ctx, outer, frame, marks, observations, name);
+        // Automatic values, each in its own unit (chart design, 16 Nov 2026). First the last
+        // value of every line, all or none: past its column at the point's height, else right
+        // of the point, above it or below it, never on a bar, and moved along the plot's edge
+        // where a centred value would cross it. Then the bars' values, all in one place
+        // ([`super::place::combo_bar_values`]): a value the line would cross is left out, never
+        // moved onto it.
+        let lh = ctx.line_height();
+        let plot = panel.plot;
+        let within = |mut t: Text| {
+            if t.anchor == Anchor::Middle {
+                let dx = (plot.x - t.bounds.x).max(0.0) - (t.bounds.right() - plot.right()).max(0.0);
+                t.x += dx;
+                t.bounds.x += dx;
+            }
+            t
+        };
+        let reach = POINT_RADIUS + 5.0;
+        let wanted: Vec<super::place::SparseValue> = visible
+            .iter()
+            .filter_map(|&g| {
+                let (category, observation, text, edge) = last[g].clone()?;
+                let [x, y] = tracks[g][category]?;
+                let ink = ctx.style.ink;
+                let past = if horizontal {
+                    ctx.text_mid(
+                        &text,
+                        x,
+                        edge + 4.0 + lh / 2.0,
+                        Anchor::Middle,
+                        Face::Figures,
+                        Role::Label,
+                        ink,
+                    )
+                } else {
+                    ctx.text_mid(&text, edge + 4.0, y, Anchor::Start, Face::Figures, Role::Label, ink)
+                };
+                let places: Vec<Text> = [
+                    past,
+                    ctx.text_mid(&text, x + reach, y, Anchor::Start, Face::Figures, Role::Label, ink),
+                    ctx.text_mid(
+                        &text,
+                        x,
+                        y - reach - lh / 2.0,
+                        Anchor::Middle,
+                        Face::Figures,
+                        Role::Label,
+                        ink,
+                    ),
+                    ctx.text_mid(
+                        &text,
+                        x,
+                        y + reach + lh / 2.0,
+                        Anchor::Middle,
+                        Face::Figures,
+                        Role::Label,
+                        ink,
+                    ),
+                ]
+                .into_iter()
+                .map(within)
+                .collect();
+                Some(super::place::SparseValue {
+                    text,
+                    series: line_slot(g),
+                    observation,
+                    places,
+                })
+            })
+            .collect();
+        let lines = wanted.len();
+        super::place::sparse_values(ctx, fi, &mut panel, lines, wanted, &|_| true);
+        super::place::combo_bar_values(ctx, fi, &mut panel, horizontal);
+        panels.push(panel);
     }
     ctx.summary = format!(
         "{} with bars for {} and a line for {}.",

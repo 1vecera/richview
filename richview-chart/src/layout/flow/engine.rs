@@ -12,17 +12,26 @@
 //!   first card it feeds, so its edge stays short.
 //! - A long edge gets one placeholder per rank it crosses, so it runs in its own channel between
 //!   the cards; a labelled long edge reserves its label's room on its middle placeholder.
+//! - The main path is the first-listed edge out of each card from the first start, a failure
+//!   branch only where nothing else leaves. It runs straight down one column; failure paths sort
+//!   to its right.
+//! - Asked to stack its lanes, it gives two cards of one lane a rank each, the later in source
+//!   order below, so a lane is one column; lanes stand one lane's space apart.
 //! - Crossings fall by barycentre sweeps and adjacent swaps; a group's cards stay together in
 //!   every rank, and placeholders fill the ranks a group spans without a card, so nothing foreign
 //!   lands inside its box.
 //! - Positions along a rank minimise the squared distance to each card's neighbours under the
-//!   rank's order and spacing, solved exactly by isotonic regression; chains of placeholders
-//!   weigh more, so long edges run straight, and walls keep other cards out of group boxes.
+//!   rank's order and spacing, solved exactly by isotonic regression; the main path is held on
+//!   its column, chains of placeholders weigh more, so long edges run straight, and walls keep
+//!   other cards out of group boxes and a decision's side branch past its corner.
 //! - Every edge meets a card at its own point; two cards whose sides overlap are joined by a
-//!   straight line; each bend gets its own track in the gap, ordered to avoid crossings; a
-//!   decision leaves by its side corners.
-//! - An edge label sits on free paper in its gap, set into its line or beside it; when no place
-//!   is free the gap grows. No label is ever drawn over a card, another label or another line.
+//!   straight line; each bend gets its own track in the gap, ordered to avoid crossings; bends of
+//!   2 px or less are drawn straight. A decision goes on by its bottom corner and branches by the
+//!   side corner facing the branch, which turns down past it; a loop back to a decision joins
+//!   the line into its top corner.
+//! - An edge label sits on free paper in its gap, set into its line or beside it, a decision's
+//!   branch beside its corner; when no place is free the gap grows. No label is ever drawn over
+//!   another label or another line, or nearer a card than the caller's clearance.
 //!
 //! Nothing is random and no map is iterated: the same input gives the same geometry.
 
@@ -54,6 +63,8 @@ pub(super) struct EdgeIn {
     pub to: usize,
     /// The label's extent: `[breadth, depth]`.
     pub label: Option<[f64; 2]>,
+    /// A failure path: it stands on the far side of the spine (to the right, or below across).
+    pub alert: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -78,8 +89,13 @@ pub(super) struct Params {
     pub arrow: f64,
     /// Space round a label.
     pub label_pad: f64,
+    /// Least space between a label and a card.
+    pub label_clear: f64,
     /// Room each lane keeps at its start for its name: `[breadth, depth]`.
     pub lane_label: [f64; 2],
+    /// A lane is one column: two of its cards never share a rank, the later in source order
+    /// standing in the next rank free.
+    pub stack_lanes: bool,
 }
 
 pub(super) struct Input {
@@ -139,6 +155,10 @@ struct V {
     group: Option<usize>,
     lane: Option<usize>,
     u: f64,
+    /// On the main path, which runs straight down one column.
+    spine: bool,
+    /// On a failure path, which stands right of the spine.
+    right: bool,
 }
 
 impl V {
@@ -155,18 +175,31 @@ struct Chain {
 }
 
 const EPS: f64 = 0.5;
+/// How far past a decision's side corner its side branch turns down.
+const SIDE_PAST: f64 = 16.0;
 
 pub(super) fn layout(input: &Input) -> Laid {
     let n = input.nodes.len();
     let back = cycles(n, &input.edges);
-    let ranks = rank(n, &input.edges, &back);
-    let mut g = build(input, &ranks, &back);
+    let stacked: Vec<Option<usize>> = if input.params.stack_lanes {
+        input.nodes.iter().map(|n| n.lane).collect()
+    } else {
+        vec![None; n]
+    };
+    let ranks = rank(n, &input.edges, &back, &stacked);
+    let spine = if input.lanes == 0 {
+        spine(n, &input.edges, &back)
+    } else {
+        vec![false; input.edges.len()]
+    };
+    let mut g = build(input, &ranks, &back, &spine);
     order(&mut g);
+    lean(&mut g);
     place(&mut g, input);
     let mut extra: Vec<f64> = vec![0.0; g.ranks + 1];
     // A label that finds no free place grows its gap, and the drawing is routed again.
     for _ in 0..6 {
-        let laid = draw(&g, input, &back, &extra);
+        let laid = draw(&g, input, &back, &spine, &extra);
         if laid.0.is_empty() {
             return laid.1;
         }
@@ -186,7 +219,53 @@ pub(super) fn layout(input: &Input) -> Laid {
             return laid.1;
         }
     }
-    draw(&g, input, &back, &extra).1
+    draw(&g, input, &back, &spine, &extra).1
+}
+
+/// The main path: from the first card nothing leads to, the first-listed edge out of each card
+/// to one not on the path yet; a failure branch only where no other leaves.
+fn spine(n: usize, edges: &[EdgeIn], back: &[bool]) -> Vec<bool> {
+    let mut on = vec![false; edges.len()];
+    let fed = |k: usize| edges.iter().zip(back).any(|(e, b)| !*b && e.to == k && e.from != k);
+    let Some(mut at) = (0..n).find(|&k| !fed(k)) else {
+        return on;
+    };
+    let mut seen = vec![false; n];
+    seen[at] = true;
+    loop {
+        let open = |k: &usize| !back[*k] && edges[*k].from == at && !seen[edges[*k].to];
+        let next = (0..edges.len())
+            .filter(open)
+            .find(|&k| !edges[k].alert)
+            .or_else(|| (0..edges.len()).find(open));
+        let Some(k) = next else { break };
+        on[k] = true;
+        at = edges[k].to;
+        seen[at] = true;
+    }
+    on
+}
+
+/// Failure paths stand right of the spine: a vertex that leans right and sits left of its rank's
+/// spine vertex moves to just after it, when that keeps every group in one piece.
+fn lean(g: &mut G) {
+    for r in 0..g.ranks {
+        let Some(si) = g.order[r].iter().position(|&v| g.vs[v].spine) else {
+            continue;
+        };
+        let s = g.order[r][si];
+        let movers: Vec<usize> = g.order[r][..si]
+            .iter()
+            .copied()
+            .filter(|&v| g.vs[v].right && g.vs[v].group == g.vs[s].group && g.vs[v].lane == g.vs[s].lane)
+            .collect();
+        for v in movers {
+            let row = &mut g.order[r];
+            row.retain(|&w| w != v);
+            let at = row.iter().position(|&w| w == s).map_or(row.len(), |p| p + 1);
+            row.insert(at, v);
+        }
+    }
 }
 
 /// The edges a depth-first walk in source order meets while their target is still open.
@@ -229,8 +308,9 @@ fn cycles(n: usize, edges: &[EdgeIn]) -> Vec<bool> {
 }
 
 /// Longest-path ranks over the forward edges; a card with no inputs then moves down to just
-/// above the first card it feeds.
-fn rank(n: usize, edges: &[EdgeIn], back: &[bool]) -> Vec<usize> {
+/// above the first card it feeds. Cards that share a `lanes` entry never share a rank: the later
+/// in source order moves to the next rank free, and what it feeds follows.
+fn rank(n: usize, edges: &[EdgeIn], back: &[bool], lanes: &[Option<usize>]) -> Vec<usize> {
     let mut ranks = vec![0usize; n];
     let mut indegree = vec![0usize; n];
     let forward: Vec<&EdgeIn> = edges.iter().zip(back).filter(|(_, b)| !**b).map(|(e, _)| e).collect();
@@ -248,6 +328,28 @@ fn rank(n: usize, edges: &[EdgeIn], back: &[bool]) -> Vec<usize> {
             }
         }
     }
+    if lanes.iter().any(Option::is_some) {
+        // By longest-path rank, then source order: each card takes the first rank at or below
+        // its inputs that its lane has free.
+        let mut by_rank: Vec<usize> = (0..n).collect();
+        by_rank.sort_by_key(|&k| (ranks[k], k));
+        let mut settled = vec![false; n];
+        for k in by_rank {
+            let mut r = forward
+                .iter()
+                .filter(|e| e.to == k && settled[e.from])
+                .map(|e| ranks[e.from] + 1)
+                .fold(ranks[k], usize::max);
+            while lanes[k].is_some() && (0..n).any(|o| settled[o] && lanes[o] == lanes[k] && ranks[o] == r) {
+                r += 1;
+            }
+            ranks[k] = r;
+            settled[k] = true;
+        }
+    }
+    let taken = |ranks: &[usize], k: usize, r: usize| {
+        lanes[k].is_some() && (0..n).any(|o| o != k && lanes[o] == lanes[k] && ranks[o] == r)
+    };
     for _ in 0..n.min(8) {
         let mut moved = false;
         for k in 0..n {
@@ -258,6 +360,7 @@ fn rank(n: usize, edges: &[EdgeIn], back: &[bool]) -> Vec<usize> {
             if let Some(r) = lowest
                 && r >= 1
                 && r - 1 > ranks[k]
+                && !taken(&ranks, k, r - 1)
             {
                 ranks[k] = r - 1;
                 moved = true;
@@ -281,9 +384,16 @@ struct G {
     down: Vec<Vec<(usize, f64)>>,
     /// The first and last rank of each group.
     spans: Vec<Option<(usize, usize)>>,
+    /// For the first vertex of a decision's side branch, the decision: it stands past its corner.
+    corner_of: Vec<Option<usize>>,
+    /// For a placeholder of a decision's side branch, the branch's target: the branch turns at
+    /// the decision and runs straight down the target's column.
+    follow: Vec<Option<usize>>,
+    /// For a decision, the widest label of its side branches, set beside its corner.
+    side_label: Vec<f64>,
 }
 
-fn build(input: &Input, ranks: &[usize], back: &[bool]) -> G {
+fn build(input: &Input, ranks: &[usize], back: &[bool], spine: &[bool]) -> G {
     let mut vs: Vec<V> = input
         .nodes
         .iter()
@@ -295,8 +405,26 @@ fn build(input: &Input, ranks: &[usize], back: &[bool]) -> G {
             group: nd.group,
             lane: nd.lane,
             u: 0.0,
+            spine: false,
+            right: false,
         })
         .collect();
+    let mut spine_node = vec![false; input.nodes.len()];
+    for (k, e) in input.edges.iter().enumerate() {
+        if spine[k] {
+            spine_node[e.from] = true;
+            spine_node[e.to] = true;
+        }
+    }
+    for (i, v) in vs.iter_mut().enumerate() {
+        v.spine = spine_node[i];
+        v.right = !v.spine
+            && input
+                .edges
+                .iter()
+                .enumerate()
+                .any(|(k, e)| e.to == i && e.alert && !back[k]);
+    }
     let count = ranks.iter().copied().max().map_or(1, |m| m + 1);
     let p = &input.params;
     let mut chains = Vec::new();
@@ -311,10 +439,20 @@ fn build(input: &Input, ranks: &[usize], back: &[bool]) -> G {
         let same_group = input.nodes[e.from]
             .group
             .filter(|g| input.nodes[e.to].group == Some(*g));
+        // A decision's side branch is named beside its corner, so its placeholders hold no label.
+        let side_branch = input.nodes[e.from].ports == Ports::Corners
+            && !spine[k]
+            && input
+                .edges
+                .iter()
+                .zip(back)
+                .filter(|(o, b)| o.from == e.from && o.to != o.from && !**b)
+                .count()
+                >= 2;
         for (step, r) in (a + 1..b).enumerate() {
             // The middle placeholder of a labelled edge holds its label.
             let breadth = match e.label {
-                Some(l) if step == (span - 1) / 2 => l[0] + 2.0 * p.label_pad,
+                Some(l) if step == (span - 1) / 2 && !side_branch => l[0] + 2.0 * p.label_pad,
                 _ => 0.0,
             };
             let lane = if step * 2 < span {
@@ -329,6 +467,8 @@ fn build(input: &Input, ranks: &[usize], back: &[bool]) -> G {
                 group: same_group,
                 lane,
                 u: 0.0,
+                spine: spine[k],
+                right: e.alert && !spine[k],
             });
             chain.push(vs.len() - 1);
         }
@@ -351,6 +491,25 @@ fn build(input: &Input, ranks: &[usize], back: &[bool]) -> G {
             s.1 = s.1.max(v.rank);
         }
     }
+    // A group's box spans whole ranks: a spine card outside a group that holds spine cards, in
+    // a rank the group spans, cannot stand on the column, so it is placed like any other.
+    let held: Vec<bool> = (0..input.groups.len())
+        .map(|gi| vs.iter().any(|w| w.spine && w.group == Some(gi)))
+        .collect();
+    let off: Vec<bool> = vs
+        .iter()
+        .map(|v| {
+            v.spine
+                && spans.iter().enumerate().any(|(gi, span)| {
+                    held[gi] && v.group != Some(gi) && span.is_some_and(|(a, b)| a <= v.rank && v.rank <= b)
+                })
+        })
+        .collect();
+    for (v, off) in vs.iter_mut().zip(off) {
+        if off {
+            v.spine = false;
+        }
+    }
     // A group keeps its place in every rank it spans, a lane in every rank.
     for (g, span) in spans.iter().enumerate() {
         let Some((a, b)) = *span else { continue };
@@ -364,6 +523,8 @@ fn build(input: &Input, ranks: &[usize], back: &[bool]) -> G {
                     group: Some(g),
                     lane,
                     u: 0.0,
+                    spine: false,
+                    right: false,
                 });
             }
         }
@@ -378,6 +539,8 @@ fn build(input: &Input, ranks: &[usize], back: &[bool]) -> G {
                     group: None,
                     lane: Some(lane),
                     u: 0.0,
+                    spine: false,
+                    right: false,
                 });
             }
         }
@@ -410,6 +573,21 @@ fn build(input: &Input, ranks: &[usize], back: &[bool]) -> G {
             }
         }
     }
+    let mut corner_of: Vec<Option<usize>> = vec![None; vs.len()];
+    let mut follow: Vec<Option<usize>> = vec![None; vs.len()];
+    let mut side_label = vec![0.0f64; vs.len()];
+    for c in &chains {
+        let d = c.vs[0];
+        let branches = chains.iter().filter(|o| o.vs[0] == d).count();
+        if input.nodes[d].ports == Ports::Corners && branches >= 2 && !spine[c.edge] {
+            corner_of[c.vs[1]] = Some(d);
+            side_label[d] = side_label[d].max(input.edges[c.edge].label.map_or(0.0, |l| l[0]));
+            let target = c.vs[c.vs.len() - 1];
+            for &w in &c.vs[1..c.vs.len() - 1] {
+                follow[w] = Some(target);
+            }
+        }
+    }
     let mut up: Vec<Vec<(usize, f64)>> = vec![vec![]; vs.len()];
     let mut down: Vec<Vec<(usize, f64)>> = vec![vec![]; vs.len()];
     for &(a, b, w) in &links {
@@ -424,6 +602,9 @@ fn build(input: &Input, ranks: &[usize], back: &[bool]) -> G {
         up,
         down,
         spans,
+        corner_of,
+        follow,
+        side_label,
     }
 }
 
@@ -499,6 +680,15 @@ fn order(g: &mut G) {
                     (v, b)
                 })
                 .collect();
+            // A failure path sorts after the spine.
+            let mut bary = bary;
+            if let Some(&(_, sb)) = bary.iter().find(|(v, _)| g.vs[*v].spine) {
+                for (v, b) in &mut bary {
+                    if g.vs[*v].right {
+                        *b = b.max(sb + 0.5);
+                    }
+                }
+            }
             sort_rank(g, r, &bary);
             for (i, &v) in g.order[r].iter().enumerate() {
                 pos[v] = i;
@@ -559,7 +749,10 @@ fn transpose(g: &mut G) {
             for i in 0..g.order[r].len().saturating_sub(1) {
                 let (a, b) = (g.order[r][i], g.order[r][i + 1]);
                 let (va, vb) = (&g.vs[a], &g.vs[b]);
-                if va.lane != vb.lane || unit(va, a).0 != unit(vb, b).0 || (va.group.is_some() && va.group != vb.group)
+                if va.lane != vb.lane
+                    || unit(va, a).0 != unit(vb, b).0
+                    || (va.group.is_some() && va.group != vb.group)
+                    || (va.spine && vb.right)
                 {
                     continue;
                 }
@@ -675,6 +868,7 @@ fn place(g: &mut G, input: &Input) {
             _ => (0..g.ranks).map(|r| (r, 0)).collect(),
         };
         let boxes = container_boxes(g, input);
+        let column = spine_column(g);
         for (r, dir) in sweeps {
             let ord = g.order[r].clone();
             let mut want = Vec::with_capacity(ord.len());
@@ -706,12 +900,22 @@ fn place(g: &mut G, input: &Input) {
                 } else {
                     1.0
                 };
-                want.push(if total > 0.0 {
-                    (sum / total) * 0.85 + me.u * 0.15
-                } else {
-                    me.u
-                });
-                weight.push(w);
+                let (wish, w) = match g.follow[v] {
+                    Some(t) => (g.vs[t].u, 4.0),
+                    None if total > 0.0 => ((sum / total) * 0.85 + me.u * 0.15, w),
+                    None => (me.u, w),
+                };
+                // The spine pulls to one column; the rest settle round it.
+                match column {
+                    Some(c) if me.spine => {
+                        want.push(c);
+                        weight.push(50.0);
+                    }
+                    _ => {
+                        want.push(wish);
+                        weight.push(w);
+                    }
+                }
             }
             let sep: Vec<f64> = (0..ord.len().saturating_sub(1))
                 .map(|i| separation(g, input, ord[i], ord[i + 1]) + walls[r][i])
@@ -724,6 +928,17 @@ fn place(g: &mut G, input: &Input) {
         // Walls: a card next to a group or lane keeps clear of all of its box, not only of the
         // part in its own rank.
         let boxes = container_boxes(g, input);
+        // Which sides each decision's side branches leave by.
+        let mut branch_side = vec![(false, false); g.vs.len()];
+        for (x, d) in g.corner_of.iter().enumerate() {
+            if let Some(d) = *d {
+                if g.vs[x].u > g.vs[d].u {
+                    branch_side[d].1 = true;
+                } else {
+                    branch_side[d].0 = true;
+                }
+            }
+        }
         for (r, row) in walls.iter_mut().enumerate() {
             let pairs = row.len().saturating_sub(1);
             for (i, slot) in row.iter_mut().enumerate().take(pairs) {
@@ -746,24 +961,124 @@ fn place(g: &mut G, input: &Input) {
                         wall += ((vb.u - vb.breadth / 2.0) - left).max(0.0);
                     }
                 }
-                *slot = wall;
+                // A decision's side branch starts past the corner it leaves by, and its neighbour
+                // in its rank leaves it room to turn down.
+                let sep = separation(g, input, a, b);
+                let gap = sep - va.breadth / 2.0 - vb.breadth / 2.0;
+                let (d, other) = if branch_side[a].1 {
+                    (Some(a), b)
+                } else {
+                    (branch_side[b].0.then_some(b), a)
+                };
+                if let Some(d) = d {
+                    // Room to turn, and for the branch's name beside the corner, past the
+                    // border of the decision's group when the neighbour stands outside it.
+                    let border = if g.vs[d].group.is_some() && g.vs[d].group != g.vs[other].group {
+                        input.params.group_pad + 2.0
+                    } else {
+                        0.0
+                    };
+                    let need = (SIDE_PAST + 2.0 * input.params.track_gap)
+                        .max(7.0 + g.side_label[d] + input.params.label_clear + 2.0 + border);
+                    wall = wall.max(need - gap);
+                }
+                if let Some(d) = g.corner_of[b]
+                    && vb.u >= g.vs[d].u
+                {
+                    let past = g.vs[d].u + g.vs[d].breadth / 2.0 + SIDE_PAST;
+                    wall = wall.max(past - (va.u + sep));
+                }
+                if let Some(d) = g.corner_of[a]
+                    && va.u < g.vs[d].u
+                {
+                    let past = g.vs[d].u - g.vs[d].breadth / 2.0 - SIDE_PAST;
+                    wall = wall.max((vb.u - sep) - past);
+                }
+                *slot = wall.max(0.0);
             }
         }
     }
-    // Lanes in order, each clear of the one before: a lane moves whole, so its own order and
-    // spacing stay.
+    // The spine exactly straight: each of its ranks once more, the spine held on its column.
+    if let Some(c) = spine_column(g) {
+        for (r, wall) in walls.iter().enumerate() {
+            let ord = g.order[r].clone();
+            if !ord.iter().any(|&v| g.vs[v].spine) {
+                continue;
+            }
+            let want: Vec<f64> = ord.iter().map(|&v| if g.vs[v].spine { c } else { g.vs[v].u }).collect();
+            let weight: Vec<f64> = ord.iter().map(|&v| if g.vs[v].spine { 1e6 } else { 1.0 }).collect();
+            let sep: Vec<f64> = (0..ord.len().saturating_sub(1))
+                .map(|i| separation(g, input, ord[i], ord[i + 1]) + wall[i])
+                .collect();
+            let placed = project(&want, &weight, &sep);
+            for (i, &v) in ord.iter().enumerate() {
+                g.vs[v].u = placed[i];
+            }
+        }
+    }
+    // A lane's cards stand on its centre line: once, after placement has settled, each rank of
+    // each lane is placed again with its cards held on the line and its lines giving way. Cards
+    // that share a rank are held alike, so they stand centred on the line as a group. Held
+    // during placement instead, the line would follow every card pushed off it, without end.
+    for (lane, line) in lane_columns(g, input).into_iter().enumerate() {
+        let Some(line) = line else { continue };
+        for r in 0..g.ranks {
+            let ord: Vec<usize> = g.order[r]
+                .iter()
+                .copied()
+                .filter(|&v| g.vs[v].lane == Some(lane) && !matches!(g.vs[v].kind, Kind::Fill))
+                .collect();
+            let card = |v: usize| matches!(g.vs[v].kind, Kind::Real(_));
+            if !ord.iter().any(|&v| card(v)) {
+                continue;
+            }
+            let want: Vec<f64> = ord.iter().map(|&v| if card(v) { line } else { g.vs[v].u }).collect();
+            let weight: Vec<f64> = ord.iter().map(|&v| if card(v) { 1e6 } else { 1.0 }).collect();
+            let sep: Vec<f64> = ord.windows(2).map(|w| separation(g, input, w[0], w[1])).collect();
+            let placed = project(&want, &weight, &sep);
+            for (i, &v) in ord.iter().enumerate() {
+                g.vs[v].u = placed[i];
+            }
+        }
+    }
+    // Lanes in order, each one lane's space from the one before, no nearer and no farther: a
+    // lane moves whole, so its own order and spacing stay.
     let p = &input.params;
     for lane in 1..input.lanes {
-        let boxes = container_boxes(g, input);
-        let (Some(prev), Some(this)) = ((0..lane).rev().find_map(|l| boxes.1[l]), boxes.1[lane]) else {
+        let bands = lane_bands(g, input);
+        let (Some(prev), Some(this)) = ((0..lane).rev().find_map(|l| bands[l]), bands[lane]) else {
             continue;
         };
         let need = prev.1 + 2.0 * p.lane_pad + p.lane_label[0] + p.node_gap - this.0;
-        if need > 0.0 {
+        if need.abs() > 1e-9 {
             for v in &mut g.vs {
                 if v.lane.is_some_and(|l| l >= lane) {
                     v.u += need;
                 }
+            }
+        }
+    }
+    // A long edge runs straight where it nearly does: a placeholder within 6 px of the one before
+    // it on its edge takes that one's place, when its neighbours in the rank leave it the room.
+    let pos = positions(g);
+    let chains: Vec<Vec<usize>> = g.chains.iter().map(|c| c.vs.clone()).collect();
+    for chain in &chains {
+        if chain.len() < 4 {
+            continue;
+        }
+        for w in chain[1..chain.len() - 1].windows(2) {
+            let (a, b) = (w[0], w[1]);
+            let to = g.vs[a].u;
+            if (g.vs[b].u - to).abs() < 1e-9 || (g.vs[b].u - to).abs() > 6.0 {
+                continue;
+            }
+            let (r, i) = (g.vs[b].rank, pos[b]);
+            let before = i.checked_sub(1).map(|j| g.order[r][j]);
+            let after = g.order[r].get(i + 1).copied();
+            let clear = before.is_none_or(|o| to - g.vs[o].u >= separation(g, input, o, b) - 1e-6)
+                && after.is_none_or(|o| g.vs[o].u - to >= separation(g, input, b, o) - 1e-6);
+            if clear {
+                g.vs[b].u = to;
             }
         }
     }
@@ -776,6 +1091,26 @@ fn place(g: &mut G, input: &Input) {
 }
 
 type Span = Option<(f64, f64)>;
+
+/// Where the spine runs: the mean place of its vertices, or none without one.
+fn spine_column(g: &G) -> Option<f64> {
+    let us: Vec<f64> = g.vs.iter().filter(|v| v.spine).map(|v| v.u).collect();
+    (!us.is_empty()).then(|| us.iter().sum::<f64>() / us.len() as f64)
+}
+
+/// Each lane's centre line: the mean place of its cards, or none for a lane without one.
+fn lane_columns(g: &G, input: &Input) -> Vec<Option<f64>> {
+    (0..input.lanes)
+        .map(|lane| {
+            let us: Vec<f64> =
+                g.vs.iter()
+                    .filter(|v| v.lane == Some(lane) && matches!(v.kind, Kind::Real(_)))
+                    .map(|v| v.u)
+                    .collect();
+            (!us.is_empty()).then(|| us.iter().sum::<f64>() / us.len() as f64)
+        })
+        .collect()
+}
 
 /// The extent along a rank of each group's and each lane's cards.
 fn container_boxes(g: &G, input: &Input) -> (Vec<Span>, Vec<Span>) {
@@ -796,6 +1131,21 @@ fn container_boxes(g: &G, input: &Input) -> (Vec<Span>, Vec<Span>) {
         }
     }
     (groups, lanes)
+}
+
+/// Each lane's band: its extent, widened to reach as far to one side of its centre line as to
+/// the other, so its cards stand in the middle of it. Only the last spacing of the lanes and the
+/// drawn band use it: fed back into placement, a card pushed from a lane's edge would widen the
+/// band toward that edge and be pushed again, without end.
+fn lane_bands(g: &G, input: &Input) -> Vec<Span> {
+    let mut lanes = container_boxes(g, input).1;
+    for (span, column) in lanes.iter_mut().zip(lane_columns(g, input)) {
+        if let (Some((l, r)), Some(c)) = (*span, column) {
+            let half = (c - l).max(r - c);
+            *span = Some((c - half, c + half));
+        }
+    }
+    lanes
 }
 
 /// One hop of an edge between two consecutive ranks.
@@ -821,13 +1171,15 @@ struct Rows {
 
 /// Route, label and measure the drawing. Returns the gaps whose labels found no place.
 #[allow(clippy::too_many_lines)]
-fn draw(g: &G, input: &Input, back: &[bool], extra: &[f64]) -> (Vec<usize>, Laid) {
+fn draw(g: &G, input: &Input, back: &[bool], spine: &[bool], extra: &[f64]) -> (Vec<usize>, Laid) {
     let p = &input.params;
     let n = input.nodes.len();
     // Ports: where each edge leaves its source and meets its target.
     let mut exit_u: Vec<Option<f64>> = vec![None; input.edges.len()];
     let mut entry_u: Vec<Option<f64>> = vec![None; input.edges.len()];
     let mut side_exit: Vec<Option<Side>> = vec![None; input.edges.len()];
+    // Where a side branch may turn down: past its corner, short of the next card in its rank.
+    let mut turn_room: Vec<Option<(f64, f64)>> = vec![None; input.edges.len()];
     let first_hop = |c: &Chain| c.vs[1];
     let last_hop = |c: &Chain| c.vs[c.vs.len() - 2];
     let uv = |v: usize| g.vs[v].u;
@@ -842,16 +1194,17 @@ fn draw(g: &G, input: &Input, back: &[bool], extra: &[f64]) -> (Vec<usize>, Laid
         outs.sort_by(|a, b| uv(first_hop(a)).total_cmp(&uv(first_hop(b))).then(a.edge.cmp(&b.edge)));
         if outs.len() >= 2 {
             let me = g.vs[i].u;
-            // The exit most nearly straight on keeps the bottom corner.
-            let straight = outs
-                .iter()
-                .enumerate()
-                .min_by(|a, b| {
-                    (uv(first_hop(a.1)) - me)
-                        .abs()
-                        .total_cmp(&(uv(first_hop(b.1)) - me).abs())
-                })
-                .map_or(0, |x| x.0);
+            // The spine keeps the bottom corner; without it, the exit most nearly straight on.
+            let straight = outs.iter().position(|c| spine[c.edge]).unwrap_or_else(|| {
+                outs.iter()
+                    .enumerate()
+                    .min_by(|a, b| {
+                        (uv(first_hop(a.1)) - me)
+                            .abs()
+                            .total_cmp(&(uv(first_hop(b.1)) - me).abs())
+                    })
+                    .map_or(0, |x| x.0)
+            });
             for (k, c) in outs.iter().enumerate() {
                 if k == straight {
                     continue;
@@ -867,20 +1220,42 @@ fn draw(g: &G, input: &Input, back: &[bool], extra: &[f64]) -> (Vec<usize>, Laid
                 {
                     continue;
                 }
+                // Out past the corner, then straight down into the target: at its middle when
+                // that lies past the corner, else as near it as the target's side allows. The
+                // line stops short of the next card in the decision's rank.
                 let r = g.vs[i].rank;
-                let (lo, hi) = if side == Side::Left {
-                    (target - 1.0, left(i))
+                let past = 12.0;
+                let room = if side == Side::Left {
+                    let stop = g.order[r]
+                        .iter()
+                        .filter(|&&w| w != i && !matches!(g.vs[w].kind, Kind::Fill) && right(w) <= left(i) + EPS)
+                        .map(|&w| right(w) + p.track_gap * 1.5)
+                        .fold(f64::NEG_INFINITY, f64::max);
+                    (stop, left(i) - past)
                 } else {
-                    (right(i), target + 1.0)
+                    let stop = g.order[r]
+                        .iter()
+                        .filter(|&&w| w != i && !matches!(g.vs[w].kind, Kind::Fill) && left(w) >= right(i) - EPS)
+                        .map(|&w| left(w) - p.track_gap * 1.5)
+                        .fold(f64::INFINITY, f64::min);
+                    (right(i) + past, stop)
                 };
-                let blocked = g.order[r].iter().any(|&w| {
-                    w != i && !matches!(g.vs[w].kind, Kind::Fill) && right(w) + 2.0 > lo && left(w) - 2.0 < hi
-                });
-                if !blocked && (side == Side::Left) == (target < left(i))
-                    || (!blocked && side == Side::Right && target > right(i))
-                {
+                let to = first_hop(c);
+                let (lo, hi) = if g.vs[to].is_dummy() {
+                    (room.0, room.1)
+                } else {
+                    let m = (g.vs[to].breadth / 4.0).min(12.0);
+                    (room.0.max(left(to) + m), room.1.min(right(to) - m))
+                };
+                let turn = if g.vs[to].is_dummy() {
+                    (target > lo && target < hi).then_some(target)
+                } else {
+                    (lo <= hi).then(|| target.clamp(lo, hi))
+                };
+                if let Some(turn) = turn {
                     side_exit[c.edge] = Some(side);
-                    exit_u[c.edge] = Some(target);
+                    exit_u[c.edge] = Some(turn);
+                    turn_room[c.edge] = Some((lo, hi));
                 }
             }
         }
@@ -893,23 +1268,93 @@ fn draw(g: &G, input: &Input, back: &[bool], extra: &[f64]) -> (Vec<usize>, Laid
             entry_u[c.edge] = Some(g.vs[i].u);
         }
     }
+    // A bypass leaves the main path and comes back to it further down. It runs beside the path
+    // and meets its target's facing side at the middle, so the top stays with the path's own
+    // arrow. One a side; a card in the way, or a loop that uses the card's sides, keeps it on top.
+    let mut side_entry: Vec<Option<Side>> = vec![None; input.edges.len()];
+    let on_spine = |i: usize| {
+        input
+            .edges
+            .iter()
+            .enumerate()
+            .any(|(k, e)| spine[k] && (e.from == i || e.to == i))
+    };
+    for c in &g.chains {
+        let e = c.edge;
+        let (src, dst) = (input.edges[e].from, input.edges[e].to);
+        if spine[e]
+            || c.vs.len() < 3
+            || input.nodes[dst].ports == Ports::Corners
+            || !on_spine(src)
+            || !on_spine(dst)
+            || input
+                .edges
+                .iter()
+                .zip(back)
+                .any(|(o, b)| *b && (o.from == dst || o.to == dst))
+        {
+            continue;
+        }
+        let x = uv(last_hop(c));
+        let reach = p.arrow + 6.0;
+        let (side, lo, hi) = if x >= right(dst) + reach {
+            (Side::Right, right(dst), x + p.track_gap)
+        } else if x <= left(dst) - reach {
+            (Side::Left, x - p.track_gap, left(dst))
+        } else {
+            continue;
+        };
+        let r = g.vs[dst].rank;
+        let blocked = g.order[r]
+            .iter()
+            .any(|&w| w != dst && !matches!(g.vs[w].kind, Kind::Fill) && right(w) > lo - EPS && left(w) < hi + EPS);
+        let used = side_entry
+            .iter()
+            .zip(&input.edges)
+            .any(|(s, o)| o.to == dst && *s == Some(side));
+        if !blocked && !used {
+            side_entry[e] = Some(side);
+        }
+    }
     // Cards: edges spread along the side, in the order of what they lead to.
+    let mut hops_of = vec![0usize; input.edges.len()];
+    for c in &g.chains {
+        hops_of[c.edge] = c.vs.len() - 1;
+    }
+    // Edges meet a card's side at their own points, as near the place each comes from as a
+    // track's width between them allows; a spine edge keeps the middle.
     let spread = |i: usize, ends: &mut Vec<(usize, f64)>| -> Vec<(usize, f64)> {
         let margin = (g.vs[i].breadth / 4.0).min(12.0);
-        let (lo, hi) = (left(i) + margin, right(i) - margin);
+        let (lo, hi) = (left(i) + margin, (right(i) - margin).max(left(i) + margin));
         ends.sort_by(|a, b| a.1.total_cmp(&b.1).then(a.0.cmp(&b.0)));
         let k = ends.len();
-        if k == 1 {
-            return vec![(ends[0].0, ends[0].1.clamp(lo, hi.max(lo)))];
+        // Lines that carry a name stand far enough apart for each to be set into its own.
+        let named = ends.iter().any(|e| input.edges[e.0].label.is_some());
+        let apart = p.track_gap * if named { 2.5 } else { 1.5 };
+        let step = if k > 1 {
+            apart.min((hi - lo) / (k - 1) as f64)
+        } else {
+            0.0
+        };
+        let want: Vec<f64> = ends
+            .iter()
+            .map(|e| (if spine[e.0] { g.vs[i].u } else { e.1 }).clamp(lo, hi))
+            .collect();
+        // A long edge runs straight down its channel: its end gives way least.
+        let weight: Vec<f64> = ends
+            .iter()
+            .map(|e| match (spine[e.0], hops_of[e.0]) {
+                (true, _) => 1e6,
+                (false, h) if h > 1 => 4.0,
+                _ => 1.0,
+            })
+            .collect();
+        let mut at = project(&want, &weight, &vec![step; k.saturating_sub(1)]);
+        let shift = (lo - at[0]).max(0.0) - (at[k - 1] - hi).max(0.0);
+        for x in &mut at {
+            *x += shift;
         }
-        let step = ((hi - lo) / (k as f64 - 1.0)).min(p.track_gap * 2.5).max(0.0);
-        let mean = ends.iter().map(|e| e.1).sum::<f64>() / k as f64;
-        let half = step * (k as f64 - 1.0) / 2.0;
-        let centre = mean.clamp(lo + half, (hi - half).max(lo + half));
-        ends.iter()
-            .enumerate()
-            .map(|(j, e)| (e.0, centre - half + j as f64 * step))
-            .collect()
+        ends.iter().zip(at).map(|(e, x)| (e.0, x)).collect()
     };
     for i in 0..n {
         if input.nodes[i].ports == Ports::Corners {
@@ -930,7 +1375,7 @@ fn draw(g: &G, input: &Input, back: &[bool], extra: &[f64]) -> (Vec<usize>, Laid
         let mut ins: Vec<(usize, f64)> = g
             .chains
             .iter()
-            .filter(|c| input.edges[c.edge].to == i)
+            .filter(|c| input.edges[c.edge].to == i && side_entry[c.edge].is_none())
             .map(|c| {
                 let reference = match (side_exit[c.edge], c.vs.len()) {
                     (Some(_), 2) => exit_u[c.edge].unwrap_or(uv(last_hop(c))),
@@ -943,6 +1388,15 @@ fn draw(g: &G, input: &Input, back: &[bool], extra: &[f64]) -> (Vec<usize>, Laid
             for (e, u) in spread(i, &mut ins) {
                 entry_u[e] = Some(u);
             }
+        }
+    }
+    // A side branch turns down right above where it enters.
+    for c in &g.chains {
+        if let (2, Some((lo, hi)), Some(x)) = (c.vs.len(), turn_room[c.edge], entry_u[c.edge])
+            && x >= lo - EPS
+            && x <= hi + EPS
+        {
+            exit_u[c.edge] = Some(x);
         }
     }
     // Straight lines: an edge alone on both sides whose cards overlap runs straight.
@@ -996,10 +1450,16 @@ fn draw(g: &G, input: &Input, back: &[bool], extra: &[f64]) -> (Vec<usize>, Laid
                 uv(w[0])
             };
             let to = if s + 2 == c.vs.len() {
-                entry_u[c.edge].unwrap_or(uv(w[1]))
+                // Into a side, the line stays on its column past the card's top.
+                if side_entry[c.edge].is_some() {
+                    from
+                } else {
+                    entry_u[c.edge].unwrap_or(uv(w[1]))
+                }
             } else {
                 uv(w[1])
             };
+            let to = straighten(from, to);
             hops.push(Hop {
                 edge: c.edge,
                 gap: g.vs[w[0]].rank,
@@ -1017,7 +1477,8 @@ fn draw(g: &G, input: &Input, back: &[bool], extra: &[f64]) -> (Vec<usize>, Laid
             .filter(|&h| hops[h].gap == gap && (hops[h].from - hops[h].to).abs() > EPS)
             .collect();
         let span = |h: &Hop| (h.from.min(h.to), h.from.max(h.to));
-        let inside = |x: f64, s: (f64, f64)| x > s.0 + EPS && x < s.1 - EPS;
+        // A line that ends on another's corner touches it, which reads worse than a crossing.
+        let inside = |x: f64, s: (f64, f64)| x > s.0 - EPS && x < s.1 + EPS;
         let cost = |a: &Hop, b: &Hop| (inside(b.from, span(a)) as i32) + (inside(a.to, span(b)) as i32);
         let mut keyed: Vec<(usize, i32)> = ids
             .iter()
@@ -1061,6 +1522,12 @@ fn draw(g: &G, input: &Input, back: &[bool], extra: &[f64]) -> (Vec<usize>, Laid
         .filter_map(|e| e.label.map(|l| l[1]))
         .fold(0.0, f64::max);
     let group_label = input.groups.iter().map(|gr| gr.label[1]).fold(0.0, f64::max);
+    // A group's name is set into its top border: the cards under it keep clear of the name.
+    let group_top = if group_label > 0.0 {
+        p.group_pad.max(group_label / 2.0 + p.label_clear + 0.5)
+    } else {
+        p.group_pad
+    };
     let ends_here = |r: usize| g.spans.iter().any(|s| s.is_some_and(|s| s.1 == r));
     let starts_here = |r: usize| g.spans.iter().any(|s| s.is_some_and(|s| s.0 == r));
     let labelled_gap = |r: usize| {
@@ -1084,7 +1551,7 @@ fn draw(g: &G, input: &Input, back: &[bool], extra: &[f64]) -> (Vec<usize>, Laid
     let first_starts = starts_here(0);
     let mut v = lane_room
         + if first_starts {
-            group_label / 2.0 + p.group_pad + 2.0
+            group_label / 2.0 + group_top + 2.0
         } else {
             0.0
         };
@@ -1115,7 +1582,7 @@ fn draw(g: &G, input: &Input, back: &[bool], extra: &[f64]) -> (Vec<usize>, Laid
         if starts_here(r + 1) {
             cursor += group_label / 2.0 + 2.0;
             rows.group_start_v[r] = cursor;
-            cursor += p.group_pad;
+            cursor += group_top;
         } else {
             cursor += p.arrow + 4.0;
         }
@@ -1135,7 +1602,7 @@ fn draw(g: &G, input: &Input, back: &[bool], extra: &[f64]) -> (Vec<usize>, Laid
         match (span, boxes.0[gi]) {
             (Some((a, b)), Some((l, rt))) => {
                 let top = if *a == 0 {
-                    rows.top[0] - p.group_pad
+                    rows.top[0] - group_top
                 } else {
                     rows.group_start_v[a - 1]
                 };
@@ -1146,7 +1613,7 @@ fn draw(g: &G, input: &Input, back: &[bool], extra: &[f64]) -> (Vec<usize>, Laid
         }
     }
     let mut lanes: Vec<Rect> = Vec::new();
-    for span in &boxes.1 {
+    for span in &lane_bands(g, input) {
         match span {
             Some((l, rt)) => lanes.push(Rect::new(
                 l - p.lane_pad - p.lane_label[0],
@@ -1193,7 +1660,14 @@ fn draw(g: &G, input: &Input, back: &[bool], extra: &[f64]) -> (Vec<usize>, Laid
             if is_last {
                 let dr = nodes[dst];
                 let last = *pts.last().unwrap();
-                pts.push([last[0], dr.y]);
+                match side_entry[e] {
+                    Some(side) => {
+                        let mid = dr.y + dr.h / 2.0;
+                        pts.push([last[0], mid]);
+                        pts.push([if side == Side::Left { dr.x } else { dr.right() }, mid]);
+                    }
+                    None => pts.push([last[0], dr.y]),
+                }
             } else {
                 // Through the placeholder's rank.
                 let top = rows.top[next_rank];
@@ -1206,7 +1680,7 @@ fn draw(g: &G, input: &Input, back: &[bool], extra: &[f64]) -> (Vec<usize>, Laid
             points: simplify(pts),
             back: false,
             label: None,
-            end: Side::Before,
+            end: side_entry[e].unwrap_or(Side::Before),
         };
     }
     // Loops back up the flow, round the outside.
@@ -1312,11 +1786,26 @@ fn draw(g: &G, input: &Input, back: &[bool], extra: &[f64]) -> (Vec<usize>, Laid
                 ]
             }
         };
+        // A loop back to a decision asks the question again: it joins the line into its top
+        // corner just above it, and leaves the side corners to the answers.
+        let (pts, end) = if input.nodes[edge.to].ports == Ports::Corners {
+            let join = t.y - p.arrow - 3.0;
+            let mut pts = pts;
+            pts.pop();
+            let x = pts.last().map_or(t.x, |q| q[0]);
+            pts.pop();
+            pts.push([x, join]);
+            pts.push([t.x + t.w / 2.0, join]);
+            pts.push([t.x + t.w / 2.0, t.y]);
+            (pts, Side::Before)
+        } else {
+            (pts, if side == Side::Left { Side::Left } else { Side::Right })
+        };
         routes[e] = Route {
             points: pts,
             back: true,
             label: None,
-            end: if side == Side::Left { Side::Left } else { Side::Right },
+            end,
         };
     }
     // Group labels, set into the top border clear of the lines that cross it.
@@ -1370,8 +1859,20 @@ fn draw(g: &G, input: &Input, back: &[bool], extra: &[f64]) -> (Vec<usize>, Laid
         borders.push(([b.x, b.y], [b.x, b.bottom()]));
         borders.push(([b.right(), b.y], [b.right(), b.bottom()]));
     }
+    // A label keeps this far from every card: a decision's diamond, any other card's box.
+    let clear_of = |i: usize, r: &Rect| -> bool {
+        let c = nodes[i];
+        let (a, b) = (c.w / 2.0, c.h / 2.0);
+        if input.nodes[i].ports != Ports::Corners || a <= 0.0 || b <= 0.0 {
+            return !c.overlaps(r, -p.label_clear);
+        }
+        let (cx, cy) = (c.x + a, c.y + b);
+        let dx = (r.x - cx).max(cx - r.right()).max(0.0);
+        let dy = (r.y - cy).max(cy - r.bottom()).max(0.0);
+        dx / a + dy / b >= 1.0 + p.label_clear * (1.0 / (a * a) + 1.0 / (b * b)).sqrt()
+    };
     let free = |r: &Rect, e: usize, own: Option<usize>, taken: &[Rect]| -> bool {
-        if nodes.iter().any(|n| n.overlaps(r, -3.0)) {
+        if (0..nodes.len()).any(|i| !clear_of(i, r)) {
             return false;
         }
         if taken.iter().any(|t| t.overlaps(r, -4.0)) {
@@ -1411,6 +1912,29 @@ fn draw(g: &G, input: &Input, back: &[bool], extra: &[f64]) -> (Vec<usize>, Laid
         let src = input.edges[e].from;
         let corners = input.nodes[src].ports == Ports::Corners;
         let chain_len = g.chains.iter().find(|c| c.edge == e).map_or(0, |c| c.vs.len());
+        // A branch that leaves by a side corner is named beside that corner, on its line.
+        if let Some(side) = side_exit[e] {
+            let sr = nodes[src];
+            let cv = sr.y + sr.h / 2.0;
+            let run = own
+                .first()
+                .map_or(0.0, |&k| (segments[k].1[0] - segments[k].2[0]).abs());
+            // Nearest the corner first; past a group's border when the corner sits close to it.
+            let out = |d: f64| {
+                if side == Side::Left {
+                    sr.x - d - lw
+                } else {
+                    sr.right() + d
+                }
+            };
+            for d in (0..30).map(|j| 7.0 + 2.0 * j as f64) {
+                cands.push((Rect::new(out(d), cv - lh - pad, lw, lh), None));
+                if run >= lw + d + 7.0 + pad + 4.0 {
+                    cands.push((Rect::new(out(d + 7.0), cv - lh / 2.0, lw, lh), own.first().copied()));
+                }
+                cands.push((Rect::new(out(d), cv + pad, lw, lh), None));
+            }
+        }
         if chain_len > 2 {
             // On its own placeholder.
             if let Some(c) = g.chains.iter().find(|c| c.edge == e) {
@@ -1614,6 +2138,12 @@ fn draw(g: &G, input: &Input, back: &[bool], extra: &[f64]) -> (Vec<usize>, Laid
     (unplaced_gaps, laid)
 }
 
+/// Where a hop from `from` ends when it aims at `to`: within 2 px it runs straight on, so no
+/// line carries a jog a reader would take for a mistake.
+fn straighten(from: f64, to: f64) -> f64 {
+    if (from - to).abs() <= 2.0 + 1e-6 { from } else { to }
+}
+
 /// Drop repeated points and corners that do not turn.
 fn simplify(points: Vec<[f64; 2]>) -> Vec<[f64; 2]> {
     let mut out: Vec<[f64; 2]> = Vec::with_capacity(points.len());
@@ -1688,7 +2218,9 @@ mod tests {
             lane_pad: 10.0,
             arrow: 7.0,
             label_pad: 3.0,
+            label_clear: 4.0,
             lane_label: [0.0, 0.0],
+            stack_lanes: false,
         }
     }
 
@@ -1703,7 +2235,12 @@ mod tests {
     }
 
     fn edge(from: usize, to: usize) -> EdgeIn {
-        EdgeIn { from, to, label: None }
+        EdgeIn {
+            from,
+            to,
+            label: None,
+            alert: false,
+        }
     }
 
     #[test]
@@ -1712,6 +2249,24 @@ mod tests {
         assert_eq!(x, vec![-10.0, 0.0, 10.0]);
         let x = project(&[0.0, 100.0], &[1.0, 1.0], &[10.0]);
         assert_eq!(x, vec![0.0, 100.0]);
+    }
+
+    #[test]
+    fn two_cards_of_a_stacked_lane_never_share_a_rank() {
+        // 0 feeds 1 and 2 of one lane, and both feed 3: 2 moves a rank down, and 3 follows.
+        let edges = [edge(0, 1), edge(0, 2), edge(1, 3), edge(2, 3)];
+        let back = [false; 4];
+        assert_eq!(rank(4, &edges, &back, &[None; 4]), vec![0, 1, 1, 2]);
+        let lanes = [Some(0), Some(1), Some(1), Some(0)];
+        assert_eq!(rank(4, &edges, &back, &lanes), vec![0, 1, 2, 3]);
+    }
+
+    #[test]
+    fn a_bend_of_2_px_or_less_is_drawn_straight() {
+        assert!((straighten(100.0, 101.5) - 100.0).abs() < 1e-9);
+        assert!((straighten(100.0, 98.0) - 100.0).abs() < 1e-9);
+        assert!((straighten(100.0, 102.5) - 102.5).abs() < 1e-9);
+        assert!((straighten(100.0, 60.0) - 60.0).abs() < 1e-9);
     }
 
     #[test]

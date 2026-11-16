@@ -5,15 +5,20 @@
 use super::{Ctx, Style};
 use crate::block::{AnnotationKind, ChartType};
 use crate::diag::Level;
-use crate::geometry::{Anchor, DropReason, Face, Fill, Item, Panel, Path, Rect, Rgba, Role, Shape, Stroke, Text};
+use crate::geometry::{Anchor, Cmd, DropReason, Face, Fill, Item, Panel, Path, Rect, Rgba, Role, Shape, Stroke, Text};
 use crate::rows;
 use serde_json::{Value, json};
 
 /// Least gap between a label and anything it must keep clear of.
 const CLEAR: f64 = 2.0;
+/// The least room between two of a line's value labels that stand side by side.
+const VALUE_GAP: f64 = 8.0;
 /// A point annotation's ring: radius and stroke width.
 const RING: f64 = 5.0;
 const RING_STROKE: f64 = 1.5;
+/// How far two texts' line boxes may share space before they read as colliding: the label
+/// check's own allowance (`layout/checks.rs`).
+const TEXT_OVERLAP: f64 = 1.0;
 
 /// Automatic values use an explicit family measure; other families keep their existing policy.
 #[derive(Clone, Copy)]
@@ -48,6 +53,8 @@ struct ValueField {
     ink: Vec<(ValueInk, Option<usize>, bool)>,
     cells: std::collections::HashMap<(i32, i32), Vec<usize>>,
     window: Option<Rect>,
+    /// The line boxes of the level texts, as the label check compares them.
+    texts: Vec<Rect>,
 }
 
 fn value_cells(r: Rect) -> impl Iterator<Item = (i32, i32)> {
@@ -89,7 +96,33 @@ impl ValueField {
     /// Whether `r` keeps clear of the ink, besides the mark of observation `own` and, with
     /// `over_grid`, the gridlines.
     fn clear(&self, r: Rect, own: Option<usize>, over_grid: bool) -> bool {
+        self.free(r.inflate(CLEAR + 0.25), own, over_grid)
+    }
+
+    /// Whether `r` inside the bar of observation `own` keeps clear of everything drawn over that
+    /// bar. The bar sets the text off from what lies round it, so only the part of `r`'s
+    /// clearance within `bar` counts: a grouped bar's sibling, 1 px away, does not block it.
+    /// A line box taller than a thin bar still reaches past it, so `r` itself must not meet
+    /// another text, such as the sibling's value.
+    fn clear_within(&self, r: Rect, bar: Rect, own: usize) -> bool {
+        if self.texts.iter().any(|t| r.overlaps(t, TEXT_OVERLAP)) {
+            return false;
+        }
         let r = r.inflate(CLEAR + 0.25);
+        let (left, top) = (r.x.max(bar.x), r.y.max(bar.y));
+        let (right, bottom) = (r.right().min(bar.right()), r.bottom().min(bar.bottom()));
+        right > left && bottom > top && self.free(Rect::new(left, top, right - left, bottom - top), Some(own), true)
+    }
+
+    /// Reserve a placed value: `rect` is its footprint, `text` its line box.
+    fn insert_value(&mut self, rect: Rect, text: Rect) {
+        self.insert(ValueInk::Box(rect), rect, None, false);
+        self.texts.push(text);
+    }
+
+    /// Whether the area `r` touches no ink, besides the mark of observation `own` and, with
+    /// `over_grid`, the gridlines.
+    fn free(&self, r: Rect, own: Option<usize>, over_grid: bool) -> bool {
         let mut indices = Vec::new();
         for cell in value_cells(r) {
             if let Some(bucket) = self.cells.get(&cell) {
@@ -118,11 +151,17 @@ impl ValueField {
     }
 
     fn from_panel(ctx: &Ctx, panel: &Panel) -> Self {
+        Self::from_items(ctx, panel, &|_| true)
+    }
+
+    /// The ink of the panel's items that `keep` holds: a layout leaves out what a value may
+    /// stand on, such as a bullet's background bands.
+    fn from_items(ctx: &Ctx, panel: &Panel, keep: &dyn Fn(&Item) -> bool) -> Self {
         let mut field = Self {
             window: Some(panel.frame.inflate(32.0)),
             ..Self::default()
         };
-        for item in &panel.items {
+        for item in panel.items.iter().filter(|item| keep(item)) {
             match item {
                 Item::Text(t) => {
                     let mut bounds = t.bounds;
@@ -154,6 +193,9 @@ impl ValueField {
                         let [x, y] = bounds.center();
                         let (w, h) = ((bounds.w + 4.0).max(24.0), (bounds.h + 4.0).max(24.0));
                         bounds = Rect::new(x - w / 2.0, y - h / 2.0, w, h);
+                    }
+                    if t.rotate == 0.0 {
+                        field.texts.push(t.bounds);
                     }
                     field.insert(ValueInk::Box(bounds), bounds, None, false);
                 }
@@ -208,7 +250,17 @@ fn composite(foreground: Rgba, background: Rgba) -> Rgba {
     }))
 }
 
-fn value_text(ctx: &Ctx, c: &ValueLabel, r: Rect, background: Rgba) -> Option<Text> {
+/// A vertical bar's value above its bar: its width, the height it takes from the bar's top (the
+/// 3 px gap and the text), and the clearance it keeps from other text.
+pub(super) fn bar_value_above(ctx: &Ctx, text: &str) -> [f64; 3] {
+    let probe = ctx.text(text, 0.0, 0.0, Anchor::Start, Face::Figures, Role::Label, ctx.style.ink);
+    [probe.bounds.w, 3.0 + probe.bounds.h, CLEAR + 0.25]
+}
+
+/// A value's text in the box `r`, attached by `anchor`: the runtime replaces a number laid out
+/// from grid values with the shown one (TYP-36), which may be a digit shorter or longer, and the
+/// text then keeps this side of its box: its middle on a column, the edge at a bar's end.
+fn value_text(ctx: &Ctx, c: &ValueLabel, r: Rect, anchor: Anchor, background: Rgba) -> Option<Text> {
     let background = background.oklch();
     let ink = [ctx.style.ink, ctx.style.surface]
         .into_iter()
@@ -216,12 +268,25 @@ fn value_text(ctx: &Ctx, c: &ValueLabel, r: Rect, background: Rgba) -> Option<Te
     if crate::color::contrast(ink, background) < 4.5 {
         return None;
     }
-    let mut t = ctx.text(c.text, 0.0, 0.0, Anchor::Start, Face::Figures, Role::Label, ink);
+    let mut t = ctx.text(c.text, 0.0, 0.0, anchor, Face::Figures, Role::Label, ink);
     t.x += r.x - t.bounds.x;
     t.y += r.y - t.bounds.y;
     t.bounds = r;
     t.series = Some(c.series);
     Some(t)
+}
+
+/// The side of the box `r` that a value's text keeps beside its point at `x`: its middle when
+/// the box is centred on the point, else the edge nearer the point.
+fn side(r: Rect, x: f64) -> Anchor {
+    let centre = r.center()[0];
+    if (centre - x).abs() < 0.5 {
+        Anchor::Middle
+    } else if centre < x {
+        Anchor::End
+    } else {
+        Anchor::Start
+    }
 }
 
 /// Exact observation identity, independent of the candidate's displaced text box (TYP-36).
@@ -246,6 +311,7 @@ fn value_positions(
     c: &ValueLabel,
     policy: ValueLabels,
     far: bool,
+    blocked: &dyn Fn(Rect) -> bool,
 ) -> Result<Vec<(Text, Option<Rect>)>, DropReason> {
     let probe = ctx.text(
         c.text,
@@ -258,9 +324,11 @@ fn value_positions(
     );
     let (w, h) = (probe.bounds.w, probe.bounds.h);
     let mut at = c.at;
-    // A horizontal bar's value end: its right edge, or its left edge when it runs below zero.
-    // The observation anchors at that end; a zero has no mark and anchors right of the line.
+    // A bar's value end: a horizontal bar's right edge, or its left edge when it runs below
+    // zero; a vertical bar's top, or its bottom below zero. The observation anchors at that end;
+    // a zero has no mark and anchors past the line.
     let mut negative = false;
+    let mut bar = None;
     if let ValueLabels::Bars { horizontal, stacked } = policy {
         if let Some((rect, fill)) = panel.items.iter().find_map(|i| match i {
             Item::Rect {
@@ -272,7 +340,11 @@ fn value_positions(
             } if *o == c.observation => Some((*rect, fill)),
             _ => None,
         }) {
-            negative = horizontal && c.at[0] < rect.center()[0];
+            negative = if horizontal {
+                c.at[0] < rect.center()[0]
+            } else {
+                c.at[1] > rect.center()[1]
+            };
             // Authored bounds can clip away the baseline and most of the original rectangle.
             // Only its visible part offers an interior position; the mark itself stays exact.
             let (left, top) = (rect.x.max(panel.plot.x), rect.y.max(panel.plot.y));
@@ -291,17 +363,18 @@ fn value_positions(
                 if halo.is_some() {
                     background = composite(Style::rgba(ctx.style.surface).with_alpha(0.88), background);
                 }
-                if let Some(t) = value_text(ctx, c, r, background) {
+                if let Some(t) = value_text(ctx, c, r, Anchor::Middle, background) {
                     return Ok(vec![(t, halo)]);
                 }
             }
             if stacked {
                 return Err(DropReason::Density);
             }
+            bar = Some((rect, fill));
             at = if horizontal {
                 [if negative { rect.x } else { rect.right() }, rect.center()[1]]
             } else {
-                [rect.center()[0], rect.y]
+                [rect.center()[0], if negative { rect.bottom() } else { rect.y }]
             };
         } else if stacked {
             return Err(DropReason::Density);
@@ -313,31 +386,28 @@ fn value_positions(
         panel.plot.w,
         panel.plot.bottom() - panel.frame.y,
     );
+    if let ValueLabels::Bars { horizontal, .. } = policy {
+        let end = BarEnd {
+            at,
+            horizontal,
+            negative,
+            size: [w, h],
+            bounds,
+        };
+        return bar_end_value(ctx, panel, field, c, bar, &end);
+    }
     let mut inside_any = false;
-    let horizontal_bar = matches!(policy, ValueLabels::Bars { horizontal: true, .. });
-    let positions = if horizontal_bar {
-        // A horizontal bar's value stays on its own row: past its value end on its centre line,
-        // never above, below or diagonal to it, where the next rows' names and bars sit.
-        [3.0, 8.0, 16.0]
-            .map(|d| {
-                let x = if negative { at[0] - d - w } else { at[0] + d };
-                Rect::new(x, at[1] - h / 2.0, w, h)
-            })
-            .to_vec()
-    } else {
-        let mut positions = candidates(at, 0.0, w, h);
-        // At an endpoint, align the complete above/below box inside the plot.
-        // Four pixels includes the curve's half-stroke and flattening clearance.
-        for inset in [4.0, 8.0, 16.0] {
-            if w + 2.0 * inset <= bounds.w {
-                let x = (at[0] - w / 2.0).clamp(bounds.x + inset, bounds.right() - w - inset);
-                for gap in [4.0, 8.0, 16.0] {
-                    positions.extend([Rect::new(x, at[1] - h - gap, w, h), Rect::new(x, at[1] + gap, w, h)]);
-                }
+    let mut positions = candidates(at, 0.0, w, h);
+    // At an endpoint, align the complete above/below box inside the plot.
+    // Four pixels includes the curve's half-stroke and flattening clearance.
+    for inset in [4.0, 8.0, 16.0] {
+        if w + 2.0 * inset <= bounds.w {
+            let x = (at[0] - w / 2.0).clamp(bounds.x + inset, bounds.right() - w - inset);
+            for gap in [4.0, 8.0, 16.0] {
+                positions.extend([Rect::new(x, at[1] - h - gap, w, h), Rect::new(x, at[1] + gap, w, h)]);
             }
         }
-        positions
-    };
+    }
     let mut available: Vec<(Text, Option<Rect>)> = Vec::new();
     let distance = |r: Rect| (at[0] - at[0].clamp(r.x, r.right())).hypot(at[1] - at[1].clamp(r.y, r.bottom()));
     for r in positions {
@@ -345,8 +415,9 @@ fn value_positions(
             continue;
         }
         inside_any = true;
-        if field.clear(r, None, horizontal_bar)
-            && let Some(t) = value_text(ctx, c, r, Style::rgba(ctx.style.surface))
+        if field.clear(r, None, false)
+            && !blocked(r)
+            && let Some(t) = value_text(ctx, c, r, side(r, at[0]), Style::rgba(ctx.style.surface))
         {
             if !available.iter().any(|(other, _)| other.bounds == r) {
                 // Insert after equal distances to preserve the original stable candidate order.
@@ -387,8 +458,9 @@ fn value_positions(
             }
             inside_any = true;
             if field.clear(r, None, false)
+                && !blocked(r)
                 && !available.iter().any(|(other, _)| other.bounds == r)
-                && let Some(t) = value_text(ctx, c, r, Style::rgba(ctx.style.surface))
+                && let Some(t) = value_text(ctx, c, r, side(r, at[0]), Style::rgba(ctx.style.surface))
             {
                 let d = distance(r);
                 let index = available.partition_point(|(other, _)| distance(other.bounds).total_cmp(&d).is_le());
@@ -405,6 +477,177 @@ fn value_positions(
     } else {
         DropReason::OutOfBounds
     })
+}
+
+/// Height of a value's digits, overshoot included, as a share of the text size: the tallest
+/// digit of the faces charts set figures in (Geist 0.742 em, Space Mono 0.728, Patrick Hand
+/// 0.667, RichView Code 0.662).
+const DIGIT_HEIGHT: f64 = 0.75;
+
+/// Where a bar's value would go: its value end, the bar's direction and which side of zero it
+/// runs, the text's box size and the area values may use.
+struct BarEnd {
+    at: [f64; 2],
+    horizontal: bool,
+    negative: bool,
+    size: [f64; 2],
+    bounds: Rect,
+}
+
+/// A bar's value that does not fit inside the bar keeps to the bar's own row or column
+/// (FEA-CH-28): never beside a vertical bar, above or below a horizontal one, or diagonal to
+/// either, where the neighbouring bars and names sit. It takes the first clear place of:
+/// - 3 px past its value end, level with the bar: right of a horizontal bar (left of a negative
+///   one), above a vertical bar (below a negative one); it may cross soft gridlines, which then
+///   break round it, and above or below an edge column it slides back into the plot while its
+///   centre stays over the bar;
+/// - for a horizontal bar in a group, that place slid away from its sibling until flush with
+///   the bar's far edge, its centre still within the bar and its box at least 1 px clear of
+///   the sibling; where the line box is taller than the bars, it slides on until the sibling's
+///   own value has room inside the sibling, and takes the flush place when that one is taken;
+/// - for a horizontal bar, inside it at its value end, 4 px in, when the bar holds the digits
+///   with 2 px to spare; what lies round the bar, such as a sibling 1 px away, does not block
+///   it.
+fn bar_end_value(
+    ctx: &Ctx,
+    panel: &Panel,
+    field: &ValueField,
+    c: &ValueLabel,
+    bar: Option<(Rect, &Fill)>,
+    end: &BarEnd,
+) -> Result<Vec<(Text, Option<Rect>)>, DropReason> {
+    let ([w, h], [x, y]) = (end.size, end.at);
+    // The place past the value end, and the side that holds the text there: the edge at a
+    // horizontal bar's end, the middle over a column. A horizontal bar's box may slide to
+    // another `top`.
+    let past = |top: f64| match (end.horizontal, end.negative) {
+        (true, false) => (Rect::new(x + 3.0, top, w, h), Anchor::Start),
+        (true, true) => (Rect::new(x - 3.0 - w, top, w, h), Anchor::End),
+        (false, negative) => {
+            // A label wider than an edge column would leave the plot: it slides back in, as far
+            // as its centre stays over its own bar.
+            let mut left = x - w / 2.0;
+            let mut anchor = Anchor::Middle;
+            if let Some((rect, _)) = bar {
+                let slid = left.clamp(end.bounds.x, (end.bounds.right() - w).max(end.bounds.x));
+                if slid != left && rect.x <= slid + w / 2.0 && slid + w / 2.0 <= rect.right() {
+                    // A slid box is held by the edge it has on the plot's edge.
+                    anchor = if slid < left { Anchor::End } else { Anchor::Start };
+                    left = slid;
+                }
+            }
+            (
+                Rect::new(left, if negative { y + 3.0 } else { y - 3.0 - h }, w, h),
+                anchor,
+            )
+        }
+    };
+    let inside_any = std::cell::Cell::new(false);
+    let place = |(r, anchor): (Rect, Anchor), except: Option<(usize, Rect)>| {
+        if !r.inside(&end.bounds, 0.0) {
+            return None;
+        }
+        inside_any.set(true);
+        let clear = match except {
+            // The sibling may come within 1 px; everything else keeps the usual clearance.
+            Some((sibling, rect)) => field.clear(r, Some(sibling), true) && !r.inflate(0.99).overlaps(&rect, 0.0),
+            None => field.clear(r, None, true),
+        };
+        clear
+            .then(|| value_text(ctx, c, r, anchor, Style::rgba(ctx.style.surface)))
+            .flatten()
+    };
+    if let Some(t) = place(past(y - h / 2.0), None) {
+        return Ok(vec![(t, None)]);
+    }
+    let dropped = || {
+        if inside_any.get() {
+            DropReason::Collision
+        } else {
+            DropReason::OutOfBounds
+        }
+    };
+    let Some((rect, fill)) = bar.filter(|_| end.horizontal) else {
+        return Err(dropped());
+    };
+    // A bar's siblings in its group lie a pixel above or below it.
+    let sibling = |above: bool| {
+        panel.items.iter().find_map(|i| match i {
+            Item::Rect {
+                rect: other,
+                role: Role::Mark,
+                obs: Some(o),
+                ..
+            } if *o != c.observation && other.x < rect.right() && rect.x < other.right() => {
+                let gap = if above {
+                    rect.y - other.bottom()
+                } else {
+                    other.y - rect.bottom()
+                };
+                (-0.01..=1.5).contains(&gap).then_some((*o, *other))
+            }
+            _ => None,
+        })
+    };
+    // The first bar of a group slides up, its box's bottom on the bar's bottom; the last slides
+    // down, its top on the bar's top. A middle bar keeps the centre line.
+    let slide = match (sibling(true), sibling(false)) {
+        (None, Some(below)) => Some((rect.bottom() - h, below, true)),
+        (Some(above), None) => Some((rect.y, above, false)),
+        _ => None,
+    };
+    if let Some((flush, sibling, up)) = slide
+        && h <= 2.0 * rect.h
+    {
+        // The sibling's value, set inside the sibling, has a line box centred on it that
+        // reaches past a thin bar: this box keeps within half the allowed overlap of it.
+        let within = sibling.1.center()[1] - h / 2.0;
+        let roomy = if up {
+            flush.min(within + TEXT_OVERLAP / 2.0 - h)
+        } else {
+            flush.max(within + h - TEXT_OVERLAP / 2.0)
+        };
+        let tops = [roomy, flush];
+        let tried = if roomy == flush || !(rect.y..=rect.bottom()).contains(&(roomy + h / 2.0)) {
+            &tops[1..]
+        } else {
+            &tops[..]
+        };
+        for top in tried {
+            if let Some(t) = place(past(*top), Some(sibling)) {
+                return Ok(vec![(t, None)]);
+            }
+        }
+    }
+    if rect.h >= DIGIT_HEIGHT * ctx.size() + 2.0 && w + 8.0 <= rect.w {
+        let r = Rect::new(
+            if end.negative {
+                rect.x + 4.0
+            } else {
+                rect.right() - 4.0 - w
+            },
+            rect.center()[1] - h / 2.0,
+            w,
+            h,
+        );
+        if field.clear_within(r, rect, c.observation) {
+            let mut background = composite(fill.color, Style::rgba(ctx.style.surface));
+            // A hatched bar's backing keeps to the bar, which holds the digits.
+            let halo = fill.hatch.map(|_| {
+                let (top, bottom) = ((r.y - 1.5).max(rect.y), (r.bottom() + 1.5).min(rect.bottom()));
+                Rect::new(r.x - 1.5, top, w + 3.0, bottom - top)
+            });
+            if halo.is_some() {
+                background = composite(Style::rgba(ctx.style.surface).with_alpha(0.88), background);
+            }
+            // Inside, the text is held by the edge at the bar's value end.
+            let anchor = if end.negative { Anchor::Start } else { Anchor::End };
+            if let Some(t) = value_text(ctx, c, r, anchor, background) {
+                return Ok(vec![(t, halo)]);
+            }
+        }
+    }
+    Err(dropped())
 }
 
 /// Choose the constrained series first, with a bounded joint search of at most five texts.
@@ -477,6 +720,335 @@ fn drop_value(ctx: &mut Ctx, panel: usize, candidate: &ValueLabel<'_>, reason: D
 /// are named at their line ends, beside which the last value is not repeated (FEA-CH-27).
 fn every_kind_tried(ctx: &Ctx) -> bool {
     ctx.series.len() == 1
+}
+
+/// A value a chart with few rows wants printed for one observation: the exact readout text and
+/// the places it may take, in order of preference. The layout offers only places its own rules
+/// allow; [`sparse_values`] keeps them inside the plot and clear of every mark, its own
+/// included, and of every text.
+pub(super) struct SparseValue {
+    pub text: String,
+    pub series: usize,
+    pub observation: usize,
+    pub places: Vec<Text>,
+}
+
+/// Automatic values of charts with few rows, such as a dumbbell's two ends or a bullet's measure
+/// (FEA-CH-28 as chart design ruled on 16 Nov 2026). `rows` rows share the budget of five, three
+/// under 480 px of plot width. Every value is printed or none: one that has no clear place
+/// inside the plot takes the others with it, and each is then recorded as dropped. A chart over
+/// the budget records each of its values as dropped too, so the numbers a chart prints or
+/// records are the same at every width. `keep` leaves out the items a value may stand on. A value may stand across a soft gridline, which then stops short of it. The author's
+/// `auto_annotations: false` prints nothing and records nothing.
+pub(super) fn sparse_values(
+    ctx: &mut Ctx,
+    index: usize,
+    panel: &mut Panel,
+    rows: usize,
+    wanted: Vec<SparseValue>,
+    keep: &dyn Fn(&Item) -> bool,
+) {
+    let plot = panel.plot;
+    sparse_values_in(ctx, index, panel, rows, wanted, keep, plot);
+}
+
+/// [`sparse_values`] for a layout that keeps room for its values beside the plot: a value
+/// stands inside `bounds`, the plot and that room, instead of the plot alone.
+pub(super) fn sparse_values_in(
+    ctx: &mut Ctx,
+    index: usize,
+    panel: &mut Panel,
+    rows: usize,
+    wanted: Vec<SparseValue>,
+    keep: &dyn Fn(&Item) -> bool,
+    bounds: Rect,
+) {
+    if !ctx.block.auto_annotations || wanted.is_empty() {
+        return;
+    }
+    let limit = if panel.plot.w < 480.0 { 3 } else { 5 };
+    let mut field = ValueField::from_items(ctx, panel, keep);
+    let mut chosen: Vec<Text> = Vec::with_capacity(wanted.len());
+    let mut failure = (rows > limit).then_some(DropReason::Density);
+    for value in wanted.iter().filter(|_| rows <= limit) {
+        let inside: Vec<&Text> = value.places.iter().filter(|t| t.bounds.inside(&bounds, 0.5)).collect();
+        match inside.iter().find(|t| field.clear(t.bounds, None, true)) {
+            Some(t) => {
+                field.insert(ValueInk::Box(t.bounds), t.bounds, None, false);
+                chosen.push((*t).clone());
+            }
+            None => {
+                // No place inside the bounds is out of bounds; a place the layout ruled out, or
+                // one that is taken, is a collision.
+                failure = Some(if inside.is_empty() && !value.places.is_empty() {
+                    DropReason::OutOfBounds
+                } else {
+                    DropReason::Collision
+                });
+                break;
+            }
+        }
+    }
+    if let Some(reason) = failure {
+        for value in &wanted {
+            let at = value.places.first().map(|t| t.bounds).or_else(|| {
+                let [x, y] = panel.observations[value.observation].at;
+                Some(Rect::new(x, y, 0.0, 0.0))
+            });
+            ctx.drop_label(&value.text, reason, "value", at);
+            // A mark that prints two values of its series (a dumbbell's ends) says which readout
+            // line each is, so the record gets that line's text back and not the first one's.
+            let lines = &panel.observations[value.observation].readout.lines;
+            let mut own = lines
+                .iter()
+                .enumerate()
+                .filter(|(_, line)| line.series == Some(value.series));
+            let line = match own.next() {
+                Some((_, first)) if first.value != value.text => {
+                    own.find(|(_, line)| line.value == value.text).map(|(n, _)| n)
+                }
+                _ => None,
+            };
+            if let Some(dropped) = ctx.dropped.last_mut() {
+                dropped.observation = Some([index, value.observation]);
+                dropped.series = Some(value.series);
+                dropped.line = line;
+            }
+        }
+        return;
+    }
+    let boxes: Vec<Rect> = chosen.iter().map(|t| t.bounds).collect();
+    break_grid_at(panel, &boxes);
+    for (value, mut t) in wanted.iter().zip(chosen) {
+        let at = panel.observations[value.observation].at;
+        t.series = Some(value.series);
+        t.mark = Some(value_mark(
+            panel,
+            index,
+            &ValueLabel {
+                text: &value.text,
+                series: value.series,
+                observation: value.observation,
+                at,
+            },
+        ));
+        panel.items.push(Item::Text(t));
+    }
+}
+
+/// A combo's bar values, all in one place (chart design, 16 Nov 2026): past the ends of their
+/// bars when every one of those places is clear, of the line above all; otherwise inside the
+/// foot of their bars, on one line. There a value that does not fit its bar, or that the line
+/// crosses, is dropped and recorded; a value never moves onto the line. The author's
+/// `auto_annotations: false` prints nothing and records nothing.
+pub(super) fn combo_bar_values(ctx: &mut Ctx, index: usize, panel: &mut Panel, horizontal: bool) {
+    /// The gap between a bar's end and a value past it.
+    const GAP: f64 = 4.0;
+    /// How far inside the foot of its bar a value starts.
+    const FOOT: f64 = 6.0;
+    if !ctx.block.auto_annotations {
+        return;
+    }
+    struct Bar {
+        text: String,
+        series: usize,
+        observation: usize,
+        at: [f64; 2],
+        rect: Rect,
+        background: Rgba,
+        negative: bool,
+    }
+    let surface = Style::rgba(ctx.style.surface);
+    let mut bars: Vec<Bar> = Vec::new();
+    for (observation, o) in panel.observations.iter().enumerate() {
+        let Some(series) = o.series else { continue };
+        let Some(line) = o.readout.lines.iter().find(|l| l.series == Some(series) && !l.derived) else {
+            continue;
+        };
+        let Some((rect, fill)) = panel.items.iter().find_map(|i| match i {
+            Item::Rect {
+                rect,
+                fill,
+                role: Role::Mark,
+                obs: Some(q),
+                ..
+            } if *q == observation => Some((*rect, fill)),
+            _ => None,
+        }) else {
+            continue;
+        };
+        let mut background = composite(fill.color, surface);
+        if fill.hatch.is_some() {
+            background = composite(surface.with_alpha(0.88), background);
+        }
+        bars.push(Bar {
+            text: line.value.clone(),
+            series,
+            observation,
+            at: o.at,
+            rect,
+            background,
+            negative: if horizontal {
+                o.at[0] < rect.center()[0]
+            } else {
+                o.at[1] > rect.center()[1]
+            },
+        });
+    }
+    if bars.is_empty() {
+        return;
+    }
+    let field = ValueField::from_panel(ctx, panel);
+    let lh = ctx.line_height();
+    let ink = ctx.style.ink;
+    let figure =
+        |text: &str, x: f64, y: f64, anchor: Anchor| ctx.text_mid(text, x, y, anchor, Face::Figures, Role::Label, ink);
+    // Past the bar's end: above an upright bar, right of a lying one, and the other way for a
+    // bar below zero.
+    let bounds = Rect::new(
+        panel.plot.x,
+        panel.frame.y,
+        panel.plot.w,
+        panel.plot.bottom() - panel.frame.y,
+    );
+    let beyond: Vec<Text> = bars
+        .iter()
+        .map(|b| {
+            let [cx, cy] = b.rect.center();
+            match (horizontal, b.negative) {
+                (true, false) => figure(&b.text, b.rect.right() + GAP, cy, Anchor::Start),
+                (true, true) => figure(&b.text, b.rect.x - GAP, cy, Anchor::End),
+                (false, false) => figure(&b.text, cx, b.rect.y - GAP - lh / 2.0, Anchor::Middle),
+                (false, true) => figure(&b.text, cx, b.rect.bottom() + GAP + lh / 2.0, Anchor::Middle),
+            }
+        })
+        .collect();
+    let all_beyond = beyond.iter().enumerate().all(|(i, t)| {
+        t.bounds.inside(&bounds, 0.5)
+            && field.clear(t.bounds, None, true)
+            && beyond[..i]
+                .iter()
+                .all(|other| !t.bounds.inflate(CLEAR).overlaps(&other.bounds, 0.0))
+    });
+    let chosen: Vec<Result<Text, DropReason>> = if all_beyond {
+        beyond.into_iter().map(Ok).collect()
+    } else {
+        bars.iter()
+            .map(|b| {
+                // Only the part of the bar inside the plot offers a place.
+                let (left, top) = (b.rect.x.max(panel.plot.x), b.rect.y.max(panel.plot.y));
+                let (right, bottom) = (
+                    b.rect.right().min(panel.plot.right()),
+                    b.rect.bottom().min(panel.plot.bottom()),
+                );
+                if right <= left || bottom <= top {
+                    return Err(DropReason::OutOfBounds);
+                }
+                let rect = Rect::new(left, top, right - left, bottom - top);
+                let [cx, cy] = rect.center();
+                let probe = match (horizontal, b.negative) {
+                    (true, false) => figure(&b.text, rect.x + FOOT, cy, Anchor::Start),
+                    (true, true) => figure(&b.text, rect.right() - FOOT, cy, Anchor::End),
+                    (false, false) => figure(&b.text, cx, rect.bottom() - FOOT - lh / 2.0, Anchor::Middle),
+                    (false, true) => figure(&b.text, cx, rect.y + FOOT + lh / 2.0, Anchor::Middle),
+                };
+                if !probe.bounds.inflate(4.0).inside(&rect, 0.5) {
+                    return Err(DropReason::OutOfBounds);
+                }
+                if !field.clear(probe.bounds, Some(b.observation), true) {
+                    return Err(DropReason::Collision);
+                }
+                let label = ValueLabel {
+                    text: &b.text,
+                    series: b.series,
+                    observation: b.observation,
+                    at: b.at,
+                };
+                value_text(ctx, &label, probe.bounds, probe.anchor, b.background).ok_or(DropReason::Collision)
+            })
+            .collect()
+    };
+    let mut across: Vec<Rect> = Vec::new();
+    for (b, place) in bars.iter().zip(chosen) {
+        let label = ValueLabel {
+            text: &b.text,
+            series: b.series,
+            observation: b.observation,
+            at: b.at,
+        };
+        match place {
+            Ok(mut t) => {
+                if all_beyond {
+                    across.push(t.bounds);
+                }
+                t.series = Some(b.series);
+                t.mark = Some(value_mark(panel, index, &label));
+                panel.items.push(Item::Text(t));
+            }
+            Err(reason) => drop_value(ctx, index, &label, reason),
+        }
+    }
+    break_grid_at(panel, &across);
+}
+
+/// Gridlines stop short of the values set across them, 2 px past the text's box, and run on
+/// everywhere else. No knockout box is painted, so a tinted plot stays true (FEA-CH-26).
+fn break_grid_at(panel: &mut Panel, boxes: &[Rect]) {
+    const GAP: f64 = 2.0;
+    for item in &mut panel.items {
+        let Item::Line {
+            path,
+            stroke,
+            role: Role::Grid,
+            ..
+        } = item
+        else {
+            continue;
+        };
+        let [Cmd::M { p: a }, Cmd::L { p: b }] = path.cmds[..] else {
+            continue;
+        };
+        // The axis the line runs along: 1 for a vertical line, 0 for a horizontal one.
+        let along = if a[0] == b[0] {
+            1
+        } else if a[1] == b[1] {
+            0
+        } else {
+            continue;
+        };
+        let (from, to) = (a[along].min(b[along]), a[along].max(b[along]));
+        let fixed = a[1 - along];
+        let reach = GAP + stroke.width / 2.0;
+        let mut gaps: Vec<[f64; 2]> = boxes
+            .iter()
+            .filter_map(|r| {
+                let (lo, hi, side_lo, side_hi) = if along == 1 {
+                    (r.y, r.bottom(), r.x, r.right())
+                } else {
+                    (r.x, r.right(), r.y, r.bottom())
+                };
+                (fixed >= side_lo - reach && fixed <= side_hi + reach && hi + GAP > from && lo - GAP < to)
+                    .then_some([lo - GAP, hi + GAP])
+            })
+            .collect();
+        if gaps.is_empty() {
+            continue;
+        }
+        gaps.sort_by(|x, y| x[0].total_cmp(&y[0]));
+        let point = |v: f64| if along == 1 { [fixed, v] } else { [v, fixed] };
+        let mut broken = Path::new();
+        let mut at = from;
+        for [start, end] in gaps.into_iter().chain([[to, to]]) {
+            let stop = start.min(to);
+            // A stub shorter than a pixel reads as a speck, not a line.
+            if stop - at >= 1.0 {
+                broken.move_to(point(at));
+                broken.line_to(point(stop));
+            }
+            at = at.max(end);
+        }
+        *path = broken;
+    }
 }
 
 /// Add exact primary readout text after names/annotations, without changing any observation.
@@ -614,6 +1186,25 @@ pub(super) fn value_labels(ctx: &mut Ctx, index: usize, panel: &mut Panel, polic
         5
     };
     let mut planned: Vec<(ValueLabel<'_>, Text, Option<Rect>)> = Vec::new();
+    // The leaders of the values placed so far on a single line: a later value keeps off them,
+    // and its own leader keeps off the values already placed.
+    let lead = matches!(policy, ValueLabels::Series) && every_kind_tried(ctx);
+    let mut leaders: Vec<[[f64; 2]; 2]> = Vec::new();
+    // Where a single line's lowest or highest point lies so close to its last point that the two
+    // values, each set over its own point, would run into each other, they want the same room at
+    // the line's end. The last value is the one a reader looks for there, so it may then stand
+    // off on a leader as an extreme may, and it is placed first: when both cannot stand, the last
+    // value stays (chart design, 16 Nov 2026). An extreme further off leaves the rule as it was.
+    let contested = lead
+        && groups.first().and_then(|g| g.first()).is_some_and(|last| {
+            let reach = 2.0 * ctx.line_height();
+            groups.iter().skip(2).flatten().any(|c| {
+                c.observation != last.observation
+                    && (c.at[0] - last.at[0]).abs()
+                        <= (ctx.text_width(c.text) + ctx.text_width(last.text)) / 2.0 + VALUE_GAP
+                    && (c.at[1] - last.at[1]).abs() <= reach
+            })
+        });
     let mut failed = false;
     let mut seen = if matches!(policy, ValueLabels::Series) {
         vec![[None; 4]; ctx.series.len()]
@@ -640,11 +1231,25 @@ pub(super) fn value_labels(ctx: &mut Ctx, index: usize, panel: &mut Panel, polic
             continue;
         }
         // Groups come in point-kind order: last, first, lowest, highest.
-        let far = matches!(policy, ValueLabels::Series) && every_kind_tried(ctx) && kind >= 2;
+        let far = lead && (kind >= 2 || (kind == 0 && contested));
         let mut options = Vec::with_capacity(group.len());
         let mut failure = None;
         for c in &group {
-            match value_positions(ctx, panel, &field, c, policy, far) {
+            // A leader struck through another value reads as that value crossed out, and two
+            // values side by side with less than a character between them read as one number.
+            let beside = |r: Rect| Rect::new(r.x - VALUE_GAP, r.y, r.w + 2.0 * VALUE_GAP, r.h);
+            let blocked = |r: Rect| {
+                lead && (planned.iter().any(|(_, t, _)| beside(r).overlaps(&t.bounds, 0.0))
+                    || leaders
+                        .iter()
+                        .any(|[a, b]| segment_touches_rect(*a, *b, &r.inflate(1.0)))
+                    || leader_end(c.at, r).is_some_and(|end| {
+                        planned
+                            .iter()
+                            .any(|(_, t, _)| segment_touches_rect(c.at, end, &t.bounds.inflate(1.0)))
+                    }))
+            };
+            match value_positions(ctx, panel, &field, c, policy, far, &blocked) {
                 Ok(positions) => options.push(positions),
                 Err(reason) => {
                     failure = Some(reason);
@@ -675,14 +1280,15 @@ pub(super) fn value_labels(ctx: &mut Ctx, index: usize, panel: &mut Panel, polic
             failed = matches!(policy, ValueLabels::Series) && !every_kind_tried(ctx);
         } else {
             for (c, (t, halo)) in group.into_iter().zip(chosen.unwrap_or_default()) {
-                let rect = halo.unwrap_or(t.bounds);
-                field.insert(ValueInk::Box(rect), rect, None, false);
+                field.insert_value(halo.unwrap_or(t.bounds), t.bounds);
+                if lead && let Some(end) = leader_end(c.at, t.bounds) {
+                    leaders.push([c.at, end]);
+                }
                 planned.push((c, t, halo));
             }
         }
     }
     // The common finish pass paints the single hatch backing. Only its footprint is reserved here.
-    let lead = matches!(policy, ValueLabels::Series) && every_kind_tried(ctx);
     for (c, mut t, _) in planned {
         // A value not right beside its own point gets the leader a playback's kept name uses,
         // so it cannot read as a neighbouring point's value (Chart design, 15 Nov).
@@ -1042,6 +1648,9 @@ fn candidates(anchor: [f64; 2], radius: f64, w: f64, h: f64) -> Vec<Rect> {
     out
 }
 
+/// The marks a name keeps clear of: each one's row, centre and radius.
+type Marks<'a> = &'a [(usize, [f64; 2], f64)];
+
 /// The first clear candidate inside `bounds`, or why there is none.
 fn search(
     anchor: [f64; 2],
@@ -1049,8 +1658,8 @@ fn search(
     size: [f64; 2],
     bounds: Rect,
     taken: &[Rect],
-    marks: &[(usize, [f64; 2], f64)],
-    own: usize,
+    (marks, own): (Marks, usize),
+    blocked: &dyn Fn(Rect) -> bool,
 ) -> Result<Rect, DropReason> {
     let mut inside_any = false;
     for c in candidates(anchor, radius, size[0], size[1]) {
@@ -1064,7 +1673,7 @@ fn search(
                 && c.inflate(CLEAR)
                     .overlaps(&Rect::new(p[0] - r, p[1] - r, 2.0 * r, 2.0 * r), 0.0)
         });
-        if !hits_label && !hits_mark {
+        if !hits_label && !hits_mark && !blocked(c) {
             return Ok(c);
         }
     }
@@ -1072,6 +1681,27 @@ fn search(
         DropReason::Collision
     } else {
         DropReason::OutOfBounds
+    })
+}
+
+/// Whether another mark lies between `anchor` and the label `r`: on the straight way from the
+/// point to the nearest part of its name. Such a name reads as the mark it stands against, not
+/// as its own point's (Chart design, 16 Nov). A mark that covers the point itself lies in every
+/// direction and does not count.
+fn mark_between(anchor: [f64; 2], r: Rect, marks: &[(usize, [f64; 2], f64)], own: usize) -> bool {
+    let to = [anchor[0].clamp(r.x, r.right()), anchor[1].clamp(r.y, r.bottom())];
+    let (dx, dy) = (to[0] - anchor[0], to[1] - anchor[1]);
+    let length = dx * dx + dy * dy;
+    marks.iter().any(|(row, p, radius)| {
+        if *row == own || (p[0] - anchor[0]).hypot(p[1] - anchor[1]) <= *radius {
+            return false;
+        }
+        let along = if length > 0.0 {
+            (((p[0] - anchor[0]) * dx + (p[1] - anchor[1]) * dy) / length).clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
+        (p[0] - anchor[0] - along * dx).hypot(p[1] - anchor[1] - along * dy) < *radius
     })
 }
 
@@ -1201,12 +1831,22 @@ pub(super) fn point_labels(
         }
     }
     let marks: Vec<(usize, [f64; 2], f64)> = anchors.to_vec();
+    // The leaders drawn so far: a later name keeps off them.
+    let mut leaders: Vec<[[f64; 2]; 2]> = Vec::new();
     for i in order {
         let (row, at, r) = anchors[i];
         let Some(label) = text_of(row) else { continue };
         let w = ctx.text_width(&label);
         let h = ctx.line_height();
-        match search(at, r, [w, h], plot, taken, &marks, row) {
+        // A point's name never stands with another point between the two, nor on the leader of
+        // a name placed before it.
+        let on_leader = |c: Rect| {
+            leaders
+                .iter()
+                .any(|[a, b]| segment_touches_rect(*a, *b, &c.inflate(CLEAR)))
+        };
+        let behind = |c: Rect| mark_between(at, c, &marks, row) || on_leader(c);
+        match search(at, r, [w, h], plot, taken, (&marks, row), &behind) {
             Ok(rect) => {
                 // The names a playback keeps in its other frames (FEA-BR-31).
                 if label_field.is_some() && !highlighted.contains(&i) {
@@ -1227,7 +1867,7 @@ pub(super) fn point_labels(
             Err(reason) if leading.contains(&i) => {
                 // Highlights and a playback's kept names may use a leader to the nearest free
                 // spot.
-                if let Some(rect) = leader_spot(at, r, [w, h], plot, taken, &marks) {
+                if let Some(rect) = leader_spot(at, r, [w, h], plot, taken, (&marks, row), &on_leader) {
                     let t = ctx.text_mid(
                         &label,
                         rect.x,
@@ -1237,7 +1877,9 @@ pub(super) fn point_labels(
                         Role::Label,
                         ctx.style.ink,
                     );
-                    let end = [rect.x - 2.0, rect.y + h / 2.0];
+                    // To the side of the name that faces the point, never through the name.
+                    let end = leader_end(at, t.bounds).unwrap_or([rect.x - 2.0, rect.y + h / 2.0]);
+                    leaders.push([at, end]);
                     items.push(Item::Line {
                         path: Path::polyline(&[at, end]),
                         stroke: Stroke::solid(Style::rgba(ctx.style.ink_faint), 1.0),
@@ -1285,25 +1927,147 @@ fn nearest_distances(anchors: &[(usize, [f64; 2], f64)]) -> Vec<f64> {
     nearest
 }
 
-fn leader_spot(
+/// A place for a name further from its point, on a leader: clear like any name's place, off the
+/// places `blocked` rules out, and with a leader that crosses no name already placed. A place
+/// with no other point between point and name comes first; in a crowd that leaves none, the
+/// leader may pass a neighbour, so a playback's kept name still shows (FEA-BR-31).
+pub(super) fn leader_spot(
     at: [f64; 2],
     r: f64,
     size: [f64; 2],
     bounds: Rect,
     taken: &[Rect],
-    marks: &[(usize, [f64; 2], f64)],
+    (marks, own): (Marks, usize),
+    blocked: &dyn Fn(Rect) -> bool,
 ) -> Option<Rect> {
-    for ring in [28.0, 44.0, 64.0, 90.0] {
-        if let Ok(rect) = search(at, r + ring, size, bounds, taken, marks, usize::MAX) {
-            return Some(rect);
+    for open in [true, false] {
+        let unfit = |c: Rect| {
+            blocked(c)
+                || (open && mark_between(at, c, marks, own))
+                || leader_end(at, c)
+                    .is_some_and(|end| taken.iter().any(|t| segment_touches_rect(at, end, &t.inflate(CLEAR))))
+        };
+        for ring in [28.0, 44.0, 64.0, 90.0] {
+            if let Ok(rect) = search(at, r + ring, size, bounds, taken, (marks, own), &unfit) {
+                return Some(rect);
+            }
         }
     }
     None
 }
 
+/// How far inside its band's edge a range or band label starts or ends.
+const BAND_INSET: f64 = 4.0;
+/// Least gap between a range or band label and its neighbours in the same row.
+const BAND_GAP: f64 = 12.0;
+/// Rows a range or band label may use, counted from the top of its band.
+const BAND_ROWS: usize = 2;
+
+/// The places a range or band's label may take, in order of preference, so that it reads as
+/// that band's label (chart design, 15 Nov 2026). It lies over its band: with `ends` it ends
+/// 4 px inside the band's right edge, otherwise it starts 4 px inside its left edge; a band
+/// thinner than 8 px takes half its width instead. A chart's labels all hang on one side, so no
+/// label reaches from its own band to the next label's (chart design, 16 Nov 2026). There are
+/// two rows from the band's top and no third. A place is left out
+/// when it leaves the plot, comes within 12 px of a label already placed in its row, or touches
+/// a drawn bar, a data point or a drawn line (`strokes`: each line flattened, with half its
+/// width). The flag says whether any place lay inside the plot.
+#[allow(clippy::too_many_arguments)]
+fn band_places(
+    band: Rect,
+    ends: bool,
+    size: [f64; 2],
+    plot: Rect,
+    taken: &[Rect],
+    bars: &[Rect],
+    marks: &[(usize, [f64; 2], f64)],
+    strokes: &[(Vec<[f64; 2]>, f64)],
+) -> (Vec<Rect>, bool) {
+    let [w, h] = size;
+    let inset = BAND_INSET.min(band.w / 2.0);
+    let top = band.y + (10.0 - h / 2.0).max(CLEAR);
+    let mut places = Vec::new();
+    let mut inside_any = false;
+    for row in 0..BAND_ROWS {
+        let y = top + row as f64 * (h + CLEAR);
+        let x = if ends { band.right() - inset - w } else { band.x + inset };
+        let c = Rect::new(x, y, w, h);
+        if !c.inside(&plot, 0.0) {
+            continue;
+        }
+        inside_any = true;
+        let near = c.inflate(CLEAR);
+        let hits_label = taken.iter().any(|t| band_reach(c).overlaps(t, 0.0));
+        let hits_mark = bars.iter().any(|b| near.overlaps(b, 0.0))
+            || marks
+                .iter()
+                .any(|(_, p, r)| near.overlaps(&Rect::new(p[0] - r, p[1] - r, 2.0 * r, 2.0 * r), 0.0))
+            || strokes.iter().any(|(line, half)| {
+                let reach = near.inflate(*half);
+                line.windows(2).any(|s| segment_touches_rect(s[0], s[1], &reach))
+            });
+        if !hits_label && !hits_mark {
+            places.push(c);
+        }
+    }
+    (places, inside_any)
+}
+
+/// The box a band label keeps free: 12 px to each side in its row, and the usual clearance above
+/// and below, which the next row just meets.
+fn band_reach(c: Rect) -> Rect {
+    Rect::new(c.x - BAND_GAP, c.y - CLEAR, c.w + 2.0 * BAND_GAP, c.h + 2.0 * CLEAR)
+}
+
+/// One place per band label, or none, chosen together: the choice that keeps the most labels,
+/// and among equals the one that gives the earlier labels their earlier places. The search is
+/// bounded; when the bound is reached the best choice found so far stands, and the first one
+/// found gives each label in turn its first free place.
+fn choose_band_places(options: &[&[Rect]]) -> Vec<Option<usize>> {
+    fn search(
+        options: &[&[Rect]],
+        depth: usize,
+        current: &mut Vec<Option<usize>>,
+        placed: usize,
+        best: &mut (usize, Vec<Option<usize>>),
+        probes: &mut usize,
+    ) {
+        if depth == options.len() {
+            if placed > best.0 {
+                *best = (placed, current.clone());
+            }
+            return;
+        }
+        if placed + (options.len() - depth) <= best.0 {
+            return;
+        }
+        for (slot, c) in options[depth].iter().enumerate() {
+            if *probes == 0 {
+                return;
+            }
+            *probes -= 1;
+            let free = current[..depth]
+                .iter()
+                .enumerate()
+                .all(|(other, s)| s.is_none_or(|s| !band_reach(*c).overlaps(&options[other][s], 0.0)));
+            if free {
+                current[depth] = Some(slot);
+                search(options, depth + 1, current, placed + 1, best, probes);
+                current[depth] = None;
+            }
+        }
+        search(options, depth + 1, current, placed, best, probes);
+    }
+    let mut best = (0, vec![None; options.len()]);
+    let mut probes = 4096;
+    search(options, 0, &mut vec![None; options.len()], 0, &mut best, &mut probes);
+    best.1
+}
+
 /// Annotations anchored to data coordinates (FEA-CH-32): rules, shaded ranges, marked points
 /// and notes, with text through the shared search, clear of the data points, the drawn bars
-/// and a point annotation's own ring.
+/// and a point annotation's own ring. A range or band's label stays over its band
+/// ([`band_places`]), and those labels are chosen together after the others.
 pub(super) fn annotations(
     ctx: &mut Ctx,
     plot: Rect,
@@ -1329,6 +2093,7 @@ pub(super) fn annotations(
     let ink = ctx.style.ink;
     let soft = Style::rgba(ctx.style.ink_soft);
     let marks: Vec<(usize, [f64; 2], f64)> = points.iter().map(|p| (usize::MAX - 1, *p, 2.0)).collect();
+    let mut band_texts: Vec<(&str, Rect)> = Vec::new();
     for (index, a) in block.annotations.iter().enumerate() {
         let path = format!("chart.annotations[{index}]");
         let find = |anchor: &[(String, Value)], axis: char| -> Option<Value> {
@@ -1382,7 +2147,7 @@ pub(super) fn annotations(
                 return;
             }
             let avoid: Vec<Rect> = taken.iter().chain(&bars).copied().collect();
-            match search(at, radius, [w, h], plot, &avoid, &marks, usize::MAX) {
+            match search(at, radius, [w, h], plot, &avoid, (&marks, usize::MAX), &|_| false) {
                 Ok(rect) => {
                     let t = ctx.text_mid(
                         text,
@@ -1474,7 +2239,7 @@ pub(super) fn annotations(
                             },
                         );
                         if let Some(t) = &a.text {
-                            place_text(ctx, t, [rect.x + 4.0, rect.y + 10.0], 2.0, 0.0, items, taken);
+                            band_texts.push((t.as_str(), rect));
                         }
                     }
                     None => unresolved(ctx),
@@ -1508,6 +2273,95 @@ pub(super) fn annotations(
                 }
             }
         }
+    }
+    // Range and band labels have fixed places, so they are chosen together, after the notes that
+    // can move: the choice that keeps the most labels wins, and among equals the earlier places.
+    // All of a chart's labels hang on one side of their bands: the side that prints more, and
+    // on a tie the labels end at their bands, which keeps the latest event near the plot's
+    // right edge.
+    let h = ctx.line_height();
+    let sized: Vec<(&str, Rect, f64)> = band_texts
+        .iter()
+        .map(|(text, band)| (*text, *band, ctx.text_width(text)))
+        .collect();
+    // A drawn line is a mark between its data points too, so these labels keep clear of its
+    // stroke; the notes above move away from the points only.
+    let strokes: Vec<(Vec<[f64; 2]>, f64)> = if sized.is_empty() {
+        Vec::new()
+    } else {
+        items
+            .iter()
+            .filter_map(|i| match i {
+                Item::Line {
+                    path,
+                    stroke,
+                    role: Role::Mark,
+                    ..
+                } => Some((path, stroke.width / 2.0)),
+                _ => None,
+            })
+            .flat_map(|(path, half)| path.flatten(0.5).into_iter().map(move |line| (line, half)))
+            .collect()
+    };
+    let side = |ends: bool| {
+        let options: Vec<(Vec<Rect>, bool)> = sized
+            .iter()
+            .map(|(_, band, w)| band_places(*band, ends, [*w, h], plot, taken, &bars, &marks, &strokes))
+            .collect();
+        let places: Vec<&[Rect]> = options.iter().map(|(places, _)| places.as_slice()).collect();
+        let chosen = choose_band_places(&places);
+        (options, chosen)
+    };
+    let (ending, starting) = (side(true), side(false));
+    let printed = |chosen: &[Option<usize>]| chosen.iter().flatten().count();
+    let (options, chosen) = if printed(&starting.1) > printed(&ending.1) {
+        starting
+    } else {
+        ending
+    };
+    for (((text, band, w), (places, inside_any)), slot) in sized.iter().zip(&options).zip(chosen) {
+        if let Some(r) = slot.map(|slot| places[slot]) {
+            let t = ctx.text_mid(
+                text,
+                r.x,
+                r.y + r.h / 2.0,
+                Anchor::Start,
+                Face::Data,
+                Role::Annotation,
+                ink,
+            );
+            taken.push(t.bounds);
+            items.push(Item::Text(t));
+        } else {
+            let reason = if *inside_any {
+                DropReason::Collision
+            } else {
+                DropReason::OutOfBounds
+            };
+            ctx.drop_label(
+                text,
+                reason,
+                "annotation",
+                Some(Rect::new(band.x + BAND_INSET, band.y, *w, h)),
+            );
+        }
+    }
+}
+
+#[cfg(test)]
+mod band_choice_tests {
+    use super::{Rect, choose_band_places};
+
+    /// The labels are chosen together: taking places one label at a time, the first label's
+    /// first place leaves the second, which has only that row, none. Together both stay.
+    #[test]
+    fn band_labels_are_chosen_together_so_the_most_stay() {
+        let first = [Rect::new(0.0, 0.0, 100.0, 16.0), Rect::new(0.0, 20.0, 100.0, 16.0)];
+        let second = [Rect::new(60.0, 0.0, 100.0, 16.0)];
+        assert_eq!(choose_band_places(&[&first, &second]), [Some(1), Some(0)]);
+        // With room for both in their first places, each keeps its first.
+        let apart = [Rect::new(120.0, 0.0, 100.0, 16.0)];
+        assert_eq!(choose_band_places(&[&first, &apart]), [Some(0), Some(0)]);
     }
 }
 

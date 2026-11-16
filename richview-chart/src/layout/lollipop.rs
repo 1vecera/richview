@@ -243,8 +243,9 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 Rect::new(cm - r, base.min(reach), 2.0 * r, (base - reach).abs().max(1.0))
             };
             // The value beyond the dot when one lollipop owns its band; at the plot's edge it
-            // moves beside the dot, and it is dropped when neither place fits.
-            if !multi {
+            // moves beside the dot, and it is dropped when neither place fits. The author's
+            // `auto_annotations: false` draws none and records no drop.
+            if !multi && ctx.block.auto_annotations {
                 let text = numbers::value(p.value, &label_format);
                 let gap = r + 4.0;
                 let beyond = if frame.horizontal {

@@ -35,10 +35,12 @@ pub(super) fn featured_menu() -> String {
             "anscombe" => "Four shapes, almost the same statistics; 1973.",
             "old-faithful" => "The clusters an average conceals.",
             "titanic" => "Follow the counts across class, sex and survival; 1912.",
-            "gapminder" => "Play six decades of country observations; 1960–2020.",
+            "gapminder" => "Press Play: every country through six decades; 1960–2020.",
             "global-temperature" => "Annual change against the same NASA baseline; 1880–2025.",
-            "keeling-curve" => "A seasonal cycle on a long rise in CO₂.",
-            _ => "15-minute electricity prices, including negative intervals; 2025–2026.",
+            "keeling-curve" => "Drag to zoom into a seasonal cycle on a long rise in CO₂.",
+            _ => {
+                "Drag to zoom into 15-minute electricity prices, negative ones included; 2025–2026."
+            }
         };
         html.push_str(&card(
             slug,
@@ -71,7 +73,7 @@ pub(super) fn report_grid() -> String {
         (
             "longer-lives",
             "Longer lives",
-            "Gapminder · regional life expectancy · 1950–2019",
+            "Gapminder · people, births, lives · 1950–2020",
         ),
         (
             "air-we-changed",
@@ -105,6 +107,74 @@ pub(super) fn report_grid() -> String {
             note,
             style(name),
             &format!("/docs/gallery/{name}/"),
+        ));
+    }
+    html.push_str("</div>");
+    html
+}
+
+/// The elements overview: one card per element, each a way in. Charts and flow charts open
+/// their own pages; the others move to their part of the elements gallery. A live frame is
+/// laid out half as wide as a gallery card's and shown twice as large (the box around it is
+/// twice the card's width, which the docs script scales by), so an element fills its card.
+pub(super) fn elements_grid() -> String {
+    let frame = |title: &str, src: &str| {
+        format!(
+            "<div class=\"docs-thumbnail__near\"><iframe data-docs-preview tabindex=\"-1\" aria-hidden=\"true\" title=\"{title} preview\" data-src=\"{src}\" sandbox=\"allow-scripts\"></iframe></div>"
+        )
+    };
+    let preview = |chart: &str| {
+        frame(
+            chart,
+            &format!("/docs/previews/{chart}/scientific.html#rv-chart-0"),
+        )
+    };
+    let picture = |file: &str, width: u32, height: u32| {
+        format!(
+            "<img src=\"/docs/gallery/blocks/media/{file}\" alt=\"\" width=\"{width}\" height=\"{height}\" loading=\"lazy\" decoding=\"async\">"
+        )
+    };
+    let mut html = "<div class=\"docs-featured-grid docs-elements-grid\">".to_owned();
+    for (anchor, title) in ELEMENTS {
+        let (note, link, thumbnail) = match *anchor {
+            "charts" => (
+                "Every chart type, live with its source.",
+                "/docs/charts".to_owned(),
+                preview("streamgraph"),
+            ),
+            "flow-charts" => (
+                "Steps, decisions and lanes, placed and routed for you.",
+                "/docs/charts/flow".to_owned(),
+                preview("flow"),
+            ),
+            "tables" => (
+                "Exact values, in tables and pivot tables.",
+                format!("#{anchor}"),
+                preview("pivot"),
+            ),
+            "type-and-fonts" => (
+                "Five builtin styles, each with its own type.",
+                format!("#{anchor}"),
+                frame(
+                    "Typography",
+                    "/docs/gallery/typography/Rendered/typography-sleek.html",
+                ),
+            ),
+            "pictures" => (
+                "Photographs and documents, with their credit.",
+                format!("#{anchor}"),
+                picture("nightingale.jpg", 1280, 700),
+            ),
+            _ => (
+                "Audio, video, embeds, metrics and callouts.",
+                format!("#{anchor}"),
+                picture("apollo-poster.jpg", 640, 438),
+            ),
+        };
+        html.push_str(&format!(
+            "<article class=\"docs-chart-card\"><a class=\"docs-chart-card__link\" href=\"{link}\"><div class=\"docs-thumbnail\">{thumbnail}</div><h3>{}</h3><p>{}</p></a></article>",
+            escape(title),
+            escape(note)
         ));
     }
     html.push_str("</div>");

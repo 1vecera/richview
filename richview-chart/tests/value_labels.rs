@@ -360,3 +360,158 @@ fn the_author_switch_turns_automatic_values_and_default_names_off_and_keeps_high
     assert_eq!(names(&draw_at(&spec, &rows, 1100.0)), ["Cy"], "highlights stay");
     contract(&spec, &rows);
 }
+
+/// A chart type's golden fixture: its spec and rows.
+fn fixture(name: &str) -> (serde_json::Value, Vec<serde_json::Value>) {
+    let path = format!("{}/tests/fixtures/types/{name}.json", env!("CARGO_MANIFEST_DIR"));
+    let v: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(path).expect("fixture")).expect("json");
+    (v["spec"].clone(), v["rows"].as_array().expect("rows").clone())
+}
+
+/// The switch means the same in the layouts that draw their own values: lollipop, pareto,
+/// waterfall, funnel and ribbon print none, record no drop and keep every mark.
+#[test]
+fn the_author_switch_reaches_the_values_a_layout_draws_itself() {
+    let figures = |g: &Geometry| -> Vec<String> {
+        g.panels
+            .iter()
+            .flat_map(|p| &p.items)
+            .filter_map(|i| match i {
+                Item::Text(t) if t.role == Role::Label && t.face == Face::Figures => Some(t.text.clone()),
+                _ => None,
+            })
+            .collect()
+    };
+    let marks = |g: &Geometry| -> Vec<richview_chart::geometry::Rect> {
+        g.panels
+            .iter()
+            .flat_map(|p| &p.items)
+            .filter_map(|i| match i {
+                Item::Rect {
+                    rect, role: Role::Mark, ..
+                } => Some(*rect),
+                _ => None,
+            })
+            .collect()
+    };
+    // One lollipop per band prints its value; the type's fixture has two per band and prints none.
+    let lollipop = (
+        json!({"type":"lollipop","title":"Orders by region","encoding":{"x":"region","y":"orders"}}),
+        vec![
+            json!({"region":"North","orders":120}),
+            json!({"region":"South","orders":90}),
+            json!({"region":"East","orders":60}),
+        ],
+    );
+    let cases = [
+        ("lollipop", lollipop),
+        ("pareto", fixture("pareto")),
+        ("waterfall", fixture("waterfall")),
+        ("funnel", fixture("funnel")),
+        ("ribbon", fixture("ribbon")),
+    ];
+    for (name, (mut spec, rows)) in cases {
+        let on = draw_at(&spec, &rows, 1100.0);
+        assert!(!figures(&on).is_empty(), "{name}: values by default");
+        spec["auto_annotations"] = json!(false);
+        let off = draw_at(&spec, &rows, 1100.0);
+        assert!(
+            figures(&off).is_empty(),
+            "{name}: no value with the switch off: {:?}",
+            figures(&off)
+        );
+        assert!(
+            off.dropped.iter().all(|d| d.kind.as_deref() != Some("value")),
+            "{name}: an author choice is not a drop: {:?}",
+            off.dropped
+        );
+        assert_eq!(marks(&off).len(), marks(&on).len(), "{name}: every mark stays");
+        if name == "funnel" {
+            // No value column, so no room is kept for one: the stages take it.
+            let widest = |g: &Geometry| marks(g).iter().map(|r| r.w).fold(0.0f64, f64::max);
+            assert!(
+                widest(&off) > widest(&on) + 1.0,
+                "the funnel takes the value column's room"
+            );
+        }
+        contract(&spec, &rows);
+    }
+}
+
+/// A heatmap's cell values and a pie's shares are values the chart prints by itself (chart
+/// design, 16 Nov 2026), so the switch turns them off too: the heatmap keeps a colour key and the
+/// pie its names, and neither records a drop.
+#[test]
+fn the_author_switch_leaves_a_heatmap_its_key_and_a_pie_its_names() {
+    let texts = |g: &Geometry, role: Role| -> Vec<String> {
+        g.panels
+            .iter()
+            .flat_map(|p| &p.items)
+            .chain(&g.figure_items)
+            .filter_map(|i| match i {
+                Item::Text(t) if t.role == role => Some(t.text.clone()),
+                _ => None,
+            })
+            .collect()
+    };
+    let cells: Vec<_> = (0..20)
+        .map(|i| json!({"x": format!("c{}", i % 5), "y": format!("r{}", i / 5), "v": i * 3}))
+        .collect();
+    let mut heat = json!({"type":"heatmap","title":"Cells","encoding":{"x":"x","y":"y","color":"v"}});
+    let on = draw_at(&heat, &cells, 1100.0);
+    assert_eq!(
+        texts(&on, Role::Label).len(),
+        20,
+        "every cell prints its value by default"
+    );
+    assert!(on.figure_items.is_empty(), "and needs no key");
+    heat["auto_annotations"] = json!(false);
+    let off = draw_at(&heat, &cells, 1100.0);
+    assert!(
+        texts(&off, Role::Label).is_empty(),
+        "no cell value: {:?}",
+        texts(&off, Role::Label)
+    );
+    assert!(
+        off.figure_items
+            .iter()
+            .any(|i| matches!(i, Item::Rect { role: Role::Key, .. })),
+        "the colour key decodes the cells"
+    );
+    assert!(
+        off.dropped.is_empty(),
+        "an author choice is not a drop: {:?}",
+        off.dropped
+    );
+    contract(&heat, &cells);
+
+    let slices = [
+        json!({"g":"A","v":50}),
+        json!({"g":"B","v":30}),
+        json!({"g":"C","v":15}),
+        json!({"g":"D","v":5}),
+    ];
+    let mut pie = json!({"type":"pie","title":"Parts","encoding":{"x":"g","y":"v"}});
+    // Wide, names stand beside the slices; narrow, they move to a key. Both carry the share.
+    for width in [1100.0, 320.0] {
+        let role = |g: &Geometry| {
+            if g.figure_items.is_empty() {
+                Role::Label
+            } else {
+                Role::Key
+            }
+        };
+        pie["auto_annotations"] = json!(true);
+        let on = draw_at(&pie, &slices, width);
+        let mut named = texts(&on, role(&on));
+        named.sort();
+        assert_eq!(named, ["A 50%", "B 30%", "C 15%", "D 5.0%"], "at {width}");
+        pie["auto_annotations"] = json!(false);
+        let off = draw_at(&pie, &slices, width);
+        let mut named = texts(&off, role(&off));
+        named.sort();
+        assert_eq!(named, ["A", "B", "C", "D"], "names only at {width}");
+        assert!(off.dropped.is_empty(), "{:?}", off.dropped);
+        contract(&pie, &slices);
+    }
+}

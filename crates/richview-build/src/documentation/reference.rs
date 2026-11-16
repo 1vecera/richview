@@ -46,15 +46,10 @@ fn sections(source: &str) -> Vec<(String, String)> {
         .collect()
 }
 
-pub(super) fn stage(
-    root: &Path,
-    docs: &Path,
-    charts: &[ChartPage],
-    flags: BuildFlags,
-) -> Result<()> {
-    let raw = fs::read_to_string(root.join("docs/RMD-SPEC.md"))?;
-    let clean = public::source(&unlink_repository_paths(&raw), flags)?;
-    let mut topics = sections(&clean);
+/// The reference's topics, one page each: the contract's second-level sections, with the
+/// diagnostic codes as a topic of their own.
+fn topics(source: &str) -> Vec<(String, String)> {
+    let mut topics = sections(source);
     if let Some((_, diagnostics)) = topics
         .iter_mut()
         .find(|(title, _)| title == "Diagnostics and public interfaces")
@@ -63,6 +58,38 @@ pub(super) fn stage(
         let codes = diagnostics[at..].replacen("### Diagnostic codes", "## Diagnostic codes", 1);
         diagnostics.truncate(at);
         topics.push(("Diagnostic codes".into(), codes));
+    }
+    topics
+}
+
+/// The topic pages the sidebar lists under the format reference: page name and title, in the
+/// contract's order.
+pub(super) fn topic_pages() -> &'static [(String, String)] {
+    static PAGES: std::sync::OnceLock<Vec<(String, String)>> = std::sync::OnceLock::new();
+    PAGES.get_or_init(|| {
+        topics(include_str!("../../../../docs/RMD-SPEC.md"))
+            .into_iter()
+            .map(|(title, _)| (slug(&title), title))
+            .collect()
+    })
+}
+
+pub(super) fn stage(
+    root: &Path,
+    docs: &Path,
+    charts: &[ChartPage],
+    flags: BuildFlags,
+) -> Result<()> {
+    let raw = fs::read_to_string(root.join("docs/RMD-SPEC.md"))?;
+    let clean = public::source(&unlink_repository_paths(&raw), flags)?;
+    let topics = topics(&clean);
+    // The sidebar of every page links these pages by the names it was built with.
+    if !topics
+        .iter()
+        .map(|(title, _)| title)
+        .eq(topic_pages().iter().map(|(_, title)| title))
+    {
+        return Err("docs/RMD-SPEC.md changed its topics: rebuild richview-build".into());
     }
     let mut anchors = BTreeMap::new();
     for (title, source) in &topics {
@@ -91,7 +118,7 @@ pub(super) fn stage(
                 &format!("](https://richview.ai/docs/reference/{topic}#{anchor})"),
             );
         }
-        let html = render_page(&source, &name, Place::Reference, charts, flags)?;
+        let html = render_page(&source, &name, Place::Topic(&name), charts, flags)?;
         fs::write(folder.join(format!("{name}.html")), html)?;
         fs::write(folder.join(format!("{name}.md")), source)?;
     }

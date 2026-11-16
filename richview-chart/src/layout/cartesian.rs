@@ -1468,8 +1468,16 @@ fn x_layout(ctx: &Ctx, p: &Parsed, plot: Rect, scatter_extent: Option<[f64; 2]>)
         }
         XModel::Category { names, reader, ordered } => {
             let n = names.len().max(1);
-            let band = plot.w / n as f64;
-            let x0 = plot.x;
+            // An area runs from the plot's left edge to its right, as it does over dates: its
+            // first and last categories stand on the edges, and a step, not a band, separates
+            // two of them (Daniel, 16 Nov 2026). Bars, and every mark that shares a bar's
+            // category, keep a band each.
+            let (x0, band) = if ctx.block.kind == ChartType::Area && n > 1 {
+                let step = plot.w / (n - 1) as f64;
+                (plot.x - step / 2.0, step)
+            } else {
+                (plot.x, plot.w / n as f64)
+            };
             let map = XMapping::Category { start: x0, band };
             let layout = axis::category_layout_with(reader, ordered.as_ref(), band, font, size, true);
             let mut unfit = Vec::new();
@@ -1564,7 +1572,21 @@ fn panel_layout(
         (kind == ChartType::Scatter).then(|| pad_extent(Fit::widen(members.x_extent, ctx.wanted().x), 0.04));
     let mut layout: Option<(Frame, XLayout)> = None;
     let mut inset = [0.0f64, 0.0f64];
-    for _ in 0..4 {
+    // The y title's box, as `paint_panel` sets it: the one text a bar's value can meet above.
+    let y_title = block.y.label.as_ref().map(|label| {
+        ctx.text(
+            label,
+            frame.x,
+            top - lh / 2.0 - 6.0,
+            Anchor::Start,
+            Face::Data,
+            Role::AxisTitle,
+            ctx.style.ink,
+        )
+        .bounds
+    });
+    let mut value_room = 0.0;
+    for _ in 0..5 {
         let plot_h = (frame.bottom() - top - bottom_rows * lh - LABEL_GAP - x_title).max(MIN_PLOT * 0.5);
         let y = axis::value_axis_room(
             &ValueSpec {
@@ -1581,7 +1603,7 @@ fn panel_layout(
             if kind == ChartType::Scatter {
                 point_room(ctx)
             } else {
-                0.0
+                value_room
             },
         );
         let names_left = if end_names && kind == ChartType::Area {
@@ -1621,7 +1643,23 @@ fn panel_layout(
         let overhang = |x: f64, lines: &Vec<String>| font.lines_width(lines, size) / 2.0 - (x - frame.x);
         let left_over = xl.ticks.iter().map(|(x, l)| overhang(*x, l)).fold(0.0, f64::max);
         // The last label leans in from its tick at paint time, so it never narrows the plot.
-        let settled = rows_needed == bottom_rows && left_over <= 0.5;
+        let mut settled = rows_needed == bottom_rows && left_over <= 0.5;
+        if value_room == 0.0
+            && let Some(room) = bar_value_room(
+                ctx,
+                p,
+                members,
+                y_extent[1],
+                &xl,
+                &y,
+                plot,
+                y_title,
+                frame.y + title_room,
+            )
+        {
+            value_room = room;
+            settled = false;
+        }
         if left_over > 0.5 {
             inset[0] = (left - frame.x) + left_over;
         }
@@ -1911,15 +1949,18 @@ fn paint_panel(
         failure: None,
     };
     match kind {
-        ChartType::Bar => place::value_labels(
-            ctx,
-            facet,
-            &mut panel,
-            place::ValueLabels::Bars {
-                horizontal: false,
-                stacked: block.stack,
-            },
-        ),
+        ChartType::Bar => {
+            place::value_labels(
+                ctx,
+                facet,
+                &mut panel,
+                place::ValueLabels::Bars {
+                    horizontal: false,
+                    stacked: block.stack,
+                },
+            );
+            break_lines_at_text(&mut panel);
+        }
         ChartType::Line | ChartType::Area if !block.stack => {
             place::value_labels(ctx, facet, &mut panel, place::ValueLabels::Series)
         }
@@ -1951,6 +1992,87 @@ fn xl_map<'a>(xl: &'a XLayout, model: &'a XModel) -> impl Fn(&Value) -> Option<f
 fn obs_points(p: &Parsed, obs: &[&Obs], xl: &XLayout, ymap: &impl Fn(f64) -> f64) -> Vec<[f64; 2]> {
     let _ = p;
     obs.iter().filter_map(|o| o.y.map(|y| [xl.map(o.x), ymap(y)])).collect()
+}
+
+/// The pixels a vertical bar chart keeps above its largest value `hi`, so that the value of its
+/// tallest bar has its place above the bar (FEA-CH-28): the axis then ends a step higher when
+/// its last tick would crowd that place. `None` when the bars hold their values inside, are
+/// stacked, the author fixed the axis or switched values off, or the place is already clear:
+/// under the y `title` when that lies over it, else under `top`, the frame's upper edge.
+#[allow(clippy::too_many_arguments)]
+fn bar_value_room(
+    ctx: &Ctx,
+    p: &Parsed,
+    members: &Members,
+    hi: f64,
+    xl: &XLayout,
+    y: &ValueAxis,
+    plot: Rect,
+    title: Option<Rect>,
+    top: f64,
+) -> Option<f64> {
+    let block = ctx.block;
+    if block.kind != ChartType::Bar
+        || block.stack
+        || !block.auto_annotations
+        || block.y.min.is_some()
+        || block.y.max.is_some()
+        || hi.is_nan()
+        || hi <= 0.0
+    {
+        return None;
+    }
+    // Panels that share a scale decide alike: by the chart's tallest bar, wherever it stands.
+    let shared = block.encoding.facet.is_some() && !block.style.free_scales;
+    let shown = |o: &&Obs| p.self_colour || !ctx.is_hidden(o.series);
+    let taller = |a: &(f64, &Obs), b: &(f64, &Obs)| a.0.total_cmp(&b.0);
+    let (value, tallest) = if shared {
+        p.obs
+            .iter()
+            .filter(shown)
+            .filter_map(|o| Some((o.y?, o)))
+            .max_by(taller)?
+    } else {
+        members
+            .obs
+            .iter()
+            .map(|i| &p.obs[*i])
+            .filter(shown)
+            .filter_map(|o| Some((o.y?, o)))
+            .max_by(taller)?
+    };
+    let readout = block.readout_format(&block.y, ctx.locale);
+    let [w, above, clear] = place::bar_value_above(ctx, &numbers::value(value, &readout));
+    let visible: Vec<usize> = (0..ctx.series.len()).filter(|s| !ctx.is_hidden(*s)).collect();
+    let groups = if p.self_colour { 1 } else { visible.len().max(1) };
+    let inner = xl.band * 0.72;
+    let thickness = (inner / groups as f64).min(64.0);
+    let bar_top = y.map(hi, plot.bottom(), plot.y);
+    if w + 8.0 <= (thickness - 1.0).max(1.0) && above + 5.0 <= plot.bottom() - bar_top {
+        return None;
+    }
+    let (ceiling, gap) = match title {
+        Some(title) if shared => (title.bottom(), clear),
+        Some(title) => {
+            // The value's box, centred on its bar and slid into the plot as its place will be.
+            let centre = xl.map(tallest.x);
+            let left = if groups == 1 {
+                centre - thickness / 2.0
+            } else {
+                let slot = visible.iter().position(|s| *s == tallest.series).unwrap_or(0);
+                centre - inner / 2.0 + slot as f64 * thickness
+            } + thickness / 2.0
+                - w / 2.0;
+            let left = left.clamp(plot.x, (plot.right() - w).max(plot.x));
+            if left - clear < title.right() && title.x < left + w + clear {
+                (title.bottom(), clear)
+            } else {
+                (top, 0.0)
+            }
+        }
+        None => (top, 0.0),
+    };
+    (bar_top - above - gap < ceiling).then_some(above + gap - (plot.y - ceiling))
 }
 
 /// Pixels an axis that fits its data keeps clear beyond the first and last point: the radius of the
@@ -3118,13 +3240,13 @@ fn paint_horizontal_bars(
     panel
 }
 
-/// Room a vertical line leaves round text it would cross, past the text's box on every side.
+/// Room a gridline or zero line leaves round text it would cross, past the text's box.
 const TEXT_GAP: f64 = 2.0;
 
-/// Each vertical gridline or zero line of horizontal bars breaks where it would run through
-/// text, `TEXT_GAP` past the text's box, and runs on everywhere else: through the names set
-/// above their bars under 480 px, and through value labels set across a gridline at any width.
-/// No knockout box is painted, so a tinted plot stays true (FEA-CH-26).
+/// Each straight gridline or zero line of a bar chart breaks where it would run through text,
+/// `TEXT_GAP` past the text's box, and runs on everywhere else: through the names set above
+/// horizontal bars under 480 px, and through values set across a gridline at any width. No
+/// knockout box is painted, so a tinted plot stays true (FEA-CH-26, FEA-CH-28).
 fn break_lines_at_text(panel: &mut Panel) {
     let boxes: Vec<Rect> = panel
         .items
@@ -3144,34 +3266,43 @@ fn break_lines_at_text(panel: &mut Panel) {
         else {
             continue;
         };
-        let [Cmd::M { p: [x, top] }, Cmd::L { p: [x1, bottom] }] = path.cmds[..] else {
+        let [Cmd::M { p: a }, Cmd::L { p: b }] = path.cmds[..] else {
             continue;
         };
-        if x != x1 || bottom <= top {
-            continue;
-        }
+        // The axis the line runs along, 1 for a vertical line and 0 for a horizontal one, and
+        // where it stands on the other.
+        let along = match (a[0] == b[0], a[1] == b[1]) {
+            (true, false) => 1,
+            (false, true) => 0,
+            _ => continue,
+        };
+        let (at, start, end) = (a[1 - along], a[along].min(b[along]), a[along].max(b[along]));
+        let point = |v: f64| if along == 1 { [at, v] } else { [v, at] };
+        // A text box's extent along the line and across it.
+        let extent = |r: &Rect, axis: usize| if axis == 1 { [r.y, r.bottom()] } else { [r.x, r.right()] };
         let reach = TEXT_GAP + stroke.width / 2.0;
         let mut gaps: Vec<[f64; 2]> = boxes
             .iter()
-            .filter(|b| {
-                x >= b.x - reach && x <= b.right() + reach && b.bottom() + TEXT_GAP > top && b.y - TEXT_GAP < bottom
+            .filter_map(|r| {
+                let ([lo, hi], [low, high]) = (extent(r, 1 - along), extent(r, along));
+                (at >= lo - reach && at <= hi + reach && high + TEXT_GAP > start && low - TEXT_GAP < end)
+                    .then_some([low - TEXT_GAP, high + TEXT_GAP])
             })
-            .map(|b| [b.y - TEXT_GAP, b.bottom() + TEXT_GAP])
             .collect();
         if gaps.is_empty() {
             continue;
         }
-        gaps.sort_by(|a, b| a[0].total_cmp(&b[0]));
+        gaps.sort_by(|p, q| p[0].total_cmp(&q[0]));
         let mut broken = Path::new();
-        let mut from = top;
-        for [start, end] in gaps.into_iter().chain([[bottom, bottom]]) {
-            let to = start.min(bottom);
+        let mut from = start;
+        for [gap_start, gap_end] in gaps.into_iter().chain([[end, end]]) {
+            let to = gap_start.min(end);
             // A stub shorter than a pixel reads as a speck, not a line.
             if to - from >= 1.0 {
-                broken.move_to([x, from]);
-                broken.line_to([x, to]);
+                broken.move_to(point(from));
+                broken.line_to(point(to));
             }
-            from = from.max(end);
+            from = from.max(gap_end);
         }
         *path = broken;
     }
@@ -3577,6 +3708,74 @@ mod tests {
     }
 
     #[test]
+    fn an_area_over_categories_runs_from_edge_to_edge_of_its_plot() {
+        let rows: Vec<_> = ["Mon", "Tue", "Wed", "Thu"]
+            .iter()
+            .enumerate()
+            .flat_map(|(i, day)| {
+                [
+                    json!({"day": day, "tier": "free", "users": 820 + 30 * i}),
+                    json!({"day": day, "tier": "paid", "users": 240 + 20 * i}),
+                ]
+            })
+            .collect();
+        for width in [318.0, 640.0, 960.0] {
+            let block = |kind: &str| {
+                ChartBlock::from_value(
+                    &json!({"type": kind, "title": "T", "encoding": {"x": "day", "y": "users", "color": "tier"}}),
+                )
+                .unwrap()
+            };
+            let g = layout(&block("area"), &rows, &ChartTheme::default(), &opts(width));
+            assert!(g.failure.is_none());
+            let panel = &g.panels[0];
+            let xs: Vec<f64> = panel.observations.iter().map(|o| o.at[0]).collect();
+            let (first, last) = (
+                xs.iter().copied().fold(f64::INFINITY, f64::min),
+                xs.iter().copied().fold(0.0, f64::max),
+            );
+            assert!(
+                (first - panel.plot.x).abs() < 0.01,
+                "{width}: the area starts at {first}, the plot at {}",
+                panel.plot.x
+            );
+            assert!(
+                (last - panel.plot.right()).abs() < 0.01,
+                "{width}: the area ends at {last}, the plot at {}",
+                panel.plot.right()
+            );
+            // Every category name stays, inside the figure.
+            let names: Vec<&Text> = g
+                .items()
+                .filter_map(|i| match i {
+                    Item::Text(t)
+                        if t.role == Role::AxisLabel && ["Mon", "Tue", "Wed", "Thu"].contains(&t.text.as_str()) =>
+                    {
+                        Some(t)
+                    }
+                    _ => None,
+                })
+                .collect();
+            assert_eq!(names.len(), 4, "{width}");
+            assert!(
+                names
+                    .iter()
+                    .all(|t| t.bounds.x >= 0.0 && t.bounds.right() <= g.width + 0.01),
+                "{width}"
+            );
+            // Bars keep a band for each category.
+            let bars = layout(&block("bar"), &rows, &ChartTheme::default(), &opts(width));
+            let plot = bars.panels[0].plot;
+            assert!(
+                bars.panels[0]
+                    .observations
+                    .iter()
+                    .all(|o| o.at[0] > plot.x + 8.0 && o.at[0] < plot.right() - 8.0)
+            );
+        }
+    }
+
+    #[test]
     fn a_dense_line_draws_thinner_than_a_sparse_one() {
         let block =
             ChartBlock::from_value(&json!({"type": "line", "title": "T", "encoding": {"x": "x", "y": "y"}})).unwrap();
@@ -3652,6 +3851,139 @@ mod tests {
         let low = values(Some([5.0, 60.0]));
         assert_eq!(low.len(), 1, "only the series' lowest value is in this window: {low:?}");
         assert!(low[0].contains("50"), "{low:?}");
+    }
+
+    /// A monthly series that rises through a yearly cycle, as the Keeling curve does: its highest
+    /// value is a few months before its last, so the two labels want the same corner.
+    fn rising_cycle() -> Vec<serde_json::Value> {
+        (0..822)
+            .map(|i| {
+                let t = i as f64;
+                let y = 315.0 + 0.137 * t + 3.2 * (std::f64::consts::TAU * (t - 1.0) / 12.0).sin();
+                json!({"x": i, "y": (y * 100.0).round() / 100.0})
+            })
+            .collect()
+    }
+
+    #[test]
+    fn a_lines_last_value_stays_when_it_and_the_highest_cannot_both_stand() {
+        let block = ChartBlock::from_value(
+            &json!({"type": "line", "title": "T", "encoding": {"x": "x", "y": "y"}, "axes": {"y": {"unit": "ppm", "digits": 5}}}),
+        )
+        .unwrap();
+        // The line ends five points past its highest, as the Keeling curve ends in autumn.
+        let rows: Vec<_> = rising_cycle()
+            .into_iter()
+            .chain((822..826).map(|i| {
+                let t = f64::from(i);
+                let y = 315.0 + 0.137 * t + 3.2 * (std::f64::consts::TAU * (t - 1.0) / 12.0).sin();
+                json!({"x": i, "y": (y * 100.0).round() / 100.0})
+            }))
+            .collect();
+        let mut both = 0;
+        for width in (240..=720).step_by(10) {
+            let g = layout(&block, &rows, &ChartTheme::default(), &opts(f64::from(width)));
+            assert!(g.failure.is_none());
+            let shown = |row: usize| {
+                g.items().any(|i| matches!(i, Item::Text(t) if t.role == Role::Label && t.mark.as_deref() == Some(format!("0/-/{row}").as_str())))
+            };
+            assert!(
+                shown(825) || !shown(820),
+                "{width}: the highest value shows without the last"
+            );
+            both += usize::from(shown(825) && shown(820));
+        }
+        assert!(both > 0, "a wide plot holds both");
+    }
+
+    #[test]
+    fn a_value_leader_never_crosses_another_value_and_values_keep_apart() {
+        use crate::geometry::Rect;
+        use crate::layout::place::segment_touches_rect;
+        let block = ChartBlock::from_value(
+            &json!({"type": "line", "title": "T", "encoding": {"x": "x", "y": "y"}, "axes": {"y": {"unit": "ppm", "digits": 5}}}),
+        )
+        .unwrap();
+        let rows = rising_cycle();
+        for width in (240..=720).step_by(10) {
+            let g = layout(&block, &rows, &ChartTheme::default(), &opts(f64::from(width)));
+            assert!(g.failure.is_none());
+            let values: Vec<_> = g
+                .items()
+                .filter_map(|i| match i {
+                    Item::Text(t) if t.role == Role::Label && t.mark.is_some() => Some((t.text.clone(), t.bounds)),
+                    _ => None,
+                })
+                .collect();
+            let leaders: Vec<_> = g
+                .items()
+                .filter_map(|i| match i {
+                    Item::Line {
+                        path,
+                        role: Role::Leader,
+                        ..
+                    } => path.flatten(0.5).into_iter().next(),
+                    _ => None,
+                })
+                .collect();
+            for (i, (a, ra)) in values.iter().enumerate() {
+                for (b, rb) in &values[i + 1..] {
+                    assert!(!ra.overlaps(rb, 0.0), "{width}: {a} and {b} overlap: {ra:?} {rb:?}");
+                    // Side by side, two values keep a character's room, or they read as one.
+                    let beside = Rect::new(ra.x - 7.5, ra.y, ra.w + 15.0, ra.h);
+                    assert!(
+                        !beside.overlaps(rb, 0.0),
+                        "{width}: {a} and {b} run together: {ra:?} {rb:?}"
+                    );
+                }
+            }
+            for leader in &leaders {
+                let (from, to) = (leader[0], leader[leader.len() - 1]);
+                // A leader ends 2 px outside its own label; any label it touches is another's.
+                let crossed: Vec<_> = values
+                    .iter()
+                    .filter(|(_, r)| segment_touches_rect(from, to, r))
+                    .map(|(t, _)| t)
+                    .collect();
+                assert!(
+                    crossed.is_empty(),
+                    "{width}: the leader {from:?} to {to:?} crosses {crossed:?}; values {values:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn a_point_name_on_a_leader_never_stands_behind_another_point() {
+        use crate::geometry::Rect;
+        use crate::layout::place::leader_spot;
+        // A small point with a large neighbour 18 px to its left, as Congo beside India in 1964.
+        let (at, size, plot) = ([300.0, 200.0], [96.0, 14.0], Rect::new(0.0, 0.0, 600.0, 400.0));
+        let marks = [(0, at, 2.0), (1, [282.0, 200.0], 9.5)];
+        // Names already placed take the whole right side, so the next place offered is on the left.
+        let taken = [Rect::new(310.0, 100.0, 290.0, 200.0)];
+        let spot = leader_spot(at, 2.0, size, plot, &taken, (&marks, 0), &|_| false).expect("a place on a leader");
+        let near = [at[0].clamp(spot.x, spot.right()), at[1].clamp(spot.y, spot.bottom())];
+        // The neighbour is not on the way from the point to its name.
+        let (dx, dy) = (near[0] - at[0], near[1] - at[1]);
+        let along = (((282.0 - at[0]) * dx + (200.0 - at[1]) * dy) / (dx * dx + dy * dy)).clamp(0.0, 1.0);
+        let gap = (282.0 - at[0] - along * dx).hypot(200.0 - at[1] - along * dy);
+        assert!(
+            gap >= 9.5,
+            "the name at {spot:?} has the neighbour between it and its point"
+        );
+        assert!(!spot.overlaps(&taken[0], 0.0));
+
+        // A leader crosses no name already placed: with a name right under the point, the next
+        // name does not go below it on a leader through that name.
+        let under = [Rect::new(252.0, 216.0, 96.0, 14.0)];
+        let marks = [(0, at, 2.0)];
+        let spot = leader_spot(at, 2.0, [40.0, 14.0], plot, &under, (&marks, 0), &|_| false).expect("a place");
+        let end = crate::layout::place::leader_end(at, spot).expect("a leader");
+        assert!(
+            !crate::layout::place::segment_touches_rect(at, end, &under[0]),
+            "the leader to {spot:?} crosses the name under the point"
+        );
     }
 
     #[test]
@@ -4143,6 +4475,640 @@ mod tests {
                 "{width}: '44' sits just past its bar end"
             );
         }
+    }
+
+    /// Two companies' shares per topic: grouped bars where one sibling often runs past the other.
+    fn grouped_bars() -> (ChartBlock, Vec<serde_json::Value>) {
+        let block = ChartBlock::from_value(&json!({
+            "type": "bar", "title": "T", "encoding": {"x": "topic", "y": "share", "color": "company"},
+            "axes": {"x": {"label": ""}, "y": {"label": "% of negative comments"}},
+            "style": {"ratio": "16:9"}
+        }))
+        .unwrap();
+        let rows = [
+            ("Quality", 21.9, 17.6),
+            ("Business", 16.9, 21.8),
+            ("Safety", 20.3, 21.4),
+            ("Hype", 13.5, 19.4),
+            ("Reliability", 19.0, 10.7),
+            ("Product", 14.3, 9.6),
+            ("Pricing", 13.5, 8.7),
+            ("Coding", 13.0, 4.0),
+        ]
+        .iter()
+        .flat_map(|(topic, anthropic, openai)| {
+            [
+                json!({"topic": topic, "company": "Anthropic", "share": anthropic}),
+                json!({"topic": topic, "company": "OpenAI", "share": openai}),
+            ]
+        })
+        .collect();
+        (block, rows)
+    }
+
+    #[test]
+    fn a_grouped_value_slides_off_its_sibling_within_its_own_bar() {
+        let (block, rows) = grouped_bars();
+        for width in PHONE {
+            let g = layout(&block, &rows, &ChartTheme::default(), &opts(width));
+            let panel = &g.panels[0];
+            let (bars, values) = bars_and_values(panel);
+            assert_eq!(bars.len(), 16);
+            let mut slid = 0;
+            for (o, t) in &values {
+                let bar = bars.iter().find(|(b, _)| b == o).unwrap().1;
+                let middle = t.bounds.center()[1];
+                assert!(
+                    bar.y <= middle && middle <= bar.bottom(),
+                    "{width}: '{}' is not level with its bar",
+                    t.text
+                );
+                // A value inside its own bar is set off by the bar; one beside it keeps 1 px.
+                let within = bar.x <= t.bounds.x && t.bounds.right() <= bar.right();
+                for (_, other) in bars.iter().filter(|(b, _)| b != o && !within) {
+                    assert!(
+                        !t.bounds.inflate(0.99).overlaps(other, 0.0),
+                        "{width}: '{}' comes within 1 px of another bar",
+                        t.text
+                    );
+                }
+                let centred = (middle - bar.center()[1]).abs() < 0.01;
+                // Slid, it is flush with the bar's far edge, or past that by no more than the
+                // sibling's own inside value needs: half of what a line box is taller than a bar.
+                let room = ((t.bounds.h - bar.h) / 2.0).max(0.0) + 0.01;
+                let (up, down) = (bar.bottom() - t.bounds.bottom(), t.bounds.y - bar.y);
+                let flush = (-0.01..=room).contains(&up) || (-0.01..=room).contains(&down);
+                assert!(centred || flush, "{width}: '{}' is neither centred nor flush", t.text);
+                slid += usize::from(!centred);
+            }
+            assert!(slid > 0, "{width}: some value slides off its sibling: {:?}", g.dropped);
+        }
+    }
+
+    #[test]
+    fn a_value_with_no_room_past_its_end_sits_inside_the_bar_at_that_end() {
+        let block = ChartBlock::from_value(&json!({
+            "type": "bar", "title": "T", "encoding": {"x": "measure", "y": "share"},
+            "axes": {"x": {"label": ""}, "y": {"label": "Anthropic share, %"}},
+            "style": {"ratio": "16:9"}
+        }))
+        .unwrap();
+        let rows: Vec<_> = [
+            ("Ratings", 2.4),
+            ("Search", 8.7),
+            ("Weekly", 17.3),
+            ("PyPI", 33.7),
+            ("npm", 49.8),
+            ("Firms", 52.4),
+            ("HN", 64.9),
+            ("Agents", 70.9),
+        ]
+        .iter()
+        .map(|(measure, share)| json!({"measure": measure, "share": share}))
+        .collect();
+        let mut inside = 0;
+        for width in PHONE {
+            let g = layout(&block, &rows, &ChartTheme::default(), &opts(width));
+            let panel = &g.panels[0];
+            let (bars, values) = bars_and_values(panel);
+            assert_eq!(values.len(), 8, "{width}: {:?}", g.dropped);
+            let (o, t) = values.iter().find(|(_, t)| t.text == "70.9").unwrap();
+            let bar = bars.iter().find(|(b, _)| b == o).unwrap().1;
+            // Where the bar ends a label's width from the plot's edge, the value goes inside.
+            if t.bounds.x < bar.right() {
+                inside += 1;
+                assert!(
+                    (bar.right() - 4.0 - t.bounds.right()).abs() < 0.01,
+                    "{width}: inside, 4 px in from the value end"
+                );
+                assert!((t.bounds.center()[1] - bar.center()[1]).abs() < 0.01);
+            } else {
+                assert!(t.bounds.x >= bar.right() + 3.0 - 0.01, "{width}: past the value end");
+            }
+        }
+        assert!(inside > 0, "a narrow width leaves no room past the end");
+    }
+
+    #[test]
+    fn the_blocked_value_of_a_close_pair_sits_inside_its_own_bar_end() {
+        // "Safety": 20.3 and 21.4 end a label's width apart, so both cannot stand past their ends.
+        let (block, rows) = grouped_bars();
+        for width in [632.0, 656.0] {
+            let g = layout(&block, &rows, &ChartTheme::default(), &opts(width));
+            let panel = &g.panels[0];
+            let (bars, values) = bars_and_values(panel);
+            assert_eq!(values.len(), 16, "{width}: every value shows: {:?}", g.dropped);
+            let place = |text: &str| {
+                let (o, t) = values.iter().find(|(_, t)| t.text == text).unwrap();
+                (bars.iter().find(|(b, _)| b == o).unwrap().1, t.bounds)
+            };
+            let (first, beside) = place("20.3");
+            assert!(
+                beside.x >= first.right() + 3.0 - 0.01,
+                "{width}: '20.3' stands past its end"
+            );
+            let (second, within) = place("21.4");
+            assert!(
+                (second.right() - 4.0 - within.right()).abs() < 0.01,
+                "{width}: '21.4' sits inside its bar, 4 px in from the value end"
+            );
+            assert!((within.center()[1] - second.center()[1]).abs() < 0.01);
+        }
+    }
+
+    /// Two regions' changes per category, with a unit: signed grouped bars with long values.
+    fn signed_grouped_bars() -> (ChartBlock, Vec<serde_json::Value>) {
+        let block = ChartBlock::from_value(&json!({
+            "type": "bar", "title": "T", "encoding": {"x": "x", "y": "y", "color": "series"},
+            "axes": {"x": {"label": "Observation"}, "y": {"label": "Measured value", "unit": "MWh"}},
+            "style": {"ratio": "16:9"}
+        }))
+        .unwrap();
+        let rows = [
+            ("Enterprise platform subscriptions", -46, -39),
+            ("Local commercial partnerships", -23, -16),
+            ("International audience expansion", 0, 7),
+            ("Research and development", 23, 30),
+        ]
+        .iter()
+        .flat_map(|(x, north, south)| {
+            [
+                json!({"x": x, "series": "North", "y": north}),
+                json!({"x": x, "series": "South", "y": south}),
+            ]
+        })
+        .collect();
+        (block, rows)
+    }
+
+    #[test]
+    fn a_value_inside_a_thin_bar_never_meets_another_value() {
+        // Space Mono's and Patrick Hand's line boxes are taller than a thin grouped bar, so a
+        // value inside its bar reaches past the bar toward the sibling's value. The label check
+        // allows two line boxes 1 px of each other.
+        let hatched = ChartTheme {
+            data_font: "Patrick Hand, cursive".into(),
+            decals: true,
+            sign_hatch: true,
+            ..ChartTheme::default()
+        };
+        let mono = |font: &str| ChartTheme {
+            data_font: font.into(),
+            ..ChartTheme::default()
+        };
+        let themes = [
+            mono("Space Mono, ui-monospace, monospace"),
+            hatched,
+            mono("Geist Mono, ui-monospace, monospace"),
+        ];
+        for (block, rows) in [grouped_bars(), signed_grouped_bars()] {
+            for theme in &themes {
+                let font = &theme.data_font;
+                let mut inside = 0;
+                for width in (240..=900).step_by(2).map(f64::from) {
+                    let g = layout(&block, &rows, theme, &opts(width));
+                    let (bars, values) = bars_and_values(&g.panels[0]);
+                    for (i, (o, t)) in values.iter().enumerate() {
+                        // A zero has no bar.
+                        inside += usize::from(
+                            bars.iter()
+                                .any(|(b, bar)| b == o && t.bounds.x >= bar.x && t.bounds.right() <= bar.right()),
+                        );
+                        for (_, other) in &values[i + 1..] {
+                            assert!(
+                                !t.bounds.overlaps(&other.bounds, 1.0),
+                                "{font} at {width}: '{}' meets '{}'",
+                                t.text,
+                                other.text
+                            );
+                        }
+                    }
+                }
+                assert!(inside > 0, "{font}: some value still goes inside its bar");
+            }
+        }
+    }
+
+    #[test]
+    fn a_slid_value_leaves_its_siblings_inside_value_room() {
+        // "Safety" in Space Mono: '20.3' slides up off the longer bar below it and '21.4' goes
+        // inside that bar. Flush with its bar, '20.3' met '21.4' by more than the check allows.
+        let (block, rows) = grouped_bars();
+        let theme = ChartTheme {
+            data_font: "Space Mono, ui-monospace, monospace".into(),
+            ..ChartTheme::default()
+        };
+        for width in [300.0, 390.0, 656.0] {
+            let g = layout(&block, &rows, &theme, &opts(width));
+            let (bars, values) = bars_and_values(&g.panels[0]);
+            let place = |text: &str| {
+                let (o, t) = values
+                    .iter()
+                    .find(|(_, t)| t.text == text)
+                    .unwrap_or_else(|| panic!("{width}: '{text}' prints: {:?}", g.dropped));
+                (bars.iter().find(|(b, _)| b == o).unwrap().1, t.bounds)
+            };
+            let (first, beside) = place("20.3");
+            let (second, within) = place("21.4");
+            assert!(
+                beside.x >= first.right() + 3.0 - 0.01,
+                "{width}: '20.3' stands past its end"
+            );
+            assert!(within.right() <= second.right(), "{width}: '21.4' sits inside its bar");
+            assert!(
+                beside.bottom() <= within.y + 1.0,
+                "{width}: the line boxes share at most 1 px"
+            );
+            let middle = beside.center()[1];
+            assert!(
+                first.y <= middle && middle <= first.bottom(),
+                "{width}: '20.3' stays level with its bar"
+            );
+        }
+    }
+
+    #[test]
+    fn a_value_wider_than_an_edge_column_slides_back_into_the_plot_over_its_bar() {
+        // Eleven quarters of two bars each: on a phone a column is narrower than three digits.
+        let block = ChartBlock::from_value(&json!({
+            "type": "bar", "title": "T", "encoding": {"x": "quarter", "y": "statements", "color": "direction"},
+            "axes": {"x": {"label": "Quarter"}, "y": {"label": "Statements"}},
+            "style": {"ratio": "16:9"}
+        }))
+        .unwrap();
+        let counts = [
+            (3, 4),
+            (14, 6),
+            (18, 1),
+            (11, 4),
+            (10, 7),
+            (16, 11),
+            (38, 22),
+            (32, 24),
+            (92, 43),
+            (65, 108),
+            (37, 159),
+        ];
+        let rows: Vec<_> = counts
+            .iter()
+            .enumerate()
+            .flat_map(|(q, (anthropic, openai))| {
+                let quarter = format!("{} Q{}", 2024 + q / 4, q % 4 + 1);
+                [
+                    json!({"quarter": quarter, "direction": "To Anthropic", "statements": anthropic}),
+                    json!({"quarter": quarter, "direction": "To OpenAI", "statements": openai}),
+                ]
+            })
+            .collect();
+        let mut slid = 0;
+        for width in PHONE {
+            let g = layout(&block, &rows, &ChartTheme::default(), &opts(width));
+            let panel = &g.panels[0];
+            let (bars, values) = bars_and_values(panel);
+            let (o, t) = values
+                .iter()
+                .find(|(_, t)| t.text == "159")
+                .unwrap_or_else(|| panic!("{width}: the tallest bar keeps its value: {:?}", g.dropped));
+            let bar = bars.iter().find(|(b, _)| b == o).unwrap().1;
+            let centre = t.bounds.center()[0];
+            assert!(
+                t.bounds.x >= panel.plot.x - 0.01 && t.bounds.right() <= panel.plot.right() + 0.01,
+                "{width}: '159' stays in the plot"
+            );
+            assert!(
+                bar.x <= centre && centre <= bar.right(),
+                "{width}: '159' stands over its own bar"
+            );
+            assert!(
+                (bar.y - t.bounds.bottom() - 3.0).abs() < 0.01,
+                "{width}: 3 px above its bar"
+            );
+            slid += usize::from((centre - bar.center()[0]).abs() > 0.01);
+        }
+        assert!(slid > 0, "at some phone width the last column's value has to slide");
+    }
+
+    #[test]
+    fn a_bar_value_stays_at_its_bar_when_a_shorter_shown_number_replaces_it() {
+        // The runtime lays bars out over grid values ("2.41") and swaps in the numbers of a
+        // second layout over the shown values ("2.4"). The shorter text stays attached the way
+        // the longer one was placed: centred on a column, or 3 px from a bar's end.
+        let lay = |orientation: &str, values: &[f64]| {
+            let block = ChartBlock::from_value(&json!({
+                "type": "bar", "title": "T", "encoding": {"x": "c", "y": "v"},
+                "style": {"orientation": orientation}
+            }))
+            .unwrap();
+            let rows: Vec<_> = values
+                .iter()
+                .enumerate()
+                .map(|(i, v)| json!({"c": format!("c{i}"), "v": v}))
+                .collect();
+            layout(&block, &rows, &ChartTheme::default(), &opts(632.0))
+        };
+        let (grid, shown) = (
+            [2.41, 8.69, -17.31, 33.7, 49.8, 52.4],
+            [2.4, 8.7, -17.3, 33.7, 49.8, 52.4],
+        );
+        for orientation in ["vertical", "horizontal"] {
+            let mut g = lay(orientation, &grid);
+            g.set_mark_texts(&lay(orientation, &shown).mark_texts());
+            let (bars, values) = bars_and_values(&g.panels[0]);
+            assert_eq!(values.len(), 6, "{orientation}: {:?}", g.dropped);
+            assert!(
+                values.iter().any(|(_, t)| t.text == "2.4"),
+                "{orientation}: the shown numbers are swapped in"
+            );
+            for (o, t) in &values {
+                let bar = bars.iter().find(|(b, _)| b == o).unwrap().1;
+                let negative = t.text.starts_with('−');
+                if orientation == "vertical" || t.bounds.inside(&bar, 0.0) {
+                    assert!(
+                        (t.bounds.center()[0] - bar.center()[0]).abs() < 0.01,
+                        "{orientation}: '{}' is centred on its bar",
+                        t.text
+                    );
+                } else if negative {
+                    assert!(
+                        (bar.x - 3.0 - t.bounds.right()).abs() < 0.01,
+                        "{orientation}: '{}' ends 3 px left of its bar",
+                        t.text
+                    );
+                } else {
+                    assert!(
+                        (t.bounds.x - bar.right() - 3.0).abs() < 0.01,
+                        "{orientation}: '{}' starts 3 px right of its bar",
+                        t.text
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn a_line_value_stays_beside_its_point_when_a_shorter_shown_number_replaces_it() {
+        // As for bars: a value placed over grid values ("8.18") gets the shown number ("8.2")
+        // and keeps the side its place gave it: the middle above or below its point, the near
+        // edge beside it.
+        let block =
+            ChartBlock::from_value(&json!({"type": "line", "title": "T", "encoding": {"x": "x", "y": "y"}})).unwrap();
+        let lay = |values: &[f64]| {
+            let rows: Vec<_> = values
+                .iter()
+                .enumerate()
+                .map(|(i, v)| json!({"x": i, "y": v}))
+                .collect();
+            layout(&block, &rows, &ChartTheme::default(), &opts(632.0))
+        };
+        let values = |g: &crate::geometry::Geometry| -> Vec<(String, Rect, [f64; 2])> {
+            let (panel, ids) = (&g.panels[0], g.mark_ids());
+            panel
+                .items
+                .iter()
+                .filter_map(|i| match i {
+                    Item::Text(t) if t.role == Role::Label => {
+                        let o = &panel.observations[ids.iter().position(|id| Some(id) == t.mark.as_ref())?];
+                        Some((t.text.clone(), t.bounds, o.dots.first().map_or(o.at, |d| d.at)))
+                    }
+                    _ => None,
+                })
+                .collect()
+        };
+        let mut g = lay(&[2.41, 5.2, 1.69, 8.18, 4.3, 7.87]);
+        let placed = values(&g);
+        g.set_mark_texts(&lay(&[2.4, 5.2, 1.7, 8.2, 4.3, 7.9]).mark_texts());
+        let shown = values(&g);
+        assert!(
+            placed.len() >= 3,
+            "the last, lowest and highest value show: {:?}",
+            g.dropped
+        );
+        assert_eq!(shown.len(), placed.len());
+        let (mut centred, mut beside) = (0, 0);
+        for ((before, was, at), (text, now, _)) in placed.iter().zip(&shown) {
+            assert!(text.len() < before.len(), "'{before}' became the shorter '{text}'");
+            if (was.center()[0] - at[0]).abs() < 0.5 {
+                centred += 1;
+                assert!(
+                    (now.center()[0] - at[0]).abs() < 0.01,
+                    "'{text}' stays centred on its point"
+                );
+            } else if was.x > at[0] {
+                beside += 1;
+                assert!((now.x - was.x).abs() < 0.01, "'{text}' starts where '{before}' did");
+            } else {
+                beside += 1;
+                assert!(
+                    (now.right() - was.right()).abs() < 0.01,
+                    "'{text}' ends where '{before}' did"
+                );
+            }
+        }
+        assert!(
+            centred > 0 && beside > 0,
+            "{centred} centred, {beside} beside: {placed:?}"
+        );
+    }
+
+    /// The y axis' tick labels, bottom to top.
+    fn value_ticks(panel: &crate::geometry::Panel) -> Vec<String> {
+        let mut ticks: Vec<&Text> = panel
+            .items
+            .iter()
+            .filter_map(|i| match i {
+                Item::Text(t) if t.role == Role::AxisLabel && t.bounds.right() <= panel.plot.x => Some(t),
+                _ => None,
+            })
+            .collect();
+        ticks.sort_by(|a, b| b.bounds.y.total_cmp(&a.bounds.y));
+        ticks.into_iter().map(|t| t.text.clone()).collect()
+    }
+
+    #[test]
+    fn the_tallest_bar_keeps_room_for_its_value_under_the_axis_title() {
+        // Three products over four months on a phone: the bars are too thin to hold their
+        // values, and "73.3" on an axis that ends at 75 has only the axis title above it. The
+        // axis ends a step higher, so the tallest bar's value stands above its bar.
+        let block = ChartBlock::from_value(&json!({
+            "type": "bar", "title": "T", "encoding": {"x": "as_of", "y": "share", "color": "product"},
+            "axes": {"x": {"label": "Month"}, "y": {"label": "Share of gen-AI web visits, %"}},
+            "style": {"ratio": "16:9"}
+        }))
+        .unwrap();
+        let rows: Vec<_> = [
+            ("2025-08", [1.9, 73.3, 12.9]),
+            ("2026-03", [6.0, 56.7, 25.4]),
+            ("2026-06", [9.2, 52.7, 27.8]),
+            ("2026-08", [9.3, 55.5, 25.6]),
+        ]
+        .iter()
+        .flat_map(|(month, shares)| {
+            ["Claude", "ChatGPT", "Gemini"]
+                .iter()
+                .zip(shares)
+                .map(move |(product, share)| json!({"as_of": month, "product": product, "share": share}))
+        })
+        .collect();
+        let mut stepped = 0;
+        for width in PHONE {
+            let g = layout(&block, &rows, &ChartTheme::default(), &opts(width));
+            let panel = &g.panels[0];
+            let (bars, values) = bars_and_values(panel);
+            let (o, t) = values
+                .iter()
+                .find(|(_, t)| t.text == "73.3")
+                .unwrap_or_else(|| panic!("{width}: the tallest bar's value shows: {:?}", g.dropped));
+            let bar = bars.iter().find(|(b, _)| b == o).unwrap().1;
+            assert!(
+                (bar.y - t.bounds.bottom() - 3.0).abs() < 0.01 && (t.bounds.center()[0] - bar.center()[0]).abs() < 0.01,
+                "{width}: 3 px above its own bar"
+            );
+            let title = panel
+                .items
+                .iter()
+                .find_map(|i| match i {
+                    Item::Text(t) if t.role == Role::AxisTitle && t.bounds.y < panel.plot.y => Some(t.bounds),
+                    _ => None,
+                })
+                .unwrap();
+            assert!(t.bounds.y >= title.bottom() + 2.0, "{width}: clear of the axis title");
+            stepped += usize::from(value_ticks(panel).last().is_some_and(|top| top == "100"));
+        }
+        assert!(stepped > 0, "at some phone width the axis ends a step higher for it");
+    }
+
+    #[test]
+    fn a_tallest_bar_beside_the_axis_title_keeps_its_axis() {
+        // The same thin bars with the tallest in the last month, right of a short axis title:
+        // its value has a clear place above the plot, so the axis keeps its last tick.
+        let block = ChartBlock::from_value(&json!({
+            "type": "bar", "title": "T", "encoding": {"x": "as_of", "y": "share", "color": "product"},
+            "axes": {"x": {"label": "Month"}, "y": {"label": "Share, %"}},
+            "style": {"ratio": "16:9"}
+        }))
+        .unwrap();
+        let rows: Vec<_> = [
+            ("2025-08", [9.3, 55.5, 25.6]),
+            ("2026-03", [6.0, 56.7, 25.4]),
+            ("2026-06", [9.2, 52.7, 27.8]),
+            ("2026-08", [1.9, 73.3, 12.9]),
+        ]
+        .iter()
+        .flat_map(|(month, shares)| {
+            ["Claude", "ChatGPT", "Gemini"]
+                .iter()
+                .zip(shares)
+                .map(move |(product, share)| json!({"as_of": month, "product": product, "share": share}))
+        })
+        .collect();
+        let g = layout(&block, &rows, &ChartTheme::default(), &opts(318.0));
+        let panel = &g.panels[0];
+        let (bars, values) = bars_and_values(panel);
+        let (o, t) = values.iter().find(|(_, t)| t.text == "73.3").expect("the value shows");
+        let bar = bars.iter().find(|(b, _)| b == o).unwrap().1;
+        assert!((bar.y - t.bounds.bottom() - 3.0).abs() < 0.01, "3 px above its bar");
+        assert_eq!(value_ticks(panel).last().map(String::as_str), Some("75"));
+    }
+
+    #[test]
+    fn bars_that_hold_their_values_keep_their_axis() {
+        // Four wide bars on a phone: "78.5" sits inside its bar, so the axis still ends at 80,
+        // 3 px above the tallest bar.
+        let block = ChartBlock::from_value(&json!({
+            "type": "bar", "title": "T", "encoding": {"x": "c", "y": "v"},
+            "axes": {"y": {"label": "Share, %"}},
+            "style": {"orientation": "vertical", "ratio": "16:9"}
+        }))
+        .unwrap();
+        let rows: Vec<_> = [("a", 31.2), ("b", 78.5), ("c", 44.0), ("d", 52.6)]
+            .iter()
+            .map(|(c, v)| json!({"c": c, "v": v}))
+            .collect();
+        for width in PHONE {
+            let g = layout(&block, &rows, &ChartTheme::default(), &opts(width));
+            let panel = &g.panels[0];
+            let (bars, values) = bars_and_values(panel);
+            let (o, t) = values.iter().find(|(_, t)| t.text == "78.5").unwrap();
+            let bar = bars.iter().find(|(b, _)| b == o).unwrap().1;
+            assert!(t.bounds.inside(&bar, 0.0), "{width}: the value sits inside its bar");
+            assert_eq!(value_ticks(panel).last().map(String::as_str), Some("80"), "{width}");
+        }
+    }
+
+    #[test]
+    fn a_vertical_bar_value_keeps_to_its_column_across_a_gridline() {
+        let block = ChartBlock::from_value(&json!({
+            "type": "bar", "title": "T", "encoding": {"x": "c", "y": "v"},
+            "style": {"orientation": "vertical"}
+        }))
+        .unwrap();
+        let rows: Vec<_> = [
+            ("A", 95),
+            ("B", 145),
+            ("C", 195),
+            ("D", -45),
+            ("E", 245),
+            ("F", 295),
+            ("G", 345),
+            ("H", 395),
+        ]
+        .iter()
+        .map(|(c, v)| json!({"c": c, "v": v}))
+        .collect();
+        let mut crossed = 0;
+        for width in PHONE.into_iter().chain([560.0]) {
+            let g = layout(&block, &rows, &ChartTheme::default(), &opts(width));
+            let panel = &g.panels[0];
+            let (bars, values) = bars_and_values(panel);
+            let lines: Vec<(f64, Rings)> = panel
+                .items
+                .iter()
+                .filter_map(|i| match i {
+                    Item::Line {
+                        path,
+                        role: Role::Grid | Role::Baseline,
+                        stroke,
+                        ..
+                    } => Some((stroke.width / 2.0, path.flatten(0.25))),
+                    _ => None,
+                })
+                .collect();
+            for (o, t) in &values {
+                let bar = bars.iter().find(|(b, _)| b == o).unwrap().1;
+                if t.bounds.inside(&bar, 0.0) {
+                    continue;
+                }
+                assert!(
+                    (t.bounds.center()[0] - bar.center()[0]).abs() < 0.01,
+                    "{width}: '{}' is centred on its column",
+                    t.text
+                );
+                let gap = if t.text.starts_with('−') {
+                    t.bounds.y - bar.bottom()
+                } else {
+                    bar.y - t.bounds.bottom()
+                };
+                assert!(
+                    (gap - 3.0).abs() < 0.01,
+                    "{width}: '{}' sits 3 px past its value end",
+                    t.text
+                );
+                for (half, rings) in &lines {
+                    let y = rings[0][0][1];
+                    if t.bounds.y < y && y < t.bounds.bottom() && rings.iter().all(|r| r[0][1] == y) {
+                        crossed += 1;
+                    }
+                    for ring in rings {
+                        assert!(
+                            !crate::layout::place::segment_touches_rect(ring[0], ring[1], &t.bounds.inflate(*half)),
+                            "{width}: a line runs through '{}'",
+                            t.text
+                        );
+                    }
+                }
+            }
+        }
+        assert!(crossed > 0, "some value stands across a gridline");
     }
 
     #[test]

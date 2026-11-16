@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 import vm from "node:vm";
-import { gridSpans, judgeDerivedReadouts, judgeDrawn, judgeMarkText, judgePlacement, judgeValueText, markNumbers, playbackKeyColumns, shownColumns, signedNumbers, tableColumns, tableNumbers, valueAxis } from "../label-truth.mjs";
+import { gridSpans, judgeDerivedReadouts, judgeDrawn, judgeMarkText, judgePlacement, judgeValueText, markNumbers, ownNumbers, playbackKeyColumns, shownColumns, signedNumbers, tableColumns, tableNumbers, valueAxis } from "../label-truth.mjs";
 import * as labelTruth from "../label-truth.mjs";
 
 const hits = (text, table) => judgeValueText(text, table).map((h) => h.raw);
@@ -253,6 +253,33 @@ test("a mark's row is the same-numbered row of the state's Table; another mark's
 	const marks = [{ id: "0/-/0", lines: [{ name: "Count", value: "3" }] }];
 	assert.deepEqual(markNumbers("0/-/0", { marks }), { kind: "readout", values: [3] });
 	assert.equal(markNumbers("0/-/9", { marks }), undefined);
+});
+
+test("a box plot's median label is judged by its own box's readout, not by nearness to the rows", () => {
+	// The rows of the box are 27 and 28, so its median is 27.5: within 3% of the row value 28, and right.
+	const table = ["segment\tdays", "Enterprise\t27", "Enterprise\t28", "Startup\t4"];
+	const marks = [
+		{ id: "0/0/0", heading: "Enterprise", lines: [{ name: "Median", value: "27.5" }, { name: "First quartile", value: "27.3" }, { name: "Observations", value: "2" }] },
+		{ id: "row:2", heading: "Startup · row 3", lines: [{ name: "days", value: "4" }] },
+	];
+	const chart = { type: "boxplot", table, marks };
+	const { columns, loose } = tableColumns(table);
+	// By nearness, as before, the true median is a finding; by its own readout it is none.
+	assert.deepEqual(judgeValueText("27.5", columns, loose, {}).map((h) => h.raw), ["27.5"]);
+	const own = ownNumbers({ role: "label", mark: "0/0/0" }, chart, false);
+	assert.deepEqual(own, { kind: "readout", values: [27.5, 27.3, 2] });
+	assert.deepEqual(judgeMarkText("27.5", own), []);
+	assert.deepEqual(judgeMarkText("28", own), [], "a rounding of the box's own median");
+	// Stricter than nearness: a number that is none of the box's own is a finding though no row is near it.
+	assert.deepEqual(judgeValueText("35", columns, loose, {}), []);
+	assert.deepEqual(judgeMarkText("35", own).map((h) => h.raw), ["35"]);
+	// Only a label, of a box plot, that names a rowless mark: everything else is judged as before.
+	assert.equal(ownNumbers({ role: "label", mark: "row:2" }, chart, false), undefined);
+	assert.equal(ownNumbers({ role: "annotation", mark: "0/0/0" }, chart, false), undefined);
+	assert.equal(ownNumbers({ role: "label" }, chart, false), undefined);
+	assert.equal(ownNumbers({ role: "label", mark: "0/0/0" }, { ...chart, type: "violin" }, false), undefined);
+	assert.equal(ownNumbers({ role: "label", mark: "0/0/9" }, chart, false), undefined, "a mark with no readout falls back to nearness");
+	assert.deepEqual(ownNumbers({ role: "label", mark: "row:2" }, { ...chart, type: "bar" }, true), { kind: "row", values: [4] });
 });
 
 test("a percent token is judged against shares, never against raw values at the span tolerance", () => {

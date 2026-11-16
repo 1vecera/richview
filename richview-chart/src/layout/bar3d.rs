@@ -60,7 +60,9 @@ fn fail(ctx: &mut Ctx, reason: &str, fix: &str) -> Painted {
     kit::failed(ctx, reason, RATIO)
 }
 
-/// A face of a bar as a filled polygon with a hairline round it.
+/// A face of a bar as a filled polygon with a hairline round it. The hairline carries the bar's
+/// series, so it steps back with its bar when another row is emphasised (FEA-CH-52); it owns no
+/// observation and stays out of the legend's cue, which reads marks only.
 fn face(points: &[Pt], fill: Fill, outline: &Stroke, series: usize, obs: usize, out: &mut Vec<Item>) {
     out.push(project3d::polygon(points, fill, Some(series), Some(obs)));
     let mut ring: Vec<[f64; 2]> = points.iter().map(|p| [p.x, p.y]).collect();
@@ -69,7 +71,7 @@ fn face(points: &[Pt], fill: Fill, outline: &Stroke, series: usize, obs: usize, 
         path: Path::polyline(&ring),
         stroke: outline.clone(),
         role: Role::Grid,
-        series: None,
+        series: Some(series),
         obs: None,
     });
 }

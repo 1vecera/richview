@@ -39,7 +39,7 @@ Bar and area baselines start at zero. Scatter and line axes can focus on their d
 
 Printed and readout precision use significant digits, not decimal places. `readout_digits` cannot be below `digits`. A percentage expects a fraction; a unit labels values and does not convert them. A source note should name the population, period, source and any transformation. Readers do not get invented precision.
 
-Lines use bounded monotone smoothing by default. Choose `style.curve: linear` for straight segments or `previous` for steps. Sparse scatter highlights can prioritize named observations without labelling every point. Bars, lines, unstacked areas and density curves print a few exact values on their own, and a scatter with `encoding.label` names a few points; `auto_annotations: false` turns both off and keeps what the author wrote. Use the type pages and generated reference for exact options.
+Lines use bounded monotone smoothing by default. Choose `style.curve: linear` for straight segments or `previous` for steps. Sparse scatter highlights can prioritize named observations without labelling every point. Bars, lines, unstacked areas and density curves print a few exact values on their own, lollipop, pareto, waterfall, funnel, ribbon, heatmap and pie charts print theirs, and a scatter with `encoding.label` names a few points; `auto_annotations: false` prints no value the author did not write and keeps the names. Use the type pages and generated reference for exact options.
 
 ## Give readers a useful control
 

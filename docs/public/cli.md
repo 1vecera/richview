@@ -28,6 +28,17 @@ richview check first-report/report.rmd --chart-width 390 --format json
 
 Validation finds source and resource errors. Checking also lays out every chart and reports geometry, such as clipped labels or collisions, at the phone and desktop widths readers get; `--chart-width` measures another width instead. An error or a warning needs a fix; an info records what the renderer did. Browser inspection adds the actual font measurements and interactions. Check again after the final source edit.
 
+## Run every report in a folder
+
+```sh
+richview check first-report
+richview check reports
+```
+
+`validate`, `check` and `generate` take a folder as well as a file. The folder that holds a report stands for that report, so the first command checks `first-report/report.rmd`. A folder of report folders, such as `reports/q1/` and `reports/q2/`, stands for every report below it: each report's findings and result line start with its own path, the last line counts the reports with errors, and the command exits 1 when any report has one. With `--format json` the one object holds each report's own result under `reports`.
+
+`serve` and `publish` take one report.
+
 ## Write another presentation
 
 ```sh

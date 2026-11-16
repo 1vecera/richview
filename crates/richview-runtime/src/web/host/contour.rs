@@ -236,7 +236,33 @@ pub(super) fn items(
             }
         }
     }
-    // A soft halo in the mark's own colour replaces the ink glow where a mark can carry one.
+    // A hovered scatter point grows by a quarter (FEA-CH-53), over a disc of the page so its
+    // translucent fill does not double over the original.
+    let mut grown = Vec::new();
+    if kind == "scatter" {
+        for mark in &mut marks {
+            if let Item::Point { center, radius, .. } = mark {
+                *radius *= 1.0 + 0.25 * level;
+                grown.push(Item::Point {
+                    center: *center,
+                    radius: *radius,
+                    shape: Shape::Circle,
+                    fill: Some(Fill::solid(surface.with_alpha(surface.alpha() * level))),
+                    stroke: None,
+                    role: Role::Annotation,
+                    series: None,
+                    obs: None,
+                });
+                let mut copy = mark.clone();
+                if let Item::Point { role, .. } = &mut copy {
+                    *role = Role::Annotation;
+                }
+                grown.push(copy);
+            }
+        }
+    }
+    // A soft halo in the mark's own colour marks the selection where a mark can carry one, with
+    // no ink outline: the page shows between mark and halo (FEA-CH-53; Chart design, 15 Nov).
     // Each is one filled band, painted once: a translucent stroke would overlap itself at
     // every join of a curve.
     let halos: Vec<Option<Item>> = marks
@@ -244,18 +270,16 @@ pub(super) fn items(
         .map(|mark| halo_band(kind, mark, wedge, level))
         .collect();
     items.extend(halos.iter().flatten().cloned());
+    items.extend(grown);
     // Paint each layer across the whole glyph before the next. A tick's surface separator
     // must not erase its connected wick or a contour already drawn along that wick.
-    for (layer, (extra, color, point_gap)) in [
+    for (extra, color, point_gap) in [
         (6.0, ink.with_alpha(0.12 * level), 0.5),
         (3.5, surface.with_alpha(level), 0.5),
         (1.5, ink.with_alpha(0.85 * level), 2.5),
-    ]
-    .into_iter()
-    .enumerate()
-    {
+    ] {
         for (mark, halo) in marks.iter().zip(&halos) {
-            if layer == 0 && halo.is_some() {
+            if halo.is_some() {
                 continue;
             }
             let base = match mark {
@@ -265,9 +289,12 @@ pub(super) fn items(
             items.push(outline(mark, Stroke::solid(color, base + extra), point_gap));
         }
     }
-    // Restore the original coloured line components together, with their original widths.
-    for mark in marks {
-        if let Item::Line { stroke, .. } = &mark {
+    // Restore the original coloured line components together, with their original widths, over
+    // the separator of a mark without a halo.
+    for (mark, halo) in marks.into_iter().zip(&halos) {
+        if halo.is_none()
+            && let Item::Line { stroke, .. } = &mark
+        {
             items.push(outline(
                 &mark,
                 Stroke {
@@ -422,12 +449,15 @@ fn bar_silhouette(panel: &Panel, observation: usize) -> Option<(Path, Rgba)> {
     Some((path, color?))
 }
 
-/// The faces of other bars painted after this one's, which hide whatever of it they cover.
+/// The faces of other bars painted after this one's that still hide whatever of it they cover.
+/// While a bar is selected the other rows step back (`focus::select` gives bar3d `SeriesOf`), so
+/// only bars of its own row, at full strength, hide it; with one row that is every bar.
 fn front_faces(panel: &Panel, observation: usize) -> Vec<Vec<[f64; 2]>> {
     let own = |item: &Item| matches!(item, Item::Area { role: Role::Mark, obs: Some(index), .. } if *index == observation);
     let Some(last) = panel.items.iter().rposition(own) else {
         return Vec::new();
     };
+    let row = panel.items[last].series();
     panel.items[last + 1..]
         .iter()
         .filter_map(|item| match item {
@@ -435,8 +465,9 @@ fn front_faces(panel: &Panel, observation: usize) -> Vec<Vec<[f64; 2]>> {
                 path,
                 role: Role::Mark,
                 obs: Some(index),
+                series,
                 ..
-            } if *index != observation => Some(path.flatten(0.5)),
+            } if *index != observation && *series == row => Some(path.flatten(0.5)),
             _ => None,
         })
         .flatten()
@@ -844,13 +875,13 @@ fn halo_band(kind: &str, mark: &Item, wedge: Option<Wedge>, level: f64) -> Optio
         } => {
             let color = fill.map(|f| f.color).or(stroke.as_ref().map(|s| s.color))?;
             let half = stroke.as_ref().map_or(0.0, |s| s.width / 2.0);
-            // The contour's ink line ends 4 px outside the marker; a cross reaches its corners.
+            // The page shows between the marker and its halo; a cross reaches its corners.
             let reach = match shape {
                 Shape::Circle => *radius,
                 Shape::Square => radius * 0.85 * std::f64::consts::SQRT_2,
                 Shape::Triangle | Shape::Diamond | Shape::Plus | Shape::Cross => *radius,
             };
-            let inner = reach + half + 4.0;
+            let inner = reach + half + SEPARATOR;
             let mut path = Path::new();
             ring(&mut path, *center, inner + HALO_REACH);
             ring(&mut path, *center, inner);
@@ -1022,6 +1053,7 @@ fn rounded(path: &mut Path, rect: Rect, reach: f64) {
 mod tests {
     use super::*;
     use richview_chart::block::ChartBlock;
+    use richview_chart::geometry::Geometry;
     use richview_chart::layout::{ChartTheme, Options, layout};
 
     #[test]
@@ -1117,12 +1149,40 @@ mod tests {
                     (Item::Point { center: a, .. }, Item::Point { center: b, .. }) => a == b,
                     _ => false,
                 };
+                // An ink outline is drawn in the passed ink, at full strength.
+                let inked = |item: &Item| match item {
+                    Item::Rect {
+                        stroke: Some(s), ..
+                    }
+                    | Item::Line { stroke: s, .. }
+                    | Item::Point {
+                        stroke: Some(s), ..
+                    } => s.color.0[..3] == [0.0, 0.0, 0.0] && s.color.0[3] > 0.5,
+                    _ => false,
+                };
                 for mark in &marks {
-                    assert!(
-                        contours.iter().any(|item| follows(mark, item)),
-                        "{kind} observation {index} misses a mark: {mark:?}"
-                    );
+                    // A mark with a halo answers with the halo alone; the others keep their
+                    // ink contour (FEA-CH-53; Chart design, 15 Nov).
+                    let haloed = halo_band(kind, mark, observation.wedge, 1.0).is_some();
+                    let outlined = contours
+                        .iter()
+                        .any(|item| follows(mark, item) && inked(item));
+                    if haloed {
+                        assert!(
+                            !outlined,
+                            "{kind} observation {index} draws ink round a haloed mark: {mark:?}"
+                        );
+                    } else {
+                        assert!(
+                            outlined,
+                            "{kind} observation {index} misses a mark: {mark:?}"
+                        );
+                    }
                 }
+                assert!(
+                    !contours.is_empty(),
+                    "{kind} observation {index} shows no feedback"
+                );
                 for item in &contours {
                     let owned = if matches!(item, Item::Area { .. }) {
                         item.bounds().is_some_and(|r| {
@@ -1313,34 +1373,71 @@ mod tests {
         }
     }
 
-    #[test]
-    fn bar3d_contour_traces_only_what_the_bars_in_front_leave_visible() {
-        let input: serde_json::Value = serde_json::from_str(include_str!(
+    /// The bar3d fixture with its three rows of bars, or as one row without `color`.
+    fn bar3d(rows: bool) -> Geometry {
+        let mut input: serde_json::Value = serde_json::from_str(include_str!(
             "../../../../../richview-chart/tests/fixtures/types/bar3d.json"
         ))
         .unwrap();
-        let geometry = layout(
+        if !rows {
+            input["spec"]["encoding"]
+                .as_object_mut()
+                .unwrap()
+                .remove("color");
+        }
+        layout(
             &ChartBlock::from_value(&input["spec"]).unwrap(),
             input["rows"].as_array().unwrap(),
             &ChartTheme::default(),
             &Options::default(),
-        );
-        let panel = &geometry.panels[0];
-        // Strictly inside a front face, a quarter pixel in from each of its edges.
-        let hidden = |p: [f64; 2], face: &[[f64; 2]]| {
-            let turn = signed_area(face).signum();
-            (0..face.len()).all(|i| {
-                let (a, b) = (face[i], face[(i + 1) % face.len()]);
-                side(a, b, p, turn) / (b[0] - a[0]).hypot(b[1] - a[1]) > 0.25
+        )
+    }
+
+    /// Whether `p` lies strictly inside `face`, a quarter pixel in from each of its edges.
+    fn inside_face(p: [f64; 2], face: &[[f64; 2]]) -> bool {
+        let turn = signed_area(face).signum();
+        (0..face.len()).all(|i| {
+            let (a, b) = (face[i], face[(i + 1) % face.len()]);
+            side(a, b, p, turn) / (b[0] - a[0]).hypot(b[1] - a[1]) > 0.25
+        })
+    }
+
+    fn length(rings: Vec<Vec<[f64; 2]>>) -> f64 {
+        rings
+            .iter()
+            .flat_map(|ring| ring.windows(2))
+            .map(|pair| (pair[1][0] - pair[0][0]).hypot(pair[1][1] - pair[0][1]))
+            .sum()
+    }
+
+    /// Points every twentieth of the way along each segment of `rings`.
+    fn along(rings: &[Vec<[f64; 2]>]) -> Vec<[f64; 2]> {
+        rings
+            .iter()
+            .flat_map(|ring| ring.windows(2))
+            .flat_map(|pair| {
+                (0..=20).map(move |step| {
+                    let t = f64::from(step) / 20.0;
+                    [
+                        pair[0][0] + (pair[1][0] - pair[0][0]) * t,
+                        pair[0][1] + (pair[1][1] - pair[0][1]) * t,
+                    ]
+                })
             })
-        };
-        let length = |rings: Vec<Vec<[f64; 2]>>| -> f64 {
-            rings
-                .iter()
-                .flat_map(|ring| ring.windows(2))
-                .map(|pair| (pair[1][0] - pair[0][0]).hypot(pair[1][1] - pair[0][1]))
-                .sum()
-        };
+            .collect()
+    }
+
+    #[test]
+    fn bar3d_contour_traces_only_what_the_bars_in_front_leave_visible() {
+        // With one row nothing steps back and every nearer bar hides; with several, the bars of
+        // the selected one's own row do.
+        for rows in [false, true] {
+            contour_traces_only_what_the_bars_in_front_leave_visible(&bar3d(rows), rows);
+        }
+    }
+
+    fn contour_traces_only_what_the_bars_in_front_leave_visible(geometry: &Geometry, rows: bool) {
+        let panel = &geometry.panels[0];
         let (mut partly, mut whole) = (0, 0);
         for index in 0..panel.observations.len() {
             let front = front_faces(panel, index);
@@ -1365,20 +1462,11 @@ mod tests {
                 panic!("bar {index}: a halo, a separator and an ink line");
             };
             assert_eq!(separator.flatten(0.5), ink.flatten(0.5));
-            for ring in ink.flatten(0.5) {
-                for pair in ring.windows(2) {
-                    for step in 0..=20 {
-                        let t = f64::from(step) / 20.0;
-                        let p = [
-                            pair[0][0] + (pair[1][0] - pair[0][0]) * t,
-                            pair[0][1] + (pair[1][1] - pair[0][1]) * t,
-                        ];
-                        assert!(
-                            !front.iter().any(|face| hidden(p, face)),
-                            "bar {index}: its contour runs over a bar in front at {p:?}"
-                        );
-                    }
-                }
+            for p in along(&ink.flatten(0.5)) {
+                assert!(
+                    !front.iter().any(|face| inside_face(p, face)),
+                    "rows {rows}, bar {index}: its contour runs over a bar in front at {p:?}"
+                );
             }
             for piece in band.flatten(0.5) {
                 let piece = open_ring(piece);
@@ -1388,7 +1476,7 @@ mod tests {
                     piece.iter().map(|p| p[1]).sum::<f64>() / n,
                 ];
                 assert!(
-                    !front.iter().any(|face| hidden(centre, face)),
+                    !front.iter().any(|face| inside_face(centre, face)),
                     "bar {index}: its halo lies over a bar in front"
                 );
             }
@@ -1401,8 +1489,70 @@ mod tests {
                 whole += 1;
             }
         }
-        assert!(partly > 0, "the fixture has a partly hidden bar");
-        assert!(whole > 0, "the fixture has a bar in full view");
+        assert!(
+            partly > 0,
+            "rows {rows}: the fixture has a partly hidden bar"
+        );
+        assert!(whole > 0, "rows {rows}: the fixture has a bar in full view");
+    }
+
+    #[test]
+    fn bar3d_contour_goes_over_the_rows_that_step_back() {
+        let geometry = bar3d(true);
+        let panel = &geometry.panels[0];
+        let mut kept = 0;
+        for (index, o) in panel.observations.iter().enumerate() {
+            // The faces of the other rows painted after it, dimmed while it is selected.
+            let own = |item: &Item| matches!(item, Item::Area { role: Role::Mark, obs: Some(k), .. } if *k == index);
+            let last = panel.items.iter().rposition(own).unwrap();
+            let dimmed: Vec<Vec<[f64; 2]>> = panel.items[last + 1..]
+                .iter()
+                .filter_map(|item| match item {
+                    Item::Area {
+                        path,
+                        role: Role::Mark,
+                        series,
+                        ..
+                    } if *series != o.series => Some(path.flatten(0.5)),
+                    _ => None,
+                })
+                .flatten()
+                .map(open_ring)
+                .collect();
+            let front = front_faces(panel, index);
+            assert!(
+                front.iter().all(|face| !dimmed.contains(face)),
+                "bar {index}: a dimmed row hides it"
+            );
+            let (silhouette, _) = bar_silhouette(panel, index).unwrap();
+            let edge = along(&silhouette.flatten(0.5));
+            let covered = edge
+                .iter()
+                .any(|p| dimmed.iter().any(|face| inside_face(*p, face)));
+            if covered && front.is_empty() {
+                // Only dimmed rows lie in front of it: the contour goes round the whole bar.
+                let contour = items(
+                    "bar3d",
+                    panel,
+                    index,
+                    None,
+                    Rgba([0.0, 0.0, 0.0, 1.0]),
+                    geometry.background,
+                    1.0,
+                )
+                .unwrap();
+                let Item::Line { path: ink, .. } = &contour[2] else {
+                    panic!("bar {index}: a halo, a separator and an ink line");
+                };
+                let (all, shown) = (length(silhouette.flatten(0.5)), length(ink.flatten(0.5)));
+                assert!((shown - all).abs() < 1e-6, "bar {index}: {shown} of {all}");
+                kept += 1;
+            }
+        }
+        assert!(
+            kept > 0,
+            "a bar only the dimmed rows cover keeps its whole contour"
+        );
     }
 
     #[test]
@@ -1524,7 +1674,7 @@ mod tests {
     }
 
     #[test]
-    fn map_spots_keep_their_own_point_rings() {
+    fn map_spots_answer_with_their_own_halo() {
         let spec = serde_json::json!({"type":"map", "title":"Offices", "encoding":{"lat":"la", "lon":"lo"}});
         let rows = vec![
             serde_json::json!({"la":50.09,"lo":14.42}),
@@ -1548,9 +1698,17 @@ mod tests {
                 1.0,
             )
             .unwrap();
-            assert!(outlines.iter().any(
-                |item| matches!(item, Item::Point { center, .. } if *center == observation.at)
-            ));
+            // A spot answers with its own halo, centred on it, and no ink ring.
+            assert!(outlines.iter().any(|item| matches!(item, Item::Area { .. })
+                && item.bounds().is_some_and(|b| {
+                    (b.center()[0] - observation.at[0]).abs() < 0.5
+                        && (b.center()[1] - observation.at[1]).abs() < 0.5
+                })));
+            assert!(
+                !outlines
+                    .iter()
+                    .any(|item| matches!(item, Item::Point { .. }))
+            );
         }
     }
 
@@ -1594,7 +1752,7 @@ mod tests {
     }
 
     #[test]
-    fn network_nodes_keep_their_own_point_rings() {
+    fn network_nodes_answer_with_their_own_halo() {
         let input: serde_json::Value = serde_json::from_str(include_str!(
             "../../../../../richview-chart/tests/fixtures/types/network.json"
         ))
@@ -1631,12 +1789,17 @@ mod tests {
                 1.0,
             )
             .unwrap();
-            assert!(outlines.iter().any(
-                |item| matches!(item, Item::Point { center: actual, .. } if *actual == center)
-            ));
-            assert!(outlines.iter().all(
-                |item| !matches!(item, Item::Point { center: actual, .. } if *actual != center)
-            ));
+            // A node answers with its own halo, centred on it, and no ink ring.
+            assert!(outlines.iter().any(|item| matches!(item, Item::Area { .. })
+                && item.bounds().is_some_and(|b| {
+                    (b.center()[0] - center[0]).abs() < 0.5
+                        && (b.center()[1] - center[1]).abs() < 0.5
+                })));
+            assert!(
+                !outlines
+                    .iter()
+                    .any(|item| matches!(item, Item::Point { .. }))
+            );
         }
     }
 

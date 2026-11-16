@@ -21,7 +21,8 @@
 // By mark (TYP-36): a value text names its mark (`Text::mark`; a readout is its observation's), and
 // that mark is judged exactly. A mark that is one row of the state ("row:<n>") is the n-th row of the
 // state's Table; every number the text prints must round from that row, or be a share, sum or running
-// total of the column. A bin or quartile has no row, so a label is judged against its own readout.
+// total of the column. A bin or quartile has no row, so a label is judged against its own readout;
+// a box plot's median label is judged that way too, though the box plot prints statistics.
 // Nearness to the Table is only the fallback for a text with no mark (a key, an annotation, a total).
 //
 // Drawn against read: a rect mark of a bar-like chart (histogram, bar, Pareto, waterfall, funnel) is
@@ -391,6 +392,25 @@ export function markNumbers(id, { table = [], marks = [] } = {}) {
 	const mark = marks.find((m) => m.id === id);
 	const values = (mark?.lines ?? []).flatMap((line) => signedNumbers(line.value).map((t) => t.signed));
 	return values.length ? { kind: "readout", values } : undefined;
+}
+
+/**
+ * The chart types whose label may name a rowless mark that is a statistic of several rows: a box's
+ * median. `judgeDerivedReadouts` recomputes that mark's readout from the Table rows.
+ */
+export const STATISTIC_LABEL_TYPES = new Set(["boxplot"]);
+
+/**
+ * The numbers a text is judged against by its mark (see `markNumbers`), or undefined when nearness to
+ * the Table is all there is to judge by. `strict` is a label or readout of a chart that prints the
+ * author's values. A label of a box plot that names a rowless mark prints a statistic of that box,
+ * so it is judged by the box's own readout, exactly: the median of an even sample lies between two
+ * rows and may be near a third, which makes nearness to the rows the wrong question for it.
+ */
+export function ownNumbers({ role, mark }, chart, strict) {
+	if (!mark) return undefined;
+	if (strict) return markNumbers(mark, chart);
+	return role === "label" && STATISTIC_LABEL_TYPES.has(chart.type) && !/^row:\d+$/.test(mark) ? markNumbers(mark, chart) : undefined;
 }
 
 /**
@@ -982,7 +1002,7 @@ export async function runLabelTruth({ cwd, bin, out, publicDir, only, jobs, fixt
 				}
 				const strict = STRICT.has(role) && VALUE_TYPES.has(chart.type) && !COUNT_NAMES.test(name ?? "");
 				// By mark: a text that names its mark is judged against that mark's own row (or its own readout), exactly.
-				const own = strict && mark ? markNumbers(mark, chart) : undefined;
+				const own = ownNumbers({ role, mark }, chart, strict);
 				if (own) {
 					for (const hit of judgeMarkText(text, own, derived)) found({ role, text, shown: hit.raw, tableValue: hit.near, mark });
 					continue;

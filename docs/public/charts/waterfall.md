@@ -61,6 +61,7 @@ axes:
 - `type: waterfall` with `encoding.x` for the step name and `encoding.y` for its signed amount
 - `encoding.measure` names the field that marks a row: `start` (also `absolute`, `reset`) begins from that value, `total` (also `subtotal`) ends a run, and `delta` (also `relative`, `change`) or an empty cell is a change added to the running sum; any other value is an error
 - A total that disagrees with the sum of the steps is reported, not replaced
+- Each step prints its change beyond its bar; `auto_annotations: false` leaves the values to the readout
 - `axes.y` sets `label`, `format`, `unit`, `min` and `max`
 - `style.ratio` sets the width to height ratio, and `style.facet_scale: free` gives each facet its own value scale
 

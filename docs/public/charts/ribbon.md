@@ -78,7 +78,7 @@ axes:
 - Categories keep the order of the source and run left to right; in each one the groups are stacked by value, the largest on top
 - A ribbon joins a group's segment to its segment in the next category; a group with no row in a category, or a value of zero, has no ribbon into or out of it
 - A value cannot be negative, and each category and group may have one row per panel
-- Values are printed in the segments that have room; rank and share in the readout are computed by RichView and marked as derived
+- Values are printed in the segments that have room, and `auto_annotations: false` prints none; rank and share in the readout are computed by RichView and marked as derived
 - `encoding.facet` makes one ribbon chart per value; `axes.y` sets `label`, `format`, `unit`, `min` and `max`
 
 ## Interactions

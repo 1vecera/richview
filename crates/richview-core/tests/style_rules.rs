@@ -401,8 +401,9 @@ fn only_images_embeds_code_the_readout_and_bar_ends_have_a_radius() {
 
 #[test]
 fn the_readout_is_a_small_raised_hairline_panel_in_every_builtin() {
-    // STY-41 (assumed): the raised surface at 100% with no blur, a 1 px hairline in `rule`, 8 px padding,
-    // 12 px text, values in the data face, at most 300 px wide.
+    // STY-41 (assumed): the raised surface at 100% with no blur, a 1 px border (the hairline in
+    // `rule`, unless the style resolves a stronger edge), 8 px padding, 12 px text, values in the
+    // data face, at most 300 px wide.
     for style in builtin_style_names() {
         let all = rules(style);
         let body: String = all
@@ -422,7 +423,7 @@ fn the_readout_is_a_small_raised_hairline_panel_in_every_builtin() {
         );
         assert_eq!(
             declares(&body, "border").as_deref(),
-            Some("1px solid var(--rv-rule)"),
+            Some("1px solid var(--rv-readout-rule,var(--rv-rule))"),
             "{style}"
         );
         assert_eq!(
@@ -458,6 +459,63 @@ fn the_readout_is_a_small_raised_hairline_panel_in_every_builtin() {
         assert!(
             value.contains("--rv-font-mono"),
             "{style}: values in the data face"
+        );
+    }
+}
+
+#[test]
+fn a_readout_without_a_shadow_takes_the_stronger_of_the_hairline_and_the_axis_ink() {
+    // STY-41 (assumed): with no shadow the panel is told from the chart by its border alone, so it
+    // takes whichever of `rule` and `ink-faint` contrasts more with the panel; a panel with a
+    // shadow keeps the hairline. Sleek and Hand-drawn get the axis ink; Brutalist's hairline is
+    // its ink already; Air and Scientific cast a shadow.
+    for style in builtin_style_names() {
+        let edge = rules(style)
+            .iter()
+            .filter(|(s, _)| s == ":root")
+            .find_map(|(_, b)| declares(b, "--rv-readout-rule"));
+        let expected =
+            matches!(*style, "sleek" | "hand-drawn").then(|| "var(--rv-ink-faint)".to_owned());
+        assert_eq!(edge, expected, "{style}");
+    }
+}
+
+#[test]
+fn a_readout_row_reads_value_first_in_every_builtin() {
+    // STY-41 (assumed): a name is set in the soft ink and its value in the full ink, the derived
+    // value that follows a mark's own included; on one row two pairs stand 12 px apart, twice
+    // the 6 px between a name and its value.
+    for style in builtin_style_names() {
+        let all = rules(style);
+        let body = |selector: &str| -> String {
+            all.iter()
+                .filter(|(s, _)| s == selector)
+                .map(|(_, b)| b.clone())
+                .collect::<Vec<_>>()
+                .join(";")
+        };
+        assert_eq!(
+            declares(&body(".rv-chart__readout-name"), "color").as_deref(),
+            Some("var(--rv-ink-soft)"),
+            "{style}: names in the soft ink"
+        );
+        assert!(
+            declares(&body(".rv-chart__readout-value"), "color").is_none(),
+            "{style}: values keep the row's ink"
+        );
+        assert!(
+            all.iter().all(|(s, _)| !s.contains("readout-line--soft")),
+            "{style}: no rule dims a derived value"
+        );
+        let compact = body(".rv-chart__readout--compact");
+        let pair = body(".rv-chart__readout--compact .rv-chart__readout-line");
+        let apart = body(".rv-chart__readout--compact .rv-chart__readout-line:not(:last-child)");
+        assert_eq!(declares(&pair, "gap").as_deref(), Some("6px"), "{style}");
+        assert_eq!(declares(&compact, "gap").as_deref(), Some("6px"), "{style}");
+        assert_eq!(
+            declares(&apart, "margin-right").as_deref(),
+            Some("6px"),
+            "{style}: 12 px between two pairs"
         );
     }
 }

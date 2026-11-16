@@ -241,3 +241,50 @@ fn the_runtime_keeps_the_axis_and_the_sums_of_the_exact_rows() {
     ];
     runtime_matches_native(&plain(), &rows);
 }
+
+#[test]
+fn each_face_hairline_carries_its_bars_series_and_no_observation() {
+    // A bar's hairlines step back with it when another row is emphasised (FEA-CH-52); they own no
+    // observation, so the pointer and the readout read the faces alone.
+    let (spec, rows) = fixture();
+    let g = draw(&spec, &rows);
+    let items = &g.panels[0].items;
+    let mut faces = 0;
+    for (k, item) in items.iter().enumerate() {
+        let Item::Area {
+            role: Role::Mark,
+            series,
+            path,
+            ..
+        } = item
+        else {
+            continue;
+        };
+        faces += 1;
+        let Some(Item::Line {
+            role,
+            series: line_series,
+            obs,
+            path: line,
+            ..
+        }) = items.get(k + 1)
+        else {
+            panic!("face {k} has no hairline after it");
+        };
+        assert_eq!(*role, Role::Grid, "face {k}: its hairline is a grid line");
+        assert_eq!(line_series, series, "face {k}: its hairline carries the bar's series");
+        assert_eq!(*obs, None, "face {k}: its hairline owns no observation");
+        let open = |mut ring: Vec<[f64; 2]>| {
+            if ring.len() > 1 && ring.first() == ring.last() {
+                ring.pop();
+            }
+            ring
+        };
+        assert_eq!(
+            open(line.flatten(0.5).remove(0)),
+            open(path.flatten(0.5).remove(0)),
+            "face {k}: the hairline goes round its face"
+        );
+    }
+    assert_eq!(faces, 12 * 3, "three faces for each of the twelve bars");
+}

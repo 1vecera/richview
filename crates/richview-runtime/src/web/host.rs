@@ -4744,10 +4744,30 @@ fn open_expanded(view: &Rc<RefCell<View>>, pointer: bool) {
     let title_id = format!("{}-dialog-title", view.borrow().figure.id());
     title.set_id(&title_id);
     let _ = dialog.set_attribute("aria-labelledby", &title_id);
+    let titles = el("div", "rv-chart-dialog__titles");
+    let _ = titles.append_child(&title);
+    // The subtitle follows its title into the dialog: it often says what the chart measures, and
+    // the expanded figure has no head of its own (Daniel, 16 Nov: expanding lost the subtitle).
+    let subtitle = view
+        .borrow()
+        .figure
+        .query_selector(".rv-chart__subtitle")
+        .ok()
+        .flatten()
+        .and_then(|s| s.text_content())
+        .filter(|s| !s.trim().is_empty());
+    if let Some(text) = subtitle {
+        let subtitle = el("p", "rv-chart-dialog__subtitle");
+        subtitle.set_text_content(Some(&text));
+        let subtitle_id = format!("{}-dialog-subtitle", view.borrow().figure.id());
+        subtitle.set_id(&subtitle_id);
+        let _ = dialog.set_attribute("aria-describedby", &subtitle_id);
+        let _ = titles.append_child(&subtitle);
+    }
     // An action like the others, so it shows its icon where actions are icons alone (FEA-CH-43).
     let close = action_button("Close", "rv-chart__action--close");
     let _ = close.class_list().add_1("rv-chart-dialog__close");
-    let _ = header.append_child(&title);
+    let _ = header.append_child(&titles);
     let _ = header.append_child(&close);
     let figure = el("figure", "rv-chart rv-chart--expanded");
     // The same controls in the same state; a change in either view applies to both (FEA-BR-32).

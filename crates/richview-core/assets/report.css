@@ -27,6 +27,16 @@ body {
 /* Header, prose and footer share one measure and one left spine; only tables and blocks that
    opt in break out of it. */
 .rv-report__header { max-width: var(--rv-measure-w); padding-bottom: calc(var(--rv-line) * .75); border-bottom: 1px solid var(--rv-rule); }
+/* The header image may be wider than the text (Daniel, 16 Nov): on screen the picture takes the
+   report's column, as a `full` block does, centred on the header's axis, while its caption and
+   credit, the title, deck and byline keep the measure. The header is only a measure wide, so the
+   column's width is written from the window's: the report's width without its side padding (the
+   contents rail narrows it, see reading.rs). A window no wider than the measure has no room to
+   give, and paper keeps the measure. */
+.rv-report { --rv-column-w: calc(min(var(--rv-report-max-width, 980px), 100vw) - 3rem); }
+@media screen {
+  .rv-report__header > .rv-image > img { width: max(100%, var(--rv-column-w)); max-width: none; margin-inline: calc((100% - max(100%, var(--rv-column-w))) / 2); }
+}
 .rv-report__title {
   font-family: var(--rv-font-display, var(--rv-font-text));
   font-size: var(--rv-size-display);
@@ -232,7 +242,7 @@ p.rv-callout__title { margin: 0 0 calc(var(--rv-line) * .25); }
 .rv-embed iframe { width: 100%; border: 1px solid var(--rv-rule); border-radius: var(--rv-radius-m); display: block; }
 
 @media (max-width: 640px) {
-  .rv-report { margin: 1.5rem auto; padding: 0 1rem 2rem; gap: calc(var(--rv-line) * .85); }
+  .rv-report { --rv-column-w: calc(100vw - 2rem); margin: 1.5rem auto; padding: 0 1rem 2rem; gap: calc(var(--rv-line) * .85); }
 }
 
 /* Keyboard: every control and link shows where focus is, in the style's accent, whatever the

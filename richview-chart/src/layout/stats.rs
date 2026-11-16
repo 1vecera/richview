@@ -1267,6 +1267,9 @@ fn grouped(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)], kind: Kind2) 
             }
         }
         let mut observations = Vec::new();
+        // Each box with its median: observation, group, readout text, the box's span across the
+        // category axis and the median's position (FEA-CH-28, chart design 16 Nov 2026).
+        let mut boxes: Vec<(usize, usize, String, [f64; 2], f64)> = Vec::new();
         for s in slots.iter() {
             if ctx.is_hidden(s.group) || s.facet != facet {
                 continue;
@@ -1387,6 +1390,7 @@ fn grouped(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)], kind: Kind2) 
                         },
                     ];
                     let area = span(c0, c1, sum.lower_whisker, sum.upper_whisker);
+                    boxes.push((index, s.group, text.median.clone(), [c0, c1], vmap(sum.median)));
                     observations.push(Observation {
                         row: None,
                         dots: vec![],
@@ -1529,6 +1533,46 @@ fn grouped(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)], kind: Kind2) 
             x: None,
             failure: None,
         };
+        // Each box's median beside it at the median's height, all on one side: right of an
+        // upright box (under a lying one), and on the other side only where that one has no
+        // room (chart design, 16 Nov 2026).
+        let wanted: Vec<super::place::SparseValue> = boxes
+            .iter()
+            .map(|(observation, group, text, [c0, c1], median)| {
+                let place = |first: bool| {
+                    if horizontal {
+                        let y = if first {
+                            c0 - 4.0 - lh / 2.0
+                        } else {
+                            c1 + 4.0 + lh / 2.0
+                        };
+                        ctx.text_mid(
+                            text,
+                            *median,
+                            y,
+                            Anchor::Middle,
+                            Face::Figures,
+                            Role::Label,
+                            ctx.style.ink,
+                        )
+                    } else {
+                        let (x, anchor) = if first {
+                            (c0 - 4.0, Anchor::End)
+                        } else {
+                            (c1 + 4.0, Anchor::Start)
+                        };
+                        ctx.text_mid(text, x, *median, anchor, Face::Figures, Role::Label, ctx.style.ink)
+                    }
+                };
+                super::place::SparseValue {
+                    text: text.clone(),
+                    series: *group,
+                    observation: *observation,
+                    places: vec![place(false), place(true)],
+                }
+            })
+            .collect();
+        super::place::sparse_values(ctx, facet, &mut panel, boxes.len(), wanted, &|_| true);
         super::panel_title(ctx, &mut panel, name);
         panels.push(panel);
     }

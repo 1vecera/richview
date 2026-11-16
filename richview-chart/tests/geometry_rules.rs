@@ -642,6 +642,241 @@ fn missing_values_break_lines_and_never_become_observations() {
     assert!(readouts.iter().any(|v| v == "No observation"), "{readouts:?}");
 }
 
+/// Each labelled band of a chart with its label's box, in the order the bands stand on x.
+fn band_labels(
+    g: &Geometry,
+    texts: &[&str],
+) -> Vec<(richview_chart::geometry::Rect, Option<richview_chart::geometry::Rect>)> {
+    let mut bands: Vec<_> = g.panels[0]
+        .items
+        .iter()
+        .filter_map(|i| match i {
+            Item::Rect {
+                rect,
+                role: Role::Annotation,
+                ..
+            } => Some(*rect),
+            _ => None,
+        })
+        .collect();
+    bands.sort_by(|a, b| a.x.total_cmp(&b.x));
+    assert_eq!(bands.len(), texts.len(), "one band per label");
+    bands
+        .into_iter()
+        .zip(texts)
+        .map(|(band, text)| {
+            let label = g.panels[0].items.iter().find_map(|i| match i {
+                Item::Text(t) if t.role == Role::Annotation && t.text == *text => Some(t.bounds),
+                _ => None,
+            });
+            (band, label)
+        })
+        .collect()
+}
+
+fn banded(bands: &[(&str, &str, &str)], width: f64) -> Geometry {
+    // Low values under a y axis to 100, so the top rows are clear of the line.
+    banded_with(bands, width, |i| Some(i % 7))
+}
+
+/// A line over 42 months under a y axis to 100, with the given bands and a value for each month
+/// that has a row.
+fn banded_with(bands: &[(&str, &str, &str)], width: f64, value: impl Fn(usize) -> Option<usize>) -> Geometry {
+    let rows: Vec<Value> = (0..42)
+        .filter_map(|i| Some(json!({"m": format!("{}-{:02}", 2023 + i / 12, i % 12 + 1), "v": value(i)?})))
+        .collect();
+    let annotations: Vec<Value> = bands
+        .iter()
+        .map(|(from, to, text)| json!({"kind": "band", "from": {"x": from}, "to": {"x": to}, "text": text}))
+        .collect();
+    let spec = json!({"type": "line", "title": "T", "encoding": {"x": "m", "y": "v"},
+        "axes": {"y": {"max": 100}}, "annotations": annotations});
+    draw(
+        spec,
+        &rows,
+        Options {
+            width,
+            ..Options::default()
+        },
+    )
+}
+
+/// A band's label reads as that band's: it lies over its band, keeps 12 px from its neighbours
+/// in a row and uses at most two rows (chart design, 15 Nov 2026). Here every label has a place
+/// ending at its band, the last one only there, so all three end 4 px inside their bands.
+#[test]
+fn a_bands_label_lies_over_its_band_and_keeps_its_distance() {
+    let texts = [
+        "First long event label",
+        "Second long event label",
+        "Third event, at the right edge",
+    ];
+    let g = banded(
+        &[
+            ("2023-11", "2023-12", texts[0]),
+            ("2024-05", "2024-06", texts[1]),
+            ("2026-04", "2026-05", texts[2]),
+        ],
+        1100.0,
+    );
+    let placed = band_labels(&g, &texts);
+    let boxes: Vec<_> = placed
+        .iter()
+        .map(|(_, l)| l.unwrap_or_else(|| panic!("every label is placed: {:?}", g.dropped)))
+        .collect();
+    let apart = placed[1].0.x - placed[0].0.x;
+    assert!(
+        (100.0..boxes[0].w + 12.0).contains(&apart),
+        "the first two bands are too near for one row: {apart} px, label {} px",
+        boxes[0].w
+    );
+    for ((band, _), label) in placed.iter().zip(&boxes) {
+        assert!(
+            label.x < band.right() && band.x < label.right(),
+            "a label lies over its band: {label:?} and {band:?}"
+        );
+    }
+    let plot = g.panels[0].plot;
+    for ((band, _), label) in placed.iter().zip(&boxes) {
+        assert!(
+            (band.right() - label.right() - 4.0).abs() < 1.0 && label.right() <= plot.right(),
+            "every label ends 4 px inside its band: {label:?} and {band:?}"
+        );
+    }
+    let mut rows: Vec<f64> = boxes.iter().map(|b| b.y).collect();
+    rows.sort_by(f64::total_cmp);
+    rows.dedup_by(|a, b| (*a - *b).abs() < 0.01);
+    assert_eq!(rows.len(), 2, "the second label takes the second row: {boxes:?}");
+    assert!(boxes[1].y > boxes[0].y);
+    for (i, a) in boxes.iter().enumerate() {
+        for b in &boxes[i + 1..] {
+            if (a.y - b.y).abs() < 0.01 {
+                let gap = (b.x - a.right()).max(a.x - b.right());
+                assert!(gap >= 12.0 - 0.01, "row neighbours keep 12 px: {gap}");
+            }
+        }
+    }
+    assert!(g.dropped.iter().all(|d| d.kind.as_deref() != Some("annotation")));
+}
+
+/// Two rows are all there are: a third label that fits in neither is dropped and reported, and
+/// the two that stay still lie over their bands. On this narrow chart a label ending at one of
+/// the first two bands would leave the plot, so starting prints more and both labels start
+/// 4 px inside their bands.
+#[test]
+fn a_band_label_with_no_row_left_is_dropped_and_reported() {
+    let texts = [
+        "First long event label",
+        "Second long event label",
+        "Third long event label",
+    ];
+    let g = banded(
+        &[
+            ("2024-05", "2024-06", texts[0]),
+            ("2024-07", "2024-08", texts[1]),
+            ("2024-09", "2024-10", texts[2]),
+        ],
+        390.0,
+    );
+    let placed = band_labels(&g, &texts);
+    assert!(placed[0].1.is_some() && placed[1].1.is_some(), "{placed:?}");
+    assert!(placed[2].1.is_none(), "no third row: {placed:?}");
+    for (band, label) in placed.iter().filter_map(|(b, l)| l.map(|l| (b, l))) {
+        assert!(label.x < band.right() && band.x < label.right());
+        assert!(
+            (label.x - band.x - 4.0).abs() < 0.01,
+            "starts 4 px inside: {label:?} and {band:?}"
+        );
+    }
+    assert!(
+        g.dropped
+            .iter()
+            .any(|d| d.kind.as_deref() == Some("annotation") && d.text == texts[2]),
+        "{:?}",
+        g.dropped
+    );
+    assert!(kinds(&g).contains(&"label-dropped"), "{:?}", kinds(&g));
+}
+
+/// All band labels of a chart hang on the same side of their bands, so no label reaches from
+/// its own band to the band the next label ends at (chart design, 16 Nov 2026). Three bands
+/// 39 px apart print two labels on either side; on that tie the labels end at their bands.
+#[test]
+fn band_labels_of_one_chart_hang_on_the_same_side() {
+    let texts = [
+        "First long event label",
+        "Second long event label",
+        "Third long event label",
+    ];
+    let g = banded(
+        &[
+            ("2024-05", "2024-06", texts[0]),
+            ("2024-08", "2024-09", texts[1]),
+            ("2024-11", "2024-12", texts[2]),
+        ],
+        560.0,
+    );
+    let placed = band_labels(&g, &texts);
+    let printed: Vec<_> = placed.iter().filter_map(|(b, l)| l.map(|l| (*b, l))).collect();
+    assert_eq!(printed.len(), 2, "two rows hold two of the three: {placed:?}");
+    for (band, label) in &printed {
+        assert!(
+            (band.right() - label.right() - 4.0).abs() < 1.0 && label.x < band.x,
+            "on a tie every label ends 4 px inside its band: {label:?} and {band:?}"
+        );
+    }
+    assert!(
+        (printed[0].1.y - printed[1].1.y).abs() > 1.0,
+        "one label a row: {printed:?}"
+    );
+    assert_eq!(
+        g.dropped
+            .iter()
+            .filter(|d| d.kind.as_deref() == Some("annotation"))
+            .count(),
+        1,
+        "{:?}",
+        g.dropped
+    );
+}
+
+/// A drawn line is a mark between its points too. Three rows leave a long stretch of line with
+/// no point on it; where that stretch runs through the first row, the label takes the second.
+#[test]
+fn a_band_label_keeps_clear_of_the_line_between_the_points() {
+    let texts = ["An event label"];
+    let band = [("2024-05", "2024-06", texts[0])];
+    let sparse = |high: usize| {
+        banded_with(&band, 560.0, move |i| match i {
+            0 => Some(0),
+            1 | 41 => Some(high),
+            _ => None,
+        })
+    };
+    let clear = band_labels(&sparse(3), &texts)[0].1.expect("placed");
+    let g = sparse(97);
+    let label = band_labels(&g, &texts)[0].1.expect("placed in the second row");
+    assert!(label.y > clear.y + 1.0, "second row: {label:?}, first row {clear:?}");
+    let line_y = g.panels[0]
+        .items
+        .iter()
+        .find_map(|i| match i {
+            Item::Line {
+                path, role: Role::Mark, ..
+            } => path.bounds().map(|b| b.y),
+            _ => None,
+        })
+        .expect("the series line");
+    assert!(
+        (clear.y..clear.bottom()).contains(&line_y),
+        "the line runs through the first row: {line_y} and {clear:?}"
+    );
+    assert!(
+        line_y < label.y - 2.0,
+        "the label is off the stroke: {line_y} and {label:?}"
+    );
+}
+
 #[test]
 fn annotations_draw_and_unmatched_ones_warn() {
     let rows: Vec<Value> = months(6)

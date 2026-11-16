@@ -1,7 +1,7 @@
 //! The command line: decodes arguments, calls the operation layer (ARC-08) and prints the result.
 use crate::{
-    ops::{self, Failure, GenerateRequest, Input},
-    resolver,
+    ops::{self, Failure, FolderRun, GenerateRequest, Input},
+    resolver::{self, Target},
     server::{AppState, Preview},
     storage::FsStorage,
 };
@@ -57,12 +57,9 @@ pub(crate) fn definition() -> clap::Command {
     Cli::command()
 }
 
-/// The report every report command reads.
+/// How a report command reads a report.
 #[derive(Args, Clone)]
-struct ReportArgs {
-    /// The report's `.rmd`, saved in its own folder (a folder holding one `.rmd` also works)
-    #[arg(value_parser = report_file)]
-    input: PathBuf,
+struct ReadArgs {
     /// Style (a builtin name or a file in the report folder) replacing the source's `styles` for this call; repeatable
     #[arg(long = "style")]
     styles: Vec<String>,
@@ -70,14 +67,34 @@ struct ReportArgs {
     #[arg(long, env = "RICHVIEW_CONNECTORS")]
     connectors: Option<PathBuf>,
 }
-impl ReportArgs {
-    fn input(&self) -> Input {
+impl ReadArgs {
+    fn input(&self, report: &Path) -> Input {
         Input {
-            path: self.input.clone(),
+            path: report.to_path_buf(),
             styles: self.styles.clone(),
             connectors: self.connectors.clone(),
         }
     }
+}
+
+/// The one report `serve` and `publish` read.
+#[derive(Args, Clone)]
+struct ReportArgs {
+    /// The report's `.rmd`, saved in its own folder (a folder holding one `.rmd` also works)
+    #[arg(value_parser = one_report)]
+    input: PathBuf,
+    #[command(flatten)]
+    read: ReadArgs,
+}
+
+/// The report, or the folder of reports, that `generate` and `check` read.
+#[derive(Args, Clone)]
+struct ReportsArgs {
+    /// The report's `.rmd` or the folder holding it; a folder of report folders stands for every report below it
+    #[arg(value_parser = report_target)]
+    input: Target,
+    #[command(flatten)]
+    read: ReadArgs,
 }
 
 #[derive(Args, Clone)]
@@ -151,7 +168,7 @@ enum Command {
     #[command(alias = "g")]
     Generate {
         #[command(flatten)]
-        args: ReportArgs,
+        args: ReportsArgs,
         /// File name inside Rendered/; a name ending in .pdf implies --to pdf
         #[arg(short, long)]
         output: Option<PathBuf>,
@@ -172,9 +189,9 @@ enum Command {
     },
     /// Check the structure of a report without rendering it
     Validate {
-        /// The report's `.rmd`, saved in its own folder (a folder holding one `.rmd` also works)
-        #[arg(value_parser = report_file)]
-        input: PathBuf,
+        /// The report's `.rmd` or the folder holding it; a folder of report folders stands for every report below it
+        #[arg(value_parser = report_target)]
+        input: Target,
         /// Also apply the publish rules: title, description, version and a valid slug
         #[arg(long)]
         publish: bool,
@@ -184,7 +201,7 @@ enum Command {
     /// Render the report and return every diagnostic and each chart's geometry
     Check {
         #[command(flatten)]
-        args: ReportArgs,
+        args: ReportsArgs,
         /// Measure charts at this width in pixels instead of the widths readers get; repeatable
         #[arg(long)]
         chart_width: Vec<f64>,
@@ -610,11 +627,21 @@ pub async fn run() -> Result<(), String> {
         Command::Report { command } => command.owner().format.format,
         _ => OutputFormat::Pretty,
     };
+    // The report a failure's findings are about; a folder run names its reports itself.
     let context = match &cli.command {
-        Command::Generate { args, .. }
-        | Command::Check { args, .. }
-        | Command::Publish { args, .. } => Some(args.input.clone()),
-        Command::Validate { input, .. } => Some(input.clone()),
+        Command::Publish { args, .. } => Some(args.input.clone()),
+        Command::Generate {
+            args: ReportsArgs { input, .. },
+            ..
+        }
+        | Command::Check {
+            args: ReportsArgs { input, .. },
+            ..
+        }
+        | Command::Validate { input, .. } => match input {
+            Target::Report(report) => Some(report.clone()),
+            Target::Folder { .. } => None,
+        },
         _ => None,
     };
     match execute(cli.command).await {
@@ -671,6 +698,73 @@ fn finish(result: &Value, summary: String, format: OutputFormat, input: &Path) {
     }
 }
 
+/// Runs a report command on what it was pointed at and prints the result: one report as ever, or
+/// every report of a folder in turn.
+async fn run_on(
+    target: &Target,
+    command: impl AsyncFn(&Path) -> ops::Outcome,
+    summary: impl Fn(&Value) -> String,
+    format: OutputFormat,
+) -> Result<(), Failure> {
+    match target {
+        Target::Report(report) => {
+            let result = command(report).await?;
+            finish(&result, summary(&result), format, report);
+        }
+        Target::Folder { reports, .. } => {
+            let mut run = FolderRun::default();
+            for report in reports {
+                run.keep(report, command(report).await)?;
+            }
+            finish_folder(&run, summary, format);
+        }
+    }
+    Ok(())
+}
+
+/// Prints a folder run: the one JSON object, or each report's findings on standard error and its
+/// result line on standard output, both led by the report's path, then the count. Exits 1 when any
+/// report has an error.
+fn finish_folder(run: &FolderRun, summary: impl Fn(&Value) -> String, format: OutputFormat) {
+    let result = run.result();
+    match format {
+        OutputFormat::Json => println!("{result}"),
+        OutputFormat::Pretty => {
+            for (report, outcome) in run.outcomes() {
+                let lines = |diagnostics: &[Diagnostic]| {
+                    diagnostics_lines(diagnostics, Some(report), report.parent())
+                };
+                let (findings, line) = match outcome {
+                    Ok(value) => {
+                        let diagnostics: Vec<Diagnostic> =
+                            serde_json::from_value(value["diagnostics"].clone())
+                                .unwrap_or_default();
+                        (lines(&diagnostics), summary(value))
+                    }
+                    Err(Failure::Diagnostics(diagnostics)) => (lines(diagnostics), "Failed".into()),
+                    Err(failure) => (
+                        format!("{}: {}", report.display(), failure.message()),
+                        "Failed".into(),
+                    ),
+                };
+                if !findings.is_empty() {
+                    eprintln!("{findings}");
+                }
+                println!("{}: {line}", report.display());
+            }
+            let reports = result["reports"].as_array().map_or(&[][..], Vec::as_slice);
+            println!(
+                "{} reports, {} with errors",
+                reports.len(),
+                reports.iter().filter(|report| !ops::is_ok(report)).count()
+            );
+        }
+    }
+    if !ops::is_ok(&result) {
+        std::process::exit(1)
+    }
+}
+
 /// Quotes an executable or report path in the human-readable next-step commands.
 fn command_path(path: &Path) -> String {
     let text = path.to_string_lossy();
@@ -721,66 +815,74 @@ async fn execute(command: Command) -> Result<(), Failure> {
                 || output.as_deref().is_some_and(names_pdf),
                 |to| to == To::Pdf,
             );
-            let result = ops::generate(&GenerateRequest {
-                input: args.input(),
-                output,
+            let request = |report: &Path| GenerateRequest {
+                input: args.read.input(report),
+                output: output.clone(),
                 pdf,
                 page: page.into(),
-                browser,
+                browser: browser.clone(),
                 settle_timeout: std::time::Duration::from_secs(settle_timeout),
-            })
-            .await?;
-            let target = result["output"].as_str().unwrap_or_default();
-            let summary = if pdf {
-                format!(
-                    "Generated {target} ({} {} pages, {} bytes, printed by {})",
-                    result["pages"],
-                    result["page"].as_str().unwrap_or("A4").to_uppercase(),
-                    result["bytes"],
-                    result["browser"]["product"]
-                        .as_str()
-                        .unwrap_or("the browser")
-                )
-            } else {
-                format!("Generated {target} ({} rich blocks)", result["blocks"])
             };
-            finish(&result, summary, format.format, &args.input);
+            let summary = |result: &Value| {
+                let target = result["output"].as_str().unwrap_or_default();
+                if pdf {
+                    format!(
+                        "Generated {target} ({} {} pages, {} bytes, printed by {})",
+                        result["pages"],
+                        result["page"].as_str().unwrap_or("A4").to_uppercase(),
+                        result["bytes"],
+                        result["browser"]["product"]
+                            .as_str()
+                            .unwrap_or("the browser")
+                    )
+                } else {
+                    format!("Generated {target} ({} rich blocks)", result["blocks"])
+                }
+            };
+            let generate = async |report: &Path| ops::generate(&request(report)).await;
+            run_on(&args.input, generate, summary, format.format).await?;
         }
         Command::Validate {
             input,
             publish,
             format,
         } => {
-            let result = ops::validate(
-                &Input {
-                    path: input.clone(),
-                    ..Default::default()
-                },
-                publish,
-            )?;
-            let summary = format!(
-                "{}, {} rich blocks",
-                if ops::is_ok(&result) {
-                    "Valid"
-                } else {
-                    "Invalid"
-                },
-                result["blocks"]
-            );
-            finish(&result, summary, format.format, &input);
+            let validate = async |report: &Path| {
+                ops::validate(
+                    &Input {
+                        path: report.to_path_buf(),
+                        ..Default::default()
+                    },
+                    publish,
+                )
+            };
+            let summary = |result: &Value| {
+                format!(
+                    "{}, {} rich blocks",
+                    if ops::is_ok(result) {
+                        "Valid"
+                    } else {
+                        "Invalid"
+                    },
+                    result["blocks"]
+                )
+            };
+            run_on(&input, validate, summary, format.format).await?;
         }
         Command::Check {
             args,
             chart_width,
             format,
         } => {
-            let result = ops::check(&args.input(), &chart_width)?;
-            let charts = result["charts"].as_array().map_or(0, Vec::len);
-            let summary = format!(
-                "Checked {charts} charts: {}",
-                result["status"].as_str().unwrap_or("issues")
-            );
-            finish(&result, summary, format.format, &args.input);
+            let check = async |report: &Path| ops::check(&args.read.input(report), &chart_width);
+            let summary = |result: &Value| {
+                format!(
+                    "Checked {} charts: {}",
+                    result["charts"].as_array().map_or(0, Vec::len),
+                    result["status"].as_str().unwrap_or("issues")
+                )
+            };
+            run_on(&args.input, check, summary, format.format).await?;
         }
         Command::Init { dir, name, format } => {
             let file = ops::init(&dir.unwrap_or_else(|| PathBuf::from(&name)), &name)?;
@@ -824,7 +926,7 @@ async fn execute(command: Command) -> Result<(), Failure> {
             read_source(&args.input)?;
             let preview = Preview {
                 source: absolute(&args.input)?,
-                styles: args.styles,
+                styles: args.read.styles,
                 allow_network: false,
                 last_good: Default::default(),
             };
@@ -937,7 +1039,7 @@ async fn execute(command: Command) -> Result<(), Failure> {
             })?;
             bound_token(&server, &token)?;
             let result = ops::publish_as(
-                &args.input(),
+                &args.read.input(&args.input),
                 &server,
                 &token,
                 slug.as_deref(),
@@ -1075,31 +1177,13 @@ fn bound_token(server: &str, token: &str) -> Result<(), Failure> {
     Ok(())
 }
 
-/// The report to read for an input: a `.rmd` as given, or the one `.rmd` of a folder (`report.rmd`
-/// first). Anything else is left for the report commands to answer with their own finding.
-fn report_file(text: &str) -> Result<PathBuf, String> {
-    let path = PathBuf::from(text);
-    if !path.is_dir() {
-        return Ok(path);
-    }
-    let named = path.join("report.rmd");
-    if named.is_file() {
-        return Ok(named);
-    }
-    let mut found = std::fs::read_dir(&path)
-        .map_err(|e| e.to_string())?
-        .filter_map(Result::ok)
-        .map(|entry| entry.path())
-        .filter(|p| p.is_file() && p.extension().is_some_and(|e| e == "rmd"));
-    match (found.next(), found.next()) {
-        (Some(only), None) => Ok(only),
-        (None, _) => Err(format!(
-            "{text} is a folder with no .rmd file: pass the report's .rmd, e.g. {text}/report.rmd"
-        )),
-        _ => Err(format!(
-            "{text} holds several .rmd files: pass the one report's .rmd file"
-        )),
-    }
+/// The report, or the folder of reports, an input names.
+fn report_target(text: &str) -> Result<Target, String> {
+    Target::of(Path::new(text))
+}
+/// The one report an input names, for the commands that read exactly one.
+fn one_report(text: &str) -> Result<PathBuf, String> {
+    report_target(text)?.one("this command")
 }
 pub fn absolute(path: &Path) -> Result<PathBuf, String> {
     if path.is_absolute() {
@@ -1122,6 +1206,16 @@ const DEBUG_ONLY: &[&str] = &["assets.runtime-external"];
 /// (FEA-SF-07). An error is followed by its fix on an indented line, so the remedy the JSON
 /// carries is not lost (INT-21).
 pub fn diagnostics_text(diagnostics: &[Diagnostic], input: Option<&Path>) -> String {
+    diagnostics_lines(diagnostics, input, None)
+}
+
+/// [`diagnostics_text`] with every file named from `folder`, the report's own, so the lines of
+/// several reports stay apart.
+fn diagnostics_lines(
+    diagnostics: &[Diagnostic],
+    input: Option<&Path>,
+    folder: Option<&Path>,
+) -> String {
     let default_file = input
         .map(|p| {
             p.file_name().map_or_else(
@@ -1136,6 +1230,10 @@ pub fn diagnostics_text(diagnostics: &[Diagnostic], input: Option<&Path>) -> Str
             continue;
         }
         let file = d.file.clone().unwrap_or_else(|| default_file.clone());
+        let file = match folder {
+            Some(folder) if !file.is_empty() => folder.join(&file).display().to_string(),
+            _ => file,
+        };
         let mut line = match d.line {
             Some(line) => format!("{file}:{line} {} {}: {}", d.level, d.code, d.message),
             None if file.is_empty() => {

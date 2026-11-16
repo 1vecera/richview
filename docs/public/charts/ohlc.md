@@ -61,6 +61,7 @@ axes:
 - A row whose high is below its open or close, or whose low is above them, fails the chart and names the row; rows missing a price are left out and reported
 - `axes.y` sets `label`, `unit` and `min` / `max`; the price axis does not have to include zero
 - `digits` sets the precision of axis labels and readouts, so prices with decimals need it
+- The last close is printed right of the plot at its own height, as a price tag; `auto_annotations: false` leaves it out and gives the plot that room
 - `style.ratio` sets the width to height ratio (16:9 by default)
 
 ## Interactions

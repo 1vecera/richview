@@ -1032,6 +1032,49 @@ async fn mcp_tool_names_resources_and_hard_failure_contract() {
     let summary = warned["content"][0]["text"].as_str().unwrap();
     assert!(summary.contains("status: issues"), "{summary}");
     assert_eq!(summary.lines().count(), 1);
+
+    // `inputPath` reads a folder as the commands do (FEA-SF-01): the folder holding a report is
+    // that report, and a folder of report folders returns every report's result in `reports`.
+    let folder = mcp::dispatch_tool("richview_validate", &json!({"inputPath": f.root})).await;
+    assert_eq!(folder["structuredContent"], warned["structuredContent"]);
+    let holder = Fixture::new();
+    let parent = holder.root.join("reports");
+    for (name, body) in [
+        ("a", "Body text.\n"),
+        ("b", "```chart\ntype: unknown\n```\n"),
+    ] {
+        fs::create_dir_all(parent.join(name)).unwrap();
+        fs::write(parent.join(name).join("report.rmd"), body).unwrap();
+    }
+    for tool in ["richview_validate", "richview_check"] {
+        let all = mcp::dispatch_tool(tool, &json!({"inputPath": parent})).await;
+        assert_eq!(all["isError"], false, "{tool}: {all}");
+        let result = &all["structuredContent"];
+        assert_eq!(result["ok"], false, "{tool}: {result}");
+        assert_eq!(
+            result["reports"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|report| (&report["input"], &report["ok"]))
+                .collect::<Vec<_>>(),
+            [
+                (&json!(parent.join("a/report.rmd")), &json!(true)),
+                (&json!(parent.join("b/report.rmd")), &json!(false)),
+            ],
+            "{tool}: {result}"
+        );
+        let summary = all["content"][0]["text"].as_str().unwrap();
+        assert!(
+            summary.contains("2 reports, 1 with errors"),
+            "{tool}: {summary}"
+        );
+    }
+    // Publishing stays one report: the refusal names the reports the folder holds.
+    let refused = mcp::dispatch_tool("richview_publish", &json!({"inputPath": parent})).await;
+    assert_eq!(refused["isError"], true);
+    let text = refused["content"][0]["text"].as_str().unwrap();
+    assert!(text.contains("holds 2 reports"), "{text}");
 }
 
 #[test]

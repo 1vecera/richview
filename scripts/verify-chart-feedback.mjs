@@ -315,12 +315,17 @@ for (const reduce of [false, true]) {
     return { first, last, full, original, core };
   });
 
-  await check(`${tag}: the smallest scatter point keeps its centre colour`, async () => {
+  await check(`${tag}: the smallest scatter point keeps its fill colour`, async () => {
     const m = await model(page, SCATTER), panel = m.geometry.panels[0];
     const point = panel.items.filter(i => i.kind === 'point' && i.role === 'mark' && i.obs != null).sort((a, b) => a.radius - b.radius)[0];
     assert.ok(point, 'the fixture has an observation-owned point');
     const o = panel.observations[point.obs], box = await canvasBox(page, SCATTER);
-    await page.evaluate(at => { window.__probe = at; }, point.center);
+    // Read the fill half a radius up and left of the centre: inside the point at rest and on
+    // hover. The fixture's smallest point lies on the origin, where the axis line crosses its
+    // centre at rest, and a hovered point comes in front of that line (FEA-CH-53), so the
+    // centre pixel itself turns from line to fill. Any repaint, recolour or cover of the
+    // hovered point's fill still changes this pixel.
+    await page.evaluate(at => { window.__probe = at; }, [point.center[0] - point.radius / 2, point.center[1] - point.radius / 2]);
     const before = await sampleFrame(page, SCATTER, PIXEL);
     await page.mouse.move(box.x + o.at[0], box.y + o.at[1]);
     await settled(page);

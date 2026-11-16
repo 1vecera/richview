@@ -433,8 +433,14 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)]) -> 
                                 series: None,
                                 obs: Some(observations.len()),
                             });
+                            // The author's `auto_annotations: false` prints no cell value; the
+                            // key below then decodes the colour.
                             let text = numbers::value(v, &label_format);
-                            if rect.w >= VALUE_W && rect.h >= VALUE_H && ctx.text_width(&text) <= rect.w - 10.0 {
+                            if ctx.block.auto_annotations
+                                && rect.w >= VALUE_W
+                                && rect.h >= VALUE_H
+                                && ctx.text_width(&text) <= rect.w - 10.0
+                            {
                                 let cell_ink = if color::contrast(ink, fill) >= color::contrast(surface, fill) {
                                     ink
                                 } else {
@@ -594,12 +600,15 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)]) -> 
     // Unprinted values: one record, and a key so print readers can decode colour (FEA-CH-34).
     let mut figure_items = Vec::new();
     if unprinted > 0 && !values.is_empty() {
-        ctx.drop_label(
-            &format!("{unprinted} cell values"),
-            crate::geometry::DropReason::Density,
-            "cell-value",
-            None,
-        );
+        // An author who turned the values off chose it: that is no dropped label.
+        if ctx.block.auto_annotations {
+            ctx.drop_label(
+                &format!("{unprinted} cell values"),
+                crate::geometry::DropReason::Density,
+                "cell-value",
+                None,
+            );
+        }
         let key_w = KEY_W.min(width - gutter);
         let x0 = gutter.min(width - key_w);
         let y = height + 14.0;

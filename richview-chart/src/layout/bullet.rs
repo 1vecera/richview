@@ -7,7 +7,7 @@ use super::types::Facets;
 use super::{Ctx, Painted, Style};
 use crate::axis::Zero;
 use crate::diag::Level;
-use crate::geometry::{Fill, Item, Observation, Path, Readout, ReadoutLine, Rect, Role, Stroke, Swatch};
+use crate::geometry::{Anchor, Face, Fill, Item, Observation, Path, Readout, ReadoutLine, Rect, Role, Stroke, Swatch};
 use crate::numbers;
 use crate::rows::{self, Num};
 use serde_json::{Value, json};
@@ -160,8 +160,43 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 .unwrap_or_default()
         })
         .collect();
-    let plan = kit::plan_oriented(ctx, facets.len(), &names, 1.0, block.style.ratio.unwrap_or(RATIO), true);
+    let mut plan = kit::plan_oriented(ctx, facets.len(), &names, 1.0, block.style.ratio.unwrap_or(RATIO), true);
     let top = thresholds.last().copied();
+    // Few enough rows print the measure's value beyond its bar (FEA-CH-28). Where the longest bar
+    // reaches further than every target and band, the value axis keeps room for that value.
+    let most = panels_bullets.iter().map(Vec::len).max().unwrap_or(0);
+    let longest = panels_bullets
+        .iter()
+        .flatten()
+        .map(|b| b.actual)
+        .fold(f64::NEG_INFINITY, f64::max);
+    let beyond = panels_bullets
+        .iter()
+        .flatten()
+        .filter_map(|b| b.target)
+        .chain(top)
+        .all(|v| v <= longest);
+    let budget = if plan
+        .frames(facets.len(), ctx.opts.width)
+        .first()
+        .is_some_and(|f| f.w - 30.0 < 480.0)
+    {
+        3
+    } else {
+        5
+    };
+    if block.auto_annotations && (1..=budget).contains(&most) && beyond {
+        let text = if plan.horizontal {
+            panels_bullets
+                .iter()
+                .flatten()
+                .map(|b| ctx.text_width(&numbers::value(b.actual, &readout)))
+                .fold(0.0f64, f64::max)
+        } else {
+            ctx.line_height()
+        };
+        plan.headroom = 6.0 + text;
+    }
     let extent = |bullets: &[&Bullet]| {
         bullets.iter().fold([0.0f64, 0.0f64], |[lo, hi], b| {
             let t = b.target.unwrap_or(b.actual);
@@ -219,6 +254,8 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         let faint = Style::rgba(ctx.style.ink_faint);
         let mut marks: Vec<Item> = Vec::new();
         let mut observations = Vec::new();
+        // The measure's value at the end of its bar (FEA-CH-28, chart design 16 Nov 2026).
+        let mut wanted: Vec<super::place::SparseValue> = Vec::new();
         for (c, b) in bullets.iter().enumerate() {
             let c0 = frame.slot_start(c, 0, 1, full);
             let cm = c0 + full / 2.0;
@@ -303,6 +340,44 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     derived: false,
                 });
             }
+            // Beyond the bar's end, unless the target mark or a band's edge would stand within 4 px
+            // of the text. Chart design's rule then sets it inside the bar's end, and drops it
+            // when it does not fit there: the bar is at most 13 px thick and a line of figures is
+            // taller, so it never fits and the value has no place.
+            {
+                let text = numbers::value(b.actual, &readout);
+                let end = frame.at(b.actual);
+                let up = b.actual >= 0.0;
+                let beyond = if frame.horizontal {
+                    let (x, anchor) = if up {
+                        (end + 4.0, Anchor::Start)
+                    } else {
+                        (end - 4.0, Anchor::End)
+                    };
+                    ctx.text_mid(&text, x, cm, anchor, Face::Figures, Role::Label, ctx.style.ink)
+                } else {
+                    let half = ctx.line_height() / 2.0;
+                    let y = if up { end - 4.0 - half } else { end + 4.0 + half };
+                    ctx.text_mid(&text, cm, y, Anchor::Middle, Face::Figures, Role::Label, ctx.style.ink)
+                };
+                let reach = if frame.horizontal {
+                    (beyond.bounds.x - 4.0, beyond.bounds.right() + 4.0)
+                } else {
+                    (beyond.bounds.y - 4.0, beyond.bounds.bottom() + 4.0)
+                };
+                let clear = b
+                    .target
+                    .iter()
+                    .chain(thresholds.iter())
+                    .map(|v| frame.at(*v))
+                    .all(|edge| edge < reach.0 || edge > reach.1);
+                wanted.push(super::place::SparseValue {
+                    text,
+                    series: 0,
+                    observation: observations.len(),
+                    places: if clear { vec![beyond] } else { Vec::new() },
+                });
+            }
             observations.push(Observation {
                 row: Some(b.row),
                 dots: vec![],
@@ -319,7 +394,13 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 .into(),
             });
         }
-        panels.push(kit::panel(ctx, outer, frame, marks, observations, name));
+        let rows = observations.len();
+        let mut panel = kit::panel(ctx, outer, frame, marks, observations, name);
+        // A value may stand on a band's tone, so the bands are not ink to keep clear of.
+        super::place::sparse_values(ctx, fi, &mut panel, rows, wanted, &|item| {
+            !matches!(item, Item::Rect { role: Role::Band, .. })
+        });
+        panels.push(panel);
     }
     ctx.summary = format!(
         "{} {} of {title}{}.",

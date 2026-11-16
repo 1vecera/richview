@@ -143,6 +143,22 @@ pub fn custom_properties_to_css(props: &Value) -> Result<String, Vec<Diagnostic>
 
 /// Custom properties for resolved tokens. A `-phone` token replaces its base token at
 /// phone widths, so every consumer of `--rv-size-h2` follows the narrow scale.
+/// The token a chart readout's border takes instead of the hairline. A panel with no shadow is
+/// told from the chart by its border alone, so it takes whichever of `rule` and `ink-faint`
+/// contrasts more with the panel's fill; a panel with a shadow keeps the hairline (STY-41 as
+/// assumed).
+fn readout_edge(props: &BTreeMap<String, String>) -> Option<&'static str> {
+    use richview_chart::color;
+    let get = |name: &str| props.get(name).map(String::as_str);
+    if get("--rv-shadow-float").is_some_and(|shadow| shadow.trim() != "none") {
+        return None;
+    }
+    let panel = color::parse(get("--rv-bg-elev").or(get("--rv-bg"))?)?;
+    let rule = color::parse(get("--rv-rule")?)?;
+    let faint = color::parse(get("--rv-ink-faint")?)?;
+    (color::contrast(faint, panel) > color::contrast(rule, panel)).then_some("--rv-ink-faint")
+}
+
 fn token_css(props: &BTreeMap<String, String>) -> String {
     let (phone, wide): (Vec<_>, Vec<_>) = props
         .iter()
@@ -431,6 +447,9 @@ pub fn resolve_styles(refs: &[String], diagnostics: &mut Vec<Diagnostic>) -> Res
     }
     let mut css = token_css(&props);
     css.push_str(&format!(":root{{color-scheme:{scheme}}}\n"));
+    if let Some(edge) = readout_edge(&props) {
+        css.push_str(&format!(":root{{--rv-readout-rule:var({edge})}}\n"));
+    }
     css.push_str(&motion_css(&merged["motion"]));
     // Italic is requested only from a family that embeds a true italic face; slanting a
     // roman face is not italic type. Quotes use it wherever it exists; an italic deck is the

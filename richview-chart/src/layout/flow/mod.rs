@@ -601,6 +601,7 @@ fn read_rows(ctx: &mut Ctx, panel: usize, members: &[usize]) -> Flow {
 }
 
 /// How the cards' text is set: the faces, sizes and inner spacing.
+#[derive(Clone)]
 struct Type {
     font: Font,
     face: Face,
@@ -609,6 +610,10 @@ struct Type {
     small: f64,
     /// Bold text runs this much wider than the regular face the metrics hold.
     bold: f64,
+    /// Space between a card's side and its text.
+    pad_x: f64,
+    /// The style's sizes, which the floors of a shrunk flow are counted from.
+    base: f64,
 }
 
 impl Type {
@@ -629,6 +634,21 @@ impl Type {
             body: s,
             small: s - 1.0,
             bold: 1.06,
+            pad_x: PAD_X,
+            base: s,
+        }
+    }
+    /// The type for a drawing shrunk by `k`: each size is set larger, so that on the page a
+    /// title is never under the style's size less 1 px and no other text under it less 2 px,
+    /// up to half as large again.
+    fn held(&self, k: f64) -> Type {
+        let s = self.base;
+        let hold = |size: f64, floor: f64| size.max(floor / k).min(size * TYPE_HOLD);
+        Type {
+            title: hold(s + 1.0, s - 1.0),
+            body: hold(s, s - 2.0),
+            small: hold(s - 1.0, s - 2.0),
+            ..self.clone()
         }
     }
     fn lh(&self, size: f64) -> f64 {
@@ -646,7 +666,9 @@ impl Type {
 const PAD_X: f64 = 10.0;
 const PAD_Y: f64 = 8.0;
 const LINES_GAP: f64 = 2.0;
-const DIAMOND_RATIO: f64 = 1.9;
+/// A decision is 2.5 times as wide as it is tall, its text 12 px clear of the outline.
+const DIAMOND_RATIO: f64 = 2.5;
+const DIAMOND_PAD: f64 = 12.0;
 const CAP: f64 = 5.0;
 const FOLD: f64 = 9.0;
 const ARROW: f64 = 7.0;
@@ -659,39 +681,52 @@ struct Card {
     h: f64,
 }
 
-fn measure(t: &Type, node: &Node, max: f64) -> Card {
+fn measure(t: &Type, node: &Node, max: f64, tight: bool) -> Card {
     let (lt, lb) = (t.lh(t.title), t.lh(t.body));
     match node.kind {
         Kind::Decision => {
-            // A question wraps to three lines at most, so the diamond stays wide and low.
-            let mut wrap = (max * 0.62).max(110.0);
-            let mut title = t.wrap(&node.title, t.title, wrap, true);
-            while title.len() > 3 && wrap < max {
-                wrap += 20.0;
-                title = t.wrap(&node.title, t.title, wrap, true);
+            // A text box tw × th fits a diamond of half-width a and half-height a / R when
+            // tw / 2 + R · th / 2 ≤ a; 12 px clear of the outline adds 12 · √(1 + R²). The
+            // question takes the wrap that gives the smallest diamond, three lines at most, and
+            // a line more only when it saves real width; `tight`, for a flow too wide for its
+            // page, takes the line more whenever it saves any.
+            let r = DIAMOND_RATIO;
+            let clear = DIAMOND_PAD * (1.0 + r * r).sqrt();
+            let text = |wrap: f64| {
+                let title = t.wrap(&node.title, t.title, wrap, true);
+                let lines: Vec<String> = node.lines.iter().flat_map(|l| t.wrap(l, t.body, wrap, false)).collect();
+                let tw = title
+                    .iter()
+                    .map(|l| t.width(l, t.title, true))
+                    .chain(lines.iter().map(|l| t.width(l, t.body, false)))
+                    .fold(0.0, f64::max);
+                let th = title.len() as f64 * lt
+                    + if lines.is_empty() {
+                        0.0
+                    } else {
+                        LINES_GAP + lines.len() as f64 * lb
+                    };
+                let a = tw / 2.0 + r * th / 2.0 + clear;
+                (title, lines, a)
+            };
+            let mut best = text(max.max(120.0));
+            let mut wrap = 72.0;
+            while wrap < max.max(120.0) {
+                let next = text(wrap);
+                let (rows, best_rows) = (next.0.len(), best.0.len());
+                let line = if tight { 0.0 } else { 6.0 };
+                if rows <= 3 && next.2 + line * (rows as f64) < best.2 + line * best_rows as f64 {
+                    best = next;
+                }
+                wrap += 8.0;
             }
-            let lines: Vec<String> = node
-                .lines
-                .iter()
-                .flat_map(|l| t.wrap(l, t.body, max * 0.62, false))
-                .collect();
-            let tw = title
-                .iter()
-                .map(|l| t.width(l, t.title, true))
-                .chain(lines.iter().map(|l| t.width(l, t.body, false)))
-                .fold(0.0, f64::max);
-            let th = title.len() as f64 * lt
-                + if lines.is_empty() {
-                    0.0
-                } else {
-                    LINES_GAP + lines.len() as f64 * lb
-                };
-            let a = step_up(tw / 2.0 + DIAMOND_RATIO * th / 2.0 + 8.0);
+            let (title, lines, a) = best;
+            let w = step_up(2.0 * a);
             Card {
                 title,
                 lines,
-                w: 2.0 * a,
-                h: 2.0 * a / DIAMOND_RATIO,
+                w,
+                h: w / r,
             }
         }
         Kind::Start | Kind::End => {
@@ -706,8 +741,14 @@ fn measure(t: &Type, node: &Node, max: f64) -> Card {
             }
         }
         _ => {
-            let inner = max - 2.0 * PAD_X;
-            let title = t.wrap(&node.title, t.title, inner, true);
+            // A title takes three lines at most: where narrowing would need a fourth, the card
+            // stops narrowing, and the flow shrinks instead.
+            let mut inner = max - 2.0 * t.pad_x;
+            let mut title = t.wrap(&node.title, t.title, inner, true);
+            while title.len() > 3 && inner < CARD_WIDTHS[0] {
+                inner += 8.0;
+                title = t.wrap(&node.title, t.title, inner, true);
+            }
             let lines: Vec<String> = node
                 .lines
                 .iter()
@@ -722,7 +763,7 @@ fn measure(t: &Type, node: &Node, max: f64) -> Card {
             if !lines.is_empty() {
                 h += LINES_GAP + lines.len() as f64 * lb;
             }
-            let mut w = (tw + 2.0 * PAD_X).max(72.0);
+            let mut w = (tw + 2.0 * t.pad_x).max(72.0);
             if node.kind == Kind::Store {
                 h += 2.0 * CAP;
             }
@@ -752,6 +793,8 @@ struct Laid {
     cards: Vec<Card>,
     engine: engine::Laid,
     across: bool,
+    /// The type the cards were measured with.
+    t: Type,
     /// Edge labels in page axes, by edge.
     labels: Vec<Option<Rect>>,
     groups: Vec<Rect>,
@@ -761,18 +804,34 @@ struct Laid {
     height: f64,
 }
 
-fn params(t: &Type) -> Params {
+fn params(t: &Type, step: Step) -> Params {
     Params {
-        node_gap: 22.0,
+        node_gap: if step.dense { 12.0 } else { 22.0 },
         rank_gap: 30.0,
         track_gap: 8.0,
-        group_pad: 12.0,
-        lane_pad: 10.0,
+        group_pad: if step.dense { 8.0 } else { 12.0 },
+        lane_pad: if step.dense { 6.0 } else { 10.0 },
         arrow: ARROW,
         label_pad: 3.0,
+        label_clear: LABEL_CLEAR,
         lane_label: [0.0, t.lh(t.small) + 4.0],
+        stack_lanes: step.stack,
     }
 }
+
+/// One way to lay a flow out, from roomy to tight: how wide a card may be, whether a question
+/// wraps to its narrowest diamond, whether the paper between and inside cards is tight, and
+/// whether a lane is one column.
+#[derive(Debug, Clone, Copy)]
+struct Step {
+    max: f64,
+    tight: bool,
+    dense: bool,
+    stack: bool,
+}
+
+/// Least space between an edge label and a card on the page (FEA-CH-76).
+const LABEL_CLEAR: f64 = 4.5;
 
 fn label_size(t: &Type, text: &str) -> [f64; 2] {
     [t.width(text, t.small, false) + 4.0, t.lh(t.small)]
@@ -782,11 +841,31 @@ fn group_label_size(t: &Type, text: &str) -> [f64; 2] {
     [t.width(text, t.small, true) + 8.0, t.lh(t.small)]
 }
 
-/// Lay the flow out with cards at most `max` wide, in `across` or down the page.
-fn lay(t: &Type, flow: Flow, max: f64, across: bool) -> Laid {
-    let cards: Vec<Card> = flow.nodes.iter().map(|n| measure(t, n, max)).collect();
+/// Lay the flow out by `step`, in `across` or down the page. `wider` gives single cards more
+/// width than the step's.
+fn lay(t: &Type, flow: Flow, step: Step, across: bool, label_clear: f64, wider: &[f64]) -> Laid {
+    let t = &Type {
+        pad_x: if step.dense { 7.0 } else { PAD_X },
+        ..t.clone()
+    };
+    let cards: Vec<Card> = flow
+        .nodes
+        .iter()
+        .enumerate()
+        .map(|(i, n)| {
+            measure(
+                t,
+                n,
+                wider.get(i).copied().unwrap_or(step.max).max(step.max),
+                step.tight,
+            )
+        })
+        .collect();
     let swap = |s: [f64; 2]| if across { [s[1], s[0]] } else { s };
-    let mut p = params(t);
+    let mut p = params(t, step);
+    // Across the page a lane is a row already.
+    p.stack_lanes = step.stack && !across;
+    p.label_clear = label_clear;
     if across {
         // Across the page a lane is a row, its name at the start of the row's top edge.
         p.lane_label = [t.lh(t.small) + 4.0, 0.0];
@@ -818,6 +897,7 @@ fn lay(t: &Type, flow: Flow, max: f64, across: bool) -> Laid {
                 from: e.from,
                 to: e.to,
                 label: e.label.as_deref().map(|l| swap(label_size(t, l))),
+                alert: e.tone == Tone::Alert || flow.nodes[e.to].tone == Tone::Alert,
             })
             .collect(),
         groups: flow
@@ -850,6 +930,7 @@ fn lay(t: &Type, flow: Flow, max: f64, across: bool) -> Laid {
         cards,
         engine: laid,
         across,
+        t: t.clone(),
         labels,
         groups,
         lanes,
@@ -985,7 +1066,8 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             cursor += frame.h;
             continue;
         }
-        let laid = fit(&t, flow, width);
+        let room = (width - 2.0 * EDGE_CLEAR).max(1.0);
+        let laid = fit(&t, flow, room);
         if !laid.flow.written {
             for (ei, e) in laid.flow.edges.iter().enumerate() {
                 if laid.engine.edges[ei].back {
@@ -1003,17 +1085,17 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 }
             }
         }
-        let top = cursor + title_room + 4.0;
-        let k = (width / laid.width.max(1.0)).min(1.0);
-        let left = ((width - laid.width * k) / 2.0).max(0.0);
-        let mut panel = paint(ctx, &t, &laid, left, top);
+        let top = cursor + title_room + EDGE_CLEAR;
+        let k = (room / laid.width.max(1.0)).min(1.0);
+        let left = EDGE_CLEAR + ((room - laid.width * k) / 2.0).max(0.0);
+        let mut panel = paint(ctx, &laid.t, &laid, left, top);
         if k < 1.0 {
             scale_panel(&mut panel, k, [left, top]);
         }
         let height = laid.height * k;
-        let frame = Rect::new(0.0, cursor, width, height + title_room + 8.0);
+        let frame = Rect::new(0.0, cursor, width, height + title_room + 2.0 * EDGE_CLEAR);
         panel.frame = frame;
-        panel.plot = Rect::new(0.0, cursor + title_room, width, height + 8.0);
+        panel.plot = Rect::new(0.0, cursor + title_room, width, height + 2.0 * EDGE_CLEAR);
         super::panel_title(ctx, &mut panel, &names[fi]);
         panels.push(panel);
         cursor += frame.h;
@@ -1054,25 +1136,113 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
 /// Widest card the layout tries first, and the narrowest it wraps to before it scales.
 const CARD_WIDTHS: [f64; 5] = [280.0, 230.0, 190.0, 160.0, 130.0];
 
-/// The widest layout that fits `width`: cards wrap narrower before a flow across the page turns
-/// down it; a flow that still does not fit is the narrowest layout, which the caller scales.
+/// Nothing draws on the chart's edge: the drawing keeps this far from it on every side.
+const EDGE_CLEAR: f64 = 4.0;
+
+/// The narrowest a card wraps to when the paper is tight.
+const DENSE_WIDTH: f64 = 96.0;
+/// How much larger than the style's sizes the type of a shrunk flow may be set.
+const TYPE_HOLD: f64 = 1.5;
+
+/// The roomiest layout that fits `width`. Paper gives way before type: cards wrap narrower, then
+/// questions take a line more, then a flow across the page turns down it, then the paper between
+/// and inside the cards is tight, then a lane is one column. A flow that still does not fit is
+/// the narrowest of these, which the caller scales, its type set larger by as much, so that on
+/// the page it holds its floor ([`Type::held`]).
 fn fit(t: &Type, flow: Flow, width: f64) -> Laid {
-    let mut best: Option<Laid> = None;
+    let narrowest = CARD_WIDTHS[CARD_WIDTHS.len() - 1];
+    let step = |max: f64, tight: bool, dense: bool, stack: bool| Step {
+        max,
+        tight,
+        dense,
+        stack,
+    };
+    let roomy: Vec<Step> = CARD_WIDTHS
+        .into_iter()
+        .map(|w| step(w, false, false, false))
+        .chain([step(narrowest, true, false, false)])
+        .collect();
+    let lanes = !flow.lanes.is_empty();
+    let dense: Vec<Step> = [false, true]
+        .into_iter()
+        .filter(|stack| !stack || lanes)
+        .flat_map(|stack| [step(narrowest, true, true, stack), step(DENSE_WIDTH, true, true, stack)])
+        .collect();
+    let mut best: Option<(Laid, Step, bool)> = None;
     let directions: Vec<bool> = if flow.across { vec![true, false] } else { vec![false] };
-    for across in directions {
-        // A flow that turns down is scaled as it runs down, never across.
+    for (i, across) in directions.iter().copied().enumerate() {
+        // A flow that turns down is scaled as it runs down, never across; only the last
+        // direction goes tight.
         best = None;
-        for max in CARD_WIDTHS {
-            let laid = lay(t, flow.clone(), max, across);
+        let last = i + 1 == directions.len();
+        for step in roomy.iter().chain(dense.iter().filter(|_| last)).copied() {
+            let laid = lay(t, flow.clone(), step, across, LABEL_CLEAR, &[]);
             if laid.width <= width {
-                return laid;
+                return widened(t, laid, step, LABEL_CLEAR);
             }
-            if best.as_ref().is_none_or(|b| laid.width < b.width) {
-                best = Some(laid);
+            if best.as_ref().is_none_or(|b| laid.width < b.0.width) {
+                best = Some((laid, step, across));
             }
         }
     }
-    best.expect("one layout")
+    let (mut laid, step, across) = best.expect("one layout");
+    // Shrunk to fit, the type holds its floor and a label keeps its space from the cards on the
+    // page: both are set larger by the scale. Larger type widens the cards, so the scale is
+    // found in a few rounds.
+    let mut k = width / laid.width.max(1.0);
+    for _ in 0..6 {
+        let held = t.held(k);
+        laid = lay(&held, flow.clone(), step, across, LABEL_CLEAR / k, &[]);
+        laid = widened(&held, laid, step, LABEL_CLEAR / k);
+        let next = width / laid.width.max(1.0);
+        if next >= k * 0.995 {
+            break;
+        }
+        k = next;
+    }
+    laid
+}
+
+/// A card is as wide as its column already is: where a question, a pill or another card of its
+/// column is wider than the step lets a card be, the column's cards wrap to that width, column
+/// by column, as long as the drawing grows no wider. A flow across the page has no columns.
+fn widened(t: &Type, first: Laid, step: Step, label_clear: f64) -> Laid {
+    if first.across || step.max >= CARD_WIDTHS[0] {
+        return first;
+    }
+    let centre = |laid: &Laid, i: usize| laid.engine.nodes[i].x + laid.engine.nodes[i].w / 2.0;
+    let n = first.flow.nodes.len();
+    let mut columns: Vec<f64> = (0..n).map(|i| centre(&first, i)).collect();
+    columns.sort_by(f64::total_cmp);
+    columns.dedup_by(|a, b| (*a - *b).abs() < 0.5);
+    let mut wider = vec![step.max; n];
+    let mut laid = first;
+    for column in columns {
+        let members: Vec<usize> = (0..n).filter(|&i| (centre(&laid, i) - column).abs() < 0.5).collect();
+        let widest = members
+            .iter()
+            .map(|&i| laid.engine.nodes[i].w)
+            .fold(0.0, f64::max)
+            .min(CARD_WIDTHS[0]);
+        let cards: Vec<usize> = members
+            .into_iter()
+            .filter(|&i| matches!(laid.flow.nodes[i].kind, Kind::Step | Kind::Store | Kind::Object))
+            .filter(|&i| laid.engine.nodes[i].w < widest - 0.5)
+            .collect();
+        if cards.is_empty() || widest <= step.max {
+            continue;
+        }
+        let mut trial = wider.clone();
+        for &i in &cards {
+            trial[i] = widest;
+        }
+        let next = lay(t, laid.flow.clone(), step, false, label_clear, &trial);
+        if next.width <= laid.width + 0.5 {
+            laid = next;
+            wider = trial;
+        }
+    }
+    laid
 }
 
 /// Shrink a painted panel about `origin` by `k`: positions, sizes and type alike, so a flow too
@@ -1560,7 +1730,7 @@ fn paint(ctx: &mut Ctx, t: &Type, laid: &Laid, left: f64, top: f64) -> Panel {
         let (x, anchor) = if centred {
             (r.x + r.w / 2.0, Anchor::Middle)
         } else {
-            (r.x + PAD_X, Anchor::Start)
+            (r.x + t.pad_x, Anchor::Start)
         };
         for line in &card.title {
             labels.push(Item::Text(text(

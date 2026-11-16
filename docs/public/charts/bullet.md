@@ -50,6 +50,7 @@ style:
 - `encoding.target` names the field drawn as the line across the bar
 - `style.ranges` takes up to three ascending numbers and shades the bands between them; anything else is rejected
 - `axes.y` sets `label`, `format`, `unit`, `min` and `max`
+- Up to five rows, three on a narrow chart, print the actual value past the end of the bar, all rows or none; a value that would stand at the target line or a band's edge prints none; `auto_annotations: false` leaves them to the readout
 - `style.ratio` sets the width to height ratio, and `style.facet_scale: free` gives each facet its own scale
 
 ## Interactions

@@ -52,7 +52,7 @@ axes:
 
 - `type: funnel` with `encoding.x` for the stage name and `encoding.y` for its value
 - Stages run from top to bottom in source order
-- There is no value axis; names stand at the left and values at the right of each band
+- There is no value axis; names stand at the left and values at the right of each band; `auto_annotations: false` leaves the values to the readout and gives their room to the stages
 - A negative value, or text that is not a number, fails the chart instead of being drawn
 - `encoding.facet` makes one funnel per value; `style.ratio` sets the width to height ratio and `style.facet_scale: free` gives each facet its own width scale
 

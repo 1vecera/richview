@@ -267,7 +267,7 @@ Charts require a supported `type`, a `title` that states the claim (a missing on
 | `subtitle` | text |  |  | A line under the title. |
 | `stack` | `true` or `false` |  | `false` | Stacks the series of a bar or area chart; needs `encoding.color`. |
 | `wide` | `true` or `false` |  | `false` | Draws the chart at the full report width. |
-| `auto_annotations` | `true` or `false` |  | `true` | Draws the automatic values on bars, lines, unstacked areas and density curves and the automatic point names of a scatter; `false` leaves the authored `annotations`, the `highlight` names and the series names. |
+| `auto_annotations` | `true` or `false` |  | `true` | Prints the values and point names a chart adds by itself, such as bar and line values, heatmap cell values, pie shares and a scatter's point names; `false` prints none of them and leaves the authored `annotations`, the `highlight` names and the series and category names. |
 | `digits` | whole number of significant digits from 2 to 6 |  |  | Significant digits of the chart's printed numbers, not decimal places. Omit to use the default. |
 | `readout_digits` | whole number of significant digits from 2 to 6 |  |  | Significant digits of the hover readout, not decimal places; never fewer than `digits`. Omit to use the chart precision. |
 | `highlight` | mapping |  |  | Names the scatter points that always get a label. |

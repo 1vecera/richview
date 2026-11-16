@@ -375,7 +375,9 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     series: Some(g),
                     obs: Some(observations.len()),
                 });
-                if cell.value > 0.0 {
+                // The value inside its bar; the author's `auto_annotations: false` draws none and
+                // records no drop.
+                if cell.value > 0.0 && ctx.block.auto_annotations {
                     let label = numbers::value(cell.value, &label_format);
                     let ink = if color::contrast(ctx.style.ink, fill_color)
                         >= color::contrast(ctx.style.surface, fill_color)

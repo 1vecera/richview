@@ -88,7 +88,7 @@
             "type": "number"
           },
           "inputPath": {
-            "description": "The report's .rmd, saved in its own report folder",
+            "description": "The report's .rmd or the folder holding it; a folder of report folders stands for every report below it, and the result then holds each report's own result in `reports`",
             "type": "string"
           },
           "styles": {
@@ -221,7 +221,7 @@
         "additionalProperties": false,
         "properties": {
           "inputPath": {
-            "description": "The report's .rmd, saved in its own report folder",
+            "description": "The report's .rmd, saved in its own report folder, or that folder",
             "type": "string"
           },
           "new": {
@@ -255,7 +255,7 @@
         "additionalProperties": false,
         "properties": {
           "inputPath": {
-            "description": "The report's .rmd, saved in its own report folder",
+            "description": "The report's .rmd or the folder holding it; a folder of report folders stands for every report below it, and the result then holds each report's own result in `reports`",
             "type": "string"
           },
           "output": {
@@ -304,7 +304,7 @@
         "additionalProperties": false,
         "properties": {
           "inputPath": {
-            "description": "The report's .rmd, saved in its own report folder",
+            "description": "The report's .rmd or the folder holding it; a folder of report folders stands for every report below it, and the result then holds each report's own result in `reports`",
             "type": "string"
           },
           "publish": {

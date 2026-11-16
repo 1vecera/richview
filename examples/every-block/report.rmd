@@ -95,19 +95,19 @@ title: Larger accounts adopt more features
 subtitle: Seats against features adopted; bubble area is annual contract value; synthetic
 data:
   inline:
-    - {account: Alder, seats: 12, features: 4, acv: 9}
-    - {account: Birch, seats: 25, features: 6, acv: 21}
-    - {account: Cedar, seats: 40, features: 9, acv: 30}
-    - {account: Dogwood, seats: 55, features: 8, acv: 44}
-    - {account: Elm, seats: 80, features: 12, acv: 70}
-    - {account: Fir, seats: 95, features: 11, acv: 62}
-    - {account: Ginkgo, seats: 130, features: 15, acv: 120}
-    - {account: Hazel, seats: 160, features: 14, acv: 98}
-    - {account: Ivy, seats: 210, features: 18, acv: 180}
-    - {account: Juniper, seats: 260, features: 17, acv: 150}
-    - {account: Kapok, seats: 320, features: 21, acv: 260}
-    - {account: Larch, seats: 400, features: 22, acv: 310}
-encoding: {x: seats, y: features, size: acv, label: account}
+    - {account: Alder, seats: 12, features: 4, ACV: 9}
+    - {account: Birch, seats: 25, features: 6, ACV: 21}
+    - {account: Cedar, seats: 40, features: 9, ACV: 30}
+    - {account: Dogwood, seats: 55, features: 8, ACV: 44}
+    - {account: Elm, seats: 80, features: 12, ACV: 70}
+    - {account: Fir, seats: 95, features: 11, ACV: 62}
+    - {account: Ginkgo, seats: 130, features: 15, ACV: 120}
+    - {account: Hazel, seats: 160, features: 14, ACV: 98}
+    - {account: Ivy, seats: 210, features: 18, ACV: 180}
+    - {account: Juniper, seats: 260, features: 17, ACV: 150}
+    - {account: Kapok, seats: 320, features: 21, ACV: 260}
+    - {account: Larch, seats: 400, features: 22, ACV: 310}
+encoding: {x: seats, y: features, size: ACV, label: account}
 axes:
   x: {label: Seats}
   y: {label: Features adopted}
@@ -1228,7 +1228,7 @@ axes:
 ```chart
 type: flow
 title: A support request takes one of three paths to close
-subtitle: Steps in columns by order, in the lane of the team that owns them
+subtitle: Steps run down the page in order, each in the lane of the team that owns it
 data:
   inline:
     - {step: Request, lane: Customer}

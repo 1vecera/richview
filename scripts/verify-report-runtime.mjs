@@ -495,6 +495,23 @@ function firstObservation(model, frame) {
 }
 
 /**
+ * The first observation with its point inside the window. A chart taller than the window can
+ * stand with that point above or below it: Firefox scrolls such a frame's top out of view where
+ * Chromium and WebKit leave a frame that is partly in view alone, and a pointer outside the
+ * window is over nothing. The page scrolls by the point, and the frame's box is read again.
+ */
+async function firstObservationInView(page, frame, model) {
+  let target = firstObservation(model, await frame.boundingBox());
+  if (!target) return null;
+  const height = page.viewportSize().height;
+  if (target.point.y < 8 || target.point.y > height - 8) {
+    await page.evaluate(dy => window.scrollBy(0, dy), target.point.y - height / 2);
+    target = firstObservation(model, await frame.boundingBox());
+  }
+  return target;
+}
+
+/**
  * Each legend swatch of a decal style draws its series' cue: the static legend before the runtime
  * and the runtime's buttons, distinct within a chart, and a hidden series keeps its swatch
  * (FEA-CH-57, FEA-CH-33).
@@ -533,7 +550,7 @@ async function legendCues(page, width, url) {
     // Only rows naming a series use its legend cue; a series may instead be the heading.
     const frame = figures.nth(i).locator('.rv-chart__frame');
     await frame.scrollIntoViewIfNeeded();
-    const target = firstObservation(await modelOf(page, i), await frame.boundingBox());
+    const target = await firstObservationInView(page, frame, await modelOf(page, i));
     await page.mouse.move(target.point.x, target.point.y);
     await page.evaluate(() => window.__richview.settled());
     const readout = await page.evaluate(index => {
@@ -701,7 +718,7 @@ try {
           assert.ok(near(opened.frame.width, model.width), `${opened.frame.width} vs ${model.width}`);
           assert.ok(near(opened.frame.height, model.geometry.height), `${opened.frame.height} vs ${model.geometry.height}`);
         });
-        const target = firstObservation(model, await frame.boundingBox());
+        const target = await firstObservationInView(page, frame, model);
         // Pointer: the readout shows the observation under the pointer (FEA-CH-40).
         if (target) {
           await page.mouse.move(target.point.x, target.point.y);

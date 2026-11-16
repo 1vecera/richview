@@ -679,6 +679,123 @@ pub fn report_folder(source: &Path) -> Result<richview_core::document::ReportFol
     inspect_report_folder(source, true)
 }
 
+/// What a report command is pointed at: one report, or a folder that stands for every report
+/// folder below it (FEA-SF-01).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Target {
+    Report(PathBuf),
+    Folder {
+        root: PathBuf,
+        /// Every `.rmd` below `root`, in path order.
+        reports: Vec<PathBuf>,
+    },
+}
+
+impl Target {
+    /// Reads `path` as a target. A `.rmd` is its report, and so is a folder holding one
+    /// (`report.rmd` first). A folder with no `.rmd` of its own stands for the reports below it.
+    /// Anything else that is not a folder is left for the command to answer with its own finding.
+    pub fn of(path: &Path) -> Result<Self, String> {
+        if !path.is_dir() {
+            return Ok(Self::Report(path.to_path_buf()));
+        }
+        let named = path.join("report.rmd");
+        if named.is_file() {
+            return Ok(Self::Report(named));
+        }
+        let text = path.display();
+        let (mut sources, _) = folder_entries(path)?;
+        match sources.len() {
+            1 => Ok(Self::Report(sources.remove(0))),
+            0 => {
+                let reports = reports_below(path)?;
+                if reports.is_empty() {
+                    return Err(format!(
+                        "{text} is a folder with no .rmd file in it or below it: pass the report's .rmd, e.g. {text}/report.rmd"
+                    ));
+                }
+                Ok(Self::Folder {
+                    root: path.to_path_buf(),
+                    reports,
+                })
+            }
+            _ => Err(format!(
+                "{text} holds several .rmd files: pass the one report's .rmd file"
+            )),
+        }
+    }
+
+    /// The report of a command that takes exactly one; a folder of reports names what it holds.
+    pub fn one(self, command: &str) -> Result<PathBuf, String> {
+        const NAMED: usize = 5;
+        match self {
+            Self::Report(report) => Ok(report),
+            Self::Folder { root, reports } => {
+                let mut names: Vec<String> = reports
+                    .iter()
+                    .take(NAMED)
+                    .map(|report| report.display().to_string())
+                    .collect();
+                if reports.len() > NAMED {
+                    names.push(format!("{} more", reports.len() - NAMED));
+                }
+                Err(format!(
+                    "{} holds {} reports and {command} takes one: pass one of {}",
+                    root.display(),
+                    reports.len(),
+                    names.join(", ")
+                ))
+            }
+        }
+    }
+}
+
+/// The `.rmd` files, in name order, and the folders directly inside `folder`. Hidden folders and
+/// symlinked folders are left out, so a walk stays inside the folder it was given.
+fn folder_entries(folder: &Path) -> Result<(Vec<PathBuf>, Vec<PathBuf>), String> {
+    let (mut sources, mut folders) = (vec![], vec![]);
+    for entry in fs::read_dir(folder).map_err(|e| format!("{}: {e}", folder.display()))? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+        let kind = entry.file_type().map_err(|e| e.to_string())?;
+        if kind.is_dir() {
+            if !entry.file_name().to_string_lossy().starts_with('.') {
+                folders.push(path);
+            }
+        } else if path.is_file() && path.extension().is_some_and(|e| e == "rmd") {
+            sources.push(path);
+        }
+    }
+    sources.sort();
+    Ok((sources, folders))
+}
+
+/// Every `.rmd` below `root`, in path order. A folder that holds a `.rmd` is a report folder: its
+/// subfolders are that report's data, media and output, so the walk does not enter them.
+fn reports_below(root: &Path) -> Result<Vec<PathBuf>, String> {
+    const MAX_FOLDERS: usize = 10_000;
+    let mut reports = vec![];
+    let mut pending = folder_entries(root)?.1;
+    let mut read = 0;
+    while let Some(folder) = pending.pop() {
+        read += 1;
+        if read > MAX_FOLDERS {
+            return Err(format!(
+                "{} holds more than 10,000 folders: point at a folder closer to the reports",
+                root.display()
+            ));
+        }
+        let (sources, folders) = folder_entries(&folder)?;
+        if sources.is_empty() {
+            pending.extend(folders);
+        } else {
+            reports.extend(sources);
+        }
+    }
+    reports.sort();
+    Ok(reports)
+}
+
 pub(crate) fn inspect_report_folder(
     source: &Path,
     require_source: bool,
