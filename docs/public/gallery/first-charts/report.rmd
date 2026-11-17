@@ -33,9 +33,59 @@ style: { gaps: break, ratio: '16:9' }
 
 *Source: William Playfair, A Letter on Our Agricultural Distresses (1821), [Wheat dataset](https://vincentarelbundock.github.io/Rdatasets/doc/HistData/Wheat.html) via the HistData R package. The chart selects every eighth observation with a known wage from the full dataset; prices are not inflation-adjusted.*
 
+## What Playfair wanted to show
+
+Playfair drew the two series together to argue that wheat had become cheap when measured in labour. In shillings the price of a quarter of wheat doubled between 1565 and 1805, from 41 to 81. The weekly wage of a good mechanic rose almost sixfold, from 5 to 29.5. Divide one by the other and the comparison no longer depends on reading two axes.
+
+```metric
+value: "8.2"
+unit: weeks
+label: Wages that bought a quarter of wheat in 1565
+```
+
+```metric
+value: "2.7"
+unit: weeks
+label: Wages that bought a quarter of wheat in 1805
+```
+
+```table
+title: Weeks of a mechanic's wages for a quarter of wheat
+data:
+  inline:
+    - { year: 1565, wheat: "41", wages: "5.00", weeks: "8.2" }
+    - { year: 1605, wheat: "33", wages: "5.69", weeks: "5.8" }
+    - { year: 1645, wheat: "53", wages: "6.45", weeks: "8.2" }
+    - { year: 1685, wheat: "27", wages: "7.60", weeks: "3.6" }
+    - { year: 1725, wheat: "39", wages: "13.00", weeks: "3.0" }
+    - { year: 1765, wheat: "43", wages: "17.60", weeks: "2.4" }
+    - { year: 1805, wheat: "81", wages: "29.50", weeks: "2.7" }
+columns:
+  - { key: year, label: Year, format: year }
+  - { key: wheat, label: "Wheat, s per quarter", align: right }
+  - { key: wages, label: "Weekly wage, s", align: right }
+  - { key: weeks, label: Weeks of wages, align: right }
+```
+
+*Source: the chart's seven observations; weeks of wages is the wheat price divided by the weekly wage, at one decimal.*
+
+The fall was not steady. Across all the observations with a wage, the ratio is highest in 1595, at 11.6 weeks, and lowest in 1785, at 1.8 weeks; by 1810, the last year with a wage, it is back at 3.3.
+
 ## Nightingale's second year
 
 Florence Nightingale used mortality statistics to argue for sanitary reform. Compare the monthly annualized death rates across two periods. These stacked bars retain the rates; they are a modern replot, rather than a reproduction of her area-proportional polar diagram.
+
+```image
+src: media/nightingale-diagram-1858.jpg
+alt: "Nightingale's polar diagram for April 1854 to March 1855: twelve wedges around a centre, one for each month, the largest for January 1855"
+caption: "Nightingale's own diagram of the first year, April 1854 to March 1855: a wedge for each month, its area the death rate. Detail of a plate from 1858. Wellcome Collection."
+width: 1050
+height: 1150
+```
+
+*Image: [Wellcome Collection](https://wellcomecollection.org/works/jxwtskzc), Florence Nightingale, Notes on Matters Affecting the Health, Efficiency, and Hospital Administration of the British Army (London: Harrison, 1858), detail of the plate "Diagrams of the Mortality in the Army in the East"; Public Domain Mark.*
+
+Her wedge for January 1855 carries the number 1173.5, the sum of the three causes in that month's bar here.
 
 ```chart
 type: bar
@@ -48,3 +98,52 @@ axes:
 ```
 
 *Source: Florence Nightingale's [Crimean War mortality data](https://vincentarelbundock.github.io/Rdatasets/doc/HistData/Nightingale.html), via HistData. Rates are annualized deaths per 1,000 soldiers, not monthly death counts; the periods run April to March.*
+
+In January 1855 the rate for preventable disease reached 1,023 per 1,000: kept up for a year, deaths from disease alone would have exceeded the army's strength. Wounds, the cause a war is expected to bring, never passed 116. In the second year the mean rate for preventable disease was a quarter of the first year's, and by March 1856 it stood at 3.9.
+
+```table
+title: Mean annualized deaths per 1,000, by cause
+data:
+  inline:
+    - { cause: Preventable disease, first: "358.2", second: "84.8", peak: "1,022.8 in January 1855" }
+    - { cause: Wounds, first: "25.1", second: "23.3", peak: "115.8 in November 1854" }
+    - { cause: Other causes, first: "44.4", second: "9.5", peak: "140.1 in February 1855" }
+columns:
+  - { key: cause, label: Cause }
+  - { key: first, label: "1854–55", align: right }
+  - { key: second, label: "1855–56", align: right }
+  - { key: peak, label: Highest month }
+```
+
+*Source: the chart's Nightingale data; each mean is over the twelve monthly rates of a period, April to March.*
+
+The data show when the rates fell, not why. Nightingale credited the sanitary reforms that began in the hospitals in the spring of 1855; the table cannot separate them from the seasons or from the course of the war.
+
+## The sample and the full series
+
+The first chart draws seven of the 53 observations in Playfair's series: every eighth one with a known wage. The sample keeps the direction and loses the swings: the dear year of 1595, at 64 shillings, and the war years after 1795, when wheat reached 99 shillings in 1810. The wage series ends in 1810; the price series runs to 1821.
+
+```chart
+type: line
+title: Wheat swung between 26 and 99 shillings a quarter
+subtitle: All 53 observations, every five years from 1565 to 1820 and 1821
+data: { csv: data/wheat-and-wages.csv }
+encoding: { x: year, y: wheat }
+axes:
+  x: { format: year }
+  y: { label: Wheat per quarter, unit: s }
+style: { ratio: "2:1" }
+```
+
+*Source: Playfair (1821), the full Wheat dataset via HistData. Prices are not inflation-adjusted.*
+
+## Read both with care
+
+- **Two scales, one picture.** On the first chart the bars and the line have their own axes. Where they cross means nothing; compare how each changes.
+- **Shillings then are not shillings later.** Neither series is adjusted for the value of money, which is why the ratio of the two says more than either.
+- **Rates, not counts.** Nightingale's figures are annualized deaths per 1,000 soldiers. A month's rate of 1,000 does not mean that everyone died that month.
+- **Modern replots.** Playfair drew his wages as a line under a bar for each five years, with the reigns of monarchs across the top; Nightingale drew wedges whose areas carry the rates. These charts keep their numbers, not their forms.
+
+## Data
+
+Three data files and Nightingale's diagram travel with the report; `media/SOURCES.md` says where the diagram comes from. `data/selected.csv` holds the first chart's seven observations. `data/wheat-and-wages.csv` holds all 53: the year, the price of a quarter of wheat in shillings and the weekly wage of a good mechanic in shillings, which is empty after 1810. `data/nightingale.csv` holds 72 rows: period, month, cause and the annualized death rate per 1,000.

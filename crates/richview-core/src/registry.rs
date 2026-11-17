@@ -3316,6 +3316,48 @@ pub static CODES: &[Code] = &[
         false
     ),
     code!(
+        "style.logo-path",
+        Error,
+        "A company logo path is not report-relative.",
+        false
+    ),
+    code!(
+        "style.logo-missing",
+        Error,
+        "A company logo is not available.",
+        false
+    ),
+    code!(
+        "style.logo-format",
+        Error,
+        "A company logo is not a valid raster image.",
+        false
+    ),
+    code!(
+        "style.logo-size",
+        Error,
+        "A company logo exceeds the file size limit.",
+        false
+    ),
+    code!(
+        "style.logo-dimensions",
+        Error,
+        "A company logo exceeds the image dimension limit.",
+        false
+    ),
+    code!(
+        "style.logo-animated",
+        Error,
+        "A company logo is animated.",
+        false
+    ),
+    code!(
+        "style.logo-name",
+        Warning,
+        "A company logo has no name and is decorative.",
+        false
+    ),
+    code!(
         "style.properties",
         Error,
         "Custom style properties are invalid.",
@@ -4481,6 +4523,28 @@ pub const FIXES: &[(&str, &str)] = &[
     (
         "style.company-color",
         "Use an opaque concrete colour such as #0B6E69.",
+    ),
+    (
+        "style.logo-path",
+        "Use a file path inside the report folder.",
+    ),
+    (
+        "style.logo-missing",
+        "Put the logo file inside the report folder.",
+    ),
+    (
+        "style.logo-format",
+        "Use a valid still PNG, JPEG or WebP logo.",
+    ),
+    ("style.logo-size", "Use a logo no larger than 512 KiB."),
+    (
+        "style.logo-dimensions",
+        "Use a logo no larger than 1024 pixels on either side.",
+    ),
+    ("style.logo-animated", "Use a still PNG, JPEG or WebP logo."),
+    (
+        "style.logo-name",
+        "Set company.name to the company name, or leave the mark decorative.",
     ),
     (
         "style.fonts-unavailable",

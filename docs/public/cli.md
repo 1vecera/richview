@@ -22,8 +22,8 @@ richview learn anti-slop
 ## Check the source and the drawing
 
 ```sh
-richview validate first-report/report.rmd --format json
-richview check first-report/report.rmd --chart-width 390 --format json
+richview validate first-report/report.rmd
+richview check first-report/report.rmd --chart-width 390
 ```
 
 Validation finds source and resource errors. Checking also lays out every chart and reports geometry, such as clipped labels or collisions, at the phone and desktop widths readers get; `--chart-width` measures another width instead. An error or a warning needs a fix; an info records what the renderer did. Browser inspection adds the actual font measurements and interactions. Check again after the final source edit.
@@ -42,7 +42,7 @@ richview check reports
 ## Write another presentation
 
 ```sh
-richview generate first-report/report.rmd --style air -o review.html --format json
+richview generate first-report/report.rmd --style air -o review.html
 ```
 
 This writes `first-report/Rendered/review.html`. An output name changes the filename within `Rendered`, not the output root. `--style` supplies the complete style list for this call and replaces the source's list; it does not edit the source.
@@ -61,5 +61,7 @@ This writes `first-report/Rendered/review.html`. An output name changes the file
 | Manage stored versions | `report` |
 | Upload integrity-pinned files to configured storage | `asset` |
 | Find a credited Unsplash photo | `image` |
+
+A report command prints its findings and one result line as text. `--format json` prints one JSON object instead, for an agent or a script that reads the result.
 
 The [command and flag reference](https://richview.ai/docs/tools) is generated from the actual CLI. Report commands exit 0 when no diagnostic is an error, 1 on a report error and 2 on a usage error. A draft with invalid rich blocks can still be written for repair; read the diagnostics and exit status. `serve`, `server` and `mcp` keep running until stopped. Asset and image commands have their own [result contracts](https://richview.ai/docs/tools).

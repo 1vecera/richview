@@ -3,7 +3,7 @@
 //! clear position is dropped and recorded with its reason.
 
 use super::{Ctx, Style};
-use crate::block::{AnnotationKind, ChartType};
+use crate::block::AnnotationKind;
 use crate::diag::Level;
 use crate::geometry::{Anchor, Cmd, DropReason, Face, Fill, Item, Panel, Path, Rect, Rgba, Role, Shape, Stroke, Text};
 use crate::rows;
@@ -1358,8 +1358,8 @@ fn name_height(ctx: &Ctx) -> f64 {
 /// Whether the measured line-name band holds every full button, including the gaps.
 pub(super) fn line_names_fit(ctx: &Ctx, plot: Rect) -> bool {
     let count = ctx.series.len();
-    // Unlike areas, line names can move freely within this band. Capacity therefore does not
-    // depend on the anchors or their reading order; every series counts, including hidden ones.
+    // Line names can move freely within this band. Capacity therefore does not depend on the
+    // anchors or their reading order; every series counts, including hidden ones.
     count as f64 * name_height(ctx) + count.saturating_sub(1) as f64 <= plot.h + ctx.line_height()
 }
 
@@ -1404,113 +1404,9 @@ fn sorted_name_order(ends: &[(usize, f64, f64)]) -> Vec<usize> {
     ordered.into_iter().map(|(s, _, _)| s).collect()
 }
 
-/// Read the same data order for preflight without duplicating the outgoing derived record.
-pub(super) fn preview_name_order(ctx: &Ctx, panel: usize, ends: &[(usize, f64, f64)], all_shown: bool) -> Vec<usize> {
-    let key = name_order_key(ctx, all_shown);
-    ctx.opts
-        .derived
-        .iter()
-        .find(|d| d.panel == panel && d.key == key)
-        .and_then(|d| serde_json::from_value(d.value.clone()).ok())
-        .unwrap_or_else(|| sorted_name_order(ends))
-}
-
 /// Record the data order even when the style presents series in a legend (TYP-36).
 pub(super) fn end_name_order(ctx: &Ctx, panel: usize, ends: &[(usize, f64, f64)]) -> Vec<usize> {
     ctx.derive_visible(panel, &name_order_key(ctx, true), || sorted_name_order(ends))
-}
-
-/// Left margin that contains complete area names and their full button targets.
-pub(super) fn area_name_room(ctx: &Ctx) -> f64 {
-    ctx.series
-        .iter()
-        .map(|s| {
-            let width = ctx.text_width(&s.name);
-            // The existing focus outline extends 2 px plus its 1 px offset past the target.
-            13.0 + (width + (width + 4.0).max(END_NAME_PITCH)) / 2.0
-        })
-        .fold(0.0, f64::max)
-}
-
-/// Free vertical bands for the entire area-name column, including its invisible hit targets.
-fn area_name_bands(ctx: &Ctx, plot: Rect, taken: &[Rect]) -> Vec<[f64; 2]> {
-    let x = plot.x - 10.0;
-    let (mut left, mut right) = (x, x);
-    for s in &ctx.series {
-        let width = ctx.text_width(&s.name);
-        let target = (width + 4.0).max(END_NAME_PITCH);
-        left = left.min(x - width / 2.0 - target / 2.0);
-        right = right.max(x - width / 2.0 + target / 2.0);
-    }
-    let column = Rect::new(left, plot.y, right - left, plot.h);
-    let mut blocked: Vec<_> = taken
-        .iter()
-        .filter_map(|r| {
-            // Keep mathematical tangency clear after the text baseline's floating-point round trip.
-            let r = r.inflate(CLEAR + plot.h.max(plot.w).max(1.0) * f64::EPSILON * 8.0);
-            r.overlaps(&column, 0.0)
-                .then_some([r.y.max(plot.y), r.bottom().min(plot.bottom())])
-        })
-        .collect();
-    // Equal starts merge into the same blocked band, independent of their end order.
-    sort_labels(&mut blocked, |a, b| a[0].total_cmp(&b[0]));
-    let mut bands = Vec::new();
-    let mut top = plot.y;
-    for [a, b] in blocked {
-        if a > top {
-            bands.push([top, a]);
-        }
-        top = top.max(b);
-    }
-    if top < plot.bottom() {
-        bands.push([top, plot.bottom()]);
-    }
-    bands
-}
-
-/// Project an ordered column into clear bands while retaining enough room for every successor.
-fn column_in_bands(
-    anchors: &[(f64, f64)],
-    order: &[usize],
-    plot: Rect,
-    bands: &[[f64; 2]],
-    max_move: f64,
-) -> Option<Vec<f64>> {
-    let ideal = crate::labels::place_column_ordered(anchors, order, plot.y, plot.bottom(), 1.0)?;
-    let mut latest = vec![0.0; anchors.len()];
-    let mut next = plot.bottom() + 1.0;
-    for &i in order.iter().rev() {
-        let half = anchors[i].1 / 2.0;
-        let limit = (next - half - 1.0).min(anchors[i].0 + max_move);
-        let at = bands.iter().rev().find_map(|[a, b]| {
-            let y = (b - half).min(limit);
-            (y >= (a + half).max(anchors[i].0 - max_move)).then_some(y)
-        })?;
-        latest[i] = at;
-        next = at - half;
-    }
-    let mut placed = vec![0.0; anchors.len()];
-    let mut bottom = plot.y - 1.0;
-    for &i in order {
-        let half = anchors[i].1 / 2.0;
-        let low = (bottom + half + 1.0).max(anchors[i].0 - max_move);
-        let at = bands
-            .iter()
-            .filter_map(|[a, b]| {
-                let lo = (a + half).max(low);
-                let hi = (b - half).min(latest[i]);
-                (lo <= hi).then(|| ideal[i].clamp(lo, hi))
-            })
-            .min_by(|a, b| {
-                (a - ideal[i])
-                    .abs()
-                    .total_cmp(&(b - ideal[i]).abs())
-                    .then(a.total_cmp(b))
-            })?;
-        placed[i] = at;
-        bottom = at + half;
-    }
-    Some(placed)
 }
 
 fn name_indices(ends: &[(usize, f64, f64)], series_order: &[usize]) -> Vec<usize> {
@@ -1532,32 +1428,8 @@ fn name_indices(ends: &[(usize, f64, f64)], series_order: &[usize]) -> Vec<usize
     order
 }
 
-/// Whether every area name fits without drifting beyond half a value-tick spacing.
-pub(super) fn area_names_fit(
-    ctx: &Ctx,
-    plot: Rect,
-    taken: &[Rect],
-    ends: &[(usize, f64, f64)],
-    series_order: &[usize],
-    max_move: f64,
-) -> bool {
-    if ends.len() != ctx.series.len() {
-        return false;
-    }
-    let height = name_height(ctx);
-    let anchors: Vec<_> = ends.iter().map(|(_, y, _)| (*y, height)).collect();
-    column_in_bands(
-        &anchors,
-        &name_indices(ends, series_order),
-        plot,
-        &area_name_bands(ctx, plot, taken),
-        max_move,
-    )
-    .is_some()
-}
-
-/// Name lines on the right and areas on the left, separating buttons and keeping area names
-/// clear of axis ink; a name moved more than 4 px gets a thin leader (FEA-CH-27).
+/// Name lines in a column at their right ends, separating the buttons; a name moved more than
+/// 4 px gets a thin leader (FEA-CH-27).
 pub(super) fn end_names(
     ctx: &Ctx,
     plot: Rect,
@@ -1565,30 +1437,18 @@ pub(super) fn end_names(
     series_order: &[usize],
     items: &mut Vec<Item>,
     taken: &mut Vec<Rect>,
-    name_limit: Option<f64>,
 ) {
     let lh = ctx.line_height();
-    let area = ctx.block.kind == ChartType::Area;
     // Each name is a button: its target is 24 px high, so neighbours sit at least that far apart.
     // A grid step can exchange nearly equal anchors. Replay their shown-value order instead of
     // deciding a new order at a pixel-rounding or tolerance boundary (TYP-36).
     let height = name_height(ctx);
     let anchors: Vec<(f64, f64)> = ends.iter().map(|(_, y, _)| (*y, height)).collect();
     let order = name_indices(ends, series_order);
-    let column_x = if area { plot.x - 10.0 } else { plot.right() + 10.0 };
-    let placed = if area {
-        column_in_bands(
-            &anchors,
-            &order,
-            plot,
-            &area_name_bands(ctx, plot, taken),
-            name_limit.unwrap_or(f64::INFINITY),
-        )
-        .expect("area-name feasibility was checked before painting")
-    } else {
+    let column_x = plot.right() + 10.0;
+    let placed =
         crate::labels::place_column_ordered(&anchors, &order, plot.y - lh / 2.0, plot.bottom() + lh / 2.0, 1.0)
-            .expect("line-name capacity was checked before painting")
-    };
+            .expect("line-name capacity was checked before painting");
     for ((s, y, _), cy) in ends.iter().zip(placed) {
         let hidden = ctx.is_hidden(*s);
         let mut color = ctx.readable(ctx.series_color(*s));
@@ -1600,7 +1460,7 @@ pub(super) fn end_names(
             &ctx.series[*s].name,
             column_x,
             cy,
-            if area { Anchor::End } else { Anchor::Start },
+            Anchor::Start,
             Face::Data,
             Role::Label,
             color,
@@ -1608,14 +1468,7 @@ pub(super) fn end_names(
         text.series = Some(*s);
         if (cy - y).abs() > 4.0 && !hidden {
             items.push(Item::Line {
-                path: Path::polyline(&[
-                    if area {
-                        [plot.x - 2.0, *y]
-                    } else {
-                        [plot.right() + 2.0, *y]
-                    },
-                    [if area { column_x + 3.0 } else { column_x - 3.0 }, cy],
-                ]),
+                path: Path::polyline(&[[plot.right() + 2.0, *y], [column_x - 3.0, cy]]),
                 stroke: Stroke::solid(Style::rgba(ctx.style.ink_faint), 1.0),
                 role: Role::Leader,
                 series: Some(*s),
@@ -1625,6 +1478,255 @@ pub(super) fn end_names(
         taken.push(text.bounds);
         items.push(Item::Text(text));
     }
+}
+
+/// A series' line as the name search reads it: its points in pixels in x order, and whether the
+/// series is hidden. A hidden line is not drawn; its dimmed name marks where it runs.
+pub(super) struct NameLine {
+    pub series: usize,
+    pub points: Vec<[f64; 2]>,
+    pub hidden: bool,
+}
+
+/// Room between a name inside the plot and its own line.
+const NAME_GAP: f64 = 5.0;
+/// Room every other line keeps from a name inside the plot.
+const NAME_CLEAR: f64 = 4.0;
+/// Most places tried along one line.
+const NAME_TRIES: usize = 96;
+
+/// The highest and lowest pixel a line reaches between two x positions, its ends interpolated;
+/// `None` where the line does not span the whole stretch.
+fn line_reach(points: &[[f64; 2]], from: f64, to: f64) -> Option<[f64; 2]> {
+    let (first, last) = (points.first()?, points.last()?);
+    if first[0] > from || last[0] < to {
+        return None;
+    }
+    let at = |x: f64| {
+        let after = points.partition_point(|p| p[0] < x).clamp(1, points.len() - 1);
+        let (a, b) = (points[after - 1], points[after]);
+        if b[0] > a[0] {
+            a[1] + (b[1] - a[1]) * ((x - a[0]) / (b[0] - a[0])).clamp(0.0, 1.0)
+        } else {
+            a[1]
+        }
+    };
+    let (mut top, mut bottom) = (at(from).min(at(to)), at(from).max(at(to)));
+    let start = points.partition_point(|p| p[0] <= from);
+    for p in points[start..].iter().take_while(|p| p[0] < to) {
+        top = top.min(p[1]);
+        bottom = bottom.max(p[1]);
+    }
+    Some([top, bottom])
+}
+
+/// The box a name's button covers: at least 24 px each way, centred on the name (WCAG 2.5.8).
+fn name_target(text: Rect) -> Rect {
+    let (w, h) = ((text.w + 4.0).max(END_NAME_PITCH), (text.h + 4.0).max(END_NAME_PITCH));
+    Rect::new(text.x + text.w / 2.0 - w / 2.0, text.y + text.h / 2.0 - h / 2.0, w, h)
+}
+
+/// Where every series' name stands inside the plot, as the centre of its text: right beside its
+/// own line, on a stretch where no other line comes near and the name is nearer to its own line
+/// than to any other. The plot then needs no column of names beside it and takes that width
+/// (Daniel, 16 Nov 2026; the streamgraph's names are the model). Chart design's ruling of 16 Nov:
+/// - a line's name stands above its line, and below only where above has no place; an area's
+///   name stands below its line, inside its own fill, and above only where that has no place
+///   (`inside_fill`);
+/// - 5 px off the line, and as far right as a free place exists, so the names read as a loose
+///   column near the line ends;
+/// - clear of every text already in the panel (`texts`), with 8 px beside it, so a name and a
+///   value never read as one;
+/// - all or nothing: `None` when any name has no such place, as where lines lie on top of each
+///   other, and the caller names the series another way.
+///
+/// The lines with the fewest free places choose first. With a series hidden, a name may also
+/// take a steep stretch. A hidden series' dimmed name stands where its data is: right of its
+/// line's end when that is inside the plot, against the plot's edge on its data's side when the
+/// refitted axis leaves it outside, and never on another series' line (chart design, 16 Nov).
+pub(super) fn inside_name_places(
+    ctx: &Ctx,
+    plot: Rect,
+    lines: &[NameLine],
+    texts: &[Rect],
+    inside_fill: bool,
+) -> Option<Vec<(usize, [f64; 2])>> {
+    let h = ctx.line_height();
+    // With a series hidden the value axis follows the rest, and a line that was flat may be
+    // steep: a name then takes a steep stretch rather than leave the plot under the reader's
+    // finger.
+    let steep_too = lines.iter().any(|l| l.hidden);
+    let free = |text: &Rect| {
+        let beside = Rect::new(text.x - VALUE_GAP, text.y - 2.0, text.w + 2.0 * VALUE_GAP, text.h + 4.0);
+        text.y >= plot.y + 1.0
+            && text.bottom() <= plot.bottom() - 1.0
+            && !texts.iter().any(|t| t.overlaps(&beside, 0.0))
+    };
+    // The nearest shown line above or below a name other than its own, over the name's width.
+    let nearest = |own: usize, text: &Rect| {
+        let (left, right) = (text.x, text.right());
+        let mut nearest = f64::INFINITY;
+        for other in lines.iter().filter(|o| o.series != own && !o.hidden) {
+            let reach = other.points.first().map_or(left, |p| p[0]).max(left - NAME_CLEAR);
+            let end = other.points.last().map_or(right, |p| p[0]).min(right + NAME_CLEAR);
+            if end < reach {
+                continue;
+            }
+            let Some([o_top, o_bottom]) = line_reach(&other.points, reach, end) else {
+                continue;
+            };
+            nearest = nearest.min(if o_bottom < text.y {
+                text.y - o_bottom
+            } else if o_top > text.bottom() {
+                o_top - text.bottom()
+            } else {
+                -1.0
+            });
+        }
+        nearest
+    };
+    let mut options: Vec<(usize, Vec<Rect>)> = Vec::with_capacity(lines.len());
+    for (i, line) in lines.iter().enumerate() {
+        let w = ctx.text_width(&ctx.series[line.series].name);
+        let (from, to) = (plot.x + w / 2.0 + 6.0, plot.right() - w / 2.0 - 6.0);
+        // Free places on the preferred side of the line, right to left, then on the other side;
+        // after those, with a series hidden, the same on steep stretches.
+        let mut found: [Vec<Rect>; 4] = Default::default();
+        if line.hidden {
+            let places = hidden_name_places(plot, line, w, h, from, to, &|text: &Rect| {
+                free(text) && nearest(line.series, text) >= NAME_CLEAR
+            });
+            if places.is_empty() {
+                return None;
+            }
+            options.push((i, places));
+            continue;
+        }
+        if to >= from && line.points.len() >= 2 {
+            let steps = (((to - from) / 6.0).floor() as usize).clamp(1, NAME_TRIES);
+            for step in (0..=steps).rev() {
+                let cx = from + (to - from) * step as f64 / steps as f64;
+                let (left, right) = (cx - w / 2.0, cx + w / 2.0);
+                let Some([top, bottom]) = line_reach(&line.points, left - 2.0, right + 2.0) else {
+                    continue;
+                };
+                let spread = bottom - top;
+                // On a steep stretch a name floats far from most of its line.
+                let steep = spread > 1.5 * h;
+                if steep && !steep_too {
+                    continue;
+                }
+                for (above, y) in [(true, top - NAME_GAP - h), (false, bottom + NAME_GAP)] {
+                    let text = Rect::new(left, y, w, h);
+                    if !free(&text) {
+                        continue;
+                    }
+                    // Clear of every other line, and nearer to its own line than to any other.
+                    let nearest = nearest(line.series, &text);
+                    if nearest >= NAME_CLEAR && nearest >= NAME_GAP + spread / 2.0 + 3.0 {
+                        found[2 * usize::from(steep) + usize::from(above == inside_fill)].push(text);
+                    }
+                }
+            }
+        }
+        let places: Vec<Rect> = found.into_iter().flatten().collect();
+        if places.is_empty() {
+            return None;
+        }
+        options.push((i, places));
+    }
+    sort_labels(&mut options, |a, b| a.1.len().cmp(&b.1.len()).then(a.0.cmp(&b.0)));
+    let mut chosen: Vec<(usize, Rect)> = Vec::with_capacity(lines.len());
+    for (i, found) in &options {
+        let text = found.iter().copied().find(|text| {
+            chosen
+                .iter()
+                .all(|(_, c)| !name_target(*text).overlaps(&name_target(*c), 0.0))
+        })?;
+        chosen.push((*i, text));
+    }
+    sort_labels(&mut chosen, |a, b| a.0.cmp(&b.0));
+    Some(
+        chosen
+            .into_iter()
+            .map(|(i, text)| (lines[i].series, [text.x + text.w / 2.0, text.y + text.h / 2.0]))
+            .collect(),
+    )
+}
+
+/// The places a hidden series' name may take, best first: at the right, beside where its data
+/// ends. The line's points are clamped to the plot, so a series the refitted axis leaves out
+/// ends on the plot's edge on its data's side; its name then stands just inside that edge. From
+/// there the name steps away from the edge, then leftwards, until `clear` holds.
+fn hidden_name_places(
+    plot: Rect,
+    line: &NameLine,
+    w: f64,
+    h: f64,
+    from: f64,
+    to: f64,
+    clear: &dyn Fn(&Rect) -> bool,
+) -> Vec<Rect> {
+    let Some(&[end_x, end_y]) = line.points.last() else {
+        return Vec::new();
+    };
+    if to < from {
+        return Vec::new();
+    }
+    let (top, bottom) = (plot.y + 2.0, plot.bottom() - 2.0 - h);
+    // Rows to try, nearest the data first: beside the end, or along the edge it is clamped to.
+    let rows: Vec<f64> = if end_y <= plot.y + 0.5 {
+        (0..12).map(|k| top + k as f64 * 4.0).collect()
+    } else if end_y >= plot.bottom() - 0.5 {
+        (0..12).map(|k| bottom - k as f64 * 4.0).collect()
+    } else {
+        let (above, below) = (end_y - NAME_GAP - h, end_y + NAME_GAP);
+        (0..12)
+            .flat_map(|k| [above - k as f64 * 4.0, below + k as f64 * 4.0])
+            .collect()
+    };
+    let start = end_x.min(to + w / 2.0) - w / 2.0;
+    let steps = (((start - from) / 6.0).floor().max(0.0) as usize).min(NAME_TRIES);
+    let mut out = Vec::new();
+    for step in 0..=steps {
+        let cx = start - step as f64 * 6.0;
+        for &y in &rows {
+            let text = Rect::new(cx - w / 2.0, y.clamp(top, bottom.max(top)), w, h);
+            if clear(&text) {
+                out.push(text);
+            }
+        }
+        if out.len() >= 8 {
+            break;
+        }
+    }
+    out
+}
+
+/// Draw the names at the places [`inside_name_places`] found; a gridline stops short of a name,
+/// as it does of a value. A hidden series keeps its name, at reduced strength, as its way back
+/// (FEA-CH-33).
+pub(super) fn inside_names(ctx: &Ctx, places: &[(usize, [f64; 2])], panel: &mut Panel) {
+    let mut boxes = Vec::with_capacity(places.len());
+    for &(s, [cx, cy]) in places {
+        let mut color = ctx.readable(ctx.series_color(s));
+        if ctx.is_hidden(s) {
+            color = crate::color::mix(color, ctx.style.surface, 0.55);
+        }
+        let mut text = ctx.text_mid(
+            &ctx.series[s].name,
+            cx,
+            cy,
+            Anchor::Middle,
+            Face::Data,
+            Role::Label,
+            color,
+        );
+        text.series = Some(s);
+        boxes.push(text.bounds);
+        panel.items.push(Item::Text(text));
+    }
+    break_grid_at(panel, &boxes);
 }
 
 /// Candidate boxes around an anchor, measured from the mark's edge: right, left, above, below,

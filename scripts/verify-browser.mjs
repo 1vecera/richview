@@ -10,10 +10,12 @@ import { capturePreviewFailure, settleRestoredPreview } from './preview-recovery
 import { verifyRuntimeAccess } from './runtime-access.mjs';
 import { browserCases } from '../tools/rv-gate/lib/browser-cases.mjs';
 
-// The showcase offers its five primary styles as pills and the rest behind an "Other styles" select.
+// The showcase offers its five primary styles as pills and the rest behind an "Other styles" select. A phone
+// has one menu in the header's row for all of them instead (Daniel, 17 Nov), and the reader's control is used.
 const chooseStyle = async (page, theme) => {
-  const pill = page.locator(`#style-pills [data-theme="${theme}"]`);
-  if (await pill.count()) await pill.click(); else await page.locator('#theme').selectOption(theme);
+  const menu = page.locator('#style-menu'), pill = page.locator(`#style-pills [data-theme="${theme}"]`);
+  if (await menu.isVisible()) await menu.selectOption(theme);
+  else if (await pill.count()) await pill.click(); else await page.locator('#theme').selectOption(theme);
 };
 // Every style is its own pre-rendered report in `#report-frame` (FEA-SF-36); choosing one swaps the
 // frame's document. Wait until the frame shows that style's file with its runtime started.
@@ -1012,11 +1014,40 @@ try {
     const years = (await modelOf()).zoom;
     assert.ok(years && years[0] >= 2020 && years[1] <= 2023, `${type}: year-like values zoom on a numeric axis: ${JSON.stringify(years)}`);
   }
-  await draw({ type: 'line', title: 'Zoom nominal', encoding: { x: 'x', y: 'y' }, data: { inline: [0, 'phase', 10].map((x, i) => ({ x, y: i + 1 })) } });
-  await chartFrame().focus(); await page.keyboard.press('+');
-  assert.equal((await modelOf()).zoom, null, 'A nominal x axis never zooms');
-  assert.equal(await preview.locator('.rv-chart__action--reset').isVisible(), false);
-  check('Numeric strings zoom like numbers on scatter, line and area; year-like values zoom numerically; a nominal axis does not zoom');
+  // Names on x (FEA-CH-49 and FEA-CH-39 as assumed; Daniel, 16 Nov: "The area chart, I would
+  // expect I can also drag to zoom"; Chart design, 16 Nov): a line or an area over three names
+  // or more zooms along x; each end of a settled window stands on a name, at least two names stay
+  // in view, and zooming out stops at the whole axis. A line or an area over two names, and every
+  // other chart over names, never zooms.
+  const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  for (const [type, inline] of [['line', weekdays], ['area', weekdays], ['line', [0, 'phase', 10]]]) {
+    await draw({ type, title: `Zoom ${type} over names`, encoding: { x: 'x', y: 'y' }, data: { inline: inline.map((x, i) => ({ x, y: i + 1 })) } });
+    const last = inline.length - 1;
+    await chartFrame().focus();
+    for (let step = 0; step < 12; step++) {
+      await page.keyboard.press('+');
+      const zoom = (await modelOf()).zoom;
+      assert.ok(zoom, `${type} over ${inline.length} names zooms by +`);
+      assert.ok(zoom.every(Number.isInteger), `${type}: each end of the window stands on a name, no name is cut: ${JSON.stringify(zoom)}`);
+      assert.ok(zoom[0] >= 0 && zoom[1] <= last, `${type}: the window stays on the names: ${JSON.stringify(zoom)}`);
+      assert.ok(zoom[1] - zoom[0] >= 1, `${type}: at least two names stay in view: ${JSON.stringify(zoom)}`);
+    }
+    assert.equal(await preview.locator('.rv-chart__action--reset').isVisible(), true);
+    for (let step = 0; step < 12 && (await modelOf()).zoom; step++) {
+      await page.keyboard.press('-');
+      const zoom = (await modelOf()).zoom;
+      if (zoom) assert.ok(zoom[0] >= 0 && zoom[1] <= last && zoom.every(Number.isInteger), `${type}: zooming out stays on the names: ${JSON.stringify(zoom)}`);
+    }
+    assert.equal((await modelOf()).zoom, null, `${type}: zooming out stops at the whole axis`);
+    assert.equal(await preview.locator('.rv-chart__action--reset').isVisible(), false);
+  }
+  for (const [type, inline] of [['line', ['Mon', 'Tue']], ['area', ['Mon', 'Tue']], ['bar', weekdays], ['lollipop', weekdays]]) {
+    await draw({ type, title: `No zoom ${type}`, encoding: { x: 'x', y: 'y' }, data: { inline: inline.map((x, i) => ({ x, y: i + 1 })) } });
+    await chartFrame().focus(); await page.keyboard.press('+');
+    assert.equal((await modelOf()).zoom, null, `${type} over ${inline.length} names: a nominal x axis never zooms`);
+    assert.equal(await preview.locator('.rv-chart__action--reset').isVisible(), false);
+  }
+  check('Numeric strings zoom like numbers on scatter, line and area; year-like values zoom numerically; a line or an area over three names or more zooms by whole names and never closer than two; over two names, and every other chart over names, does not zoom');
 
   evidence.source_series_identity = [];
   for (const type of ['scatter', 'bar']) for (const keys of [[1, 2], [true, false], [1, 'Named'], ['A', 'B']]) {

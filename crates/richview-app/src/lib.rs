@@ -20,6 +20,7 @@ pub mod server;
 pub mod storage;
 #[cfg(test)]
 mod test_points;
+pub mod time;
 pub mod unsplash;
 
 pub use resolver::{render_file, resolve_document_options, resolve_options};

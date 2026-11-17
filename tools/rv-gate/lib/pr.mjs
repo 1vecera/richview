@@ -47,12 +47,13 @@ export function parseCause(text) {
 
 /** Parse the "## Retired tests" section into `[{test, reason}]`. */
 export function parseRetired(body) {
-	const section = body.match(/^##\s+Retired tests[ \t]*$([\s\S]*?)(?=^##\s|(?![\s\S]))/im);
-	if (!section) return [];
+	// A stack's joined commit messages can hold one such section per commit: read every one.
 	const retired = [];
-	for (const line of section[1].split("\n")) {
-		const match = line.match(/^\s*[-*]\s+`([^`]+)`\s*(?:—|-|:)\s*(.+?)\s*$/);
-		if (match) retired.push({ test: match[1], reason: match[2] });
+	for (const section of body.matchAll(/^##\s+Retired tests[ \t]*$([\s\S]*?)(?=^##\s|(?![\s\S]))/gim)) {
+		for (const line of section[1].split("\n")) {
+			const match = line.match(/^\s*[-*]\s+`([^`]+)`\s*(?:—|-|:)\s*(.+?)\s*$/);
+			if (match) retired.push({ test: match[1], reason: match[2] });
+		}
 	}
 	return retired;
 }

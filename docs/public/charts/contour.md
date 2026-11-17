@@ -223,5 +223,4 @@ axes:
 ## Interactions
 
 - Hover or focus a place to read x, y and the value at the nearest grid point.
-- Zoom the x axis to look at part of the surface.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

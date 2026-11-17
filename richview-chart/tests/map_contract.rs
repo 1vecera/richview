@@ -233,3 +233,144 @@ fn rows_without_a_position_or_a_region_are_counted_not_silently_skipped() {
             .starts_with("1 row ")
     );
 }
+
+fn zoomed(spec: &Value, rows: &[Value], x: [f64; 2], y: [f64; 2]) -> richview_chart::geometry::Geometry {
+    use richview_chart::layout::{ChartTheme, Options, layout};
+    let block = richview_chart::block::ChartBlock::from_value(spec).expect("a chart block");
+    layout(
+        &block,
+        rows,
+        &ChartTheme::default(),
+        &Options {
+            width: 640.0,
+            zoom: Some(x),
+            zoom_y: Some(y),
+            ..Options::default()
+        },
+    )
+}
+
+/// Where a projected point is drawn, through the scales the runtime zooms and pans by.
+fn drawn(scale: &richview_chart::geometry::XScale, p: [f64; 2]) -> [f64; 2] {
+    let y = scale.y.expect("a map zooms along both axes");
+    let along = |v: f64, domain: [f64; 2], range: [f64; 2]| {
+        range[0] + (v - domain[0]) / (domain[1] - domain[0]) * (range[1] - range[0])
+    };
+    [along(p[0], scale.domain, scale.range), along(p[1], y.domain, y.range)]
+}
+
+#[test]
+fn a_reader_s_window_is_drawn_whole_and_its_scales_say_where() {
+    let (spec, rows) = fixture();
+    let whole = draw(&spec, &rows);
+    let all = whole.panels[0].x.clone().expect("the map reports what it shows");
+    let ally = all.y.unwrap();
+    // The whole map: both scales cover the boundaries, and a known place is where they say.
+    assert!(all.domain[0] <= all.extent[0] && all.domain[1] >= all.extent[1]);
+    assert!(ally.domain[0] <= ally.extent[0] && ally.domain[1] >= ally.extent[1]);
+    let prague = Projection::NaturalEarth.project(14.42, 50.09);
+    let cz = observations(&whole)
+        .into_iter()
+        .find(|o| o.readout.heading == "Czechia")
+        .unwrap();
+    let at = drawn(&all, prague);
+    assert!(cz.area.unwrap().inflate(1.0).contains(at), "{at:?} in {:?}", cz.area);
+
+    // Europe: a window a quarter of the map wide around Prague.
+    let (hw, hh) = (
+        (all.extent[1] - all.extent[0]) / 8.0,
+        (ally.extent[1] - ally.extent[0]) / 8.0,
+    );
+    let g = zoomed(
+        &spec,
+        &rows,
+        [prague[0] - hw, prague[0] + hw],
+        [prague[1] - hh, prague[1] + hh],
+    );
+    let panel = &g.panels[0];
+    let scale = panel.x.clone().unwrap();
+    let y = scale.y.unwrap();
+    // The window is inside what the plot shows, and the plot is the same size as before.
+    assert_eq!(panel.plot, whole.panels[0].plot);
+    assert_eq!(g.height, whole.height);
+    assert!(scale.domain[0] <= prague[0] - hw + 1e-9 && scale.domain[1] >= prague[0] + hw - 1e-9);
+    assert!(y.domain[0] <= prague[1] - hh + 1e-9 && y.domain[1] >= prague[1] + hh - 1e-9);
+    // Four times closer, the same country is four times as wide, and Prague is at the middle.
+    let cz_in = observations(&g)
+        .into_iter()
+        .find(|o| o.readout.heading == "Czechia")
+        .unwrap();
+    let grown = cz_in.area.unwrap().w / cz.area.unwrap().w;
+    assert!((grown - 4.0).abs() < 0.01, "{grown}");
+    let at = drawn(&scale, prague);
+    let middle = panel.plot.center();
+    assert!(
+        (at[0] - middle[0]).abs() < 0.5 && (at[1] - middle[1]).abs() < 0.5,
+        "{at:?}"
+    );
+    assert!(cz_in.area.unwrap().inflate(1.0).contains(at));
+    // A country is still hit where it is drawn.
+    let found = hit::at(&g, cz_in.at).expect("the anchor is inside the region");
+    assert_eq!(panel.observations[found.observation].readout.heading, "Czechia");
+    // Readouts offer what the window shows: Europe's countries stay, India has left the plot.
+    let names: Vec<&str> = observations(&g).iter().map(|o| o.readout.heading.as_str()).collect();
+    for kept in ["Czechia", "Germany", "Poland", "France", "Italy"] {
+        assert!(names.contains(&kept), "{kept} in {names:?}");
+    }
+    assert!(!names.contains(&"India"), "{names:?}");
+    // Every readout is anchored inside the plot, on a part of its country that shows.
+    for o in observations(&g) {
+        assert!(
+            panel.plot.inflate(0.5).contains(o.at),
+            "{} at {:?}",
+            o.readout.heading,
+            o.at
+        );
+        assert!(o.area.unwrap().inside(&panel.plot, 0.5), "{}", o.readout.heading);
+    }
+    assert!(nonfinite(&g).is_none());
+}
+
+#[test]
+fn a_window_stops_at_the_map_s_edge_and_at_the_closest_zoom() {
+    let (spec, rows) = fixture();
+    let whole = draw(&spec, &rows);
+    let all = whole.panels[0].x.clone().unwrap();
+    let ally = all.y.unwrap();
+    let (w, h) = (all.extent[1] - all.extent[0], ally.extent[1] - ally.extent[0]);
+    // A window hanging off the top right corner is moved back onto the map.
+    let g = zoomed(
+        &spec,
+        &rows,
+        [all.extent[1] - w / 8.0, all.extent[1] + w / 8.0],
+        [ally.extent[1] - h / 8.0, ally.extent[1] + h / 8.0],
+    );
+    let scale = g.panels[0].x.clone().unwrap();
+    let y = scale.y.unwrap();
+    assert!((scale.domain[1] - all.extent[1]).abs() < 1e-6, "{:?}", scale.domain);
+    assert!((y.domain[1] - ally.extent[1]).abs() < 1e-6, "{:?}", y.domain);
+    // A window far smaller than the closest zoom is drawn at the closest zoom, around its middle.
+    let mid = [
+        (all.extent[0] + all.extent[1]) / 2.0,
+        (ally.extent[0] + ally.extent[1]) / 2.0,
+    ];
+    let g = zoomed(
+        &spec,
+        &rows,
+        [mid[0] - w / 1e4, mid[0] + w / 1e4],
+        [mid[1] - h / 1e4, mid[1] + h / 1e4],
+    );
+    let scale = g.panels[0].x.clone().unwrap();
+    let closest = (all.domain[1] - all.domain[0]) / (scale.domain[1] - scale.domain[0]);
+    assert!((closest - 24.0).abs() < 1e-6, "{closest}");
+    assert!(((scale.domain[0] + scale.domain[1]) / 2.0 - mid[0]).abs() < 1e-6);
+    // A window as large as the map, or larger, is the whole map again.
+    let g = zoomed(
+        &spec,
+        &rows,
+        [all.extent[0] - w, all.extent[1] + w],
+        [ally.extent[0] - h, ally.extent[1] + h],
+    );
+    assert_eq!(g.panels[0].x, whole.panels[0].x);
+    assert_eq!(g.panels[0].observations.len(), whole.panels[0].observations.len());
+}

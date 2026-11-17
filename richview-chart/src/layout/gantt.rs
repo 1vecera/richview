@@ -509,6 +509,8 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 extent: x_axis.extent(),
                 range: [plot.x, plot.right()],
                 calendar,
+                y: None,
+                least: None,
             }),
             failure: None,
         };

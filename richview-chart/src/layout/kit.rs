@@ -508,7 +508,7 @@ pub(super) fn frame_with(
                 ctx.check(
                     "label-thinned",
                     Level::Info,
-                    format!("Category names show every {every}th"),
+                    format!("Category names show every {}", axis::nth_printed(&lines)),
                     None,
                     Some("chart.encoding.x".into()),
                     None,
@@ -940,6 +940,8 @@ pub(super) fn xy_frame(
             extent,
             range: [plot.x, plot.right()],
             calendar,
+            y: None,
+            least: None,
         },
         items,
     }

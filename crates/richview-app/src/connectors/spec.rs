@@ -116,6 +116,11 @@ impl fmt::Display for ConnectorError {
         match self {
             Self::UnknownConnector(name) => write!(f, "no connector named '{name}' is registered"),
             Self::QueryRejected { reason } => write!(f, "query rejected: {reason}"),
+            // The Windows preview has no sandbox for the worker, so it runs no author SQL (ARC-67).
+            Self::SqlIsolationUnavailable if cfg!(windows) => write!(
+                f,
+                "SQL data sources are not available on Windows yet: the SQL worker has no sandbox there"
+            ),
             Self::SqlIsolationUnavailable => write!(
                 f,
                 "SQL worker isolation is unavailable: SQL data sources need Linux kernel 6.2 or newer with Landlock ABI 3 enabled"

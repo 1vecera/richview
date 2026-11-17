@@ -282,8 +282,8 @@ pub async fn members_page(
     let expiries: Vec<String> = invitations
         .iter()
         .map(|view| {
-            chrono::DateTime::from_timestamp(view.invitation.expires as i64, 0)
-                .map(|date| date.format("%-d %b %Y").to_string())
+            crate::time::Instant::from_unix(view.invitation.expires as i64, 0)
+                .and_then(crate::time::Instant::utc_day)
                 .unwrap_or_default()
         })
         .collect();

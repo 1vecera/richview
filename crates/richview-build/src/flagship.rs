@@ -194,6 +194,7 @@ pub fn stage(root: &Path, public: &Path) -> Result<()> {
             )
         })
         .collect();
+    let menu = style_menu(&styles, &extended, &tokens);
     let mut page = fs::read_to_string(root.join("assets/showcase/index.html"))?
         .replace("<!-- rv-extended-options -->", &options)
         .replace("<!-- rv-compare-options -->", &compare)
@@ -207,13 +208,45 @@ pub fn stage(root: &Path, public: &Path) -> Result<()> {
             &serde_json::to_string(&tokens)?.replace("</", "<\\/"),
         );
     page = page.replace("<!-- rv-style-count -->", &style_count(styles.len()));
-    let page = chrome::apply(&chrome::apply_styles(&page));
+    let page = chrome::apply_with(&chrome::apply_styles(&page), &menu);
     fs::write(folder.join("index.html"), page)?;
     fs::copy(
         root.join("assets/showcase/showcase.css"),
         showcase.join("showcase.css"),
     )?;
     Ok(())
+}
+
+/// A phone's style menu (Daniel, 17 Nov 2026: "top area is all single line with a dropdown to
+/// change styles"): one native select in the header's row, the five styles first and the extended
+/// themes under their own heading. It is in the page as built, so the header is the same with and
+/// without the script; like the row of pills, it changes the style only once the script runs.
+fn style_menu(styles: &[&str], extended: &[String], tokens: &Value) -> String {
+    let option = |id: &str, selected: bool| {
+        format!(
+            "<option value=\"{id}\"{}>{}</option>",
+            if selected { " selected" } else { "" },
+            tokens[id]["name"]
+                .as_str()
+                .unwrap_or(id)
+                .replace('&', "&amp;")
+                .replace('<', "&lt;")
+        )
+    };
+    let builtin: String = styles
+        .iter()
+        .enumerate()
+        .map(|(i, id)| option(id, i == 0))
+        .collect();
+    let more: String = extended.iter().map(|id| option(id, false)).collect();
+    let more = if more.is_empty() {
+        more
+    } else {
+        format!("<optgroup label=\"Extended themes\">{more}</optgroup>")
+    };
+    format!(
+        "<label class=\"nav__style\"><span class=\"sr-only\">Style</span><select id=\"style-menu\"><optgroup label=\"Styles\">{builtin}</optgroup>{more}</select></label>"
+    )
 }
 
 /// The site tokens a style's own tokens set on the page frame (STY-60). The script applies the
@@ -314,6 +347,28 @@ mod tests {
     fn styles_are_named_by_label_or_file() {
         assert_eq!(style_name("hand-drawn"), "Hand-drawn");
         assert_eq!(style_name("v04-original-dark"), "Original dark");
+    }
+
+    #[test]
+    fn a_phones_menu_lists_the_styles_then_the_extended_themes() {
+        let tokens = json!({"sleek":{"name":"Sleek"},"air":{"name":"Air"},"v05-editorial":{"name":"Editorial & co"}});
+        let menu = style_menu(&["sleek", "air"], &["v05-editorial".to_owned()], &tokens);
+        assert!(menu.starts_with(
+            "<label class=\"nav__style\"><span class=\"sr-only\">Style</span><select id=\"style-menu\">"
+        ));
+        assert!(menu.contains(
+            "<optgroup label=\"Styles\"><option value=\"sleek\" selected>Sleek</option><option value=\"air\">Air</option></optgroup>"
+        ));
+        assert!(menu.contains(
+            "<optgroup label=\"Extended themes\"><option value=\"v05-editorial\">Editorial &amp; co</option></optgroup>"
+        ));
+        // Without extended themes the menu has no empty heading.
+        assert!(!style_menu(&["sleek"], &[], &tokens).contains("Extended themes"));
+        // The header's own row holds it, between the mark and the links.
+        let header = chrome::header_with(&menu);
+        let at = |needle: &str| header.find(needle).unwrap();
+        assert!(at("nav__brand") < at("nav__style") && at("nav__style") < at("nav__links"));
+        assert!(!chrome::header().contains("nav__style"));
     }
 
     #[test]

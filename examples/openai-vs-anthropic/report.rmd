@@ -87,7 +87,7 @@ The closer a population sits to building with AI, the larger Anthropic's share. 
 kind: hold
 title: How to read this report
 body: |
-  Every measure names its population and its window. Scraped samples describe the people in them, not the public. Revenue figures come mostly from documents seen by journalists, because neither company has a public, audited filing yet. Each claim links to a dated source.
+  Every measure names its population and its window. Scraped samples describe the people in them, not the public. Revenue figures come mostly from documents seen by journalists, because as of the 2 October snapshot neither company had a public S-1. Anthropic filed one on 26 October 2026 and amended it on 10 November ([C208](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm), [C209](https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm)). Each claim links to a dated source.
 ```
 
 ## Builders moved first, then buyers and bankers
@@ -754,7 +754,7 @@ axes:
 style: {ratio: '16:9'}
 ```
 
-*Sources: [C015](https://www.wsj.com/tech/ai/openais-second-quarter-sales-show-tepid-growth-compared-with-anthropic-5cb42998), [C110](https://www.cnbc.com/2026/08/15/anthropic-revenue-jumps-to-over-11point5-billion-in-q2-report.html). Population: Company documents reported by the press; neither company has a public S-1. Window: 2026 Q1 to 2026 Q2. Data: [`data/charts/quarterly-revenue.csv`](data/charts/quarterly-revenue.csv). Anthropic's Q2 figure is preliminary. For FY2025 OpenAI booked $13.07bn (C009) vs Anthropic ~$4.6bn (C093).*
+*Sources: [C015](https://www.wsj.com/tech/ai/openais-second-quarter-sales-show-tepid-growth-compared-with-anthropic-5cb42998), [C110](https://www.cnbc.com/2026/08/15/anthropic-revenue-jumps-to-over-11point5-billion-in-q2-report.html). Population: Company documents reported by the press; as of the 2 October snapshot neither company had a public S-1. Anthropic filed one on 26 October 2026 (C208) and amended it on 10 November (C209). Window: 2026 Q1 to 2026 Q2. Data: [`data/charts/quarterly-revenue.csv`](data/charts/quarterly-revenue.csv). Anthropic's Q2 figure is preliminary. For FY2025 OpenAI booked $13.07bn (C009) vs Anthropic ~$4.6bn (C093).*
 
 The commercial lead is newer and less certain than the headlines suggest:
 
@@ -907,7 +907,7 @@ The composite lead is within measurement error. Claude Opus 5.5 tops Epoch's cap
 
 **Reproduce.** The source repository retains `examples/openai-vs-anthropic/research`, whose offline `verify_snapshot.py` rebuilds the committed report, data and ledger with socket connections forbidden; the [example README](README.md) documents the optional refresh. [Collection runs, costs and run ids](ledger/collection-runs.csv) remain public.
 
-Every bracketed id links to its source; the complete ledger of 643 dated entries is [available as CSV](ledger/sources.csv). This is the fixed 2 October 2026 research snapshot; presentation updates do not refresh its evidence.
+Every bracketed id links to its source; the complete ledger of 645 dated entries is [available as CSV](ledger/sources.csv). This is the fixed 2 October 2026 research snapshot; presentation updates do not refresh its evidence.
 
 ```table
 data:
@@ -1016,6 +1016,14 @@ data:
     source: 'Ramp: Ramp AI Index business adoption share (latest)'
     date: '2026-09-09'
     link: https://ramp.com/data/ai-index-sept-2026
+  - id: C208
+    source: 'Anthropic, PBC (SEC EDGAR): Form S-1 registration statement (SEC accession 0001628280-26-067168)'
+    date: '2026-10-26'
+    link: https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
+  - id: C209
+    source: 'Anthropic, PBC (SEC EDGAR): Form S-1/A, Amendment No. 2 (SEC accession 0001628280-26-072484)'
+    date: '2026-11-10'
+    link: https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm
   - id: D-ARENA
     source: 'LMArena: LMArena leaderboard history (text, text with style control)'
     date: '2026-10-02'

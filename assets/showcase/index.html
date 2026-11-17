@@ -30,6 +30,7 @@
 <button type="button" id="compare-toggle" aria-pressed="false">Compare</button>
 </nav>
 <main id="showcase-panes" data-compare="false">
+<span id="showcase-live" class="sr-only" role="status" aria-live="polite"></span>
 <section id="report-pane" class="report-pane" aria-label="Report">
 <div class="pane-label"><span id="pane-a-name"></span></div>
 <div class="frame-host" id="frame-host-a"><iframe id="report-frame" src="Rendered/sleek.html" title="Sourced report"></iframe></div>
@@ -45,7 +46,6 @@
 <a href="ledger/collection-runs.csv" download>Collection runs</a>
 <a href="report.rmd" download>report.rmd</a>
 <span>Content hash <code><!-- rv-content-hash --></code></span>
-<span id="showcase-live" class="sr-only" role="status" aria-live="polite"></span>
 </div>
 <div id="citation-card" class="citation-card" role="tooltip" hidden></div>
 <!-- rv-site-footer -->

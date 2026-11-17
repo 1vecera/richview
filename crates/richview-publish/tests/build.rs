@@ -513,6 +513,61 @@ fn every_published_story_gets_a_reproducible_1200_by_630_share_image() {
     assert!(plain != chart && plain != cover);
 }
 
+#[test]
+fn published_report_and_share_image_include_the_company_logo() {
+    let f = Fixture::new();
+    f.replace("---\ntitle:", "---\nstyles: [company.rstyle.yaml]\ntitle:");
+    fs::write(
+        f.0.join("items/example/company.rstyle.yaml"),
+        "company: {name: Example Co, color: '#0B6E69', base: air}\n",
+    )
+    .unwrap();
+    let plain = share_png(&f, "plain-company");
+    fs::write(
+        f.0.join("items/example/company.rstyle.yaml"),
+        "company: {name: Example Co, color: '#0B6E69', logo: logo.png, base: air}\n",
+    )
+    .unwrap();
+    fs::write(
+        f.0.join("items/example/logo.png"),
+        include_bytes!("fixtures/company-logo.png"),
+    )
+    .unwrap();
+    let branded = share_png(&f, "branded-company");
+    assert!(plain != branded, "the logo must affect the share image");
+    fs::write(
+        f.0.join("items/example/company.rstyle.yaml"),
+        "company: {name: Example Co, color: '#0B6E69', logo: logo.png, base: sleek}\n",
+    )
+    .unwrap();
+    let dark = share_png(&f, "dark-company");
+    assert!(
+        branded != dark,
+        "the share card follows the company base style"
+    );
+    let release: richview_publish::Release =
+        serde_json::from_slice(&fs::read(f.0.join("branded-company/release.json")).unwrap())
+            .unwrap();
+    let article = object(&f, "branded-company", &release.items[0].content);
+    assert!(article.contains("class=\"rv-report__logo") && article.contains("alt=\"Example Co\""));
+}
+
+#[test]
+fn company_accent_reaches_the_published_share_card_without_a_logo() {
+    let f = Fixture::new();
+    f.replace("---\ntitle:", "---\nstyles: [company.rstyle.yaml]\ntitle:");
+    f.replace("```chart", "```text");
+    let style = f.0.join("items/example/company.rstyle.yaml");
+    fs::write(&style, "company: {base: brutalist}\n").unwrap();
+    let plain = share_png(&f, "plain-accent");
+    fs::write(&style, "company: {base: brutalist, color: '#0B6E69'}\n").unwrap();
+    let branded = share_png(&f, "brand-accent");
+    assert!(
+        plain != branded,
+        "the derived accent must reach the share card"
+    );
+}
+
 // FEA-BR-23: layouts, site limits, unknown keys and the embed refusal.
 const SITE: &str = "title: Example\ndescription: Safe example publication\nbase_url: https://news.example.test\nmode: external\n";
 fn site_with(f: &Fixture, layout: &str, rest: &str) {

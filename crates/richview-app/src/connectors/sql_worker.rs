@@ -76,7 +76,7 @@ pub(super) fn execute(
                     provenance: Provenance {
                         connector: query.connector.to_owned(),
                         source: ProvenanceSource::Sql,
-                        fetched_at: chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+                        fetched_at: crate::time::Instant::now().seconds(),
                         fingerprint: query.fingerprint.to_owned(),
                         row_count,
                     },
@@ -111,6 +111,10 @@ fn connector_error(failure: Failure, connector: &str) -> ConnectorError {
         }
         Failure::Timeout => "SQL worker exceeded the 30000 ms timeout",
         Failure::Memory => "SQL worker exceeded its memory limit",
+        // The Windows preview has no sandbox for the worker, so it runs no author SQL (ARC-67).
+        Failure::Sandbox if cfg!(windows) => {
+            "SQL data sources are not available on Windows yet: the SQL worker has no sandbox there"
+        }
         Failure::Sandbox => {
             "SQL worker isolation is unavailable; check the trusted helper and OS sandbox support"
         }

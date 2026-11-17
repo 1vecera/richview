@@ -277,7 +277,10 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)]) -> 
     // Budget for every series, including hidden ones, so its restore control still has room.
     let visible_names: Vec<String> = ctx.series.iter().map(|s| s.name.clone()).collect();
     let end_width = visible_names.iter().map(|n| ctx.text_width(n)).fold(0.0, f64::max) + 10.0;
-    let mut end_names = line_like && multi && end_width <= panel_width * 0.3;
+    // Lines may be named in a column at their right ends. Areas are named inside the plot or in
+    // the legend: their names once stood in the value axis' margin, where they read as stray
+    // axis labels (Daniel, 16 Nov 2026).
+    let mut end_names = kind == ChartType::Line && multi && end_width <= panel_width * 0.3;
     let horizontal = kind == ChartType::Bar && horizontal_bars(ctx, parsed, panel_width);
 
     // Panel height from the ratio, growing for horizontal bar rows (FEA-CH-65).
@@ -353,8 +356,14 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)]) -> 
             (current, all)
         })
         .collect();
-    if end_names {
-        for (fi, ((_, members), frame)) in facets.iter().zip(&frames).enumerate() {
+    // Series are named inside the plot, each beside its own line, when every name of every panel
+    // finds a clear place there; the plot then takes the width of the name column (FEA-CH-27).
+    // This first search knows no value or annotation yet; the panel's own search, once those
+    // stand, has the last word. Like the line-end decision it starts from the chart with every
+    // series shown, so hiding a series cannot turn a legend into names.
+    let mut inside_names = line_like && multi;
+    if inside_names {
+        'panels: for (fi, ((_, members), frame)) in facets.iter().zip(&frames).enumerate() {
             if parsed.failures[fi].is_some() {
                 continue;
             }
@@ -363,56 +372,28 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)]) -> 
             for (extent, all_shown) in
                 std::iter::once((all_extent, true)).chain((!ctx.opts.hidden.is_empty()).then_some((current, false)))
             {
+                let plan = panel_layout(ctx, parsed, members, *frame, title_room, extent, false);
+                let lines = series_lines(ctx, parsed, members, &plan.xl, &plan.fr.y, plan.fr.plot, all_shown);
+                if place::inside_name_places(ctx, plan.fr.plot, &lines, &[], kind == ChartType::Area).is_none() {
+                    inside_names = false;
+                    break 'panels;
+                }
+            }
+        }
+    }
+    if end_names {
+        for (fi, ((_, members), frame)) in facets.iter().zip(&frames).enumerate() {
+            if parsed.failures[fi].is_some() {
+                continue;
+            }
+            let (current, all_extent) = panel_extents[fi];
+            let members = read.panels[fi].get_or_init(|| Members::new(ctx, parsed, members));
+            for extent in std::iter::once(all_extent).chain((!ctx.opts.hidden.is_empty()).then_some(current)) {
                 let plan = panel_layout(ctx, parsed, members, *frame, title_room, extent, true);
                 let plot = plan.fr.plot;
-                if kind == ChartType::Line {
-                    if !place::line_names_fit(ctx, plot) {
-                        end_names = false;
-                        break;
-                    }
-                    continue;
-                }
-                let ticks: Vec<_> = plan
-                    .fr
-                    .y
-                    .ticks
-                    .iter()
-                    .zip(&plan.fr.y.labels)
-                    .map(|(v, label)| {
-                        ctx.text_mid(
-                            label,
-                            plot.x - LABEL_GAP,
-                            plan.fr.y.map(*v, plot.bottom(), plot.y),
-                            Anchor::End,
-                            Face::Figures,
-                            Role::AxisLabel,
-                            ctx.style.ink,
-                        )
-                        .bounds
-                    })
-                    .collect();
-                let values = area_name_values(
-                    ctx,
-                    read,
-                    parsed,
-                    members,
-                    plan.xl.scale.as_ref().map(|x| x.domain),
-                    all_shown,
-                );
-                let ends: Vec<_> = values
-                    .into_iter()
-                    .map(|(s, value, shown)| {
-                        (
-                            s,
-                            plan.fr
-                                .y
-                                .map(value.clamp(plan.fr.y.lo, plan.fr.y.hi), plot.bottom(), plot.y),
-                            shown,
-                        )
-                    })
-                    .collect();
-                let order = place::preview_name_order(ctx, fi, &ends, all_shown);
-                if !place::area_names_fit(ctx, plot, &ticks, &ends, &order, area_name_limit(&plan.fr.y, plot)) {
+                // A column of names more than a quarter as wide as the plot beside it costs the
+                // chart too much: the names then go to the legend row (chart design, 16 Nov 2026).
+                if !place::line_names_fit(ctx, plot) || frame.right() - plot.right() > 0.25 * plot.w {
                     end_names = false;
                     break;
                 }
@@ -422,52 +403,82 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)]) -> 
             }
         }
     }
-    let legend = (multi && !end_names).then(|| Legend {
-        swatch: match kind {
-            ChartType::Line => Swatch::Line,
-            ChartType::Scatter => Swatch::Dot,
-            _ => Swatch::Square,
-        },
-        entries: (0..ctx.series.len()).collect(),
-        bottom: ctx.style.legend_bottom,
-    });
-    let mut panels = Vec::new();
+    // Names inside the plot are tried first. A panel whose values and annotations leave some
+    // name without a place says so, and the whole chart is painted again with its names at the
+    // line ends or in the legend: names inside never cost a value.
+    let ends_names = end_names;
     let mut figure_items = Vec::new();
-    for (fi, (((name, members), frame), failure)) in facets.iter().zip(&frames).zip(&parsed.failures).enumerate() {
-        if let Some(reason) = failure {
-            panels.push(super::failed_facet(ctx, *frame, title_room, name, reason));
+    let (panels, legend, end_names) = loop {
+        let end_names = inside_names || ends_names;
+        let legend = (multi && !end_names).then(|| Legend {
+            swatch: match kind {
+                ChartType::Line => Swatch::Line,
+                ChartType::Scatter => Swatch::Dot,
+                _ => Swatch::Square,
+            },
+            entries: (0..ctx.series.len()).collect(),
+            bottom: ctx.style.legend_bottom,
+        });
+        let marks = (
+            ctx.checks.len(),
+            ctx.dropped.len(),
+            ctx.note.len(),
+            ctx.derived.borrow().len(),
+        );
+        let buffers = inside_names.then(|| ctx.observations.clone());
+        let mut named = true;
+        let mut panels = Vec::new();
+        for (fi, (((name, members), frame), failure)) in facets.iter().zip(&frames).zip(&parsed.failures).enumerate() {
+            if let Some(reason) = failure {
+                panels.push(super::failed_facet(ctx, *frame, title_room, name, reason));
+                continue;
+            }
+            let y_extent = panel_extents[fi].0;
+            let panel_members = read.panels[fi].get_or_init(|| Members::new(ctx, parsed, members));
+            let mut panel = paint_panel(
+                ctx,
+                read,
+                parsed,
+                panel_members,
+                *frame,
+                title_room,
+                y_extent,
+                end_names,
+                inside_names,
+                &mut named,
+                horizontal,
+                fi,
+            );
+            if let Some(name) = name {
+                let title = ctx.text(
+                    name,
+                    frame.x,
+                    frame.y + ctx.style.font.baseline_offset(ctx.size()),
+                    Anchor::Start,
+                    Face::Data,
+                    Role::PanelTitle,
+                    ctx.style.ink,
+                );
+                panel
+                    .items
+                    .push(Item::Text(crate::geometry::Text { weight: 600, ..title }));
+            }
+            panels.push(panel);
+        }
+        if inside_names && !named {
+            ctx.checks.truncate(marks.0);
+            ctx.dropped.truncate(marks.1);
+            ctx.note.truncate(marks.2);
+            ctx.derived.borrow_mut().truncate(marks.3);
+            if let Some(buffers) = buffers {
+                ctx.observations = buffers;
+            }
+            inside_names = false;
             continue;
         }
-        let y_extent = panel_extents[fi].0;
-        let panel_members = read.panels[fi].get_or_init(|| Members::new(ctx, parsed, members));
-        let mut panel = paint_panel(
-            ctx,
-            read,
-            parsed,
-            panel_members,
-            *frame,
-            title_room,
-            y_extent,
-            end_names,
-            horizontal,
-            fi,
-        );
-        if let Some(name) = name {
-            let title = ctx.text(
-                name,
-                frame.x,
-                frame.y + ctx.style.font.baseline_offset(ctx.size()),
-                Anchor::Start,
-                Face::Data,
-                Role::PanelTitle,
-                ctx.style.ink,
-            );
-            panel
-                .items
-                .push(Item::Text(crate::geometry::Text { weight: 600, ..title }));
-        }
-        panels.push(panel);
-    }
+        break (panels, legend, end_names);
+    };
+    let _ = end_names;
     if block.style.free_scales && facets.len() > 1 {
         ctx.note.push("Each panel has its own value scale".into());
     }
@@ -1292,6 +1303,17 @@ fn x_window(ctx: &Ctx, extent: [f64; 2]) -> [f64; 2] {
     }
 }
 
+/// The reader's window over named positions: at least `least` wide, inside the axis.
+fn named_window(zoom: Option<[f64; 2]>, extent: [f64; 2], least: f64) -> [f64; 2] {
+    let Some([a, b]) = zoom.filter(|w| w[0].is_finite() && w[1].is_finite() && w[0] < w[1]) else {
+        return extent;
+    };
+    let whole = extent[1] - extent[0];
+    let span = (b - a).max(least).min(whole);
+    let start = ((a + b) / 2.0 - span / 2.0).clamp(extent[0], extent[1] - span);
+    [start, start + span]
+}
+
 #[derive(Clone, Copy)]
 enum XMapping {
     Calendar { lo: f64, span: f64, start: f64, width: f64 },
@@ -1371,6 +1393,8 @@ fn x_layout(ctx: &Ctx, p: &Parsed, plot: Rect, scatter_extent: Option<[f64; 2]>)
                     extent: *extent,
                     range: [plot.x, plot.right()],
                     calendar: true,
+                    y: None,
+                    least: None,
                 }),
                 unfit: vec![],
                 thinned: None,
@@ -1461,6 +1485,8 @@ fn x_layout(ctx: &Ctx, p: &Parsed, plot: Rect, scatter_extent: Option<[f64; 2]>)
                     extent: limit,
                     range: [plot.x, plot.right()],
                     calendar: false,
+                    y: None,
+                    least: None,
                 }),
                 unfit: vec![],
                 thinned: None,
@@ -1471,13 +1497,27 @@ fn x_layout(ctx: &Ctx, p: &Parsed, plot: Rect, scatter_extent: Option<[f64; 2]>)
             // An area runs from the plot's left edge to its right, as it does over dates: its
             // first and last categories stand on the edges, and a step, not a band, separates
             // two of them (Daniel, 16 Nov 2026). Bars, and every mark that shares a bar's
-            // category, keep a band each.
-            let (x0, band) = if ctx.block.kind == ChartType::Area && n > 1 {
-                let step = plot.w / (n - 1) as f64;
-                (plot.x - step / 2.0, step)
+            // category, keep a band each, half of it beyond the first and the last.
+            let edge_to_edge = ctx.block.kind == ChartType::Area && n > 1;
+            let extent = if edge_to_edge {
+                [0.0, (n - 1) as f64]
             } else {
-                (plot.x, plot.w / n as f64)
+                [-0.5, n as f64 - 0.5]
             };
+            // A line or an area over three names or more zooms like one over numbers or dates
+            // (FEA-CH-49; Chart design, 16 November): its window counts positions and its ends
+            // stand on the plot's edges, so a zoomed area still runs edge to edge. A settled
+            // window ends on names and holds two at least (the runtime snaps it); a glide passes
+            // through any window between. Bars and a line over two names keep every name in view.
+            let least = 1.0;
+            let zooms = matches!(ctx.block.kind, ChartType::Line | ChartType::Area) && n >= 3;
+            let [a, b] = if zooms {
+                named_window(ctx.opts.zoom, extent, least)
+            } else {
+                extent
+            };
+            let band = plot.w / (b - a);
+            let x0 = plot.x - (a + 0.5) * band;
             let map = XMapping::Category { start: x0, band };
             let layout = axis::category_layout_with(reader, ordered.as_ref(), band, font, size, true);
             let mut unfit = Vec::new();
@@ -1486,10 +1526,12 @@ fn x_layout(ctx: &Ctx, p: &Parsed, plot: Rect, scatter_extent: Option<[f64; 2]>)
                 CategoryLayout::OneLine => reader.iter().map(|r| vec![r.clone()]).collect(),
                 CategoryLayout::Wrapped(lines) => lines,
                 CategoryLayout::Thinned { every, lines } => {
-                    thinned = Some(format!(
-                        "every {every} {}s",
-                        ordered.as_ref().map_or("name", |o| o.period.noun())
-                    ));
+                    // A calendar step reads in its own unit; numbered names (decades, days of a
+                    // trial) count as names, since their numbers need not step by one.
+                    thinned = Some(match ordered.as_ref().map(|o| o.period) {
+                        Some(axis::Period::Number) | None => format!("every {} name", axis::nth_printed(&lines)),
+                        Some(period) => format!("every {every} {}s", period.noun()),
+                    });
                     lines
                 }
                 CategoryLayout::Unfit { lines, unfit: which } => {
@@ -1501,12 +1543,20 @@ fn x_layout(ctx: &Ctx, p: &Parsed, plot: Rect, scatter_extent: Option<[f64; 2]>)
                 .into_iter()
                 .enumerate()
                 .map(|(i, l)| (map.at(i as f64), l))
+                .filter(|(x, _)| *x >= plot.x - 0.5 && *x <= plot.right() + 0.5)
                 .collect();
             XLayout {
                 mapping: map,
                 ticks,
                 band,
-                scale: None,
+                scale: zooms.then_some(XScale {
+                    domain: [a, b],
+                    extent,
+                    range: [plot.x, plot.right()],
+                    calendar: false,
+                    y: None,
+                    least: Some(least),
+                }),
                 unfit,
                 thinned,
             }
@@ -1606,22 +1656,14 @@ fn panel_layout(
                 value_room
             },
         );
-        let names_left = if end_names && kind == ChartType::Area {
-            place::area_name_room(ctx)
-        } else {
-            0.0
-        };
-        let left = frame.x
-            + (y.widest(&ctx.style.figures, size) + LABEL_GAP)
-                .max(inset[0])
-                .max(names_left);
+        let left = frame.x + (y.widest(&ctx.style.figures, size) + LABEL_GAP).max(inset[0]);
         // A series marker on the last x keeps its whole disk inside the chart.
         let edge = if ctx.series.iter().any(|s| s.shape.is_some()) {
             MARKER_RADIUS + MARKER_STROKE / 2.0 + 0.5
         } else {
             2.0
         };
-        let mut right_pad = if end_names && kind != ChartType::Area {
+        let mut right_pad = if end_names {
             end_gutter.max(inset[1])
         } else {
             inset[1].max(edge)
@@ -1689,6 +1731,8 @@ fn paint_panel(
     title_room: f64,
     y_extent: [f64; 2],
     end_names: bool,
+    inside_names: bool,
+    named: &mut bool,
     horizontal: bool,
     facet: usize,
 ) -> Panel {
@@ -1725,7 +1769,7 @@ fn paint_panel(
         x_title_lines,
         bottom_rows,
         top,
-    } = panel_layout(ctx, p, members, frame, title_room, y_extent, end_names);
+    } = panel_layout(ctx, p, members, frame, title_room, y_extent, end_names && !inside_names);
     let plot = fr.plot;
     let ymap = |v: f64| fr.y.map(v, plot.bottom(), plot.y);
     let mut items: Vec<Item> = Vec::new();
@@ -1891,6 +1935,7 @@ fn paint_panel(
                 &mut items,
                 &mut observations,
                 end_names,
+                inside_names,
                 &mut labels_taken,
             );
         }
@@ -1965,6 +2010,22 @@ fn paint_panel(
             place::value_labels(ctx, facet, &mut panel, place::ValueLabels::Series)
         }
         _ => {}
+    }
+    // Names inside the plot come last, so they keep clear of every value and annotation.
+    if inside_names {
+        let texts: Vec<Rect> = panel
+            .items
+            .iter()
+            .filter_map(|i| match i {
+                Item::Text(t) if t.bounds.overlaps(&plot, 0.0) => Some(t.bounds),
+                _ => None,
+            })
+            .collect();
+        let lines = series_lines(ctx, p, members, &xl, &fr.y, plot, false);
+        match place::inside_name_places(ctx, plot, &lines, &texts, kind == ChartType::Area) {
+            Some(places) => place::inside_names(ctx, &places, &mut panel),
+            None => *named = false,
+        }
     }
     panel
 }
@@ -2136,6 +2197,54 @@ fn series_label(ctx: &Ctx, p: &Parsed, s: usize) -> String {
     }
 }
 
+/// Each series' line in pixels, for the search of its name's place inside the plot: the
+/// observations a zoom window draws, in x order, hidden series included (`all_shown` reads every
+/// series as shown). A stacked area's line is the top of its part of the stack; a hidden part's
+/// line runs where it would stand on the parts shown below it.
+fn series_lines(
+    ctx: &Ctx,
+    p: &Parsed,
+    members: &Members,
+    xl: &XLayout,
+    y: &ValueAxis,
+    plot: Rect,
+    all_shown: bool,
+) -> Vec<place::NameLine> {
+    let window = xl.scale.as_ref().map(|s| s.domain);
+    let stacked = ctx.block.stack && ctx.block.kind == ChartType::Area;
+    let key = |x: f64| (x * 1000.0).round() as i64;
+    let mut bases: [std::collections::HashMap<i64, f64>; 2] = Default::default();
+    (0..ctx.series.len())
+        .map(|s| {
+            let pts = &members.series[s];
+            let hidden = !all_shown && ctx.is_hidden(s);
+            let points = pts[line_span(p, pts, window)]
+                .iter()
+                .filter_map(|&k| {
+                    let o = &p.obs[k];
+                    let v = o.y?;
+                    let top = if stacked {
+                        let base = bases[usize::from(v < 0.0)].entry(key(o.x)).or_default();
+                        let top = *base + v;
+                        if !hidden {
+                            *base = top;
+                        }
+                        top
+                    } else {
+                        v
+                    };
+                    Some([xl.map(o.x), y.map(top.clamp(y.lo, y.hi), plot.bottom(), plot.y)])
+                })
+                .collect();
+            place::NameLine {
+                series: s,
+                points,
+                hidden,
+            }
+        })
+        .collect()
+}
+
 /// Source points retained by a line's zoom, including the neighbours that continue its edge.
 fn line_span(p: &Parsed, pts: &[usize], window: Option<[f64; 2]>) -> std::ops::Range<usize> {
     let x_of = |k: usize| p.obs[k].x;
@@ -2160,7 +2269,7 @@ fn line_span(p: &Parsed, pts: &[usize], window: Option<[f64; 2]>) -> std::ops::R
     })
 }
 
-/// First area boundaries in data units, shared by name feasibility and painting.
+/// First area boundaries in data units: the order an area's series are recorded in (TYP-36).
 fn area_name_values(
     ctx: &Ctx,
     read: &Read,
@@ -2234,16 +2343,6 @@ fn area_name_values(
     out
 }
 
-/// A name cannot drift far enough to appear to identify the next value tick.
-fn area_name_limit(y: &ValueAxis, plot: Rect) -> f64 {
-    y.ticks
-        .windows(2)
-        .map(|t| (y.map(t[1], plot.bottom(), plot.y) - y.map(t[0], plot.bottom(), plot.y)).abs())
-        .reduce(f64::min)
-        .unwrap_or(plot.h)
-        / 2.0
-}
-
 /// The narrowest stroke of a dense series' line, in CSS pixels.
 const DENSE_LINE_WIDTH: f64 = 1.25;
 
@@ -2270,6 +2369,7 @@ fn paint_lines(
     items: &mut Vec<Item>,
     observations: &mut Vec<Observation>,
     end_names: bool,
+    inside_names: bool,
     taken: &mut Vec<Rect>,
 ) {
     let block = ctx.block;
@@ -2550,16 +2650,8 @@ fn paint_lines(
     }
     // Data records do not depend on whether the style has room for direct names.
     let end_order = place::end_name_order(ctx, panel_of(obs), &ends);
-    if end_names {
-        place::end_names(
-            ctx,
-            plot,
-            &ends,
-            &end_order,
-            items,
-            taken,
-            if area { Some(area_name_limit(y, plot)) } else { None },
-        );
+    if end_names && !inside_names {
+        place::end_names(ctx, plot, &ends, &end_order, items, taken);
     }
     // One readout per distinct x listing every visible series in legend order (FEA-CH-41).
     // The totals of a stack are sums that jump with the data, so the exact rows write them
@@ -3639,7 +3731,7 @@ fn bubble_key(ctx: &Ctx, p: &Parsed, top: f64) -> (Vec<Item>, f64) {
 #[cfg(test)]
 mod tests {
     use crate::block::ChartBlock;
-    use crate::geometry::{Item, Rect, Role, Text};
+    use crate::geometry::{Geometry, Item, Rect, Role, Text};
     use crate::layout::{ChartTheme, Options, layout};
     use serde_json::json;
 
@@ -3650,45 +3742,343 @@ mod tests {
         }
     }
 
-    #[test]
-    fn a_two_series_line_is_named_at_its_ends() {
-        let block = ChartBlock::from_value(
-            &json!({"type": "line", "title": "T", "encoding": {"x": "m", "y": "v", "color": "s"}}),
-        )
-        .unwrap();
-        let rows: Vec<_> = (1..=12)
+    /// The series names among a chart's labels, with their boxes.
+    fn series_names(g: &Geometry) -> Vec<(String, Rect)> {
+        g.items()
+            .filter_map(|i| match i {
+                Item::Text(t)
+                    if t.role == Role::Label
+                        && t.face == crate::geometry::Face::Data
+                        && t.series.is_some_and(|s| g.series[s].name == t.text) =>
+                {
+                    Some((t.text.clone(), t.bounds))
+                }
+                _ => None,
+            })
+            .collect()
+    }
+
+    /// Whether a drawn line of another series passes within 3 px of a name's box.
+    fn a_line_crosses_a_name(g: &Geometry) -> bool {
+        use crate::layout::place::segment_touches_rect;
+        series_names(g).iter().any(|(name, bounds)| {
+            g.items().any(|i| match i {
+                Item::Line {
+                    path,
+                    role: Role::Mark,
+                    series: Some(s),
+                    ..
+                } if g.series[*s].name != *name => path.flatten(0.5).iter().any(|run| {
+                    run.windows(2)
+                        .any(|w| segment_touches_rect(w[0], w[1], &bounds.inflate(3.0)))
+                }),
+                _ => false,
+            })
+        })
+    }
+
+    fn two_crossing_lines() -> Vec<serde_json::Value> {
+        (1..=12)
             .flat_map(|m| {
                 [
                     json!({"m": format!("2024-{m:02}"), "v": m * 10, "s": "North"}),
                     json!({"m": format!("2024-{m:02}"), "v": 130 - m * 10, "s": "South"}),
                 ]
             })
-            .collect();
+            .collect()
+    }
+
+    #[test]
+    fn lines_with_room_are_named_inside_the_plot_which_takes_the_width() {
+        let block = ChartBlock::from_value(
+            &json!({"type": "line", "title": "T", "encoding": {"x": "m", "y": "v", "color": "s"}}),
+        )
+        .unwrap();
+        let rows = two_crossing_lines();
+        for width in [318.0, 390.0, 640.0, 1200.0] {
+            let g = layout(&block, &rows, &ChartTheme::default(), &opts(width));
+            assert!(g.failure.is_none());
+            assert!(g.legend.is_none(), "{width}: the names stand in the chart");
+            let plot = g.panels[0].plot;
+            let names = series_names(&g);
+            let mut found: Vec<&str> = names.iter().map(|(name, _)| name.as_str()).collect();
+            found.sort_unstable();
+            assert_eq!(found, ["North", "South"], "{width}");
+            for (name, bounds) in &names {
+                assert!(bounds.inside(&plot, 0.0), "{width}: {name} stands inside the plot");
+            }
+            assert!(!a_line_crosses_a_name(&g), "{width}: no other line runs through a name");
+            // No column of names beside the plot: only the room of the hover dot stays.
+            let right = g.width - plot.right();
+            assert!((9.0..12.0).contains(&right), "{width}: {right} px right of the plot");
+            assert_eq!(g.panels[0].observations.len(), 12, "one readout per month");
+            assert_eq!(g.panels[0].observations[0].readout.lines.len(), 2);
+        }
         let g = layout(&block, &rows, &ChartTheme::default(), &opts(640.0));
-        assert!(g.failure.is_none());
-        assert!(g.legend.is_none(), "names fit at the line ends");
-        let names: Vec<_> = g
-            .items()
-            .filter_map(|i| {
-                if let Item::Text(t) = i
-                    && t.role == Role::Label
-                {
-                    Some(t.text.clone())
-                } else {
-                    None
-                }
-            })
-            .collect();
-        assert_eq!(names, ["North", "South"]);
-        assert_eq!(g.panels[0].observations.len(), 12, "one readout per month");
-        assert_eq!(g.panels[0].observations[0].readout.lines.len(), 2);
-        assert!(g.width - g.panels[0].plot.right() >= 9.0);
         assert!(
             (g.width / g.height - 2.0).abs() < 0.3,
             "calendar lines keep 2:1, {} x {}",
             g.width,
             g.height
         );
+    }
+
+    #[test]
+    fn lines_on_top_of_each_other_keep_their_names_at_the_line_ends() {
+        let block = ChartBlock::from_value(
+            &json!({"type": "line", "title": "T", "encoding": {"x": "m", "y": "v", "color": "s"}}),
+        )
+        .unwrap();
+        // Three lines a hair apart all the way: no name has a place of its own between them.
+        let rows: Vec<_> = (1..=12)
+            .flat_map(|m| {
+                ["North", "South", "West"]
+                    .into_iter()
+                    .enumerate()
+                    .map(move |(k, s)| json!({"m": format!("2024-{m:02}"), "v": m * 10 + k, "s": s}))
+            })
+            .collect();
+        for width in [390.0, 640.0, 1200.0] {
+            let g = layout(&block, &rows, &ChartTheme::default(), &opts(width));
+            assert!(g.failure.is_none());
+            assert!(g.legend.is_none(), "{width}");
+            let plot = g.panels[0].plot;
+            let names = series_names(&g);
+            assert_eq!(names.len(), 3, "{width}");
+            for (name, bounds) in &names {
+                assert!(
+                    bounds.x > plot.right(),
+                    "{width}: {name} stands at its line's end, right of the plot"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn a_name_inside_the_plot_keeps_clear_of_every_value_and_gridline() {
+        let block = ChartBlock::from_value(
+            &json!({"type": "line", "title": "T", "encoding": {"x": "m", "y": "v", "color": "s"}}),
+        )
+        .unwrap();
+        let rows = two_crossing_lines();
+        let mut inside = 0;
+        for width in (300..=1200).step_by(20) {
+            let g = layout(&block, &rows, &ChartTheme::default(), &opts(f64::from(width)));
+            assert!(g.failure.is_none());
+            let plot = g.panels[0].plot;
+            let names = series_names(&g);
+            if !names.iter().all(|(_, bounds)| bounds.inside(&plot, 0.0)) {
+                continue;
+            }
+            inside += 1;
+            for (name, bounds) in &names {
+                // A value never stands on a name, nor beside it closer than 8 px.
+                let beside = Rect::new(bounds.x - 8.0, bounds.y, bounds.w + 16.0, bounds.h);
+                for item in g.items() {
+                    match item {
+                        Item::Text(t) if t.role == Role::Label && !names.iter().any(|(n, _)| *n == t.text) => {
+                            assert!(
+                                !t.bounds.overlaps(&beside, 0.0),
+                                "{width}: {} stands against {name}",
+                                t.text
+                            );
+                        }
+                        Item::Line {
+                            path, role: Role::Grid, ..
+                        } => {
+                            let crossed = path.flatten(0.5).iter().any(|run| {
+                                run.windows(2)
+                                    .any(|w| crate::layout::place::segment_touches_rect(w[0], w[1], bounds))
+                            });
+                            assert!(!crossed, "{width}: a gridline runs through {name}");
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+        assert!(
+            inside > 20,
+            "most widths name the two lines inside the plot, {inside} did"
+        );
+    }
+
+    #[test]
+    fn names_that_cannot_stand_inside_go_to_the_legend_when_their_column_is_too_wide() {
+        // Three lines a hair apart with long names: the column would take a third of the plot.
+        let rows: Vec<_> = (1..=12)
+            .flat_map(|m| {
+                ["Hacker News comments", "GitHub cloud-agent PRs", "npm CLI downloads"]
+                    .into_iter()
+                    .enumerate()
+                    .map(move |(k, s)| json!({"m": format!("2024-{m:02}"), "v": m * 10 + k, "s": s}))
+            })
+            .collect();
+        let block = ChartBlock::from_value(
+            &json!({"type": "line", "title": "T", "encoding": {"x": "m", "y": "v", "color": "s"}}),
+        )
+        .unwrap();
+        let g = layout(&block, &rows, &ChartTheme::default(), &opts(632.0));
+        assert!(g.failure.is_none());
+        assert!(g.legend.is_some(), "the names stand in the legend row");
+        assert!(series_names(&g).is_empty());
+        assert!(g.width - g.panels[0].plot.right() < 12.0, "the plot takes the width");
+    }
+
+    #[test]
+    fn an_areas_name_stands_inside_its_own_fill_and_never_in_the_axis_margin() {
+        let rows: Vec<_> = ["Mon", "Tue", "Wed", "Thu"]
+            .iter()
+            .enumerate()
+            .flat_map(|(i, day)| {
+                [
+                    json!({"day": day, "tier": "free", "users": 820 + 30 * i}),
+                    json!({"day": day, "tier": "paid", "users": 240 + 20 * i}),
+                ]
+            })
+            .collect();
+        let block = ChartBlock::from_value(
+            &json!({"type": "area", "title": "T", "encoding": {"x": "day", "y": "users", "color": "tier"}}),
+        )
+        .unwrap();
+        for width in [318.0, 390.0, 640.0, 960.0] {
+            let g = layout(&block, &rows, &ChartTheme::default(), &opts(width));
+            assert!(g.failure.is_none());
+            let plot = g.panels[0].plot;
+            let names = series_names(&g);
+            assert!(
+                names.iter().all(|(_, bounds)| bounds.inside(&plot, 0.0)),
+                "{width}: no name stands in the value axis' margin"
+            );
+            assert!(
+                g.legend.is_some() != (names.len() == 2),
+                "{width}: names inside, or the legend"
+            );
+            if width >= 640.0 {
+                assert_eq!(names.len(), 2, "{width}: both names have room inside");
+            }
+            // Inside its own fill: below its own line, which starts at 820 (free) or 240 (paid).
+            for (name, bounds) in &names {
+                let own = g
+                    .items()
+                    .find_map(|i| match i {
+                        Item::Line {
+                            path,
+                            role: Role::Mark,
+                            series: Some(s),
+                            ..
+                        } if g.series[*s].name == *name => path.flatten(0.5).into_iter().next(),
+                        _ => None,
+                    })
+                    .unwrap();
+                let above_name = own
+                    .iter()
+                    .filter(|p| p[0] >= bounds.x && p[0] <= bounds.right())
+                    .all(|p| p[1] < bounds.y);
+                assert!(above_name, "{width}: {name} stands below its own line");
+            }
+        }
+    }
+
+    #[test]
+    fn a_hidden_lines_name_stays_inside_the_plot_as_its_way_back() {
+        let block = ChartBlock::from_value(
+            &json!({"type": "line", "title": "T", "encoding": {"x": "m", "y": "v", "color": "s"}}),
+        )
+        .unwrap();
+        let rows = two_crossing_lines();
+        let hidden = Options {
+            width: 640.0,
+            hidden: vec!["South".into()],
+            ..Options::default()
+        };
+        let g = layout(&block, &rows, &ChartTheme::default(), &hidden);
+        assert!(g.failure.is_none());
+        assert!(g.legend.is_none());
+        let plot = g.panels[0].plot;
+        let names = series_names(&g);
+        assert_eq!(names.len(), 2, "the hidden series keeps its name");
+        assert!(names.iter().all(|(_, bounds)| bounds.inside(&plot, 0.0)));
+        assert!(!names[0].1.inflate(2.0).overlaps(&names[1].1, 0.0));
+    }
+
+    /// Hiding a series lets the value axis follow the rest, so a flat line may turn steep. The
+    /// names still stay inside the plot, and the hidden one keeps its place where that is free.
+    #[test]
+    fn hiding_a_series_keeps_every_name_inside_the_plot() {
+        let block = ChartBlock::from_value(
+            &json!({"type": "line", "title": "T", "encoding": {"x": "m", "y": "v", "color": "s"}}),
+        )
+        .unwrap();
+        let rows: Vec<serde_json::Value> = (0..4)
+            .flat_map(|i| {
+                [("Long series name one", 1), ("Two", 3)]
+                    .map(|(s, k)| json!({"m": format!("2024-{:02}", i + 1), "v": i * k + 2, "s": s}))
+            })
+            .collect();
+        for width in [358.0, 640.0, 1100.0] {
+            let all = layout(&block, &rows, &ChartTheme::default(), &opts(width));
+            assert!(all.legend.is_none(), "{width}: named inside with every series shown");
+            for hide in ["Long series name one", "Two"] {
+                let hidden = Options {
+                    width,
+                    hidden: vec![hide.into()],
+                    ..Options::default()
+                };
+                let g = layout(&block, &rows, &ChartTheme::default(), &hidden);
+                assert!(g.legend.is_none(), "{width}: hiding {hide} brings no legend");
+                let plot = g.panels[0].plot;
+                let names = series_names(&g);
+                assert_eq!(names.len(), 2, "{width}: hiding {hide} keeps both names");
+                assert!(
+                    names.iter().all(|(_, bounds)| bounds.inside(&plot, 0.0)),
+                    "{width}: hiding {hide} keeps the names inside the plot"
+                );
+                assert!(!a_line_crosses_a_name(&g), "{width}: hiding {hide}");
+            }
+        }
+    }
+
+    /// A hidden series' name stands where its data is: when the refitted axis leaves the data
+    /// below the plot, against the plot's bottom edge at the right, and never on the line that
+    /// stays (chart design, 16 Nov 2026: Mentions at 390 with Fieldwork hidden).
+    #[test]
+    fn a_hidden_name_stands_where_its_data_is() {
+        let block = ChartBlock::from_value(
+            &json!({"type": "line", "title": "T", "encoding": {"x": "m", "y": "v", "color": "s"}}),
+        )
+        .unwrap();
+        let rows: Vec<serde_json::Value> = [("Northstar", [2210, 2190, 2060]), ("Fieldwork", [1120, 1340, 1580])]
+            .iter()
+            .flat_map(|(s, v)| {
+                v.iter()
+                    .enumerate()
+                    .map(move |(i, v)| json!({"m": format!("2026-{:02}", i + 4), "v": v, "s": s}))
+            })
+            .collect();
+        for width in [318.0, 632.0] {
+            let hidden = Options {
+                width,
+                hidden: vec!["Fieldwork".into()],
+                ..Options::default()
+            };
+            let g = layout(&block, &rows, &ChartTheme::default(), &hidden);
+            assert!(g.legend.is_none(), "{width}");
+            let plot = g.panels[0].plot;
+            let names = series_names(&g);
+            let field = names
+                .iter()
+                .find(|(n, _)| n == "Fieldwork")
+                .expect("the hidden name stays")
+                .1;
+            assert!(field.inside(&plot, 0.0), "{width}: {field:?}");
+            assert!(
+                field.bottom() > plot.bottom() - plot.h / 4.0,
+                "{width}: the hidden name stands at the bottom, on its data's side: {field:?} in {plot:?}"
+            );
+            assert!(field.center()[0] > plot.x + plot.w / 2.0, "{width}: at the right");
+            assert!(!a_line_crosses_a_name(&g), "{width}: never on Northstar's line");
+        }
     }
 
     #[test]
@@ -3808,6 +4198,93 @@ mod tests {
             super::DENSE_LINE_WIDTH < middle && middle < super::LINE_WIDTH,
             "{middle}"
         );
+    }
+
+    #[test]
+    fn a_line_or_an_area_over_names_zooms_and_bars_do_not() {
+        let months = [
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+        ];
+        let rows: Vec<_> = months
+            .iter()
+            .enumerate()
+            .map(|(i, m)| json!({"m": m, "v": 10 + i * 3}))
+            .collect();
+        let block = |kind: &str| {
+            ChartBlock::from_value(&json!({"type": kind, "title": "T", "encoding": {"x": "m", "y": "v"}})).unwrap()
+        };
+        let draw = |kind: &str, zoom: Option<[f64; 2]>| {
+            let g = layout(
+                &block(kind),
+                &rows,
+                &ChartTheme::default(),
+                &Options { zoom, ..opts(640.0) },
+            );
+            assert!(g.failure.is_none());
+            g
+        };
+        let ticks = |g: &crate::geometry::Geometry| -> Vec<String> {
+            g.items()
+                .filter_map(|i| match i {
+                    Item::Text(t) if t.role == Role::AxisLabel && months.contains(&t.text.as_str()) => {
+                        Some(t.text.clone())
+                    }
+                    _ => None,
+                })
+                .collect()
+        };
+        for kind in ["line", "area"] {
+            let whole = draw(kind, None);
+            let scale = whole.panels[0].x.clone().expect("named positions zoom");
+            assert_eq!(scale.least, Some(1.0));
+            // A line keeps half a band beyond its first and last name; an area runs edge to edge.
+            let extent = if kind == "area" { [0.0, 11.0] } else { [-0.5, 11.5] };
+            assert_eq!(scale.extent, extent);
+            assert_eq!(scale.domain, scale.extent);
+            assert_eq!(ticks(&whole), months);
+            // A window drawn across the plot: its names are labelled and read out, the others
+            // are not, and each stands where the window puts it.
+            let window = [2.0, 5.0];
+            let g = draw(kind, Some(window));
+            let panel = &g.panels[0];
+            assert_eq!(panel.x.as_ref().unwrap().domain, window);
+            assert_eq!(panel.plot, whole.panels[0].plot, "the plot keeps its place");
+            assert_eq!(ticks(&g), ["Mar", "Apr", "May", "Jun"]);
+            let read: Vec<&str> = panel.observations.iter().map(|o| o.readout.heading.as_str()).collect();
+            assert_eq!(read, ["Mar", "Apr", "May", "Jun"]);
+            let per = panel.plot.w / (window[1] - window[0]);
+            for (i, o) in panel.observations.iter().enumerate() {
+                let at = panel.plot.x + (i as f64 + 2.0 - window[0]) * per;
+                assert!((o.at[0] - at).abs() < 1e-6, "{kind} {i}: {} against {at}", o.at[0]);
+            }
+            // A window from name to name puts both on the plot's edges, line and area alike.
+            assert!((panel.observations[0].at[0] - panel.plot.x).abs() < 1e-6);
+            assert!((panel.observations[3].at[0] - panel.plot.right()).abs() < 1e-6);
+            // A window narrower than from one name to the next widens to that; one beyond the
+            // end stops at the end.
+            let g = draw(kind, Some([4.9, 5.1]));
+            assert_eq!(g.panels[0].x.as_ref().unwrap().domain, [4.5, 5.5]);
+            let g = draw(kind, Some([10.0, 14.0]));
+            assert_eq!(g.panels[0].x.as_ref().unwrap().domain, [extent[1] - 4.0, extent[1]]);
+        }
+        // Bars keep every category, with or without a window, and say they do not zoom.
+        let bars = draw("bar", Some([1.5, 5.5]));
+        assert!(bars.panels[0].x.is_none());
+        assert_eq!(bars, draw("bar", None));
+        // A line or an area over two names does not zoom (Chart design, 16 November).
+        let two: Vec<_> = rows[..2].to_vec();
+        for kind in ["line", "area"] {
+            let g = layout(
+                &block(kind),
+                &two,
+                &ChartTheme::default(),
+                &Options {
+                    zoom: Some([0.0, 0.5]),
+                    ..opts(640.0)
+                },
+            );
+            assert!(g.panels[0].x.is_none(), "{kind} over two names");
+        }
     }
 
     #[test]
@@ -5125,5 +5602,78 @@ mod tests {
         let ticks = tick_texts(&g);
         assert!(!ticks.iter().any(|t| t.starts_with('0')), "no zero tick: {ticks:?}");
         assert!(ticks.iter().any(|t| t.starts_with("20")), "{ticks:?}");
+    }
+
+    #[test]
+    fn decades_thin_by_the_names_printed_not_by_their_numbers() {
+        // Fifteen decades step by ten, so "every 5" of their numbers is every one of them: all
+        // fifteen were printed over each other while the layout gave each five bands of room.
+        let block = ChartBlock::from_value(&json!({
+            "type": "bar", "title": "Fifteen decades", "encoding": {"x": "decade", "y": "mean"},
+            "axes": {"y": {"label": "Mean anomaly", "unit": "°C"}},
+            "style": {"ratio": "2:1"}
+        }))
+        .unwrap();
+        let means = [
+            -0.21, -0.24, -0.31, -0.33, -0.24, -0.12, 0.04, -0.05, -0.03, 0.04, 0.25, 0.39, 0.59, 0.80, 1.06,
+        ];
+        let rows: Vec<_> = means
+            .iter()
+            .enumerate()
+            .map(|(i, m)| json!({"decade": format!("{}s", 1880 + 10 * i), "mean": m}))
+            .collect();
+        let themes = [
+            ChartTheme::default(),
+            ChartTheme {
+                data_font: "Patrick Hand, cursive".into(),
+                ..ChartTheme::default()
+            },
+        ];
+        for theme in &themes {
+            for width in (240..=900).step_by(2).map(f64::from) {
+                let g = layout(&block, &rows, theme, &opts(width));
+                let mut names: Vec<&Text> = g.panels[0]
+                    .items
+                    .iter()
+                    .filter_map(|i| match i {
+                        Item::Text(t) if t.role == Role::AxisLabel && t.text.ends_with("0s") => Some(t),
+                        _ => None,
+                    })
+                    .collect();
+                names.sort_by(|a, b| a.bounds.x.total_cmp(&b.bounds.x));
+                assert!(names.len() >= 2, "{width}: at least two decades are named");
+                for pair in names.windows(2) {
+                    assert!(
+                        pair[1].bounds.x - pair[0].bounds.right() >= 4.0,
+                        "{width}: '{}' and '{}' stand apart",
+                        pair[0].text,
+                        pair[1].text
+                    );
+                }
+                assert!(
+                    !g.checks.iter().any(|c| c.kind == "label-collision"),
+                    "{width}: {:?}",
+                    g.checks
+                );
+                let thinned = g.checks.iter().find(|c| c.kind == "label-thinned");
+                assert_eq!(
+                    thinned.is_some(),
+                    names.len() < 15,
+                    "{width}: thinning is said when it happens"
+                );
+                if let Some(check) = thinned {
+                    let decade = |t: &Text| t.text[..4].parse::<usize>().unwrap() / 10;
+                    let apart = names.windows(2).map(|w| decade(w[1]) - decade(w[0])).min().unwrap();
+                    assert!(
+                        check
+                            .message
+                            .starts_with(&format!("Category labels show every {apart}")),
+                        "{width}: {} names, '{}'",
+                        names.len(),
+                        check.message
+                    );
+                }
+            }
+        }
     }
 }

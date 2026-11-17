@@ -145,25 +145,15 @@ fn render_page(title: &str, body: &str, hosted: bool) -> Response {
 
 /// Format the stored publication date without changing its calendar day.
 fn report_date(timestamp: &str) -> String {
-    timestamp
-        .get(..10)
-        .and_then(|date| chrono::NaiveDate::parse_from_str(date, "%Y-%m-%d").ok())
-        .map_or_else(
-            || timestamp.to_owned(),
-            |date| date.format("%-d %b %Y").to_string(),
-        )
+    crate::time::leading_date(timestamp)
+        .map_or_else(|| timestamp.to_owned(), crate::time::day_month_year)
 }
 
 /// Show a stored token timestamp in UTC without losing its minute.
 fn token_date(timestamp: &str) -> String {
-    chrono::DateTime::parse_from_rfc3339(timestamp).map_or_else(
-        |_| timestamp.to_owned(),
-        |date| {
-            date.with_timezone(&chrono::Utc)
-                .format("%-d %b %Y, %H:%M UTC")
-                .to_string()
-        },
-    )
+    crate::time::parse_rfc3339(timestamp)
+        .and_then(|parsed| parsed.instant.utc_minute())
+        .unwrap_or_else(|| timestamp.to_owned())
 }
 
 pub(super) fn hosted_error_page(status: StatusCode) -> Response {

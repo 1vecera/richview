@@ -721,7 +721,7 @@ fn now() -> u64 {
 }
 
 fn stamp() -> String {
-    chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
+    crate::time::Instant::now().millis()
 }
 
 fn digest(text: &str) -> String {

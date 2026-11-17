@@ -311,14 +311,8 @@ fn convert_value(
             Some(FieldKind::Number),
         ),
         Date32(days) => {
-            let date = chrono::NaiveDate::from_ymd_opt(1970, 1, 1)
-                .expect("epoch is valid")
-                .checked_add_signed(chrono::Duration::days(i64::from(days)))
-                .ok_or_else(unsupported)?;
-            (
-                Value::String(date.format("%Y-%m-%d").to_string()),
-                Some(FieldKind::Date),
-            )
+            let date = crate::time::date_after_epoch(i64::from(days)).ok_or_else(unsupported)?;
+            (Value::String(date), Some(FieldKind::Date))
         }
         Timestamp(unit, value) => {
             let per_second = match unit {
@@ -330,14 +324,11 @@ fn convert_value(
             let seconds = value.div_euclid(per_second);
             let nanos = (value.rem_euclid(per_second) * (1_000_000_000 / per_second)) as u32;
             let instant =
-                chrono::DateTime::from_timestamp(seconds, nanos).ok_or_else(unsupported)?;
+                crate::time::Instant::from_unix(seconds, nanos).ok_or_else(unsupported)?;
             let text = if zoned {
-                instant.to_rfc3339_opts(chrono::SecondsFormat::AutoSi, true)
+                instant.rfc3339_auto()
             } else {
-                instant
-                    .naive_utc()
-                    .format("%Y-%m-%dT%H:%M:%S%.f")
-                    .to_string()
+                instant.naive_auto()
             };
             (Value::String(text), Some(FieldKind::Timestamp))
         }
@@ -375,7 +366,7 @@ fn hex(bytes: &[u8]) -> String {
 }
 
 fn now_rfc3339() -> String {
-    chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string()
+    crate::time::Instant::now().seconds()
 }
 
 // Native error text may contain SQL literals, URLs and host paths. Keep it off every report surface.

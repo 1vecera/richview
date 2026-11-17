@@ -6,6 +6,7 @@ mod contour;
 mod controls;
 mod feedback;
 mod focus;
+mod hint_place;
 mod lazy;
 mod overview;
 mod readout_place;
@@ -102,12 +103,18 @@ pub struct View {
     entrance: Option<f64>,
     settled: bool,
     drag: Option<(f64, f64)>,
+    /// The same drag along y, on a chart that zooms along both axes (a map).
+    drag_y: Option<(f64, f64)>,
     /// The "Drag to zoom" line above a zoomable plot, made when a mouse first rests on the
     /// chart, and whether it shows now (FEA-CH-49).
     hint: Option<HtmlElement>,
     hint_on: bool,
     /// A Shift-drag pan in progress: where it started and the window then (FEA-CH-49).
     pan: Option<(f64, [f64; 2])>,
+    /// The same pan along y, on a chart that zooms along both axes.
+    pan_y: Option<(f64, [f64; 2])>,
+    /// Scrolling over names not yet turned into a step, in names (Chart design, 16 November).
+    scroll_rest: f64,
     touch: Option<(f64, f64, f64)>,
     /// A short, stationary touch that has lifted, waiting for its click to activate.
     tap: Option<[f64; 2]>,
@@ -137,6 +144,8 @@ pub struct View {
     released: Vec<feedback::Released>,
     /// A drag-zoom or reset on its way (FEA-CH-52).
     zoom_glide: Option<feedback::ZoomGlide>,
+    /// Names inside the plot leave while a zoom moves and come back when it rests.
+    names: feedback::NameFade,
     /// Feedback frames are being drawn.
     animating: bool,
     /// A resize waits for the next frame to lay out.
@@ -154,6 +163,9 @@ pub struct View {
     fingers: Vec<(i32, [f64; 2])>,
     /// A pinch or one-finger pan in progress: the start's spread or x, and the window then.
     gesture: Option<(f64, [f64; 2])>,
+    /// The same gesture along y, on a chart that zooms along both axes: the start's y and the
+    /// window then.
+    gesture_y: Option<(f64, [f64; 2])>,
     /// The panels' ratio that fills the turned dialog, and the width, room and hidden-series
     /// count it was found for (FEA-CH-68). A rebuild of the legend (data, controls, hidden
     /// series) or of the fonts forgets it, so a ratio that found no fill is tried again.
@@ -663,9 +675,12 @@ fn mount_as(figure: &Element, asleep: bool) -> Result<Option<Rc<RefCell<View>>>,
         entrance: None,
         settled: false,
         drag: None,
+        drag_y: None,
         hint: None,
         hint_on: false,
         pan: None,
+        pan_y: None,
+        scroll_rest: 0.0,
         touch: None,
         tap: None,
         expanded: None,
@@ -681,6 +696,7 @@ fn mount_as(figure: &Element, asleep: bool) -> Result<Option<Rc<RefCell<View>>>,
         letting_go: None,
         released: Vec::new(),
         zoom_glide: None,
+        names: feedback::NameFade::default(),
         animating: false,
         relayout: false,
         scrolling: None,
@@ -689,6 +705,7 @@ fn mount_as(figure: &Element, asleep: bool) -> Result<Option<Rc<RefCell<View>>>,
         leaving: None,
         fingers: Vec::new(),
         gesture: None,
+        gesture_y: None,
         fill: None,
         narrowed: None,
         turned: false,
@@ -793,6 +810,9 @@ fn layout_inner(view: &Rc<RefCell<View>>, fresh: bool, instant: bool) {
         let hidden = v.hidden.clone();
         // A zoom glide draws its window of the moment (FEA-CH-52).
         let zoom = v.zoom_glide.map(|g| Some(g.window())).unwrap_or(v.zoom);
+        if let Some(y) = v.zoom_glide.and_then(|g| g.window_y()) {
+            v.chart.zoom_y = Some(y);
+        }
         // A turn of the phone resizes the window, which lays every expanded view out again.
         orient(&mut v, &hidden, zoom);
         // In a short, wide window the expanded chart keeps what it chose for this window size:
@@ -890,6 +910,9 @@ fn layout_inner(view: &Rc<RefCell<View>>, fresh: bool, instant: bool) {
                 && window[1] >= scale.extent[1];
             if clamped != Some(window) && !full_glide {
                 v.zoom = clamped;
+                if clamped.is_none() {
+                    v.chart.zoom_y = None;
+                }
                 v.zoom_glide = None;
                 g = v
                     .chart
@@ -924,6 +947,8 @@ fn layout_inner(view: &Rc<RefCell<View>>, fresh: bool, instant: bool) {
         } else {
             v.geometry = g;
         }
+        // Whether the chart zooms follows its geometry: a control can change it.
+        keep_reset_place(&v);
         let label = v.chart.accessible_name(&v.geometry);
         let _ = v
             .frame
@@ -940,6 +965,14 @@ fn layout_inner(view: &Rc<RefCell<View>>, fresh: bool, instant: bool) {
             v.mark_focus = focus.is_some();
             v.emphasis = focus.as_ref().map(|(f, _)| f.clone());
             v.fade.refocus(focus);
+        }
+        // A series the reader just hid stands out from nothing: the shown ones keep full ink
+        // although the pointer still rests on its entry (FEA-CH-52).
+        if let Some(Focus::Series(s)) = v.emphasis
+            && v.geometry.series.get(s).is_none_or(|s| s.hidden)
+        {
+            v.emphasis = None;
+            v.fade.refocus(None);
         }
         show_readout(&mut v, false);
         let height = v.geometry.height;
@@ -1761,7 +1794,12 @@ fn rebuild_mesh(v: &mut View, state: &State, dpr: f64) {
     if v.asleep {
         return;
     }
-    let (mesh, splits) = mesh::build_for_host(&v.geometry, state, dpr);
+    let level = v.names.level();
+    let (mesh, splits) = if level < 1.0 {
+        mesh::build_for_host(&feedback::faded_names(&v.geometry, level), state, dpr)
+    } else {
+        mesh::build_for_host(&v.geometry, state, dpr)
+    };
     v.mesh = mesh;
     v.panel_splits = splits;
 }
@@ -2392,7 +2430,11 @@ fn overlay_items(v: &View) -> Vec<Item> {
     if let Some((x0, x1)) = v.drag
         && let Some(panel) = v.geometry.panels.first()
     {
-        items.extend(drag_band(&v.chart.payload.theme.accent, panel.plot, x0, x1));
+        let accent = &v.chart.payload.theme.accent;
+        items.extend(match v.drag_y {
+            Some((y0, y1)) => drag_box(accent, panel.plot, [x0, y0], [x1, y1]),
+            None => drag_band(accent, panel.plot, x0, x1),
+        });
     }
     // What the pointer left lets go underneath what it reached.
     for r in &v.released {
@@ -2437,10 +2479,49 @@ fn drag_band(accent: &str, plot: Rect, x0: f64, x1: f64) -> Vec<Item> {
     items
 }
 
+/// The window a drag from `p0` to `p1` selects on a chart that zooms along both axes (a map):
+/// the rectangle between the two points, inside the plot, in the same tint and edges as
+/// [`drag_band`] (FEA-CH-49).
+fn drag_box(accent: &str, plot: Rect, p0: [f64; 2], p1: [f64; 2]) -> Vec<Item> {
+    let (a, b) = (
+        p0[0].min(p1[0]).clamp(plot.x, plot.right()),
+        p0[0].max(p1[0]).clamp(plot.x, plot.right()),
+    );
+    let (c, d) = (
+        p0[1].min(p1[1]).clamp(plot.y, plot.bottom()),
+        p0[1].max(p1[1]).clamp(plot.y, plot.bottom()),
+    );
+    if b - a <= 0.0 && d - c <= 0.0 {
+        return Vec::new();
+    }
+    let accent = richview_chart::color::parse(accent)
+        .unwrap_or(richview_chart::color::Oklch::new(0.5, 0.2, 260.0));
+    let rect = |x: f64, y: f64, w: f64, h: f64, alpha: f64| Item::Rect {
+        rect: Rect::new(x, y, w, h),
+        fill: Fill::solid(Rgba::from_oklch(accent, alpha)),
+        stroke: None,
+        radius: [0.0; 4],
+        role: Role::Band,
+        series: None,
+        obs: None,
+    };
+    let (w, h) = ((b - a).max(1.0), (d - c).max(1.0));
+    let mut items = vec![rect(a, c, w, h, 0.12)];
+    if w.max(h) > DRAG_SLOP {
+        items.push(rect(a, c, 1.0, h, 0.7));
+        items.push(rect(a + w - 1.0, c, 1.0, h, 0.7));
+        items.push(rect(a, c, w, 1.0, 0.7));
+        items.push(rect(a, c + h - 1.0, w, 1.0, 0.7));
+    }
+    items
+}
+
 /// Show or hide the quiet line that tells a mouse a chart zooms: "Drag to zoom", and once
-/// zoomed "Drag to zoom · Shift-drag to pan", in soft ink at the right end of the row above the
-/// plot, where the y axis's header sits at the left (FEA-CH-49). It stays hidden while a drag or
-/// pan runs, on a turned chart, and wherever chart text already sits in that place.
+/// zoomed "Drag to zoom · Shift-drag to pan", in soft ink (FEA-CH-49). Every chart that zooms
+/// says so, in the first of three places that is free: the right end of the row above the plot,
+/// where the y axis's header sits at the left; the title row, against the action icons; a
+/// corner inside the plot that holds no mark and no text. It stays hidden while a drag or pan
+/// runs and on a turned chart.
 fn zoom_hint(v: &mut View, on: bool) {
     let on = on && zoomable(v) && !turned(v) && v.drag.is_none() && v.pan.is_none();
     v.hint_on = on;
@@ -2480,11 +2561,15 @@ fn zoom_hint(v: &mut View, on: bool) {
         } else {
             "Drag to zoom"
         };
-        if hint.text_content().as_deref() != Some(text) {
-            hint.set_text_content(Some(text));
-        }
+        // The place is found for the longer line and kept for both, so the hint does not move
+        // when a zoom starts (Chart design, 16 November); the shorter line stands at the end
+        // of that place nearer the plot's edge.
+        hint.set_text_content(Some("Drag to zoom · Shift-drag to pan"));
+        let long = f64::from(hint.offset_width());
+        hint.set_text_content(Some(text));
+        let short = f64::from(hint.offset_width());
         let plot = v.geometry.panels.first()?.plot;
-        let size = [f64::from(hint.offset_width()), 16.0];
+        let size = [long, 16.0];
         // Level with the y axis's header: the text nearest above the plot, at its left.
         let header = v
             .geometry
@@ -2504,14 +2589,35 @@ fn zoom_hint(v: &mut View, on: bool) {
             && !v.geometry.items().any(
                 |item| matches!(item, Item::Text(t) if t.bounds.overlaps(&rect.inflate(4.0), 0.0)),
             );
-        clear.then_some(rect)
+        let (place, plate) = clear
+            .then_some((rect, false))
+            .or_else(|| hint_by_actions(v, size).map(|rect| (rect, false)))
+            .or_else(|| hint_place::corner(&v.geometry, plot, size).map(|rect| (rect, true)))?;
+        // Every place but a left corner ends at the right: the shorter line ends there too.
+        let x = if plate && place.center()[0] < plot.center()[0] {
+            place.x
+        } else {
+            place.right() - short
+        };
+        Some((Rect::new(x, place.y, short, place.h), plate))
     });
     let style = hint.style();
     match place.flatten() {
-        Some(rect) => {
+        Some((rect, plate)) => {
             let _ = style.set_property(
                 "transform",
                 &format!("translate({}px, {}px)", rect.x, rect.y),
+            );
+            // Inside the plot the line stands on the chart's own paper, over the grid.
+            let paper = if plate {
+                "var(--rv-bg-chart, var(--rv-bg, transparent))"
+            } else {
+                "transparent"
+            };
+            let _ = style.set_property("background", paper);
+            let _ = style.set_property(
+                "box-shadow",
+                &format!("0 0 0 {}px {paper}", hint_place::PLATE),
             );
             let _ = style.set_property("opacity", "1");
         }
@@ -2519,6 +2625,72 @@ fn zoom_hint(v: &mut View, on: bool) {
             let _ = style.set_property("opacity", "0");
         }
     }
+}
+
+/// The hint's place in the title row: against the action icons, on their centre line, when the
+/// title's text ends at least 12 px before it. In the frame's coordinates, like the plot's.
+fn hint_by_actions(v: &View, size: [f64; 2]) -> Option<Rect> {
+    let actions = v
+        .figure
+        .query_selector(".rv-chart__titlerow > .rv-chart__actions")
+        .ok()??;
+    if actions.get_client_rects().length() == 0 {
+        return None;
+    }
+    let (a, f) = (
+        actions.get_bounding_client_rect(),
+        v.frame.get_bounding_client_rect(),
+    );
+    let left = a.left() - 12.0 - size[0];
+    // Where the title's text ends on the icons' row: a title that wraps fills its box.
+    let title_end = v
+        .figure
+        .query_selector(".rv-chart__titlerow > .rv-chart__title")
+        .ok()
+        .flatten()
+        .and_then(|title| {
+            let t = title.get_bounding_client_rect();
+            if t.width() <= 0.0 || t.bottom() <= a.top() || t.top() >= a.bottom() {
+                return None;
+            }
+            Some(match one_line_width(&title) {
+                Some(w) if w <= t.width() + 0.5 => t.left() + w,
+                _ => t.right(),
+            })
+        })
+        .unwrap_or(f.left() - 12.0);
+    (left >= title_end + 12.0 && left >= f.left()).then(|| {
+        Rect::new(
+            left - f.left(),
+            a.top() + a.height() / 2.0 - size[1] / 2.0 - f.top(),
+            size[0],
+            size[1],
+        )
+    })
+}
+
+/// The width `element`'s text takes on one line, measured on a hidden copy beside it.
+fn one_line_width(element: &Element) -> Option<f64> {
+    let copy: HtmlElement = element.clone_node_with_deep(true).ok()?.dyn_into().ok()?;
+    let _ = copy.remove_attribute("id");
+    let _ = copy.set_attribute("aria-hidden", "true");
+    let style = copy.style();
+    for (key, value) in [
+        ("position", "absolute"),
+        ("left", "0"),
+        ("top", "0"),
+        ("visibility", "hidden"),
+        ("pointer-events", "none"),
+        ("width", "max-content"),
+        ("white-space", "nowrap"),
+        ("flex", "none"),
+    ] {
+        let _ = style.set_property(key, value);
+    }
+    element.parent_node()?.append_child(&copy).ok()?;
+    let width = copy.get_bounding_client_rect().width();
+    copy.remove();
+    Some(width)
 }
 
 /// The feedback of one target at `grown`, 0 to 1.
@@ -3286,9 +3458,14 @@ fn set_target(view: &Rc<RefCell<View>>, target: Option<Target>, announce: bool) 
     draw(view);
 }
 
-/// A legend entry or series name emphasises its series, or none (FEA-CH-52).
+/// A legend entry or series name emphasises its series, or none; a hidden series emphasises
+/// nothing, so the shown ones keep full ink (FEA-CH-52).
 fn emphasise_series(view: &Rc<RefCell<View>>, series: Option<usize>) {
-    view.borrow_mut().mark_focus = false;
+    let series = {
+        let mut v = view.borrow_mut();
+        v.mark_focus = false;
+        series.filter(|&s| v.geometry.series.get(s).is_some_and(|s| !s.hidden))
+    };
     feedback::emphasise(view, series.map(|s| (Focus::Series(s), mesh::DIM_FLOOR)));
 }
 
@@ -3305,14 +3482,62 @@ fn resume_feedback(view: &Rc<RefCell<View>>) {
     }
 }
 
-/// Whether the chart zooms along x (FEA-CH-49).
+/// Whether the chart zooms (FEA-CH-49), by the engine's rule that core reserves Reset zoom's
+/// place by.
 fn zoomable(v: &View) -> bool {
-    matches!(
-        v.chart.block.kind,
-        richview_chart::block::ChartType::Line
-            | richview_chart::block::ChartType::Area
-            | richview_chart::block::ChartType::Scatter
-    ) && v.geometry.panels.first().is_some_and(|p| p.x.is_some())
+    richview_chart::interaction::zooms(v.chart.block.kind.name(), &v.geometry)
+}
+
+/// Keep Reset zoom's place in the action row of a chart a mouse can zoom, while the button is
+/// hidden: a zoom then shows it where room was kept, so the title beside the icons does not
+/// wrap anew and the plot does not move under the pointer (Chart design, 16 November). A chart
+/// that cannot zoom, and a touch screen, where zoom is in the expanded view, keep no place.
+fn keep_reset_place(v: &View) {
+    let Some(reset) = &v.reset else { return };
+    let fine = window()
+        .match_media("(any-pointer: fine)")
+        .ok()
+        .flatten()
+        .is_some_and(|m| m.matches());
+    let style = reset.style();
+    if reset.hidden() && zoomable(v) && fine {
+        let _ = style.set_property("display", "inline-flex");
+        let _ = style.set_property("visibility", "hidden");
+    } else {
+        let _ = style.remove_property("display");
+        let _ = style.remove_property("visibility");
+    }
+}
+
+/// The y axis of a chart that zooms along both axes (a map); `None` where zoom is along x only.
+fn y_span(v: &View) -> Option<richview_chart::geometry::YSpan> {
+    v.geometry.panels.first()?.x.as_ref()?.y
+}
+
+/// Pixel y to data y on a chart that zooms along both axes.
+fn data_y(v: &View, py: f64) -> Option<f64> {
+    let s = y_span(v)?;
+    let t = (py - s.range[0]) / (s.range[1] - s.range[0]);
+    Some(s.domain[0] + t * (s.domain[1] - s.domain[0]))
+}
+
+/// What the plot shows now along x, for a chart that zooms along both axes: the window a pan
+/// or a pinch starts from. The layout fits a window whole, so the plot may show more than the
+/// reader asked for.
+fn shown_x(v: &View) -> Option<[f64; 2]> {
+    y_span(v)?;
+    Some(v.geometry.panels.first()?.x.as_ref()?.domain)
+}
+
+/// Move the window along y by `py` pixels of the plot from `start`, staying on the chart; the
+/// zoom set next draws it.
+fn pan_y_to(v: &mut View, start: [f64; 2], py: f64) {
+    let Some(s) = y_span(v) else { return };
+    let height = start[1] - start[0];
+    let per_px = height / (s.range[1] - s.range[0]);
+    let [lo, hi] = s.extent;
+    let a = (start[0] - py * per_px).clamp(lo.min(hi - height), (hi - height).max(lo));
+    v.chart.zoom_y = Some([a, a + height]);
 }
 
 /// Pixel x to data x through the first panel's scale.
@@ -3333,8 +3558,15 @@ fn set_zoom(view: &Rc<RefCell<View>>, zoom: Option<[f64; 2]>) {
             .first()
             .and_then(|p| p.x.as_ref())
             .cloned();
-        v.zoom = zoom.and_then(|window| v.chart.clamp_zoom(window, scale.as_ref()?));
+        let zoom = zoom.and_then(|window| v.chart.clamp_zoom(window, scale.as_ref()?));
+        if zoom != v.zoom {
+            feedback::names_moved(&mut v, false);
+        }
+        v.zoom = zoom;
         let zoomed = v.zoom.is_some();
+        if !zoomed {
+            v.chart.zoom_y = None;
+        }
         if v.hint_on {
             zoom_hint(&mut v, true);
         }
@@ -3343,33 +3575,108 @@ fn set_zoom(view: &Rc<RefCell<View>>, zoom: Option<[f64; 2]>) {
             let button: &Element = reset.as_ref();
             let had_focus = document().active_element().as_ref() == Some(button);
             reset.set_hidden(!zoomed);
+            keep_reset_place(&v);
             if had_focus && !zoomed {
                 let _ = v.frame.focus();
             }
         }
     }
     layout_inner(view, false, true);
+    // A chart that zooms along both axes fits the window whole, so its plot may show more
+    // than was asked for: what it shows is the window from here on, and a pan or a zoom along
+    // one axis starts from it.
+    {
+        let mut v = view.borrow_mut();
+        if v.zoom.is_some()
+            && let Some(s) = v.geometry.panels.first().and_then(|p| p.x.clone())
+            && let Some(y) = s.y
+        {
+            let inside = |d: [f64; 2], e: [f64; 2]| [d[0].max(e[0]), d[1].min(e[1])];
+            v.zoom = Some(inside(s.domain, s.extent));
+            v.chart.zoom_y = Some(inside(y.domain, y.extent));
+        }
+    }
+    feedback::names_return(view);
 }
 
-fn zoom_by(view: &Rc<RefCell<View>>, factor: f64, at: Option<f64>) {
-    let (domain, extent) = {
+/// Zoom by `factor` around the pixel `at`, or around the middle of the plot; a chart that
+/// zooms along both axes zooms both (FEA-CH-49).
+fn zoom_by(view: &Rc<RefCell<View>>, factor: f64, at: Option<[f64; 2]>) {
+    let (domain, y) = {
         let v = view.borrow();
         let Some(s) = v.geometry.panels.first().and_then(|p| p.x.clone()) else {
             return;
         };
-        let center = at
-            .and_then(|px| data_x(&v, px))
-            .unwrap_or((s.domain[0] + s.domain[1]) / 2.0);
+        // Over names a step moves the window's ends by whole names, one at least, so a step
+        // is never lost to the snap to names (Chart design, 16 November).
+        if let Some(least) = s.least {
+            let (first, last) = (s.extent[0].ceil(), s.extent[1].floor());
+            let [a, b] = [s.domain[0].max(first), s.domain[1].min(last)];
+            let width = b - a;
+            let to = if factor < 1.0 {
+                (width * factor).floor().min(width - 1.0).max(least)
+            } else {
+                (width * factor).ceil().max(width + 1.0)
+            };
+            // At two names a step in has nowhere to go.
+            if to >= width && factor < 1.0 {
+                return;
+            }
+            let centre = at
+                .and_then(|p| data_x(&v, p[0]))
+                .unwrap_or((a + b) / 2.0)
+                .clamp(a, b);
+            // A step that cannot stay centred keeps the earlier name.
+            let start = (centre - (centre - a) * to / width - 0.5).ceil();
+            drop(v);
+            set_zoom(view, Some([start, start + to]));
+            return;
+        }
+        let around = |centre: Option<f64>, domain: [f64; 2]| {
+            let centre = centre.unwrap_or((domain[0] + domain[1]) / 2.0);
+            [
+                centre - (centre - domain[0]) * factor,
+                centre + (domain[1] - centre) * factor,
+            ]
+        };
         (
-            ([
-                center - (center - s.domain[0]) * factor,
-                center + (s.domain[1] - center) * factor,
-            ]),
-            s.extent,
+            around(at.and_then(|p| data_x(&v, p[0])), s.domain),
+            s.y.map(|y| around(at.and_then(|p| data_y(&v, p[1])), y.domain)),
         )
     };
-    let _ = extent;
+    if y.is_some() {
+        view.borrow_mut().chart.zoom_y = y;
+    }
     set_zoom(view, Some(domain));
+}
+
+/// Pan a zoomed window by a scroll of `px` pixels. Over names a scroll steps by whole names: it
+/// gathers until a quarter of a name, then moves one name or more, so a mouse notch moves the
+/// window and a trackpad's small steps add up (Chart design, 16 November).
+fn scroll_pan(view: &Rc<RefCell<View>>, window: [f64; 2], px: f64) {
+    let per_px = view
+        .borrow()
+        .geometry
+        .panels
+        .first()
+        .and_then(|p| p.x.as_ref())
+        .filter(|s| s.least.is_some())
+        .map(|s| (s.domain[1] - s.domain[0]) / (s.range[1] - s.range[0]));
+    let Some(per_px) = per_px else {
+        pan_to(view, window, px);
+        return;
+    };
+    let rest = {
+        let mut v = view.borrow_mut();
+        v.scroll_rest -= px * per_px;
+        v.scroll_rest
+    };
+    if rest.abs() < 0.25 {
+        return;
+    }
+    let names = rest.signum() * rest.abs().round().max(1.0);
+    view.borrow_mut().scroll_rest = 0.0;
+    set_zoom(view, Some([window[0] + names, window[1] + names]));
 }
 
 /// Move a zoomed window by `px` pixels of the plot, keeping its width and staying inside the
@@ -3401,6 +3708,7 @@ fn finger(view: &Rc<RefCell<View>>, id: i32, at: Option<[f64; 2]>) {
         v.fingers.push((id, p));
     }
     v.gesture = None;
+    v.gesture_y = None;
 }
 
 /// Pinch zooms and a one-finger drag pans, only in the expanded view, where the page does not
@@ -3421,17 +3729,26 @@ fn touch_gesture(view: &Rc<RefCell<View>>, e: &web_sys::PointerEvent, p: [f64; 2
             .first()
             .and_then(|q| q.x.as_ref())
             .map(|s| s.domain);
-        (v.fingers.clone(), v.gesture, v.zoom.or(domain), true)
+        // A chart that zooms along both axes starts from what its plot shows.
+        let window = shown_x(&v).or(v.zoom.or(domain));
+        (v.fingers.clone(), v.gesture, window, true)
     };
     let Some(window) = window.filter(|_| zoomable) else {
         return false;
     };
+    let both = y_span(&view.borrow());
     match fingers.as_slice() {
         [(_, a), (_, b)] => {
-            let spread = (a[0] - b[0]).abs().max(24.0);
+            // Along both axes the fingers' distance counts, along x their distance along x.
+            let spread = match both {
+                Some(_) => (a[0] - b[0]).hypot(a[1] - b[1]).max(24.0),
+                None => (a[0] - b[0]).abs().max(24.0),
+            };
             let mid = (a[0] + b[0]) / 2.0;
             let Some((spread0, from)) = gesture else {
-                view.borrow_mut().gesture = Some((spread, window));
+                let mut v = view.borrow_mut();
+                v.gesture = Some((spread, window));
+                v.gesture_y = both.map(|y| (0.0, y.domain));
                 return true;
             };
             let factor = spread0 / spread;
@@ -3443,6 +3760,15 @@ fn touch_gesture(view: &Rc<RefCell<View>>, e: &web_sys::PointerEvent, p: [f64; 2
                 let t = (mid - s.range[0]) / (s.range[1] - s.range[0]);
                 from[0] + t * (from[1] - from[0])
             };
+            let from_y = view.borrow().gesture_y;
+            if let (Some(y), Some((_, from))) = (both, from_y) {
+                let t = ((a[1] + b[1]) / 2.0 - y.range[0]) / (y.range[1] - y.range[0]);
+                let centre = from[0] + t * (from[1] - from[0]);
+                view.borrow_mut().chart.zoom_y = Some([
+                    centre - (centre - from[0]) * factor,
+                    centre + (from[1] - centre) * factor,
+                ]);
+            }
             set_zoom(
                 view,
                 Some([
@@ -3458,9 +3784,15 @@ fn touch_gesture(view: &Rc<RefCell<View>>, e: &web_sys::PointerEvent, p: [f64; 2
                 if (a[0] - start).abs() < 8.0 {
                     return false;
                 }
-                view.borrow_mut().gesture = Some((a[0], window));
+                let mut v = view.borrow_mut();
+                v.gesture = Some((a[0], window));
+                v.gesture_y = both.map(|y| (a[1], y.domain));
                 return true;
             };
+            let from_y = view.borrow().gesture_y;
+            if let Some((y0, from)) = from_y {
+                pan_y_to(&mut view.borrow_mut(), from, a[1] - y0);
+            }
             pan_to(view, from, a[0] - x0);
             true
         }
@@ -3525,15 +3857,24 @@ fn bind(view: &Rc<RefCell<View>>) {
         }
         let pan = view.borrow().pan;
         if let Some((x0, start)) = pan {
+            let pan_y = view.borrow().pan_y;
+            if let Some((y0, start)) = pan_y {
+                pan_y_to(&mut view.borrow_mut(), start, p[1] - y0);
+            }
             pan_to(&view, start, p[0] - x0);
             return;
         }
         let drag = view.borrow().drag;
         if let Some((x0, _)) = drag {
-            view.borrow_mut().drag = Some((x0, p[0]));
+            let down = {
+                let mut v = view.borrow_mut();
+                v.drag = Some((x0, p[0]));
+                v.drag_y = v.drag_y.map(|(y0, _)| (y0, p[1]));
+                v.drag_y.map_or(0.0, |(y0, y1)| (y1 - y0).abs())
+            };
             // Once the press really drags, the crosshair, dots and readout let go, so the band
             // alone shows what the zoom will take (FEA-CH-49).
-            let dragging = (p[0] - x0).abs() > DRAG_SLOP;
+            let dragging = (p[0] - x0).abs().max(down) > DRAG_SLOP;
             let targeted = view.borrow().target.is_some();
             if dragging && targeted {
                 view.borrow_mut().pinned = false;
@@ -3617,11 +3958,24 @@ fn bind(view: &Rc<RefCell<View>>) {
         }
         if e.button() == 0 && zoomable(&view.borrow()) {
             // Shift-drag pans a zoomed chart; a plain drag zooms to the dragged window.
-            let zoom = view.borrow().zoom;
+            // A chart that zooms along both axes (a map) pans from what its plot shows and
+            // drags a rectangle.
+            let (zoom, shown, y) = {
+                let v = view.borrow();
+                (v.zoom, shown_x(&v), y_span(&v))
+            };
+            let mut v = view.borrow_mut();
             match zoom {
-                Some(window) if e.shift_key() => view.borrow_mut().pan = Some((p[0], window)),
-                _ => view.borrow_mut().drag = Some((p[0], p[0])),
+                Some(window) if e.shift_key() => {
+                    v.pan = Some((p[0], shown.unwrap_or(window)));
+                    v.pan_y = y.map(|y| (p[1], y.domain));
+                }
+                _ => {
+                    v.drag = Some((p[0], p[0]));
+                    v.drag_y = y.map(|_| (p[1], p[1]));
+                }
             }
+            drop(v);
             zoom_hint(&mut view.borrow_mut(), false);
             // The canvas keeps the pointer until release, also outside the chart.
             if let Some(canvas) = e
@@ -3645,20 +3999,38 @@ fn bind(view: &Rc<RefCell<View>>) {
             view.borrow_mut().tap = tap.then_some(p);
             return;
         }
+        view.borrow_mut().pan_y = None;
         if view.borrow_mut().pan.take().is_some() {
             zoom_hint(&mut view.borrow_mut(), true);
             return;
         }
         let drag = view.borrow_mut().drag.take();
+        let drag_y = view.borrow_mut().drag_y.take();
         if let Some((x0, x1)) = drag
-            && (x1 - x0).abs() > DRAG_SLOP
+            && (x1 - x0)
+                .abs()
+                .max(drag_y.map_or(0.0, |(y0, y1)| (y1 - y0).abs()))
+                > DRAG_SLOP
         {
-            let (a, b) = {
+            // A rectangle dragged almost straight still has a pixel of the other axis: the
+            // layout fits the window whole, so its long side decides the zoom.
+            let (a, b, y) = {
                 let v = view.borrow();
-                (data_x(&v, x0.min(x1)), data_x(&v, x0.max(x1)))
+                let wide = if drag_y.is_some() { 1.0 } else { 0.0 };
+                let y = drag_y.and_then(|(y0, y1)| {
+                    Some([
+                        data_y(&v, y0.max(y1).max(y0.min(y1) + 1.0))?,
+                        data_y(&v, y0.min(y1))?,
+                    ])
+                });
+                (
+                    data_x(&v, x0.min(x1)),
+                    data_x(&v, x0.max(x1).max(x0.min(x1) + wide)),
+                    y,
+                )
             };
             if let (Some(a), Some(b)) = (a, b) {
-                feedback::zoom_to(&view, Some([a, b]));
+                feedback::zoom_to_window(&view, Some([a, b]), y);
                 zoom_hint(&mut view.borrow_mut(), true);
                 return;
             }
@@ -3699,6 +4071,8 @@ fn bind(view: &Rc<RefCell<View>>) {
             let Some(view) = w.upgrade() else { return };
             let had = {
                 let mut v = view.borrow_mut();
+                v.drag_y = None;
+                v.pan_y = None;
                 v.drag.take().is_some() | v.pan.take().is_some()
             };
             if had {
@@ -3732,17 +4106,13 @@ fn bind(view: &Rc<RefCell<View>>) {
                 && along.abs() > across.abs()
             {
                 e.prevent_default();
-                pan_to(&view, window, -along);
+                scroll_pan(&view, window, -along);
             }
             return;
         }
         e.prevent_default();
         let p = local(&view.borrow(), &e);
-        zoom_by(
-            &view,
-            if e.delta_y() > 0.0 { 1.25 } else { 0.8 },
-            Some(p[0]),
-        );
+        zoom_by(&view, if e.delta_y() > 0.0 { 1.25 } else { 0.8 }, Some(p));
     });
     let w = Rc::downgrade(view);
     on(&frame, "keydown", move |e| {
@@ -4043,12 +4413,15 @@ fn build_names(view: &Rc<RefCell<View>>, focused: &Option<String>) {
             v.geometry
                 .panels
                 .iter()
-                .flat_map(|p| p.items.iter().map(move |i| (p, i)))
-                .filter_map(|(p, i)| match i {
+                .flat_map(|p| p.items.iter())
+                // A series' name stands beside the plot or inside it beside its own line
+                // (FEA-CH-27), set in the data face. A value label is set in figures, also when
+                // its number spells a series' name ("18" on a series named 18).
+                .filter_map(|i| match i {
                     Item::Text(t)
                         if t.role == Role::Label
-                            && matches!(v.geometry.kind.as_str(), "line" | "area")
-                            && (t.bounds.right() < p.plot.x || t.bounds.x > p.plot.right()) =>
+                            && t.face == Face::Data
+                            && matches!(v.geometry.kind.as_str(), "line" | "area") =>
                     {
                         let i = t.series?;
                         let s = v.geometry.series.get(i)?;
@@ -4229,13 +4602,24 @@ fn build_actions(view: &Rc<RefCell<View>>) -> Result<(), JsValue> {
         b.set_attribute("aria-label", label)?;
     }
     table.set_attribute("aria-pressed", "false")?;
-    let reset = action_button("Reset zoom", "rv-chart__action--reset");
+    // Core reserved Reset zoom's place on a chart that zooms (FEA-CH-43); the runtime takes
+    // that button, or adds one where none was reserved.
+    let reset: HtmlElement = match actions.query_selector(".rv-chart__action--reset")? {
+        Some(b) => b.unchecked_into(),
+        None => {
+            let b = action_button("Reset zoom", "rv-chart__action--reset");
+            actions.append_child(&b)?;
+            b
+        }
+    };
+    reset.set_attribute("aria-label", "Reset zoom")?;
+    reset.remove_attribute("data-rv-place")?;
     reset.set_hidden(true);
-    actions.append_child(&reset)?;
     actions.remove_attribute("data-rv-pending")?;
     actions.remove_attribute("inert")?;
     view.borrow_mut().actions = actions.clone();
     view.borrow_mut().reset = Some(reset.clone());
+    keep_reset_place(&view.borrow());
     let w = Rc::downgrade(view);
     let t: web_sys::EventTarget = table.clone().into();
     on(&t, "click", move |_| {
@@ -4814,6 +5198,7 @@ fn open_expanded(view: &Rc<RefCell<View>>, pointer: bool) {
             if let Some(reset) = &ev.reset {
                 reset.set_hidden(ev.zoom.is_none());
             }
+            keep_reset_place(&ev);
             ev.settled = true;
             ev.owner = Some(Rc::downgrade(view));
             let state = v.chart.state.clone();
@@ -4886,6 +5271,7 @@ fn close_expanded(view: &Rc<RefCell<View>>) {
             if let Some(reset) = &v.reset {
                 reset.set_hidden(zoom.is_none());
             }
+            keep_reset_place(&v);
         }
         if let Some(up) = e.borrow_mut().uploaded.take() {
             with_renderer(|r| r.release(up));

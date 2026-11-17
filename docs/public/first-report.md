@@ -16,14 +16,14 @@ In a fresh working folder, run:
 
 ```sh
 richview init first-report
-richview validate first-report/report.rmd --format json
-richview check first-report/report.rmd --format json
-richview generate first-report/report.rmd --format json
+richview validate first-report/report.rmd
+richview check first-report/report.rmd
+richview generate first-report/report.rmd
 ```
 
 Open **`first-report/Rendered/report.html`** in your browser. It is a complete interactive HTML report in Sleek, titled **Direct visits lead our traffic**, with a 910-visit metric and fictional observations in `data/visits.csv`. Hover or focus the chart, inspect its table and try a download. Keep the source beside the result: you edit `report.rmd`, then generate again.
 
-`validate` checks syntax, schema and local resources. `check` also renders the report and inspects each chart's geometry at a phone width and at the desktop width. An info, such as a label left out for lack of room, needs no change. In JSON output, `status: clean` means no errors or warnings; `ok: true` can still include warnings. Read those before treating the report as finished.
+`validate` checks syntax, schema and local resources. `check` also renders the report and inspects each chart's geometry at a phone width and at the desktop width. An info, such as a label left out for lack of room, needs no change. Each command prints text for a person; with `--format json` it prints one object for an agent or a script, in which `status: clean` means no errors or warnings and `ok: true` can still include warnings. Read those before treating the report as finished.
 
 ## Keep a preview open
 

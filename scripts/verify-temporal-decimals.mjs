@@ -8,6 +8,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { harness, installWasmClock, watchErrors } from './browser-harness.mjs';
+import { figureDownload } from './chart-interaction-checks.mjs';
 import { reports, settle } from './report-runtime.mjs';
 
 const fence = value => `\n\`\`\`chart\n${JSON.stringify(value)}\n\`\`\`\n`;
@@ -113,7 +114,7 @@ try {
       await check(`${at}: Table in source order at the readout precision`, () => assert.deepEqual(rows.map(r => r[1]), want));
       await figure.locator('.rv-chart__action--table').click();
       // CSV: plain numbers rounded to the same precision.
-      const [file] = await Promise.all([page.waitForEvent('download'), figure.locator('.rv-chart__action--csv').click()]);
+      const file = await figureDownload(page, figure, 'csv');
       const lines = readFileSync(await file.path(), 'utf8').trim().split('\r\n');
       const numbers = lines.slice(1).map(line => line.split(',')[1]);
       await check(`${at}: CSV in source order`, () => assert.deepEqual(lines.slice(1).map(line => line.split(',')[0]), bySource));

@@ -40,7 +40,7 @@ The closer a population sits to building with AI, the larger Anthropic's share. 
 kind: hold
 title: How to read this report
 body: |
-  Every measure names its population and its window. Scraped samples describe the people in them, not the public. Revenue figures come mostly from documents seen by journalists, because neither company has a public, audited filing yet. Each claim links to a dated source.
+  Every measure names its population and its window. Scraped samples describe the people in them, not the public. Revenue figures come mostly from documents seen by journalists, because as of the 2 October snapshot neither company had a public S-1. Anthropic filed one on 26 October 2026 and amended it on 10 November ({{src:C208,C209}}). Each claim links to a dated source.
 ```
 
 ## Builders moved first, then buyers and bankers

@@ -651,7 +651,7 @@ pub(crate) fn chart(
     };
     // The title row, whose right end holds the action group (FEA-CH-43; Daniel, 9 Nov), then
     // the subtitle. The group is reserved here so the runtime fills it without moving the page.
-    let head = |actions: bool| {
+    let head = |actions: bool, zooms: bool| {
         format!(
             "<figcaption class=\"rv-chart__head\"><div class=\"rv-chart__titlerow\"><p class=\"rv-chart__title\">{}</p>{}</div>{}</figcaption>",
             escape(&block.title),
@@ -664,6 +664,15 @@ pub(crate) fn chart(
                         .iter()
                         .map(|(kind, label)| richview_chart::interaction::action_html(kind, label))
                         .collect::<String>()
+                        // A chart a mouse can zoom keeps Reset zoom's place from the start, so
+                        // the title beside the icons wraps the same with the runtime, without
+                        // it and when a zoom starts (Chart design, 16 November).
+                        + &if zooms {
+                            richview_chart::interaction::action_html("reset", "Reset zoom")
+                                .replacen("<button ", "<button data-rv-place ", 1)
+                        } else {
+                            String::new()
+                        }
                 )
             } else {
                 String::new()
@@ -734,7 +743,7 @@ pub(crate) fn chart(
         return Figure {
             html: format!(
                 "<figure class=\"rv-chart{full} rv-chart--print\" id=\"{id}\">{}{state_line}{above}<div class=\"rv-chart__frame\" role=\"img\" aria-label=\"{}\">{svg}</div>{below}{}</figure>",
-                head(false),
+                head(false, false),
                 label(&g),
                 method(&g)
             ),
@@ -873,7 +882,10 @@ pub(crate) fn chart(
     }
     let html = format!(
         "<figure class=\"rv-chart{full}\" id=\"{id}\" data-rv-chart>{}{}{state_line}{above}<div class=\"rv-chart__frame\" role=\"img\" aria-label=\"{}\" style=\"--rv-ratio:{};--rv-ratio-phone:{}\"><p class=\"rv-chart__notice\">{NOTICE}</p></div>{below}{}<script type=\"application/json\" data-rv-payload>{}</script></figure>",
-        head(true),
+        head(
+            true,
+            richview_chart::interaction::zooms(block.kind.name(), &desktop)
+        ),
         if controls.is_empty() {
             String::new()
         } else {
@@ -947,16 +959,20 @@ pub(crate) const FIGURE_CSS: &str = concat!(
     // The title row holds the title and, at its right end, the action group (FEA-CH-43). The title
     // is set a tenth under the base size (Daniel, 9 Nov), still above the subtitle's small size.
     // A row wide enough for the group beside 15rem of title keeps the group there, and a long title
-    // wraps beside it. A phone's row never is, so there the title takes its natural width: a short
-    // title keeps the group beside it, a longer one sends it under the title, where the row gap
-    // undoes the group's lift to the title's first line (S27-996; Daniel, 9 Nov: icons in the title
-    // row if they fit, otherwise under the title). 27rem is the widest viewport whose figure, inside
-    // the report's 16 px margins, is narrower than 15rem of title, the 1rem gap and four 32 px icons.
+    // wraps beside it; a narrower figure on a wide screen sends the group under the title, where the
+    // row gap undoes the group's lift to the title's first line (S27-996; Daniel, 9 Nov: icons in
+    // the title row if they fit, otherwise under the title).
     ".rv-chart__titlerow{display:flex;flex-wrap:wrap;align-items:flex-start;gap:.375rem 1rem}",
     // Shift only the painted title: a negative margin changes its flex width and can rewrap it
     // when the runtime measures its first glyph, moving the chart after hydration.
     ".rv-chart .rv-chart__title{flex:1 1 15rem;min-width:0;margin:0 0 .25rem;transform:translateX(calc(-1 * var(--rv-title-bearing,0px)));font:600 calc(var(--rv-size-base,1.125rem) * .9)/1.25 var(--rv-font-display,inherit)}",
-    "@media (max-width:27rem){.rv-chart__titlerow>.rv-chart__title{flex-basis:auto}}",
+    // A phone has no room for four icons beside a title and no line to give them (Daniel, 17 Nov:
+    // "drop download image, download table icons, make sure there is no empty line for icons"). Up
+    // to 600 px, where the chart takes its phone ratio, a figure shows Table and Expand alone;
+    // Download PNG and CSV are in the expanded view (FEA-CH-44). The row never wraps there: the two
+    // icons keep the right end of the title's first line and a long title wraps beside them, so
+    // title, subtitle and plot follow each other, before the runtime wires the icons and without it.
+    "@media (max-width:600px){.rv-chart__titlerow{flex-wrap:nowrap}.rv-chart__titlerow>.rv-chart__title{flex-basis:0}.rv-chart__titlerow>.rv-chart__actions>.rv-chart__action--png,.rv-chart__titlerow>.rv-chart__actions>.rv-chart__action--csv{display:none}}",
     ".rv-chart__subtitle{margin:0;font:var(--rv-size-small,14px)/1.45 var(--rv-font-text,inherit);color:var(--rv-ink-soft)}",
     ".rv-chart__frame{position:relative;width:100%;aspect-ratio:var(--rv-ratio,1.6);background:var(--rv-bg-chart,transparent)}",
     "@media (max-width:600px){.rv-chart__frame{aspect-ratio:var(--rv-ratio-phone,var(--rv-ratio,1.2))}.rv-chart__legend.rv-chart__legend--desktop{display:none}}",
@@ -1017,6 +1033,10 @@ pub(crate) const FIGURE_CSS: &str = concat!(
     // The icons' centre is the title's first line's: half of its 1.25 line at .9 of the base size.
     ".rv-chart__titlerow>.rv-chart__actions{margin-top:calc(.5625 * var(--rv-size-base,1.125rem) - 16px)}",
     ".rv-chart__actions[data-rv-pending]{visibility:hidden}",
+    // Reset zoom's reserved place: kept where a mouse can zoom, gone on a touch screen, where
+    // zoom is in the expanded view; the runtime takes the button over.
+    ".rv-chart__action--reset[data-rv-place]{visibility:hidden}",
+    "@media not (any-pointer:fine){.rv-chart__action--reset[data-rv-place]{display:none}}",
     ".rv-chart__action{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:.4rem}",
     ".rv-chart__action svg{width:18px;height:18px;flex:none;stroke-width:1.5}",
     // Quiet buttons (STY-42): the UI face in `ink-soft`, turning `ink` on hover and focus; a pressed toggle is underlined, never filled.

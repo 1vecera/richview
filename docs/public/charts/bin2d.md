@@ -116,7 +116,8 @@ axes:
 
 - `type: bin2d` with `encoding.x` and `encoding.y`, both numeric; each row is one observation
 - The plane is cut into equal-width rectangles, as many along each axis as the square root of the number of observations (5 to 24); a cell includes its lower edges
-- Colour is the count, on the style's sequential ramp from one observation to the fullest cell; the key under the chart names both ends
+- Colour is the count, on the style's sequential ramp from one observation to the fullest cell, and each cell prints its count
+- When a cell is too small for its count, none is printed and a key under the chart names both ends of the colour; `auto_annotations: false` asks for the key instead of the counts
 - Empty cells stay plain, so nothing is drawn where no observation is
 - Every panel of a faceted chart shares the same cells and the same colour scale
 - `axes.x` and `axes.y` set `label` and `format`

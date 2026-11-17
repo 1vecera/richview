@@ -1,8 +1,9 @@
 // Host reason (ARC-03): shared Playwright checks drive the actual report runtime on
 // generated reports and docs pages; they do not ship to readers.
 // FEA-CH-39's zoom column; the one table in this file that is not read from the model, because the
-// model offers no zoom flag and an x scale alone (histograms, density) does not mean the chart zooms.
-const ZOOM_TYPES = new Set(['line', 'area', 'scatter']);
+// model offers no zoom flag and an x scale alone (histograms, 2D bins, hexbin, contour, dot plot)
+// does not mean the chart zooms.
+const ZOOM_TYPES = new Set(['line', 'area', 'scatter', 'map', 'band', 'density', 'ecdf', 'gantt', 'qq', 'streamgraph', 'vector']);
 // Types whose policy says no interaction (FEA-CH-39): they carry no observations. None today.
 const NO_INTERACTION = new Set();
 const KEY_STEPS = 3;
@@ -160,16 +161,45 @@ async function pointer(page, i, model, figure, touch, cohort) {
   return { ok: !problems.length, hovered: hovered.length, unplaced: cohort.unplaced.map(({ panel, observation, word, reason }) => ({ panel, observation, word, reason })), problems };
 }
 
-/** Compare real series-name buttons with the genuine outside-plot line and area names. */
+/** A figure's CSV or PNG download (`kind` is `csv` or `png`), taken where the reader finds the action. Up to
+ * 600 px a figure shows Table and Expand alone (Daniel, 17 Nov 2026: no download icons on a phone), so there the
+ * action is clicked in the expanded view, which shares the chart's state (FEA-BR-32); the view is closed once the
+ * download has started, since a PNG is encoded after the click. `onClick` runs after the click, inside the wait. */
+export async function figureDownload(page, figure, kind, { timeout = 30_000, onClick } = {}) {
+  const press = button => Promise.all([page.waitForEvent('download', { timeout }), (async () => { await button.click({ timeout }); await onClick?.(); })()]);
+  const inline = figure.locator(`.rv-chart__action--${kind}`).first();
+  if (await inline.isVisible()) return (await press(inline))[0];
+  await figure.locator('.rv-chart__action--expand').first().click({ timeout });
+  const dialog = page.locator('dialog.rv-chart-dialog[open]');
+  const [file] = await press(dialog.locator(`.rv-chart__action--${kind}`));
+  await dialog.locator('.rv-chart-dialog__close').click({ timeout });
+  await dialog.waitFor({ state: 'hidden', timeout });
+  return file;
+}
+
+/**
+ * Compare real series-name buttons with the genuine line and area names: every label in the data
+ * face whose text is a series' name, inside the plot or beside it (names inside the plot, chart
+ * design 16 Nov 2026), and nothing else. A value label is set in figures; one whose number spells a
+ * series' name ('18' on a series named 18) is never a button.
+ */
 export async function nameButtonContract(page, i) {
   const nameContract = await page.evaluate(i => {
     const model = window.__richview.charts()[i], g = model.geometry;
-    const expected = g.legend || !['line', 'area'].includes(g.kind) ? [] : g.panels.flatMap(p => p.items.filter(t => t.kind === 'text' && t.role === 'label' && t.series !== undefined && g.series[t.series]?.name === t.text && (t.bounds.x > p.plot.x + p.plot.w || t.bounds.x + t.bounds.w < p.plot.x)).map(t => ({ key: g.series[t.series].key, text: t.text })));
+    const labels = g.panels.flatMap(p => p.items.filter(t => t.kind === 'text' && t.role === 'label' && t.series !== undefined && g.series[t.series]?.name === t.text));
+    const expected = g.legend || !['line', 'area'].includes(g.kind) ? [] : labels.filter(t => t.face === 'data').map(t => ({ key: g.series[t.series].key, text: t.text }));
+    // Value labels whose number spells a series' name: each must stay a value, not a button.
+    const twins = labels.filter(t => t.face !== 'data').map(t => t.text);
     const actual = [...document.getElementById(model.figure).querySelectorAll('button.rv-chart__name')].map(b => ({ key: b.dataset.rvSeries, text: b.textContent }));
-    return { expected: expected.length >= 2 ? expected : [], actual };
+    return { expected: expected.length >= 2 ? expected : [], actual, twins };
   }, i);
   const problems = [];
-  if (JSON.stringify(nameContract.expected) !== JSON.stringify(nameContract.actual)) problems.push(`series-name buttons differ from genuine outside-plot names: ${JSON.stringify(nameContract)}`);
+  if (JSON.stringify(nameContract.expected) !== JSON.stringify(nameContract.actual)) problems.push(`series-name buttons differ from genuine series names: ${JSON.stringify(nameContract)}`);
+  for (const text of new Set(nameContract.twins)) {
+    const buttons = nameContract.actual.filter(b => b.text === text).length;
+    const names = nameContract.expected.filter(n => n.text === text).length;
+    if (buttons > names) problems.push(`a value label '${text}' that spells a series name became a button (${buttons} buttons, ${names} names)`);
+  }
   return { ...nameContract, problems };
 }
 

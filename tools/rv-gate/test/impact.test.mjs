@@ -165,6 +165,13 @@ test("a changed chart example or snippet generator needs the committed snippet f
 	assert.equal(check(["crates/richview-build/src/main.rs"], { hasFreshnessTest: true }).status, "pass", "nothing that could change a snippet");
 	assert.equal(check(["crates/richview-core/src/registry.rs"], { hasFreshnessTest: true }).status, "test", "the registry can add a snippet (review 1g note 8)");
 	assert.equal(check(["crates/richview-core/src/registry.rs"]).status, "pass", "without the test, a registry change is not judged by the diff");
+	// With the test, any change to the generator's source folder runs it, prose and data included.
+	for (const file of ["docs/public/charts/bar.md", "docs/public/charts/data/sales.csv"]) {
+		const judged = check([file], { hasFreshnessTest: true });
+		assert.equal(judged.status, "test", file);
+		assert.match(judged.reason, /the snippets' source/);
+	}
+	assert.equal(check(["docs/public/blocks.md"], { hasFreshnessTest: true }).status, "pass", "another docs page is not the snippets' source");
 });
 
 test("Cargo manifests and workflow edits run the layer and CI contract tests", () => {

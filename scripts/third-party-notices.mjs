@@ -10,7 +10,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
 const { bundledPackages } = require('./vscode-notices.cjs');
-const targets = ['aarch64-apple-darwin', 'x86_64-unknown-linux-gnu', 'wasm32-unknown-unknown'];
+// The Windows preview (ARC-67) is listed so one notice file covers every native archive.
+const targets = ['aarch64-apple-darwin', 'x86_64-unknown-linux-gnu', 'x86_64-pc-windows-msvc', 'wasm32-unknown-unknown'];
 const manifestFile = join(root, 'scripts/third-party-notices-manifest.json');
 const sources = join(root, 'scripts/notices-sources');
 const cratesIo = 'registry+https://github.com/rust-lang/crates.io-index';
@@ -182,7 +183,7 @@ export function generate(packages, npmPackages = [], downloaded = {}) {
   const ids = new Map([...texts.keys()].map((key, index) => [key, `T${String(index + 1).padStart(3, '0')}`]));
   const lines = [
     'RichView third-party notices', '',
-    'This file covers the resolved Rust dependency graph for the macOS arm64, Linux x64 and WebAssembly targets checked by the dependency gate. It includes build and development dependencies as a conservative superset.',
+    'This file covers the resolved Rust dependency graph for the macOS arm64, Linux x64, Windows x64 and WebAssembly targets checked by the dependency gate. It includes build and development dependencies as a conservative superset.',
     'Each entry refers to one or more original licence or notice texts below; identical texts are printed once.', '',
     'CRATES', '======', '',
   ];

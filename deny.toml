@@ -2,7 +2,7 @@
 # The npm side is tools/rv-gate/npm-licences.mjs. Both share one allowlist.
 
 [graph]
-targets = ["aarch64-apple-darwin", "x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
+targets = ["aarch64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc", "wasm32-unknown-unknown"]
 
 [licenses]
 confidence-threshold = 0.93

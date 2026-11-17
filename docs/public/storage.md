@@ -29,8 +29,8 @@ stores:
 Without `endpoint`, the store is AWS S3 in `region`, addressed by virtual host; with one, requests use path-style URLs unless `url_style: virtual-host` says otherwise. `credentials: env` reads `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and an optional `AWS_SESSION_TOKEN`; `profile:<name>` reads static keys from the AWS shared credentials file. For single sign-on or role profiles, export temporary keys into the environment first. Every request is signed locally; keys and signed URLs never appear in references, output or the upload journal. `http` endpoints are accepted only on loopback.
 
 ```sh
-richview asset put data/readings.csv --to local --format json
-richview asset put media/launch.mp4 --to local --public --format json
+richview asset put data/readings.csv --to local
+richview asset put media/launch.mp4 --to local --public
 richview asset verify launch.json --hash
 richview asset verify readings.json --to local --hash
 richview asset abort

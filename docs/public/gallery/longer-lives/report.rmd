@@ -69,6 +69,20 @@ label: Babies per woman in 2020, from 4.74 in 1960
 
 ## Four regions, one direction
 
+```image
+src: https://images.unsplash.com/photo-1581405784382-207abf7aeb95?ixid=M3wxMTE0NDQ4fDB8MXxhbGx8fHx8fHx8fHwxNzk0ODgwNDIxfA&ixlib=rb-4.1.0&w=1344&q=80&fm=jpg&fit=max
+alt: "Traders and buyers crowd a traditional fish market under umbrellas"
+caption: "A morning market: a regional average is made of millions of lives like these."
+width: 1344
+height: 883
+color: "#262626"
+credit:
+  author: The Ian
+  author_url: https://unsplash.com/@theian20?utm_source=richview&utm_medium=referral
+  source: Unsplash
+  source_url: https://unsplash.com/?utm_source=richview&utm_medium=referral
+```
+
 The regional record starts in 1950, ten years before the country extract, and every year is drawn.
 
 ```chart

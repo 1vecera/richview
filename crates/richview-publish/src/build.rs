@@ -2,7 +2,6 @@ use crate::{
     Correction, Figure, Item, Kind, Metadata, Object, Release, SHARE_IMAGE, Site, State, Theme,
     cover, escape, identifier, presentation,
 };
-use chrono::DateTime;
 use sha2::{Digest, Sha256};
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -106,8 +105,12 @@ fn validate_site(site: &Site) -> Result<()> {
     }
     Ok(())
 }
+/// The instant an RFC 3339 date names, read as chrono read it.
+fn instant(date: &str) -> Option<richview_app::time::Instant> {
+    richview_app::time::parse_rfc3339(date).map(|parsed| parsed.instant)
+}
 fn valid_date(date: &str) -> bool {
-    DateTime::parse_from_rfc3339(date).is_ok() && date.len() >= 20
+    instant(date).is_some() && date.len() >= 20
 }
 fn validate_metadata(meta: &Metadata, site: &Site) -> Result<()> {
     if meta.kind == Kind::Dashboard || meta.snapshot.is_some() {
@@ -131,8 +134,7 @@ fn validate_metadata(meta: &Metadata, site: &Site) -> Result<()> {
     }
     if !valid_date(&meta.published)
         || !valid_date(&meta.updated)
-        || DateTime::parse_from_rfc3339(&meta.updated).ok()
-            < DateTime::parse_from_rfc3339(&meta.published).ok()
+        || instant(&meta.updated) < instant(&meta.published)
     {
         return Err("Dates must be RFC3339, with update on or after publication".into());
     }
@@ -332,6 +334,7 @@ pub fn build_with_connectors(
         }
         let mut thumbnail = None;
         let chart_svg: Option<String>;
+        let company: richview_core::CompanyBrand;
         let content = {
             if doc.blocks.iter().any(|b| b.tag == "embed") {
                 return Err("Hosted embedded services are outside the offline publication contract; use a sourced link".into());
@@ -366,6 +369,7 @@ pub fn build_with_connectors(
             if let Some(folder) = options.report_folder.as_mut() {
                 folder.root = meta.id.clone();
             }
+            company = richview_core::report_company_brand(&doc.frontmatter, &options);
             // Root-relative, so one release works on every allowed host (live and preview).
             options.runtime_url = Some(format!("/_runtime/{runtime_id}/richview_runtime"));
             options.runtime_js = Some(runtime_js.clone());
@@ -432,6 +436,7 @@ pub fn build_with_connectors(
                     },
                     str::to_owned,
                 );
+            let style = company.base.as_deref().unwrap_or(&style).to_owned();
             let rule = richview_share::style_rule(&style);
             let png = richview_share::render(&richview_share::ShareCard {
                 title: title.clone(),
@@ -440,6 +445,7 @@ pub fn build_with_connectors(
                 accent: Some(site.accent.clone()),
                 rule,
                 lead,
+                company: (company.logo.is_some() || company.accent.is_some()).then_some(company),
             })
             .map_err(|e| format!("{title}: share image: {e}"))?;
             assets.insert(
@@ -474,9 +480,9 @@ pub fn build_with_connectors(
         items.push(item);
     }
     items.sort_by(|a, b| {
-        DateTime::parse_from_rfc3339(&b.meta.published)
-            .unwrap()
-            .cmp(&DateTime::parse_from_rfc3339(&a.meta.published).unwrap())
+        instant(&b.meta.published)
+            .expect("validated as RFC 3339")
+            .cmp(&instant(&a.meta.published).expect("validated as RFC 3339"))
             .then(a.meta.id.cmp(&b.meta.id))
     });
     for lead in &site.lead {

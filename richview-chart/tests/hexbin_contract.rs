@@ -1,5 +1,6 @@
-//! Hexbin charts: counts in a tiling of hexagons coloured by count, a key that decodes the
-//! colour, outline hits, and the contract every type shares (FEA-CH-75).
+//! Hexbin charts: counts in a tiling of hexagons coloured by count and printing it, a key that
+//! decodes the colour when a count does not fit, outline hits, and the contract every type shares
+//! (FEA-CH-75).
 
 mod common;
 
@@ -116,8 +117,38 @@ fn a_full_hexagon_is_regular_and_the_pointer_finds_it_by_its_outline() {
     }
 }
 
+/// The numbers of a chart's value labels, with those it records as dropped, in order.
+fn counts(g: &richview_chart::geometry::Geometry) -> Vec<String> {
+    let mut all: Vec<String> = g
+        .panels
+        .iter()
+        .flat_map(|p| &p.items)
+        .filter_map(|i| match i {
+            Item::Text(t) if t.role == Role::Label => Some(t.text.clone()),
+            _ => None,
+        })
+        .chain(g.dropped.iter().map(|d| d.text.clone()))
+        .collect();
+    all.sort();
+    all
+}
+
+fn has_key(g: &richview_chart::geometry::Geometry) -> bool {
+    g.figure_items.iter().any(|i| i.role() == Role::Key)
+}
+
+fn key_ends(g: &richview_chart::geometry::Geometry) -> Vec<String> {
+    g.figure_items
+        .iter()
+        .filter_map(|i| match i {
+            Item::Text(t) => Some(t.text.clone()),
+            _ => None,
+        })
+        .collect()
+}
+
 #[test]
-fn the_fuller_hexagon_is_darker_and_the_key_names_both_ends() {
+fn the_fuller_hexagon_is_darker_and_each_prints_its_count() {
     let mut rows = pairs(&[(0.0, 0.0), (0.0, 0.0), (0.0, 0.0), (10.0, 10.0), (10.0, 10.0)]);
     rows.push(json!({"a": 5.0, "b": 5.0}));
     let g = draw(&spec(), &rows);
@@ -136,19 +167,117 @@ fn the_fuller_hexagon_is_darker_and_the_key_names_both_ends() {
         .collect();
     by_count.sort_by_key(|(n, _)| *n);
     assert_ne!(by_count[0].1, by_count[2].1);
-    assert!(g.figure_items.iter().any(|i| i.role() == Role::Key));
-    let labels: Vec<String> = g
-        .figure_items
-        .iter()
-        .filter_map(|i| match i {
-            Item::Text(t) => Some(t.text.clone()),
-            _ => None,
-        })
+    assert_eq!(counts(&g), ["1", "2", "3"]);
+    assert!(g.dropped.is_empty());
+    assert!(!has_key(&g), "the counts decode the colour");
+}
+
+#[test]
+fn every_hexagon_of_the_golden_chart_is_whole_and_holds_its_count() {
+    let (spec, rows) = fixture();
+    for width in [390.0, 720.0, 1440.0] {
+        let g = draw_at(&spec, &rows, width);
+        let plot = g.panels[0].plot;
+        let obs = observations(&g);
+        // The plot grows to hold a hexagon at the edge of the data: none is cut.
+        for item in hexagons(&g) {
+            let Item::Area { path, .. } = item else { continue };
+            let mut pts = path.flatten(0.5)[0].clone();
+            if pts.first() == pts.last() {
+                pts.pop();
+            }
+            assert_eq!(pts.len(), 6, "a cut hexagon at {width}");
+            assert!(pts.iter().all(|p| {
+                p[0] >= plot.x - 0.01
+                    && p[0] <= plot.right() + 0.01
+                    && p[1] >= plot.y - 0.01
+                    && p[1] <= plot.bottom() + 0.01
+            }));
+        }
+        let labels: Vec<_> = g.panels[0]
+            .items
+            .iter()
+            .filter_map(|i| match i {
+                Item::Text(t) if t.role == Role::Label => Some(t),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(labels.len(), obs.len(), "at {width}");
+        let ids = g.mark_ids();
+        for (k, (label, o)) in labels.iter().zip(&obs).enumerate() {
+            assert_eq!(Some(label.text.as_str()), line(o, "Observations"));
+            assert_eq!(label.mark.as_deref(), Some(ids[k].as_str()));
+            // The count stands on its own hexagon.
+            let centre = [
+                label.bounds.x + label.bounds.w / 2.0,
+                label.bounds.y + label.bounds.h / 2.0,
+            ];
+            assert_eq!(
+                hit::at(&g, centre).map(|h| h.observation),
+                Some(k),
+                "{} at {width}",
+                label.text
+            );
+        }
+        assert!(!has_key(&g), "at {width}");
+        assert!(g.dropped.is_empty(), "at {width}");
+    }
+}
+
+#[test]
+fn a_hexagon_too_small_for_its_count_brings_the_key_back_and_records_each_count() {
+    // 600 observations make 24 hexagons across, too small for a count on a phone.
+    let rows: Vec<(f64, f64)> = (0..600)
+        .map(|i| ((i * 37 % 101) as f64, (i * 11 % 53) as f64))
         .collect();
+    let g = draw_at(&spec(), &pairs(&rows), 320.0);
+    let obs = observations(&g);
+    let most = obs
+        .iter()
+        .map(|o| line(o, "Observations").unwrap().parse::<usize>().unwrap())
+        .max()
+        .unwrap();
+    assert!(!g.dropped.is_empty());
+    assert!(has_key(&g));
+    assert_eq!(key_ends(&g), ["1".to_string(), most.to_string()]);
+    // Never neither: a hexagon without its count is one the key decodes, and its count is on record.
+    let mut expected: Vec<String> = obs
+        .iter()
+        .map(|o| line(o, "Observations").unwrap().to_owned())
+        .collect();
+    expected.sort();
+    assert_eq!(counts(&g), expected);
+    assert!(g.dropped.iter().all(|d| d.kind.as_deref() == Some("cell-value")));
+}
+
+#[test]
+fn a_chart_carries_the_same_counts_at_every_width() {
+    let rows: Vec<(f64, f64)> = (0..600)
+        .map(|i| ((i * 37 % 101) as f64, (i * 11 % 53) as f64))
+        .collect();
+    let rows = pairs(&rows);
+    let wide = counts(&draw_at(&spec(), &rows, 1440.0));
+    assert!(!wide.is_empty());
+    for width in [1100.0, 720.0, 390.0, 320.0] {
+        assert_eq!(counts(&draw_at(&spec(), &rows, width)), wide, "at {width}");
+    }
+}
+
+#[test]
+fn the_author_can_have_the_key_instead_of_the_counts() {
+    let (mut spec, rows) = fixture();
+    spec["auto_annotations"] = json!(false);
+    let g = draw(&spec, &rows);
+    let most = observations(&g)
+        .iter()
+        .map(|o| line(o, "Observations").unwrap().parse::<usize>().unwrap())
+        .max()
+        .unwrap();
     assert!(
-        labels.contains(&"1".to_string()) && labels.contains(&"3".to_string()),
-        "{labels:?}"
+        counts(&g).is_empty(),
+        "no count printed and none dropped: the author chose it"
     );
+    assert_eq!(key_ends(&g), ["1".to_string(), most.to_string()]);
 }
 
 #[test]

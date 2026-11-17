@@ -64,4 +64,5 @@ axes:
 
 - Hover or focus a country or a point to read its value; the pointer picks the shape it is inside.
 - Click a legend entry to toggle a group when points are coloured by group.
+- Zoom and pan the map: drag a rectangle, Shift-drag, wheel with Ctrl or ⌘, pinch, keys or double-click; Escape or reset returns to the whole map.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

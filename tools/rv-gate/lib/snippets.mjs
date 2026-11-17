@@ -7,6 +7,8 @@ export const REGENERATE = "UPDATE_SNIPPETS=1 cargo test -p richview-editor --tes
 
 /** Chart pages whose first worked example is a snippet (FEA-SF-26). */
 const CHART_PAGE = /^docs\/public\/charts\/[^/]+\.md$/;
+/** The folder the generator reads (ARC-46): with the freshness test, any change in it runs that test. */
+const CHART_PAGES = "docs/public/charts/";
 /** The generator's own files: the example extractor, and the files that shape the catalogue. */
 export const GENERATOR_FILES = ["crates/richview-editor/build.rs", "crates/richview-editor/src/lib.rs", "crates/richview-build/src/main.rs"];
 /** The chart type registry the generator walks: a change there can add or drop a snippet (review 1g note 8). */
@@ -51,7 +53,10 @@ export function snippetCheck({ changed, before, after, mentionsSnippets, hasFres
 	if (changed.includes(SNIPPET_FILE)) return hasFreshnessTest ? { status: "test", reason: `${SNIPPET_FILE} changed: ${FRESHNESS_TEST.crate} --test ${FRESHNESS_TEST.test} compares it with the generator`, causes: [SNIPPET_FILE] } : { status: "pass" };
 	const causes = [];
 	for (const file of changed) {
-		if (CHART_PAGE.test(file)) {
+		// The test runs the generator itself, so it judges every change to its source folder; the diff
+		// rule below sees only a page's first example and missed a drift that reached the release build.
+		if (hasFreshnessTest && file.startsWith(CHART_PAGES)) causes.push(`${file} (the snippets' source)`);
+		else if (CHART_PAGE.test(file)) {
 			if (exampleOf(before(file)) !== exampleOf(after(file))) causes.push(`${file} (its snippet example)`);
 		} else if (GENERATOR_FILES.includes(file) && (file === ALWAYS || mentionsSnippets(file))) causes.push(`${file} (the snippet generator)`);
 		// The registry changes often and rarely a snippet: only the freshness test, which runs the generator, judges it.

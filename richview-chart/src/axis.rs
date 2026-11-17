@@ -782,10 +782,26 @@ pub enum CategoryLayout {
     OneLine,
     /// Names wrapped to at most two balanced lines.
     Wrapped(Vec<Vec<String>>),
-    /// Ordered categories labelled on every `every`-th period boundary.
+    /// Ordered categories labelled on every `every`-th period boundary, or names labelled every
+    /// `every`-th; a name with no lines is not printed.
     Thinned { every: usize, lines: Vec<Vec<String>> },
     /// Nothing fits: every name stays on one line and the unfit ones are reported.
     Unfit { lines: Vec<Vec<String>>, unfit: Vec<usize> },
+}
+
+/// How many names apart the printed names of a thinned axis stand, as a reader counts them:
+/// `2nd`, `3rd`, `5th`. The nearest two decide when the spacing is uneven.
+pub fn nth_printed(lines: &[Vec<String>]) -> String {
+    let printed: Vec<usize> = (0..lines.len()).filter(|&i| !lines[i].is_empty()).collect();
+    let apart = printed.windows(2).map(|w| w[1] - w[0]).min().unwrap_or(1);
+    let suffix = match (apart % 10, apart % 100) {
+        (1, 11) | (2, 12) | (3, 13) => "th",
+        (1, _) => "st",
+        (2, _) => "nd",
+        (3, _) => "rd",
+        _ => "th",
+    };
+    format!("{apart}{suffix}")
 }
 
 /// Choose the first layout that fits names centred in bands `band` pixels wide.
@@ -828,8 +844,15 @@ pub fn category_layout_with(
             let shown: Vec<usize> = (0..names.len())
                 .filter(|&i| o.index[i].rem_euclid(every as i64) == first)
                 .collect();
-            let room = band * every as f64;
-            if shown.len() >= 2 && shown.iter().all(|&i| font.width(&o.text[i], size) + gap <= room) {
+            // A step counts in the names' own numbers, so decades ten apart all fall on "every
+            // 5": a step that leaves every name is no thinning, and each printed name has the
+            // bands up to the nearest printed one, not `every` of them.
+            let apart = shown.windows(2).map(|w| w[1] - w[0]).min().unwrap_or(1);
+            let room = band * apart as f64;
+            if shown.len() >= 2
+                && shown.len() < names.len()
+                && shown.iter().all(|&i| font.width(&o.text[i], size) + gap <= room)
+            {
                 let lines = (0..names.len())
                     .map(|i| {
                         if shown.contains(&i) {
@@ -1076,6 +1099,18 @@ mod tests {
             CategoryLayout::Thinned { every, .. } => assert!(every >= 5),
             other => panic!("{other:?}"),
         }
+        // Decades step by ten, so every one of them falls on "every 5" of their numbers: the
+        // thinning that counts is the first one that leaves names out.
+        let decades: Vec<String> = (0..15).map(|i| format!("{}s", 1880 + 10 * i)).collect();
+        let o = ordered(&decades, Locale::EnUs);
+        match category_layout(&decades, o.as_ref(), 22.0, &f, 12.0) {
+            CategoryLayout::Thinned { every, lines } => {
+                let printed: Vec<usize> = (0..15).filter(|&i| !lines[i].is_empty()).collect();
+                assert_eq!(printed, [0, 2, 4, 6, 8, 10, 12, 14]);
+                assert_eq!((every, nth_printed(&lines).as_str()), (20, "2nd"));
+            }
+            other => panic!("{other:?}"),
+        }
     }
 
     #[test]
@@ -1118,5 +1153,30 @@ mod tests {
         assert!(roomy.hi > bare.hi - 1e-9);
         let per_px = (roomy.hi - roomy.lo) / 300.0;
         assert!(roomy.hi - 120.0 >= 22.0 * per_px - 1e-6, "{bare:?} {roomy:?}");
+    }
+
+    #[test]
+    fn a_thinned_axis_names_its_step_as_an_ordinal() {
+        // Every `apart`-th of 40 names printed: the finding says "every 2nd", never "every 2th".
+        let every = |apart: usize| {
+            let lines: Vec<Vec<String>> = (0..40)
+                .map(|i| if i % apart == 0 { vec![i.to_string()] } else { vec![] })
+                .collect();
+            nth_printed(&lines)
+        };
+        for (apart, ordinal) in [
+            (2, "2nd"),
+            (3, "3rd"),
+            (4, "4th"),
+            (5, "5th"),
+            (11, "11th"),
+            (12, "12th"),
+            (13, "13th"),
+            (21, "21st"),
+            (22, "22nd"),
+            (23, "23rd"),
+        ] {
+            assert_eq!(every(apart), ordinal);
+        }
     }
 }

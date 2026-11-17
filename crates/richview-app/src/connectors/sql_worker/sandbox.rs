@@ -12,7 +12,7 @@ impl std::fmt::Display for KernelTooOld {
 
 impl std::error::Error for KernelTooOld {}
 
-#[cfg(any(target_os = "linux", test))]
+#[cfg(any(target_os = "linux", all(test, unix)))]
 fn abi_error(error: io::Error) -> io::Error {
     if matches!(error.raw_os_error(), Some(libc::ENOSYS | libc::EOPNOTSUPP)) {
         io::Error::new(io::ErrorKind::Unsupported, KernelTooOld)
@@ -309,7 +309,8 @@ mod platform {
     }
 }
 
-#[cfg(test)]
+// These exercise the macOS and Linux sandboxes; other platforms have none to test.
+#[cfg(all(test, unix))]
 mod tests {
     use super::*;
     use duckdb::{Config, Connection};

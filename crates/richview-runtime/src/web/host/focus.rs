@@ -157,7 +157,14 @@ fn page_text_room(figure: &web_sys::Element, frame: &web_sys::HtmlElement) -> [f
         else {
             continue;
         };
-        if frame.contains(Some(element.as_ref())) {
+        // A script, style or template draws no text; the chart's payload script holds all its
+        // rows, and reading it on every zoom step copied them into Wasm each time.
+        if frame.contains(Some(element.as_ref()))
+            || matches!(
+                element.local_name().as_str(),
+                "script" | "style" | "template"
+            )
+        {
             continue;
         }
         let children = element.child_nodes();

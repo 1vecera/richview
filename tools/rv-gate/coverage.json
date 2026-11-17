@@ -801,6 +801,13 @@
         "theme-switch:authoring live preview"
       ]
     },
+    "FEA-SF-07": {
+      "checks": [
+        "rust-tests:richview-app tests/report_folders.rs::init_next_steps_work_without_path_and_quote_the_report_path",
+        "rust-tests:richview-app tests/report_folders.rs::a_folder_of_report_folders_runs_every_report_below_it"
+      ],
+      "partial": "A command with no --format prints text: init's result and its Try line are read from that default. The text form's result line on standard output and each finding on standard error as file:line level code are checked where pretty is named. The collapse of identical infos into one counted line and the fix line under an error are not pinned here."
+    },
     "FEA-SF-09": {
       "checks": [
         "journeys:agent",
@@ -821,6 +828,31 @@
       "checks": [
         "chromium:flagship"
       ]
+    },
+    "FEA-SF-36": {
+      "checks": [
+        "chromium:flagship",
+        "rust-tests:richview-build src/flagship.rs::a_phones_menu_lists_the_styles_then_the_extended_themes",
+        "site:scripts/verify-site.mjs"
+      ],
+      "partial": "Checked: the five pills and the extended themes swap the frame to that style's render and set ?theme=, ←/→ step through the pills, a shared address opens its style, the source is published beside the page (verify-flagship), and up to 640 px one menu offers the same styles and switches the report (verify-site, the menu's build test). Keeping the reading position across a switch is not asserted."
+    },
+    "FEA-SF-63": {
+      "checks": [
+        "rust-tests:richview-build src/flagship.rs::the_hash_changes_with_data_and_ledger_but_not_with_renders",
+        "rust-tests:richview-build src/flagship.rs::the_count_is_spelled_for_five",
+        "site:scripts/verify-site.mjs"
+      ],
+      "partial": "Checked: the content hash changes with the source, data and ledger and not with renders, the style count is generated, and from 641 px the note under the report shows while up to 640 px nothing stands under it (verify-site). The page's wording, that no finding is stated and that the extended themes are not counted, are not asserted."
+    },
+    "FEA-SF-28": {
+      "checks": [
+        "rust-tests:richview-build src/chrome.rs::the_header_has_the_docs_the_gallery_the_repository_and_sign_in_but_no_signup",
+        "rust-tests:richview-build src/chrome.rs::the_footer_links_the_about_page_before_the_legal_pages",
+        "rust-tests:richview-build src/chrome.rs::every_marker_is_replaced_once",
+        "site:scripts/verify-site.mjs"
+      ],
+      "partial": "Checked: one header and one footer from one place, their links in order, every page with a header and the same header and footer look on every page but the flagship (verify-site), and on a phone the flagship keeps the header and shows no footer. The header follows Daniel's 9 Nov links (Docs, Gallery, the repository, Sign in), not the card's three; that the footer's links all resolve is FEA-SF-62's check."
     },
     "FEA-SF-44": {
       "checks": [
@@ -853,6 +885,14 @@
         "fresh-agent",
         "tool-tests:tools/agent-use"
       ]
+    },
+    "FEA-SF-66": {
+      "checks": [
+        "rust-tests:richview-app src/server/host_bar.rs::the_bar_goes_first_in_the_body_and_its_style_last_in_the_head",
+        "rust-tests:richview-app src/server/host_bar.rs::typed_names_cannot_add_markup_to_the_bar",
+        "rust-tests:richview-app tests/hosted_teams.rs::a_private_report_is_hidden_from_a_colleague_until_shared_with_the_organization_and_a_public_one_is_not_listed_for_outsiders"
+      ],
+      "partial": "Tested: where the server inserts the bar, its escaping, and the public state that names nobody. The wording of the signed-in states has no test yet; every state was judged from captures at 1440 and 390 px on 16 Nov 2026, and their tests come with the card's amendment, which waits for Daniel."
     },
     "INT-07": {
       "checks": [
@@ -3126,6 +3166,8 @@
       "checks": [
         "rust-tests:richview-core tests/figures.rs::series_identity_is_drawn_once_at_every_width",
         "rust-tests:richview-chart tests/geometry_rules.rs::hiding_a_series_keeps_the_naming_and_names_stay_legible",
+        "rust-tests:richview-chart tests/geometry_rules.rs::area_names_stand_inside_the_plot_and_leave_the_margins_to_the_axis",
+        "rust-tests:richview-chart tests/geometry_rules.rs::stacked_area_names_stand_inside_their_own_bands",
         "rust-tests:richview-chart tests/stack_contract.rs::line_ends_that_read_the_same_value_keep_series_order",
         "visual-matrix:scripts/verify-chart-review.mjs"
       ],
@@ -3339,9 +3381,11 @@
       "checks": [
         "build",
         "tool-tests:tools/rv-gate/test/install.test.mjs",
-        "tool-tests:tools/rv-gate/test/install-retention.test.mjs"
+        "tool-tests:tools/rv-gate/test/install-retention.test.mjs",
+        "tool-tests:tools/rv-gate/test/install-windows.test.mjs",
+        "tool-tests:tools/rv-gate/test/assemble-release.test.mjs"
       ],
-      "partial": "Local-only native macOS/GNU Linux archive, checksum/prefix install and uninstall controls. Real macOS arm64 CLI/MCP proof is retained separately. Public hosting/prod publication, other-platform execution, Windows/non-GNU installers, source/agent install prompt, Marketplace/Open VSX listings and configured Publish deployment remain unrun. Manifest-bound private snapshots and lease-protected retained installer identity are also guarded; this adds no deployed or other-platform verdict."
+      "partial": "Local-only native macOS/GNU Linux archive, checksum/prefix install and uninstall controls. Real macOS arm64 CLI/MCP proof is retained separately. The Windows installer's install and uninstall controls run in PowerShell 7 where it is installed and skip elsewhere; no Windows executable is started. Public hosting/prod publication, other-platform execution, non-GNU installers, source/agent install prompt, Marketplace/Open VSX listings and configured Publish deployment remain unrun. Manifest-bound private snapshots and lease-protected retained installer identity are also guarded; this adds no deployed or other-platform verdict."
     },
     "INT-01": {
       "checks": [
@@ -3439,6 +3483,9 @@
         "rust-tests:richview-core tests/contracts.rs::flagship_report_preserves_every_chart_and_sourced_narrative_across_styles",
         "chromium:flagship"
       ]
+    },
+    "INT-41": {
+      "judged": "review: Cargo.toml, Cargo.lock, package.json and package-lock.json carry 3.0.0-alpha.1, and `richview --version` prints the workspace version of its build"
     }
   }
 }

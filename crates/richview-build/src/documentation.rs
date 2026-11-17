@@ -15,6 +15,8 @@ pub struct BuildFlags {
     pub install_enabled: bool,
     pub repository_public: bool,
     pub feedback_enabled: bool,
+    /// The release carries the Windows preview (`assets/install/release.json`, ARC-67).
+    pub windows_preview: bool,
 }
 
 use pulldown_cmark::{CodeBlockKind, Event, HeadingLevel, Parser, Tag, TagEnd};
@@ -123,13 +125,32 @@ const REPORTS: &[(&str, &[&str])] = &[
     ),
     (
         "air-we-changed",
-        &["report.rmd", "data/global-temperature.csv"],
+        &[
+            "report.rmd",
+            "data/global-temperature.csv",
+            "media/gistemp-2025-anomaly-map.jpg",
+            "media/SOURCES.md",
+        ],
     ),
     (
         "same-numbers",
-        &["report.rmd", "data/anscombe.csv", "data/old-faithful.csv"],
+        &[
+            "report.rmd",
+            "data/anscombe.csv",
+            "data/old-faithful.csv",
+            "media/old-faithful-eruption.jpg",
+            "media/SOURCES.md",
+        ],
     ),
-    ("titanic", &["report.rmd", "data/titanic.csv"]),
+    (
+        "titanic",
+        &[
+            "report.rmd",
+            "data/titanic.csv",
+            "media/lifeboat-6.jpg",
+            "media/SOURCES.md",
+        ],
+    ),
     (
         "first-charts",
         &[
@@ -137,6 +158,8 @@ const REPORTS: &[(&str, &[&str])] = &[
             "data/selected.csv",
             "data/wheat-and-wages.csv",
             "data/nightingale.csv",
+            "media/nightingale-diagram-1858.jpg",
+            "media/SOURCES.md",
         ],
     ),
     (

@@ -147,7 +147,7 @@ impl Connector for MetricFlowConnector {
             provenance: Provenance {
                 connector: request.connector.to_owned(),
                 source: ProvenanceSource::Metricflow,
-                fetched_at: chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+                fetched_at: crate::time::Instant::now().seconds(),
                 fingerprint: request.fingerprint.to_owned(),
                 row_count,
             },

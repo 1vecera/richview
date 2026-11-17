@@ -178,6 +178,10 @@ pub struct Options {
     pub hidden: Vec<String>,
     /// Zoom window along x in data units (FEA-CH-49); `None` shows all data.
     pub zoom: Option<[f64; 2]>,
+    /// Zoom window along y in data units, on a chart that zooms along both axes (a map);
+    /// `None` shows all data.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub zoom_y: Option<[f64; 2]>,
     /// The room is wider than the chart: a key the chart draws itself stands beside its plot,
     /// not under it. The expanded view asks for it in a short, wide window, where a chart
     /// narrowed to fit the height leaves width on its sides (S27-875).

@@ -4,7 +4,7 @@
 use super::{Ctx, Painted, Style};
 use crate::color::{self, Oklch};
 use crate::diag::Level;
-use crate::geometry::{Anchor, Face, Fill, Item, Rect, Role};
+use crate::geometry::{Anchor, DropReason, Face, Fill, Item, Rect, Role};
 use crate::numbers::{self, Format};
 use crate::rows::{self, Num};
 use serde_json::json;
@@ -101,9 +101,93 @@ pub(super) fn shade(ramp: &[Oklch; 3], count: usize, top: usize) -> Oklch {
     color::ramp(ramp, ramp_at(count, top))
 }
 
+/// Room a printed count keeps to the edge of its cell on each side.
+pub(super) const COUNT_ROOM: f64 = 4.0;
+
+/// The count of one cell: its panel and observation, the text, the box the text needs with its
+/// room and the text itself, in place, when the cell can hold it.
+pub(super) struct Count {
+    panel: usize,
+    observation: usize,
+    text: String,
+    needs: Rect,
+    label: Option<Item>,
+}
+
+/// The count `text` of observation `observation` of panel `panel`, a cell of colour `fill`, set at
+/// `centre` in the style's ink or its surface, whichever reads better on the cell. `holds` is
+/// given the text's own box, as wide as the text and as tall as its size, and says whether the cell
+/// holds it with [`COUNT_ROOM`] to spare.
+pub(super) fn count_in_cell(
+    ctx: &Ctx,
+    [panel, observation]: [usize; 2],
+    text: &str,
+    centre: [f64; 2],
+    fill: Oklch,
+    holds: impl Fn(&Rect) -> bool,
+) -> Count {
+    let (w, h) = (ctx.text_width(text), ctx.size());
+    let own = Rect::new(centre[0] - w / 2.0, centre[1] - h / 2.0, w, h);
+    let needs = own.inflate(COUNT_ROOM);
+    let label = holds(&own).then(|| {
+        let (ink, surface) = (ctx.style.ink, ctx.style.surface);
+        let color = if color::contrast(ink, fill) >= color::contrast(surface, fill) {
+            ink
+        } else {
+            surface
+        };
+        let mut label = ctx.text_mid(
+            text,
+            centre[0],
+            centre[1],
+            Anchor::Middle,
+            Face::Figures,
+            Role::Label,
+            color,
+        );
+        // The cells are the panel's only observations and belong to no series (see `mark_ids`).
+        label.mark = Some(format!("{panel}/-/{observation}"));
+        Item::Text(label)
+    });
+    Count {
+        panel,
+        observation,
+        text: text.to_owned(),
+        needs,
+        label,
+    }
+}
+
+/// What decodes the colour of a chart of counts (Daniel, 16 Nov 2026): the counts printed in the
+/// cells do, so a chart whose every cell holds its count prints them all and draws no key. When
+/// one cell cannot, none is printed, so the fullest cells are never the blank ones: the key comes
+/// back, which makes the figure taller, and each count is recorded as dropped, so every width
+/// carries the same numbers (DEL-52). An author who turned the automatic values off gets the key
+/// and no record.
+pub(super) fn decode_counts(ctx: &mut Ctx, painted: &mut Painted, top: usize, format: &Format, counts: Vec<Count>) {
+    if counts.is_empty() {
+        return;
+    }
+    if ctx.block.auto_annotations {
+        if counts.iter().all(|c| c.label.is_some()) {
+            for count in counts {
+                painted.panels[count.panel].items.extend(count.label);
+            }
+            return;
+        }
+        for count in &counts {
+            ctx.drop_label(&count.text, DropReason::Density, "cell-value", Some(count.needs));
+            if let Some(dropped) = ctx.dropped.last_mut() {
+                dropped.observation = Some([count.panel, count.observation]);
+            }
+        }
+    }
+    add_count_key(ctx, painted, top, format);
+}
+
 /// A key under the figure that decodes the colour of counts from one observation to `top`, which
 /// makes the figure taller.
-pub(super) fn add_count_key(ctx: &Ctx, painted: &mut Painted, top: usize, format: &Format) {
+fn add_count_key(ctx: &Ctx, painted: &mut Painted, top: usize, format: &Format) {
     let ramp = ctx.style.ramp;
     let y = painted.height + 12.0;
     let key_w = if top > 1 { KEY_W.min(ctx.opts.width) } else { KEY_ONE };

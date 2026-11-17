@@ -1,5 +1,4 @@
 use crate::{DEFAULT_ACCENT, Figure, Item, Kind, Layout, Metadata, Site, Theme, cover, escape};
-use chrono::DateTime;
 
 /// Publication pages: shared tokens and fonts, then the page layout.
 pub const CSS: &str = concat!(
@@ -42,9 +41,10 @@ fn root_style(site: &Site) -> String {
 
 /// `18 Oct 2026` in the timestamp's own offset; validation guarantees RFC3339 input.
 pub fn human_date(value: &str) -> String {
-    DateTime::parse_from_rfc3339(value)
-        .map(|d| d.format("%-d %b %Y").to_string())
-        .unwrap_or_else(|_| value.chars().take(10).collect())
+    richview_app::time::parse_rfc3339(value).map_or_else(
+        || value.chars().take(10).collect(),
+        |parsed| richview_app::time::day_month_year(parsed.date),
+    )
 }
 
 fn time(value: &str) -> String {

@@ -2,7 +2,7 @@
 // where its header, source panel and page policy can obstruct an otherwise working report.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { judgeChart } from './chart-interaction-checks.mjs';
+import { figureDownload, judgeChart } from './chart-interaction-checks.mjs';
 import { settle } from './report-runtime.mjs';
 
 /** Exercise the live example on one type's docs page, including its downloads and modal. */
@@ -47,15 +47,12 @@ export async function checkChartPage(page, type, { touch = false } = {}) {
     let timer;
     try {
       const completed = (async () => {
-        const [file] = await Promise.all([
-          // PNG encoding is asynchronous; FEA-CH-47 sets correctness, not a five-second budget.
-          page.waitForEvent('download', { timeout }),
-          (async () => {
-            await figure.locator(`.rv-chart__action--${format}`).click();
-            clicked = true;
-            await page.evaluate(() => window.__richview.settled());
-          })(),
-        ]);
+        // PNG encoding is asynchronous; FEA-CH-47 sets correctness, not a five-second budget. A phone's
+        // figure has no download icons, so there the action is the expanded view's.
+        const file = await figureDownload(page, figure, format, { timeout, onClick: async () => {
+          clicked = true;
+          await page.evaluate(() => window.__richview.settled());
+        } });
         // path() waits for the file, so the recorded time includes delivery, not just its start.
         const path = await file.path();
         assert.ok(path, `${type}: ${format.toUpperCase()} did not finish downloading`);

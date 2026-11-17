@@ -34,12 +34,12 @@ Build the release CLI from this checkout following the repository instructions, 
 ```sh
 node examples/size-proof/prepare-data.cjs
 for report in 01-trends 02-gains 03-decades 04-gap; do
-  target/release/richview check "examples/size-proof/$report/report.rmd" --format json
-  target/release/richview generate "examples/size-proof/$report/report.rmd" --format json
+  target/release/richview check "examples/size-proof/$report/report.rmd"
+  target/release/richview generate "examples/size-proof/$report/report.rmd"
 done
 node examples/size-proof/measure.mjs
-target/release/richview check examples/size-proof/comparison/report.rmd --format json
-target/release/richview generate examples/size-proof/comparison/report.rmd --format json
+target/release/richview check examples/size-proof/comparison/report.rmd
+target/release/richview generate examples/size-proof/comparison/report.rmd
 ```
 
 `Rendered/` is generated and ignored by Git. The delivered HTML and its byte count can change with the RichView revision or build environment; record the CLI version and rebuild before comparing. Data, prompt, model, chart implementation and browser features likewise affect the result.

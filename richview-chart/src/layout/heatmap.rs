@@ -329,11 +329,11 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)]) -> 
         | CategoryLayout::Unfit { lines: l, .. } => l.clone(),
     };
     match &fit {
-        CategoryLayout::Thinned { every, .. } => {
+        CategoryLayout::Thinned { every, lines } => {
             ctx.check(
                 "label-thinned",
                 Level::Info,
-                format!("Column names show every {every}th"),
+                format!("Column names show every {}", axis::nth_printed(lines)),
                 None,
                 Some("chart.encoding.x".into()),
                 None,

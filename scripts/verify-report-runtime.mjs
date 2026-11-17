@@ -809,8 +809,22 @@ try {
         await check(`${at}: focus returns to Expand`, async () => assert.equal(await page.evaluate(() => document.activeElement?.classList.contains('rv-chart__action--expand')), true));
         // Zoom: keys narrow a numeric or time axis; Reset zoom appears; Escape resets (FEA-CH-49).
         await frame.focus();
+        // The payload script holds every row: a zoom step never reads it. The focus ring's scan
+        // of the figure's text once copied the whole payload into Wasm on every step.
+        await figure.evaluate(node => {
+          const read = Object.getOwnPropertyDescriptor(Node.prototype, 'textContent').get;
+          window.__rvPayloadReads = 0;
+          for (const n of [node.querySelector('script[data-rv-payload]'), ...node.querySelector('script[data-rv-payload]').childNodes]) {
+            Object.defineProperty(n, 'textContent', { configurable: true, get() { window.__rvPayloadReads++; return read.call(this); } });
+          }
+        });
         await page.keyboard.press('+');
         const zoomed = await modelOf(page, i);
+        const payloadReads = await figure.evaluate(node => {
+          for (const n of [node.querySelector('script[data-rv-payload]'), ...node.querySelector('script[data-rv-payload]').childNodes]) delete n.textContent;
+          return window.__rvPayloadReads;
+        });
+        await check(`${at}: a zoom step does not read the payload`, () => assert.equal(payloadReads, 0));
         if (zoomed.zoom) {
           item[`zoom${i}`] = zoomed.zoom;
           await check(`${at}: Reset zoom joins the group`, async () => assert.equal(await figure.locator('.rv-chart__action--reset').isVisible(), true));

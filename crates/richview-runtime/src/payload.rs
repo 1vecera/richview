@@ -18,6 +18,7 @@ struct TextLayoutKey {
     ratio: Option<f64>,
     hidden: Vec<String>,
     zoom: Option<[f64; 2]>,
+    zoom_y: Option<[f64; 2]>,
     aside: bool,
 }
 
@@ -83,6 +84,9 @@ pub struct Chart {
     /// A key the chart draws itself stands beside its plot: the expanded view in a short, wide
     /// window (S27-875).
     pub aside: bool,
+    /// The reader's window along y on a chart that zooms along both axes (a map); it applies
+    /// with a zoom along x and is ignored without one (FEA-CH-49).
+    pub zoom_y: Option<[f64; 2]>,
 }
 
 impl Chart {
@@ -116,6 +120,7 @@ impl Chart {
             prepared: RefCell::default(),
             screen_theme: None,
             aside: false,
+            zoom_y: None,
         };
         let state = chart.state.clone();
         chart.set_state(state);
@@ -261,6 +266,44 @@ impl Chart {
         if ![lo, hi, a, b].iter().all(|v| v.is_finite()) || a >= b || lo >= hi {
             return None;
         }
+        // Named positions (Chart design, 16 November): both ends of a settled window stand on
+        // a name and at least two names stay in view. A window of whole names keeps its width
+        // and moves to the nearest names, as a pan or a key step does; any other widens to the
+        // nearest names outside it, as the end of a drag does. One that holds every name is
+        // the whole chart.
+        if let Some(least) = scale.least {
+            let (first, last) = (lo.ceil(), hi.floor());
+            let width = b - a;
+            let [a, b] = if (width - width.round()).abs() < 1e-6 {
+                let a = a.round();
+                [a, a + width.round()]
+            } else {
+                [a.floor(), b.ceil()]
+            };
+            let span = (b - a).max(least).min(last - first);
+            let a = a.min(last - span).max(first);
+            let b = a + span;
+            return (a > first || b < last).then_some([a, b]);
+        }
+        // A chart that zooms along both axes (a map) fits the two windows whole into its plot,
+        // so it is zoomed only when that draws the chart larger than the whole does; the layout
+        // sets the closest zoom.
+        if let Some(y) = scale.y {
+            let (a, b) = (a.max(lo), b.min(hi));
+            let [c, d] = self
+                .zoom_y
+                .map_or(y.extent, |w| [w[0].max(y.extent[0]), w[1].min(y.extent[1])]);
+            if b <= a || d <= c {
+                return None;
+            }
+            let (pw, ph) = (
+                (scale.range[1] - scale.range[0]).abs(),
+                (y.range[1] - y.range[0]).abs(),
+            );
+            let larger = (pw / (b - a)).min(ph / (d - c));
+            let whole = (pw / (hi - lo)).min(ph / (y.extent[1] - y.extent[0]));
+            return (larger > whole * (1.0 + 1e-9)).then_some([a, b]);
+        }
         let block = self
             .shown
             .as_ref()
@@ -336,6 +379,7 @@ impl Chart {
             width,
             hidden: hidden.to_vec(),
             zoom,
+            zoom_y: zoom.and(self.zoom_y),
             aside: self.aside,
             derived: self.derived_for(&self.state),
             ..base
@@ -613,6 +657,7 @@ impl Chart {
             ratio,
             hidden: opts.hidden.clone(),
             zoom: opts.zoom,
+            zoom_y: opts.zoom_y,
             aside: opts.aside,
         };
         if let Some((cached_key, geometry)) = &*self.text_cache.borrow()
@@ -638,6 +683,7 @@ impl Chart {
             width: opts.width,
             hidden: opts.hidden.clone(),
             zoom: opts.zoom,
+            zoom_y: opts.zoom_y,
             aside: opts.aside,
             derived: opts.derived.clone(),
             ..base
@@ -1240,5 +1286,105 @@ mod embedded_text_tests {
             previous.upgrade().is_none(),
             "a stale readout cache must release its source preparation"
         );
+    }
+
+    #[test]
+    fn a_zoom_over_names_keeps_two_in_view() {
+        let names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        let chart = Chart::from_payload(Payload {
+            id: "n".into(),
+            block: json!({"type": "area", "encoding": {"x": "d", "y": "v"}}),
+            columns: vec!["d".into(), "v".into()],
+            rows: names
+                .iter()
+                .enumerate()
+                .map(|(i, d)| vec![json!(d), json!(i * 2 + 3)])
+                .collect(),
+            ..Payload::default()
+        })
+        .unwrap();
+        let whole = chart.geometry(640.0, &[], None);
+        let x = whole.panels[0].x.clone().expect("an area over names zooms");
+        assert_eq!(
+            (x.least, x.extent),
+            (Some(1.0), [0.0, 5.0]),
+            "an area runs edge to edge"
+        );
+        // Each end of a settled window stands on a name (Chart design, 16 November): a window of
+        // whole names moves to the nearest names and keeps its width, as a pan does; a drag's
+        // window widens outward to names; a sliver holds two names; one hanging off the end
+        // moves back; every name is no zoom.
+        assert_eq!(chart.clamp_zoom([1.0, 4.0], &x), Some([1.0, 4.0]));
+        assert_eq!(chart.clamp_zoom([0.6, 3.6], &x), Some([1.0, 4.0]));
+        assert_eq!(chart.clamp_zoom([1.2, 3.7], &x), Some([1.0, 4.0]));
+        assert_eq!(chart.clamp_zoom([2.9, 3.1], &x), Some([2.0, 4.0]));
+        assert_eq!(chart.clamp_zoom([5.2, 5.4], &x), Some([4.0, 5.0]));
+        assert_eq!(chart.clamp_zoom(x.extent, &x), None);
+        assert_eq!(chart.clamp_zoom([-3.0, 9.0], &x), None);
+        let window = chart.clamp_zoom([2.9, 3.1], &x).unwrap();
+        let zoomed = chart.geometry(640.0, &[], Some(window));
+        assert_eq!(zoomed.panels[0].x.as_ref().unwrap().domain, window);
+        let read: Vec<&str> = zoomed.panels[0]
+            .observations
+            .iter()
+            .map(|o| o.readout.heading.as_str())
+            .collect();
+        // From Wednesday to Friday: both stand on the plot's edges.
+        assert_eq!(read, ["Wed", "Thu", "Fri"]);
+    }
+
+    #[test]
+    fn a_map_is_zoomed_while_either_window_is_narrower_than_its_axis() {
+        let mut chart = Chart::from_payload(Payload {
+            id: "m".into(),
+            block: json!({"type": "map", "encoding": {"region": "c", "y": "v"}}),
+            columns: vec!["c".into(), "v".into()],
+            rows: vec![
+                vec![json!("Czechia"), json!(91)],
+                vec![json!("Norway"), json!(98)],
+            ],
+            ..Payload::default()
+        })
+        .unwrap();
+        let whole = chart.geometry(640.0, &[], None);
+        let x = whole.panels[0]
+            .x
+            .clone()
+            .expect("a map reports what it shows");
+        let y = x.y.expect("along both axes");
+        let (w, h) = (x.extent[1] - x.extent[0], y.extent[1] - y.extent[0]);
+        let span = |d: [f64; 2]| d[1] - d[0];
+        // No window along y: the whole width is the whole map.
+        assert_eq!(chart.clamp_zoom(x.extent, &x), None);
+        // Half the width and half the height is a zoom, drawn twice as large.
+        let half = [y.extent[0] + h / 4.0, y.extent[1] - h / 4.0];
+        let middle = [x.extent[0] + w / 4.0, x.extent[1] - w / 4.0];
+        chart.zoom_y = Some(half);
+        assert_eq!(chart.clamp_zoom(middle, &x), Some(middle));
+        let closer = chart.geometry(640.0, &[], Some(middle));
+        let shown = closer.panels[0].x.clone().unwrap();
+        assert!(
+            (span(shown.domain) * 2.0 - span(x.domain)).abs() < w * 1e-9,
+            "{:?}",
+            shown.domain
+        );
+        // A window that is narrower along one axis only is a zoom exactly when the plot then
+        // draws the map larger: a strip the plot was already as wide as changes nothing.
+        for (wx, wy) in [(x.extent, half), (middle, y.extent)] {
+            chart.zoom_y = Some(wy);
+            let drawn = chart.geometry(640.0, &[], Some(wx));
+            let larger =
+                span(drawn.panels[0].x.as_ref().unwrap().domain) < span(x.domain) * (1.0 - 1e-9);
+            assert_eq!(chart.clamp_zoom(wx, &x).is_some(), larger, "{wx:?} {wy:?}");
+        }
+        // A window beyond the map on both axes is no zoom, and without a zoom along x the
+        // window along y is ignored.
+        chart.zoom_y = Some([y.extent[0] - h, y.extent[1] + h]);
+        assert_eq!(
+            chart.clamp_zoom([x.extent[0] - w, x.extent[1] + w], &x),
+            None
+        );
+        chart.zoom_y = Some(half);
+        assert_eq!(chart.geometry(640.0, &[], None), whole);
     }
 }

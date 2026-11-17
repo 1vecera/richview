@@ -684,11 +684,21 @@ pub(crate) async fn preview_thumbnail(State(state): State<AppState>) -> Response
                 .unwrap_or_default()
                 .to_owned()
         });
-        richview_share::card_png(
+        let (_, options) = resolver::resolve_document_options_policy(
+            &source,
+            &preview.source,
+            &preview.styles,
+            preview.allow_network,
+            false,
+        )?;
+        let company = richview_core::report_company_brand(&document.frontmatter, &options);
+        let style = company.base.as_deref().unwrap_or(&style).to_owned();
+        richview_share::card_png_with_company(
             &text("title", 200).unwrap_or_default(),
             &text("author", 120).unwrap_or_default(),
             &style,
             &report.charts,
+            (company.logo.is_some() || company.accent.is_some()).then_some(company),
         )
     })
     .await;

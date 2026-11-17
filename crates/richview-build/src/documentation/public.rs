@@ -3,7 +3,7 @@ use super::{BuildFlags, Result};
 use std::{fs, path::Path};
 
 pub(super) fn source(text: &str, flags: BuildFlags) -> Result<String> {
-    let mut text = text.to_owned();
+    let mut text = crate::distribution::windows_text(text, flags.windows_preview)?;
     let start = "<!-- repository-public:start -->";
     let end = "<!-- repository-public:end -->";
     while let Some(from) = text.find(start) {
@@ -217,6 +217,55 @@ pub(super) fn finish(docs: &Path, flags: BuildFlags, revision: &str) -> Result<(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn install_page_and_guide_name_windows_from_the_same_switch() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let page = fs::read_to_string(root.join("assets/install/index.html")).unwrap();
+        let guide = fs::read_to_string(root.join("docs/public/install.md")).unwrap();
+        let command = "releases/latest/download/install.ps1";
+        for preview in [false, true] {
+            let page = crate::distribution::windows_text(&page, preview).unwrap();
+            let flags = BuildFlags {
+                windows_preview: preview,
+                ..Default::default()
+            };
+            let guide = source(&guide, flags).unwrap();
+            for text in [&page, &guide] {
+                assert_eq!(
+                    text.contains("Windows and Intel Mac are not supported yet"),
+                    !preview
+                );
+                assert_eq!(text.contains("Windows x64 has a preview"), preview);
+                assert!(!text.contains("windows-preview") && !text.contains("windows-unsupported"));
+            }
+            // No page shows a PowerShell command before the release that it downloads exists.
+            assert_eq!(page.contains(command), preview);
+            assert!(!guide.contains(command));
+        }
+    }
+
+    #[test]
+    fn windows_spans_must_open_and_close() {
+        let span = "a<!-- windows-preview:start --> b<!-- windows-preview:end -->.";
+        assert_eq!(
+            crate::distribution::windows_text(span, true).unwrap(),
+            "a b."
+        );
+        assert_eq!(
+            crate::distribution::windows_text(span, false).unwrap(),
+            "a."
+        );
+        for broken in [
+            "a<!-- windows-unsupported:start --> b",
+            "a<!-- windows-preview:end --> b<!-- windows-preview:start -->",
+        ] {
+            assert!(
+                crate::distribution::windows_text(broken, true).is_err(),
+                "{broken}"
+            );
+        }
+    }
     #[test]
     fn public_links_use_the_public_branch_not_a_private_commit() {
         let dir = tempfile::tempdir().unwrap();

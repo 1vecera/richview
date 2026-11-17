@@ -23,10 +23,19 @@
         </section>
         <section>
           <h2>Install the command</h2>
-          <p>Install the latest <a href="https://github.com/1vecera/richview/releases/latest">GitHub release</a> on macOS Apple Silicon or Linux x64 with glibc 2.35 or newer. Linux SQL data sources also need kernel 6.2 or newer with Landlock ABI 3. Windows and Intel Mac are not supported yet.</p>
+          <p>Install the latest <a href="https://github.com/1vecera/richview/releases/latest">GitHub release</a> on macOS Apple Silicon or Linux x64 with glibc 2.35 or newer. Linux SQL data sources also need kernel 6.2 or newer with Landlock ABI 3.<!-- windows-unsupported:start --> Windows and Intel Mac are not supported yet.<!-- windows-unsupported:end --><!-- windows-preview:start --> Windows x64 has a preview, below, without PDF output or SQL data sources. Intel Mac is not supported yet.<!-- windows-preview:end --></p>
           <pre class="shell" tabindex="0"><code>curl -fsSL https://github.com/1vecera/richview/releases/latest/download/install.sh | sh</code></pre>
           <p>The installer verifies the archive and installs into a new <code>~/.richview</code> directory. It does not change your PATH or start a service. If that directory already exists, the installer will not overwrite it: update as below.</p>
         </section>
+        <!-- windows-preview:start -->
+        <section>
+          <h2>Windows x64 (preview)</h2>
+          <p>A preview for Windows 10 and 11 on x64, not a supported platform yet. It has the command line with its local preview and MCP server. PDF output and SQL data sources are not available on Windows yet, and the programs are not signed. In PowerShell:</p>
+          <pre class="shell" tabindex="0"><code>irm https://github.com/1vecera/richview/releases/latest/download/install.ps1 | iex</code></pre>
+          <p>The installer verifies the archive and installs into a new <code>.richview</code> folder in your home folder. It does not change your PATH or the registry and starts no service. To uninstall, which keeps your reports:</p>
+          <pre class="shell" tabindex="0"><code>powershell -ExecutionPolicy Bypass -File "$HOME\.richview\uninstall.ps1" -Uninstall</code></pre>
+        </section>
+        <!-- windows-preview:end -->
         <section>
           <h2>Update</h2>
           <p>To move an existing <code>~/.richview</code> to the latest release, uninstall it and install again. Your reports and RichView state are kept.</p>
@@ -43,9 +52,9 @@ curl -fsSL https://github.com/1vecera/richview/releases/latest/download/install.
           <p>Use the installed executable directly. Pick a new folder name if <code>richview-demo</code> already exists.</p>
           <pre class="shell" tabindex="0"><code>~/.richview/bin/richview learn
 ~/.richview/bin/richview init richview-demo
-~/.richview/bin/richview validate richview-demo/report.rmd --format json
-~/.richview/bin/richview check richview-demo/report.rmd --format json
-~/.richview/bin/richview generate richview-demo/report.rmd --format json</code></pre>
+~/.richview/bin/richview validate richview-demo/report.rmd
+~/.richview/bin/richview check richview-demo/report.rmd
+~/.richview/bin/richview generate richview-demo/report.rmd</code></pre>
           <p>Inspect the diagnostics, fix any issues and check again. Open <code>richview-demo/Rendered/report.html</code> in your browser. The starter data is fictional; replace it with your own data when ready.</p>
         </section>
         <section>

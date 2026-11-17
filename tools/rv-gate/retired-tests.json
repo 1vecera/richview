@@ -1855,6 +1855,51 @@
 			"test": "crates/richview-build/src/chrome.rs::tests::the_motto_stands_beside_the_mark_and_is_not_a_link",
 			"reason": "Replaced by the_header_has_no_motto: the motto became the home page's headline (Let your agent present.), so the header drops it and the test asserts it is gone.",
 			"commit": "e10fabbd"
+		},
+		{
+			"test": "crates/richview-app/src/server/hosted_pages.rs::empty_reports_put_install_before_token_publish_and_inviting",
+			"reason": "Renamed, not dropped: it is now empty_reports_put_the_list_first_then_install_token_publish_and_inviting, which keeps every assertion of the old one (install before token before publish before the invitation) and adds that the list's place comes first.",
+			"commit": "38985bb2"
+		},
+		{
+			"test": "richview-chart/tests/geometry_rules.rs::area_names_use_the_left_margin_and_leave_the_right_for_data",
+			"reason": "Names stand inside the plot now (FEA-CH-27, Daniel 16 Nov); replaced by area_names_stand_inside_the_plot_and_leave_the_margins_to_the_axis.",
+			"commit": "21ab66f7"
+		},
+		{
+			"test": "richview-chart/tests/geometry_rules.rs::area_names_follow_the_first_values_while_lines_follow_the_last",
+			"reason": "Names stand inside the plot now; replaced by line_and_area_names_stand_by_the_right_ends_of_their_series.",
+			"commit": "21ab66f7"
+		},
+		{
+			"test": "richview-chart/tests/geometry_rules.rs::area_names_fall_back_when_the_refitted_axis_has_no_clear_band",
+			"reason": "Names stand inside the plot now; replaced by hiding_an_area_keeps_the_names_inside_and_restoring_returns_them.",
+			"commit": "21ab66f7"
+		},
+		{
+			"test": "richview-chart/tests/geometry_rules.rs::zoom_keeps_an_area_name_restorable_without_rows_inside_the_window",
+			"reason": "Names stand inside the plot now; replaced by zoom_keeps_every_area_controllable_without_rows_inside_the_window.",
+			"commit": "21ab66f7"
+		},
+		{
+			"test": "richview-chart/tests/geometry_rules.rs::area_names_use_the_visible_stack_boundary_and_restart_after_calendar_gaps",
+			"reason": "Names stand inside the plot now; replaced by stacked_area_names_stand_inside_their_own_bands.",
+			"commit": "21ab66f7"
+		},
+		{
+			"test": "richview-chart/tests/geometry_rules.rs::area_name_leaders_stay_inside_authored_value_bounds",
+			"reason": "Areas have no name leaders any more: their names stand inside their own fills.",
+			"commit": "21ab66f7"
+		},
+		{
+			"test": "richview-chart/tests/geometry_rules.rs::crowded_area_names_do_not_point_toward_a_different_value_tick",
+			"reason": "Areas have no name leaders any more: their names stand inside their own fills.",
+			"commit": "21ab66f7"
+		},
+		{
+			"test": "richview-chart/src/layout/cartesian.rs::a_two_series_line_is_named_at_its_ends",
+			"reason": "Names stand inside the plot now; replaced by lines_with_room_are_named_inside_the_plot_which_takes_the_width and the unit tests beside it.",
+			"commit": "21ab66f7"
 		}
 	]
 }

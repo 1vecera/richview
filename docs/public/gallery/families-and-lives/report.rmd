@@ -1,8 +1,21 @@
 ---
 title: Families and longer lives
 description: Fertility and life expectancy across countries, 1960–2020.
-version: 1.0.0
+version: 1.1.0
 styles: [air]
+title_image:
+  src: https://images.unsplash.com/photo-1609260840244-22b52bfc6664?ixid=M3wxMTE0NDQ4fDB8MXxhbGx8fHx8fHx8fHwxNzk0ODc2NTgzfA&ixlib=rb-4.1.0&w=1080&q=80&fm=jpg&fit=max
+  alt: "A family of several generations on a porch, gathered around its eldest"
+  caption: "A family of four generations gathered around its eldest."
+  fit: cover
+  width: 1080
+  height: 432
+  color: "#f3f3f3"
+  credit:
+    author: Rajiv Perera
+    author_url: https://unsplash.com/@rajivperera?utm_source=richview&utm_medium=referral
+    source: Unsplash
+    source_url: https://unsplash.com/?utm_source=richview&utm_medium=referral
 ---
 
 In many countries, longer lives accompanied smaller families. Play the years or choose one frame to compare countries. Each bubble is one country; its area represents population and its colour represents Gapminder's world region. The axes are linear.
@@ -23,8 +36,149 @@ controls:
 
 *Source: Based on free [Gapminder data](https://www.gapminder.org/data/), [fast-track snapshot](https://github.com/open-numbers/ddf--gapminder--fasttrack/tree/b840e5be), fertility v15, life expectancy v15 and population v8, with Gapminder's four world regions; [CC BY 4.0](https://www.gapminder.org/free-material/). This frozen extract includes entities marked `un_state` by Gapminder with all three measures in every year from 1960 to 2020.*
 
+```metric
+value: 194
+label: Countries, each with all three measures in every year from 1960 to 2020
+```
+
+```metric
+value: 96
+label: Countries with fewer than 2.1 babies per woman in 2020, from 4 in 1960
+```
+
+```metric
+value: 0
+label: Countries with a life expectancy under 50 years in 2020, from 68 in 1960
+```
+
+## Fewer large families
+
+```image
+src: https://images.unsplash.com/photo-1470116945706-e6bf5d5a53ca?ixid=M3wxMTE0NDQ4fDB8MXxhbGx8fHx8fHx8fHwxNzk0ODc2NTgzfA&ixlib=rb-4.1.0&w=1344&q=80&fm=jpg&fit=max
+alt: "A baby's hand holding an adult's finger"
+caption: "Babies per woman is the number this section counts countries by."
+width: 1344
+height: 1008
+color: "#d9d9d9"
+credit:
+  author: Aditya Romansa
+  author_url: https://unsplash.com/@adroman?utm_source=richview&utm_medium=referral
+  source: Unsplash
+  source_url: https://unsplash.com/?utm_source=richview&utm_medium=referral
+```
+
+In 1960, 132 of the 194 countries had five or more babies per woman. In 2020 nine did, eight of them in Africa. Over the same sixty years the countries with fewer than 2.1, roughly the number at which a population replaces itself without migration, rose from 4 to 96.
+
+```chart
+type: bar
+title: Countries with five or more babies per woman fell from 132 to 9
+subtitle: The 194 countries by babies per woman, every ten years
+data:
+  inline:
+    - { year: "1960", band: Under 2.1, countries: 4 }
+    - { year: "1960", band: 2.1 to 3, countries: 30 }
+    - { year: "1960", band: 3 to 5, countries: 28 }
+    - { year: "1960", band: 5 or more, countries: 132 }
+    - { year: "1970", band: Under 2.1, countries: 15 }
+    - { year: "1970", band: 2.1 to 3, countries: 30 }
+    - { year: "1970", band: 3 to 5, countries: 28 }
+    - { year: "1970", band: 5 or more, countries: 121 }
+    - { year: "1980", band: Under 2.1, countries: 37 }
+    - { year: "1980", band: 2.1 to 3, countries: 23 }
+    - { year: "1980", band: 3 to 5, countries: 42 }
+    - { year: "1980", band: 5 or more, countries: 92 }
+    - { year: "1990", band: Under 2.1, countries: 46 }
+    - { year: "1990", band: 2.1 to 3, countries: 27 }
+    - { year: "1990", band: 3 to 5, countries: 53 }
+    - { year: "1990", band: 5 or more, countries: 68 }
+    - { year: "2000", band: Under 2.1, countries: 68 }
+    - { year: "2000", band: 2.1 to 3, countries: 39 }
+    - { year: "2000", band: 3 to 5, countries: 46 }
+    - { year: "2000", band: 5 or more, countries: 41 }
+    - { year: "2010", band: Under 2.1, countries: 79 }
+    - { year: "2010", band: 2.1 to 3, countries: 42 }
+    - { year: "2010", band: 3 to 5, countries: 42 }
+    - { year: "2010", band: 5 or more, countries: 31 }
+    - { year: "2020", band: Under 2.1, countries: 96 }
+    - { year: "2020", band: 2.1 to 3, countries: 39 }
+    - { year: "2020", band: 3 to 5, countries: 50 }
+    - { year: "2020", band: 5 or more, countries: 9 }
+encoding: { x: year, y: countries, color: band }
+stack: true
+axes:
+  y: { label: Countries }
+style: { ratio: "2:1" }
+```
+
+*Source: the first chart's Gapminder extract, counted by band. A band includes its lower bound and excludes its upper one.*
+
+The regions did not move together. Europe's median was already 2.7 babies per woman in 1960. The medians of the Americas and Asia fell by more than four babies; Africa's fell by two and a half and is where Asia's stood around 1990. Median life expectancy rose by about 18 years in Africa and Asia, by 13 in the Americas and by 11 in Europe.
+
+```table
+title: The median country by region, 1960 and 2020
+data:
+  inline:
+    - { region: Africa, babies60: "6.64", babies20: "4.17", life60: "45.1", life20: "63.6" }
+    - { region: Americas, babies60: "6.44", babies20: "1.71", life60: "60.9", life20: "74.1" }
+    - { region: Asia, babies60: "6.55", babies20: "2.36", life60: "54.7", life20: "72.3" }
+    - { region: Europe, babies60: "2.71", babies20: "1.54", life60: "69.3", life20: "79.9" }
+    - { region: All, babies60: "6.22", babies20: "2.11", life60: "56.6", life20: "72.6" }
+columns:
+  - { key: region, label: Region }
+  - { key: babies60, label: "Babies 1960", align: right }
+  - { key: babies20, label: "Babies 2020", align: right }
+  - { key: life60, label: "Life 1960", align: right }
+  - { key: life20, label: "Life 2020", align: right }
+```
+
+*Source: the first chart's Gapminder extract. Each cell is the median over a region's countries, so China counts as much as Tuvalu; [Longer lives](https://richview.ai/docs/gallery/longer-lives/) weighs the same data by population. Africa has 54 countries, the Americas 35, Asia 57 and Europe 48.*
+
+## The largest falls, and three exceptions
+
+Iran moved furthest: from 7.4 babies per woman in 1960 to 1.7 in 2020. Six of the ten largest falls are in countries that started above seven. South Korea ends lowest of all 194, at 0.81, from 5.99.
+
+```table
+title: The ten largest falls in babies per woman, 1960 to 2020
+data:
+  inline:
+    - { country: Iran, b60: "7.37", b20: "1.70", fall: "5.67", life: "+28.3" }
+    - { country: Costa Rica, b60: "6.86", b20: "1.45", fall: "5.41", life: "+14.5" }
+    - { country: St. Lucia, b60: "6.82", b20: "1.41", fall: "5.41", life: "+18.6" }
+    - { country: St. Vincent and the Grenadines, b60: "7.24", b20: "1.83", fall: "5.41", life: "+16.6" }
+    - { country: Bahrain, b60: "7.22", b20: "1.86", fall: "5.36", life: "+20.4" }
+    - { country: UAE, b60: "6.61", b20: "1.29", fall: "5.32", life: "+27.1" }
+    - { country: Brunei, b60: "7.11", b20: "1.80", fall: "5.31", life: "+22.8" }
+    - { country: Cape Verde, b60: "6.89", b20: "1.59", fall: "5.30", life: "+15.1" }
+    - { country: Saudi Arabia, b60: "7.52", b20: "2.27", fall: "5.25", life: "+28.6" }
+    - { country: Dominican Republic, b60: "7.56", b20: "2.33", fall: "5.23", life: "+14.1" }
+columns:
+  - { key: country, label: Country }
+  - { key: b60, label: "Babies 1960", align: right }
+  - { key: b20, label: "Babies 2020", align: right }
+  - { key: fall, label: Fall, align: right }
+  - { key: life, label: "Life, years", align: right }
+```
+
+*Source: the first chart's Gapminder extract. Life is the change in life expectancy over the same sixty years.*
+
+```callout
+kind: hold
+title: In three countries babies per woman did not fall.
+body: The Central African Republic, Chad and the Democratic Republic of the Congo each had slightly more babies per woman in 2020 than in 1960, between 6.06 and 6.35. Life expectancy still rose in all three, by 10 to 15 years.
+```
+
+Life expectancy was higher in 2020 than in 1960 in every one of the 194 countries. The smallest gains are in Ukraine, 1.7 years, Russia, 3.5, and Belarus, 4.0.
+
 ## A relationship, not an explanation
 
 These observations do not establish why fertility or life expectancy changed. A bubble combines national estimates; it cannot show the distribution within a country. A country missing a required measure is absent from that frame. The CSV retains the extracted observations so you can inspect the coverage.
 
 Hover or focus a country for its values. Use the year control to compare years, and use the table or CSV for the observations behind the marks.
+
+- **Countries, not people.** A bubble is a country, so a count of countries treats India and Iceland alike. The bubble areas carry the people.
+- **A fixed set of countries.** The extract keeps today's states with a full record and gives them values back to 1960, including states that did not exist then.
+- **Estimates, not counts.** Gapminder's values are estimates, and for the early years some rest on sparse records.
+
+## Data
+
+`data/families-and-lives.csv` travels with the report: 11,834 rows, one for each of 194 countries in each of 61 years, with the year, the country, Gapminder's world region, babies per woman, life expectancy at birth in years and population.

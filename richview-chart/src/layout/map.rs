@@ -9,7 +9,7 @@ use super::{Ctx, POINT_OPACITY, Painted, Style};
 use crate::diag::Level;
 use crate::geometry::{
     Anchor, Face, Fill, Item, Observation, Panel, Path, Readout, ReadoutLine, Rect, Role, Shape, Stroke, Swatch,
-    Targeting,
+    Targeting, XScale, YSpan,
 };
 use crate::numbers;
 use crate::rows::{self, Num};
@@ -21,6 +21,9 @@ const KEY_W: f64 = 240.0;
 const KEY_H: f64 = 8.0;
 const POINT: f64 = 4.0;
 const BUBBLE: f64 = 14.0;
+/// How far a reader zooms in: the boundaries are drawn for a world map, and beyond this a
+/// country's outline shows its few corners.
+const MAX_ZOOM: f64 = 24.0;
 
 struct Region {
     country: usize,
@@ -247,6 +250,16 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         })
         .collect();
     let enclosed = enclosing(&projected);
+    // Each country's box in projected units, to tell what a zoom leaves in the plot.
+    let boxes: Vec<[f64; 4]> = projected
+        .iter()
+        .map(|rings| {
+            rings.iter().flatten().fold(
+                [f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY],
+                |b, p| [b[0].min(p[0]), b[1].min(p[1]), b[2].max(p[0]), b[3].max(p[1])],
+            )
+        })
+        .collect();
     let [mut x0, mut y0, mut x1, mut y1] = [f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY];
     for p in projected.iter().flatten().flatten() {
         x0 = x0.min(p[0]);
@@ -271,16 +284,30 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             continue;
         }
         let plot = Rect::new(frame.x, frame.y + title_room, frame.w, frame.h - title_room);
-        let k = (plot.w / (x1 - x0)).min(plot.h / (y1 - y0));
-        let (ox, oy) = (
-            plot.x + (plot.w - (x1 - x0) * k) / 2.0,
-            plot.y + (plot.h - (y1 - y0) * k) / 2.0,
-        );
-        let at = |p: [f64; 2]| [ox + (p[0] - x0) * k, oy + (y1 - p[1]) * k];
+        let fit = (plot.w / (x1 - x0)).min(plot.h / (y1 - y0));
+        let (k, centre) = view(ctx.opts.zoom, ctx.opts.zoom_y, [x0, x1], [y0, y1], plot, fit);
+        let zoomed = k > fit;
+        let middle = plot.center();
+        let at = |p: [f64; 2]| [middle[0] + (p[0] - centre[0]) * k, middle[1] - (p[1] - centre[1]) * k];
         let ring_path = |ring: &Ring| {
             let mut path = Path::polyline(&ring.iter().map(|p| at(*p)).collect::<Vec<_>>());
             path.close();
             path
+        };
+        // Zoomed in, only what reaches into the plot is drawn and read out (FEA-CH-49): what a
+        // country or a point covers of the plot, or `None` when the zoom has moved it out.
+        let within = |r: Rect| -> Option<Rect> {
+            if !zoomed {
+                return Some(r);
+            }
+            let (x, y) = (r.x.max(plot.x), r.y.max(plot.y));
+            let (w, h) = (r.right().min(plot.right()) - x, r.bottom().min(plot.bottom()) - y);
+            (w > 0.0 && h > 0.0).then(|| Rect::new(x, y, w, h))
+        };
+        let seen = |pi: usize| {
+            let [bx0, by0, bx1, by1] = boxes[pi];
+            let (a, b) = (at([bx0, by1]), at([bx1, by0]));
+            within(Rect::new(a[0], a[1], b[0] - a[0], b[1] - a[1])).is_some()
         };
         let mut items: Vec<Item> = Vec::new();
         let mut observations: Vec<Observation> = Vec::new();
@@ -289,8 +316,12 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         // Every outline of a country, the box around them and an anchor inside the largest ring,
         // so a region is reached where it is drawn.
         let shape = |pi: usize| -> Option<(Vec<Path>, Rect, [f64; 2])> {
+            if !seen(pi) {
+                return None;
+            }
             let paths: Vec<Path> = projected[pi].iter().map(&ring_path).collect();
-            let area = paths.iter().filter_map(|p| p.bounds()).reduce(|a, b| a.union(&b))?;
+            let whole = paths.iter().filter_map(|p| p.bounds()).reduce(|a, b| a.union(&b))?;
+            let area = within(whole)?;
             let largest = projected[pi]
                 .iter()
                 .max_by(|a, b| ring_area(a).total_cmp(&ring_area(b)))
@@ -298,12 +329,18 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             let anchor = largest
                 .as_deref()
                 .and_then(interior_point)
-                .unwrap_or_else(|| area.center());
+                .unwrap_or_else(|| whole.center());
+            // A country cut by the plot's edge is read out from the part that shows.
+            let anchor = if plot.contains(anchor) || !zoomed {
+                anchor
+            } else {
+                area.center()
+            };
             Some((paths, area, anchor))
         };
         // Plain countries first, except those enclosed by another (Lesotho inside South Africa).
         for (pi, _) in drawn.iter().enumerate() {
-            if enclosed[pi].is_some() || valued(pi).is_some() {
+            if enclosed[pi].is_some() || valued(pi).is_some() || !seen(pi) {
                 continue;
             }
             for ring in &projected[pi] {
@@ -420,11 +457,15 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         }
         // Borders over the fills, in the surface colour.
         for (pi, _) in drawn.iter().enumerate() {
+            if !seen(pi) {
+                continue;
+            }
             for ring in &projected[pi] {
                 items.push(Item::Line {
                     path: ring_path(ring),
                     stroke: Stroke::solid(surface, 0.6),
-                    role: Role::Grid,
+                    // Zoomed in, borders leave the plot with their countries and are cut there.
+                    role: if zoomed { Role::Band } else { Role::Grid },
                     series: None,
                     obs: None,
                 });
@@ -439,6 +480,9 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 Some(v) if biggest > 0.0 => BUBBLE * (v / biggest).sqrt(),
                 _ => POINT,
             };
+            if zoomed && !plot.contains(center) {
+                continue;
+            }
             let color = Style::rgba(ctx.series_color(s.group));
             let shape = ctx.series[s.group].shape.unwrap_or(Shape::Circle);
             let index = observations.len();
@@ -505,7 +549,19 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             items,
             observations,
             targeting: Targeting::Contain,
-            x: None,
+            // What the plot shows of the map, in projected units, for the reader's zoom and pan.
+            x: Some(XScale {
+                domain: [centre[0] - plot.w / (2.0 * k), centre[0] + plot.w / (2.0 * k)],
+                extent: [x0, x1],
+                range: [plot.x, plot.right()],
+                calendar: false,
+                least: None,
+                y: Some(YSpan {
+                    domain: [centre[1] - plot.h / (2.0 * k), centre[1] + plot.h / (2.0 * k)],
+                    extent: [y0, y1],
+                    range: [plot.bottom(), plot.y],
+                }),
+            }),
             failure: None,
         };
         super::panel_title(ctx, &mut panel, name);
@@ -564,6 +620,39 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         legend,
         failure: None,
     }
+}
+
+/// The scale and the projected point at the plot's middle for the reader's window (FEA-CH-49).
+/// The window is fitted whole into the plot, so its shape need not match; the scale stays between
+/// the whole map's `fit` and [`MAX_ZOOM`] times it. Along an axis where the plot shows more than
+/// the map, the map stays centred; elsewhere the window stops at the map's edge, so zooming and
+/// panning never bring in more empty paper than the whole map has.
+fn view(
+    zoom_x: Option<[f64; 2]>,
+    zoom_y: Option<[f64; 2]>,
+    ex: [f64; 2],
+    ey: [f64; 2],
+    plot: Rect,
+    fit: f64,
+) -> (f64, [f64; 2]) {
+    let whole = [(ex[0] + ex[1]) / 2.0, (ey[0] + ey[1]) / 2.0];
+    let valid = |w: &[f64; 2]| w[0].is_finite() && w[1].is_finite() && w[0] < w[1];
+    let (wx, wy) = (zoom_x.filter(valid), zoom_y.filter(valid));
+    if (wx.is_none() && wy.is_none()) || !(fit.is_finite() && fit > 0.0) {
+        return (fit, whole);
+    }
+    let (wx, wy) = (wx.unwrap_or(ex), wy.unwrap_or(ey));
+    let k = (plot.w / (wx[1] - wx[0]))
+        .min(plot.h / (wy[1] - wy[0]))
+        .clamp(fit, fit * MAX_ZOOM);
+    let along = |want: [f64; 2], e: [f64; 2], shown: f64| {
+        if shown >= e[1] - e[0] {
+            (e[0] + e[1]) / 2.0
+        } else {
+            ((want[0] + want[1]) / 2.0).clamp(e[0] + shown / 2.0, e[1] - shown / 2.0)
+        }
+    };
+    (k, [along(wx, ex, plot.w / k), along(wy, ey, plot.h / k)])
 }
 
 /// Twice the unsigned area of a ring.

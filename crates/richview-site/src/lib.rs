@@ -129,6 +129,38 @@ pub fn folder_files(
         .collect()
 }
 
+/// The files a report's styles name, which a host can fetch only once the style files themselves
+/// are in `options.data`: the company logos (STY-72). Like [`folder_files`], only those the folder
+/// holds, and none the host has supplied already. Without this second round a browser or a server
+/// sent the report as text would report a logo the folder holds as missing (ARC-08).
+pub fn style_files(
+    document: &richview_core::document::Document,
+    folder: &richview_core::document::ReportFolder,
+    options: &richview_core::document::RenderOptions,
+) -> Vec<richview_core::document::ReportResource> {
+    let named = |path: &str| {
+        path.split('/')
+            .filter(|part| *part != ".")
+            .collect::<Vec<_>>()
+            .join("/")
+    };
+    let held: std::collections::BTreeSet<String> = folder.files.iter().map(|f| named(f)).collect();
+    let mut files: Vec<richview_core::document::ReportResource> = Vec::new();
+    for path in richview_core::report_company_logo_files(&document.frontmatter, options) {
+        if richview_core::document::report_relative_path(&path)
+            && held.contains(&named(&path))
+            && !options.data.contains_key(&path)
+            && !files.iter().any(|file| file.path == path)
+        {
+            files.push(richview_core::document::ReportResource {
+                path,
+                kind: "media",
+            });
+        }
+    }
+    files
+}
+
 /// `validate`: the structure of the report and, when the host names the report folder, its files,
 /// as one result object with every finding (ARC-08: the same answer as `richview validate`).
 pub fn validate_result(
@@ -291,6 +323,99 @@ mod result_tests {
             "the other chart renders"
         );
         assert!(report.html.contains("What moved"), "the text renders");
+    }
+
+    /// The two rounds a browser host makes for a report folder: the document's own files, then
+    /// the files its styles name.
+    fn host_rounds(
+        dir: &std::path::Path,
+        files: &[&str],
+    ) -> (richview_core::document::RenderedReport, Vec<Vec<String>>) {
+        use base64::Engine as _;
+        let folder = richview_core::document::ReportFolder {
+            root: "company-style".into(),
+            source: "report.rmd".into(),
+            files: files.iter().map(|file| (*file).to_owned()).collect(),
+        };
+        let source = std::fs::read_to_string(dir.join("report.rmd")).unwrap();
+        let (document, first) = prepare_draft(&source, &folder).expect("the report parses");
+        let mut options = richview_core::document::RenderOptions {
+            report_folder: Some(folder.clone()),
+            ..Default::default()
+        };
+        let mut rounds = Vec::new();
+        let mut supply =
+            |round: Vec<richview_core::document::ReportResource>,
+             options: &mut richview_core::document::RenderOptions| {
+                for file in &round {
+                    let bytes = std::fs::read(dir.join(&file.path)).unwrap();
+                    let value = if file.kind == "media" {
+                        format!(
+                            "data:application/octet-stream;base64,{}",
+                            base64::engine::general_purpose::STANDARD.encode(bytes)
+                        )
+                    } else {
+                        String::from_utf8(bytes).unwrap()
+                    };
+                    options.data.insert(file.path.clone(), value);
+                }
+                rounds.push(round.into_iter().map(|file| file.path).collect::<Vec<_>>());
+            };
+        supply(first, &mut options);
+        supply(style_files(&document, &folder, &options), &mut options);
+        assert!(
+            style_files(&document, &folder, &options).is_empty(),
+            "a supplied logo is not asked for again"
+        );
+        let report = richview_core::document::render_document(document, &options)
+            .expect("the report renders");
+        (report, rounds)
+    }
+
+    #[test]
+    fn a_browser_host_is_asked_for_the_logos_a_style_file_names() {
+        // The full of 16 Nov: the CLI read the company logos from the report folder, a browser
+        // and a server sent the report as text never learned of them and reported them missing.
+        let dir =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples/company-style");
+        let all = [
+            "report.rmd",
+            "company.rstyle.yaml",
+            "logo.png",
+            "logo-dark.png",
+        ];
+        let (report, rounds) = host_rounds(&dir, &all);
+        assert_eq!(
+            rounds,
+            [
+                vec!["company.rstyle.yaml"],
+                vec!["logo.png", "logo-dark.png"]
+            ]
+        );
+        assert!(
+            !report
+                .diagnostics
+                .iter()
+                .any(|d| d.code.starts_with("style.logo")),
+            "{:?}",
+            report.diagnostics
+        );
+        assert!(
+            report.html.contains("rv-report__logo"),
+            "the header carries the logo"
+        );
+
+        // A logo the folder lacks is not fetched; the render says so, as on the native host.
+        let (report, rounds) =
+            host_rounds(&dir, &["report.rmd", "company.rstyle.yaml", "logo.png"]);
+        assert_eq!(rounds[1], ["logo.png"]);
+        let missing: Vec<_> = report
+            .diagnostics
+            .iter()
+            .filter(|d| d.code == "style.logo-missing")
+            .map(|d| d.path.as_str())
+            .collect();
+        assert_eq!(missing, ["company.logo-dark"], "{:?}", report.diagnostics);
     }
 
     #[test]

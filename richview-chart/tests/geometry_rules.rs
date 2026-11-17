@@ -2,7 +2,7 @@
 //! identity, zoom and motion (FEA-CH-09, FEA-CH-35, FEA-CH-38, FEA-CH-49, FEA-CH-63, STY-40).
 
 use richview_chart::block::ChartBlock;
-use richview_chart::geometry::{Cmd, Geometry, Item, Role};
+use richview_chart::geometry::{Geometry, Item, Role};
 use richview_chart::layout::{ChartTheme, Options, layout};
 use serde_json::{Value, json};
 
@@ -23,8 +23,29 @@ fn months(n: usize) -> Vec<String> {
     (0..n).map(|i| format!("2024-{:02}", i + 1)).collect()
 }
 
+/// The names a chart draws for its series: the label texts that spell a series' name.
+fn direct_names(g: &Geometry) -> Vec<&richview_chart::geometry::Text> {
+    g.panels
+        .iter()
+        .flat_map(|p| &p.items)
+        .filter_map(|i| match i {
+            Item::Text(t) if t.role == Role::Label && t.series.is_some_and(|s| g.series[s].name == t.text) => Some(t),
+            _ => None,
+        })
+        .collect()
+}
+
+/// The box a name's button covers: at least 24 px each way, centred on the name.
+fn name_target(t: &richview_chart::geometry::Text) -> richview_chart::geometry::Rect {
+    let (w, h) = ((t.bounds.w + 4.0).max(24.0), (t.bounds.h + 4.0).max(24.0));
+    let c = t.bounds.center();
+    richview_chart::geometry::Rect::new(c[0] - w / 2.0, c[1] - h / 2.0, w, h)
+}
+
+/// An area's names stand inside the plot and never in the value axis' margin, where they read
+/// as stray axis labels; no name column takes width on either side (FEA-CH-27).
 #[test]
-fn area_names_use_the_left_margin_and_leave_the_right_for_data() {
+fn area_names_stand_inside_the_plot_and_leave_the_margins_to_the_axis() {
     let rows: Vec<_> = (0..4)
         .flat_map(|x| {
             [
@@ -43,84 +64,49 @@ fn area_names_use_the_left_margin_and_leave_the_right_for_data() {
                 ..Options::default()
             },
         );
+        assert!(all.legend.is_none(), "{width}: two separate areas are named inside");
         for hidden in [vec![], vec!["free".to_owned()], vec!["paid".to_owned()]] {
             let g = draw(
                 spec.clone(),
                 &rows,
                 Options {
                     width,
-                    hidden,
+                    hidden: hidden.clone(),
                     ..Options::default()
                 },
             );
-            if all.legend.is_some() {
-                assert!(g.legend.is_some(), "hiding never promotes an original legend to names");
-            }
-            for panel in &g.panels {
-                assert!(
-                    (panel.frame.right() - panel.plot.right() - 9.0).abs() <= 1e-6,
-                    "area keeps only the endpoint halo inset, not a name gutter, at {width}"
-                );
-                let names: Vec<_> = panel
-                    .items
-                    .iter()
-                    .filter_map(|i| match i {
-                        Item::Text(t)
-                            if t.role == Role::Label
-                                && t.series.is_some()
-                                && t.face != richview_chart::geometry::Face::Figures =>
-                        {
-                            Some(t)
-                        }
-                        _ => None,
-                    })
-                    .collect();
-                if g.legend.is_some() {
-                    assert!(names.is_empty(), "legend fallback does not duplicate direct names");
-                    continue;
-                }
-                assert_eq!(names.len(), 2, "complete names include the hidden series");
-                let targets: Vec<_> = names
-                    .iter()
-                    .map(|t| {
-                        assert!(t.bounds.right() < panel.plot.x, "{} sits left of the area", t.text);
-                        let w = (t.bounds.w + 4.0).max(24.0);
-                        let h = (t.bounds.h + 4.0).max(24.0);
-                        let c = t.bounds.center();
-                        richview_chart::geometry::Rect::new(c[0] - w / 2.0, c[1] - h / 2.0, w, h)
-                    })
-                    .collect();
-                for (i, target) in targets.iter().enumerate() {
-                    assert!(target.inside(&panel.frame, 0.0), "whole name target fits");
-                    assert!(targets.iter().skip(i + 1).all(|other| !target.overlaps(other, 0.0)));
+            assert!(g.legend.is_none(), "{width}: hiding {hidden:?} keeps the names inside");
+            let panel = &g.panels[0];
+            assert!(
+                (panel.frame.right() - panel.plot.right() - 9.0).abs() <= 1e-6,
+                "area keeps only the endpoint halo inset, not a name gutter, at {width}"
+            );
+            let names = direct_names(&g);
+            assert_eq!(names.len(), 2, "complete names include the hidden series");
+            let targets: Vec<_> = names
+                .iter()
+                .map(|t| {
                     assert!(
-                        panel.items.iter().all(|item| match item {
-                            Item::Text(t) if matches!(t.role, Role::AxisLabel | Role::AxisTitle | Role::PanelTitle) =>
-                                !target.inflate(2.0).overlaps(&t.bounds, 0.0),
-                            _ => true,
-                        }),
-                        "{} clears axis ink at {width}: {target:?}; axis: {:?}",
-                        names[i].text,
-                        panel
-                            .items
-                            .iter()
-                            .filter_map(|item| match item {
-                                Item::Text(t)
-                                    if matches!(t.role, Role::AxisLabel | Role::AxisTitle | Role::PanelTitle)
-                                        && target.inflate(2.0).overlaps(&t.bounds, 0.0) =>
-                                    Some((t.text.as_str(), t.bounds)),
-                                _ => None,
-                            })
-                            .collect::<Vec<_>>()
+                        t.bounds.inside(&panel.plot, 0.0),
+                        "{} stands inside the plot at {width}, hidden {hidden:?}: {:?}",
+                        t.text,
+                        t.bounds
                     );
-                }
+                    name_target(t)
+                })
+                .collect();
+            for (i, target) in targets.iter().enumerate() {
+                assert!(target.inside(&panel.frame, 0.0), "whole name target fits");
+                assert!(targets.iter().skip(i + 1).all(|other| !target.overlaps(other, 0.0)));
             }
         }
     }
 }
 
+/// Lines and areas are named the same way: as far right as a free place exists, so a name
+/// stands where its own series ends, not where it began.
 #[test]
-fn area_names_follow_the_first_values_while_lines_follow_the_last() {
+fn line_and_area_names_stand_by_the_right_ends_of_their_series() {
     let rows = vec![
         json!({"x":0,"v":90,"s":"A"}),
         json!({"x":0,"v":10,"s":"B"}),
@@ -137,26 +123,28 @@ fn area_names_follow_the_first_values_while_lines_follow_the_last() {
             },
         );
         assert!(g.legend.is_none(), "the wide fixture has room for direct names");
-        let y = |name: &str| {
-            g.panels[0]
-                .items
-                .iter()
-                .find_map(|i| match i {
-                    Item::Text(t) if t.role == Role::Label && t.text == name => Some(t.bounds.center()[1]),
-                    _ => None,
-                })
+        let plot = g.panels[0].plot;
+        let at = |name: &str| {
+            direct_names(&g)
+                .into_iter()
+                .find(|t| t.text == name)
+                .map(|t| t.bounds.center())
                 .unwrap()
         };
-        assert_eq!(
-            y("A") < y("B"),
-            kind == "area",
-            "names follow the corresponding end: {kind}"
-        );
+        for name in ["A", "B"] {
+            assert!(
+                at(name)[0] > plot.x + plot.w / 2.0,
+                "{kind}: {name} stands in the right half"
+            );
+        }
+        assert!(at("A")[1] > at("B")[1], "{kind}: A ends low and B ends high");
     }
 }
 
+/// Hiding an area lets the value axis follow the rest; the names stay inside the plot, and
+/// showing the series again returns every name and mark to its place (FEA-CH-27, FEA-CH-33).
 #[test]
-fn area_names_fall_back_when_the_refitted_axis_has_no_clear_band() {
+fn hiding_an_area_keeps_the_names_inside_and_restoring_returns_them() {
     let rows: Vec<_> = ["Mon", "Tue", "Wed", "Thu"]
         .iter()
         .enumerate()
@@ -176,7 +164,8 @@ fn area_names_fall_back_when_the_refitted_axis_has_no_clear_band() {
             ..Options::default()
         },
     );
-    assert!(all.legend.is_none(), "all-shown axis leaves clear bands for two names");
+    assert!(all.legend.is_none(), "two separate areas are named inside");
+    assert_eq!(direct_names(&all).len(), 2);
     let hidden = draw(
         spec.clone(),
         &rows,
@@ -187,11 +176,11 @@ fn area_names_fall_back_when_the_refitted_axis_has_no_clear_band() {
             ..Options::default()
         },
     );
-    assert!(
-        hidden.legend.is_some(),
-        "refitted ticks leave no room for complete name targets"
-    );
+    assert!(hidden.legend.is_none(), "hiding a series brings no legend");
     assert!(hidden.series[0].hidden);
+    let names = direct_names(&hidden);
+    assert_eq!(names.len(), 2, "the hidden series keeps its name as the way back");
+    assert!(names.iter().all(|t| t.bounds.inside(&hidden.panels[0].plot, 0.0)));
     let restored = draw(
         spec,
         &rows,
@@ -212,53 +201,10 @@ fn area_names_fall_back_when_the_refitted_axis_has_no_clear_band() {
     );
 }
 
+/// A series with no rows inside the zoom window has no line to be named beside. The chart then
+/// names its series in the legend, so every series stays controllable while zoomed (FEA-CH-27).
 #[test]
-fn area_name_leaders_stay_inside_authored_value_bounds() {
-    let rows = vec![
-        json!({"x":0,"v":100,"s":"A"}),
-        json!({"x":1,"v":10,"s":"A"}),
-        json!({"x":0,"v":6,"s":"B"}),
-        json!({"x":1,"v":8,"s":"B"}),
-    ];
-    let g = draw(
-        json!({"type":"area","title":"T","encoding":{"x":"x","y":"v","color":"s"},"axes":{"y":{"min":0,"max":20}}}),
-        &rows,
-        Options {
-            width: 800.0,
-            ..Options::default()
-        },
-    );
-    assert!(g.legend.is_none());
-    let panel = &g.panels[0];
-    assert!(
-        panel
-            .observations
-            .iter()
-            .flat_map(|o| &o.readout.lines)
-            .any(|l| l.value == "100"),
-        "the authored source value remains available"
-    );
-    for item in &panel.items {
-        if let Item::Line {
-            path,
-            role: Role::Leader,
-            ..
-        } = item
-        {
-            for cmd in &path.cmds {
-                if let Cmd::M { p } | Cmd::L { p } = cmd {
-                    assert!(
-                        panel.frame.contains(*p),
-                        "a clipped first value must not send its name leader outside the figure: {p:?}"
-                    );
-                }
-            }
-        }
-    }
-}
-
-#[test]
-fn zoom_keeps_an_area_name_restorable_without_rows_inside_the_window() {
+fn zoom_keeps_every_area_controllable_without_rows_inside_the_window() {
     let mut rows: Vec<_> = (0..5).map(|x| json!({"x":x,"v":10+x,"s":"A"})).collect();
     rows.extend([json!({"x":3,"v":100,"s":"LateB"}), json!({"x":4,"v":110,"s":"LateB"})]);
     let spec = json!({"type":"area","title":"T","encoding":{"x":"x","y":"v","color":"s"}});
@@ -273,117 +219,39 @@ fn zoom_keeps_an_area_name_restorable_without_rows_inside_the_window() {
                 ..Options::default()
             },
         );
-        assert!(g.legend.is_none(), "the wide plot has safe name bands");
-        let names: Vec<_> = g.panels[0]
-            .items
-            .iter()
-            .filter_map(|i| match i {
-                Item::Text(t) if t.role == Role::Label => Some(t.text.as_str()),
-                _ => None,
-            })
-            .collect();
-        assert!(
-            names.contains(&"A") && names.contains(&"LateB"),
-            "every series remains controllable while zoomed: {names:?}"
-        );
-    }
-}
-
-#[test]
-fn crowded_area_names_do_not_point_toward_a_different_value_tick() {
-    let rows: Vec<_> = (0..6)
-        .flat_map(|x| (0..3).map(move |s| json!({"x":x,"v":100+s*2+x*(s+1)*3,"s":(["North","South","West"][s])})))
-        .collect();
-    let spec = json!({"type":"area","title":"T","encoding":{"x":"x","y":"v","color":"s"}});
-    for width in [358.0, 576.0] {
-        let g = draw(
-            spec.clone(),
-            &rows,
-            Options {
-                width,
-                ..Options::default()
-            },
-        );
-        if width == 358.0 {
-            assert!(
-                g.legend.is_some(),
-                "crowded phone anchors cannot fit complete names within half a tick spacing"
-            );
-        }
-        if g.legend.is_some() {
-            continue;
-        }
-        let panel = &g.panels[0];
-        let y = |label: &str| {
-            panel
-                .items
-                .iter()
-                .find_map(|item| match item {
-                    Item::Text(t) if t.role == Role::AxisLabel && t.text == label => Some(t.bounds.center()[1]),
-                    _ => None,
-                })
-                .unwrap()
-        };
-        let limit = (y("50") - y("100")).abs() / 2.0;
-        for item in &panel.items {
-            if let Item::Line {
-                path,
-                role: Role::Leader,
-                ..
-            } = item
-            {
-                let points: Vec<_> = path
-                    .cmds
-                    .iter()
-                    .filter_map(|c| match c {
-                        Cmd::M { p } | Cmd::L { p } => Some(p),
-                        _ => None,
-                    })
-                    .collect();
-                assert!(
-                    (points[0][1] - points[1][1]).abs() <= limit + 1e-8,
-                    "an area name stays within half the y-tick spacing"
-                );
+        let names: Vec<_> = direct_names(&g).into_iter().map(|t| t.text.as_str()).collect();
+        match &g.legend {
+            Some(legend) => {
+                assert_eq!(legend.entries.len(), 2, "the legend holds every series");
+                assert!(names.is_empty(), "a legend does not duplicate direct names");
             }
+            None => assert!(
+                names.contains(&"A") && names.contains(&"LateB"),
+                "every series remains controllable while zoomed: {names:?}"
+            ),
         }
     }
 }
 
+/// Each part of a stack is named inside its own band, between the parts below it and its own
+/// top line, also after a part below it is hidden (FEA-CH-27).
 #[test]
-fn area_names_use_the_visible_stack_boundary_and_restart_after_calendar_gaps() {
-    let numeric = vec![
-        json!({"x":0,"v":10,"s":"A"}),
-        json!({"x":1,"v":20,"s":"A"}),
-        json!({"x":0,"v":20,"s":"B"}),
-        json!({"x":1,"v":5,"s":"B"}),
-    ];
-    let calendar = vec![
-        json!({"x":"2025-01-01","v":10,"s":"A"}),
-        json!({"x":"2025-04-01","v":20,"s":"A"}),
-        json!({"x":"2025-01-01","v":5,"s":"B"}),
-        json!({"x":"2025-02-01","v":5,"s":"B"}),
-        json!({"x":"2025-04-01","v":5,"s":"B"}),
-    ];
+fn stacked_area_names_stand_inside_their_own_bands() {
+    let rows: Vec<_> = (0..6)
+        .flat_map(|x| [json!({"x":x,"v":10+x,"s":"A"}), json!({"x":x,"v":12,"s":"B"})])
+        .collect();
     let spec = json!({"type":"area","title":"T","stack":true,"encoding":{"x":"x","y":"v","color":"s"},"axes":{"y":{"min":0,"max":30}}});
-    for (rows, hidden, zoom, expected) in [
-        (numeric.clone(), vec![], None, 30.0),
-        (numeric, vec!["A".to_owned()], None, 20.0),
-        (calendar, vec![], Some([1743379200000.0, 1743552000000.0]), 5.0),
-    ] {
+    for hidden in [vec![], vec!["A".to_owned()]] {
         let g = draw(
             spec.clone(),
             &rows,
             Options {
                 width: 800.0,
-                hidden,
-                zoom,
+                hidden: hidden.clone(),
                 ..Options::default()
             },
         );
-        assert!(
-            g.legend.is_none(),
-            "these separated stack boundaries have clear name positions"
-        );
+        assert!(g.legend.is_none(), "two wide bands have room for their names");
         let panel = &g.panels[0];
         let axis_y = |label: &str| {
             panel
@@ -395,28 +263,25 @@ fn area_names_use_the_visible_stack_boundary_and_restart_after_calendar_gaps() {
                 })
                 .unwrap()
         };
-        let wanted = axis_y("0") + (axis_y("30") - axis_y("0")) * expected / 30.0;
-        let slot = g.series.iter().position(|s| s.name == "B").unwrap();
-        let actual = panel
-            .items
-            .iter()
-            .find_map(|i| match i {
-                Item::Line {
-                    path,
-                    role: Role::Leader,
-                    series: Some(s),
-                    ..
-                } if *s == slot => path.cmds.iter().find_map(|c| match c {
-                    Cmd::M { p } => Some(p[1]),
-                    _ => None,
-                }),
-                _ => None,
-            })
-            .expect("a name anchored on a tick is displaced with a leader");
-        assert!(
-            (actual - wanted).abs() < 1e-8,
-            "B starts at the visible boundary {expected}, not a last value or an unpainted stack sum"
-        );
+        let y_of = |v: f64| axis_y("0") + (axis_y("30") - axis_y("0")) * v / 30.0;
+        for t in direct_names(&g) {
+            if hidden.contains(&t.text) {
+                continue;
+            }
+            let c = t.bounds.center();
+            // The area runs from edge to edge of its plot over x = 0..5.
+            let x = (c[0] - panel.plot.x) / panel.plot.w * 5.0;
+            let a = if hidden.is_empty() { 10.0 + x } else { 0.0 };
+            let (floor, top) = if t.text == "A" { (0.0, a) } else { (a, a + 12.0) };
+            assert!(
+                c[1] > y_of(top) && c[1] < y_of(floor),
+                "{} stands inside its band ({floor}..{top}) with {hidden:?} hidden: y {} of {}..{}",
+                t.text,
+                c[1],
+                y_of(top),
+                y_of(floor)
+            );
+        }
     }
 }
 

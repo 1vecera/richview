@@ -577,6 +577,8 @@ fn histogram(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)]) -> Painted 
                 extent: [edges[0], edges[bins]],
                 range: [plot.x, plot.right()],
                 calendar: false,
+                y: None,
+                least: None,
             }),
             failure: None,
         };
@@ -1177,10 +1179,10 @@ fn grouped(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)], kind: Kind2) 
         // Category names.
         if x_field.is_some() && name.as_deref() == facets[0].0.as_deref() {
             match &layout {
-                CategoryLayout::Thinned { every, .. } => ctx.check(
+                CategoryLayout::Thinned { every, lines } => ctx.check(
                     "label-thinned",
                     Level::Info,
-                    format!("Category names show every {every}th"),
+                    format!("Category names show every {}", axis::nth_printed(lines)),
                     None,
                     Some("chart.encoding.x".into()),
                     None,

@@ -95,6 +95,15 @@ fn reduced() -> bool {
         .map(|m| m.matches())
         .unwrap_or(true)
 }
+/// A phone's width, where the page is one line and one report (Daniel, 17 Nov 2026): two reports
+/// side by side need the room, so under 640 px no comparison opens, from a shared address or a key.
+fn phone() -> bool {
+    window()
+        .match_media("(max-width: 640px)")
+        .ok()
+        .flatten()
+        .is_some_and(|m| m.matches())
+}
 fn announce(value: &str) {
     text("#showcase-live", value);
 }
@@ -124,7 +133,7 @@ fn read_url(state: &State) {
         .unwrap_or(default);
     state.compare = q
         .get("compare")
-        .filter(|v| known(&state, v) && *v != state.theme);
+        .filter(|v| !phone() && known(&state, v) && *v != state.theme);
 }
 /// The shareable address of the current view: only what differs from the default is written.
 fn update_url(state: &State) {
@@ -262,6 +271,8 @@ fn sync_controls(state: &Showcase) {
                 String::new()
             },
         ),
+        // A phone's one menu holds every style, so it always names the one shown.
+        ("#style-menu", state.theme.clone()),
         ("#compare-theme", state.compare.clone().unwrap_or_default()),
     ] {
         if let Some(select) = query(selector).and_then(|e| e.dyn_into::<HtmlSelectElement>().ok()) {
@@ -433,6 +444,9 @@ fn set_compare(state: &State, id: Option<String>) {
     update_url(state);
 }
 fn toggle_compare(state: &State) {
+    if phone() && state.borrow().compare.is_none() {
+        return;
+    }
     let next = {
         let s = state.borrow();
         if s.compare.is_some() {
@@ -556,7 +570,11 @@ fn wire_controls(state: &State) {
             on(&button.into(), "click", move |_| set_theme(&st, &id));
         }
     }
-    for (selector, compare) in [("#theme", false), ("#compare-theme", true)] {
+    for (selector, compare) in [
+        ("#theme", false),
+        ("#style-menu", false),
+        ("#compare-theme", true),
+    ] {
         if let Some(select) = query(selector).and_then(|e| e.dyn_into::<HtmlSelectElement>().ok()) {
             let st = state.clone();
             let chosen = select.clone();

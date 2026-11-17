@@ -1,6 +1,6 @@
 ---
 title: A warmer world
-description: NASA's global temperature index, compared with the 1951–1980 average.
+description: NASA's global temperature index from 1880 to 2025, compared with the 1951–1980 average.
 styles: [air]
 title_image:
   src: https://images.unsplash.com/photo-1541180413652-36d68a04c873?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE0NDQ4fDB8MXxhbGx8fHx8fHx8fHwxNzk0MjQ3MjMxfA&ixlib=rb-4.1.0&q=80&w=1080
@@ -16,7 +16,7 @@ title_image:
     source_url: https://unsplash.com/photos/water-splash-near-iceberg-DMjeSRTfhkg?utm_source=richview&utm_medium=referral
 ---
 
-The annual global temperature anomaly compares each year with the 1951–1980 average. It is a departure from that baseline, not an absolute temperature.
+The annual global temperature anomaly compares each year with the 1951–1980 average. It is a departure from that baseline, not an absolute temperature. In NASA's record the last year below the baseline was 1976, and the eleven years from 2015 to 2025 are the eleven warmest of its 146.
 
 ```chart
 type: line
@@ -30,6 +30,127 @@ axes:
 
 *Source: [NASA GISS GISTEMP v4](https://data.giss.nasa.gov/gistemp/), annual land–ocean temperature index, downloaded 9 November 2026. Credit: NASA GISS GISTEMP Team.*
 
+```metric
+value: "1.28"
+unit: °C
+label: 2024, the warmest year of the record, above the 1951–1980 average
+```
+
+```metric
+value: "1.18"
+unit: °C
+label: 2025, the second warmest year
+```
+
+```metric
+value: "0.21"
+unit: °C
+label: Warming per decade from 1975 to 2025, as a straight line through the annual values
+```
+
+## Twenty years at a time
+
+A single year carries weather as well as climate: El Niño years stand above their neighbours and La Niña years below. Means over twenty years smooth that out. The forty years from 1940 to 1979, which hold the baseline period, average zero. Each period since is at least 0.3 °C warmer than the one before.
+
+```chart
+type: bar
+title: Since 1980 each twenty-year mean stands at least 0.3 °C above the last
+subtitle: Mean anomaly by twenty-year period against the 1951–1980 average; the last bar holds 2020 to 2025
+data:
+  inline:
+    - { period: "1880–99", mean: -0.22 }
+    - { period: "1900–19", mean: -0.32 }
+    - { period: "1920–39", mean: -0.18 }
+    - { period: "1940–59", mean: 0.00 }
+    - { period: "1960–79", mean: 0.00 }
+    - { period: "1980–99", mean: 0.32 }
+    - { period: "2000–19", mean: 0.70 }
+    - { period: "2020–25", mean: 1.06 }
+encoding: { x: period, y: mean }
+axes:
+  y: { label: Mean anomaly, unit: °C }
+style: { ratio: "2:1" }
+```
+
+*Source: the first chart's NASA GISTEMP data, averaged by period at two decimals.*
+
+The table goes one step finer, by decade, and adds each decade's coldest and warmest year. The first six decades lie below the baseline and the next four close to it; every decade since the 1960s has been warmer than the one before. From the 1980s on, even the coldest year of a decade is above the baseline; the coldest year of the 2010s, 2011, was as warm as the warmest year of the 1990s, 1998.
+
+```table
+title: Each decade's mean, coldest and warmest year, °C against 1951–1980
+data:
+  inline:
+    - { decade: 1880s, mean: "−0.21", low: "−0.36", high: "−0.09" }
+    - { decade: 1890s, mean: "−0.24", low: "−0.36", high: "−0.11" }
+    - { decade: 1900s, mean: "−0.31", low: "−0.48", high: "−0.08" }
+    - { decade: 1910s, mean: "−0.33", low: "−0.46", high: "−0.14" }
+    - { decade: 1920s, mean: "−0.24", low: "−0.36", high: "−0.11" }
+    - { decade: 1930s, mean: "−0.12", low: "−0.28", high: "0.00" }
+    - { decade: 1940s, mean: "0.04", low: "−0.11", high: "0.20" }
+    - { decade: 1950s, mean: "−0.05", low: "−0.19", high: "0.08" }
+    - { decade: 1960s, mean: "−0.03", low: "−0.20", high: "0.06" }
+    - { decade: 1970s, mean: "0.04", low: "−0.10", high: "0.18" }
+    - { decade: 1980s, mean: "0.25", low: "0.12", high: "0.39" }
+    - { decade: 1990s, mean: "0.39", low: "0.22", high: "0.61" }
+    - { decade: 2000s, mean: "0.59", low: "0.39", high: "0.68" }
+    - { decade: 2010s, mean: "0.80", low: "0.61", high: "1.01" }
+    - { decade: 2020 to 2025, mean: "1.06", low: "0.85", high: "1.28" }
+columns:
+  - { key: decade, label: Decade }
+  - { key: mean, label: Mean, align: right }
+  - { key: low, label: Coldest year, align: right }
+  - { key: high, label: Warmest year, align: right }
+```
+
+*Source: the first chart's NASA GISTEMP data.*
+
+## Where it was warm in 2025
+
+The index is one number for the whole globe. NASA's map of 2025 shows what that number averages: almost every part of the map is warmer than its own 1951–1980 average, and the far north most of all.
+
+```image
+src: media/gistemp-2025-anomaly-map.jpg
+alt: "World map of 2025 temperatures against the 1951–1980 average: nearly all land and ocean is shaded warmer, darkest over the Arctic and northern Asia"
+caption: "2025 against the 1951–1980 average, from the same GISTEMP analysis as the charts. Image: NASA's Scientific Visualization Studio."
+width: 1344
+height: 756
+```
+
+*Image: [NASA's Scientific Visualization Studio](https://svs.gsfc.nasa.gov/5603/), "Global Temperature Anomalies from 1880 to 2025", released 14 January 2026; data provided by Robert B. Schmunk (NASA/GSFC GISS). The map is spatially smoothed.*
+
+## The warmest years
+
+The warmest years are all recent. 2014 is the twelfth warmest year, so the twelve warmest years of the record are its last twelve. The table opens on the warmest eleven; its remaining rows hold the whole record, and a click on a column heading sorts it.
+
+```table
+title: The record, warmest year first
+data: { csv: data/global-temperature.csv }
+columns:
+  - { key: year, label: Year, format: year, align: left }
+  - { key: anomaly_c, label: "Anomaly, °C", align: right }
+sort: { key: anomaly_c, dir: desc }
+max_rows: 11
+```
+
+*Source: the first chart's NASA GISTEMP data. 2016 and 2020 tie at 1.01 °C, 2015 and 2022 at 0.89 °C, and 2018 and 2021 at 0.85 °C.*
+
+```callout
+kind: hold
+title: Five record years since 2014.
+body: 2014, 2015 and 2016 each set a record, and 2016 was the first year more than 1 °C above the baseline. 2023 passed it at 1.17 °C and 2024 at 1.28 °C; 2025, at 1.18 °C, is the second warmest year.
+```
+
+## How fast
+
+A straight line fitted through the annual values from 1880 to 1975 rises 0.04 °C per decade. Fitted from 1975 to 2025 it rises 0.21 °C per decade, almost six times as fast. The year 1975 is a choice, and another break year gives another pair of numbers: from 1995 the line rises 0.24 °C per decade. The twenty-year bars show the same change without a fitted line.
+
 ## Read the baseline correctly
 
-Zero means the 1951–1980 average. A value of 1 means one degree Celsius above that baseline. It does not mean an absolute temperature of one degree. This is an annual global index; individual places and months differ. The frozen CSV ends in 2025, so it does not mix an incomplete current year with completed annual means.
+- **Zero is an average, not a temperature.** Zero means the 1951–1980 average. A value of 1 means one degree Celsius above that baseline, not an absolute temperature of one degree.
+- **Another baseline moves every number.** Climate targets are usually measured from the late nineteenth century. The 1880–1899 mean of this record is −0.22 °C, so 2024 stands 1.50 °C above those twenty years. That is this record's own arithmetic; it is not the 1850–1900 baseline that climate assessments use, which starts before this record does.
+- **It is one global number.** This is an annual global index of land and ocean together; individual places and months differ.
+- **Only completed years.** The frozen CSV ends in 2025, so it does not mix an incomplete current year with completed annual means.
+
+## Data
+
+`data/global-temperature.csv` and the map travel with the report; `media/SOURCES.md` says where the map comes from. The CSV holds 146 rows, one per year from 1880 to 2025, with the year and its anomaly in degrees Celsius at two decimals, as NASA publishes it. The period and decade means, the fitted lines and the rankings in this report are computed from that file.

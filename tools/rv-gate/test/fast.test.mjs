@@ -37,6 +37,33 @@ test("chart changes run the core authored type contracts without selecting every
 	assert.ok(!plan.includes("richview-core --test host_contract"), "Unrelated dependent integrations stay outside the default chart plan");
 });
 
+test("a change to any chart page selects the editor's snippets test, even when its example is unchanged", async t => {
+	mkdirSync("tmp", { recursive: true });
+	const cwd = mkdtempSync(join(process.cwd(), "tmp/fast-snippets-"));
+	t.after(() => rmSync(cwd, { recursive: true, force: true }));
+	const put = (file, source) => {
+		mkdirSync(dirname(join(cwd, file)), { recursive: true });
+		writeFileSync(join(cwd, file), source);
+	};
+	put("Cargo.toml", '[workspace]\nresolver = "3"\nmembers = ["crates/richview-editor"]\n');
+	put("crates/richview-editor/Cargo.toml", '[package]\nname = "richview-editor"\nversion = "0.0.0"\nedition = "2024"\n');
+	put("crates/richview-editor/src/lib.rs", "pub fn value() -> u8 { 1 }\n");
+	put("crates/richview-editor/tests/snippets.rs", "#[test]\nfn committed_snippets_match_the_generator() {}\n");
+	const page = (prose) => `# Bar\n\n## Source\n\n\`\`\`\`rmd\n\`\`\`chart\ntype: bar\n\`\`\`\n\`\`\`\`\n\n${prose}\n`;
+	put("docs/public/charts/bar.md", page("Bars compare."));
+	const git = (...args) => execFileSync("git", ["-c", "user.name=Fixture", "-c", "user.email=fixture@example.test", "-c", "commit.gpgsign=false", ...args], { cwd, encoding: "utf8", stdio: "pipe" }).trim();
+	git("init", "-q"); git("add", "."); git("commit", "-qm", "Base");
+	const base = git("rev-parse", "HEAD");
+	// Prose only: the page's first example, the snippet itself, is unchanged.
+	put("docs/public/charts/bar.md", page("Bars compare amounts across categories."));
+	const lines = [];
+	t.mock.method(console, "log", (...args) => lines.push(args.join(" ")));
+	assert.equal(await fastGate({ cwd, target: join(cwd, "protocol-cache"), base, plan: true }), 0);
+	const plan = lines.join("\n");
+	assert.ok(plan.includes("richview-editor --test snippets (integration)"), plan);
+	assert.match(plan, /snippets: docs\/public\/charts\/bar\.md \(the snippets' source\)/);
+});
+
 test("fast runs a changed crate's unchanged Cargo integration targets, and with --dependent-tests its dependents' too, without expanding features", async t => {
 	mkdirSync("tmp", { recursive: true });
 	const root = mkdtempSync(join(process.cwd(), "tmp/fast-integrations-")), cwd = join(root, "workspace");

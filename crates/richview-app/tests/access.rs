@@ -904,6 +904,99 @@ async fn the_share_card_follows_the_report_visibility_and_only_public_pages_name
         .await;
     assert_eq!(status, StatusCode::OK);
     assert!(png.contains("PNG"), "not a PNG");
+    company_logo_share_card_visibility_and_style().await;
+}
+
+async fn company_logo_share_card_visibility_and_style() {
+    let host = Host::new();
+    for (slug, style) in [
+        (
+            "plain",
+            "company: {name: Example Co, color: '#0B6E69', base: air}\n",
+        ),
+        (
+            "company",
+            "company: {name: Example Co, color: '#0B6E69', logo: logo.png, base: air}\n",
+        ),
+        (
+            "company-sleek",
+            "company: {name: Example Co, color: '#0B6E69', logo: logo.png, base: sleek}\n",
+        ),
+    ] {
+        let (status, body) = host.call(
+            "POST",
+            "/api/reports",
+            Some(&host.author),
+            json!({
+                "slug": slug, "new": true,
+                "source": "---\ntitle: Secret\ndescription: D\nversion: 1.0.0\n---\n\n# Secret\n",
+                "styles": [style],
+                "data": {"logo.png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEUlEQVR4nGMQERH5D8IMMAYAJtwE7SIJj3sAAAAASUVORK5CYII="},
+                "reportFolder": {"root": "t", "source": "report.rmd", "files": ["report.rmd", "logo.png"]},
+            }),
+        ).await;
+        assert_eq!(status, StatusCode::OK, "{body}");
+    }
+    let (status, _) = host
+        .call("GET", "/r/company/share.png", None, json!({}))
+        .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+    let png = |slug: &str| {
+        let request = Request::builder()
+            .uri(format!("/r/{slug}/share.png"))
+            .header("authorization", format!("Bearer {}", host.author))
+            .header("host", "127.0.0.1:4711")
+            .body(Body::empty())
+            .unwrap();
+        host.app.clone().oneshot(request)
+    };
+    let plain = png("plain").await.unwrap();
+    let branded = png("company").await.unwrap();
+    let sleek = png("company-sleek").await.unwrap();
+    assert_eq!(plain.status(), StatusCode::OK);
+    assert_eq!(branded.status(), StatusCode::OK);
+    assert_eq!(sleek.status(), StatusCode::OK);
+    let plain = to_bytes(plain.into_body(), 32 * 1024 * 1024).await.unwrap();
+    let branded = to_bytes(branded.into_body(), 32 * 1024 * 1024)
+        .await
+        .unwrap();
+    let sleek = to_bytes(sleek.into_body(), 32 * 1024 * 1024).await.unwrap();
+    assert!(
+        plain != branded,
+        "the logo must appear in the stored report's share image"
+    );
+    assert!(
+        branded != sleek,
+        "the share card follows the company base style"
+    );
+    let (status, _) = host
+        .call(
+            "PUT",
+            "/api/reports/company/access",
+            Some(&host.author),
+            json!({"visibility":"public"}),
+        )
+        .await;
+    assert_eq!(status, StatusCode::OK);
+    let public = host
+        .app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .uri("/r/company/share.png")
+                .header("host", "127.0.0.1:4711")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(public.status(), StatusCode::OK);
+    assert_eq!(
+        to_bytes(public.into_body(), 32 * 1024 * 1024)
+            .await
+            .unwrap(),
+        branded
+    );
 }
 
 #[tokio::test]

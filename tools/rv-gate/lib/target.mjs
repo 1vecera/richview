@@ -640,9 +640,12 @@ function installOutputPaths(target, expectedCommit) {
 	if (!paths.length) return []; // Historical builds did not produce an installer.
 	const commit = manifest.inputs?.commit;
 	if (!/^[0-9a-f]{40}$/.test(commit) || manifest.inputs?.dirty !== false || (expectedCommit && commit !== expectedCommit)) throw new Error("Installer build source mismatch");
-	const archive = new RegExp(`^release/install/${commit}/richview-(?:aarch64|x86_64)-(?:apple-darwin|unknown-linux-gnu)\\.tar\\.gz(?:\\.sha256)?$`);
-	if (!paths.includes("release/install/install.sh") || paths.length < 3 || paths.some(path => path !== "release/install/install.sh" && !archive.test(path))) throw new Error("Invalid installer output paths");
-	for (const path of paths.filter(path => path !== "release/install/install.sh")) {
+	// The Windows preview (ARC-67) adds its own archive and its PowerShell installer, always together.
+	const archive = new RegExp(`^release/install/${commit}/richview-(?:(?:aarch64|x86_64)-(?:apple-darwin|unknown-linux-gnu)|x86_64-pc-windows-msvc)\\.tar\\.gz(?:\\.sha256)?$`);
+	const installers = ["release/install/install.sh", "release/install/install.ps1"];
+	const windows = paths.some(path => path.includes("-pc-windows-msvc."));
+	if (!paths.includes(installers[0]) || paths.includes(installers[1]) !== windows || paths.length < 3 || paths.some(path => !installers.includes(path) && !archive.test(path))) throw new Error("Invalid installer output paths");
+	for (const path of paths.filter(path => !installers.includes(path))) {
 		const pair = path.endsWith(".sha256") ? path.slice(0, -7) : `${path}.sha256`;
 		if (!paths.includes(pair)) throw new Error("Unpaired installer archive/checksum");
 	}

@@ -280,6 +280,20 @@ pub fn worker_request(source: &str, options_json: &str) -> Result<String, JsValu
     if !pending.is_empty() {
         return Ok(serde_json::json!({"references":pending}).to_string());
     }
+    // With the style files in hand, the files they name: the company logos (STY-72).
+    let named: Vec<_> = WORKER_DOCUMENT
+        .with(|d| {
+            let document = d.borrow();
+            options
+                .report_folder
+                .as_ref()
+                .zip(document.as_ref())
+                .map(|(folder, parsed)| crate::style_files(parsed, folder, &options))
+        })
+        .unwrap_or_default();
+    if !named.is_empty() {
+        return Ok(serde_json::json!({"references":named}).to_string());
+    }
     let parsed = WORKER_DOCUMENT.with(|d| d.borrow_mut().take()).unwrap();
     let report = richview_core::document::render_document(parsed, &options)
         .map_err(|errors| js_error(serde_json::to_string(&errors).unwrap_or_default()))?;

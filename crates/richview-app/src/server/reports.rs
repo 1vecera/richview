@@ -627,8 +627,7 @@ pub async fn publish_api(
                         }),
                         html,
                         frontmatter,
-                        created_at: chrono::Utc::now()
-                            .to_rfc3339_opts(chrono::SecondsFormat::Millis, true),
+                        created_at: crate::time::Instant::now().millis(),
                         styles: request.styles,
                         data: request.data,
                         files: request.files,
@@ -1593,11 +1592,20 @@ pub(super) fn draw_share_card(
         .as_str()
         .unwrap_or_default()
         .to_owned();
-    richview_share::card_png(
+    let options = RenderOptions {
+        styles: report.styles.clone(),
+        report_folder: report.report_folder.clone(),
+        data: report.data.clone(),
+        ..Default::default()
+    };
+    let company = richview_core::report_company_brand(&report.frontmatter, &options);
+    let style = company.base.as_deref().unwrap_or(&style).to_owned();
+    richview_share::card_png_with_company(
         &text("title", 200).unwrap_or_else(|| report.slug.clone()),
         &text("author", 120).unwrap_or_default(),
         &style,
         charts,
+        (company.logo.is_some() || company.accent.is_some()).then_some(company),
     )
 }
 

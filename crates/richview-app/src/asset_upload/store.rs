@@ -253,22 +253,28 @@ fn stores_file(explicit: Option<&Path>) -> Result<PathBuf, AssetError> {
     {
         return Ok(path);
     }
-    xdg_dir("XDG_CONFIG_HOME", ".config")
+    xdg_dir("XDG_CONFIG_HOME", ".config", "APPDATA")
         .map(|dir| dir.join("richview/stores.yaml"))
         .ok_or_else(|| AssetError::invalid("Set RICHVIEW_STORES to the store profiles file"))
 }
 
 pub(super) fn journal_dir() -> Result<PathBuf, AssetError> {
-    xdg_dir("XDG_STATE_HOME", ".local/state")
+    xdg_dir("XDG_STATE_HOME", ".local/state", "LOCALAPPDATA")
         .map(|dir| dir.join("richview/uploads"))
         .ok_or_else(|| AssetError::invalid("Set XDG_STATE_HOME or HOME for the upload journal"))
 }
 
-fn xdg_dir(variable: &str, fallback: &str) -> Option<PathBuf> {
-    std::env::var_os(variable)
-        .map(PathBuf::from)
-        .filter(|dir| dir.is_absolute())
+/// `variable` when it is absolute, then `fallback` below `HOME`, then the folder the Windows
+/// variable `windows` names, where `HOME` is usually unset.
+fn xdg_dir(variable: &str, fallback: &str, windows: &str) -> Option<PathBuf> {
+    let absolute = |name: &str| {
+        std::env::var_os(name)
+            .map(PathBuf::from)
+            .filter(|dir| dir.is_absolute())
+    };
+    absolute(variable)
         .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(fallback)))
+        .or_else(|| absolute(windows))
 }
 
 /// Loads a named profile and resolves its credentials.
@@ -354,7 +360,10 @@ fn resolve_credentials(store: &str, source: &str) -> Result<Credentials, AssetEr
     let path = std::env::var_os("AWS_SHARED_CREDENTIALS_FILE")
         .map(PathBuf::from)
         .or_else(|| {
-            std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".aws/credentials"))
+            // The AWS tools keep it below `USERPROFILE` on Windows, where `HOME` is usually unset.
+            std::env::var_os("HOME")
+                .or_else(|| std::env::var_os("USERPROFILE"))
+                .map(|home| PathBuf::from(home).join(".aws/credentials"))
         })
         .ok_or_else(|| AssetError::invalid("Set AWS_SHARED_CREDENTIALS_FILE or HOME"))?;
     let text = std::fs::read_to_string(&path)

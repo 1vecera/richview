@@ -64,6 +64,7 @@
           "pub colors : Vec < ( String , usize ) >",
           "pub hidden : Vec < String >",
           "pub zoom : Option < [ f64 ; 2 ] >",
+          "# [ serde ( skip_serializing_if = \"Option::is_none\" ) ] pub zoom_y : Option < [ f64 ; 2 ] >",
           "# [ serde ( skip_serializing_if = \"std::ops::Not::not\" ) ] pub aside : bool",
           "pub fit : Option < Fit >",
           "pub derived : Vec < crate : : derived : : Derived >",

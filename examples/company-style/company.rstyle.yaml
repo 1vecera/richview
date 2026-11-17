@@ -3,6 +3,5 @@ company:
   name: Your Company Name Inc.
   color: "#0B6E69"
   base: air
-  # Logo display is being implemented; these paths are currently experimental.
   logo: logo.png
   logo-dark: logo-dark.png

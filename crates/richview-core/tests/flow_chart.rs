@@ -253,6 +253,62 @@ fn the_examples_draw_clean_in_every_style() {
     }
 }
 
+/// On a phone the cards that share a rank share the page's room, in every built-in style: the
+/// card with the most lines is the one that wraps wider. The main-path card once took its
+/// whole column's width, three lines, while the card beside it kept the narrowest, nine: now a
+/// card is three width steps wider only than a neighbour that takes at most a line more.
+#[test]
+fn cards_that_share_a_rank_share_its_width() {
+    for style in STYLES {
+        let report = render(&example(), &options(style)).unwrap();
+        let payload: Payload = serde_json::from_value(report.charts[0].clone()).unwrap();
+        let block = ChartBlock::from_value(&payload.block).unwrap();
+        let rows: Vec<Value> = richview_chart::layout::flow_table_rows(&payload.block).unwrap();
+        for width in (300..=440).step_by(10) {
+            let g = layout(
+                &block,
+                &rows,
+                &payload.theme,
+                &Options {
+                    width: f64::from(width),
+                    ..Options::default()
+                },
+            );
+            let card = |name: &str| {
+                let area = g
+                    .panels
+                    .iter()
+                    .flat_map(|p| &p.observations)
+                    .find(|o| o.readout.heading == name)
+                    .and_then(|o| o.area)
+                    .unwrap_or_else(|| panic!("no card {name}"));
+                let lines = g
+                    .panels
+                    .iter()
+                    .flat_map(|p| &p.items)
+                    .filter(|i| matches!(i, Item::Text(t) if t.bounds.inside(&area, 1.0)))
+                    .count();
+                (area, lines)
+            };
+            for (main, side) in [
+                ("Load the new files", "Wait and look again"),
+                ("Write the tables", "Run fails"),
+            ] {
+                let (a, b) = (card(main), card(side));
+                let (a, b) = if a.0.w >= b.0.w { (a, b) } else { (b, a) };
+                assert!(
+                    a.0.w - b.0.w < 48.0 || b.1 <= a.1 + 1,
+                    "{style} at {width}: '{main}' is {:.0} px wide in {} lines, '{side}' {:.0} px in {} lines",
+                    a.0.w,
+                    a.1,
+                    b.0.w,
+                    b.1
+                );
+            }
+        }
+    }
+}
+
 /// A flow drawn from data rows, as the every-block report writes it, in every built-in style at
 /// a phone's, a report's and a desktop's width: every step is a card a reader can read. It once
 /// drew as an empty strip with no check and no failure, at every width.

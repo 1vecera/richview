@@ -4,7 +4,7 @@ description: The native command for glibc Linux x64 and macOS arm64, or the brow
 styles: [scientific]
 ---
 
-RichView supports **Linux x64 with glibc 2.35 or newer and macOS arm64**. Windows and Intel Mac are not supported yet. You can try the [playground](https://richview.ai/playground) in your browser without installing anything.
+RichView supports **Linux x64 with glibc 2.35 or newer and macOS arm64**.<!-- windows-unsupported:start --> Windows and Intel Mac are not supported yet.<!-- windows-unsupported:end --><!-- windows-preview:start --> Windows x64 has a preview without PDF output or SQL data sources; its PowerShell command is on the [install page](https://richview.ai/install). Intel Mac is not supported yet.<!-- windows-preview:end --> You can try the [playground](https://richview.ai/playground) in your browser without installing anything.
 
 On Linux, reports with SQL data sources need kernel 6.2 or newer with Landlock ABI 3 enabled. Debian 12’s default 6.1 kernel and Ubuntu 22.04’s original 5.15 kernel are below this requirement; use a newer kernel for SQL. Reports without SQL need glibc 2.35 or newer and do not have this additional kernel requirement.
 

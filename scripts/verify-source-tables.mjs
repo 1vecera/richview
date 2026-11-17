@@ -11,6 +11,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { harness, watchErrors } from './browser-harness.mjs';
+import { figureDownload } from './chart-interaction-checks.mjs';
 import { reports, settle } from './report-runtime.mjs';
 
 const fence = value => `\n\`\`\`chart\n${JSON.stringify(value)}\n\`\`\`\n`;
@@ -94,7 +95,7 @@ const tableOf = figure => figure.locator('.rv-chart__table').evaluate(wrap => ({
 /** The figure's CSV download; a missing download reads as an empty file so its checks fail. */
 const download = async (page, figure) => {
   try {
-    const [file] = await Promise.all([page.waitForEvent('download', { timeout: 10_000 }), figure.locator('.rv-chart__action--csv').click()]);
+    const file = await figureDownload(page, figure, 'csv', { timeout: 10_000 });
     return { name: file.suggestedFilename(), text: readFileSync(await file.path(), 'utf8') };
   } catch (error) {
     failures.push(`${await figure.locator('.rv-chart__title').textContent()}: no CSV download (${error.message.split('\n')[0]})`);

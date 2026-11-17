@@ -737,7 +737,10 @@ def chart_quarterly_revenue(facts: Facts) -> ChartSpec:
         encoding={"x": "quarter", "y": "revenue_usd_bn", "color": "company"},
         axes={"x": {"label": "Quarter"}, "y": {"label": "Revenue, $bn"}},
         sources=["C015", "C110"],
-        population="Company documents reported by the press; neither company has a public S-1",
+        population=(
+            "Company documents reported by the press; as of the 2 October snapshot neither company had a public "
+            "S-1. Anthropic filed one on 26 October 2026 (C208) and amended it on 10 November (C209)"
+        ),
         window="2026 Q1 to 2026 Q2",
         notes=(
             "Anthropic's Q2 figure is preliminary. For FY2025 OpenAI booked $13.07bn (C009) "

@@ -208,7 +208,7 @@ test("collectPage stops reading charts once the tab has crashed", async () => {
 		touched.push(i);
 		throw new Error("locator.focus: Target crashed");
 	};
-	const figure = (i) => ({ scrollIntoViewIfNeeded: crash(i), locator: () => ({ focus: crash(i), click: crash(i), evaluate: crash(i), evaluateAll: crash(i) }) });
+	const figure = (i) => ({ scrollIntoViewIfNeeded: crash(i), locator: () => { const locator = { first: () => locator, isVisible: crash(i), focus: crash(i), click: crash(i), evaluate: crash(i), evaluateAll: crash(i) }; return locator; } });
 	const charts = [0, 1, 2].map((i) => ({ title: `C${i}`, marks: 1, visible: true }));
 	const page = {
 		locator: () => ({ count: async () => 3, nth: figure }),
@@ -246,7 +246,7 @@ function keyboardPage({ marks = 3, omit, untrusted, fail } = {}) {
 	const node = { querySelector: (selector) => selector === ".rv-chart__frame" ? frame : readout };
 	const figure = {
 		scrollIntoViewIfNeeded: async () => {},
-		locator: () => ({ focus: async () => {}, click: async () => {}, evaluate: async (fn) => fn(readout), evaluateAll: async () => ["Amount\t1.23"] }),
+		locator: () => { const locator = { first: () => locator, isVisible: async () => true, focus: async () => {}, click: async () => {}, evaluate: async (fn) => fn(readout), evaluateAll: async () => ["Amount\t1.23"] }; return locator; },
 		evaluateHandle: async (fn, arg) => {
 			const value = fn(node, arg);
 			handles++;

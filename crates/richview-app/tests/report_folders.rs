@@ -2,6 +2,40 @@
 use richview_app::resolver;
 use std::{fs, path::PathBuf, process::Command};
 struct Folder(PathBuf);
+
+#[test]
+fn report_folder_resolves_the_company_logo_into_the_exported_header() {
+    use base64::Engine;
+    let f = Folder::new();
+    let source = "---\nstyles: [company.rstyle.yaml]\n---\n\n# Company report\n";
+    let path = f.0.join("report.rmd");
+    fs::write(&path, source).unwrap();
+    fs::write(
+        f.0.join("company.rstyle.yaml"),
+        "company: {name: Example Co, logo: logo.bin}\n",
+    )
+    .unwrap();
+    fs::write(
+        f.0.join("logo.bin"),
+        base64::engine::general_purpose::STANDARD
+            .decode("iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEUlEQVR4nGMQERH5D8IMMAYAJtwE7SIJj3sAAAAASUVORK5CYII=")
+            .unwrap(),
+    )
+    .unwrap();
+    let (document, options) =
+        resolver::resolve_document_options_policy(source, &path, &[], false, false).unwrap();
+    let report = richview_core::document::render_document(document, &options).unwrap();
+    assert!(report.html.contains("class=\"rv-report__logo"));
+    assert!(report.html.contains("alt=\"Example Co\""));
+    assert!(report.html.contains("src=\"data:image/png;base64,"));
+    assert!(
+        report
+            .diagnostics
+            .iter()
+            .all(|d| !d.code.starts_with("style.logo-"))
+    );
+}
+
 impl Folder {
     fn new() -> Self {
         static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
@@ -613,6 +647,8 @@ fn generate_writes_the_draft_and_reports_every_finding_when_a_linked_file_is_mis
     assert!(!f.0.join("Rendered/missing.csv").exists());
 }
 
+// Needs a symlink, which Windows creates only with a privilege.
+#[cfg(unix)]
 #[test]
 fn asset_messages_name_the_reference_and_never_the_hosts_folder() {
     let f = Folder::new();
@@ -1043,6 +1079,18 @@ fn a_brand_font_named_by_the_reports_own_style_file_is_read_from_the_folder() {
             .is_some_and(|uri| uri.starts_with("data:font/woff2;base64,")),
         "the font file was not read"
     );
+    let (_, overridden) = resolver::resolve_document_options_policy(
+        source,
+        &path,
+        &["tokens:\n  accent: '#123456'\n".into()],
+        false,
+        false,
+    )
+    .unwrap();
+    assert!(
+        overridden.data.contains_key("brand.woff2"),
+        "a caller's colour override must not discard the report style's font"
+    );
 }
 
 #[test]
@@ -1152,6 +1200,8 @@ fn generate_without_an_embedded_runtime_fails_and_writes_no_report() {
     assert!(!folder.0.join("Rendered/report.html").exists());
 }
 
+// Needs a symlink, which Windows creates only with a privilege.
+#[cfg(unix)]
 #[test]
 fn folder_and_output_findings_name_no_place_on_this_machine() {
     // TYP-53: a finding on the report folder sits at `report_folder`, one on the output at

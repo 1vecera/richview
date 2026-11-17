@@ -52,5 +52,6 @@ encoding: { x: rps, y: p95_ms, color: region }
 
 - Hover, tap or focus a point to read its values; the point grows slightly.
 - Click a legend entry to toggle a group when the chart has several.
+- Zoom and pan on the x axis with brush, wheel, pinch, keys or double-click; Escape or reset returns to the full range.
 - Every observation stays in the readouts and the Table view even when its label is hidden.
 - Download PNG or CSV, or Expand the chart.

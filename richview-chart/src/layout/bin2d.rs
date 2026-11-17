@@ -1,11 +1,12 @@
 //! Two-dimensional bins: the plane cut into rectangles of equal width and height, each coloured by
-//! the number of observations inside it, with a key that decodes the colour. The cells are
-//! computed by RichView, so every count is derived and the note names the bins (FEA-CH-42).
+//! the number of observations inside it and printing that number, with a key that decodes the
+//! colour only when a cell cannot hold its count. The cells are computed by RichView, so every
+//! count is derived and the note names the bins (FEA-CH-42).
 //! Empty cells stay plain, so nothing is drawn where no observation is. All panels share the same
 //! bins and the same colour scale.
 
 use super::kit::{self, ValueSide, XAxis};
-use super::sample::{add_count_key, disclose_excluded, read_number, shade};
+use super::sample::{COUNT_ROOM, Count, count_in_cell, decode_counts, disclose_excluded, read_number, shade};
 use super::types::Facets;
 use super::{Ctx, Painted, Style};
 use crate::axis::Zero;
@@ -132,6 +133,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
     let x_extent = [ex[0], ex[bx]];
     let y_extent = [ey[0], ey[by]];
     let mut panels = Vec::new();
+    let mut counts: Vec<Count> = Vec::new();
     for (fi, ((name, _), outer)) in facets.iter().zip(&frames).enumerate() {
         if let Some(reason) = &failures[fi] {
             panels.push(super::failed_facet(ctx, *outer, plan.title_room, name, reason));
@@ -173,9 +175,14 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 let (bottom, upper) = (frame.y(ey[j]), frame.y(ey[j + 1]));
                 let rect = Rect::new(left, upper.min(bottom), right - left, (bottom - upper).abs());
                 let index = observations.len();
+                let fill = shade(&ramp, count, top);
+                let text = numbers::value(count as f64, &count_format);
+                counts.push(count_in_cell(ctx, [fi, index], &text, rect.center(), fill, |own| {
+                    own.w + 2.0 * COUNT_ROOM <= rect.w && own.h + 2.0 * COUNT_ROOM <= rect.h
+                }));
                 marks.push(Item::Rect {
                     rect,
-                    fill: Fill::solid(Style::rgba(shade(&ramp, count, top))),
+                    fill: Fill::solid(Style::rgba(fill)),
                     stroke: Some(Stroke::solid(surface, 0.5)),
                     radius: [0.0; 4],
                     role: Role::Mark,
@@ -201,7 +208,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                         ),
                         lines: vec![ReadoutLine {
                             name: "Observations".into(),
-                            value: numbers::value(count as f64, &count_format),
+                            value: text,
                             series: None,
                             names_series: false,
                             derived: true,
@@ -223,6 +230,6 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         super::count(total, "observation", "observations")
     );
     let mut painted = kit::finish(&plan, facets.len(), panels, None);
-    add_count_key(ctx, &mut painted, top, &count_format);
+    decode_counts(ctx, &mut painted, top, &count_format, counts);
     painted
 }

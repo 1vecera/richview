@@ -8,6 +8,7 @@ fn card(style: &str, lead: Lead) -> ShareCard {
         accent: None,
         rule: None,
         lead,
+        company: None,
     }
 }
 
@@ -255,4 +256,169 @@ fn card_png_leads_with_the_first_chart_and_falls_back_to_the_title() {
         with,
         card_png("Rates", "Daniel", "scientific", &report.charts).unwrap()
     );
+}
+
+fn company_logo() -> richview_core::CompanyBrand {
+    use std::collections::BTreeMap;
+    let mut style = richview_core::resolve_styles(&["air".into()], &mut Vec::new());
+    style.document["company"] = serde_json::json!({"name":"Example & Co", "logo":"logo.bin"});
+    let mut image = tiny_skia::Pixmap::new(2, 2).unwrap();
+    image.fill(tiny_skia::Color::from_rgba8(20, 20, 20, 255));
+    let png = image.encode_png().unwrap();
+    let data = BTreeMap::from([(
+        "logo.bin".to_owned(),
+        format!("data:application/octet-stream;base64,{}", base64(&png)),
+    )]);
+    let mut brand = richview_core::resolve_company_brand(&style, &data, &mut Vec::new());
+    brand.accent = None;
+    brand
+}
+
+#[test]
+fn company_mark_sits_above_the_title_and_preserves_the_card_frame() {
+    for style in STYLES {
+        for lead in [
+            Lead::None,
+            Lead::ChartSvg("<svg xmlns=\"http://www.w3.org/2000/svg\"/>".into()),
+        ] {
+            let mut card = card(style, lead);
+            let before = compose(&card);
+            let before_png = render(&card).unwrap();
+            let company = company_logo();
+            let (mark, height) = company_mark(Some(&company), look(style).dark).unwrap();
+            assert!(mark.contains("width=\"64\""), "{mark}");
+            assert!(mark.contains(if look(style).dark {
+                "y=\"80\""
+            } else {
+                "y=\"72\""
+            }));
+            assert_eq!(height, if look(style).dark { 80.0 } else { 64.0 });
+            assert_eq!(mark.contains("fill=\"#fff\""), look(style).dark);
+            card.company = Some(company);
+            let after = compose(&card);
+            assert!(after.contains(&mark));
+            assert!(before.contains(&byline_mark(
+                card.rule.unwrap_or(look(style).rule),
+                look(style).accent
+            )));
+            assert!(after.contains(&byline_mark(
+                card.rule.unwrap_or(look(style).rule),
+                look(style).accent
+            )));
+            let after_png = render(&card).unwrap();
+            assert_eq!(size(&after_png), (1200, 630));
+            assert!(
+                after_png != before_png,
+                "{style} logo must appear in the PNG"
+            );
+        }
+    }
+}
+
+#[test]
+fn share_card_refuses_a_forged_company_logo() {
+    let mut card = card("air", Lead::None);
+    let mut company = company_logo();
+    company.logo.as_mut().unwrap().bytes = b"<svg/>".to_vec();
+    card.company = Some(company);
+    assert!(render(&card).is_err());
+}
+
+#[test]
+fn wide_company_mark_fits_the_card_width_and_sets_title_clearance() {
+    let mut company = company_logo();
+    let logo = company.logo.as_mut().unwrap();
+    logo.width = 12;
+    logo.height = 1;
+    let (markup, height) = company_mark(Some(&company), false).unwrap();
+    assert!(markup.contains("x=\"64\" y=\"72\" width=\"300\" height=\"25\""));
+    assert_eq!(height, 25.0);
+}
+
+#[test]
+fn company_accent_colors_the_card_frame_even_without_a_logo() {
+    let mut card = card("brutalist", Lead::None);
+    let original = tiny_skia::Pixmap::decode_png(&render(&card).unwrap()).unwrap();
+    card.company = Some(richview_core::CompanyBrand {
+        accent: Some("#0b6e69".into()),
+        ..Default::default()
+    });
+    let branded = tiny_skia::Pixmap::decode_png(&render(&card).unwrap()).unwrap();
+    let pixel = ((28 * 1200 + 100) * 4) as usize;
+    assert_ne!(
+        &original.data()[pixel..pixel + 4],
+        &branded.data()[pixel..pixel + 4]
+    );
+    assert_eq!(&branded.data()[pixel..pixel + 4], &[11, 110, 105, 255]);
+}
+
+#[test]
+fn jpeg_and_webp_logos_are_decoded_into_the_share_image() {
+    for (bytes, mime) in [
+        (
+            include_bytes!("../tests/fixtures/company-logo.jpg").as_slice(),
+            "image/jpeg",
+        ),
+        (
+            include_bytes!("../tests/fixtures/company-logo.webp").as_slice(),
+            "image/webp",
+        ),
+    ] {
+        let checked = richview_core::validate_company_logo(bytes).unwrap();
+        assert_eq!(checked.mime, mime);
+        let mut card = card("air", Lead::None);
+        card.company = Some(richview_core::CompanyBrand {
+            logo: Some(richview_core::CompanyLogo {
+                bytes: bytes.to_vec(),
+                mime: checked.mime,
+                width: checked.width,
+                height: checked.height,
+            }),
+            ..Default::default()
+        });
+        let png = tiny_skia::Pixmap::decode_png(&render(&card).unwrap()).unwrap();
+        let pixel = ((104 * 1200 + 128) * 4) as usize;
+        let rgba = &png.data()[pixel..pixel + 4];
+        assert!(
+            u16::from(rgba[1]) > u16::from(rgba[0]) + 40
+                && u16::from(rgba[2]) > u16::from(rgba[0]) + 40
+                && rgba[3] == 255,
+            "{mime} logo was not drawn: {rgba:?}"
+        );
+    }
+}
+
+#[test]
+fn share_card_uses_the_dark_mark_without_a_plate_on_dark_paper() {
+    let mut company = company_logo();
+    let mut image = tiny_skia::Pixmap::new(3, 2).unwrap();
+    image.fill(tiny_skia::Color::from_rgba8(255, 255, 255, 255));
+    let bytes = image.encode_png().unwrap();
+    let checked = richview_core::validate_company_logo(&bytes).unwrap();
+    let dark = richview_core::CompanyLogo {
+        bytes,
+        mime: checked.mime,
+        width: checked.width,
+        height: checked.height,
+    };
+    let dark_uri = dark.data_uri();
+    let light_uri = company.logo.as_ref().unwrap().data_uri();
+    company.logo_dark = Some(dark);
+    let (on_dark, _) = company_mark(Some(&company), true).unwrap();
+    let (on_light, _) = company_mark(Some(&company), false).unwrap();
+    assert!(on_dark.contains(&dark_uri));
+    assert!(!on_dark.contains("fill=\"#fff\""));
+    assert!(on_light.contains(&light_uri));
+}
+
+#[test]
+fn company_mark_does_not_change_the_neutral_card() {
+    let mut card = card("air", Lead::None);
+    card.title.clear();
+    card.byline.clear();
+    let neutral = compose(&card);
+    let mut company = company_logo();
+    company.accent = Some("#0b6e69".into());
+    card.company = Some(company);
+    assert_eq!(compose(&card), neutral);
 }

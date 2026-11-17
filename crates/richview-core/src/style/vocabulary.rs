@@ -458,19 +458,19 @@ fn build() -> Vec<Leaf> {
     add(
         "company.name",
         Grammar::BrandName,
-        Mark::Experimental,
+        Mark::Safe,
         "The company name",
     );
     add(
         "company.logo",
         Grammar::BrandLogo,
-        Mark::Experimental,
+        Mark::Safe,
         "A report-relative raster logo",
     );
     add(
         "company.logo-dark",
         Grammar::BrandLogo,
-        Mark::Experimental,
+        Mark::Safe,
         "An optional logo for dark styles",
     );
     add(
@@ -721,18 +721,9 @@ impl Walk<'_> {
                 );
             } else {
                 if leaf.mark == Mark::Experimental && !self.builtin {
-                    let message = if matches!(
-                        full.as_str(),
-                        "company.name" | "company.logo" | "company.logo-dark"
-                    ) {
-                        format!(
-                            "'{full}' is experimental: company logo rendering is not implemented yet"
-                        )
-                    } else {
-                        format!(
-                            "'{full}' is experimental: it can break the layout in ways nobody expects"
-                        )
-                    };
+                    let message = format!(
+                        "'{full}' is experimental: it can break the layout in ways nobody expects"
+                    );
                     self.report("info", "style.experimental", message, &full);
                 }
                 self.keep(&full, value);

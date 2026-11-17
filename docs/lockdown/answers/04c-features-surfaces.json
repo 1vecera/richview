@@ -14,6 +14,12 @@
       "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel: 'the first one menu we will create… we do not care about live page because I didn't advertise the live page anywhere… We do not care about snippets… Right-click publish. One shortcut to publish should be one-click publish… CLI, MCP, report server and extension we have, so keep it on the webpage. RichView is open source and MIT licensed… immutable versions make sense to me… the style counts… Releases… you will get them. So this is good' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
       "proposedHash": "2d0841445f7f3d6a",
       "updatedAt": "2026-10-26T19:32:48.904Z"
+    },
+    "FEA-SF-66": {
+      "decision": "accept",
+      "note": "Dictated by Daniel in the review chat on 2026-11-16: \"Yeah, I'm fine with this.\" Recorded by the lockdown agent at his request.\n\nHe said it on 16 Nov 2026 at about 17:10 CET, about this card as it was proposed to him on 13 Nov 2026. The lead passed his words on and asked for them to be recorded.",
+      "proposedHash": "dca7883326c28ad8",
+      "updatedAt": "2026-11-16T16:20:28.800Z"
     }
   }
 }

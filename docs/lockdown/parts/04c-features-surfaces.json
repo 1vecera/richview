@@ -3554,6 +3554,41 @@
 			"conflicts": "FEA-SF-19 leaves the identity source, single sign-on and audit logging to the agents, and asks for the same protection hosted, in a container or self-hosted, so the matrix runs against each packaging. FEA-BR-25's roles (Reader, Editor, Super editor) and INT-06's basic set (reader, author, owner) are both superseded by FEA-SF-19's enterprise-grade roles; how #70's roles map onto them is open (FEA-BR-25). DEL-56 covers render sinks only. Hosted limits are open (INT-36)."
 		},
 		{
+			"id": "FEA-SF-66",
+			"kind": "feature",
+			"importance": "important",
+			"refId": "F-REPORT-HOST-BAR",
+			"component": "C-APP-HTTP-SERVER",
+			"group": "Publishing and the report host",
+			"title": "The reader's bar above a hosted report",
+			"question": "Does the report host put anything of its own around a report, and what may it say?",
+			"why": "A reader who opens a shared report cannot tell whose it is, who else can open it or where to find it again, and its author has no way from the report back to its page. Reports are served as stored (FEA-SF-14, ARC-21), so anything the host adds is new scope. A public report's response is cached for everyone (FEA-SF-14), so whatever the host adds to it is the same for every reader, and who may see which report follows FEA-SF-19 and OPN-54.",
+			"proposed": "*The report host shows one slim bar above a report and nothing else around it.* It is 44px tall, static at the top (it scrolls away and never covers or overlays the report), in the site's paper and ink, and has four states: the author's own report (its badge, \"Shared with N people\", a Share button back to its page); a report shared with the reader by name (\"Shared with you · by {owner} · {organization}\", \"Find it again under Shared with me\"); a report the reader's organization can open (\"From {organization} · every member can open it\", \"All reports\"); and a public link opened without signing in (\"Published with RichView · anyone with the link can open it\", \"Sign in\"), which names no person and no organization and is the one bar every reader of a public report gets, its author included, because that response is cached for everyone. The server inserts it at serve time like the preview tags, with every value escaped; the report's own HTML and its CSP stay as they are (its policy already allows inline styles). Mock-ups: `mockups/host-*.html`.",
+			"confidence": "stated",
+			"sources": [
+				{
+					"label": "The card as proposed to Daniel by the hosted pages stream, with the bar's first build on `dev` (commit 4769b7a4)",
+					"ref": "S27-1018",
+					"date": "2026-11-13"
+				},
+				{
+					"label": "The bar: its states, its escaping and where the server inserts it",
+					"ref": "crates/richview-app/src/server/host_bar.rs",
+					"date": "2026-11-16"
+				},
+				{
+					"label": "The bar's styles",
+					"ref": "crates/richview-app/src/server/host-bar.css",
+					"date": "2026-11-16"
+				},
+				{
+					"label": "FEA-SF-19 and OPN-54: who can open a report, and that lists and pages show each person only what is shared with them",
+					"ref": "docs/lockdown/answers/04c-features-surfaces.json (FEA-SF-19)",
+					"date": "2026-10-26"
+				}
+			]
+		},
+		{
 			"id": "FEA-SF-65",
 			"kind": "feature",
 			"importance": "important",

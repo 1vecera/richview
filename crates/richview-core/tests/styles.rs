@@ -530,15 +530,7 @@ fn brand_logo_paths_stay_inside_the_report_and_name_is_plain_text() {
     let (style, valid) = styled(&[
         "company:\n  name: 'Česká firma'\n  logo: 'assets/Logo.PNG'\n  logo-dark: 'assets/Logo Dark.webp'\n",
     ]);
-    assert_eq!(
-        valid.len(),
-        3,
-        "each not-yet-rendered logo field is disclosed"
-    );
-    assert!(
-        valid.iter().all(|d| d.code == "style.experimental"),
-        "{valid:?}"
-    );
+    assert!(valid.is_empty(), "{valid:?}");
     assert_eq!(style.document["company"]["name"], "Česká firma");
     assert_eq!(style.document["company"]["logo"], "assets/Logo.PNG");
     for logo in [
@@ -557,9 +549,8 @@ fn brand_logo_paths_stay_inside_the_report_and_name_is_plain_text() {
         );
     }
     let (_, path_only) = styled(&["company:\n  logo: 'assets/logo.svg'\n"]);
-    assert_eq!(path_only.len(), 1, "logo rendering is not implemented yet");
     assert!(
-        path_only.iter().all(|d| d.code == "style.experimental"),
+        path_only.is_empty(),
         "type is checked from bytes by the logo resolver: {path_only:?}"
     );
     let (_, invalid) = styled(&["company:\n  name: '  '\n"]);

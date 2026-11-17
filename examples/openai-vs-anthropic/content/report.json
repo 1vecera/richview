@@ -93,7 +93,7 @@
 					"type": "callout",
 					"kind": "hold",
 					"title": "How to read this report",
-					"body": "Every measure names its population and its window. Scraped samples describe the people in them, not the public. Revenue figures come mostly from documents seen by journalists, because neither company has a public, audited filing yet. Each claim links to a dated source.\n"
+					"body": "Every measure names its population and its window. Scraped samples describe the people in them, not the public. Revenue figures come mostly from documents seen by journalists, because as of the 2 October snapshot neither company had a public S-1. Anthropic filed one on 26 October 2026 and amended it on 10 November ([C208](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm), [C209](https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm)). Each claim links to a dated source.\n"
 				}
 			]
 		},
@@ -215,7 +215,7 @@
 				},
 				{
 					"type": "markdown",
-					"text": "*Sources: [C015](https://www.wsj.com/tech/ai/openais-second-quarter-sales-show-tepid-growth-compared-with-anthropic-5cb42998), [C110](https://www.cnbc.com/2026/08/15/anthropic-revenue-jumps-to-over-11point5-billion-in-q2-report.html). Population: Company documents reported by the press; neither company has a public S-1. Window: 2026 Q1 to 2026 Q2. Data: [`data/charts/quarterly-revenue.csv`](data/charts/quarterly-revenue.csv). Anthropic's Q2 figure is preliminary. For FY2025 OpenAI booked $13.07bn (C009) vs Anthropic ~$4.6bn (C093).*\n\nThe commercial lead is newer and less certain than the headlines suggest:\n\n- **Run-rate and revenue diverge.** Run-rate annualises a recent month. OpenAI says Anthropic's figure counts gross cloud-marketplace revenue, overstating it by about $8bn at the $30bn mark ([C161](https://www.theverge.com/ai-artificial-intelligence/911118/openai-memo-cro-ai-competition-anthropic)). On recognised revenue, OpenAI booked $13.07bn in 2025 against Anthropic's roughly $4.6bn ([C009](https://fortune.com/2026/06/16/openai-financials-leaked-losses-revenue-profit/), [C093](https://finance.yahoo.com/technology/ai/articles/exclusive-anthropics-ipo-prospectus-shows-231722972.html)).\n- **Anthropic's revenue is concentrated.** Two customers each provided 12% of 2025 revenue ([C094](https://www.channelnewsasia.com/business/exclusive-anthropic-ipo-prospectus-lays-bare-deep-dependence-big-tech-partners-6419771)), and cloud marketplaces carried 47% of sales ([C096](https://www.channelnewsasia.com/business/exclusive-anthropic-ipo-prospectus-lays-bare-deep-dependence-big-tech-partners-6419771))."
+					"text": "*Sources: [C015](https://www.wsj.com/tech/ai/openais-second-quarter-sales-show-tepid-growth-compared-with-anthropic-5cb42998), [C110](https://www.cnbc.com/2026/08/15/anthropic-revenue-jumps-to-over-11point5-billion-in-q2-report.html). Population: Company documents reported by the press; as of the 2 October snapshot neither company had a public S-1. Anthropic filed one on 26 October 2026 (C208) and amended it on 10 November (C209). Window: 2026 Q1 to 2026 Q2. Data: [`data/charts/quarterly-revenue.csv`](data/charts/quarterly-revenue.csv). Anthropic's Q2 figure is preliminary. For FY2025 OpenAI booked $13.07bn (C009) vs Anthropic ~$4.6bn (C093).*\n\nThe commercial lead is newer and less certain than the headlines suggest:\n\n- **Run-rate and revenue diverge.** Run-rate annualises a recent month. OpenAI says Anthropic's figure counts gross cloud-marketplace revenue, overstating it by about $8bn at the $30bn mark ([C161](https://www.theverge.com/ai-artificial-intelligence/911118/openai-memo-cro-ai-competition-anthropic)). On recognised revenue, OpenAI booked $13.07bn in 2025 against Anthropic's roughly $4.6bn ([C009](https://fortune.com/2026/06/16/openai-financials-leaked-losses-revenue-profit/), [C093](https://finance.yahoo.com/technology/ai/articles/exclusive-anthropics-ipo-prospectus-shows-231722972.html)).\n- **Anthropic's revenue is concentrated.** Two customers each provided 12% of 2025 revenue ([C094](https://www.channelnewsasia.com/business/exclusive-anthropic-ipo-prospectus-lays-bare-deep-dependence-big-tech-partners-6419771)), and cloud marketplaces carried 47% of sales ([C096](https://www.channelnewsasia.com/business/exclusive-anthropic-ipo-prospectus-lays-bare-deep-dependence-big-tech-partners-6419771))."
 				}
 			]
 		},
@@ -267,7 +267,7 @@
 			"blocks": [
 				{
 					"type": "markdown",
-					"text": "## Method and sources\n\n**Window.** January 2023, the first full month of the ChatGPT era, to September 2026. \"Recent\" means the twelve months to September 2026, compared with the twelve months before.\n\n**Labels.** No label comes from either lab's model by default. Qwen3-235B (Alibaba) labelled every sampled comment, and Devstral 2 (Mistral) relabelled every comment as a replication. On a shared subset of 589 comments, Claude Haiku 4.5 and OpenAI's gpt-oss-120b tested for self-preference: +0.02 and +0.05 on a −1 to +1 scale, so neither lab's model favours its maker by a material margin. Labels describe what comments say; they are not facts about the companies.\n\n**Limits.** No probability panel spans the whole period, and Anthropic publishes no user counts. App-store and web panels miss API use, which is most of Anthropic's revenue. Hacker News skews English-speaking, American and senior-technical. Ramp changed its method in May 2026, and Claude Code moved to a native installer.\n\n**Reproduce.** The source repository retains `examples/openai-vs-anthropic/research`, whose offline `verify_snapshot.py` rebuilds the committed report, data and ledger with socket connections forbidden; the [example README](README.md) documents the optional refresh. [Collection runs, costs and run ids](ledger/collection-runs.csv) remain public.\n\nEvery bracketed id links to its source; the complete ledger of 643 dated entries is [available as CSV](ledger/sources.csv). This is the fixed 2 October 2026 research snapshot; presentation updates do not refresh its evidence."
+					"text": "## Method and sources\n\n**Window.** January 2023, the first full month of the ChatGPT era, to September 2026. \"Recent\" means the twelve months to September 2026, compared with the twelve months before.\n\n**Labels.** No label comes from either lab's model by default. Qwen3-235B (Alibaba) labelled every sampled comment, and Devstral 2 (Mistral) relabelled every comment as a replication. On a shared subset of 589 comments, Claude Haiku 4.5 and OpenAI's gpt-oss-120b tested for self-preference: +0.02 and +0.05 on a −1 to +1 scale, so neither lab's model favours its maker by a material margin. Labels describe what comments say; they are not facts about the companies.\n\n**Limits.** No probability panel spans the whole period, and Anthropic publishes no user counts. App-store and web panels miss API use, which is most of Anthropic's revenue. Hacker News skews English-speaking, American and senior-technical. Ramp changed its method in May 2026, and Claude Code moved to a native installer.\n\n**Reproduce.** The source repository retains `examples/openai-vs-anthropic/research`, whose offline `verify_snapshot.py` rebuilds the committed report, data and ledger with socket connections forbidden; the [example README](README.md) documents the optional refresh. [Collection runs, costs and run ids](ledger/collection-runs.csv) remain public.\n\nEvery bracketed id links to its source; the complete ledger of 645 dated entries is [available as CSV](ledger/sources.csv). This is the fixed 2 October 2026 research snapshot; presentation updates do not refresh its evidence."
 				},
 				{
 					"type": "table",
@@ -428,6 +428,18 @@
 								"source": "Ramp: Ramp AI Index business adoption share (latest)",
 								"date": "2026-09-09",
 								"link": "https://ramp.com/data/ai-index-sept-2026"
+							},
+							{
+								"id": "C208",
+								"source": "Anthropic, PBC (SEC EDGAR): Form S-1 registration statement (SEC accession 0001628280-26-067168)",
+								"date": "2026-10-26",
+								"link": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm"
+							},
+							{
+								"id": "C209",
+								"source": "Anthropic, PBC (SEC EDGAR): Form S-1/A, Amendment No. 2 (SEC accession 0001628280-26-072484)",
+								"date": "2026-11-10",
+								"link": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm"
 							},
 							{
 								"id": "D-ARENA",

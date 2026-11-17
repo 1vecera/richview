@@ -327,7 +327,7 @@ pub(super) fn annotate(
 
 fn is_stale(snapshot: &DatasetSnapshot) -> Result<bool, ConnectorError> {
     let captured = parse_rfc3339(&snapshot.provenance.fetched_at).ok_or_else(invalid_snapshot)?;
-    let now = chrono::Utc::now();
+    let now = crate::time::Instant::now();
     if captured > now {
         return Ok(true);
     }
@@ -336,7 +336,7 @@ fn is_stale(snapshot: &DatasetSnapshot) -> Result<bool, ConnectorError> {
     };
     if record
         .ttl_seconds
-        .is_some_and(|ttl| now.signed_duration_since(captured).num_seconds() as u64 >= ttl)
+        .is_some_and(|ttl| now.seconds_since(captured) as u64 >= ttl)
     {
         return Ok(true);
     }
@@ -346,8 +346,8 @@ fn is_stale(snapshot: &DatasetSnapshot) -> Result<bool, ConnectorError> {
     Ok(false)
 }
 
-fn parse_rfc3339(input: &str) -> Option<chrono::DateTime<chrono::FixedOffset>> {
-    chrono::DateTime::parse_from_rfc3339(input).ok()
+fn parse_rfc3339(input: &str) -> Option<crate::time::Instant> {
+    crate::time::parse_rfc3339(input).map(|parsed| parsed.instant)
 }
 
 #[cfg(test)]
@@ -357,7 +357,7 @@ mod tests {
     #[test]
     fn rfc3339_round_trips_a_known_instant() {
         let unix = parse_rfc3339("2024-01-02T03:04:05Z").unwrap();
-        assert_eq!(unix.timestamp(), 1_704_164_645);
+        assert_eq!(unix.unix_seconds(), 1_704_164_645);
         for same_instant in ["2024-01-02T05:04:05+02:00", "2024-01-01T22:04:05-05:00"] {
             assert_eq!(parse_rfc3339(same_instant), Some(unix));
         }

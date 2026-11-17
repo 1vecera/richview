@@ -37,6 +37,17 @@ body {
 @media screen {
   .rv-report__header > .rv-image > img { width: max(100%, var(--rv-column-w)); max-width: none; margin-inline: calc((100% - max(100%, var(--rv-column-w))) / 2); }
 }
+.rv-report__logo { margin: 0 0 calc(var(--rv-line) * .75); line-height: 0; break-after: avoid; }
+.rv-report__logo img { display: block; max-width: 100%; object-fit: contain; }
+.rv-report__logo .rv-report__logo-dark, .rv-report__logo--dark.rv-report__logo--has-dark .rv-report__logo-light { display: none; }
+.rv-report__logo--dark.rv-report__logo--has-dark .rv-report__logo-dark { display: block; }
+/* The plate's colour is the brand's, written with the logo's sizes (company_brand.rs): this file names no colour. */
+.rv-report__logo--plate { display: inline-block; padding: .375rem .625rem; }
+@media print {
+  .rv-report__logo--dark.rv-report__logo--has-dark .rv-report__logo-dark { display: none; }
+  .rv-report__logo--dark.rv-report__logo--has-dark .rv-report__logo-light { display: block; }
+  .rv-report__logo--plate { display: block; background: transparent; padding: 0; }
+}
 .rv-report__title {
   font-family: var(--rv-font-display, var(--rv-font-text));
   font-size: var(--rv-size-display);

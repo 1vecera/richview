@@ -91,6 +91,36 @@ pub fn tooltip_beside(
     )
 }
 
+/// The chart types that zoom along x (FEA-CH-49): those drawn over a continuous or ordered x
+/// axis whose marks keep their meaning and the chart its shape in a window. The binned types
+/// (histogram, 2D bins, hexbin) stay whole: their bins are the data, and a window would stretch
+/// or split them. A contour and a dot plot draw x and y to one scale, so a window along x
+/// changes the chart's shape under the reader's fingers; they wait for a zoom along both axes.
+pub const ZOOMS_ALONG_X: [&str; 10] = [
+    "line",
+    "area",
+    "scatter",
+    "band",
+    "density",
+    "ecdf",
+    "gantt",
+    "qq",
+    "streamgraph",
+    "vector",
+];
+
+/// Whether a chart of type `kind` laid out as `geometry` zooms (FEA-CH-49): one of
+/// [`ZOOMS_ALONG_X`] whose layout gives an x axis to zoom along, or any chart whose layout gives
+/// a second axis, as a map does. Core reserves Reset zoom's place by it and the runtime zooms
+/// by it, so the page does not move when the runtime starts.
+pub fn zooms(kind: &str, geometry: &crate::geometry::Geometry) -> bool {
+    geometry
+        .panels
+        .first()
+        .and_then(|p| p.x.as_ref())
+        .is_some_and(|x| x.y.is_some() || ZOOMS_ALONG_X.contains(&kind))
+}
+
 /// The chart actions in their order, as `(kind, label)` (FEA-CH-43). Reset zoom joins only while
 /// the chart is zoomed.
 pub const ACTIONS: [(&str, &str); 4] = [

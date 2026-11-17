@@ -41,7 +41,7 @@ import { GOLDEN_LIST } from "./golden.mjs";
 import { launchBrowser } from "./lib/browser-launch.mjs";
 import { builtinStyles } from "./lib/captures.mjs";
 import { SKIP_COPY } from "./lib/connectors.mjs";
-import { displayedReadout } from "../../scripts/chart-interaction-checks.mjs";
+import { displayedReadout, figureDownload } from "../../scripts/chart-interaction-checks.mjs";
 
 export const WIDTHS = [390, 1440];
 export const FIXTURE = "tools/rv-gate/fixtures/cross-style";
@@ -436,7 +436,7 @@ export async function tableView(figure, timeout = 5000) {
 /** Click the CSV download and read the file. */
 async function csvDownload(page, figure, timeout = 5000) {
 	try {
-		const [download] = await Promise.all([page.waitForEvent("download", { timeout: timeout + 3000 }), figure.locator(".rv-chart__action--csv").click({ timeout })]);
+		const download = await figureDownload(page, figure, "csv", { timeout: timeout + 3000 });
 		const { readFileSync: read } = await import("node:fs");
 		return { text: read(await download.path(), "utf8"), name: download.suggestedFilename() };
 	} catch (error) {

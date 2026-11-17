@@ -64,6 +64,7 @@ impl Rule {
 
 pub(crate) struct Look {
     pub(crate) bg: &'static str,
+    pub(crate) dark: bool,
     pub(crate) ink: &'static str,
     pub(crate) muted: &'static str,
     pub(crate) line: &'static str,
@@ -83,6 +84,7 @@ pub(crate) struct Look {
 
 const SLEEK: Look = Look {
     bg: "#0d1017",
+    dark: true,
     ink: "#eef0f4",
     muted: "#9aa1ad",
     line: "#2a303b",
@@ -97,6 +99,7 @@ const SLEEK: Look = Look {
 };
 const AIR: Look = Look {
     bg: "#ffffff",
+    dark: false,
     ink: "#000000",
     muted: "#4f5868",
     line: "#d7dbe8",
@@ -111,6 +114,7 @@ const AIR: Look = Look {
 };
 const SCIENTIFIC: Look = Look {
     bg: "#fcfaf6",
+    dark: false,
     ink: "#1d1b18",
     muted: "#625f58",
     line: "#d9d6ce",
@@ -125,6 +129,7 @@ const SCIENTIFIC: Look = Look {
 };
 const BRUTALIST: Look = Look {
     bg: "#faf8f4",
+    dark: false,
     ink: "#141210",
     muted: "#55514b",
     line: "#141210",
@@ -139,6 +144,7 @@ const BRUTALIST: Look = Look {
 };
 const HAND_DRAWN: Look = Look {
     bg: "#fbf6e9",
+    dark: false,
     ink: "#24221d",
     muted: "#5f5a4c",
     line: "#d9d1bb",

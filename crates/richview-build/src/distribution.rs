@@ -23,9 +23,69 @@ pub fn release_enabled(root: &Path) -> Result<bool> {
         .ok_or_else(|| "install release must say whether it is enabled".into())
 }
 
+/// Whether the published release carries the Windows preview's archive and installer (ARC-67).
+/// Daniel switches it on with the release that has them; until then the install guide does not
+/// show a command that would find nothing.
+pub fn windows_preview(root: &Path) -> Result<bool> {
+    let value: Value =
+        serde_json::from_slice(&regular(&root.join("assets/install/release.json"))?)?;
+    match &value["windows"] {
+        Value::Null => Ok(false),
+        Value::Bool(on) => Ok(*on),
+        _ => Err("install release must say `windows` as true or false".into()),
+    }
+}
+
+/// Text shown only while the release carries the Windows preview: its install section, and
+/// sentences that name it.
+const WINDOWS_PREVIEW: &str = "windows-preview";
+/// Text shown only while it does not, such as "Windows is not supported yet".
+const WINDOWS_UNSUPPORTED: &str = "windows-unsupported";
+
+/// A page's Windows text for this release: the preview's spans when the release carries the
+/// Windows archive, the "not supported" spans when it does not. The install guide and the
+/// documentation both pass through it, so the two always say the same.
+pub(crate) fn windows_text(page: &str, preview: bool) -> Result<String> {
+    let page = marked(page, WINDOWS_PREVIEW, preview)?;
+    marked(&page, WINDOWS_UNSUPPORTED, !preview)
+}
+
+/// Every `<!-- name:start -->…<!-- name:end -->` span, kept without its markers or dropped
+/// with the indentation before it and the line break after it.
+fn marked(page: &str, name: &str, keep: bool) -> Result<String> {
+    let (open, close) = (
+        format!("<!-- {name}:start -->"),
+        format!("<!-- {name}:end -->"),
+    );
+    let mut text = page.to_owned();
+    while let Some(start) = text.find(&open) {
+        let end = start
+            + text[start..]
+                .find(&close)
+                .ok_or_else(|| format!("a {name} section is never closed"))?;
+        let (before, after) = (&text[..start], &text[end + close.len()..]);
+        text = if keep {
+            format!("{before}{}{after}", &text[start + open.len()..end])
+        } else {
+            format!(
+                "{}{}",
+                before.trim_end_matches([' ', '\t']),
+                after.trim_start_matches('\n')
+            )
+        };
+    }
+    if text.contains(&close) {
+        return Err(format!("a {name} section is closed before it opens").into());
+    }
+    Ok(text)
+}
+
 /// Stages the install guide; release assets are distributed through GitHub.
 pub fn stage_site(root: &Path, public: &Path) -> Result<()> {
-    let template = fs::read_to_string(root.join("assets/install/index.html"))?;
+    let template = windows_text(
+        &fs::read_to_string(root.join("assets/install/index.html"))?,
+        windows_preview(root)?,
+    )?;
     fs::write(
         public.join("install.html"),
         crate::chrome::apply(&crate::chrome::apply_styles(&template)),
@@ -50,26 +110,66 @@ pub fn platform() -> Result<String> {
     Ok(platform)
 }
 
+/// The preview target (ARC-67). Its binaries are cross-built, so its archive is packed on another host.
+pub const WINDOWS: &str = "x86_64-pc-windows-msvc";
+
+/// The suffix of `platform`'s executables, and the extension of the installer its archive carries.
+fn layout(platform: &str) -> (&'static str, &'static str) {
+    if platform == WINDOWS {
+        (".exe", "ps1")
+    } else {
+        ("", "sh")
+    }
+}
+
 /// Packages an existing clean full build from the exact native bytes its manifest hashes.
-pub fn existing(root: &Path, manifest: &Path, native: &Path, output: &Path) -> Result<()> {
+///
+/// With `cross`, packages the binaries in `native` that were cross-built for that target. The
+/// manifest hashes only the host's binaries, so these are tied to its commit by the short commit
+/// the CLI embeds for `--version`, and both must be Windows executables.
+pub fn existing(
+    root: &Path,
+    manifest: &Path,
+    native: &Path,
+    output: &Path,
+    cross: Option<&str>,
+) -> Result<()> {
     let record: Value = serde_json::from_slice(&fs::read(manifest)?)?;
     if record["schema"] != 1 || record["mode"] != "full" {
         return Err("install archive needs a full schema-1 build manifest".into());
     }
-    commit(&record["inputs"])?;
+    let build = commit(&record["inputs"])?;
+    let platform = match cross {
+        None => platform()?,
+        Some(WINDOWS) => WINDOWS.to_owned(),
+        Some(other) => return Err(format!("no cross-built install archive for {other}").into()),
+    };
     let mut files = BTreeMap::new();
     for name in ["richview", "richview-sql-worker"] {
-        let source = native.join(name);
-        let bytes = regular(&source)?;
-        let expected = &record["outputs"][format!("target:release/{name}")];
-        if expected["bytes"].as_u64() != Some(bytes.len() as u64)
-            || expected["sha256"].as_str() != Some(hash(&bytes).as_str())
-        {
-            return Err(
-                format!("install archive input differs from build manifest: {name}").into(),
-            );
+        let file = format!("{name}{}", layout(&platform).0);
+        let bytes = regular(&native.join(&file))?;
+        if cross.is_some() {
+            // Every Windows executable starts with these two bytes.
+            let short = &build.as_bytes()[..10];
+            if !bytes.starts_with(b"MZ")
+                || (name == "richview" && !bytes.windows(short.len()).any(|at| at == short))
+            {
+                return Err(format!(
+                    "install archive input is not a {platform} build of {build}: {file}"
+                )
+                .into());
+            }
+        } else {
+            let expected = &record["outputs"][format!("target:release/{name}")];
+            if expected["bytes"].as_u64() != Some(bytes.len() as u64)
+                || expected["sha256"].as_str() != Some(hash(&bytes).as_str())
+            {
+                return Err(
+                    format!("install archive input differs from build manifest: {name}").into(),
+                );
+            }
         }
-        files.insert(format!("bin/{name}"), bytes);
+        files.insert(format!("bin/{file}"), bytes);
     }
     let parent = output
         .parent()
@@ -90,7 +190,7 @@ pub fn existing(root: &Path, manifest: &Path, native: &Path, output: &Path) -> R
         );
     }
     fs::create_dir(&destination)?;
-    let result = write_archive(root, files, &destination, &record["inputs"]);
+    let result = write_archive(root, files, &destination, &record["inputs"], &platform);
     if result.is_err() {
         fs::remove_dir_all(&destination)?;
     }
@@ -148,7 +248,7 @@ pub fn stage(root: &Path, native: &Path, output: &Path, inputs: &Value) -> Resul
     for name in ["richview", "richview-sql-worker"] {
         files.insert(format!("bin/{name}"), regular(&native.join(name))?);
     }
-    write_archive(root, files, output, inputs)
+    write_archive(root, files, output, inputs, &platform()?)
 }
 
 fn write_archive(
@@ -156,9 +256,11 @@ fn write_archive(
     mut files: BTreeMap<String, Vec<u8>>,
     output: &Path,
     inputs: &Value,
+    platform: &str,
 ) -> Result<()> {
     let commit = commit(inputs)?;
-    let platform = platform()?;
+    let installer = format!("install.{}", layout(platform).1);
+    let uninstaller = format!("un{installer}");
     files.insert("notices/LICENSE".into(), regular(&root.join("LICENSE"))?);
     files.insert(
         "notices/THIRD-PARTY-NOTICES.txt".into(),
@@ -175,8 +277,8 @@ fn write_archive(
         &mut files,
     )?;
     files.insert(
-        "uninstall.sh".into(),
-        regular(&root.join("scripts/install.sh"))?,
+        uninstaller.clone(),
+        regular(&root.join("scripts").join(&installer))?,
     );
     files.insert(
         "BUILD".into(),
@@ -268,7 +370,7 @@ fn write_archive(
             work.join("checksum"),
             destination.join(format!("{}.sha256", name.to_string_lossy())),
         )?;
-        fs::write(output.join("install.sh"), &files["uninstall.sh"])?;
+        fs::write(output.join(&installer), &files[&uninstaller])?;
         Ok(())
     })();
     fs::remove_dir_all(&work)?;
@@ -312,6 +414,7 @@ mod tests {
                 "scripts/install.sh",
                 "#!/bin/sh\n# https://github.com/1vecera/richview/releases/latest/download\nexit 0\n",
             ),
+            ("scripts/install.ps1", "# PowerShell installer\n"),
         ] {
             fs::write(folder.path().join(path), bytes).unwrap();
         }
@@ -354,6 +457,40 @@ mod tests {
         for name in ["install.sh", "install-release.json", "downloads"] {
             assert!(!root.join("web").join(name).exists());
         }
+    }
+
+    #[test]
+    fn install_page_names_windows_only_when_the_release_carries_its_archive() {
+        let folder = fixture();
+        let root = folder.path();
+        fs::create_dir_all(root.join("assets/install")).unwrap();
+        fs::create_dir(root.join("web")).unwrap();
+        fs::write(
+            root.join("assets/install/index.html"),
+            "<!-- rv-site-header -->curl\n  <!-- windows-preview:start -->\n  <section>install.ps1</section>\n  <!-- windows-preview:end -->\n  after<!-- rv-site-footer -->",
+        )
+        .unwrap();
+        let page = |release: Value| {
+            fs::write(
+                root.join("assets/install/release.json"),
+                release.to_string(),
+            )
+            .unwrap();
+            stage_site(root, &root.join("web"))
+                .map(|()| fs::read_to_string(root.join("web/install.html")).unwrap())
+        };
+        // A release file that does not mention Windows is one without the preview.
+        for off in [
+            json!({"enabled": true}),
+            json!({"enabled": true, "windows": false}),
+        ] {
+            let page = page(off).unwrap();
+            assert!(!page.contains("install.ps1") && !page.contains("windows-preview"));
+            assert!(page.contains("curl\n  after"), "{page}");
+        }
+        let on = page(json!({"enabled": true, "windows": true})).unwrap();
+        assert!(on.contains("<section>install.ps1</section>") && !on.contains("windows-preview"));
+        assert!(page(json!({"enabled": true, "windows": "yes"})).is_err());
     }
 
     #[test]
@@ -495,10 +632,26 @@ mod tests {
         }});
         fs::write(&manifest, record.to_string()).unwrap();
         let refused = root.join("native/install");
-        assert!(existing(root, &manifest, &root.join("native"), &refused).is_err());
+        assert!(existing(root, &manifest, &root.join("native"), &refused, None).is_err());
         assert!(!refused.exists());
-        existing(root, &manifest, &root.join("native"), &root.join("out")).unwrap();
-        assert!(existing(root, &manifest, &root.join("native"), &root.join("out")).is_err());
+        existing(
+            root,
+            &manifest,
+            &root.join("native"),
+            &root.join("out"),
+            None,
+        )
+        .unwrap();
+        assert!(
+            existing(
+                root,
+                &manifest,
+                &root.join("native"),
+                &root.join("out"),
+                None
+            )
+            .is_err()
+        );
         let archive = root
             .join("out")
             .join("1".repeat(40))
@@ -506,15 +659,30 @@ mod tests {
         let before = fs::read(&archive).unwrap();
         fs::write(root.join("native/richview-sql-worker"), b"changedworker").unwrap();
         assert!(
-            existing(root, &manifest, &root.join("native"), &root.join("changed"))
-                .unwrap_err()
-                .to_string()
-                .contains("differs from build manifest")
+            existing(
+                root,
+                &manifest,
+                &root.join("native"),
+                &root.join("changed"),
+                None
+            )
+            .unwrap_err()
+            .to_string()
+            .contains("differs from build manifest")
         );
         assert!(!root.join("changed").exists());
         assert_eq!(fs::read(&archive).unwrap(), before);
         fs::remove_file(root.join("native/richview-sql-worker")).unwrap();
-        assert!(existing(root, &manifest, &root.join("native"), &root.join("missing")).is_err());
+        assert!(
+            existing(
+                root,
+                &manifest,
+                &root.join("native"),
+                &root.join("missing"),
+                None
+            )
+            .is_err()
+        );
         #[cfg(unix)]
         {
             std::os::unix::fs::symlink(
@@ -523,10 +691,16 @@ mod tests {
             )
             .unwrap();
             assert!(
-                existing(root, &manifest, &root.join("native"), &root.join("linked"))
-                    .unwrap_err()
-                    .to_string()
-                    .contains("not a regular file")
+                existing(
+                    root,
+                    &manifest,
+                    &root.join("native"),
+                    &root.join("linked"),
+                    None
+                )
+                .unwrap_err()
+                .to_string()
+                .contains("not a regular file")
             );
             fs::remove_file(root.join("native/richview-sql-worker")).unwrap();
         }
@@ -535,11 +709,108 @@ mod tests {
         dirty["inputs"]["dirty"] = json!(true);
         fs::write(&manifest, dirty.to_string()).unwrap();
         assert!(
-            existing(root, &manifest, &root.join("native"), &root.join("dirty"))
-                .unwrap_err()
-                .to_string()
-                .contains("clean, committed build")
+            existing(
+                root,
+                &manifest,
+                &root.join("native"),
+                &root.join("dirty"),
+                None
+            )
+            .unwrap_err()
+            .to_string()
+            .contains("clean, committed build")
         );
         assert_eq!(fs::read(&archive).unwrap(), before);
+    }
+
+    #[test]
+    fn cross_built_windows_archive_carries_exe_names_and_the_powershell_installer() {
+        let folder = fixture();
+        let root = folder.path();
+        let manifest = root.join("native/manifest.json");
+        let record = json!({"schema":1,"mode":"full","inputs":inputs(),"outputs":{}});
+        fs::write(&manifest, record.to_string()).unwrap();
+        let cross = root.join("windows");
+        fs::create_dir(&cross).unwrap();
+        fs::write(cross.join("richview.exe"), b"MZ CLI of commit 1111111111").unwrap();
+        fs::write(cross.join("richview-sql-worker.exe"), b"MZ worker").unwrap();
+        existing(root, &manifest, &cross, &root.join("out"), Some(WINDOWS)).unwrap();
+        let name = "richview-x86_64-pc-windows-msvc.tar.gz";
+        let archive = root.join("out").join("1".repeat(40)).join(name);
+        assert_eq!(
+            fs::read_to_string(archive.with_file_name(format!("{name}.sha256"))).unwrap(),
+            format!("{}  {name}\n", hash(&fs::read(&archive).unwrap()))
+        );
+        fs::create_dir(root.join("read")).unwrap();
+        assert!(
+            Command::new("tar")
+                .arg("-xzf")
+                .arg(archive)
+                .arg("-C")
+                .arg(root.join("read"))
+                .status()
+                .unwrap()
+                .success()
+        );
+        let build = format!(
+            "commit={}\nplatform=x86_64-pc-windows-msvc\n",
+            "1".repeat(40)
+        );
+        for (path, expected) in [
+            ("bin/richview.exe", "MZ CLI of commit 1111111111"),
+            ("bin/richview-sql-worker.exe", "MZ worker"),
+            ("uninstall.ps1", "# PowerShell installer\n"),
+            ("notices/LICENSE", "MIT notice"),
+            ("BUILD", build.as_str()),
+        ] {
+            assert_eq!(
+                fs::read_to_string(root.join("read").join(path)).unwrap(),
+                expected
+            );
+        }
+        assert_eq!(
+            fs::read_to_string(root.join("out/install.ps1")).unwrap(),
+            "# PowerShell installer\n"
+        );
+        for absent in ["read/uninstall.sh", "read/bin/richview", "out/install.sh"] {
+            assert!(!root.join(absent).exists(), "{absent}");
+        }
+        let sums = fs::read_to_string(root.join("read/SHA256SUMS")).unwrap();
+        assert!(sums.contains("  bin/richview.exe\n") && sums.contains("  uninstall.ps1\n"));
+        // Binaries of another commit, the host's own binaries and another target are refused.
+        for (cli, worker, target, message) in [
+            (
+                &b"MZ CLI of commit 2222222222"[..],
+                &b"MZ worker"[..],
+                WINDOWS,
+                "is not a x86_64-pc-windows-msvc build of 1111",
+            ),
+            (
+                b"\x7fELF CLI of commit 1111111111",
+                b"MZ worker",
+                WINDOWS,
+                "is not a x86_64-pc-windows-msvc build of 1111",
+            ),
+            (
+                b"MZ CLI of commit 1111111111",
+                b"\x7fELF worker",
+                WINDOWS,
+                "richview-sql-worker.exe",
+            ),
+            (
+                b"MZ CLI of commit 1111111111",
+                b"MZ worker",
+                "aarch64-pc-windows-msvc",
+                "no cross-built install archive for aarch64-pc-windows-msvc",
+            ),
+        ] {
+            fs::write(cross.join("richview.exe"), cli).unwrap();
+            fs::write(cross.join("richview-sql-worker.exe"), worker).unwrap();
+            let error = existing(root, &manifest, &cross, &root.join("refused"), Some(target))
+                .unwrap_err()
+                .to_string();
+            assert!(error.contains(message), "{error}");
+            assert!(!root.join("refused").exists());
+        }
     }
 }

@@ -9,7 +9,7 @@ Continue from [your first report](https://richview.ai/docs/first-report). HTML a
 ## Share interactive HTML
 
 ```sh
-richview generate first-report/report.rmd --format json
+richview generate first-report/report.rmd
 ```
 
 Open `first-report/Rendered/report.html`. Native export embeds the runtime, styles, licensed fonts, data and local media. It also copies linked local files under `Rendered/`. Share that entire folder when the report offers document downloads. Keep the original `.rmd`, styles and inputs if someone needs to edit the report.
@@ -21,11 +21,11 @@ Credited Unsplash photos are hotlinks: the HTML carries their URL, reserved box,
 Install a local Chromium, Google Chrome or Microsoft Edge first. RichView does not download a browser. Then run:
 
 ```sh
-richview generate first-report/report.rmd --to pdf --format json
-richview generate first-report/report.rmd -o review.pdf --page letter --format json
+richview generate first-report/report.rmd --to pdf
+richview generate first-report/report.rmd -o review.pdf --page letter
 ```
 
-The files are `first-report/Rendered/report.pdf` and `review.pdf`. A4 is the default; the second example selects Letter. A `.pdf` output filename also selects PDF output. The JSON result includes the path, byte and page counts, browser version, settled-state information and diagnostics.
+The files are `first-report/Rendered/report.pdf` and `review.pdf`. A4 is the default; the second example selects Letter. A `.pdf` output filename also selects PDF output. The result line names the file, its page and byte counts and the browser that printed it; with `--format json` the result also carries the browser version, settled-state information and diagnostics.
 
 Use `--browser` with an executable path, or set `RICHVIEW_BROWSER`, to choose a browser explicitly. Otherwise RichView checks the usual executable names and macOS application bundles. Chrome 131 or later supplies running titles and page numbers. PDF generation supports Linux and macOS; Windows and hosted PDF generation are not provided.
 

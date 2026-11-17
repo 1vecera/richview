@@ -10,6 +10,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { harness, watchErrors } from './browser-harness.mjs';
+import { figureDownload } from './chart-interaction-checks.mjs';
 import { reports, settle } from './report-runtime.mjs';
 
 const fence = value => `\n\`\`\`chart\n${JSON.stringify(value)}\n\`\`\`\n`;
@@ -120,7 +121,7 @@ try {
         assert.deepEqual(table.rows.map(r => r[2]), ['# preliminary', NOTE, '']);
       });
       await figure.locator('.rv-chart__action--table').click();
-      const [download] = await Promise.all([page.waitForEvent('download'), figure.locator('.rv-chart__action--csv').click()]);
+      const download = await figureDownload(page, figure, 'csv');
       const parsed = parseCsv(readFileSync(await download.path(), 'utf8'));
       await check(`${at}: CSV keeps every row, the blank cell, the quoted note and UTF-8`, () => assert.deepEqual(parsed, [
         ['date', 'value', 'note'],

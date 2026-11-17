@@ -40,23 +40,35 @@ fn header_links() -> String {
 
 /// The site header: the mark and the links.
 pub fn header() -> String {
+    header_with("")
+}
+
+/// The site header with `slot` between the mark and the links, laid out by the header's own row.
+/// The flagship page puts its phone style menu there (Daniel, 17 Nov 2026: "top area is all single
+/// line with a dropdown to change styles"); every other page's header has no slot.
+pub fn header_with(slot: &str) -> String {
     format!(
-        "<header class=\"nav\"><a class=\"nav__brand\" href=\"/\" aria-label=\"RichView home\">{MARK}RichView</a><nav class=\"nav__links\" aria-label=\"Main navigation\">{}</nav></header>",
+        "<header class=\"nav\"><a class=\"nav__brand\" href=\"/\" aria-label=\"RichView home\">{MARK}RichView</a>{slot}<nav class=\"nav__links\" aria-label=\"Main navigation\">{}</nav></header>",
         header_links()
     )
 }
 
 pub fn footer() -> String {
     format!(
-        "<footer class=\"foot\"><span>RichView · Daniel Vecera</span><div>{}<a href=\"/impressum\">Impressum</a><a href=\"/privacy\">Privacy</a><a href=\"/terms\">Terms</a><a href=\"/licenses\">Font licences</a><a href=\"/third-party-notices.txt\">Third-party notices</a></div></footer>",
+        "<footer class=\"foot\"><span>RichView · Daniel Vecera</span><div>{}<a href=\"/about\">About</a><a href=\"/impressum\">Impressum</a><a href=\"/privacy\">Privacy</a><a href=\"/terms\">Terms</a><a href=\"/licenses\">Font licences</a><a href=\"/third-party-notices.txt\">Third-party notices</a></div></footer>",
         links()
     )
 }
 
 /// Replace the chrome markers of a page.
 pub fn apply(html: &str) -> String {
+    apply_with(html, "")
+}
+
+/// Replace the chrome markers of a page whose header carries `slot` (see [`header_with`]).
+pub fn apply_with(html: &str, slot: &str) -> String {
     let page = html
-        .replace("<!-- rv-site-header -->", &header())
+        .replace("<!-- rv-site-header -->", &header_with(slot))
         .replace("<!-- rv-site-footer -->", &footer());
     share_metadata(&page)
 }
@@ -534,6 +546,19 @@ mod tests {
         assert!(!page.contains("rv-site-"));
         assert_eq!(page.matches("class=\"nav\"").count(), 1);
         assert_eq!(page.matches("class=\"foot\"").count(), 1);
+    }
+
+    #[test]
+    fn the_footer_links_the_about_page_before_the_legal_pages() {
+        let footer = footer();
+        let about = footer
+            .find("href=\"/about\">About</a>")
+            .expect("About link");
+        assert!(about < footer.find("href=\"/impressum\"").unwrap());
+        let page = apply(include_str!("../../../assets/about.html"));
+        assert!(!page.contains("rv-site-"));
+        assert!(page.contains("founder of RichView"));
+        assert!(page.contains("href=\"https://github.com/1vecera/richview\""));
     }
 
     #[test]

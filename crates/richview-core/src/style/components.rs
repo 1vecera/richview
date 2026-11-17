@@ -273,6 +273,11 @@ fn figure_css(c: &Value) -> String {
         ));
         if title.unwrap_or("above") != "above" {
             css.push_str(".rv-chart .rv-chart__titlerow{display:contents}.rv-chart .rv-chart__titlerow>.rv-chart__title{order:7;flex:none}.rv-chart .rv-chart__titlerow>.rv-chart__actions{order:3;align-self:flex-end;margin:0}\n");
+            // On a phone too the icons keep their own line over the chart, unlike every other
+            // style's (Daniel, 17 Nov: "no empty line for icons"). That line is the only place a
+            // phone's readout clears its mark on chord and venn, whose plot fills the width. The
+            // phone row returns when chord and venn are judged by painted mark (Readout fit,
+            // train 4).
         }
     }
     if description == Some("below-boxed") {

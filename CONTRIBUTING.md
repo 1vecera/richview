@@ -32,8 +32,8 @@ and the CLI on a report:
 
 ```sh
 target/release/richview init tmp/my-report
-target/release/richview generate tmp/my-report/report.rmd --format json
-target/release/richview check tmp/my-report/report.rmd --format json
+target/release/richview generate tmp/my-report/report.rmd
+target/release/richview check tmp/my-report/report.rmd
 target/release/richview serve tmp/my-report/report.rmd
 target/release/richview learn
 target/release/richview mcp

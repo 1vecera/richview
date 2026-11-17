@@ -53,6 +53,32 @@ test("the private snapshot and leased retained bundle keep only this manifest's 
 	} finally { lease.release(); }
 });
 
+test("the Windows preview's archive is kept only together with its PowerShell installer", t => {
+	const windows = { "install.ps1": "windows installer", [`${commit}/richview-x86_64-pc-windows-msvc.tar.gz`]: "windows archive", [`${commit}/richview-x86_64-pc-windows-msvc.tar.gz.sha256`]: "windows checksum" };
+	const declare = (f, names) => {
+		for (const path of names) {
+			mkdirSync(dirname(join(f.target, "release/install", path)), { recursive: true });
+			writeFileSync(join(f.target, "release/install", path), windows[path]);
+			f.manifest.outputs[`target:release/install/${path}`] = { bytes: Buffer.byteLength(windows[path]), sha256: createHash("sha256").update(windows[path]).digest("hex") };
+		}
+		f.save();
+	};
+	const whole = fixture(t), files = [], snapshot = join(whole.root, "snapshot");
+	declare(whole, Object.keys(windows));
+	snapshotRelease({ ...whole, dir: snapshot, files });
+	for (const [path, bytes] of Object.entries(windows)) assert.equal(readFileSync(join(snapshot, "release/install", path), "utf8"), bytes);
+	assert.equal(files.filter(row => row.path.startsWith("release/install/")).length, 6);
+	// An archive without its installer, an installer without its archive and another Windows target.
+	for (const names of [Object.keys(windows).slice(1), ["install.ps1"]]) {
+		const f = fixture(t);
+		declare(f, names);
+		assert.throws(() => snapshotRelease({ ...f, dir: join(f.root, "snapshot"), files: [] }), /Invalid installer output paths/);
+	}
+	const other = fixture(t);
+	other.manifest.outputs[`target:release/install/${commit}/richview-aarch64-pc-windows-msvc.tar.gz`] = { bytes: 0, sha256: "0".repeat(64) }; other.save();
+	assert.throws(() => snapshotRelease({ ...other, dir: join(other.root, "snapshot"), files: [] }), /Invalid installer output paths/);
+});
+
 test("declared missing, changed, foreign-commit and unpaired installer outputs are refused", t => {
 	for (const kind of ["missing", "missing-root", "changed", "foreign", "unpaired"]) {
 		const f = fixture(t), archive = `${commit}/richview-aarch64-apple-darwin.tar.gz`;

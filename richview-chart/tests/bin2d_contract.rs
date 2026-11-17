@@ -1,4 +1,4 @@
-//! 2-D bin charts: counts in a grid of rectangles coloured by count, a key that decodes the
+//! 2-D bin charts: counts in a grid of rectangles coloured by count and printing it, a key that decodes the
 //! colour, plain empty cells, and the contract every type shares (FEA-CH-75).
 
 mod common;
@@ -74,17 +74,74 @@ fn cells_are_counted_in_the_right_place_and_the_fuller_cell_is_darker() {
     assert_ne!(fills[0], fills[1]);
 }
 
+/// The numbers of a chart's value labels, with those it records as dropped, in order.
+fn counts(g: &richview_chart::geometry::Geometry) -> Vec<String> {
+    let mut all: Vec<String> = g
+        .panels
+        .iter()
+        .flat_map(|p| &p.items)
+        .filter_map(|i| match i {
+            Item::Text(t) if t.role == Role::Label => Some(t.text.clone()),
+            _ => None,
+        })
+        .chain(g.dropped.iter().map(|d| d.text.clone()))
+        .collect();
+    all.sort();
+    all
+}
+
+fn has_key(g: &richview_chart::geometry::Geometry) -> bool {
+    g.figure_items.iter().any(|i| i.role() == Role::Key)
+}
+
 #[test]
-fn a_key_names_both_ends_of_the_colour() {
+fn every_cell_prints_its_count_and_the_chart_draws_no_key() {
     let (spec, rows) = fixture();
-    let g = draw(&spec, &rows);
-    assert!(g.figure_items.iter().any(|i| i.role() == Role::Key));
-    let most = observations(&g)
+    let g = draw_at(&spec, &rows, 720.0);
+    let obs = observations(&g);
+    let labels: Vec<_> = g.panels[0]
+        .items
+        .iter()
+        .filter_map(|i| match i {
+            Item::Text(t) if t.role == Role::Label => Some(t),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(labels.len(), obs.len());
+    // Each count stands inside its own cell and names it.
+    let ids = g.mark_ids();
+    for (k, (label, o)) in labels.iter().zip(&obs).enumerate() {
+        assert_eq!(Some(label.text.as_str()), line(o, "Observations"));
+        assert_eq!(label.mark.as_deref(), Some(ids[k].as_str()));
+        let area = o.area.unwrap();
+        assert!(
+            label.bounds.x >= area.x
+                && label.bounds.right() <= area.right()
+                && label.bounds.y >= area.y
+                && label.bounds.bottom() <= area.bottom(),
+            "{} leaves its cell",
+            label.text
+        );
+    }
+    assert!(!has_key(&g), "the counts decode the colour");
+    assert!(g.dropped.is_empty());
+}
+
+#[test]
+fn a_cell_too_small_for_its_count_brings_the_key_back_and_records_each_count() {
+    // 600 observations make 24 by 24 bins, whose cells are too small at any report width.
+    let rows: Vec<(f64, f64)> = (0..600)
+        .map(|i| ((i * 37 % 101) as f64, (i * 11 % 53) as f64))
+        .collect();
+    let g = draw_at(&spec(), &pairs(&rows), 390.0);
+    let obs = observations(&g);
+    let most = obs
         .iter()
         .map(|o| line(o, "Observations").unwrap().parse::<usize>().unwrap())
         .max()
         .unwrap();
-    let labels: Vec<String> = g
+    assert!(has_key(&g));
+    let ends: Vec<String> = g
         .figure_items
         .iter()
         .filter_map(|i| match i {
@@ -92,8 +149,52 @@ fn a_key_names_both_ends_of_the_colour() {
             _ => None,
         })
         .collect();
-    assert!(labels.contains(&"1".to_string()), "{labels:?}");
-    assert!(labels.contains(&most.to_string()), "{labels:?}");
+    assert_eq!(ends, ["1".to_string(), most.to_string()]);
+    // Never neither: a cell without its count is one the key decodes, and its count is on record.
+    let mut expected: Vec<String> = obs
+        .iter()
+        .map(|o| line(o, "Observations").unwrap().to_owned())
+        .collect();
+    expected.sort();
+    assert_eq!(counts(&g), expected);
+    assert!(g.dropped.iter().all(|d| d.kind.as_deref() == Some("cell-value")));
+    assert!(g.dropped.iter().all(|d| d.observation.is_some()));
+}
+
+#[test]
+fn a_chart_carries_the_same_counts_at_every_width() {
+    let (spec, rows) = fixture();
+    let wide = counts(&draw_at(&spec, &rows, 1440.0));
+    assert!(!wide.is_empty());
+    for width in [1100.0, 720.0, 390.0, 320.0] {
+        assert_eq!(counts(&draw_at(&spec, &rows, width)), wide, "at {width}");
+    }
+}
+
+#[test]
+fn the_author_can_have_the_key_instead_of_the_counts() {
+    let (mut spec, rows) = fixture();
+    spec["auto_annotations"] = json!(false);
+    let g = draw(&spec, &rows);
+    assert!(has_key(&g));
+    assert!(
+        counts(&g).is_empty(),
+        "no count printed and none dropped: the author chose it"
+    );
+    let most = observations(&g)
+        .iter()
+        .map(|o| line(o, "Observations").unwrap().parse::<usize>().unwrap())
+        .max()
+        .unwrap();
+    let ends: Vec<String> = g
+        .figure_items
+        .iter()
+        .filter_map(|i| match i {
+            Item::Text(t) => Some(t.text.clone()),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(ends, ["1".to_string(), most.to_string()]);
 }
 
 #[test]

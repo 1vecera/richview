@@ -237,6 +237,29 @@ for (const reduce of [false, true]) {
     return timing;
   });
 
+  // Reduced motion draws the final frame at once, so one sample decides.
+  if (reduce) await check(`${tag}: hiding a series under the pointer leaves the shown ones in full ink`, async () => {
+    const entry = page.locator('figure[data-rv-chart]').nth(BAR).locator('button.rv-chart__legend-entry').first();
+    await entry.scrollIntoViewIfNeeded();
+    await entry.hover();
+    await entry.click();
+    await settled(page);
+    try {
+      assert.equal(await entry.getAttribute('aria-pressed'), 'false', 'the first series is hidden');
+      const m = await model(page, BAR);
+      const bar = m.geometry.panels[0].items.find(i => i.kind === 'rect' && i.role === 'mark' && i.series === 1);
+      await page.evaluate(at => { window.__probe = at; }, [bar.rect.x + bar.rect.w / 4, bar.rect.y + bar.rect.h / 4]);
+      const seen = await sampleFrame(page, BAR, PIXEL);
+      const fill = bar.fill.color.slice(0, 3).map(v => Math.round(v * 255));
+      assert.ok(distance(seen, fill) < 3, `the shown series keeps its fill while the pointer rests on the hidden one: ${seen} vs ${fill}`);
+      return { seen, fill };
+    } finally {
+      await entry.click();
+      await page.mouse.move(5, 5);
+      await settled(page);
+    }
+  });
+
   await check(`${tag}: the hover dot grows in`, async () => {
     const m = await model(page, LINE);
     const o = m.geometry.panels[0].observations[10];

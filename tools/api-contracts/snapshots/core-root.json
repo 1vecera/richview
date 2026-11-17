@@ -26,6 +26,31 @@
         "declaration": "pub use authoring : : CHART_TYPES ;"
       },
       {
+        "name": "COMPANY_LOGO_MAX_BYTES",
+        "kind": "use",
+        "declaration": "pub use company_logo : : COMPANY_LOGO_MAX_BYTES ;"
+      },
+      {
+        "name": "COMPANY_LOGO_MAX_DIMENSION",
+        "kind": "use",
+        "declaration": "pub use company_logo : : COMPANY_LOGO_MAX_DIMENSION ;"
+      },
+      {
+        "name": "CompanyBrand",
+        "kind": "use",
+        "declaration": "pub use company_brand : : CompanyBrand ;"
+      },
+      {
+        "name": "CompanyLogo",
+        "kind": "use",
+        "declaration": "pub use company_brand : : CompanyLogo ;"
+      },
+      {
+        "name": "CompanyLogoError",
+        "kind": "use",
+        "declaration": "pub use company_logo : : CompanyLogoError ;"
+      },
+      {
         "name": "HighlightLanguage",
         "kind": "use",
         "declaration": "pub use highlight : : HighlightLanguage ;"
@@ -64,6 +89,11 @@
         "name": "StyleMark",
         "kind": "use",
         "declaration": "pub use style : : Mark as StyleMark ;"
+      },
+      {
+        "name": "ValidatedCompanyLogo",
+        "kind": "use",
+        "declaration": "pub use company_logo : : ValidatedCompanyLogo ;"
       },
       {
         "name": "Visibility",
@@ -183,6 +213,21 @@
         "declaration": "pub use blocks : : render_table ;"
       },
       {
+        "name": "report_company_brand",
+        "kind": "use",
+        "declaration": "pub use company_brand : : report_company_brand ;"
+      },
+      {
+        "name": "report_company_logo_files",
+        "kind": "use",
+        "declaration": "pub use company_brand : : report_company_logo_files ;"
+      },
+      {
+        "name": "resolve_company_brand",
+        "kind": "use",
+        "declaration": "pub use company_brand : : resolve_company_brand ;"
+      },
+      {
         "name": "resolve_styles",
         "kind": "use",
         "declaration": "pub use style : : resolve_styles ;"
@@ -216,6 +261,11 @@
         "name": "unsplash_image_url",
         "kind": "use",
         "declaration": "pub use folder : : unsplash_image_url ;"
+      },
+      {
+        "name": "validate_company_logo",
+        "kind": "use",
+        "declaration": "pub use company_logo : : validate_company_logo ;"
       },
       {
         "name": "version_problem",
@@ -401,6 +451,148 @@
             "name": "render_table",
             "kind": "fn",
             "declaration": "pub fn render_table ( table : & Value ) - > String"
+          }
+        ]
+      },
+      {
+        "source": "crates/richview-core/src/company_brand.rs",
+        "items": [
+          "CompanyBrand",
+          "CompanyLogo",
+          "report_company_brand",
+          "report_company_logo_files",
+          "resolve_company_brand"
+        ],
+        "definitions": [
+          {
+            "name": "CompanyBrand",
+            "kind": "struct",
+            "declaration": "# [ derive ( Clone , Debug , Default , Eq , PartialEq ) ] pub struct CompanyBrand",
+            "publicFields": [
+              "pub name : String",
+              "pub base : Option < String >",
+              "pub accent : Option < String >",
+              "pub logo : Option < CompanyLogo >",
+              "pub logo_dark : Option < CompanyLogo >"
+            ],
+            "privateFields": false
+          },
+          {
+            "name": "CompanyLogo",
+            "kind": "struct",
+            "declaration": "# [ derive ( Clone , Debug , Eq , PartialEq ) ] pub struct CompanyLogo",
+            "publicFields": [
+              "pub bytes : Vec < u8 >",
+              "pub mime : & ' static str",
+              "pub width : u32",
+              "pub height : u32"
+            ],
+            "privateFields": false
+          },
+          {
+            "name": "impl CompanyLogo",
+            "kind": "impl",
+            "types": [
+              "CompanyLogo"
+            ],
+            "declaration": "impl CompanyLogo",
+            "members": [
+              {
+                "name": "data_uri",
+                "kind": "fn",
+                "declaration": "pub fn data_uri ( & self ) - > String"
+              }
+            ]
+          },
+          {
+            "name": "report_company_brand",
+            "kind": "fn",
+            "declaration": "pub fn report_company_brand ( frontmatter : & serde_json : : Value , options : & RenderOptions , ) - > CompanyBrand"
+          },
+          {
+            "name": "report_company_logo_files",
+            "kind": "fn",
+            "declaration": "pub fn report_company_logo_files ( frontmatter : & serde_json : : Value , options : & RenderOptions , ) - > Vec < String >"
+          },
+          {
+            "name": "resolve_company_brand",
+            "kind": "fn",
+            "declaration": "pub fn resolve_company_brand ( style : & ResolvedStyle , data : & BTreeMap < String , String > , diagnostics : & mut Vec < Diagnostic > , ) - > CompanyBrand"
+          }
+        ]
+      },
+      {
+        "source": "crates/richview-core/src/company_logo.rs",
+        "items": [
+          "COMPANY_LOGO_MAX_BYTES",
+          "COMPANY_LOGO_MAX_DIMENSION",
+          "CompanyLogoError",
+          "ValidatedCompanyLogo",
+          "validate_company_logo"
+        ],
+        "definitions": [
+          {
+            "name": "COMPANY_LOGO_MAX_BYTES",
+            "kind": "const",
+            "declaration": "pub const COMPANY_LOGO_MAX_BYTES : usize = 512 * 1024"
+          },
+          {
+            "name": "COMPANY_LOGO_MAX_DIMENSION",
+            "kind": "const",
+            "declaration": "pub const COMPANY_LOGO_MAX_DIMENSION : u32 = 1024"
+          },
+          {
+            "name": "CompanyLogoError",
+            "kind": "enum",
+            "declaration": "# [ derive ( Clone , Copy , Debug , Eq , PartialEq ) ] pub enum CompanyLogoError",
+            "variants": [
+              "UnsupportedFormat",
+              "Animated",
+              "TooLarge",
+              "InvalidDimensions",
+              "Malformed"
+            ]
+          },
+          {
+            "name": "ValidatedCompanyLogo",
+            "kind": "struct",
+            "declaration": "# [ derive ( Clone , Copy , Debug , Eq , PartialEq ) ] pub struct ValidatedCompanyLogo",
+            "publicFields": [
+              "pub mime : & ' static str",
+              "pub width : u32",
+              "pub height : u32"
+            ],
+            "privateFields": false
+          },
+          {
+            "name": "impl fmt : : Display for CompanyLogoError",
+            "kind": "impl",
+            "types": [
+              "CompanyLogoError"
+            ],
+            "declaration": "impl fmt : : Display for CompanyLogoError",
+            "members": [
+              {
+                "name": "fmt",
+                "kind": "fn",
+                "declaration": "fn fmt ( & self , formatter : & mut fmt : : Formatter < ' _ > ) - > fmt : : Result",
+                "default": true
+              }
+            ]
+          },
+          {
+            "name": "impl std : : error : : Error for CompanyLogoError",
+            "kind": "impl",
+            "types": [
+              "CompanyLogoError"
+            ],
+            "declaration": "impl std : : error : : Error for CompanyLogoError",
+            "members": []
+          },
+          {
+            "name": "validate_company_logo",
+            "kind": "fn",
+            "declaration": "pub fn validate_company_logo ( bytes : & [ u8 ] ) - > Result < ValidatedCompanyLogo , CompanyLogoError >"
           }
         ]
       },

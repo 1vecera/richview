@@ -254,7 +254,9 @@ pub(super) fn reports(list: &ReportList<'_>) -> String {
                     "export RICHVIEW_SERVER={}\nexport RICHVIEW_TOKEN=your-token\nrichview publish report.rmd --new",
                     shell_quote(list.server)
                 );
-                body.push_str(&format!(r#"<ol class="first"><li><h2>Install RichView</h2><p>The command-line tool your agent uses to write and publish reports.</p><a class="docs-button docs-button--secondary" href="https://richview.ai/docs/install">Install RichView</a></li><li><h2>Create a CLI token</h2><p>It lets the tool publish as you. You see it once, with the two lines that set it.</p><a class="docs-button" href="/tokens">Create a CLI token</a></li><li class="wide"><h2>Publish</h2><p>Ask your agent to publish a report, or run:</p>{}</li><li class="wide plain"><p><a href="/members">Invite your colleagues</a>, then share a report with them from its page.</p></li></ol>"#, shell(&command)));
+                // The list's place comes first and the set-up second: someone who signs in expects
+                // their reports here (Daniel, 16 Nov).
+                body.push_str(&format!(r#"<ul class="rows report-rows report-rows--none"><li><div class="main"><h2>Your reports are listed here</h2><p class="about">Each with who can open it, its versions and a link to share.</p></div><div class="acts"><a class="act" href="https://richview.ai/showcase/openai-vs-anthropic/">Open an example</a></div></li></ul><section class="first"><h2>Publish your first report</h2><ol><li><p><strong>Install RichView.</strong> The command-line tool your agent uses to write and publish reports.</p><a class="act" href="https://richview.ai/docs/install">Install RichView</a></li><li><p><strong>Create a CLI token.</strong> It lets the tool publish as you. You see it once, with the two lines that set it.</p><a class="act" href="/tokens">Create a CLI token</a></li><li><p><strong>Publish.</strong> Ask your agent to publish a report, or run:</p>{}</li></ol><p class="then"><a href="/members">Invite your colleagues</a>, then share a report with them from its page.</p></section>"#, shell(&command)));
             }
             Some(_) => {}
         }
@@ -999,14 +1001,15 @@ mod report_tests {
     }
 
     #[test]
-    fn empty_reports_put_install_before_token_publish_and_inviting() {
+    fn empty_reports_put_the_list_first_then_install_token_publish_and_inviting() {
         let nav = test_nav("Alex", "csrf");
         let html = reports(&list(&nav, &[], 0));
+        let listed = html.find("Your reports are listed here").unwrap();
         let install = html.find("https://richview.ai/docs/install").unwrap();
         let token = html.find("Create a CLI token").unwrap();
         let publish = html.find("publish a report").unwrap();
         let invite = html.find("Invite your colleagues").unwrap();
-        assert!(install < token && token < publish && publish < invite);
+        assert!(listed < install && install < token && token < publish && publish < invite);
     }
 
     #[test]
@@ -1017,6 +1020,7 @@ mod report_tests {
         let html = reports(&reader);
         assert!(html.contains("Reports that colleagues share with Acme or with you appear here."));
         assert!(!html.contains("Create a CLI token"));
+        assert!(!html.contains("Your reports are listed here"));
         let alone = Nav {
             org: None,
             ..test_nav("Alex", "csrf")

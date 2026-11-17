@@ -32,6 +32,16 @@ axes:
 
 *Source: F. J. Anscombe, “Graphs in Statistical Analysis”, The American Statistician (1973), via the R datasets package.*
 
+```metric
+value: "0.816"
+label: Correlation between x and y in sets I, II and III; set IV rounds to 0.817
+```
+
+- **Set I** is the case the summary describes: points scattered around a straight line.
+- **Set II** is a smooth curve. A straight line is the wrong model, however well it scores.
+- **Set III** is ten points on a straight line and one point off it. Without the point at x = 13 the fit is y = 4.01 + 0.345x and the correlation is 1.000.
+- **Set IV** has ten points at x = 8 and one at x = 19. That one point sets the whole slope; without it there is no slope to fit.
+
 ## Almost the same summary
 
 The published observations are rounded, so the fitted values differ slightly. The means and x variance agree at the precision below; the small differences in y variance and correlation remain visible. Each rounded fitted relationship is y = 3.00 + 0.500x. The annotation repeats that shared rounded fit in each panel; it is not an extra set of observations.
@@ -44,7 +54,49 @@ The published observations are rounded, so the fitted values differ slightly. Th
 | Sample variance y | 4.13 | 4.13 | 4.12 | 4.12 |
 | Correlation r | 0.816 | 0.816 | 0.816 | 0.817 |
 
+## The forty-four observations
+
+Sets I to III share their x values; set IV has its own. Read down a column and the difference is hard to see, which is Anscombe's point: the table holds everything the charts show, and still does not show it.
+
+```table
+title: Anscombe's quartet as published
+data:
+  inline:
+    - { x: 10, y1: "8.04", y2: "9.14", y3: "7.46", x4: 8, y4: "6.58" }
+    - { x: 8, y1: "6.95", y2: "8.14", y3: "6.77", x4: 8, y4: "5.76" }
+    - { x: 13, y1: "7.58", y2: "8.74", y3: "12.74", x4: 8, y4: "7.71" }
+    - { x: 9, y1: "8.81", y2: "8.77", y3: "7.11", x4: 8, y4: "8.84" }
+    - { x: 11, y1: "8.33", y2: "9.26", y3: "7.81", x4: 8, y4: "8.47" }
+    - { x: 14, y1: "9.96", y2: "8.10", y3: "8.84", x4: 8, y4: "7.04" }
+    - { x: 6, y1: "7.24", y2: "6.13", y3: "6.08", x4: 8, y4: "5.25" }
+    - { x: 4, y1: "4.26", y2: "3.10", y3: "5.39", x4: 19, y4: "12.50" }
+    - { x: 12, y1: "10.84", y2: "9.13", y3: "8.15", x4: 8, y4: "5.56" }
+    - { x: 7, y1: "4.82", y2: "7.26", y3: "6.42", x4: 8, y4: "7.91" }
+    - { x: 5, y1: "5.68", y2: "4.74", y3: "5.73", x4: 8, y4: "6.89" }
+columns:
+  - { key: x, label: "x, I–III", align: right }
+  - { key: y1, label: "y, I", align: right }
+  - { key: y2, label: "y, II", align: right }
+  - { key: y3, label: "y, III", align: right }
+  - { key: x4, label: "x, IV", align: right }
+  - { key: y4, label: "y, IV", align: right }
+```
+
+*Source: Anscombe (1973), in the row order of the paper. `data/anscombe.csv` holds the same 44 pairs in long form.*
+
 ## A second distribution
+
+Old Faithful is a geyser in Yellowstone National Park. Each observation pairs the length of one eruption with the wait until the next.
+
+```image
+src: media/old-faithful-eruption.jpg
+alt: "Old Faithful geyser in full eruption under a dark sky, with visitors watching from the boardwalk"
+caption: "Old Faithful in eruption, Yellowstone National Park, October 2019. Photo: NPS / Jim Peaco."
+width: 1344
+height: 872
+```
+
+*Image: [National Park Service, NPGallery](https://npgallery.nps.gov/AssetDetail/9c858b86-9cdb-4bb0-8c17-ea567391faa2), "Old Faithful Geyser, Upper Geyser Basin", NPS/Jim Peaco, 2019; public domain.*
 
 Old Faithful's waiting times and eruptions form two clusters. The observations are pairs, not a time series.
 
@@ -59,3 +111,47 @@ axes:
 ```
 
 *Source: Old Faithful geyser data, [R datasets package](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/faithful.html); see Azzalini and Bowman (1990) and Härdle (1991).*
+
+Across all 272 eruptions the correlation between duration and wait is 0.90. Split the eruptions at three minutes and it is 0.29 among the short ones and 0.37 among the long ones: most of the relationship is the distance between the two clusters, not a trend inside either.
+
+```chart
+type: histogram
+title: Waiting times have two peaks, and the mean lies between them
+subtitle: The 272 waits in minutes; their mean is 70.9
+data: { csv: data/old-faithful.csv }
+encoding: { x: waiting_min }
+axes:
+  x: { label: Waiting time, unit: min }
+  y: { label: Eruptions }
+```
+
+*Source: the same Old Faithful data.*
+
+The mean wait is 70.9 minutes, and few waits are near it: 32 of the 272 fall between 65 and 74 minutes, against 111 between 75 and 84. One average describes neither kind of eruption.
+
+```table
+title: Short and long eruptions, split at three minutes
+data:
+  inline:
+    - { group: "Short, under 3 min", n: 97, share: "36%", eruption: "2.04", wait: "54.5" }
+    - { group: "Long, 3 min or more", n: 175, share: "64%", eruption: "4.29", wait: "80.0" }
+    - { group: All, n: 272, share: "100%", eruption: "3.49", wait: "70.9" }
+columns:
+  - { key: group, label: Eruptions }
+  - { key: n, label: Number, align: right }
+  - { key: share, label: Share, align: right }
+  - { key: eruption, label: "Mean duration, min", align: right }
+  - { key: wait, label: "Mean wait, min", align: right }
+```
+
+*Source: the same Old Faithful data. The split at three minutes is this report's; the data hold no eruption between 2.9 and 3.067 minutes.*
+
+## What to take from both
+
+- **Plot before you summarize.** Each of the five datasets here has a mean, a variance and a fitted line. None of those numbers says whether the data are a line, a curve, a line with one stray point or two clusters.
+- **One point can carry a statistic.** Set III's slope and set IV's whole fit depend on a single observation.
+- **A correlation can come from groups.** Old Faithful's 0.90 is mostly two clusters far apart.
+
+## Data
+
+Both data files and the photograph travel with the report; `media/SOURCES.md` says where the photograph comes from. `data/anscombe.csv` holds the quartet in long form: set, x and y, 44 rows. `data/old-faithful.csv` holds 272 rows: the eruption's duration and the wait until the next eruption, both in minutes.

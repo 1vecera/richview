@@ -163,6 +163,28 @@ fn before_the_runtime_a_figure_reserves_its_box_and_shows_the_notice() {
 }
 
 #[test]
+fn a_phone_keeps_two_icons_beside_the_title_wherever_the_style_sets_it() {
+    let chart = json!({"type":"bar","title":"Bars","encoding":{"x":"x","y":"y"},"data":{"inline":rows(&["one"], &["A", "B"])}});
+    // Up to 600 px the row never wraps and the two downloads leave the figure's own row; the
+    // expanded view's group is not in a title row, so it keeps them (Daniel, 17 Nov 2026).
+    let phone = "@media (max-width:600px){.rv-chart__titlerow{flex-wrap:nowrap}.rv-chart__titlerow>.rv-chart__title{flex-basis:0}.rv-chart__titlerow>.rv-chart__actions>.rv-chart__action--png,.rv-chart__titlerow>.rv-chart__actions>.rv-chart__action--csv{display:none}}";
+    // A style with the title under the chart (Hand-drawn) keeps the icons on their own line over
+    // the chart on a phone too, where a readout on chord or venn clears its mark, until Readout
+    // fit judges those two by painted mark (train 4).
+    let below = ".rv-chart .rv-chart__titlerow{display:flex}";
+    for style in ["sleek", "air", "scientific", "brutalist", "hand-drawn"] {
+        let html = report_with(std::slice::from_ref(&chart), vec![style.into()]).html;
+        assert_eq!(html.matches(phone).count(), 1, "{style}");
+        assert!(!html.contains(below), "{style}");
+        // The base rule comes first, so the phone's rule of the same weight wins.
+        assert!(
+            html.find(".rv-chart .rv-chart__title{") < html.find(phone),
+            "{style}"
+        );
+    }
+}
+
+#[test]
 fn series_identity_is_drawn_once_at_every_width() {
     let report = report(&[
         json!({"type":"bar","title":"Grouped","encoding":{"x":"x","y":"y","color":"g"},"data":{"inline":rows(&["North", "South", "East"], &["Q1", "Q2"])}}),
@@ -262,7 +284,20 @@ fn calendar_axes_carry_four_digit_years_where_they_change() {
 /// nothing at either width (FEA-CH-33, FEA-CH-64).
 #[test]
 fn each_reference_width_reserves_its_own_legend() {
-    let lines = json!({"type":"line","title":"Shares","encoding":{"x":"x","y":"y","color":"g"},"data":{"inline":rows(&["OpenAI share", "Anthropic share"], &["2026-01-01", "2026-02-01", "2026-03-01", "2026-04-01", "2026-05-01", "2026-06-01"])}});
+    // Two lines that lie on top of each other cannot be named inside the plot: their names stand
+    // at the line ends at the desktop width and take a legend on the phone, where that column
+    // would cost more than a quarter of the plot.
+    let dates = [
+        "2026-01-01",
+        "2026-02-01",
+        "2026-03-01",
+        "2026-04-01",
+        "2026-05-01",
+        "2026-06-01",
+    ];
+    let mut shares = rows(&["OpenAI"], &dates).as_array().unwrap().clone();
+    shares.extend(rows(&["Anthropic"], &dates).as_array().unwrap().clone());
+    let lines = json!({"type":"line","title":"Shares","encoding":{"x":"x","y":"y","color":"g"},"data":{"inline":shares}});
     let bars = json!({"type":"bar","title":"Grouped","encoding":{"x":"x","y":"y","color":"g"},"data":{"inline":rows(&["North", "South"], &["Q1", "Q2"])}});
     let report = report(&[lines, bars]);
     let mut differed = false;

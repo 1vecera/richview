@@ -204,6 +204,12 @@ fn snapshot_root(
                         .filter(|path| path.is_absolute())
                         .map(|home| home.join(".local/state"))
                 })
+                // Windows usually sets neither; its per-user state folder stands in.
+                .or_else(|| {
+                    std::env::var_os("LOCALAPPDATA")
+                        .map(std::path::PathBuf::from)
+                        .filter(|path| path.is_absolute())
+                })
                 .map(|root| root.join("richview/snapshots"))
                 .ok_or_else(|| {
                     "set a trusted cache_root, XDG_STATE_HOME or HOME for server snapshots"

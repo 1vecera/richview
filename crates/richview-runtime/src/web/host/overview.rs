@@ -68,7 +68,8 @@ fn spoken(x: f64, calendar: bool, span: f64) -> String {
 fn eligible(v: &View) -> bool {
     matches!(v.chart.block.kind, ChartType::Line | ChartType::Area)
         && v.geometry.panels.len() == 1
-        && v.geometry.panels[0].x.is_some()
+        // Numbers and dates only (FEA-CH-50): a strip over named positions has no range to say.
+        && v.geometry.panels[0].x.as_ref().is_some_and(|x| x.least.is_none())
 }
 
 /// Show, move or remove the strip to match the chart's zoom.

@@ -12,6 +12,8 @@
 mod asset;
 mod authoring;
 mod blocks;
+mod company_brand;
+mod company_logo;
 mod compat;
 pub mod document;
 mod fences;
@@ -44,6 +46,14 @@ pub use authoring::{
     with_primary_style,
 };
 pub use blocks::{image_color, render_table};
+pub use company_brand::{
+    CompanyBrand, CompanyLogo, report_company_brand, report_company_logo_files,
+    resolve_company_brand,
+};
+pub use company_logo::{
+    COMPANY_LOGO_MAX_BYTES, COMPANY_LOGO_MAX_DIMENSION, CompanyLogoError, ValidatedCompanyLogo,
+    validate_company_logo,
+};
 pub use compat::{PublishRequest, create_publish_request, parse_schema};
 pub use folder::{ASSET_FINDINGS, unsplash_image_url};
 pub use highlight::{HighlightLanguage, highlight_html};

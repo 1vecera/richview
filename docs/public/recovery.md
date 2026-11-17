@@ -7,9 +7,9 @@ styles: [scientific]
 Keep the `.rmd` and its local resources as the working state. `Rendered` can be regenerated. After an interrupted session, read the source, validate it and continue from the first hard failure:
 
 ```sh
-richview validate first-report/report.rmd --format json
-richview check first-report/report.rmd --format json
-richview generate first-report/report.rmd --format json
+richview validate first-report/report.rmd
+richview check first-report/report.rmd
+richview generate first-report/report.rmd
 ```
 
 ## Fix a missing data file
@@ -44,7 +44,7 @@ With `--format json`, the diagnostic is carried unchanged in the result:
 }
 ```
 
-Restore `csv: data/visits.csv`, then validate again. The result has `ok: true`, `status: clean` and an empty diagnostics array. Keep the data inside its report folder; moving it into frontmatter or pointing at a remote URL does not repair the missing file.
+Restore `csv: data/visits.csv`, then validate again. It prints `Valid, 3 rich blocks` and exits 0; with `--format json` the result has `ok: true`, `status: clean` and an empty diagnostics array. Keep the data inside its report folder; moving it into frontmatter or pointing at a remote URL does not repair the missing file.
 
 ## Diagnose by symptom
 
@@ -74,7 +74,7 @@ For exact grammar, run `richview learn grammar` or read the [full source contrac
 
 Each record carries a level, code, message and path, with a fix, expected value, retry guidance, file, line, column, tag or details where applicable. Locations start at 1 and include frontmatter. A named `file` makes the line relative to that data or style file; otherwise it refers to the `.rmd`. The same records travel through CLI, MCP, HTTP and editor surfaces.
 
-`status: clean` means no errors or warnings. `ok: true` means no errors and can still carry warnings. An info record may explain a deliberate choice, such as missing observations or experimental styling. The output path can identify a repairable draft even when a block failed; inspect diagnostics and the command's exit status together.
+In the JSON result, `status: clean` means no errors or warnings. `ok: true` means no errors and can still carry warnings. An info record may explain a deliberate choice, such as missing observations or experimental styling. The output path can identify a repairable draft even when a block failed; inspect diagnostics and the command's exit status together.
 
 ## Find a code
 

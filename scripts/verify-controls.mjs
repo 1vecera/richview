@@ -8,6 +8,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { harness, watchErrors } from './browser-harness.mjs';
+import { figureDownload } from './chart-interaction-checks.mjs';
 import { reports } from './report-runtime.mjs';
 
 const rows = ['North', 'South', 'East', 'West'].flatMap((region, r) =>
@@ -254,10 +255,10 @@ try {
       }
       // CSV keeps every source row; the PNG names the state (FEA-BR-32).
       const payload = await payloadOf(page);
-      const [csv] = await Promise.all([page.waitForEvent('download'), figure.locator('.rv-chart__action--csv').click()]);
+      const csv = await figureDownload(page, figure, 'csv');
       const lines = readFileSync(await csv.path(), 'utf8').trim().split(/\r?\n/);
       await check(`${label}: CSV keeps every row`, () => assert.equal(lines.length - 1, payload.rows.length));
-      const [png] = await Promise.all([page.waitForEvent('download'), figure.locator('.rv-chart__action--png').click()]);
+      const png = await figureDownload(page, figure, 'png');
       const state = (await model(page)).state;
       const slug = state.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/-+$/, '');
       await check(`${label}: the PNG names the state`, () => assert.ok(png.suggestedFilename().includes(slug), `${png.suggestedFilename()} lacks ${slug}`));

@@ -18,37 +18,37 @@ Markdown in. Interactive report out. Every preview below is a working RichView r
 
 ## Longer lives
 
-**Sleek · A story across generations.** Gapminder's regional life expectancies show both decades of progress and the limits of a regional average. A photograph opens the report; a combination chart you can filter by region leads, and a second chart and four tables carry the evidence.
+**Sleek · A story across generations.** Gapminder's regional life expectancies show both decades of progress and the limits of a regional average. A photograph opens the report; a combination chart you can filter by region leads, and a second chart, a market photograph and four tables carry the evidence.
 
 {{report:longer-lives}}
 
 ## A warmer world
 
-**Air · A long record, a clear baseline.** NASA's annual temperature anomalies put each year against the same 1951–1980 average. Read the whole series, then inspect the observations behind it.
+**Air · A long record, a clear baseline.** NASA's annual temperature anomalies put each year against the same 1951–1980 average. The whole series leads. Twenty-year bars, a decade table, NASA's map of 2025 and the full record ranked by warmth follow, with the pace of the warming and how to read a baseline.
 
 {{report:air-we-changed}}
 
 ## The same summary, four different pictures
 
-**Scientific · Look at the data.** Anscombe's quartet turns a familiar statistical warning into four live panels. Old Faithful adds a second lesson: a relationship is easier to see when the pairs stay together.
+**Scientific · Look at the data.** Anscombe's quartet turns a familiar statistical warning into four live panels. Old Faithful adds a second lesson: a relationship is easier to see when the pairs stay together. The report sets the forty-four observations and their shared summary beside the panels, shows the geyser in a National Park Service photograph and splits its eruptions into the two clusters its average hides.
 
 {{report:same-numbers}}
 
 ## Passengers and crew on the Titanic
 
-**Brutalist · Follow the counts.** An alluvial chart connects class, sex and survival. The report explains what its ribbons represent and where aggregation hides detail.
+**Brutalist · Follow the counts.** An alluvial chart connects class, sex and survival. Bars and three tables give the shares by class, by sex and for the children, a photograph from the US National Archives shows one of the lifeboats, and the report explains what its ribbons represent and where aggregation hides detail.
 
 {{report:titanic}}
 
 ## Wheat and wages
 
-**Hand-drawn · Two pioneers, one report.** William Playfair's bars and line compare prices and pay on separate scales. Florence Nightingale's mortality data become a second, faceted view. The measurements stay exact under the pencil treatment.
+**Hand-drawn · Two pioneers, one report.** William Playfair's bars and line compare prices and pay on separate scales. Florence Nightingale's mortality data become a second, faceted view, beside her own diagram of 1858. Tables turn both into numbers, the weeks of wages a quarter of wheat cost and the death rates by cause, and a third chart draws Playfair's full series. The measurements stay exact under the pencil treatment.
 
 {{report:first-charts}}
 
 ## Families and longer lives
 
-**Air · A chart you can play.** Step through Gapminder's country observations over time. Fertility, life expectancy, population and region share one bubble chart.
+**Air · A chart you can play.** A family of four generations opens the report. Step through Gapminder's country observations over time. Fertility, life expectancy, population and region share one bubble chart. Below it the report counts the countries by family size every ten years and lists the regions' medians, the ten largest falls and the three exceptions.
 
 {{report:families-and-lives}}
 

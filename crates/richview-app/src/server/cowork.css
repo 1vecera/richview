@@ -233,14 +233,18 @@ body.docs-page .cowork .report-rows .open-to .vis { margin: 0 0 .25rem; }
 body.docs-page .cowork .report-rows .open-to span, body.docs-page .cowork .report-rows .when span { display: block; }
 body.docs-page .cowork .report-rows .when strong { color: var(--ink); font-weight: 500; }
 
-/* The first visit. */
-body.docs-page .cowork .first { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 0; padding: 0; list-style: none; counter-reset: step; }
-body.docs-page .cowork .first > li { counter-increment: step; padding: 1.25rem; border: 1px solid var(--rule); border-radius: var(--r-panel); background: var(--panel); min-width: 0; }
-body.docs-page .cowork .first > li::before { content: counter(step); display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem; margin: 0 0 .7rem; border-radius: 50%; background: var(--ink); color: var(--paper); font: 600 .8125rem / 1 var(--font-ui); }
-body.docs-page .cowork .first h2 { margin: 0 0 .3rem; font: 600 1.0625rem / 1.3 var(--font-ui); }
-body.docs-page .cowork .first p { margin: 0 0 .9rem; color: var(--soft); font-size: .9375rem; line-height: 1.5; }
+/* The first visit: the list's place, then the three steps to a first report as one short list. */
+/* A place, not a report: a dashed hairline on the page's own paper. */
+body.docs-page .cowork .report-rows--none { border-style: dashed; background: none; }
+body.docs-page .cowork .report-rows--none > li { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+body.docs-page .cowork .first ol { margin: 1rem 0 0; padding: 0; list-style: none; counter-reset: step; border-top: 1px solid var(--rule); }
+body.docs-page .cowork .first ol > li { counter-increment: step; display: grid; grid-template-columns: 1.5rem minmax(0, 1fr) auto; align-items: center; gap: .6rem 1rem; padding: .85rem 0; border-bottom: 1px solid var(--rule); }
+body.docs-page .cowork .first ol > li::before { content: counter(step); display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--ink); color: var(--paper); font: 600 .75rem / 1 var(--font-ui); }
+body.docs-page .cowork .first ol p { margin: 0; color: var(--soft); font-size: .9375rem; line-height: 1.5; }
+body.docs-page .cowork .first ol strong { color: var(--ink); font-weight: 600; }
+body.docs-page .cowork .first ol .rv-report__body { grid-column: 2 / -1; min-width: 0; }
 body.docs-page .cowork .first .rv-report__body .docs-code { margin: 0; }
-body.docs-page .cowork .first > li.wide { grid-column: 1 / -1; }
+body.docs-page .cowork .first .then { margin: 1rem 0 0; color: var(--soft); font-size: .9375rem; line-height: 1.5; }
 
 /* One report: its address, the three ways to open it, the people. */
 body.docs-page .cowork .report-head .state { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .9rem; margin: 1rem 0 0; color: var(--soft); font-size: .9375rem; }
@@ -284,7 +288,7 @@ body.docs-page .cowork .note.invite .docs-button { min-height: 2.4rem; }
   body.docs-page .cowork .report-rows > li { grid-template-columns: minmax(0, 1fr) auto; }
   body.docs-page .cowork .report-rows .main { grid-column: 1 / -1; }
   body.docs-page .cowork .report-rows .acts { grid-column: 1 / -1; }
-  body.docs-page .cowork .open-ways, body.docs-page .cowork .first { grid-template-columns: minmax(0, 1fr); }
+  body.docs-page .cowork .open-ways { grid-template-columns: minmax(0, 1fr); }
   body.docs-page .cowork .open-way .way-foot { margin-top: 0; }
 }
 @media (max-width: 600px) {
@@ -294,6 +298,8 @@ body.docs-page .cowork .note.invite .docs-button { min-height: 2.4rem; }
   body.docs-page .cowork .report-rows .open-to, body.docs-page .cowork .report-rows .when { grid-column: 1 / -1; }
   body.docs-page .cowork .report-rows .when span { display: inline; }
   body.docs-page .cowork .report-rows .when span + span::before { content: " · "; }
+  body.docs-page .cowork .first ol > li { grid-template-columns: 1.5rem minmax(0, 1fr); align-items: start; }
+  body.docs-page .cowork .first ol > li > .act { grid-column: 2; justify-self: start; }
   body.docs-page .cowork .act, body.docs-page .cowork .act--danger { min-height: 2.5rem; padding: .3rem .9rem; }
   body.docs-page .cowork .share-form { grid-template-columns: minmax(0, 1fr); padding: 1.15rem; }
   body.docs-page .cowork .share-form .docs-button, body.docs-page .cowork .danger-zone .docs-button, body.docs-page .cowork .address .docs-button { width: 100%; min-height: 2.75rem; }
@@ -309,9 +315,6 @@ body.docs-page .cowork .note.invite .docs-button { min-height: 2.4rem; }
 body.docs-page .cowork .copy-link button.act { padding: .2rem .7rem; border: 1px solid var(--rule); color: var(--ink); font: 500 .875rem / 1.2 var(--font-ui); text-decoration: none; }
 body.docs-page .cowork .copy-link button.act:hover { border-color: var(--ink); }
 body.docs-page .cowork .share-form--one { grid-template-columns: minmax(0, 24rem) auto; justify-content: start; }
-body.docs-page .cowork .first .docs-button { min-height: 2.5rem; }
-body.docs-page .cowork .first > li.plain { border: 0; background: none; padding: .25rem 0 0; }
-body.docs-page .cowork .first > li.plain::before { content: none; }
 body.docs-page .cowork h3 { margin: 1.75rem 0 .6rem; }
 @media (max-width: 600px) {
   body.docs-page .cowork .share-form--one { grid-template-columns: minmax(0, 1fr); }

@@ -94,8 +94,10 @@ fn end_order_records_are_invariant_across_label_and_legend_layouts() {
         let rows = vec![
             json!({"x":0,"v":10,"g":"North region"}),
             json!({"x":1,"v":20,"g":"North region"}),
+            json!({"x":2,"v":20,"g":"North region"}),
             json!({"x":0,"v":20,"g":"South region"}),
             json!({"x":1,"v":10,"g":"South region"}),
+            json!({"x":2,"v":10,"g":"South region"}),
         ];
         let mut presentations = std::collections::BTreeSet::new();
         for hidden in [vec![], vec!["North region".into()]] {
@@ -131,6 +133,10 @@ fn end_order_records_are_invariant_across_label_and_legend_layouts() {
                 }
             }
         }
-        assert_eq!(presentations.len(), 2, "exercise both direct names and a legend");
+        assert_eq!(
+            presentations.len(),
+            2,
+            "{kind}: exercise both direct names and a legend: {presentations:?}"
+        );
     }
 }

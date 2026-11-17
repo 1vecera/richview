@@ -338,8 +338,8 @@ impl Transfer<'_> {
         }
         if code == "RequestTimeTooSkewed" {
             let skew = date
-                .and_then(|d| chrono::DateTime::parse_from_rfc2822(&d).ok())
-                .map(|d| (chrono::Utc::now() - d.with_timezone(&chrono::Utc)).num_seconds())
+                .and_then(|d| crate::time::parse_http_date(&d))
+                .map(|d| crate::time::Instant::now().seconds_since(d))
                 .map_or(String::new(), |s| format!(" by {s} s"));
             return Err(Failure::Fatal(AssetError::transfer(format!(
                 "The local clock differs from the store's{skew}; correct the system time and rerun"

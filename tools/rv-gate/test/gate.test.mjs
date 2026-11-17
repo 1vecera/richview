@@ -49,6 +49,27 @@ test("PR fields parse issue, class, cause, items and retired tests", () => {
 	assert.deepEqual(validatePrFields(fields, { knownItems: new Set(["FEA-CH-37", "STY-05", "STY-21"]) }), []);
 });
 
+test("a stack's joined messages keep the retired tests of every commit that lists some", () => {
+	const dir = mkdtempSync(join(tmpdir(), "rv-gate-retired-stack-"));
+	const git = (...args) => execFileSync("git", ["-C", dir, "-c", "user.name=t", "-c", "user.email=t@example.com", ...args], { encoding: "utf8" }).trim();
+	try {
+		git("init", "-q");
+		git("commit", "-q", "--allow-empty", "-m", "base");
+		const base = git("rev-parse", "HEAD");
+		for (const name of ["one", "two", "three"]) {
+			git("commit", "-q", "--allow-empty", "-m", `Retire ${name}\n\nRefs S27-1\n\n## Retired tests\n- \`tests/${name}.rs::goes\` — obsolete (${name})\n\n## Checklist\n- [x] fast`);
+		}
+		// Read as fast reads a stack: every message since the base, joined.
+		const messages = git("log", "--format=%B", `${base}..HEAD`);
+		assert.deepEqual(
+			parsePrBody(messages).retired.map((r) => `${r.test} ${r.reason}`).sort(),
+			["tests/one.rs::goes obsolete (one)", "tests/three.rs::goes obsolete (three)", "tests/two.rs::goes obsolete (two)"],
+		);
+	} finally {
+		rmSync(dir, { recursive: true, force: true });
+	}
+});
+
 test("PR validation refuses a missing issue, an unknown class, design plus feature and a causeless design PR", () => {
 	assert.match(validatePrFields(parsePrBody("decision: none")).join(" "), /Refs S27/);
 	assert.match(validatePrFields(parsePrBody("Refs S27-1\ndecision: big")).join(" "), /Unknown decision/);

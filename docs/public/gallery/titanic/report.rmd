@@ -29,6 +29,130 @@ axes:
 
 *Source: Titanic passenger and crew counts from the British Board of Trade inquiry, via Dawson (1995) and the [R datasets package](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/Titanic.html). Age groups are summed in this view.*
 
+```metric
+value: 2201
+format: number
+label: People aboard in the inquiry's table, 885 of them crew
+```
+
+```metric
+value: 711
+label: Survived, 32% of those aboard
+```
+
+```metric
+value: 1490
+format: number
+label: Died, 1,364 of them men and boys
+```
+
+```image
+src: media/lifeboat-6.jpg
+alt: "A crowded open lifeboat on a choppy sea, seen from above, its passengers in life jackets"
+caption: "A lifeboat carrying Titanic survivors, 15 April 1912. The court file's caption names it Boat No. 6. US National Archives."
+width: 600
+height: 423
+```
+
+*Image: [US National Archives, NAID 278337](https://catalog.archives.gov/id/278337), "Photograph of a Lifeboat Carrying Titanic Survivors", an exhibit in the liability case of the ship's owner before the U.S. District Court for the Southern District of New York; use unrestricted.*
+
+## Class and sex
+
+Seven in ten women aboard survived, and two in ten men. Class mattered within each sex: 97% of the women in first class survived and 46% of those in third. Sex mattered more than class: women in third class survived more often than men in first, of whom 34% did. Men in second class fared worst of all, at 14%.
+
+```chart
+type: bar
+title: Women survived more often than men in every class
+subtitle: Share of each group that survived, adults and children together
+data:
+  inline:
+    - { class: 1st, sex: Women, share: 0.97 }
+    - { class: 1st, sex: Men, share: 0.34 }
+    - { class: 2nd, sex: Women, share: 0.88 }
+    - { class: 2nd, sex: Men, share: 0.14 }
+    - { class: 3rd, sex: Women, share: 0.46 }
+    - { class: 3rd, sex: Men, share: 0.17 }
+    - { class: Crew, sex: Women, share: 0.87 }
+    - { class: Crew, sex: Men, share: 0.22 }
+encoding: { x: class, y: share, color: sex }
+axes:
+  y: { label: Survived, format: percent, min: 0, max: 1 }
+style: { ratio: "2:1" }
+```
+
+*Source: the first chart's counts; survivors divided by those aboard in each group, in whole per cent. Women and men include girls and boys.*
+
+```table
+title: Aboard and survived, by class
+data:
+  inline:
+    - { class: First class, aboard: 325, survived: 203, share: "62%" }
+    - { class: Second class, aboard: 285, survived: 118, share: "41%" }
+    - { class: Third class, aboard: 706, survived: 178, share: "25%" }
+    - { class: Crew, aboard: 885, survived: 212, share: "24%" }
+    - { class: All, aboard: 2201, survived: 711, share: "32%" }
+columns:
+  - { key: class, label: Class }
+  - { key: aboard, label: Aboard, format: number, align: right }
+  - { key: survived, label: Survived, format: number, align: right }
+  - { key: share, label: Share, align: right }
+```
+
+*Source: the first chart's counts.*
+
+The crew's share, 24%, is close to third class's 25%, for a different reason: 862 of the 885 crew were men. Of the 23 women in the crew, 20 survived.
+
+```table
+title: Share that survived, of the women and of the men in each class
+data:
+  inline:
+    - { class: First class, women: "97% of 145", men: "34% of 180" }
+    - { class: Second class, women: "88% of 106", men: "14% of 179" }
+    - { class: Third class, women: "46% of 196", men: "17% of 510" }
+    - { class: Crew, women: "87% of 23", men: "22% of 862" }
+    - { class: All, women: "73% of 470", men: "21% of 1,731" }
+columns:
+  - { key: class, label: Class }
+  - { key: women, label: Women, align: right }
+  - { key: men, label: Men, align: right }
+```
+
+*Source: the first chart's counts. Women and men include girls and boys.*
+
+## The children
+
+The table counts 109 children, all of them passengers, and 57 of them survived. Where they travelled decided most of it.
+
+```callout
+kind: neutral
+title: Every child in first and second class survived.
+body: All 30 did. In third class 27 of 79 children survived, about one in three.
+```
+
+```table
+title: Children aboard and survived, by class
+data:
+  inline:
+    - { class: First class, aboard: 6, survived: 6, share: "100%" }
+    - { class: Second class, aboard: 24, survived: 24, share: "100%" }
+    - { class: Third class, aboard: 79, survived: 27, share: "34%" }
+    - { class: All, aboard: 109, survived: 57, share: "52%" }
+columns:
+  - { key: class, label: Class }
+  - { key: aboard, label: Children, align: right }
+  - { key: survived, label: Survived, align: right }
+  - { key: share, label: Share, align: right }
+```
+
+*Source: the age split of `data/titanic.csv`, which the first chart sums. The table does not state the age at which a child counts as an adult.*
+
 ## What an aggregate hides
 
-Class includes the crew as well as the passenger classes. The source also separates adults and children; this view sums those groups. These ribbons are counts from a contingency table, not traced journeys of individuals. Use the CSV to inspect the age split before drawing conclusions about any subgroup.
+- **Counts, not journeys.** These ribbons are counts from a contingency table. They do not trace individuals.
+- **Class includes the crew.** The fourth class in the data is the crew, who were aboard to work. Their share is not comparable with a passenger class without that in mind.
+- **Small groups make round shares.** Six children travelled first class. 100% of six is a fact about six people.
+- **One table among several.** Other tallies of those aboard and lost differ a little from these. This report keeps to the inquiry's counts as Dawson published them.
+
+## Data
+
+`data/titanic.csv` and the photograph travel with the report; `media/SOURCES.md` says where the photograph comes from. The CSV holds 32 rows, one for each combination of class, sex, age group and outcome, with the number of people in it. Every figure in this report is a sum or a share of those rows.

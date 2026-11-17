@@ -51,7 +51,7 @@ trap 'kill "$richview_test_pid"; unset RICHVIEW_TOKEN RICHVIEW_SERVER' EXIT
 curl --fail --silent --show-error --retry 10 --retry-connrefused --retry-delay 1 \
   http://127.0.0.1:4820/health && echo
 richview publish first-report/report.rmd \
-  --server http://127.0.0.1:4820 --slug first-report --new --format json
+  --server http://127.0.0.1:4820 --slug first-report --new
 ```
 
 The server keeps running in the background. Open the report URL from the publication result. This disposable loopback example selects **anyone with the link** so you can read it without creating a user. A server's normal default is private; use that default when setting up a real service. A new address needs `--new`; another version at the same address does not.
@@ -64,24 +64,24 @@ With that server still running, identical publication is safe to repeat:
 
 ```sh
 richview publish first-report/report.rmd \
-  --server http://127.0.0.1:4820 --slug first-report --format json
+  --server http://127.0.0.1:4820 --slug first-report
 richview report regenerate first-report 0.0.1 \
-  --server http://127.0.0.1:4820 --format json
+  --server http://127.0.0.1:4820
 ```
 
-The identical version returns `created: false` and keeps its original artifact. Regeneration renders the retained source with the running engine and reports differences; it stores nothing. To revise the report, edit its source, increase `version`, validate and publish again. Different content under an existing version is refused as `publish.version-exists`.
+The identical version answers `Already published at` (`created: false` with `--format json`) and keeps its original artifact. Regeneration renders the retained source with the running engine and reports differences; it stores nothing. To revise the report, edit its source, increase `version`, validate and publish again. Different content under an existing version is refused as `publish.version-exists`.
 
 Pin the version you want the short address to serve, then restore version ordering:
 
 ```sh
-richview report pin first-report 0.0.1 --server http://127.0.0.1:4820 --format json
-richview report unpin first-report --server http://127.0.0.1:4820 --format json
+richview report pin first-report 0.0.1 --server http://127.0.0.1:4820
+richview report unpin first-report --server http://127.0.0.1:4820
 ```
 
 For this disposable example only, you can delete the stored version when finished. Its immutable address becomes a tombstone and that version number cannot be published again:
 
 ```sh
-richview report delete first-report 0.0.1 --yes --server http://127.0.0.1:4820 --format json
+richview report delete first-report 0.0.1 --yes --server http://127.0.0.1:4820
 ```
 
 Stop only this example's server when finished:

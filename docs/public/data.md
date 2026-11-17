@@ -56,7 +56,7 @@ Install [DuckDB 1.5.6](https://duckdb.org/docs/installation/) for this example. 
 ```sh
 cd sql-report
 duckdb data/warehouse.duckdb < data/seed.sql
-richview generate report.rmd --format json
+richview generate report.rmd
 ```
 
 A successful render reports `data.provenance` with three rows from `local-duckdb` via SQL. The HTML carries the resolved rows, not the database or a live connection.

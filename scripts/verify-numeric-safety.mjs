@@ -11,6 +11,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { harness, watchErrors } from './browser-harness.mjs';
+import { figureDownload } from './chart-interaction-checks.mjs';
 import { reports, settle } from './report-runtime.mjs';
 
 const fence = value => `\n\`\`\`chart\n${JSON.stringify(value)}\n\`\`\`\n`;
@@ -156,7 +157,7 @@ try {
           const cells = await figure.locator('.rv-chart__table tbody td').allTextContents();
           await check(`${at}: Table keeps the row with its text as written`, () => assert.ok(cells.some(t => t.trim() === TINY), cells.join(' | ')));
           await figure.locator('.rv-chart__action--table').click();
-          const [file] = await Promise.all([page.waitForEvent('download'), figure.locator('.rv-chart__action--csv').click()]);
+          const file = await figureDownload(page, figure, 'csv');
           const parsed = parseCsv(readFileSync(await file.path(), 'utf8'));
           await check(`${at}: CSV keeps every row and the text as written`, () => {
             assert.equal(parsed.length - 1, c.chart.data.inline.length);

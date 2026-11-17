@@ -109,7 +109,7 @@ DISCOVERY = {
 
 
 def main() -> None:
-    """Write ledger/sources.csv with dataset rows first, then every discovery row in id order."""
+    """Write ledger/sources.csv with dataset rows first, then every discovery row in id order, then later sources."""
     rows = [
         {
             "id": dataset_id,
@@ -147,6 +147,10 @@ def main() -> None:
                         "notes": record.get("notes", ""),
                     }
                 )
+    discovered = len(rows) - len(DATASETS)
+    # Sources read after the 2 October snapshot keep their own access date and stay out of the discovery run.
+    with (common.RESEARCH_DIR / "discovery" / "after_snapshot.csv").open(newline="") as handle:
+        rows.extend({field: record[field] for field in FIELDS} for record in csv.DictReader(handle))
     common.LEDGER_DIR.mkdir(parents=True, exist_ok=True)
     with (common.LEDGER_DIR / "sources.csv").open("w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=FIELDS, lineterminator="\n")
@@ -161,7 +165,7 @@ def main() -> None:
             "query": "commercial position; capability and releases; perception events; surveys and polls",
             "window_start": "2023-01-01",
             "window_end": "2026-10-02",
-            "items": len(rows) - len(DATASETS),
+            "items": discovered,
             "requests": "",
             "cache_hits": "",
             "cost_usd": "",

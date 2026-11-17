@@ -119,7 +119,12 @@ try {
     assert.ok(Math.abs(before.title.x - before.subtitle.x) <= 3, `${theme}/${width}: title starts at the caption's left edge, including when the first bar has zero height`);
     // The title box is as high as its lines, wherever the style sets it (a flex basis once made it 240 px in Hand-drawn).
     assert.ok(before.title.height <= before.titleLines * before.titleLine + 2, `${theme}/${width}: the title is ${before.title.height.toFixed(1)} px high for ${before.titleLines} line(s) of ${before.titleLine} px`);
-    for (const [name, label] of names) {
+    // Up to 600 px a figure shows Table and Expand alone: Download PNG and CSV are in the expanded view, which
+    // the downloads below take them from at every width (Daniel, 17 Nov: no download icons on a phone).
+    const phone = width <= 600;
+    const inline = phone ? names.filter(([name]) => name === 'Table' || name === 'Expand') : names;
+    assert.deepEqual(await figure.locator('.rv-chart__titlerow .rv-chart__action:visible').evaluateAll(buttons => buttons.map(b => b.getAttribute('aria-label'))), inline.map(([, label]) => label), `${theme}/${width}: the figure's own actions`);
+    for (const [name, label] of inline) {
       const button = figure.getByRole('button', { name, exact: true });
       assert.equal(await button.locator('svg[aria-hidden="true"]').count(), 1, `${name}: the action keeps its icon`);
       // At every width the actions are icons whose label is their accessible name and shows only
@@ -133,6 +138,21 @@ try {
     // The actions sit at the right of the title, in its row, or under it; never over it.
     const besideTitle = before.actions.x >= before.title.right - 1 && before.actions.y < before.title.bottom - 1;
     assert.ok(besideTitle || before.actions.y >= before.title.bottom - 1 || before.actions.bottom <= before.title.y + 1, `${theme}/${width}: actions never overlap the title`);
+    // A phone gives the icons no line of their own: they keep the right end of the title's first line and a
+    // long title wraps beside them, so nothing stands between the title, the subtitle and the plot (Daniel,
+    // 17 Nov: "no empty line for icons"). Hand-drawn, which sets the title under the chart, keeps its icon line
+    // over the chart, the only place a phone's readout clears its mark on chord and venn, until Readout fit
+    // judges those two by painted mark (train 4).
+    if (phone && theme !== 'hand-drawn') {
+      for (let index = 0; index < 3; index++) {
+        const row = await figures.nth(index).evaluate(node => {
+          const title = node.querySelector('.rv-chart__title'), t = title.getBoundingClientRect(), a = node.querySelector('.rv-chart__titlerow > .rv-chart__actions').getBoundingClientRect();
+          return { title: [t.left, t.top, t.right, t.bottom], actions: [a.left, a.top, a.right, a.bottom], line: parseFloat(getComputedStyle(title).lineHeight) };
+        });
+        const [, top, right] = row.title, [left, actionsTop, , actionsBottom] = row.actions;
+        assert.ok(left >= right - 1 && actionsTop < top + row.line && actionsBottom > top, `${theme}/${width}: figure ${index + 1}'s icons share the title's first line: ${JSON.stringify(row)}`);
+      }
+    }
     // A title short enough to share its row keeps the icons beside it at every width; only a longer
     // one sends them under (S27-996; Daniel, 9 Nov: in the title row if they fit, otherwise under it).
     for (let index = 0; index < 3; index++) {

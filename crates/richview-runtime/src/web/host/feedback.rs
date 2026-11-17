@@ -136,9 +136,34 @@ pub(super) struct ZoomGlide {
     to: [f64; 2],
     start: f64,
     end: Option<[f64; 2]>,
+    /// The same along y, on a chart that zooms along both axes.
+    y: Option<GlideY>,
+}
+
+/// A zoom glide's window along y: where it starts, where it goes and the zoom it settles on.
+#[derive(Debug, Clone, Copy)]
+struct GlideY {
+    from: [f64; 2],
+    to: [f64; 2],
+    end: Option<[f64; 2]>,
 }
 
 impl ZoomGlide {
+    /// The window along y drawn now, on a chart that zooms along both axes.
+    pub(super) fn window_y(&self) -> Option<[f64; 2]> {
+        let GlideY { from, to, .. } = self.y?;
+        let t = ease((now() - self.start) / ZOOM);
+        Some([
+            from[0] + (to[0] - from[0]) * t,
+            from[1] + (to[1] - from[1]) * t,
+        ])
+    }
+
+    /// The window along y the glide settles on.
+    fn end_y(&self) -> Option<[f64; 2]> {
+        self.y.and_then(|y| y.end)
+    }
+
     /// The window drawn now.
     pub(super) fn window(&self) -> [f64; 2] {
         let t = ease((now() - self.start) / ZOOM);
@@ -156,6 +181,105 @@ impl ZoomGlide {
     pub(super) fn end(&self) -> Option<[f64; 2]> {
         self.end
     }
+}
+
+/// Names inside the plot would jump from frame to frame of a zoom, since each frame places them
+/// afresh. They leave instead: they fade out in 100 ms when a zoom glide starts (at once when the
+/// window jumps), stay away while the window moves, and fade in over 150 ms on the settled view
+/// once it has rested 120 ms (chart design, 16 Nov 2026).
+const NAMES_OUT: f64 = 100.0;
+const NAMES_IN: f64 = 150.0;
+const NAMES_QUIET: f64 = 120.0;
+
+/// Where the names inside the plot are in their fade: leaving since `out`, last moved at
+/// `moved`, coming back since `back`.
+#[derive(Debug, Clone, Copy, Default)]
+pub(super) struct NameFade {
+    out: Option<f64>,
+    moved: f64,
+    back: Option<f64>,
+}
+
+impl NameFade {
+    /// The names' strength now, 0 to 1.
+    pub(super) fn level(&self) -> f64 {
+        let at = now();
+        match (self.out, self.back) {
+            (Some(t), _) => 1.0 - ease_out((at - t) / NAMES_OUT),
+            (None, Some(t)) => ease_out((at - t) / NAMES_IN),
+            _ => 1.0,
+        }
+    }
+
+    fn running(&self) -> bool {
+        self.out.is_some() || self.back.is_some()
+    }
+
+    /// Bring the names back once the window has rested, and end a finished return.
+    fn step(&mut self) {
+        let at = now();
+        if self.out.is_some() && at - self.moved >= NAMES_QUIET {
+            self.out = None;
+            self.back = Some(at);
+        }
+        if self.back.is_some_and(|t| at - t >= NAMES_IN) {
+            self.back = None;
+        }
+    }
+}
+
+/// A zoom moved the window of a chart that may name its lines inside the plot: the names leave,
+/// fading when a glide starts and at once when the window jumps.
+pub(super) fn names_moved(v: &mut View, gliding: bool) {
+    let named = matches!(v.geometry.kind.as_str(), "line" | "area") && v.geometry.series.len() > 1;
+    if reduced_motion() || !named {
+        return;
+    }
+    let at = now();
+    if v.names.out.is_none() {
+        // A return still under way turns back from where it is.
+        let level = v.names.level();
+        v.names.out = Some(if gliding {
+            began(1.0 - level, NAMES_OUT)
+        } else {
+            at - NAMES_OUT
+        });
+    }
+    v.names.back = None;
+    v.names.moved = at;
+}
+
+/// Draw frames until the names are back, after a zoom that set its window at once.
+pub(super) fn names_return(view: &Rc<RefCell<View>>) {
+    if view.borrow().names.running() {
+        run(view);
+    }
+}
+
+/// The geometry with its names inside the plot drawn at `level` of their strength.
+pub(super) fn faded_names(
+    g: &richview_chart::geometry::Geometry,
+    level: f64,
+) -> richview_chart::geometry::Geometry {
+    use richview_chart::geometry::{Face, Item, Role};
+    let mut g = g.clone();
+    let names: Vec<String> = g.series.iter().map(|s| s.name.clone()).collect();
+    for panel in &mut g.panels {
+        let plot = panel.plot;
+        for item in &mut panel.items {
+            if let Item::Text(t) = item
+                && t.role == Role::Label
+                && t.face == Face::Data
+                && t.series
+                    .and_then(|s| names.get(s))
+                    .is_some_and(|n| *n == t.text)
+                && t.bounds.inside(&plot, 0.5)
+            {
+                t.color = t.color.with_alpha(f64::from(t.color.0[3]) * level);
+            }
+        }
+    }
+    g
 }
 
 /// The hover feedback's eased level, 0 to 1: it arrives in 120 ms and, once the pointer has
@@ -185,6 +309,7 @@ pub(super) fn busy(v: &View) -> bool {
     let at = now();
     v.fade.running(at)
         || v.zoom_glide.is_some()
+        || v.names.running()
         || at - v.hover_at < HOVER
         || v.letting_go.is_some_and(|t| at - t < HOVER_OUT)
         || !v.released.is_empty()
@@ -313,7 +438,12 @@ pub(super) fn settle(view: &Rc<RefCell<View>>) {
         v.fade.arrived = None;
         v.fade.before = None;
         v.animating = false;
-        let zoom = v.zoom_glide.take().map(|g| g.end);
+        v.names = NameFade::default();
+        let glide = v.zoom_glide.take();
+        if let Some(g) = glide {
+            v.chart.zoom_y = g.end_y();
+        }
+        let zoom = glide.map(|g| g.end);
         remesh(&mut v);
         zoom
     };
@@ -325,6 +455,28 @@ pub(super) fn settle(view: &Rc<RefCell<View>>) {
 
 /// Zoom to `zoom`, or back to the whole series, gliding there (FEA-CH-52).
 pub(super) fn zoom_to(view: &Rc<RefCell<View>>, zoom: Option<[f64; 2]>) {
+    zoom_to_window(view, zoom, None);
+}
+
+/// [`zoom_to`] with the window along y as well, for a chart that zooms along both axes (a
+/// map); elsewhere `y` is ignored.
+pub(super) fn zoom_to_window(
+    view: &Rc<RefCell<View>>,
+    zoom: Option<[f64; 2]>,
+    y: Option<[f64; 2]>,
+) {
+    let span = {
+        let v = view.borrow();
+        v.geometry
+            .panels
+            .first()
+            .and_then(|p| p.x.as_ref())
+            .and_then(|s| s.y)
+    };
+    // The window along y settles with the zoom along x: it is the chart's from here on, and
+    // each frame of the glide replaces it with the window of the moment.
+    let y = span.and(zoom).and(y);
+    let before = std::mem::replace(&mut view.borrow_mut().chart.zoom_y, y);
     let zoom = {
         let v = view.borrow();
         zoom.and_then(|window| {
@@ -332,6 +484,7 @@ pub(super) fn zoom_to(view: &Rc<RefCell<View>>, zoom: Option<[f64; 2]>) {
                 .clamp_zoom(window, v.geometry.panels.first()?.x.as_ref()?)
         })
     };
+    let y = zoom.and(y);
     let from = {
         let v = view.borrow();
         v.geometry
@@ -345,21 +498,31 @@ pub(super) fn zoom_to(view: &Rc<RefCell<View>>, zoom: Option<[f64; 2]>) {
         return;
     };
     let to = zoom.unwrap_or(extent);
-    if reduced_motion() || from == to {
+    let glide_y = span.map(|s| GlideY {
+        from: s.domain,
+        to: y.unwrap_or(s.extent),
+        end: y,
+    });
+    if reduced_motion() || (from == to && glide_y.is_none_or(|g| g.from == g.to)) {
+        view.borrow_mut().chart.zoom_y = y;
         set_zoom(view, zoom);
         return;
     }
     {
         let mut v = view.borrow_mut();
+        // The frame drawn now still shows the window the glide leaves.
+        v.chart.zoom_y = before;
         v.zoom_glide = Some(ZoomGlide {
             from,
             to,
             start: now(),
             end: zoom,
+            y: glide_y,
         });
         v.target = None;
         v.pinned = false;
         v.readout.set_hidden(true);
+        names_moved(&mut v, true);
     }
     run(view);
 }
@@ -387,14 +550,29 @@ fn frame(weak: Weak<RefCell<View>>) {
     let glide = view.borrow().zoom_glide;
     match glide {
         Some(g) if g.done() => {
-            view.borrow_mut().zoom_glide = None;
+            {
+                let mut v = view.borrow_mut();
+                v.zoom_glide = None;
+                if g.y.is_some() {
+                    v.chart.zoom_y = g.end_y();
+                }
+            }
             set_zoom(&view, g.end);
+            // The glide has settled: its names come back on this view from the next frame.
+            let mut v = view.borrow_mut();
+            v.names.moved = now() - NAMES_QUIET;
         }
         Some(_) => layout(&view, false),
         None => {
             view.borrow_mut().released.retain(|r| r.level() > 0.0);
+            let names = {
+                let mut v = view.borrow_mut();
+                let running = v.names.running();
+                v.names.step();
+                running
+            };
             // A settled emphasis needs no new mesh while only the hover feedback moves.
-            let fading = view.borrow().fade.running(now());
+            let fading = names || view.borrow().fade.running(now());
             if fading {
                 remesh(&mut view.borrow_mut());
             }

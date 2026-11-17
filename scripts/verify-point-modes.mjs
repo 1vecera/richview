@@ -5,6 +5,7 @@ import { mkdirSync, mkdtempSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { cpus, loadavg } from 'node:os';
 import { harness, quantiles, root, watchErrors } from './browser-harness.mjs';
+import { figureDownload } from './chart-interaction-checks.mjs';
 import { reports } from './report-runtime.mjs';
 import { BUDGETS } from '../tools/rv-gate/lib/perf.mjs';
 
@@ -326,7 +327,7 @@ try {
         assert.deepEqual(model.checks, [], `${label}: an unreduced explicit policy needs no reduction check`);
       }
       if (!model.failure) assert.ok(model.firstReadout.includes('12.35'), `${label}: authored readout precision`);
-      const [download] = await Promise.all([page.waitForEvent('download'), figure.locator('.rv-chart__action--csv').click()]);
+      const download = await figureDownload(page, figure, 'csv');
       const csv = readFileSync(await download.path(), 'utf8');
       assert.equal(csv.trim().split(/\r?\n/).length, count + 1, `${label}: every CSV row`);
       assert.equal(csv.includes('12.3456789'), false, `${label}: source digits stay private`);

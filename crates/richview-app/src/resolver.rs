@@ -228,33 +228,29 @@ fn resolve_inner(
     }
     // Brand fonts name files in the report folder (STY-16); a file that is absent is left for
     // the render to report as `style.font-missing`.
-    // The cascade is the call's styles when given, else the source's own `styles` list with its
-    // files read above.
-    let cascade_sources: Vec<String> = if options.styles.is_empty() {
-        doc.frontmatter
-            .get("styles")
-            .and_then(Value::as_array)
-            .into_iter()
-            .flatten()
-            .filter_map(Value::as_str)
-            .map(|reference| {
-                options
-                    .data
-                    .get(reference)
-                    .cloned()
-                    .unwrap_or_else(|| reference.to_owned())
-            })
-            .collect()
-    } else {
-        options.styles.clone()
-    };
+    // Match the renderer's cascade: report styles first, then styles explicitly passed by the caller.
+    let mut cascade_sources: Vec<String> = doc
+        .frontmatter
+        .get("styles")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(Value::as_str)
+        .map(|reference| {
+            options
+                .data
+                .get(reference)
+                .cloned()
+                .unwrap_or_else(|| reference.to_owned())
+        })
+        .collect();
+    cascade_sources.extend(options.styles.iter().cloned());
     let cascade = richview_core::resolve_styles(&cascade_sources, &mut Vec::new());
     for file in richview_core::brand_font_files(&cascade) {
         if contained_path(root, &file).is_ok_and(|path| path.is_file()) {
             resolve_media(&file, root, allow_network, &mut options.data, &mut budget)?;
         }
     }
-
     for key in ["title_image", "title-image", "image"] {
         if let Some(reference) = doc.frontmatter.get(key).and_then(|image| {
             image
@@ -368,6 +364,13 @@ fn resolve_inner(
         &mut options.data,
         &mut budget,
     )?;
+    // Resolve logos after other media: if a file is also a report image, its ordinary full-sized
+    // copy must not be replaced by the bounded prefix used to diagnose an oversized logo.
+    for key in ["logo", "logo-dark"] {
+        if let Some(file) = cascade.document["company"][key].as_str() {
+            resolve_company_logo(file, root, &mut options.data, &mut budget)?;
+        }
+    }
     for finding in std::mem::take(&mut budget.findings) {
         if !doc
             .diagnostics
@@ -437,6 +440,41 @@ fn resolve_media(
     let bytes = bounded_read_limit(&path, raw_limit, &budget.error(reference))?;
     insert_media(reference, &prefix, bytes, data, budget)?;
     Ok(())
+}
+
+/// Read a logo within the report boundary, retaining one extra byte to diagnose an oversized file.
+fn resolve_company_logo(
+    reference: &str,
+    root: &Path,
+    data: &mut BTreeMap<String, String>,
+    budget: &mut ResourceBudget,
+) -> Result<(), String> {
+    if data.contains_key(reference) || !richview_core::document::report_relative_path(reference) {
+        return Ok(());
+    }
+    let Ok(path) = contained_path(root, reference) else {
+        // Core reports the missing or invalid logo, without preventing the rest of the report.
+        return Ok(());
+    };
+    if !path.is_file() {
+        return Ok(());
+    }
+    let mime = mime_guess::from_path(&path)
+        .first_or_octet_stream()
+        .to_string();
+    let prefix = format!("data:{mime};base64,");
+    let mut bytes = Vec::new();
+    let Ok(file) = fs::File::open(&path) else {
+        return Ok(());
+    };
+    if file
+        .take(richview_core::COMPANY_LOGO_MAX_BYTES as u64 + 1)
+        .read_to_end(&mut bytes)
+        .is_err()
+    {
+        return Ok(());
+    }
+    insert_media(reference, &prefix, bytes, data, budget)
 }
 
 fn insert_media(
@@ -1195,5 +1233,57 @@ mod runtime_tests {
         assert_eq!(findings[0].code, "report.output.runtime");
         assert!(findings[0].message.contains("cargo run -p richview-build"));
         assert!(options.runtime_js.is_none() && options.runtime_wasm.is_none());
+    }
+}
+
+#[cfg(test)]
+mod company_logo_tests {
+    use super::*;
+
+    #[test]
+    fn logo_reads_only_a_bounded_prefix_for_core_to_diagnose() {
+        let root = tempfile::tempdir().unwrap();
+        let source = vec![7; richview_core::COMPANY_LOGO_MAX_BYTES + 200];
+        fs::write(root.path().join("logo.bin"), source).unwrap();
+        let mut data = BTreeMap::new();
+        let mut budget = ResourceBudget::default();
+        resolve_company_logo("logo.bin", root.path(), &mut data, &mut budget).unwrap();
+        let encoded = data["logo.bin"].split_once(";base64,").unwrap().1;
+        let bytes = STANDARD.decode(encoded).unwrap();
+        assert_eq!(bytes.len(), richview_core::COMPANY_LOGO_MAX_BYTES + 1);
+        assert_eq!(
+            richview_core::validate_company_logo(&bytes),
+            Err(richview_core::CompanyLogoError::TooLarge)
+        );
+    }
+
+    #[test]
+    fn an_oversized_logo_does_not_truncate_the_same_file_used_as_report_media() {
+        let root = tempfile::tempdir().unwrap();
+        let source = vec![7; richview_core::COMPANY_LOGO_MAX_BYTES + 200];
+        fs::write(root.path().join("shared.png"), &source).unwrap();
+        let mut data = BTreeMap::new();
+        let mut budget = ResourceBudget::default();
+        resolve_media("shared.png", root.path(), false, &mut data, &mut budget).unwrap();
+        resolve_company_logo("shared.png", root.path(), &mut data, &mut budget).unwrap();
+        let encoded = data["shared.png"].split_once(";base64,").unwrap().1;
+        assert_eq!(STANDARD.decode(encoded).unwrap(), source);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn logo_does_not_read_a_symlink_outside_the_report_folder() {
+        let root = tempfile::tempdir().unwrap();
+        let outside = tempfile::NamedTempFile::new().unwrap();
+        std::os::unix::fs::symlink(outside.path(), root.path().join("logo.png")).unwrap();
+        let mut data = BTreeMap::new();
+        resolve_company_logo(
+            "logo.png",
+            root.path(),
+            &mut data,
+            &mut ResourceBudget::default(),
+        )
+        .unwrap();
+        assert!(data.is_empty());
     }
 }

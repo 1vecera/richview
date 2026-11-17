@@ -82,7 +82,7 @@ Daniel, 15 November 2026 about 14:30 CET, dictated: “automatic annotations on 
 
 ## FEA-CH-28 — automatic values on charts with few rows
 
-Target: Charts — Daniel’s “automatic annotations on by default” (15 November 2026) on the types that printed no value. Chart design ruled per type on 16 November 2026 (`tmp/team/launch/chart-design/packets/auto-values/ruling.md`); this replaces “bullet/hierarchy/circle additions are deferred” above for the types named here. FEA-CH-28’s limits hold: rows share the budget of five, three under 480 px of plot width, and every value is printed or none. A chart over the budget prints none and records each of its values as dropped; a value with no clear place takes the others with it, and each is recorded. The numbers a chart prints or records are therefore the same at every width (DEL-52). Values use the exact readout text, stand inside the plot 2 px clear of every mark and text, and may stand across a soft gridline, which stops short of them.
+Target: Charts — Daniel’s “automatic annotations on by default” (15 November 2026) on the types that printed no value. Chart design ruled per type on 16 November 2026: yes for dumbbell, bullet, the box plot's median, treemap, combo and the last close of candlestick and OHLC; no for histogram and dot plot; and `auto_annotations: false` prints no value the author did not write. This replaces “bullet/hierarchy/circle additions are deferred” above for the types named here. FEA-CH-28’s limits hold: rows share the budget of five, three under 480 px of plot width, and every value is printed or none. A chart over the budget prints none and records each of its values as dropped; a value with no clear place takes the others with it, and each is recorded. The numbers a chart prints or records are therefore the same at every width (DEL-52). Values use the exact readout text, stand inside the plot 2 px clear of every mark and text, and may stand across a soft gridline, which stops short of them.
 
 - **Dumbbell:** both end values of each row, the lesser before its dot and the greater after it. The value axis keeps room for one beyond its first and last dot when the rows are within the budget, never across zero.
 - **Bullet:** the measure’s value 4 px past the end of its bar. Where the target mark or a band’s edge would stand within 4 px of the text, the ruling sets it inside the bar’s end and drops it when it does not fit; a bullet’s bar is at most 13 px thick and a line of figures is taller, so today that value has no place. Where the longest bar reaches past every target and band, the axis keeps room for its value.
@@ -201,7 +201,7 @@ The flagship keeps its 2 October 2026 snapshot, wording rules and sources, and i
 
 # Less ink on highlight — S27-986
 
-Target: Charts — a highlighted mark carries less ink. Daniel asked on 15 November for "less ink on highlight, no black outline (scatter, box plot)"; Chart design ruled the rule and judged it from sheets in three styles (`packets/P4/highlight-ink-ruling.md`). No accepted answer changes.
+Target: Charts — a highlighted mark carries less ink. Daniel asked on 15 November for "less ink on highlight, no black outline (scatter, box plot)"; Chart design ruled it and judged it from sheets in three styles: every mark that carries a halo drops its ink outline and the page-coloured separator and keeps the halo with its gap; the tiled families, links, the line chart's hover dot, bar3d and the keyboard ring keep their treatment. No accepted answer changes.
 
 ## FEA-CH-53 — a haloed mark answers with its halo alone (replacement)
 
@@ -256,3 +256,67 @@ An area chart whose x axis is a list of categories puts its first category on th
 ## FEA-CH-28 — a line's last value stays when the end is contested (addition)
 
 On a single line whose lowest or highest point lies so close to its last point that the two values, each set over its own point, would run into each other, the last value may stand off on a leader, as an extreme may, and is placed first; when the last value and that extreme cannot both stand, the last value stays at every width. Where the extremes lie away from the line's end nothing changes: a last value with no place beside its point is left out and the extremes show (Chart design's gallery ruling, 16 November).
+
+## FEA-CH-34 — the count key of hexbin and 2-D bin charts (extension)
+
+Daniel, 16 November 2026, on the hexbin and 2-D bin charts of the docs: “it would make sense to have values and drop the C bar … just have values inside and drop the C bar. The C bar is nice for like offline charts, but I would mostly drop it”. FEA-CH-34's answer for heatmaps, a key only when some values cannot be printed, extends to the two charts of counts: each cell prints its count in the style's ink or its surface, whichever reads better on the cell, and a chart that prints every count draws no key. This one is all or none: when one cell cannot hold its count, none is printed, so the fullest cells are never the blank ones; the key comes back and each count is recorded as dropped, so every width carries the same numbers (DEL-52). `auto_annotations: false` asks for the key instead of the counts and records nothing. A hexbin's plot grows to hold every drawn hexagon whole; hexagons at the edge of the data are no longer cut at the plot, because a cut one could not carry its count. This amendment remains assumed until the lockdown owner records Daniel’s answer; no accepted answer changes.
+
+# The second released build is 3.0.0-alpha.1 — S27-986
+
+Target: Delivery — a released build can be told from the one before it by its version, so new archives can be published beside the old ones. Lead, 16 Nov 2026, for Daniel to change.
+
+## INT-41 — each released build carries its own version (addition)
+
+INT-41 publishes builds from `prod` and names no version for them. The first public release, of 16 Nov 2026, is `v3.0.0-alpha.0` and its tag is fixed by the public repository's ruleset, so a later build with the same version cannot be released beside it. The workspace version therefore moves to `3.0.0-alpha.1` for the next release, in `Cargo.toml` (every workspace crate takes it), `Cargo.lock`, `package.json` and `package-lock.json`. `richview --version`, the generator tag of a rendered report and the server's version read it from the build. The VS Code extension keeps its own version (`packages/vscode/package.json`, already `3.0.0-alpha.1`), and the chart engine its own (`0.1.0`). Statements in the guide and the evidence files that record what an earlier build printed keep the number they saw. How versions advance after this one is not decided here.
+
+# A Windows preview of the command line — S27-986
+
+Daniel, 16 November, on the open question of a Windows binary: "make windows happen using aws windows machine". ARC-67 is unanswered and its proposal says "Windows stays unsupported" and "a platform is added only together with a gate that runs on it". No Windows gate host exists, so this is built as a weaker class, a preview, and stays assumed until the lockdown owner records Daniel's answer. No accepted answer changes.
+
+## ARC-67 — Windows x64 as a preview (replacement of "Windows stays unsupported")
+
+RichView supports macOS on arm64 and Linux on x64. Windows 10 and 11 on x64 (`x86_64-pc-windows-msvc`) is a preview: the CLI with its MCP server and local preview, and the editor service for the extension. On Windows, PDF output and SQL data sources are not available yet and each says so in one diagnostic; the report server for hosting is not offered there. The binaries are unsigned. Windows is proven for each release by a recorded smoke run of the archive on a Windows x64 machine: install with the PowerShell script, `richview --version`, generate and check the flagship report, start the MCP server, uninstall. A supported platform is still added only together with a gate that runs on it; a preview platform needs the recorded smoke run.
+
+## INT-71 — a PowerShell installer beside the shell script (addition)
+
+The Windows archive is `richview-x86_64-pc-windows-msvc.tar.gz`, unpacked by the `tar.exe` Windows ships, with `bin/richview.exe`, `bin/richview-sql-worker.exe` and `uninstall.ps1`. `install.ps1` installs and uninstalls as `install.sh` does: a stamped archive digest, checked archive paths and file checksums, an ownership record, a new folder of its own (`.richview` in the user's home folder) and no change to PATH, services or the registry. A release is assembled and verified with or without the Windows archive. The install page names Windows only from the release that carries the archive.
+
+## ARC-68 — the dependency gate covers the Windows target (addition)
+
+The licence, advisory and source checks and the third-party notices cover `x86_64-pc-windows-msvc` beside the other targets, so one notice file is the same in every native archive.
+
+# Every chart that can zoom does, and says so — S27-986
+
+Target: Charts — a reader finds the same zoom, by the same gestures and behind the same hint, on every chart where a closer look helps. Daniel, 16 November, in the chart gallery on pre-prod: "this cool thing which says drag to zoom, I cannot see it on other charts where I can drag to zoom"; "the area chart, I would expect I can also drag to zoom"; "zooming in a map chart would be quite important"; "on scatter plot chart, you want to be able to zoom on both X and Y axis, but this is not launch needed". FEA-CH-49 and FEA-CH-39 are unanswered, so these additions extend their proposals; Chart design judged each from captures. No accepted answer changes.
+
+## FEA-CH-49 / FEA-CH-39 — a map zooms (addition)
+
+A map zooms along both axes by the gestures of every other chart: a drag across the plot draws a rectangle and zooms to it, Shift-drag pans in any direction, Ctrl/⌘ + wheel and + and − zoom around the pointer, and double-click, Escape or **Reset zoom** restores the whole map; on touch, pinch and drag work in the expanded view only. The rectangle is fitted whole into the plot, so the map keeps its shape; a reader zooms in at most 24 times, where the shipped boundaries still read as outlines, and the window stops at the map's edge. Countries and points a zoom moves out of the plot are neither drawn nor offered by readouts and the keyboard; the table and the CSV keep every row. FEA-CH-39's table gets the row "map: region or point; legend toggles; zoom along x and y".
+
+## FEA-CH-49 / FEA-CH-39 — a line or an area over names zooms (addition)
+
+A line or an area chart whose x axis holds three names or more (weekdays, months written as words, stages) zooms along x like one over numbers or dates, by the same gestures; over two names it does not zoom and shows no hint. Each end of a settled window stands on a name at the plot's edge, so no name's band is cut: when a drag ends, both ends move outward to the nearest names and the glide ends there; the drag band follows the pointer freely while dragging; pan, + and −, and Ctrl/⌘ + wheel step by whole names. At least two names stay in view, and zooming out stops at the whole axis. Bars, lollipops and every other chart over names keep every name in view (Chart design, 16 November, 23:33). This replaces the proposal's "a numeric or calendar x" for line and area, which `scripts/verify-browser.mjs` asserted as "a nominal x axis never zooms"; that check now asserts this rule both ways, with the old assertion kept for two names and for bars and lollipops (the lead's ruling, 16 November, 23:32). Proposed card text for FEA-CH-49: "Line, area and scatter charts with a numeric or calendar x, and line and area charts over three names or more, zoom along x only; over names each end of a settled window stands on a name and at least two stay in view." FEA-CH-39's table: line, area zoom "x, when x is numeric or calendar, or holds three names or more". A zoomed area therefore still runs from edge to edge of its plot, as it does unzoomed. A chart with too few names for a narrower window (two for a line, three for an area) does not zoom. Bars keep every category in view. The overview strip (FEA-CH-50) stays with numbers and dates. FEA-CH-39's table reads "x" for line and area without the condition.
+
+## FEA-CH-49 — the hint shows on every chart that zooms (replacement of "hidden wherever chart text sits in its place")
+
+The quiet "Drag to zoom" line showed only on a chart with a y axis header, whose row above the plot it shares; every other zooming chart said nothing. It now takes the first of three places that is free (Chart design, 16 November): the right end of the row above the plot, as before; else the title row, against the action icons on their centre line, when the title's text ends at least 12 px before it; else a corner inside the plot, 6 px in, on the chart's own paper, the first of top right, top left, bottom right and bottom left whose paper touches no mark and no chart text of the chart at rest (grid lines may pass under it). A chart with none of these says nothing rather than cover data.
+
+## FEA-CH-49 / FEA-CH-39 — the charts over a continuous x axis zoom (addition)
+
+Band, density, ECDF, gantt, Q–Q, streamgraph and vector charts zoom along x by the gestures of line, area and scatter charts; their pages already said so (all but Q–Q's), their layouts drew a window, and the browser refused it. Histogram, 2D bins and hexbin stay whole, because their bins are the data. A contour and a dot plot stay whole until a zoom along both axes exists: they draw x and y to one scale, so a window along x changes the chart's shape; the contour page no longer promises a zoom. FEA-CH-39's table gets "x" for these seven types.
+
+## FEA-CH-49 / FEA-CH-43 — nothing moves when a zoom starts (addition)
+
+A chart a mouse can zoom keeps **Reset zoom**'s place in the action row from the start, hidden until the chart is zoomed; the static page reserves the same place, by the same rule from the engine, so the page is the same with and without the runtime (ARC-05), so the title beside the icons does not wrap anew and the plot stays under the pointer; a chart that cannot zoom, and a touch screen, keep no place. The hint takes the place that holds its longer line, "Drag to zoom · Shift-drag to pan", and keeps it at rest and zoomed; inside a plot it may change corner when the chart's own ink moves into it, as on a map (Chart design, 16 November).
+
+## FEA-CH-27 — series are named inside the plot (replacement of where the names stand)
+
+Target: Charts — the plot takes the full width, and a name reads as its own line's. Daniel asked on 16 November 2026 for series names inside the chart or above their lines, with the streamgraph's names as the model, and said of an area chart's names in the value axis' margin ("free", "paid") that they do not read as names. Chart design ruled the placement the same day. This replaces the 6 November placement above; its rules for the all-shown mode and the legend fallback stay.
+
+With two or more series, each line is named inside the plot, 5 px above its own line, and below only where above has no place; each area is named inside its own fill, below its top line. A name takes the place furthest right that is free, so the names read as a loose column near the line ends. A place is free when the name is clear of every other line by at least 4 px, nearer to its own line than to any other, on a stretch where its line is not steep, 8 px beside and clear of every value and annotation, and its 24 px button target is clear of every other name's. A gridline stops short of a name. All or nothing: when any name has no such place, no name stands inside. Names inside never cost a value: values and annotations are placed first.
+
+When the names cannot all stand inside, lines are named in a column at their right ends as before, unless that column would be more than a quarter as wide as the plot beside it or the names cannot fit it; then, and for areas always, the names go to the legend. No name stands in the value axis' margin.
+
+A hidden series keeps its name inside the plot, dimmed, where its data is: right of its line's end when the refitted value axis still shows that end, and against the plot's edge on its data's side, at the right, when it does not; never on another series' line. While a series is hidden a name may stand on a steep stretch of its line, so hiding a series does not move the names out of the plot.
+
+Each frame of a zoom would place the names afresh, so they would jump. The names inside the plot fade out over 100 ms when a zoom glide starts (at once when the window jumps), stay away while the window moves, and fade in over 150 ms on the settled view once it has rested 120 ms. With reduced motion they move with the view at once (chart design, 16 November).

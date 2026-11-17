@@ -429,8 +429,8 @@ pub struct Text {
     /// The laid-out box of the unrotated text: advance width by ascent plus descent.
     pub bounds: Rect,
     pub role: Role,
-    /// The series this text belongs to, for emphasis; only genuine outside-plot line and area
-    /// names become series buttons (FEA-CH-27).
+    /// The series this text belongs to, for emphasis; a line or area name that spells its
+    /// series' name becomes a series button, inside the plot or beside it (FEA-CH-27).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub series: Option<usize>,
     /// The id of the mark this value text describes (see [`Geometry::mark_ids`]); `None` for a
@@ -663,6 +663,25 @@ pub struct XScale {
     /// Pixel range across the plot.
     pub range: [f64; 2],
     pub calendar: bool,
+    /// The second axis of a chart that zooms along both (a map), bottom first.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub y: Option<YSpan>,
+    /// The narrowest window a zoom keeps, in data units, on an axis that counts named
+    /// positions, one per unit from zero: two of them stay in view. `None` over numbers and
+    /// dates, where the runtime sets the limit.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub least: Option<f64>,
+}
+
+/// The y axis as the runtime needs it to zoom and pan along both axes (FEA-CH-49).
+#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
+pub struct YSpan {
+    /// Data-space domain of the visible window.
+    pub domain: [f64; 2],
+    /// The whole data extent, the zoom limit.
+    pub extent: [f64; 2],
+    /// Pixel range down the plot: where `domain[0]` and `domain[1]` are drawn.
+    pub range: [f64; 2],
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]

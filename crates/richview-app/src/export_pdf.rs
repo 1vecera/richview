@@ -40,6 +40,13 @@ const MAC_BROWSERS: [&str; 3] = [
     "/Applications/Chromium.app/Contents/MacOS/Chromium",
     "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
 ];
+/// Where Windows installs them, below the folders `WINDOWS_ROOTS` name. Edge comes with Windows.
+const WINDOWS_BROWSERS: [&[&str]; 3] = [
+    &["Google", "Chrome", "Application", "chrome.exe"],
+    &["Chromium", "Application", "chrome.exe"],
+    &["Microsoft", "Edge", "Application", "msedge.exe"],
+];
+const WINDOWS_ROOTS: [&str; 3] = ["ProgramFiles", "ProgramFiles(x86)", "LOCALAPPDATA"];
 
 pub struct PdfRequest<'a> {
     /// HTML rendered with `Output::Pdf`.
@@ -115,7 +122,7 @@ pub async fn export(
 }
 
 /// The browser to print with: `explicit`, then `RICHVIEW_BROWSER`, then the usual names on
-/// `PATH`, then the macOS application bundles.
+/// `PATH`, then the macOS application bundles and the Windows install folders.
 pub fn find_browser(explicit: Option<&Path>) -> Result<PathBuf, Vec<Diagnostic>> {
     let executable = |path: &Path| {
         #[cfg(unix)]
@@ -161,6 +168,14 @@ pub fn find_browser(explicit: Option<&Path>) -> Result<PathBuf, Vec<Diagnostic>>
             return Ok(path.into());
         }
     }
+    // Only Windows sets these folders, so elsewhere this finds nothing.
+    let roots = WINDOWS_ROOTS
+        .iter()
+        .filter_map(std::env::var_os)
+        .map(PathBuf::from);
+    if let Some(path) = windows_browsers(roots).into_iter().find(|p| executable(p)) {
+        return Ok(path);
+    }
     Err(vec![diagnostic(
         "error",
         "export.browser-missing",
@@ -172,9 +187,37 @@ pub fn find_browser(explicit: Option<&Path>) -> Result<PathBuf, Vec<Diagnostic>>
 }
 
 fn search_path(name: &Path) -> Option<PathBuf> {
+    let names = executable_names(name, std::env::consts::EXE_SUFFIX);
     std::env::split_paths(&std::env::var_os("PATH")?)
-        .map(|dir| dir.join(name))
+        .flat_map(|dir| names.iter().map(move |name| dir.join(name)))
         .find(|candidate| candidate.is_file())
+}
+
+/// `name` as given and, where executables carry a suffix (`.exe` on Windows) and `name` has no
+/// extension, `name` with that suffix.
+fn executable_names(name: &Path, suffix: &str) -> Vec<PathBuf> {
+    let mut names = vec![name.to_path_buf()];
+    if !suffix.is_empty() && name.extension().is_none() {
+        let mut with_suffix = name.as_os_str().to_owned();
+        with_suffix.push(suffix);
+        names.push(with_suffix.into());
+    }
+    names
+}
+
+/// Each known browser's install path below each of `roots`, browsers in order of preference.
+fn windows_browsers(roots: impl Iterator<Item = PathBuf>) -> Vec<PathBuf> {
+    let roots: Vec<PathBuf> = roots.filter(|root| root.is_absolute()).collect();
+    WINDOWS_BROWSERS
+        .iter()
+        .flat_map(|parts| {
+            roots.iter().map(move |root| {
+                parts
+                    .iter()
+                    .fold(root.clone(), |path, part| path.join(part))
+            })
+        })
+        .collect()
 }
 
 /// The attributes of an `<img ...>` tag as `(name, value)` pairs, with entities in values
@@ -285,7 +328,7 @@ pub fn print_pdf(_request: &PdfRequest) -> Result<PdfExport, Vec<Diagnostic>> {
     Err(vec![diagnostic(
         "error",
         "export.platform",
-        "PDF output currently runs on Linux and macOS.",
+        "PDF output is not available on Windows yet; it runs on Linux and macOS.",
     )])
 }
 
@@ -1594,6 +1637,37 @@ mod cdp {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_browser_name_is_also_tried_with_the_platform_suffix() {
+        let names = |name: &str, suffix: &str| executable_names(Path::new(name), suffix);
+        assert_eq!(names("msedge", ""), [PathBuf::from("msedge")]);
+        assert_eq!(
+            names("msedge", ".exe"),
+            [PathBuf::from("msedge"), PathBuf::from("msedge.exe")]
+        );
+        assert_eq!(names("chrome.exe", ".exe"), [PathBuf::from("chrome.exe")]);
+    }
+
+    #[test]
+    fn windows_install_folders_are_searched_by_browser_then_folder() {
+        // Absolute on every platform; nothing is created.
+        let base = std::env::temp_dir();
+        let (system, user) = (base.join("Program Files"), base.join("Local"));
+        let found = windows_browsers([system.clone(), user.clone(), "relative".into()].into_iter());
+        assert_eq!(
+            found,
+            [
+                system.join("Google/Chrome/Application/chrome.exe"),
+                user.join("Google/Chrome/Application/chrome.exe"),
+                system.join("Chromium/Application/chrome.exe"),
+                user.join("Chromium/Application/chrome.exe"),
+                system.join("Microsoft/Edge/Application/msedge.exe"),
+                user.join("Microsoft/Edge/Application/msedge.exe"),
+            ]
+        );
+        assert!(windows_browsers(std::iter::empty()).is_empty());
+    }
 
     const PAGE: &str = "file:///tmp/richview-pdf-1/report.html";
     const PHOTO: &str = "https://images.unsplash.com/photo-1?ixid=M3w&w=1600&q=80";

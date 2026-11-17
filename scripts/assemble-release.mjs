@@ -8,6 +8,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const platforms = ['aarch64-apple-darwin', 'x86_64-unknown-linux-gnu'];
 const fields = ['release_commit', 'release_base_url', 'release_macos_sha256', 'release_linux_sha256'];
+// The Windows preview (ARC-67) is optional: its archive has its own installer, install.ps1, whose
+// stamps are PowerShell variables. Without it a release is assembled and verified as before.
+const windowsPlatform = 'x86_64-pc-windows-msvc';
+const windowsFields = ['release_commit', 'release_base_url', 'release_windows_sha256'];
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const name = platform => `richview-${platform}.tar.gz`;
 const insist = (ok, message) => { if (!ok) throw new Error(message); };
@@ -28,40 +32,44 @@ function identity(bytes, commit, platform) {
   insist(notice.status === 0 && notice.stdout.length > 0, `archive lacks third-party notices: ${platform}`);
   return notice.stdout;
 }
-function stamps(text) {
-  return Object.fromEntries(fields.map(field => {
-    const matches = [...text.matchAll(new RegExp(`^${field}='([^']*)'$`, 'gm'))];
+// `sigil` is what precedes a stamp's name in the installer: nothing in sh, `$` in PowerShell.
+function stamps(text, names = fields, sigil = '') {
+  return Object.fromEntries(names.map(field => {
+    const matches = [...text.matchAll(new RegExp(`^${sigil.replace('$', '\\$')}${field}='([^']*)'$`, 'gm'))];
     insist(matches.length === 1, `installer must contain one ${field}`);
     return [field, matches[0][1]];
   }));
 }
-function stamped(template, commit, releaseUrl, mac, linux) {
-  const values = stamps(template);
-  insist(fields.every(field => values[field] === 'UNSTAMPED'), 'installer template must be unstamped');
-  for (const [field, value] of Object.entries({ release_commit: commit, release_base_url: releaseUrl, release_macos_sha256: mac, release_linux_sha256: linux })) {
-    template = template.replace(`${field}='UNSTAMPED'`, `${field}='${value}'`);
+function stamped(template, values, sigil = '') {
+  const current = stamps(template, Object.keys(values), sigil);
+  insist(Object.values(current).every(value => value === 'UNSTAMPED'), 'installer template must be unstamped');
+  for (const [field, value] of Object.entries(values)) {
+    template = template.replace(`${sigil}${field}='UNSTAMPED'`, () => `${sigil}${field}='${value}'`);
   }
   return template;
 }
-export function assemble({ commit, tag, macos, linux, output, template = join(root, 'scripts/install.sh') }) {
+export function assemble({ commit, tag, macos, linux, windows, output, template = join(root, 'scripts/install.sh'), windowsTemplate = join(root, 'scripts/install.ps1') }) {
   insist(commitOk(commit), 'approved commit must be a full lowercase Git commit');
   const releaseUrl = tagUrl(tag);
-  const inputs = [macos, linux].map(regular);
-  const notices = inputs.map((bytes, index) => identity(bytes, commit, platforms[index]));
-  insist(notices[0].equals(notices[1]), 'native archives have different third-party notices');
+  const targets = windows === undefined ? platforms : [...platforms, windowsPlatform];
+  const inputs = (windows === undefined ? [macos, linux] : [macos, linux, windows]).map(regular);
+  const notices = inputs.map((bytes, index) => identity(bytes, commit, targets[index]));
+  insist(notices.every(notice => notice.equals(notices[0])), 'native archives have different third-party notices');
   const digests = inputs.map(hash);
-  const script = stamped(regular(template).toString('utf8'), commit, releaseUrl, ...digests);
+  const script = stamped(regular(template).toString('utf8'), { release_commit: commit, release_base_url: releaseUrl, release_macos_sha256: digests[0], release_linux_sha256: digests[1] });
+  const windowsScript = windows === undefined ? null : stamped(regular(windowsTemplate).toString('utf8'), { release_commit: commit, release_base_url: releaseUrl, release_windows_sha256: digests[2] }, '$');
   output = resolve(output); insist(!existsSync(output), 'output must be a new directory');
   mkdirSync(output);
   try {
     writeFileSync(join(output, 'install.sh'), script, { mode: 0o755 });
-    for (let i = 0; i < platforms.length; i++) {
-      const filename = name(platforms[i]);
+    if (windowsScript !== null) writeFileSync(join(output, 'install.ps1'), windowsScript);
+    for (let i = 0; i < targets.length; i++) {
+      const filename = name(targets[i]);
       writeFileSync(join(output, filename), inputs[i]);
       writeFileSync(join(output, `${filename}.sha256`), `${digests[i]}  ${filename}\n`);
     }
   } catch (error) { rmSync(output, { recursive: true, force: true }); throw error; }
-  return { commit, releaseUrl, output, digests: Object.fromEntries(platforms.map((p, i) => [p, digests[i]])) };
+  return { commit, releaseUrl, output, digests: Object.fromEntries(targets.map((p, i) => [p, digests[i]])) };
 }
 function releaseBase(value) {
   const url = new URL(value);
@@ -99,7 +107,7 @@ async function download(url, base, fetcher) {
   }
   throw new Error('too many release redirects');
 }
-export async function verifyPublished({ commit, installer, releaseUrl, fetcher = fetch }) {
+export async function verifyPublished({ commit, installer, windowsInstaller, releaseUrl, fetcher = fetch }) {
   insist(commitOk(commit), 'approved commit must be a full lowercase Git commit');
   const trusted = regular(installer), values = stamps(trusted.toString('utf8'));
   insist(values.release_commit === commit && /^[0-9a-f]{64}$/.test(values.release_macos_sha256) && /^[0-9a-f]{64}$/.test(values.release_linux_sha256), 'installer stamps differ from the approved release');
@@ -108,39 +116,47 @@ export async function verifyPublished({ commit, installer, releaseUrl, fetcher =
   const base = releaseBase(releaseUrl ?? values.release_base_url);
   insist(base.loopback || base.url === stampedBase.url, 'release URL differs from the installer stamp');
   const expected = [values.release_macos_sha256, values.release_linux_sha256];
+  const targets = [...platforms], files = [['install.sh', trusted]];
+  if (windowsInstaller !== undefined) {
+    const script = regular(windowsInstaller), preview = stamps(script.toString('utf8'), windowsFields, '$');
+    insist(preview.release_commit === commit && preview.release_base_url === values.release_base_url && /^[0-9a-f]{64}$/.test(preview.release_windows_sha256), 'Windows installer stamps differ from the approved release');
+    expected.push(preview.release_windows_sha256); targets.push(windowsPlatform); files.push(['install.ps1', script]);
+  }
   let notices;
   // The public command uses latest, so it must resolve to these same approved bytes.
   const endpoints = base.loopback ? [base] : [base, { ...base, url: 'https://github.com/1vecera/richview/releases/latest/download' }];
   for (const endpoint of endpoints) {
-    const live = await download(`${endpoint.url}/install.sh`, endpoint, fetcher);
-    insist(live.equals(trusted), 'published installer differs from the locally assembled installer');
-    for (let i = 0; i < platforms.length; i++) {
-      const bytes = await download(`${endpoint.url}/${name(platforms[i])}`, endpoint, fetcher);
-      insist(hash(bytes) === expected[i], `published archive digest mismatch: ${platforms[i]}`);
-      const actualNotices = identity(bytes, commit, platforms[i]);
+    for (const [file, local] of files) {
+      const live = await download(`${endpoint.url}/${file}`, endpoint, fetcher);
+      insist(live.equals(local), `published installer differs from the locally assembled installer: ${file}`);
+    }
+    for (let i = 0; i < targets.length; i++) {
+      const bytes = await download(`${endpoint.url}/${name(targets[i])}`, endpoint, fetcher);
+      insist(hash(bytes) === expected[i], `published archive digest mismatch: ${targets[i]}`);
+      const actualNotices = identity(bytes, commit, targets[i]);
       if (notices) insist(notices.equals(actualNotices), 'native archives have different third-party notices');
       else notices = actualNotices;
     }
   }
-  return { commit, releaseUrl: base.url, digests: Object.fromEntries(platforms.map((p, i) => [p, expected[i]])) };
+  return { commit, releaseUrl: base.url, digests: Object.fromEntries(targets.map((p, i) => [p, expected[i]])) };
 }
 function options(args) {
   const out = {};
   while (args.length) {
     const key = args.shift();
     if (key === '--verify-published') { insist(!out.verify, 'duplicate --verify-published'); out.verify = true; continue; }
-    insist(['--commit', '--tag', '--macos', '--linux', '--output', '--installer', '--release-url'].includes(key) && args.length && !Object.hasOwn(out, key), `invalid option: ${key}`);
+    insist(['--commit', '--tag', '--macos', '--linux', '--windows', '--output', '--installer', '--windows-installer', '--release-url'].includes(key) && args.length && !Object.hasOwn(out, key), `invalid option: ${key}`);
     out[key] = args.shift();
   }
   const needed = out.verify ? ['--commit', '--installer'] : ['--commit', '--tag', '--macos', '--linux', '--output'];
-  const optional = out.verify ? ['verify', '--release-url'] : [];
-  insist(needed.every(key => out[key]) && Object.keys(out).every(key => needed.includes(key) || optional.includes(key)), 'usage: node scripts/assemble-release.mjs --commit COMMIT --tag TAG --macos ARCHIVE --linux ARCHIVE --output NEW_DIR | --verify-published --commit COMMIT --installer FILE [--release-url URL]');
+  const optional = out.verify ? ['verify', '--release-url', '--windows-installer'] : ['--windows'];
+  insist(needed.every(key => out[key]) && Object.keys(out).every(key => needed.includes(key) || optional.includes(key)), 'usage: node scripts/assemble-release.mjs --commit COMMIT --tag TAG --macos ARCHIVE --linux ARCHIVE [--windows ARCHIVE] --output NEW_DIR | --verify-published --commit COMMIT --installer FILE [--windows-installer FILE] [--release-url URL]');
   return out;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try {
     const o = options(process.argv.slice(2));
-    const result = o.verify ? await verifyPublished({ commit: o['--commit'], installer: o['--installer'], releaseUrl: o['--release-url'] }) : assemble({ commit: o['--commit'], tag: o['--tag'], macos: o['--macos'], linux: o['--linux'], output: o['--output'] });
+    const result = o.verify ? await verifyPublished({ commit: o['--commit'], installer: o['--installer'], windowsInstaller: o['--windows-installer'], releaseUrl: o['--release-url'] }) : assemble({ commit: o['--commit'], tag: o['--tag'], macos: o['--macos'], linux: o['--linux'], windows: o['--windows'], output: o['--output'] });
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   } catch (error) { process.stderr.write(`release assembly: ${error.message}\n`); process.exitCode = 1; }
 }

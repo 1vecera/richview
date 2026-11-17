@@ -817,25 +817,33 @@ async fn render_editor(editor: Rc<RefCell<Editor>>) {
                 return;
             }
         };
-        for reference in files {
-            match fetch_report_resource(&reference.path, reference.kind, &origin).await {
-                Ok(bytes) => {
-                    options.data.insert(reference.path, bytes);
-                }
-                Err(error) => {
-                    let mut e = editor.borrow_mut();
-                    if e.generation == generation {
-                        show_failure(
-                            &mut e,
-                            &format!(
-                                "error {}: this report folder names the file, but it could not be read ({}).",
-                                reference.path,
-                                error.as_string().unwrap_or_default()
-                            ),
-                        );
+        // The document's own files first, then the files its styles name: the company logos,
+        // which a style file fetched in the first round may ask for (STY-72).
+        let mut round = files;
+        for styles_read in [false, true] {
+            for reference in std::mem::take(&mut round) {
+                match fetch_report_resource(&reference.path, reference.kind, &origin).await {
+                    Ok(bytes) => {
+                        options.data.insert(reference.path, bytes);
                     }
-                    return;
+                    Err(error) => {
+                        let mut e = editor.borrow_mut();
+                        if e.generation == generation {
+                            show_failure(
+                                &mut e,
+                                &format!(
+                                    "error {}: this report folder names the file, but it could not be read ({}).",
+                                    reference.path,
+                                    error.as_string().unwrap_or_default()
+                                ),
+                            );
+                        }
+                        return;
+                    }
                 }
+            }
+            if !styles_read {
+                round = crate::style_files(&document, &folder, &options);
             }
         }
         prepared = Some(document);

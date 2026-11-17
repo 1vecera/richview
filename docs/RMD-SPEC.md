@@ -1069,6 +1069,13 @@ Every code keeps its level; renaming or removing one is a format change (TYP-55)
 | `style.company-secondary` | info |  | The secondary brand colour was too similar for the chart palette. | Choose a second colour that is distinguishable from the first, or keep the derived palette. |
 | `style.company-palette` | warning |  | A distinct brand palette could not be derived. | Choose another brand colour or supply a checked explicit palette. |
 | `style.company-color` | warning |  | A company colour is translucent or unresolved. | Use an opaque concrete colour such as #0B6E69. |
+| `style.logo-path` | error |  | A company logo path is not report-relative. | Use a file path inside the report folder. |
+| `style.logo-missing` | error |  | A company logo is not available. | Put the logo file inside the report folder. |
+| `style.logo-format` | error |  | A company logo is not a valid raster image. | Use a valid still PNG, JPEG or WebP logo. |
+| `style.logo-size` | error |  | A company logo exceeds the file size limit. | Use a logo no larger than 512 KiB. |
+| `style.logo-dimensions` | error |  | A company logo exceeds the image dimension limit. | Use a logo no larger than 1024 pixels on either side. |
+| `style.logo-animated` | error |  | A company logo is animated. | Use a still PNG, JPEG or WebP logo. |
+| `style.logo-name` | warning |  | A company logo has no name and is decorative. | Set company.name to the company name, or leave the mark decorative. |
 | `style.properties` | error |  | Custom style properties are invalid. | Fix the custom style properties to the documented names and values. |
 | `style.fonts-unavailable` | warning |  | The host has no bundled fonts, so text falls back to system fonts. | Generate the report with the CLI, which embeds the bundled fonts. |
 | `style.unknown-key` | warning |  | A style leaf is not in the style vocabulary and is skipped. | Remove the leaf, or rename it to the style key the message names. |

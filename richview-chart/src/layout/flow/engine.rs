@@ -96,6 +96,10 @@ pub(super) struct Params {
     /// A lane is one column: two of its cards never share a rank, the later in source order
     /// standing in the next rank free.
     pub stack_lanes: bool,
+    /// The paper is tight: a decision's side branch may stand under the decision, as long as
+    /// it reaches far enough past the corner for its line to turn down into it. Its line then
+    /// meets it off its middle.
+    pub snug: bool,
 }
 
 pub(super) struct Input {
@@ -861,6 +865,11 @@ fn place(g: &mut G, input: &Input) {
         }
     }
     let mut walls: Vec<Vec<f64>> = g.order.iter().map(|o| vec![0.0; o.len()]).collect();
+    // How many lines arrive at each card from up the flow.
+    let mut arrivals = vec![0usize; input.nodes.len()];
+    for c in &g.chains {
+        arrivals[input.edges[c.edge].to] += 1;
+    }
     for round in 0..24 {
         let sweeps: Vec<(usize, i32)> = match round % 3 {
             0 => (1..g.ranks).map(|r| (r, -1)).collect(),
@@ -982,16 +991,26 @@ fn place(g: &mut G, input: &Input) {
                         .max(7.0 + g.side_label[d] + input.params.label_clear + 2.0 + border);
                     wall = wall.max(need - gap);
                 }
+                // On tight paper the branch's card need only reach past the corner: by its
+                // half less the margin a line keeps from a card's end, and less a named line's
+                // room for each other line that arrives at the card, which meets it further out.
+                let reach = |v: &V| match v.kind {
+                    Kind::Real(i) if input.params.snug => {
+                        let others = arrivals[i].saturating_sub(1) as f64;
+                        (v.breadth / 2.0 - (v.breadth / 4.0).min(12.0) - others * 2.5 * input.params.track_gap).max(0.0)
+                    }
+                    _ => 0.0,
+                };
                 if let Some(d) = g.corner_of[b]
                     && vb.u >= g.vs[d].u
                 {
-                    let past = g.vs[d].u + g.vs[d].breadth / 2.0 + SIDE_PAST;
+                    let past = g.vs[d].u + g.vs[d].breadth / 2.0 + SIDE_PAST - reach(vb);
                     wall = wall.max(past - (va.u + sep));
                 }
                 if let Some(d) = g.corner_of[a]
                     && va.u < g.vs[d].u
                 {
-                    let past = g.vs[d].u - g.vs[d].breadth / 2.0 - SIDE_PAST;
+                    let past = g.vs[d].u - g.vs[d].breadth / 2.0 - SIDE_PAST + reach(va);
                     wall = wall.max((vb.u - sep) - past);
                 }
                 *slot = wall.max(0.0);
@@ -1743,7 +1762,13 @@ fn draw(g: &G, input: &Input, back: &[bool], spine: &[bool], extra: &[f64]) -> (
         };
         let k = corridor[if side == Side::Left { 0 } else { 1 }] as f64;
         corridor[if side == Side::Left { 0 } else { 1 }] += 1;
-        let room = edge.label.map_or(0.0, |l| l[0] + 2.0 * p.label_pad) + p.arrow + 10.0;
+        // The loop's last run holds its name. A loop back to a decision ends above it, on a run
+        // as long as half the question: on tight paper it keeps no room beside the question.
+        let room = if p.snug && input.nodes[edge.to].ports == Ports::Corners {
+            0.0
+        } else {
+            edge.label.map_or(0.0, |l| l[0] + 2.0 * p.label_pad) + p.arrow + 10.0
+        };
         let blocked_ends = !outer(side, edge.from) || !outer(side, edge.to);
         let pts = if side == Side::Left {
             let x = (extent(side) - p.node_gap * 0.75 - k * p.track_gap).min(t.x - room);
@@ -1933,6 +1958,22 @@ fn draw(g: &G, input: &Input, back: &[bool], spine: &[bool], extra: &[f64]) -> (
                     cands.push((Rect::new(out(d + 7.0), cv - lh / 2.0, lw, lh), own.first().copied()));
                 }
                 cands.push((Rect::new(out(d), cv + pad, lw, lh), None));
+            }
+        }
+        // On tight paper a loop back to a decision is named on its run above the question,
+        // where the name costs the drawing no width: at the run's middle, else nearer its turn.
+        if p.snug && route.back && route.end == Side::Before && own.len() >= 2 {
+            let k = own[own.len() - 2];
+            let (_, a, b) = segments[k];
+            let (near, far) = (b[0], a[0]);
+            let room = (far - near).abs() - lw - 2.0 * pad - p.arrow;
+            if (a[1] - b[1]).abs() < EPS && room >= 0.0 {
+                let mid = (near + far) / 2.0;
+                let out = if far > near { 1.0 } else { -1.0 };
+                for j in 0..=4 {
+                    let cx = mid + out * (room / 2.0) * f64::from(j) / 4.0;
+                    cands.push((Rect::new(cx - lw / 2.0, a[1] - lh / 2.0, lw, lh), Some(k)));
+                }
             }
         }
         if chain_len > 2 {
@@ -2221,6 +2262,7 @@ mod tests {
             label_clear: 4.0,
             lane_label: [0.0, 0.0],
             stack_lanes: false,
+            snug: false,
         }
     }
 
@@ -2362,5 +2404,82 @@ mod tests {
                 }
             }
         }
+    }
+
+    /// A question wider than its cards, a main path down, a side branch that loops back: the
+    /// shape of a wait-and-look-again step. Cards: 0 start, 1 question, 2 main, 3 side, 4 end.
+    fn question_with_a_loop(snug: bool) -> (Input, Laid) {
+        let mut question = node(240.0);
+        question.depth = 96.0;
+        question.ports = Ports::Corners;
+        let named = |from: usize, to: usize, breadth: f64| EdgeIn {
+            label: Some([breadth, 14.0]),
+            ..edge(from, to)
+        };
+        let input = Input {
+            nodes: vec![node(100.0), question, node(100.0), node(100.0), node(100.0)],
+            edges: vec![
+                edge(0, 1),
+                named(1, 2, 20.0),
+                named(1, 3, 16.0),
+                edge(2, 4),
+                named(3, 1, 60.0),
+            ],
+            groups: vec![],
+            lanes: 0,
+            params: Params { snug, ..params() },
+        };
+        let laid = layout(&input);
+        (input, laid)
+    }
+
+    #[test]
+    fn on_tight_paper_a_side_branch_stands_under_its_question() {
+        let (input, roomy) = question_with_a_loop(false);
+        let centre = |r: &Rect| r.x + r.w / 2.0;
+        // With room, the branch's card is centred past the corner its line leaves by.
+        assert!(centre(&roomy.nodes[3]) >= roomy.nodes[1].right() + SIDE_PAST - 0.5);
+        let (_, snug) = question_with_a_loop(true);
+        let (q, main, side) = (snug.nodes[1], snug.nodes[2], snug.nodes[3]);
+        // On tight paper it stands next to the main path's card, nearer than the corner allows.
+        assert!(
+            (side.x - main.right() - input.params.node_gap).abs() < 0.5,
+            "{side:?} beside {main:?}"
+        );
+        assert!(centre(&side) < q.right() + SIDE_PAST - 1.0);
+        // Its line still leaves by the corner and turns down into it, clear of its end.
+        let line = &snug.edges[2].points;
+        let turn = line[line.len() - 1][0];
+        assert!(
+            turn >= q.right() + 12.0 - 0.5 && turn <= side.right() - 12.0 + 0.5,
+            "turn at {turn}"
+        );
+        assert!((line[line.len() - 1][1] - side.y).abs() < 0.5);
+        assert!(snug.extent[0] < roomy.extent[0] - 20.0);
+    }
+
+    #[test]
+    fn on_tight_paper_a_loop_back_to_a_question_is_named_above_it() {
+        let (_, roomy) = question_with_a_loop(false);
+        let reach = |laid: &Laid| {
+            laid.edges[4]
+                .points
+                .iter()
+                .map(|p| p[0])
+                .fold(f64::NEG_INFINITY, f64::max)
+        };
+        let cards = |laid: &Laid| laid.nodes.iter().map(Rect::right).fold(f64::NEG_INFINITY, f64::max);
+        // With room, the loop keeps its name's breadth clear beside the question.
+        assert!(reach(&roomy) >= roomy.nodes[1].right() + 60.0);
+        let (input, snug) = question_with_a_loop(true);
+        // On tight paper it runs a card's gap outside the cards, and its name is set into the
+        // run above the question, where it makes the drawing no wider.
+        assert!(reach(&snug) <= cards(&snug) + input.params.node_gap);
+        let name = snug.edges[4].label.expect("the loop is named");
+        assert!(
+            name.bottom() <= snug.nodes[1].y && name.right() <= reach(&snug),
+            "{name:?}"
+        );
+        assert!(snug.extent[0] <= reach(&snug) + 2.0);
     }
 }

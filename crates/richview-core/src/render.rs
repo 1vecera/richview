@@ -261,6 +261,7 @@ fn render_document_internal(
     let first = doc.diagnostics.len();
     let mut resolved = style::resolve_styles(&refs, &mut doc.diagnostics);
     style::embed_brand_fonts(&mut resolved, &options.data, &mut doc.diagnostics);
+    let company = crate::resolve_company_brand(&resolved, &options.data, &mut doc.diagnostics);
     style::shift_style_paths(&mut doc.diagnostics[first..], default_below);
     for d in &mut doc.diagnostics[first..] {
         if let Some((_, file)) = files.iter().find(|(index, _)| {
@@ -689,6 +690,7 @@ fn render_document_internal(
             None,
         ));
     } else {
+        header.push_str(&company.header_html(resolved.scheme == "dark"));
         if let Some(image) = shell::header_image(&doc.frontmatter, &mut doc.diagnostics) {
             // An Unsplash photo without a valid credit was reported as `image.credit-missing` or
             // `image.credit-invalid`; the header omits it and the frontmatter keeps the source.
@@ -780,6 +782,7 @@ fn render_document_internal(
         figure::FIGURE_CSS,
         print.css
     );
+    css.push_str(&company.header_css());
     if pdf {
         css.push_str(&page_css(&print, options.page, title));
     }

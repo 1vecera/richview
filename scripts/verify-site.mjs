@@ -373,6 +373,10 @@ try {
   const licences = (await fetchStatus('/licenses')).body;
   for (const family of ['Newsreader', 'Geist', 'RichView Mono', 'RichView Serif', 'Space Grotesk', 'Big Shoulders', 'Patrick Hand', 'Caveat', 'Caveat Brush', 'Bricolage Grotesque']) assert.ok(licences.includes(`<h2>${family}</h2>`), `the licence page lists no ${family}`);
   assert.ok(home.includes('href="/licenses"'), 'the footer links the licence page');
+  // The About page names the founder and the open-source repository, and the footer links it.
+  const about = (await fetchStatus('/about')).body;
+  assert.ok(about.includes('founder of RichView') && about.includes('href="https://github.com/1vecera/richview"'), 'the About page names the founder and links the repository');
+  assert.ok(home.includes('href="/about"'), 'the footer links the About page');
   assert.equal((await fetchStatus('/landing/fonts/geist-400.woff2')).status, 404, 'the landing keeps no font folder of its own');
   assert.ok(!existsSync(join(root, 'assets/landing/fonts')), 'assets/landing/fonts is deleted');
 
@@ -450,7 +454,7 @@ try {
   // Each page loads in a browser under the deployed policy: no violation, no console error, no sideways scroll.
   let chromeLook;
   const widths = [['desktop', 1440, 900], ['phone', 390, 844], ['narrow', 320, 640]];
-  const browserPages = ['/', '/docs/', '/docs/charts', '/docs/reference', '/playground', ...(installEnabled ? ['/install'] : []), '/impressum', '/privacy', '/licenses', '/showcase/openai-vs-anthropic/', ...map.serve.filter(route => route.startsWith('/docs/examples/')), ...types.map(type => `/docs/charts/${type}`)];
+  const browserPages = ['/', '/docs/', '/docs/charts', '/docs/reference', '/playground', ...(installEnabled ? ['/install'] : []), '/about', '/impressum', '/privacy', '/licenses', '/showcase/openai-vs-anthropic/', ...map.serve.filter(route => route.startsWith('/docs/examples/')), ...types.map(type => `/docs/charts/${type}`)];
   for (const [name, width, height] of widths) {
     const context = await h.browser.newContext({ viewport: { width, height }, isMobile: name !== 'desktop', hasTouch: name !== 'desktop' });
     for (const route of browserPages) {
@@ -489,7 +493,8 @@ try {
         assert.ok(evidence.facade.constants.BUILTIN_STYLE_NAMES.includes('air'));
         assert.deepEqual(evidence.facade.calls, { render: true, render_source: true, worker_request: true, check: true, validate: true });
       }
-      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      // A phone zooms a page that is too wide out, and `innerWidth` grows with it: the width that was set is the measure.
+      const overflow = await page.evaluate(set => document.documentElement.scrollWidth - Math.min(window.innerWidth, set), width);
       assert.ok(overflow <= 1, `${name} ${route} scrolls sideways by ${overflow}px`);
       assert.ok(await page.locator('header, nav').count(), `${name} ${route} has no header`);
       // Gutters and page width (STY-49): the page's content keeps off both edges and never exceeds the viewport.
@@ -522,6 +527,58 @@ try {
         // The report frame fills its pane: the closed comparison pane takes no room (STY-60).
         const room = await page.evaluate(() => ({ frame: document.querySelector('#report-frame').getBoundingClientRect().height, pane: document.querySelector('#showcase-panes').getBoundingClientRect().height }));
         assert.ok(room.frame >= room.pane - 2, `${name} ${route}: the report frame is ${room.frame}px of a ${room.pane}px pane`);
+        // The document is never wider than the window: the style row scrolls inside its own strip, and
+        // nothing of it widens the page, the hidden name of its menu included. A phone zooms a wider page
+        // out and `innerWidth` grows with it, so the width that was set is the measure, at a tablet's too.
+        const documentWidths = [[width, await page.evaluate(() => document.documentElement.scrollWidth)]];
+        if (name === 'phone') {
+          await page.setViewportSize({ width: 768, height: 1024 });
+          documentWidths.push([768, await page.evaluate(() => document.documentElement.scrollWidth)]);
+          await page.setViewportSize({ width, height });
+        }
+        for (const [set, measured] of documentWidths) assert.ok(measured <= set, `${name} ${route}: the document is ${measured}px wide in a ${set}px window`);
+        // Up to 640 px the top is one line (Daniel, 17 Nov: "top area is all single line with a dropdown to change
+        // styles ... no bulky bottom area"): every style is in one named menu in the header's own row, between the
+        // mark and the links and over neither, the report starts right under that line and ends at the screen's
+        // bottom, and the page itself has nothing more to scroll to. A wider window keeps the row of styles, the
+        // extended themes' own menu and the note under the report.
+        const layout = await page.evaluate(() => {
+          const box = selector => { const node = document.querySelector(selector), r = node.getBoundingClientRect(); return { shown: getComputedStyle(node).display !== 'none' && r.width > 0 && r.height > 0, left: r.left, top: r.top, right: r.right, bottom: r.bottom }; };
+          const values = selector => [...document.querySelectorAll(selector)].map(node => node.value ?? node.dataset.theme);
+          return {
+            header: box('.nav'), mark: box('.nav__brand'), menu: box('#style-menu'), links: box('.nav__links'), rail: box('.style-rail'), note: box('.flag-foot'), footer: box('.foot'), frame: box('#report-frame'),
+            page: document.documentElement.scrollHeight, screen: innerHeight,
+            offered: values('#style-menu option'), styles: [...document.querySelectorAll('#style-pills [data-theme]')].map(node => node.dataset.theme).concat(values('#theme option:not([value=""])')),
+          };
+        });
+        assert.deepEqual(layout.offered, layout.styles, `${name} ${route}: the phone's menu offers the styles of the row and of the extended themes' menu`);
+        if (width <= 640) {
+          assert.ok(layout.menu.shown && !layout.rail.shown, `${name} ${route}: one menu stands for the row of styles: ${JSON.stringify(layout)}`);
+          assert.ok(layout.menu.top >= layout.header.top && layout.menu.bottom <= layout.header.bottom && layout.menu.left >= layout.mark.right && layout.menu.right <= layout.links.left, `${name} ${route}: the menu is in the header's line, between the mark and the links: ${JSON.stringify(layout)}`);
+          assert.ok(Math.abs(layout.frame.top - layout.header.bottom) <= 1, `${name} ${route}: the report starts ${layout.frame.top - layout.header.bottom}px under the one line`);
+          assert.ok(!layout.note.shown && !layout.footer.shown && Math.abs(layout.frame.bottom - layout.screen) <= 1 && layout.page <= layout.screen + 1, `${name} ${route}: something stands under the report: ${JSON.stringify(layout)}`);
+          assert.equal(await page.getByRole('combobox', { name: 'Style', exact: true }).count(), 1, `${name} ${route}: the style menu has no name for a screen reader`);
+          // A finger's target, and an open list that names each style in its own face and checks the current one (Chart design, 17 Nov).
+          assert.ok(layout.menu.bottom - layout.menu.top >= 44, `${name} ${route}: the style menu is ${layout.menu.bottom - layout.menu.top}px tall`);
+          const list = await page.evaluate(() => {
+            const options = [...document.querySelectorAll('#style-menu optgroup:first-of-type option')];
+            return { drawn: CSS.supports('appearance', 'base-select'), faces: new Set(options.map(o => getComputedStyle(o).fontFamily)).size, count: options.length, check: getComputedStyle(document.querySelector('#style-menu option:checked'), '::checkmark').content };
+          });
+          if (list.drawn) {
+            assert.ok(list.faces >= list.count - 1, `${name} ${route}: the open list sets ${list.faces} faces for ${list.count} styles`);
+            assert.match(list.check, /✓/, `${name} ${route}: the current style carries no check`);
+          }
+          // The menu changes the style and names the one shown.
+          await page.waitForFunction(() => document.documentElement.dataset.rvTheme);
+          const [first, second] = layout.offered;
+          for (const style of [second, first]) {
+            await page.locator('#style-menu').selectOption(style);
+            await page.waitForFunction(style => document.documentElement.dataset.rvTheme === style && document.querySelector('#style-menu').value === style && document.querySelector('#report-frame')?.getAttribute('src')?.endsWith(`${style}.html`), style);
+          }
+        } else {
+          assert.ok(!layout.menu.shown && layout.rail.shown && layout.note.shown && layout.footer.shown, `${name} ${route}: a wide window keeps the row of styles and the note under the report: ${JSON.stringify(layout)}`);
+          assert.equal(await page.getByRole('combobox', { name: 'Extended themes', exact: true }).count(), 1, `${name} ${route}: the extended themes menu has lost its name for a screen reader`);
+        }
       }
       if (route.startsWith('/docs/charts/')) {
         if (route === '/docs/charts/bar' && name === 'desktop') {

@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { join, resolve } from 'node:path';
 import test from 'node:test';
@@ -113,4 +113,38 @@ test('the published verifier refuses an oversized asset before reading it', asyn
   const installer = join(output, 'install.sh');
   const fetcher = async () => new Response('x', { headers: { 'content-length': String(101 * 1024 * 1024) } });
   await assert.rejects(verifyPublished({ commit, installer, releaseUrl: 'https://github.com/1vecera/richview/releases/download/v1', fetcher }), /exceeds 100 MiB/);
+});
+
+test('an optional Windows archive gets its own stamped installer and is verified when published', async t => {
+  const f = fixture(t), windows = 'x86_64-pc-windows-msvc', preview = f.archive(windows), output = join(f.dir, 'release'), plain = join(f.dir, 'plain');
+  const result = await run(['--commit', commit, '--tag', tag, '--macos', f.macos, '--linux', f.linux, '--windows', preview, '--output', output]);
+  assert.equal(result.status, 0, result.stderr);
+  const record = JSON.parse(result.stdout), digest = sha(readFileSync(preview)), script = readFileSync(join(output, 'install.ps1'), 'utf8');
+  assert.equal(record.digests[windows], digest);
+  for (const stamp of [`$release_commit='${commit}'`, `$release_base_url='${record.releaseUrl}'`, `$release_windows_sha256='${digest}'`]) assert.ok(script.split('\n').includes(stamp), stamp);
+  assert.ok(!script.includes('UNSTAMPED'));
+  assert.deepEqual(readFileSync(join(output, name(windows))), readFileSync(preview));
+  assert.equal(readFileSync(join(output, `${name(windows)}.sha256`), 'utf8'), `${digest}  ${name(windows)}\n`);
+  // The two-platform release is the same with and without the preview.
+  assemble({ commit, tag, macos: f.macos, linux: f.linux, output: plain });
+  assert.deepEqual(readdirSync(plain).sort(), ['install.sh', name(mac), `${name(mac)}.sha256`, name(linux), `${name(linux)}.sha256`].sort());
+  for (const file of readdirSync(plain)) assert.deepEqual(readFileSync(join(output, file)), readFileSync(join(plain, file)), file);
+  for (const [archive, message] of [[f.archive(windows, 'b'.repeat(40)), /BUILD differs/], [f.macos, /BUILD differs/], [f.archive(windows, commit, 'different notice'), /different third-party notices/]]) {
+    assert.throws(() => assemble({ commit, tag, macos: f.macos, linux: f.linux, windows: archive, output: join(f.dir, 'refused') }), message);
+    assert.equal(existsSync(join(f.dir, 'refused')), false);
+  }
+  const installer = join(output, 'install.sh'), windowsInstaller = join(output, 'install.ps1'), state = { changed: '', requested: [] };
+  const fetcher = async url => { const file = url.split('/').at(-1); state.requested.push(file); return new Response(file === state.changed ? 'tampered' : readFileSync(join(output, file))); };
+  const verified = await verifyPublished({ commit, installer, windowsInstaller, fetcher });
+  assert.equal(verified.digests[windows], digest);
+  assert.equal(state.requested.filter(file => file === 'install.ps1').length, 2, 'the tag and latest both serve the Windows installer');
+  assert.equal(state.requested.filter(file => file === name(windows)).length, 2);
+  for (const changed of ['install.ps1', name(windows)]) {
+    state.changed = changed; await assert.rejects(verifyPublished({ commit, installer, windowsInstaller, fetcher }), /differs|digest mismatch/);
+  }
+  // Without the Windows installer the release is verified as two platforms and asks for nothing more.
+  state.requested = []; await verifyPublished({ commit, installer, fetcher });
+  assert.ok(!state.requested.includes('install.ps1') && !state.requested.includes(name(windows)));
+  const other = assemble({ commit, tag: 'v2', macos: f.macos, linux: f.linux, windows: preview, output: join(f.dir, 'other') });
+  await assert.rejects(verifyPublished({ commit, installer, windowsInstaller: join(other.output, 'install.ps1'), fetcher: async () => { throw new Error('unexpected fetch'); } }), /Windows installer stamps differ/);
 });

@@ -13,6 +13,7 @@
 //!     accent: None,               // or Some("#rrggbb") to override the style's accent
 //!     rule: None,                 // or the style's `components.thumbnail.rule`
 //!     lead: Lead::None,           // a chart SVG, a cover's stored bytes, or nothing
+//!     company: None,              // or the report's validated company mark
 //! };
 //! let png = render(&card).unwrap();
 //! assert_eq!(&png[1..4], b"PNG");
@@ -100,12 +101,24 @@ pub fn card_png(
     style: &str,
     charts: &[serde_json::Value],
 ) -> Result<Vec<u8>, String> {
+    card_png_with_company(title, byline, style, charts, None)
+}
+
+/// Draw a report's share card with its validated company mark when one was supplied.
+pub fn card_png_with_company(
+    title: &str,
+    byline: &str,
+    style: &str,
+    charts: &[serde_json::Value],
+    company: Option<richview_core::CompanyBrand>,
+) -> Result<Vec<u8>, String> {
     render(&ShareCard {
         title: title.to_owned(),
         byline: byline.to_owned(),
         style: style.to_owned(),
         rule: style_rule(style),
         lead: chart_svg(charts).map_or(Lead::None, Lead::ChartSvg),
+        company,
         ..Default::default()
     })
 }
@@ -139,6 +152,8 @@ pub struct ShareCard {
     /// The style's `components.thumbnail.rule` (STY-70); `None` takes the builtin's own.
     pub rule: Option<Rule>,
     pub lead: Lead,
+    /// A company mark already resolved from the report's style and bounded resources.
+    pub company: Option<richview_core::CompanyBrand>,
 }
 
 impl ShareCard {
@@ -151,6 +166,7 @@ impl ShareCard {
             accent: None,
             rule: None,
             lead: Lead::None,
+            company: None,
         }
     }
 }
@@ -166,6 +182,21 @@ pub fn alt_text(title: &str, byline: &str) -> String {
 
 /// The card as a PNG, or why it could not be drawn.
 pub fn render(card: &ShareCard) -> Result<Vec<u8>, String> {
+    if let Some(company) = &card.company {
+        for logo in [company.logo.as_ref(), company.logo_dark.as_ref()]
+            .into_iter()
+            .flatten()
+        {
+            let checked = richview_core::validate_company_logo(&logo.bytes)
+                .map_err(|error| format!("Company logo: {error}"))?;
+            if checked.mime != logo.mime
+                || checked.width != logo.width
+                || checked.height != logo.height
+            {
+                return Err("Company logo metadata differs from its bytes".into());
+            }
+        }
+    }
     let svg = compose(card);
     let options = usvg::Options {
         fontdb: fonts(),
@@ -212,24 +243,36 @@ const TITLE_FOOT: f32 = 470.0;
 fn compose(card: &ShareCard) -> String {
     let look = look(&card.style);
     let rule = card.rule.unwrap_or(look.rule);
-    let accent = card
-        .accent
-        .as_deref()
+    let lead = lead_markup(look, rule, &card.lead);
+    let has_lead = lead.is_some();
+    let title = card.title.trim();
+    let byline = card.byline.trim();
+    let neutral = title.is_empty() && byline.is_empty() && !has_lead;
+    let accent = (!neutral)
+        .then(|| {
+            card.company
+                .as_ref()
+                .and_then(|company| company.accent.as_deref())
+        })
+        .flatten()
         .filter(|c| is_hex(c))
+        .or(card.accent.as_deref().filter(|c| is_hex(c)))
         .unwrap_or(look.accent);
     let mut out = format!(
         "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 {WIDTH} {HEIGHT}\" width=\"{WIDTH}\" height=\"{HEIGHT}\"><rect width=\"{WIDTH}\" height=\"{HEIGHT}\" fill=\"{}\"/>",
         look.bg
     );
     out.push_str(&frame(rule, look, accent));
-    let lead = lead_markup(look, rule, &card.lead);
-    let has_lead = lead.is_some();
     if let Some(markup) = lead {
         out.push_str(&markup);
     }
-    let title = card.title.trim();
-    let byline = card.byline.trim();
-    if title.is_empty() && byline.is_empty() && !has_lead {
+    let mark = (!neutral)
+        .then(|| company_mark(card.company.as_ref(), look.dark))
+        .flatten();
+    if let Some((markup, _)) = &mark {
+        out.push_str(markup);
+    }
+    if neutral {
         // A neutral card: the mark alone.
         out.push_str(&format!(
             "<g transform=\"translate(528 245) scale(0.5)\" fill=\"{accent}\">{GLYPH}</g>"
@@ -250,7 +293,10 @@ fn compose(card: &ShareCard) -> String {
     } else {
         (104.0, 48.0, FULL)
     };
-    let top = if rule == Rule::InkBars { 112.0 } else { 100.0 };
+    let top = mark.map_or_else(
+        || if rule == Rule::InkBars { 112.0 } else { 100.0 },
+        |(_, height)| 72.0 + height + 28.0,
+    );
     // The title keeps clear of the byline's mark: as many rows as fit above `TITLE_FOOT`.
     let (size, rows) = fit(&ruler, &shown, max, min, width, |size| {
         ((TITLE_FOOT - top - size * 0.82) / (size * look.leading)).floor() as usize + 1
@@ -294,6 +340,46 @@ fn compose(card: &ShareCard) -> String {
     }
     out.push_str("</svg>");
     out
+}
+
+/// Place the company mark above the title and return its height including any light plate.
+fn company_mark(
+    company: Option<&richview_core::CompanyBrand>,
+    dark: bool,
+) -> Option<(String, f32)> {
+    let company = company?;
+    let standard = company.logo.as_ref()?;
+    let plate = dark && company.logo_dark.is_none();
+    let logo = if dark {
+        company.logo_dark.as_ref().unwrap_or(standard)
+    } else {
+        standard
+    };
+    let ratio = logo.width as f32 / logo.height as f32;
+    let mut height = (108.0 / ratio.sqrt()).clamp(32.0, 64.0);
+    let mut width = ratio * height;
+    if width > 300.0 {
+        width = 300.0;
+        height = width / ratio;
+    }
+    let (pad_x, pad_y) = if plate { (12.0, 8.0) } else { (0.0, 0.0) };
+    let (x, y) = (MARGIN + pad_x, 72.0 + pad_y);
+    let background = if plate {
+        format!(
+            "<rect x=\"{MARGIN}\" y=\"72\" width=\"{}\" height=\"{}\" rx=\"8\" fill=\"#fff\"/>",
+            width + 2.0 * pad_x,
+            height + 2.0 * pad_y
+        )
+    } else {
+        String::new()
+    };
+    Some((
+        format!(
+            "{background}<image x=\"{x}\" y=\"{y}\" width=\"{width}\" height=\"{height}\" preserveAspectRatio=\"xMidYMid meet\" xlink:href=\"{}\"/>",
+            logo.data_uri()
+        ),
+        height + 2.0 * pad_y,
+    ))
 }
 
 /// The structure that makes the style's card its own (STY-01, STY-70).

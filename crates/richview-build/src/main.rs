@@ -81,16 +81,24 @@ fn main() -> Result<()> {
         ],
     )?;
     if args.first().is_some_and(|arg| arg == "--install-archive") {
-        if args.len() != 4 {
-            return Err(
-                "usage: richview-build --install-archive MANIFEST NATIVE_DIR NEW_OUTPUT_DIR".into(),
-            );
-        }
+        let cross = match args.len() {
+            4 => None,
+            // A target that is not plain text is no target the archive step knows.
+            6 if args[4] == "--target" => Some(args[5].to_str().unwrap_or_default()),
+            _ => {
+                return Err(format!(
+                    "usage: richview-build --install-archive MANIFEST NATIVE_DIR NEW_OUTPUT_DIR [--target {}]",
+                    distribution::WINDOWS
+                )
+                .into());
+            }
+        };
         return distribution::existing(
             &root,
             Path::new(&args[1]),
             Path::new(&args[2]),
             Path::new(&args[3]),
+            cross,
         );
     }
     let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".into());
@@ -310,6 +318,7 @@ fn main() -> Result<()> {
             install_enabled,
             repository_public,
             feedback_enabled: args.iter().any(|arg| arg == "--feedback-enabled"),
+            windows_preview: distribution::windows_preview(&root)?,
         },
     )?;
     routes::prune(&public, include_str!("../../../assets/routes.json"))?;
@@ -655,7 +664,13 @@ fn stage_assets(root: &Path, public: &Path, install_enabled: bool) -> Result<()>
     }
     pin_inline_preview_runtime(public)?;
     // `404.html` is what the host serves for an unknown path, at any depth: its links are rooted.
-    for file in ["impressum.html", "privacy.html", "terms.html", "404.html"] {
+    for file in [
+        "about.html",
+        "impressum.html",
+        "privacy.html",
+        "terms.html",
+        "404.html",
+    ] {
         let page = chrome::apply(&fs::read_to_string(root.join("assets").join(file))?);
         fs::write(public.join(file), page)?;
     }

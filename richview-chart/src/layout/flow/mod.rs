@@ -816,6 +816,7 @@ fn params(t: &Type, step: Step) -> Params {
         label_clear: LABEL_CLEAR,
         lane_label: [0.0, t.lh(t.small) + 4.0],
         stack_lanes: step.stack,
+        snug: step.narrow(),
     }
 }
 
@@ -828,6 +829,14 @@ struct Step {
     tight: bool,
     dense: bool,
     stack: bool,
+}
+
+impl Step {
+    /// The cards are at their narrowest step: the paper is tight, and the cards take what room
+    /// the page has.
+    fn narrow(self) -> bool {
+        self.max <= CARD_WIDTHS[CARD_WIDTHS.len() - 1]
+    }
 }
 
 /// Least space between an edge label and a card on the page (FEA-CH-76).
@@ -1175,10 +1184,39 @@ fn fit(t: &Type, flow: Flow, width: f64) -> Laid {
         // direction goes tight.
         best = None;
         let last = i + 1 == directions.len();
-        for step in roomy.iter().chain(dense.iter().filter(|_| last)).copied() {
+        let ladder: Vec<Step> = roomy.iter().chain(dense.iter().filter(|_| last)).copied().collect();
+        for (n, step) in ladder.iter().copied().enumerate() {
             let laid = lay(t, flow.clone(), step, across, LABEL_CLEAR, &[]);
             if laid.width <= width {
-                return widened(t, laid, step, LABEL_CLEAR);
+                let mut chosen = widened(t, laid, step, LABEL_CLEAR, width);
+                if step.narrow() {
+                    // With the cards at their narrowest, paper gives way before a card takes a
+                    // line more: of the ways to lay them that fit, the one whose cards take
+                    // the fewest lines, and of those the roomiest.
+                    let rows = |laid: &Laid| {
+                        laid.flow
+                            .nodes
+                            .iter()
+                            .zip(&laid.cards)
+                            .filter(|(n, _)| matches!(n.kind, Kind::Step | Kind::Store | Kind::Object))
+                            .map(|(_, c)| c.title.len() + c.lines.len())
+                            .sum::<usize>()
+                    };
+                    for other in ladder
+                        .iter()
+                        .skip(n + 1)
+                        .filter(|o| o.narrow() && o.stack == step.stack)
+                    {
+                        let laid = lay(t, flow.clone(), *other, across, LABEL_CLEAR, &[]);
+                        if laid.width <= width {
+                            let laid = widened(t, laid, *other, LABEL_CLEAR, width);
+                            if rows(&laid) < rows(&chosen) {
+                                chosen = laid;
+                            }
+                        }
+                    }
+                }
+                return chosen;
             }
             if best.as_ref().is_none_or(|b| laid.width < b.0.width) {
                 best = Some((laid, step, across));
@@ -1193,7 +1231,7 @@ fn fit(t: &Type, flow: Flow, width: f64) -> Laid {
     for _ in 0..6 {
         let held = t.held(k);
         laid = lay(&held, flow.clone(), step, across, LABEL_CLEAR / k, &[]);
-        laid = widened(&held, laid, step, LABEL_CLEAR / k);
+        laid = widened(&held, laid, step, LABEL_CLEAR / k, 0.0);
         let next = width / laid.width.max(1.0);
         if next >= k * 0.995 {
             break;
@@ -1203,20 +1241,81 @@ fn fit(t: &Type, flow: Flow, width: f64) -> Laid {
     laid
 }
 
-/// A card is as wide as its column already is: where a question, a pill or another card of its
-/// column is wider than the step lets a card be, the column's cards wrap to that width, column
-/// by column, as long as the drawing grows no wider. A flow across the page has no columns.
-fn widened(t: &Type, first: Laid, step: Step, label_clear: f64) -> Laid {
+/// Cards take the room the drawing already has. On tight paper the cards that share a rank
+/// share the page's room: a rank is as tall as its tallest card, so the card with the most
+/// lines wraps wider, by the least that saves it a line, as long as the drawing fits the
+/// page, and a card with fewer lines than a neighbour keeps its width. Then a card is as wide
+/// as its column already is: where a question, a pill or another card of its column is wider
+/// than the step lets a card be, the column's cards that stand alone in their rank wrap to
+/// that width, column by column. `room` is the page's width for a drawing that fits it; a
+/// drawing that is scaled to fit grows no wider than it is. A flow across the page has no
+/// columns, and lanes keep theirs.
+fn widened(t: &Type, first: Laid, step: Step, label_clear: f64, room: f64) -> Laid {
     if first.across || step.max >= CARD_WIDTHS[0] {
         return first;
     }
-    let centre = |laid: &Laid, i: usize| laid.engine.nodes[i].x + laid.engine.nodes[i].w / 2.0;
+    // The widest the drawing may become: the page where the paper is tight, else what it is.
+    let bound = |laid: &Laid| if step.narrow() { laid.width.max(room) } else { laid.width } + 0.5;
     let n = first.flow.nodes.len();
-    let mut columns: Vec<f64> = (0..n).map(|i| centre(&first, i)).collect();
-    columns.sort_by(f64::total_cmp);
-    columns.dedup_by(|a, b| (*a - *b).abs() < 0.5);
+    let card = |laid: &Laid, i: usize| matches!(laid.flow.nodes[i].kind, Kind::Step | Kind::Store | Kind::Object);
+    let rows = |card: &Card| card.title.len() + card.lines.len();
     let mut wider = vec![step.max; n];
     let mut laid = first;
+    let mut shared = vec![false; n];
+    if step.narrow() && laid.flow.lanes.is_empty() {
+        // The type the cards are measured with, as `lay` sets it.
+        let measured = Type {
+            pad_x: if step.dense { 7.0 } else { PAD_X },
+            ..t.clone()
+        };
+        let mut ranks = laid.engine.ranks[..n].to_vec();
+        ranks.sort_unstable();
+        ranks.dedup();
+        for rank in ranks {
+            let mates: Vec<usize> = (0..n)
+                .filter(|&i| laid.engine.ranks[i] == rank && card(&laid, i))
+                .collect();
+            if mates.len() < 2 {
+                continue;
+            }
+            let mut stuck = vec![false; n];
+            for &i in &mates {
+                shared[i] = true;
+            }
+            loop {
+                // Of the rank's tallest cards, the narrowest that has not been tried in vain.
+                let tallest = mates.iter().map(|&i| rows(&laid.cards[i])).max().unwrap_or(0);
+                let Some(i) = mates
+                    .iter()
+                    .copied()
+                    .filter(|&i| !stuck[i] && rows(&laid.cards[i]) == tallest)
+                    .min_by(|&a, &b| laid.engine.nodes[a].w.total_cmp(&laid.engine.nodes[b].w))
+                else {
+                    break;
+                };
+                // The least width that saves it a line, if the drawing then fits.
+                let mut to = wider[i] + WIDTH_STEP;
+                while to <= CARD_WIDTHS[0] && rows(&measure(&measured, &laid.flow.nodes[i], to, step.tight)) >= tallest
+                {
+                    to += WIDTH_STEP;
+                }
+                let mut trial = wider.clone();
+                trial[i] = to;
+                let next = (to <= CARD_WIDTHS[0]).then(|| lay(t, laid.flow.clone(), step, false, label_clear, &trial));
+                match next {
+                    Some(next) if next.width <= bound(&laid) => {
+                        laid = next;
+                        wider = trial;
+                    }
+                    _ => stuck[i] = true,
+                }
+            }
+        }
+    }
+    let centre = |laid: &Laid, i: usize| laid.engine.nodes[i].x + laid.engine.nodes[i].w / 2.0;
+    let mut columns: Vec<f64> = (0..n).map(|i| centre(&laid, i)).collect();
+    columns.sort_by(f64::total_cmp);
+    columns.dedup_by(|a, b| (*a - *b).abs() < 0.5);
     for column in columns {
         let members: Vec<usize> = (0..n).filter(|&i| (centre(&laid, i) - column).abs() < 0.5).collect();
         let widest = members
@@ -1226,7 +1325,7 @@ fn widened(t: &Type, first: Laid, step: Step, label_clear: f64) -> Laid {
             .min(CARD_WIDTHS[0]);
         let cards: Vec<usize> = members
             .into_iter()
-            .filter(|&i| matches!(laid.flow.nodes[i].kind, Kind::Step | Kind::Store | Kind::Object))
+            .filter(|&i| card(&laid, i) && !shared[i])
             .filter(|&i| laid.engine.nodes[i].w < widest - 0.5)
             .collect();
         if cards.is_empty() || widest <= step.max {
@@ -1237,7 +1336,7 @@ fn widened(t: &Type, first: Laid, step: Step, label_clear: f64) -> Laid {
             trial[i] = widest;
         }
         let next = lay(t, laid.flow.clone(), step, false, label_clear, &trial);
-        if next.width <= laid.width + 0.5 {
+        if next.width <= bound(&laid) {
             laid = next;
             wider = trial;
         }

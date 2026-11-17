@@ -60,7 +60,7 @@ caption: Florence Nightingale, Diagram of the Causes of Mortality in the Army in
 
 Credited Unsplash photos are the supported remote-image path for image blocks and header pictures. They remain hotlinks with visible credit. The reader needs the network for the photo; its box, alt text and credit remain offline. Other remote images must be saved inside the report folder. A Markdown image remains a local resource even when its URL points to Unsplash.
 
-With `UNSPLASH_ACCESS_KEY` in the environment, `richview image search "calm sea" --orientation landscape --format json` finds candidates. `richview image use` takes the chosen photo ID and `--as title-image` or `--as block`; it fetches metadata, registers a download and prints ready-to-paste YAML. The MCP photo tools do the same. `RICHVIEW_UNSPLASH_APP` selects the attribution campaign, and `RICHVIEW_UNSPLASH_API` can select a signing proxy. The [command reference](https://richview.ai/docs/tools) gives the accepted flags. Never put the key in source. Rendering does not register another download.
+With `UNSPLASH_ACCESS_KEY` in the environment, `richview image search "calm sea" --orientation landscape` finds candidates. `richview image use` takes the chosen photo ID and `--as title-image` or `--as block`; it fetches metadata, registers a download and prints ready-to-paste YAML. The MCP photo tools do the same. `RICHVIEW_UNSPLASH_APP` selects the attribution campaign, and `RICHVIEW_UNSPLASH_API` can select a signing proxy. The [command reference](https://richview.ai/docs/tools) gives the accepted flags. Never put the key in source. Rendering does not register another download.
 
 ## Audio, video and transcripts
 
