@@ -508,6 +508,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     Some((v, r)) => {
                         row.get_or_insert(r);
                         lines.push(ReadoutLine {
+                            label: None,
                             name: groups[g].clone(),
                             value: numbers::value(v, &readout),
                             series: Some(g),
@@ -520,6 +521,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                         });
                     }
                     None => lines.push(ReadoutLine {
+                        label: None,
                         name: groups[g].clone(),
                         value: "No observation".into(),
                         series: Some(g),
@@ -530,6 +532,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             }
             if visible.len() > 1 {
                 lines.push(ReadoutLine {
+                    label: None,
                     name: "Total".into(),
                     value: total_texts.get(i).cloned().unwrap_or_default(),
                     series: None,

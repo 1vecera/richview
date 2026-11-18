@@ -379,6 +379,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 });
                 at = frame.pt(cm, v);
                 lines.push(ReadoutLine {
+                    label: numbers::printed(v, &readout, label_format.digits),
                     name: if multi {
                         format!("{} {bar_title}", groups[e.group])
                     } else {
@@ -397,13 +398,17 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     .as_ref()
                     .is_none_or(|(category, ..)| *category <= e.category)
                 {
-                    last[e.group] = Some((e.category, observations.len(), numbers::value(v, &readout2), c0 + t));
+                    // The value prints at the label's digits; the readout may carry more (FEA-CH-37).
+                    let printed = numbers::printed(v, &readout2, label_format2.digits)
+                        .unwrap_or_else(|| numbers::value(v, &readout2));
+                    last[e.group] = Some((e.category, observations.len(), printed, c0 + t));
                 }
                 if e.bar.is_none() {
                     at = p;
                 }
                 let slot = line_slot(e.group);
                 lines.push(ReadoutLine {
+                    label: numbers::printed(v, &readout2, label_format2.digits),
                     name: if multi {
                         format!("{} {line_title}", groups[e.group])
                     } else {

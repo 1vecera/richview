@@ -1175,13 +1175,17 @@ impl AtX {
                 if ctx.is_hidden(s) {
                     continue;
                 }
-                let value = match self.rows.iter().find(|r| r.0 == s) {
-                    Some((_, Some(v), _)) => numbers::value(*v, readout),
-                    Some((_, None, _)) => "No observation".into(),
-                    None if n_series > 1 => "No observation".into(),
+                let (value, label) = match self.rows.iter().find(|r| r.0 == s) {
+                    Some((_, Some(v), _)) => (
+                        numbers::value(*v, readout),
+                        numbers::printed(*v, readout, ctx.block.label_digits(&ctx.block.y)),
+                    ),
+                    Some((_, None, _)) => ("No observation".into(), None),
+                    None if n_series > 1 => ("No observation".into(), None),
                     None => continue,
                 };
                 lines.push(ReadoutLine {
+                    label,
                     name: series_label(ctx, p, s),
                     value,
                     series: Some(s),
@@ -1206,6 +1210,7 @@ fn point_readout(ctx: &Ctx, o: &Obs, v: f64, formats: [&Format; 3]) -> Readout {
     let label_on_y = block.encoding.label.is_some() && block.encoding.label == block.encoding.y;
     let mut lines = vec![
         ReadoutLine {
+            label: None,
             name: block
                 .x
                 .label
@@ -1218,6 +1223,7 @@ fn point_readout(ctx: &Ctx, o: &Obs, v: f64, formats: [&Format; 3]) -> Readout {
             derived: false,
         },
         ReadoutLine {
+            label: None,
             name: block
                 .y
                 .label
@@ -1251,6 +1257,7 @@ fn point_readout(ctx: &Ctx, o: &Obs, v: f64, formats: [&Format; 3]) -> Readout {
     }
     if let (Some(field), Some(s)) = (&block.encoding.size, o.size) {
         lines.push(ReadoutLine {
+            label: None,
             name: block.size_axis().label.clone().unwrap_or_else(|| readable_name(field)),
             value: numbers::value(s, size_readout),
             series: None,
@@ -1263,6 +1270,7 @@ fn point_readout(ctx: &Ctx, o: &Obs, v: f64, formats: [&Format; 3]) -> Readout {
         && heading != ctx.series[o.series].name
     {
         lines.push(ReadoutLine {
+            label: None,
             name: block.encoding.color.as_deref().map(readable_name).unwrap_or_default(),
             value: ctx.series[o.series].name.clone(),
             series: Some(o.series),
@@ -1278,6 +1286,7 @@ fn point_readout(ctx: &Ctx, o: &Obs, v: f64, formats: [&Format; 3]) -> Readout {
             };
             if block.encoding.label.as_ref() != Some(field) && value != heading {
                 lines.push(ReadoutLine {
+                    label: None,
                     name: readable_name(field),
                     value,
                     series: None,
@@ -1636,8 +1645,10 @@ fn panel_layout(
         .bounds
     });
     let mut value_room = 0.0;
+    // Under an axis the author fixed, the plot starts this much lower instead.
+    let mut top_room = 0.0;
     for _ in 0..5 {
-        let plot_h = (frame.bottom() - top - bottom_rows * lh - LABEL_GAP - x_title).max(MIN_PLOT * 0.5);
+        let plot_h = (frame.bottom() - top - top_room - bottom_rows * lh - LABEL_GAP - x_title).max(MIN_PLOT * 0.5);
         let y = axis::value_axis_room(
             &ValueSpec {
                 data: y_extent,
@@ -1673,7 +1684,12 @@ fn panel_layout(
             // CSS pixel for backing-canvas rounding at supported device scales.
             right_pad = right_pad.max(edge).max(9.0);
         }
-        let plot = Rect::new(left, top, (frame.right() - right_pad - left).max(40.0), plot_h);
+        let plot = Rect::new(
+            left,
+            top + top_room,
+            (frame.right() - right_pad - left).max(40.0),
+            plot_h,
+        );
         // The x axis reads only the plot's left edge and width, so a pass that changes only the
         // rows under it keeps the last pass's axis (PRF-19).
         let xl = match layout.take() {
@@ -1686,8 +1702,8 @@ fn panel_layout(
         let left_over = xl.ticks.iter().map(|(x, l)| overhang(*x, l)).fold(0.0, f64::max);
         // The last label leans in from its tick at paint time, so it never narrows the plot.
         let mut settled = rows_needed == bottom_rows && left_over <= 0.5;
-        if value_room == 0.0
-            && let Some(room) = bar_value_room(
+        if value_room == 0.0 {
+            match bar_value_room(
                 ctx,
                 p,
                 members,
@@ -1697,10 +1713,17 @@ fn panel_layout(
                 plot,
                 y_title,
                 frame.y + title_room,
-            )
-        {
-            value_room = room;
-            settled = false;
+            ) {
+                Some(BarRoom::Axis(room)) => {
+                    value_room = room;
+                    settled = false;
+                }
+                Some(BarRoom::Plot(short)) => {
+                    top_room += short;
+                    settled = false;
+                }
+                _ => {}
+            }
         }
         if left_over > 0.5 {
             inset[0] = (left - frame.x) + left_over;
@@ -2055,11 +2078,21 @@ fn obs_points(p: &Parsed, obs: &[&Obs], xl: &XLayout, ymap: &impl Fn(f64) -> f64
     obs.iter().filter_map(|o| o.y.map(|y| [xl.map(o.x), ymap(y)])).collect()
 }
 
-/// The pixels a vertical bar chart keeps above its largest value `hi`, so that the value of its
-/// tallest bar has its place above the bar (FEA-CH-28): the axis then ends a step higher when
-/// its last tick would crowd that place. `None` when the bars hold their values inside, are
-/// stacked, the author fixed the axis or switched values off, or the place is already clear:
-/// under the y `title` when that lies over it, else under `top`, the frame's upper edge.
+/// Where a vertical bar chart makes room above its tallest bar for that bar's value.
+enum BarRoom {
+    /// Pixels the value axis keeps above its largest value: the axis ends a step higher.
+    Axis(f64),
+    /// Pixels the plot still lacks above the value's place, under a maximum the author fixed:
+    /// the axis keeps the author's ends and the plot starts lower.
+    Plot(f64),
+}
+
+/// The room a vertical bar chart keeps above its largest value `hi`, so that the value of its
+/// tallest bar has its place above the bar (FEA-CH-28): the axis ends a step higher when its
+/// last tick would crowd that place, or, when the author fixed the maximum, the plot starts
+/// lower. `None` when the bars hold their values inside, are stacked, the author fixed only the
+/// minimum or switched values off, or the place is already clear: under the y `title` when that
+/// lies over it, else under `top`, the frame's upper edge.
 #[allow(clippy::too_many_arguments)]
 fn bar_value_room(
     ctx: &Ctx,
@@ -2071,13 +2104,13 @@ fn bar_value_room(
     plot: Rect,
     title: Option<Rect>,
     top: f64,
-) -> Option<f64> {
+) -> Option<BarRoom> {
     let block = ctx.block;
+    let fixed_max = block.y.max.is_some();
     if block.kind != ChartType::Bar
         || block.stack
         || !block.auto_annotations
-        || block.y.min.is_some()
-        || block.y.max.is_some()
+        || (block.y.min.is_some() && !fixed_max)
         || hi.is_nan()
         || hi <= 0.0
     {
@@ -2103,7 +2136,9 @@ fn bar_value_room(
             .max_by(taller)?
     };
     let readout = block.readout_format(&block.y, ctx.locale);
-    let [w, above, clear] = place::bar_value_above(ctx, &numbers::value(value, &readout));
+    // The room is the printed value's, at the label's digits (FEA-CH-37).
+    let printed = numbers::label(value, &readout, block.label_digits(&block.y));
+    let [w, above, clear] = place::bar_value_above(ctx, &printed);
     let visible: Vec<usize> = (0..ctx.series.len()).filter(|s| !ctx.is_hidden(*s)).collect();
     let groups = if p.self_colour { 1 } else { visible.len().max(1) };
     let inner = xl.band * 0.72;
@@ -2133,7 +2168,17 @@ fn bar_value_room(
         }
         None => (top, 0.0),
     };
-    (bar_top - above - gap < ceiling).then_some(above + gap - (plot.y - ceiling))
+    let place = bar_top - above - gap;
+    (place < ceiling).then(|| {
+        if fixed_max {
+            // The plot's bottom stays, so lowering its top by `d` lowers the bar's top by its
+            // share of the plot's height times `d`: the plot moves by the shortfall over that share.
+            let share = ((plot.bottom() - bar_top) / plot.h).clamp(0.1, 1.0);
+            BarRoom::Plot((ceiling - place) / share + 0.05)
+        } else {
+            BarRoom::Axis(above + gap - (plot.y - ceiling))
+        }
+    })
 }
 
 /// Pixels an axis that fits its data keeps clear beyond the first and last point: the radius of the
@@ -2708,6 +2753,7 @@ fn paint_lines(
         let mut shown = Rc::clone(a.readout(ctx, p, &readout));
         if block.stack {
             Rc::make_mut(&mut shown).lines.push(ReadoutLine {
+                label: None,
                 name: "Total".into(),
                 value: totals
                     .get(at_x)
@@ -2924,6 +2970,7 @@ fn paint_bars(
         for (cat, name) in names.iter().enumerate() {
             for ob in observations.iter_mut().filter(|ob| ob.readout.heading == *name) {
                 Rc::make_mut(&mut ob.readout).lines.push(ReadoutLine {
+                    label: None,
                     name: "Total".into(),
                     value: totals.get(cat).cloned().unwrap_or_default(),
                     series: None,
@@ -2954,6 +3001,7 @@ fn bar_observation(
     f: &Format,
 ) -> Observation {
     let value = v.map_or_else(|| "No observation".to_owned(), |v| numbers::value(v, f));
+    let label = v.and_then(|v| numbers::printed(v, f, ctx.block.label_digits(&ctx.block.y)));
     let name = if p.self_colour || ctx.block.encoding.color.is_none() {
         ctx.block
             .y
@@ -2984,6 +3032,7 @@ fn bar_observation(
         readout: Readout {
             heading: category.to_owned(),
             lines: vec![ReadoutLine {
+                label,
                 name,
                 value,
                 series: Some(series),
@@ -5201,6 +5250,112 @@ mod tests {
                 first.y <= middle && middle <= first.bottom(),
                 "{width}: '20.3' stays level with its bar"
             );
+        }
+    }
+
+    /// The Titanic report's survival shares: two columns per class on an axis the author fixed
+    /// from 0 to 100%.
+    fn titanic_shares() -> (ChartBlock, Vec<serde_json::Value>) {
+        let block = ChartBlock::from_value(&json!({
+            "type": "bar", "title": "Women survived more often than men in every class",
+            "encoding": {"x": "class", "y": "share", "color": "sex"},
+            "axes": {"y": {"label": "Survived", "format": "percent", "min": 0, "max": 1}},
+            "style": {"ratio": "2:1"}
+        }))
+        .unwrap();
+        let shares = [
+            ("1st", 0.97, 0.34),
+            ("2nd", 0.88, 0.14),
+            ("3rd", 0.46, 0.17),
+            ("Crew", 0.87, 0.22),
+        ];
+        let rows = shares
+            .iter()
+            .flat_map(|(class, women, men)| {
+                [
+                    json!({"class": class, "sex": "Women", "share": women}),
+                    json!({"class": class, "sex": "Men", "share": men}),
+                ]
+            })
+            .collect();
+        (block, rows)
+    }
+
+    #[test]
+    fn a_fixed_maximum_keeps_the_axis_and_lowers_the_plot_for_the_tallest_value() {
+        // '97%' on an axis the author ended at 100%: the axis cannot end a step higher, so on a
+        // phone the value had no place under the axis title and was dropped.
+        let (block, rows) = titanic_shares();
+        for width in PHONE {
+            let g = layout(&block, &rows, &ChartTheme::default(), &opts(width));
+            let panel = &g.panels[0];
+            let (bars, values) = bars_and_values(panel);
+            let (o, t) = values
+                .iter()
+                .find(|(_, t)| t.text == "97%")
+                .unwrap_or_else(|| panic!("{width}: '97%' prints: {:?}", g.dropped));
+            let bar = bars.iter().find(|(b, _)| b == o).unwrap().1;
+            assert!(
+                t.bounds.inside(&bar, 0.0) || t.bounds.bottom() <= bar.y,
+                "{width}: '97%' stands above its bar or inside it"
+            );
+            let texts: Vec<&str> = panel
+                .items
+                .iter()
+                .filter_map(|i| match i {
+                    Item::Text(t) => Some(t.text.as_str()),
+                    _ => None,
+                })
+                .collect();
+            assert!(
+                texts.contains(&"100%"),
+                "{width}: the axis still ends at the author's 100%"
+            );
+            assert!(
+                !texts.iter().any(|t| ["110%", "120%", "125%", "150%"].contains(t)),
+                "{width}: no tick past the author's maximum: {texts:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_wide_faced_value_slides_off_the_taller_column_beside_it() {
+        // In Space Mono '34%' centred over the shorter column of a pair met the taller one's
+        // clearance by a fraction of a pixel, and every men's share was dropped at 390.
+        let (block, rows) = titanic_shares();
+        let theme = ChartTheme {
+            data_font: "Space Mono, ui-monospace, monospace".into(),
+            ..ChartTheme::default()
+        };
+        for width in PHONE {
+            let g = layout(&block, &rows, &theme, &opts(width));
+            let (bars, values) = bars_and_values(&g.panels[0]);
+            for text in ["34%", "14%", "17%"] {
+                let (o, t) = values
+                    .iter()
+                    .find(|(_, t)| t.text == text)
+                    .unwrap_or_else(|| panic!("{width}: '{text}' prints: {:?}", g.dropped));
+                let bar = bars.iter().find(|(b, _)| b == o).unwrap().1;
+                let centre = t.bounds.center()[0];
+                assert!(
+                    bar.x <= centre && centre <= bar.right(),
+                    "{width}: '{text}' stays over its column"
+                );
+                // A column wide enough holds its value inside; only a value above it slides.
+                if t.bounds.inside(&bar, 0.0) {
+                    continue;
+                }
+                assert!(t.bounds.bottom() <= bar.y, "{width}: '{text}' stands above its column");
+                let sibling = bars
+                    .iter()
+                    .map(|(_, r)| *r)
+                    .find(|r| (bar.x - r.right()).abs() <= 1.5)
+                    .expect("the taller column beside it");
+                assert!(
+                    t.bounds.x >= sibling.right() + 2.0,
+                    "{width}: '{text}' keeps its clearance from the column beside it"
+                );
+            }
         }
     }
 

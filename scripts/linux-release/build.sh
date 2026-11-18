@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Build the release on the glibc 2.35 baseline without publishing anything.
+# Build the release on the glibc 2.35 baseline without publishing anything. Any arguments go to
+# richview-build, such as `--wasm-from tmp/wasm` to bind the raw Wasm the macOS build made, so both
+# archives carry the same runtime; that folder must lie inside the checkout, which the container sees.
 set -euo pipefail
 root=$(git rev-parse --show-toplevel)
 common=$(git rev-parse --path-format=absolute --git-common-dir)
@@ -22,4 +24,4 @@ docker run --rm --user "$(id -u):$(id -g)" \
   --env HOME=/tmp --env CARGO_HOME=/cargo --env RUSTUP_HOME=/rustup \
   --env CARGO_TARGET_DIR="$root/target/linux-release-ubuntu-22.04" \
   --env PATH=/host-cargo-bin:/node/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
-  richview-linux-release bash -euc 'npm ci --ignore-scripts; cargo run --release --locked -p richview-build -- --repository-public'
+  richview-linux-release bash -euc 'npm ci --ignore-scripts; cargo run --release --locked -p richview-build -- --repository-public "$@"' build "$@"

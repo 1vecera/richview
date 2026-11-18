@@ -286,6 +286,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         };
         let mut lines = Vec::new();
         lines.push(ReadoutLine {
+            label: None,
             name: block
                 .y
                 .label
@@ -301,6 +302,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         });
         if derived {
             lines.push(ReadoutLine {
+                label: None,
                 name: "Source rows".into(),
                 value: bar.tally.count.to_string(),
                 series: None,

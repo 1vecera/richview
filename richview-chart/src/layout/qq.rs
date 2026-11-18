@@ -490,6 +490,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 });
                 let mut lines = vec![
                     ReadoutLine {
+                        label: None,
                         name: block
                             .y
                             .label
@@ -501,6 +502,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                         derived: false,
                     },
                     ReadoutLine {
+                        label: None,
                         name: x_title.clone(),
                         value: e.z_text.clone(),
                         series: None,
@@ -508,6 +510,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                         derived: true,
                     },
                     ReadoutLine {
+                        label: None,
                         name: "Rank".into(),
                         value: format!("{} of {n}", k + 1),
                         series: None,
@@ -532,6 +535,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 }
                 if multi && block.encoding.color != block.encoding.label && heading != groups[g] {
                     lines.push(ReadoutLine {
+                        label: None,
                         name: block
                             .encoding
                             .color

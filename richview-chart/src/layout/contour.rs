@@ -735,6 +735,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                             numbers::readout_coordinate(node[1], &y_readout)
                         ),
                         lines: vec![ReadoutLine {
+                            label: None,
                             name: block
                                 .color
                                 .label

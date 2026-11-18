@@ -259,6 +259,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     heading: format!("{} → {}", g.names[l.source], g.names[l.target]),
                     lines: vec![
                         ReadoutLine {
+                            label: None,
                             name: value_name.clone(),
                             value: numbers::value(l.value, &readout),
                             series: Some(slot),
@@ -266,6 +267,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                             derived: false,
                         },
                         ReadoutLine {
+                            label: None,
                             name: "Share of the whole".into(),
                             value: texts.links[li].clone(),
                             series: None,
@@ -299,6 +301,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             for (label, text) in [("Out", out_text), ("In", in_text)] {
                 if !text.is_empty() {
                     lines.push(ReadoutLine {
+                        label: None,
                         name: label.into(),
                         value: text.clone(),
                         series: Some(slot),
@@ -308,6 +311,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 }
             }
             lines.push(ReadoutLine {
+                label: None,
                 name: "Share of the circle".into(),
                 value: share.clone(),
                 series: None,

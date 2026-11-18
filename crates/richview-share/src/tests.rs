@@ -285,7 +285,7 @@ fn company_mark_sits_above_the_title_and_preserves_the_card_frame() {
             let before = compose(&card);
             let before_png = render(&card).unwrap();
             let company = company_logo();
-            let (mark, height) = company_mark(Some(&company), look(style).dark).unwrap();
+            let (mark, height) = company_mark(Some(&company), look(style).dark, 72.0).unwrap();
             assert!(mark.contains("width=\"64\""), "{mark}");
             assert!(mark.contains(if look(style).dark {
                 "y=\"80\""
@@ -330,7 +330,7 @@ fn wide_company_mark_fits_the_card_width_and_sets_title_clearance() {
     let logo = company.logo.as_mut().unwrap();
     logo.width = 12;
     logo.height = 1;
-    let (markup, height) = company_mark(Some(&company), false).unwrap();
+    let (markup, height) = company_mark(Some(&company), false, 72.0).unwrap();
     assert!(markup.contains("x=\"64\" y=\"72\" width=\"300\" height=\"25\""));
     assert_eq!(height, 25.0);
 }
@@ -404,8 +404,8 @@ fn share_card_uses_the_dark_mark_without_a_plate_on_dark_paper() {
     let dark_uri = dark.data_uri();
     let light_uri = company.logo.as_ref().unwrap().data_uri();
     company.logo_dark = Some(dark);
-    let (on_dark, _) = company_mark(Some(&company), true).unwrap();
-    let (on_light, _) = company_mark(Some(&company), false).unwrap();
+    let (on_dark, _) = company_mark(Some(&company), true, 72.0).unwrap();
+    let (on_light, _) = company_mark(Some(&company), false, 72.0).unwrap();
     assert!(on_dark.contains(&dark_uri));
     assert!(!on_dark.contains("fill=\"#fff\""));
     assert!(on_light.contains(&light_uri));
@@ -421,4 +421,150 @@ fn company_mark_does_not_change_the_neutral_card() {
     company.accent = Some("#0b6e69".into());
     card.company = Some(company);
     assert_eq!(compose(&card), neutral);
+}
+
+#[test]
+fn a_thumbnail_keeps_the_cards_aspect_and_its_ink() {
+    let card = render(&card(
+        "scientific",
+        Lead::Cover {
+            bytes: CHART.as_bytes().to_vec(),
+            mime: "image/svg+xml".into(),
+        },
+    ))
+    .unwrap();
+    let small = thumbnail(&card, 120).unwrap();
+    assert_eq!(size(&small), (120, 63));
+    // The chart's coloured bars survive the reduction: the copy is not one flat colour.
+    let pixmap = tiny_skia::Pixmap::decode_png(&small).unwrap();
+    let first = pixmap.pixels()[0];
+    assert!(pixmap.pixels().iter().any(|pixel| *pixel != first));
+    assert!(thumbnail(&card, 0).is_err());
+    assert!(thumbnail(&card, 1200).is_err());
+    assert!(thumbnail(b"not a png", 120).is_err());
+}
+
+/// The chart payloads of a small report, rendered by core as a host would.
+fn charts_of(source: &str) -> Vec<serde_json::Value> {
+    let options = richview_core::document::RenderOptions {
+        report_folder: Some(richview_core::document::ReportFolder {
+            root: "top".into(),
+            source: "report.rmd".into(),
+            files: vec!["report.rmd".into()],
+        }),
+        ..Default::default()
+    };
+    richview_core::document::render(source, &options)
+        .unwrap()
+        .charts
+}
+
+const RATES: &str = "---\ntitle: Rates\nstyles: [scientific]\n---\n\n```chart\ntype: bar\ntitle: Rates rose every month\nsubtitle: Percent, by month\ndata:\n  inline:\n    - {month: Jan, rate: 1}\n    - {month: Feb, rate: 2}\n    - {month: Mar, rate: 3}\nencoding: {x: month, y: rate}\n```\n";
+
+#[test]
+fn the_top_of_the_report_leads_with_the_title_over_the_whole_first_chart() {
+    let charts = charts_of(RATES);
+    let first = top::first(&charts, 1072.0).unwrap();
+    let svg = top::card_svg("Rates", "Daniel", "scientific", &first, None).unwrap();
+    // The title, the chart's own title and subtitle and the byline, each once; the chart is whole.
+    for text in ["Rates rose every month", "Percent, by month", "Daniel"] {
+        assert_eq!(svg.matches(&format!(">{text}</text>")).count(), 1, "{text}");
+    }
+    assert!(svg.contains("font-size=\"58\"") && svg.contains("data:image/svg+xml;base64,"));
+    assert!(!svg.contains('…'));
+    let png = card_png("Rates", "Daniel", "scientific", &charts).unwrap();
+    assert_eq!(size(&png), (WIDTH, HEIGHT));
+    assert_eq!(
+        png,
+        card_png("Rates", "Daniel", "scientific", &charts).unwrap()
+    );
+    assert_ne!(png, card_png("Rates", "Daniel", "scientific", &[]).unwrap());
+}
+
+#[test]
+fn a_long_title_steps_down_to_48_px_and_is_never_cut() {
+    let charts = charts_of(RATES);
+    let first = top::first(&charts, 1072.0).unwrap();
+    let two = "Rates rose in every month of the first quarter";
+    assert!(
+        top::card_svg(two, "", "scientific", &first, None)
+            .unwrap()
+            .contains("font-size=\"58\"")
+    );
+    let three = "Rates rose in every month of the first quarter, faster than in any quarter since the series began, and fastest in March";
+    let svg = top::card_svg(three, "", "scientific", &first, None).unwrap();
+    assert!(svg.contains("font-size=\"48\"") && !svg.contains("font-size=\"58\""));
+    let words: String = svg
+        .split("font-size=\"48\"")
+        .skip(1)
+        .map(|part| part.split('>').nth(1).unwrap().split('<').next().unwrap())
+        .collect::<Vec<_>>()
+        .join(" ");
+    assert_eq!(words, three);
+    // A title that leaves the chart no room gets the title card instead.
+    let endless = "A very long title ".repeat(20);
+    assert!(top::card_svg(&endless, "", "scientific", &first, None).is_none());
+    assert_eq!(
+        size(&card_png(&endless, "", "scientific", &charts).unwrap()),
+        (WIDTH, HEIGHT)
+    );
+}
+
+#[test]
+fn a_faceted_chart_shows_its_first_row_of_panels() {
+    let source = "# Sets\n\n```chart\ntype: scatter\ntitle: Four sets\ndata:\n  inline:\n    - {set: I, x: 1, y: 2}\n    - {set: II, x: 1, y: 3}\n    - {set: III, x: 2, y: 2}\n    - {set: IV, x: 2, y: 4}\n    - {set: I, x: 3, y: 5}\nencoding: {x: x, y: y, facet: set}\n```\n";
+    let charts = charts_of(source);
+    let sets = |width: f64| {
+        let rows = top::first(&charts, width).unwrap().rows;
+        richview_chart::rows::distinct(&rows, "set")
+    };
+    assert_eq!(sets(1072.0), ["I", "II"]);
+    assert_eq!(sets(400.0), ["I"]);
+}
+
+#[test]
+fn a_gallery_picture_is_the_first_chart_at_the_asked_size_or_nothing() {
+    let charts = charts_of(RATES);
+    let picture = |width, height, scale| {
+        chart_picture_png("scientific", &charts, width, height, scale)
+            .unwrap()
+            .unwrap()
+    };
+    let png = picture(1000, 750, 1.0);
+    assert_eq!(size(&png), (1000, 750));
+    assert_eq!(png, picture(1000, 750, 1.0));
+    // Laid out at half the width and drawn twice as large, for a card that shows it bigger.
+    assert_eq!(size(&picture(500, 310, 2.0)), (1000, 620));
+    assert!(
+        chart_picture_png("scientific", &[], 1000, 750, 1.0)
+            .unwrap()
+            .is_none()
+    );
+    // The picture is named by the chart it shows, not by the report.
+    assert_eq!(
+        chart_picture_title(&charts).as_deref(),
+        Some("Rates rose every month")
+    );
+    assert_eq!(chart_picture_title(&[]), None);
+}
+
+#[test]
+fn a_small_card_is_the_card_drawn_small_at_its_aspect() {
+    let charts = charts_of(RATES);
+    let svg = card_svg_with_company("Rates", "Daniel", "scientific", &charts, None).unwrap();
+    // The full card is this SVG drawn at its own size.
+    assert_eq!(
+        card_png("Rates", "Daniel", "scientific", &charts).unwrap(),
+        raster(&svg, WIDTH, HEIGHT).unwrap()
+    );
+    let small = card_png_small(&svg, 120).unwrap();
+    assert_eq!(size(&small), (120, 63));
+    // The chart survives at this size: the copy is not one flat colour.
+    let pixmap = tiny_skia::Pixmap::decode_png(&small).unwrap();
+    let first = pixmap.pixels()[0];
+    assert!(pixmap.pixels().iter().any(|pixel| *pixel != first));
+    let plain = card_svg_with_company("Rates", "Daniel", "scientific", &[], None).unwrap();
+    assert_ne!(small, card_png_small(&plain, 120).unwrap());
+    assert!(card_png_small(&svg, 0).is_err());
+    assert!(card_png_small(&svg, WIDTH).is_err());
 }

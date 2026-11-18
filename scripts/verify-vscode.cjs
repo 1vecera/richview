@@ -9,7 +9,7 @@ exports.run = async () => {
   assert.ok(artifact, 'Use the isolated VS Code test runner');
   const extension = vscode.extensions.getExtension('richview.richview-vscode');
   assert.ok(extension);
-  assert.equal(extension.packageJSON.version, '3.0.0-alpha.1');
+  assert.equal(extension.packageJSON.version, '3.0.0-alpha.2');
   assert.ok(extension.extensionPath.startsWith(process.env.RICHVIEW_TEST_EXTENSIONS), 'Tests must exercise the VSIX installation');
   await extension.activate();
   const root = vscode.workspace.workspaceFolders[0].uri.fsPath;

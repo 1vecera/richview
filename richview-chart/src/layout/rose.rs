@@ -314,6 +314,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     readout: Readout {
                         heading: categories[i].clone(),
                         lines: vec![ReadoutLine {
+                            label: None,
                             name: groups[g].clone(),
                             value: numbers::value(cell.value, &readout),
                             series: Some(g),

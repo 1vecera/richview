@@ -296,6 +296,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 }
             }
             let mut lines = vec![ReadoutLine {
+                label: None,
                 name: block.y.label.clone().unwrap_or_else(|| y_field.clone()),
                 value: numbers::value(s.value, &readout),
                 series: Some(slot),
@@ -308,6 +309,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             ] {
                 if !text.is_empty() {
                     lines.push(ReadoutLine {
+                        label: None,
                         name: name.into(),
                         value: text.clone(),
                         series: None,

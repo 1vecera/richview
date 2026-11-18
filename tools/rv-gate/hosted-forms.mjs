@@ -63,7 +63,33 @@ try {
 	}
 	const forged = await context.request.post(new URL("/ui/sign-up", app).href, { headers: { origin: "https://attacker.test", "sec-fetch-site": "same-origin", "content-type": "application/x-www-form-urlencoded" }, data: "email=forged%40example.test" });
 	assert.equal(forged.status(), 403);
-	console.log("PASS: Chromium sign-in, sign-up, check-mail and link completion; foreign origin refused");
+	// Members, with script on and off: every control there is a form, the menus details elements.
+	// The new account owns the organization it got at sign-up. Desktop width shows the
+	// invitations' row buttons; the role menu opens from its chip.
+	const signedIn = await context.storageState();
+	for (const script of [true, false]) {
+		const members = script ? page : await (await browser.newContext({ ignoreHTTPSErrors: true, javaScriptEnabled: false, storageState: signedIn })).newPage();
+		const address = `colleague-${script ? "script" : "no-script"}@example.test`;
+		await members.goto(new URL("/members", app).href);
+		await members.getByLabel("Invite by email").fill(address);
+		await members.locator("label[for='invite-role-author']").click();
+		await members.getByRole("button", { name: "Send invitation" }).click();
+		await members.getByText(`Invited ${address}.`).waitFor();
+		const row = members.locator("tr", { hasText: address });
+		assert.equal(await row.locator(".p-role-text").textContent(), "Author");
+		await row.getByRole("button", { name: `Send the invitation to ${address} again` }).click();
+		await members.getByText(`Invited ${address} again.`).waitFor();
+		await members.locator("tr", { hasText: address }).getByRole("button", { name: `Cancel the invitation to ${address}` }).click();
+		await members.getByText("Invitation cancelled.").waitFor();
+		assert.equal(await members.locator("tr", { hasText: address }).count(), 0);
+		await members.locator("tr.is-me details.pick:not(.pick--more) > summary").click();
+		const owner = members.getByRole("button", { name: /^Owner/ });
+		assert.equal(await owner.getAttribute("aria-pressed"), "true");
+		await owner.click();
+		await members.getByText("Role saved.").waitFor();
+		await members.getByText("You’re its only owner.").waitFor();
+	}
+	console.log("PASS: Chromium sign-in, sign-up, check-mail and link completion; foreign origin refused; members' invite, send again, cancel and role menu with script on and off");
 } finally {
 	await context.close();
 	await browser.close();

@@ -390,6 +390,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 readout: Readout {
                     heading: country.name.clone(),
                     lines: vec![ReadoutLine {
+                        label: None,
                         name: block
                             .y
                             .label
@@ -439,6 +440,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     readout: Readout {
                         heading: world.countries[drawn[pi]].name.clone(),
                         lines: vec![ReadoutLine {
+                            label: None,
                             name: block
                                 .y
                                 .label
@@ -498,6 +500,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             });
             let mut lines = vec![
                 ReadoutLine {
+                    label: None,
                     name: "Latitude".into(),
                     value: numbers::grouped(s.lat, 2, ctx.locale, false),
                     series: None,
@@ -505,6 +508,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     derived: false,
                 },
                 ReadoutLine {
+                    label: None,
                     name: "Longitude".into(),
                     value: numbers::grouped(s.lon, 2, ctx.locale, false),
                     series: None,
@@ -516,6 +520,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 lines.insert(
                     0,
                     ReadoutLine {
+                        label: None,
                         name: f.clone(),
                         value: numbers::value(v, &readout),
                         series: Some(s.group),

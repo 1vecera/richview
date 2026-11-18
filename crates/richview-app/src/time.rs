@@ -1,6 +1,6 @@
 //! Dates and times for stored records, files, headers and pages, in exactly the text chrono 0.4
-//! wrote and accepted before RichView moved to jiff (S27-986, RUSTSEC-2026-0543: chrono is
-//! unmaintained). jiff does the calendar and the clock; this module keeps the old shapes:
+//! wrote and accepted before RichView moved to jiff (RUSTSEC-2026-0543: chrono is unmaintained).
+//! jiff does the calendar and the clock; this module keeps the old shapes:
 //! RFC 3339 with `Z` at millisecond or second precision, chrono's strict RFC 3339 grammar, its
 //! automatic fraction (0, 3, 6 or 9 digits), its signed years and its leap-second order. The test
 //! below replays chrono's own output for every shape (`tests/fixtures/chrono-golden.tsv`).

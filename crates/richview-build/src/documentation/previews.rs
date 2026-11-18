@@ -1,4 +1,10 @@
-//! Shared-runtime previews and semantic gallery grids for the docs visual pass.
+//! Shared-runtime previews, the gallery's pictures and semantic gallery grids for the docs visual
+//! pass.
+//!
+//! A gallery card shows a picture of its report's first chart, drawn by this build from the same
+//! source in the card's style (Daniel, 16 Nov 2026: a static picture instead of loading live reports
+//! one by one, which emptied the cards whenever the reader scrolled away and back). The link opens
+//! the live report. Only the elements overview's typography card is still a live frame.
 use super::*;
 
 /// The flagship report (FEA-SF-36): first in the Reports list, opened on its own showcase page
@@ -16,10 +22,60 @@ pub(super) fn style(report: &str) -> &'static str {
     }
 }
 
+/// The size a gallery picture is laid out at, and how much larger it is drawn.
+#[derive(Clone, Copy)]
+pub(super) struct Picture {
+    pub(super) name: &'static str,
+    pub(super) width: u32,
+    pub(super) height: u32,
+    pub(super) scale: f32,
+}
+
+/// A gallery card: laid out 1000 px wide, as the live frames were, at the card's 1000:620.
+pub(super) const CARD: Picture = Picture {
+    name: "card",
+    width: 1000,
+    height: 620,
+    scale: 1.0,
+};
+/// An element's card: laid out half as wide and drawn twice as large, so the element fills it.
+const ELEMENT: Picture = Picture {
+    name: "element",
+    width: 500,
+    height: 310,
+    scale: 2.0,
+};
+/// The chart types the elements overview shows as pictures: charts, flow charts and tables.
+const ELEMENT_CHARTS: [&str; 3] = ["streamgraph", "flow", "pivot"];
+/// A report's larger preview on the Reports page, its 1000:750 viewport.
+pub(super) const PAGE: Picture = Picture {
+    name: "page",
+    width: 1000,
+    height: 750,
+    scale: 1.0,
+};
+
+/// The address of a picture the build draws for `slug` in `style`.
+pub(super) fn picture_src(slug: &str, style: &str, picture: Picture) -> String {
+    format!("/docs/previews/{slug}/{style}-{}.png", picture.name)
+}
+
+/// The image of a picture, at its size so its box keeps its place while it loads. `alt` is the
+/// card's own title until [`stage`] names the picture by the chart it shows.
+pub(super) fn picture_img(src: &str, alt: &str, picture: Picture) -> String {
+    let scaled = |n: u32| (n as f32 * picture.scale).round() as u32;
+    format!(
+        "<img src=\"{src}\" alt=\"{}\" width=\"{}\" height=\"{}\" loading=\"lazy\" decoding=\"async\">",
+        escape(alt),
+        scaled(picture.width),
+        scaled(picture.height)
+    )
+}
+
 fn card(slug: &str, title: &str, note: &str, style: &str, link: &str) -> String {
     format!(
-        "<article class=\"docs-chart-card\"><a class=\"docs-chart-card__link\" href=\"{link}\"><div class=\"docs-thumbnail\"><iframe data-docs-preview tabindex=\"-1\" aria-hidden=\"true\" title=\"{} chart preview\" data-src=\"/docs/previews/{slug}/{style}.html#rv-chart-0\" sandbox=\"allow-scripts\"></iframe></div><h3>{}</h3><p>{}</p><p class=\"docs-chart-card__style\">{}</p></a></article>",
-        escape(title),
+        "<article class=\"docs-chart-card\"><a class=\"docs-chart-card__link\" href=\"{link}\"><div class=\"docs-thumbnail\">{}</div><h3>{}</h3><p>{}</p><p class=\"docs-chart-card__style\">{}</p></a></article>",
+        picture_img(&picture_src(slug, style, CARD), title, CARD),
         escape(title),
         escape(note),
         chrome::style_label(style)
@@ -66,41 +122,47 @@ fn flagship_card() -> String {
     )
 }
 
+/// The gallery's reports after the flagship: name, title and the card's note.
+pub(super) const REPORT_CARDS: &[(&str, &str, &str)] = &[
+    (
+        "longer-lives",
+        "Longer lives",
+        "Gapminder · people, births, lives · 1950–2020",
+    ),
+    (
+        "air-we-changed",
+        "A warmer world",
+        "NASA GISTEMP · annual anomalies · 1880–2025",
+    ),
+    (
+        "same-numbers",
+        "The same summary",
+        "Anscombe · four datasets · 1973",
+    ),
+    (
+        "titanic",
+        "Passengers and crew",
+        "Titanic · class, sex and survival · 1912",
+    ),
+    (
+        "first-charts",
+        "Wheat and wages",
+        "Playfair · a historical sample · 1565–1805",
+    ),
+    (
+        "families-and-lives",
+        "Families and longer lives",
+        "Gapminder · country trajectories · 1960–2020",
+    ),
+];
+
+/// The flagship's title, which names its larger preview on the Reports page.
+pub(super) const FLAGSHIP_TITLE: &str = "The Most Expensive Race Ever Run";
+
 pub(super) fn report_grid() -> String {
     let mut html = "<div class=\"docs-report-grid\">".to_owned();
     html.push_str(&flagship_card());
-    for (name, title, note) in [
-        (
-            "longer-lives",
-            "Longer lives",
-            "Gapminder · people, births, lives · 1950–2020",
-        ),
-        (
-            "air-we-changed",
-            "A warmer world",
-            "NASA GISTEMP · annual anomalies · 1880–2025",
-        ),
-        (
-            "same-numbers",
-            "The same summary",
-            "Anscombe · four datasets · 1973",
-        ),
-        (
-            "titanic",
-            "Passengers and crew",
-            "Titanic · class, sex and survival · 1912",
-        ),
-        (
-            "first-charts",
-            "Wheat and wages",
-            "Playfair · a historical sample · 1565–1805",
-        ),
-        (
-            "families-and-lives",
-            "Families and longer lives",
-            "Gapminder · country trajectories · 1960–2020",
-        ),
-    ] {
+    for &(name, title, note) in REPORT_CARDS {
         html.push_str(&card(
             &format!("report-{name}"),
             title,
@@ -118,16 +180,14 @@ pub(super) fn report_grid() -> String {
 /// laid out half as wide as a gallery card's and shown twice as large (the box around it is
 /// twice the card's width, which the docs script scales by), so an element fills its card.
 pub(super) fn elements_grid() -> String {
+    // Type is not a chart: its card stays the typography sample, live and scaled by the docs script.
     let frame = |title: &str, src: &str| {
         format!(
-            "<div class=\"docs-thumbnail__near\"><iframe data-docs-preview tabindex=\"-1\" aria-hidden=\"true\" title=\"{title} preview\" data-src=\"{src}\" sandbox=\"allow-scripts\"></iframe></div>"
+            "<div class=\"docs-thumbnail__near\"><iframe data-docs-scale tabindex=\"-1\" aria-hidden=\"true\" title=\"{title} preview\" src=\"{src}\" loading=\"lazy\" sandbox=\"allow-scripts\"></iframe></div>"
         )
     };
-    let preview = |chart: &str| {
-        frame(
-            chart,
-            &format!("/docs/previews/{chart}/scientific.html#rv-chart-0"),
-        )
+    let preview = |chart: &str, title: &str| {
+        picture_img(&picture_src(chart, "scientific", ELEMENT), title, ELEMENT)
     };
     let picture = |file: &str, width: u32, height: u32| {
         format!(
@@ -140,17 +200,17 @@ pub(super) fn elements_grid() -> String {
             "charts" => (
                 "Every chart type, live with its source.",
                 "/docs/charts".to_owned(),
-                preview("streamgraph"),
+                preview("streamgraph", title),
             ),
             "flow-charts" => (
                 "Steps, decisions and lanes, placed and routed for you.",
                 "/docs/charts/flow".to_owned(),
-                preview("flow"),
+                preview("flow", title),
             ),
             "tables" => (
                 "Exact values, in tables and pivot tables.",
                 format!("#{anchor}"),
-                preview("pivot"),
+                preview("pivot", title),
             ),
             "type-and-fonts" => (
                 "Five builtin styles, each with its own type.",
@@ -201,6 +261,8 @@ fn preview_css(stylesheet: &str) -> Result<String> {
         .to_owned())
 }
 
+/// Write the preview page of `source` in each of `styles` into `folder`, and return each style's
+/// chart payloads.
 fn render(
     source: &str,
     options: &RenderOptions,
@@ -208,15 +270,17 @@ fn render(
     styles: &[&str],
     flags: BuildFlags,
     css: &str,
-) -> Result<()> {
+) -> Result<Vec<(String, Vec<serde_json::Value>)>> {
     fs::create_dir_all(folder)?;
     let source = without_reading_aids(&public::source(source, flags)?);
+    let mut charts = Vec::new();
     for style in styles {
         let mut options = options.clone();
         options.styles = vec![(*style).into()];
         let report = richview_core::document::render(&source, &options)
             .map_err(|errors| format!("Preview: {errors:?}"))?;
         ensure_clean(style, &report.diagnostics)?;
+        charts.push(((*style).to_owned(), report.charts));
         let mut html = report.html;
         // Opaque sandboxed frames need credentials for the gated preview host.
         let script = html
@@ -253,7 +317,111 @@ fn render(
             .replacen("<body>", "<body class=\"docs-preview\">", 1);
         fs::write(folder.join(format!("{style}.html")), html)?;
     }
+    Ok(charts)
+}
+
+/// Draw the gallery pictures of a render's first chart in `style` into `folder` (FEA-SF-43): the
+/// same drawing a link-preview card leads with, so a changed report changes its picture.
+fn draw(
+    preview: &Path,
+    slug: &str,
+    style: &str,
+    charts: &[(String, Vec<serde_json::Value>)],
+    pictures: &[Picture],
+    names: &mut Names,
+) -> Result<()> {
+    let folder = &preview.join(slug);
+    let (_, charts) = charts
+        .iter()
+        .find(|(name, _)| name == style)
+        .ok_or_else(|| {
+            format!(
+                "no {style} render for a gallery picture in {}",
+                folder.display()
+            )
+        })?;
+    fs::create_dir_all(folder)?;
+    for picture in pictures {
+        let png = richview_share::chart_picture_png(
+            style,
+            charts,
+            picture.width,
+            picture.height,
+            picture.scale,
+        )?
+        .ok_or_else(|| format!("{} has no chart for its gallery picture", folder.display()))?;
+        fs::write(folder.join(format!("{style}-{}.png", picture.name)), png)?;
+        if let Some(title) = richview_share::chart_picture_title(charts) {
+            names.push((picture_src(slug, style, *picture), title));
+        }
+    }
     Ok(())
+}
+
+/// Each drawn picture's address and the title of the chart it shows.
+type Names = Vec<(String, String)>;
+
+/// Name every gallery picture on the docs pages by the chart it shows (lead, 16 Nov: the chart's
+/// title, as Chart design asked, because the card's heading already names the report in the same
+/// link). The pages are written before the pictures are drawn, so this replaces the alt text they
+/// were given. A picture that no page shows is an error, so names and pictures cannot drift apart.
+fn name_pictures(docs: &Path, names: &Names) -> Result<()> {
+    fn pages(folder: &Path, found: &mut Vec<PathBuf>) -> Result<()> {
+        for entry in fs::read_dir(folder)? {
+            let path = entry?.path();
+            if path.is_dir() {
+                pages(&path, found)?;
+            } else if path
+                .extension()
+                .is_some_and(|extension| extension == "html")
+            {
+                found.push(path);
+            }
+        }
+        Ok(())
+    }
+    let mut found = Vec::new();
+    pages(docs, &mut found)?;
+    let mut shown = vec![false; names.len()];
+    for path in found {
+        let html = fs::read_to_string(&path)?;
+        if !html.contains("/docs/previews/") {
+            continue;
+        }
+        let mut named = html.clone();
+        for ((src, title), shown) in names.iter().zip(&mut shown) {
+            if let Some(changed) = with_alt(&named, src, title) {
+                named = changed;
+                *shown = true;
+            }
+        }
+        if named != html {
+            fs::write(&path, named)?;
+        }
+    }
+    match names.iter().zip(&shown).find(|(_, shown)| !**shown) {
+        Some(((src, _), _)) => Err(format!("no docs page shows the gallery picture {src}").into()),
+        None => Ok(()),
+    }
+}
+
+/// `html` with the alt text of every image of `src` set to `title`; `None` when it has none.
+fn with_alt(html: &str, src: &str, title: &str) -> Option<String> {
+    let needle = format!("<img src=\"{src}\" alt=\"");
+    let mut out = String::with_capacity(html.len());
+    let mut rest = html;
+    while let Some(at) = rest.find(&needle) {
+        let start = at + needle.len();
+        let end = start + rest[start..].find('"')?;
+        out.push_str(&rest[..start]);
+        out.push_str(&escape(title));
+        rest = &rest[end..];
+    }
+    if out.is_empty() {
+        return None;
+    }
+    out.push_str(rest);
+    Some(out)
 }
 
 pub(super) fn stage(
@@ -298,17 +466,29 @@ pub(super) fn stage(
     options.runtime_url = Some(format!("/docs/runtime/{}/richview_runtime", &hash[..16]));
     options.runtime_wasm = None;
     let preview = docs.join("previews");
+    let mut names = Names::new();
     for page in charts {
-        render(
+        let folder = preview.join(&page.name);
+        let rendered = render(
             &example_source(page),
             &options,
-            &preview.join(&page.name),
+            &folder,
             &chrome::site_styles(),
             flags,
             &css,
         )?;
+        if ELEMENT_CHARTS.contains(&page.name.as_str()) {
+            draw(
+                &preview,
+                &page.name,
+                "scientific",
+                &rendered,
+                &[ELEMENT],
+                &mut names,
+            )?;
+        }
     }
-    for &(slug, _, _, _) in FEATURED {
+    for &(slug, _, name, _) in FEATURED {
         let folder = public.join("examples/charts").join(slug);
         let source = fs::read_to_string(folder.join("report.rmd"))?;
         let mut own = options.clone();
@@ -319,7 +499,7 @@ pub(super) fn stage(
             "data.csv".into(),
             fs::read_to_string(folder.join("data.csv"))?,
         );
-        render(
+        let rendered = render(
             &source,
             &own,
             &preview.join(slug),
@@ -327,73 +507,62 @@ pub(super) fn stage(
             flags,
             &css,
         )?;
+        draw(&preview, slug, style(name), &rendered, &[CARD], &mut names)?;
     }
-    report_preview(
+    // The Reports page: each report's card and larger preview are pictures of its first chart,
+    // drawn from the report itself; the flagship's card is its cover.
+    report_pictures(
         FLAGSHIP,
         &root.join("examples").join(FLAGSHIP).join("report.rmd"),
-        &options,
         &preview,
-        flags,
-        &css,
+        &[PAGE],
+        &mut names,
     )?;
     for &(name, _) in REPORTS
         .iter()
         .filter(|(name, _)| !["blocks", "typography"].contains(name))
     {
-        report_preview(
+        report_pictures(
             name,
             &root
                 .join("docs/public/gallery")
                 .join(name)
                 .join("report.rmd"),
-            &options,
             &preview,
-            flags,
-            &css,
+            &[CARD, PAGE],
+            &mut names,
         )?;
     }
-    Ok(())
+    name_pictures(docs, &names)
 }
 
-/// A report's card preview: its first chart and the credit line under it, in the report's style.
-fn report_preview(
+/// A report's pictures on the Reports page: its first chart as the report renders it, with its own
+/// folder, data and styles, with the card's style passed last so it wins as the live preview's did
+/// (the flagship's own source asks for `scientific`; its card has always been `sleek`).
+fn report_pictures(
     name: &str,
     file: &Path,
-    options: &RenderOptions,
     preview: &Path,
-    flags: BuildFlags,
-    css: &str,
+    pictures: &[Picture],
+    names: &mut Names,
 ) -> Result<()> {
     let source = fs::read_to_string(file)?;
-    let (_, mut own) =
-        richview_app::resolver::resolve_document_options_policy(&source, file, &[], false, false)?;
-    own.runtime_js = options.runtime_js.clone();
-    own.runtime_url = options.runtime_url.clone();
-    own.runtime_wasm = None;
-    let parsed = richview_core::document::parse(&source)
-        .map_err(|errors| format!("Report preview: {errors:?}"))?;
-    let chart = parsed
-        .blocks
-        .into_iter()
-        .find(|block| block.tag == "chart")
-        .ok_or("report preview needs a chart")?;
-    let credit = source
-        .lines()
-        .find(|line| line.starts_with("*Source:"))
-        .unwrap_or("");
-    let source = format!(
-        "---\ntitle: {}\nstyles: [{}]\n---\n\n```chart\n{}\n```\n\n{credit}\n",
-        serde_json::to_string(name)?,
-        style(name),
-        serde_json::to_string_pretty(&chart.value)?
-    );
-    render(
+    let (_, options) = richview_app::resolver::resolve_document_options_policy(
         &source,
-        &own,
-        &preview.join(format!("report-{name}")),
-        &[style(name)],
-        flags,
-        css,
+        file,
+        &[style(name).to_owned()],
+        false,
+        false,
+    )?;
+    let report = richview_core::document::render(&source, &options)
+        .map_err(|errors| format!("Report picture {name}: {errors:?}"))?;
+    draw(
+        preview,
+        &format!("report-{name}"),
+        style(name),
+        &[(style(name).to_owned(), report.charts)],
+        pictures,
+        names,
     )
 }
 
@@ -409,10 +578,47 @@ mod tests {
         assert!(css.contains("body.docs-preview .rv-report"));
         assert!(!css.contains("body.docs-page"));
         assert!(css.len() < 2048, "{} bytes", css.len());
-        // The docs script loads every preview frame in its turn (preview_frames.rs).
-        let card = card("bar", "Bar", "Note", "sleek", "/docs/charts/bar");
-        assert!(card.contains(" data-src=\"/docs/previews/bar/sleek.html#rv-chart-0\""));
-        assert!(!card.contains(" src=") && !card.contains("loading="));
         assert!(preview_css("body {}").is_err());
+    }
+
+    #[test]
+    fn a_gallery_card_is_a_built_picture_that_keeps_its_size_and_names_its_report() {
+        let card = card("bar", "Bar & line", "Note", "sleek", "/docs/charts/bar");
+        assert!(card.contains(
+            "<a class=\"docs-chart-card__link\" href=\"/docs/charts/bar\"><div class=\"docs-thumbnail\"><img src=\"/docs/previews/bar/sleek-card.png\" alt=\"Bar &amp; line\" width=\"1000\" height=\"620\" loading=\"lazy\""
+        ));
+        assert!(!card.contains("<iframe"));
+        for grid in [featured_menu(), report_grid()] {
+            assert!(!grid.contains("<iframe") && !grid.contains("data-docs-preview"));
+            assert!(!grid.contains("alt=\"\" width=\"1000\" height=\"620\""));
+        }
+        // An element is laid out half as wide and drawn twice as large; only type stays live.
+        let elements = elements_grid();
+        assert!(elements.contains("src=\"/docs/previews/flow/scientific-element.png\" alt=\"Flow charts\" width=\"1000\" height=\"620\""));
+        assert_eq!(elements.matches("<iframe").count(), 1);
+        assert!(
+            elements.contains("<iframe data-docs-scale") && !elements.contains("data-docs-preview")
+        );
+    }
+
+    #[test]
+    fn a_picture_is_named_by_the_chart_it_shows_wherever_a_page_shows_it() {
+        let src = picture_src("report-titanic", "brutalist", CARD);
+        let page = format!(
+            "{0}<p>between</p>{0}",
+            picture_img(&src, "Passengers and crew", CARD)
+        );
+        let named = with_alt(&page, &src, "Who survived, by class & sex").unwrap();
+        assert_eq!(
+            named
+                .matches("alt=\"Who survived, by class &amp; sex\"")
+                .count(),
+            2
+        );
+        assert!(!named.contains("Passengers and crew") && named.contains("<p>between</p>"));
+        assert_eq!(
+            with_alt(&page, &picture_src("bar", "sleek", CARD), "Bars"),
+            None
+        );
     }
 }

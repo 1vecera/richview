@@ -713,6 +713,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     String::new()
                 };
                 lines.push(ReadoutLine {
+                    label: numbers::printed(*d, &readout, label_format.digits),
                     name: format!("{prefix}Density"),
                     value: text.clone(),
                     series: Some(g),

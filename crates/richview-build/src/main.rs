@@ -105,9 +105,11 @@ fn main() -> Result<()> {
     let assets_only = std::env::args().any(|arg| arg == "--assets-only");
     let editor_only = std::env::args().any(|arg| arg == "--editor-only");
     let local_preview = std::env::args().any(|arg| arg == "--local-preview");
+    let wasm_from = wasm_from_arg(&args, editor_only)?;
+    let wasm_from = wasm_from.as_deref();
     let binder = bindgen(&cargo);
     let manifest_binder = (!editor_only).then_some(binder.as_str());
-    let build_inputs = manifest::inputs(&root, manifest_binder)?;
+    let build_inputs = manifest::inputs(&root, manifest_binder, wasm_from)?;
     let target = std::env::var_os("CARGO_TARGET_DIR")
         .map(PathBuf::from)
         .map(|p| if p.is_absolute() { p } else { root.join(p) })
@@ -154,7 +156,14 @@ fn main() -> Result<()> {
             )?;
         }
         package_native(&editor, &target, &font_licenses)?;
-        manifest::write(&root, &target, "editor", manifest_binder, &build_inputs)?;
+        manifest::write(
+            &root,
+            &target,
+            "editor",
+            manifest_binder,
+            None,
+            &build_inputs,
+        )?;
         println!("Native editor packaged at {}", editor.display());
         return Ok(());
     }
@@ -175,7 +184,8 @@ fn main() -> Result<()> {
             Err(error) => return Err(error.into()),
         }
     }
-    if !assets_only {
+    // With --wasm-from the build binds the given raw Wasm instead of building its own.
+    if !assets_only && wasm_from.is_none() {
         for (profile, package) in [
             (SITE_PROFILE, "richview-site"),
             (RUNTIME_PROFILE, "richview-runtime"),
@@ -217,8 +227,7 @@ fn main() -> Result<()> {
         &root,
         &binder,
         &[
-            target
-                .join(format!("wasm32-unknown-unknown/{SITE_PROFILE}/docs.wasm"))
+            raw_wasm(&target, wasm_from, SITE_PROFILE, "docs.wasm")
                 .to_str()
                 .ok_or("Invalid docs Wasm path")?,
             "--target",
@@ -235,10 +244,7 @@ fn main() -> Result<()> {
         &root,
         &binder,
         &[
-            target
-                .join(format!(
-                    "wasm32-unknown-unknown/{SITE_PROFILE}/richview_site.wasm"
-                ))
+            raw_wasm(&target, wasm_from, SITE_PROFILE, "richview_site.wasm")
                 .to_str()
                 .ok_or("Invalid Wasm path")?,
             "--target",
@@ -255,10 +261,7 @@ fn main() -> Result<()> {
         &root,
         &binder,
         &[
-            target
-                .join(format!(
-                    "wasm32-unknown-unknown/{RUNTIME_PROFILE}/richview_runtime.wasm"
-                ))
+            raw_wasm(&target, wasm_from, RUNTIME_PROFILE, "richview_runtime.wasm")
                 .to_str()
                 .ok_or("Invalid Wasm path")?,
             "--target",
@@ -383,6 +386,7 @@ fn main() -> Result<()> {
             "full"
         },
         manifest_binder,
+        wasm_from,
         &build_inputs,
     )?;
     println!("Rust native binaries: {}", target.join("release").display());
@@ -393,6 +397,32 @@ fn main() -> Result<()> {
         );
     }
     Ok(())
+}
+
+/// The folder `--wasm-from DIR` names, checked by `manifest::wasm_from`, or `None` without the
+/// option. The Wasm is the same on every platform, but each compiler host builds it slightly
+/// differently, so a release builds it once and every platform's build binds those bytes.
+fn wasm_from_arg(args: &[std::ffi::OsString], editor_only: bool) -> Result<Option<PathBuf>> {
+    let Some(at) = args.iter().position(|arg| arg == "--wasm-from") else {
+        return Ok(None);
+    };
+    let dir = args
+        .get(at + 1)
+        .filter(|dir| !dir.to_string_lossy().starts_with("--"))
+        .ok_or("--wasm-from needs the folder of raw Wasm to bind")?;
+    if editor_only {
+        return Err("--wasm-from does not apply to --editor-only, which builds no Wasm".into());
+    }
+    manifest::wasm_from(Path::new(dir)).map(Some)
+}
+
+/// The raw Cargo Wasm module `name` to bind: from the `--wasm-from` folder when given, else
+/// where this build's own Cargo run wrote it.
+fn raw_wasm(target: &Path, wasm_from: Option<&Path>, profile: &str, name: &str) -> PathBuf {
+    wasm_from.map_or_else(
+        || target.join(format!("wasm32-unknown-unknown/{profile}/{name}")),
+        |dir| dir.join(name),
+    )
 }
 
 fn bindgen(cargo: &str) -> String {
@@ -1049,6 +1079,43 @@ fn resolve_document_options(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn wasm_from_binds_the_given_folder_and_refuses_a_missing_folder_or_the_editor_build() {
+        use std::path::Path;
+        let target = Path::new("/target");
+        assert_eq!(
+            super::raw_wasm(target, None, "wasm-release", "richview_runtime.wasm"),
+            Path::new("/target/wasm32-unknown-unknown/wasm-release/richview_runtime.wasm")
+        );
+        assert_eq!(
+            super::raw_wasm(
+                target,
+                Some(Path::new("/from")),
+                "wasm-release",
+                "richview_runtime.wasm"
+            ),
+            Path::new("/from/richview_runtime.wasm")
+        );
+        let args = |list: &[&str]| list.iter().map(Into::into).collect::<Vec<_>>();
+        assert!(
+            super::wasm_from_arg(&args(&["--repository-public"]), false)
+                .unwrap()
+                .is_none()
+        );
+        for (list, editor_only, message) in [
+            (&["--wasm-from"][..], false, "needs the folder"),
+            (
+                &["--wasm-from", "--repository-public"][..],
+                false,
+                "needs the folder",
+            ),
+            (&["--wasm-from", "tmp"][..], true, "--editor-only"),
+        ] {
+            let error = super::wasm_from_arg(&args(list), editor_only).unwrap_err();
+            assert!(error.to_string().contains(message), "{list:?}: {error}");
+        }
+    }
+
     #[test]
     fn wasm_build_nested_cargo_home_is_the_last_matching_remap() {
         let flags = super::remap_wasm_paths(

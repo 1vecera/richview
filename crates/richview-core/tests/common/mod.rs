@@ -37,6 +37,7 @@ pub fn geometry(value: &Value, width: f64) -> Geometry {
                 .lines
                 .iter()
                 .map(|l| richview_chart::geometry::ReadoutLine {
+                    label: None,
                     name: l.name.clone(),
                     value: l.value.clone(),
                     series: l.series,

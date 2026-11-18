@@ -341,6 +341,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 &block.encoding.color,
             ) {
                 readout_lines.push(ReadoutLine {
+                    label: None,
                     name: super::cartesian::readable_name(field),
                     value: groups[g].clone(),
                     series: Some(g),
@@ -353,6 +354,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     .zip(&line.values)
                     .filter(|(d, _)| block.encoding.label.as_ref() != Some(*d))
                     .map(|(d, &v)| ReadoutLine {
+                        label: None,
                         name: super::cartesian::readable_name(d),
                         value: numbers::value(v, &readout),
                         series: None,

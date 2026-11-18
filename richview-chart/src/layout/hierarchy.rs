@@ -353,17 +353,18 @@ pub(super) fn ink_on(ctx: &Ctx, base: Oklch, alpha: f64) -> Oklch {
     }
 }
 
-/// The value and the share of every part as the readout writes them, from the exact values: a
-/// parent's sum and every share are numbers RichView computed (TYP-36).
-pub(super) fn part_texts(ctx: &Ctx, panel: usize, nodes: &[Node], whole: f64, format: &Format) -> Vec<[String; 2]> {
+/// The value and the share of every part as the readout writes them, from the exact values, and
+/// the value as a part prints it, at the label's digits (FEA-CH-37): a parent's sum and every
+/// share are numbers RichView computed (TYP-36).
+pub(super) fn part_texts(ctx: &Ctx, panel: usize, nodes: &[Node], whole: f64, format: &Format) -> Vec<[String; 3]> {
+    let digits = ctx.block.label_digits(&ctx.block.y);
     ctx.derive_visible(panel, "hierarchy.texts", || {
         nodes
             .iter()
             .map(|n| {
-                [
-                    numbers::value(n.total, format),
-                    super::pie::share_text(n.total / whole, ctx.locale),
-                ]
+                let value = numbers::value(n.total, format);
+                let printed = numbers::printed(n.total, format, digits).unwrap_or_else(|| value.clone());
+                [value, super::pie::share_text(n.total / whole, ctx.locale), printed]
             })
             .collect()
     })
@@ -375,16 +376,17 @@ pub(super) fn part_readout(
     nodes: &[Node],
     k: usize,
     slot: usize,
-    texts: &[[String; 2]],
+    texts: &[[String; 3]],
     value_field: &str,
     share: &str,
 ) -> Readout {
     let n = &nodes[k];
-    let [value, part] = &texts[k];
+    let [value, part, printed] = &texts[k];
     Readout {
         heading: ancestry(nodes, k).join(" › "),
         lines: vec![
             ReadoutLine {
+                label: (printed != value).then(|| printed.clone()),
                 name: value_field.to_owned(),
                 value: value.clone(),
                 series: Some(slot),
@@ -392,6 +394,7 @@ pub(super) fn part_readout(
                 derived: !n.children.is_empty(),
             },
             ReadoutLine {
+                label: None,
                 name: share.to_owned(),
                 value: part.clone(),
                 series: None,

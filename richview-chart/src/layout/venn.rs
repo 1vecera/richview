@@ -756,6 +756,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 readout: Readout {
                     heading: set.name.clone(),
                     lines: vec![ReadoutLine {
+                        label: None,
                         name: value_title.clone(),
                         value: numbers::value(set.total, &readout),
                         series: Some(slot),
@@ -820,6 +821,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 other => other.join(", "),
             };
             let mut lines = vec![ReadoutLine {
+                label: None,
                 name: value_title.clone(),
                 value: numbers::value(o.value, &readout),
                 series: None,
@@ -827,6 +829,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 derived: false,
             }];
             lines.extend(o.members.iter().zip(&shares[oi]).map(|(&k, share)| ReadoutLine {
+                label: None,
                 name: format!("Share of {}", d.sets[k].name),
                 value: share.clone(),
                 series: None,

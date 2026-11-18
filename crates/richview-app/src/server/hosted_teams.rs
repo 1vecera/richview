@@ -9,7 +9,7 @@ use crate::access::{AccessError, Invitation, Landing, OrgRole, ReportRole, Right
 use axum::{
     Form,
     extract::{Path as AxumPath, Query, State},
-    http::{HeaderMap, StatusCode},
+    http::{HeaderMap, HeaderName, HeaderValue, StatusCode},
     response::Response,
 };
 use serde::Deserialize;
@@ -252,6 +252,9 @@ pub async fn members_page(
                 owner: false,
                 roles: &[],
                 notice: &notice.m,
+                usage: None,
+                heir: None,
+                own_reports: None,
             }),
         );
     };
@@ -260,17 +263,77 @@ pub async fn members_page(
         Err(error) => return access_error(error),
     };
     let manager = rank(mine) >= rank(OrgRole::Admin);
+    // Report counts are the organization's own reports (a hosted key starts with its code) that
+    // still have a version: a deleted report keeps its record and owner, as usage counts them.
+    let prefix = format!("{}/", org.id);
+    let keys: Vec<Vec<String>> = people
+        .iter()
+        .map(|member| {
+            state
+                .access
+                .owned_slugs(&member.person)
+                .into_iter()
+                .filter(|slug| slug.starts_with(&prefix))
+                .collect()
+        })
+        .collect();
+    let storage = state.storage.clone();
+    let owned: Option<Vec<usize>> = tokio::task::spawn_blocking(move || {
+        keys.iter()
+            .map(|keys| {
+                keys.iter()
+                    .filter(|key| storage.list_versions(key).is_ok_and(|v| !v.is_empty()))
+                    .count()
+            })
+            .collect()
+    })
+    .await
+    .ok();
+    // Without the counts the page names no numbers rather than wrong ones.
+    let count = |at: usize| owned.as_ref().and_then(|owned| owned.get(at).copied());
+    let joined: Vec<String> = people
+        .iter()
+        .map(|member| report_date(&member.created))
+        .collect();
     let members: Vec<_> = people
         .iter()
-        .map(|member| hosted_pages::Member {
+        .zip(&joined)
+        .enumerate()
+        .map(|(at, (member, joined))| hosted_pages::Member {
             person: &member.person,
             name: &member.name,
             email: &member.email,
             role: role_name(member.role),
             me: member.person == hosted.person.id,
             manageable: manager && rank(member.role) <= rank(mine),
+            joined,
+            // Only those who administer every report see how many each person owns.
+            reports: count(at).filter(|_| manager),
         })
         .collect();
+    // Leaving hands the person's reports to the longest-standing other owner, as the server
+    // does; the list is ordered by role, then by when each joined.
+    let heir = people
+        .iter()
+        .find(|member| member.role == OrgRole::Owner && member.person != hosted.person.id)
+        .map(|member| member.name.as_str());
+    let own_reports = people
+        .iter()
+        .position(|member| member.person == hosted.person.id)
+        .and_then(count);
+    let usage = if mine == OrgRole::Reader {
+        None
+    } else {
+        super::super::hosted::account_usage(&state, &caller.principal, &org.id)
+            .await
+            .ok()
+            .map(|usage| hosted_pages::AccountUsage {
+                reports: usage.reports,
+                report_limit: usage.report_limit,
+                bytes: usage.bytes,
+                byte_limit: usage.byte_limit,
+            })
+    };
     let invitations = if manager {
         state
             .access
@@ -315,6 +378,9 @@ pub async fn members_page(
             owner: mine == OrgRole::Owner,
             roles: &roles,
             notice: &notice.m,
+            usage: usage.as_ref(),
+            heir,
+            own_reports,
         }),
     )
 }
@@ -710,7 +776,18 @@ pub async fn report_page(
         can_delete: rights.contains(&Right::Delete),
         notice: &notice.m,
     });
-    hosted_page("Report", &body)
+    let mut response = hosted_page("Report", &body);
+    // Arriving from a share link's new account, the report itself is one refresh away: a
+    // navigation of its own, which `form-action 'self'` does not govern, to `/r/` here, which
+    // hands the session to the report origin. Without the refresh this page is the way on.
+    if !notice.open.is_empty()
+        && let Ok(value) = HeaderValue::from_str(&format!("0; url=/r/{key}"))
+    {
+        response
+            .headers_mut()
+            .insert(HeaderName::from_static("refresh"), value);
+    }
+    response
 }
 
 #[derive(Deserialize)]

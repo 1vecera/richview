@@ -2,7 +2,7 @@
 	"name": "richview-vscode",
 	"displayName": "RichView (.rmd)",
 	"description": "Rich Markdown in VS Code: live diagnostics, formatting, completion, outline and a live preview, from the native RichView editor service.",
-	"version": "3.0.0-alpha.1",
+	"version": "3.0.0-alpha.2",
 	"publisher": "richview",
 	"license": "MIT",
 	"repository": {

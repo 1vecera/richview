@@ -15,65 +15,186 @@ fn shell_quote(text: &str) -> String {
 /// Who is looking and which organization the page works in.
 pub(super) struct Nav<'a> {
     pub name: &'a str,
+    pub email: &'a str,
     pub csrf: &'a str,
     /// The current organization: its code and its name.
     pub org: Option<(&'a str, &'a str)>,
+    /// The person's role in the current organization, as a word: Owner, Admin, Author or Reader.
+    pub role: Option<&'a str>,
     /// Every organization the person belongs to: code and name.
     pub orgs: &'a [(String, String)],
 }
 
+/// The app's one stroke set on a 16 px grid, drawn for RichView: navigation, actions and who can
+/// open a report. Pages that carry the app's chrome include it once; [`icon`] draws from it.
+pub(super) const ICONS: &str = concat!(
+    "<svg class=\"sprite\" width=\"0\" height=\"0\" aria-hidden=\"true\">",
+    "<symbol id=\"i-report\" viewBox=\"0 0 16 16\"><rect x=\"2.75\" y=\"1.75\" width=\"10.5\" height=\"12.5\" rx=\"1.75\"/><path d=\"M5.5 5.5h5M5.5 8h3.5M5.5 10.5h2\"/></symbol>",
+    "<symbol id=\"i-users\" viewBox=\"0 0 16 16\"><circle cx=\"6\" cy=\"5.5\" r=\"2.5\"/><path d=\"M1.75 13.75c.35-2.4 2.1-3.75 4.25-3.75s3.9 1.35 4.25 3.75M10.5 3.25a2.25 2.25 0 0 1 0 4.5M12 10.25c1.2.45 2 1.55 2.25 3.5\"/></symbol>",
+    "<symbol id=\"i-key\" viewBox=\"0 0 16 16\"><circle cx=\"5\" cy=\"11\" r=\"2.75\"/><path d=\"M7 9l6.25-6.25M11.25 4.75l1.75 1.75M9.5 6.5l1.5 1.5\"/></symbol>",
+    "<symbol id=\"i-user\" viewBox=\"0 0 16 16\"><circle cx=\"8\" cy=\"5.25\" r=\"2.75\"/><path d=\"M2.75 14c.55-2.75 2.65-4.25 5.25-4.25s4.7 1.5 5.25 4.25\"/></symbol>",
+    "<symbol id=\"i-book\" viewBox=\"0 0 16 16\"><path d=\"M2.25 3h3.75A2 2 0 0 1 8 5v9a1.5 1.5 0 0 0-1.5-1.5H2.25zM13.75 3H10a2 2 0 0 0-2 2v9a1.5 1.5 0 0 1 1.5-1.5h4.25z\"/></symbol>",
+    "<symbol id=\"i-search\" viewBox=\"0 0 16 16\"><circle cx=\"7\" cy=\"7\" r=\"4.5\"/><path d=\"M10.4 10.4L14 14\"/></symbol>",
+    "<symbol id=\"i-updown\" viewBox=\"0 0 16 16\"><path d=\"M5 6l3-3 3 3M5 10l3 3 3-3\"/></symbol>",
+    "<symbol id=\"i-share\" viewBox=\"0 0 16 16\"><circle cx=\"6\" cy=\"5.5\" r=\"2.5\"/><path d=\"M1.75 13.75c.35-2.4 2.1-3.75 4.25-3.75s3.9 1.35 4.25 3.75M12.5 4.5v4M10.5 6.5h4\"/></symbol>",
+    "<symbol id=\"i-lock\" viewBox=\"0 0 16 16\"><rect x=\"3\" y=\"7\" width=\"10\" height=\"7\" rx=\"1.5\"/><path d=\"M5.25 7V5a2.75 2.75 0 0 1 5.5 0v2\"/></symbol>",
+    "<symbol id=\"i-globe\" viewBox=\"0 0 16 16\"><circle cx=\"8\" cy=\"8\" r=\"6\"/><path d=\"M2 8h12M8 2c1.6 1.7 2.4 3.7 2.4 6S9.6 12.3 8 14c-1.6-1.7-2.4-3.7-2.4-6S6.4 3.7 8 2z\"/></symbol>",
+    "<symbol id=\"i-org\" viewBox=\"0 0 16 16\"><path d=\"M2.75 14V3.25A1.25 1.25 0 0 1 4 2h5a1.25 1.25 0 0 1 1.25 1.25V14M10.25 6.5H12a1.25 1.25 0 0 1 1.25 1.25V14M1.5 14h13M5 5h2.25M5 8h2.25M5 11h2.25\"/></symbol>",
+    "<symbol id=\"i-inbox\" viewBox=\"0 0 16 16\"><path d=\"M2 9.5h3l1 1.75h4l1-1.75h3M3.6 3.5h8.8L14 9.5v3a1.25 1.25 0 0 1-1.25 1.25H3.25A1.25 1.25 0 0 1 2 12.5v-3z\"/></symbol>",
+    "<symbol id=\"i-out\" viewBox=\"0 0 16 16\"><path d=\"M6.25 2.5H3.5a1.25 1.25 0 0 0-1.25 1.25v8.5A1.25 1.25 0 0 0 3.5 13.5h2.75M10.25 5l3 3-3 3M13.25 8h-7\"/></symbol>",
+    "<symbol id=\"i-down\" viewBox=\"0 0 16 16\"><path d=\"M8 3v10M4.75 9.75L8 13l3.25-3.25\"/></symbol>",
+    "<symbol id=\"i-more\" viewBox=\"0 0 16 16\"><circle cx=\"3.5\" cy=\"8\" r=\".75\"/><circle cx=\"8\" cy=\"8\" r=\".75\"/><circle cx=\"12.5\" cy=\"8\" r=\".75\"/></symbol>",
+    "<symbol id=\"i-chev\" viewBox=\"0 0 16 16\"><path d=\"M4.5 6.25L8 9.75l3.5-3.5\"/></symbol>",
+    "<symbol id=\"i-check\" viewBox=\"0 0 16 16\"><path d=\"M3.25 8.5l3 3 6.5-7\"/></symbol>",
+    "<symbol id=\"i-mail\" viewBox=\"0 0 16 16\"><rect x=\"2\" y=\"3.5\" width=\"12\" height=\"9\" rx=\"1.5\"/><path d=\"M2.5 4.75L8 9l5.5-4.25\"/></symbol>",
+    "</svg>"
+);
+
+/// One icon from [`ICONS`], hidden from assistive technology: the words beside it carry the meaning.
+fn icon(id: &str) -> String {
+    format!("<svg class=\"ic\" aria-hidden=\"true\"><use href=\"#i-{id}\"/></svg>")
+}
+
+/// The mark, in the colour of the text around it (white on the ink rail, STY-03).
+const MARK: &str = "<svg class=\"app-mark\" viewBox=\"0 0 268.58 269.73\" aria-hidden=\"true\"><g fill=\"currentColor\"><path d=\"M221.4,51.39 H0 V0 h221.4 c7.32,0 13.25,5.93 13.25,13.25 v24.89 c0,7.32 -5.93,13.25 -13.25,13.25 z\"/><path d=\"M255.32,124.17 H0 V72.78 h255.32 c7.32,0 13.25,5.93 13.25,13.25 v24.89 c0,7.32 -5.93,13.25 -13.25,13.25 z\"/><path d=\"M221.4,196.95 H0 v-51.39 h221.4 c7.32,0 13.25,5.93 13.25,13.25 v24.89 c0,7.32 -5.93,13.25 -13.25,13.25 z\"/><path d=\"M93.12,269.73 H0 v-51.39 h93.12 c7.32,0 13.25,5.93 13.25,13.25 v24.89 c0,7.32 -5.93,13.25 -13.25,13.25 z\"/><circle cx=\"242.88\" cy=\"244.04\" r=\"25.7\"/></g></svg>";
+
+/// The first letters of a name's first and last words, as an avatar shows them.
+pub(in crate::server) fn initials(name: &str) -> String {
+    let words: Vec<&str> = name.split_whitespace().collect();
+    let first = words.first().and_then(|word| word.chars().next());
+    let last = (words.len() > 1)
+        .then(|| words.last().and_then(|word| word.chars().next()))
+        .flatten();
+    first
+        .into_iter()
+        .chain(last)
+        .flat_map(char::to_uppercase)
+        .collect()
+}
+
+/// The app's chrome on a signed-in page: the rail (the organization, the pages, the person) and the
+/// top bar (where the page is, and search). The page renderer lifts both out of the page's body.
 fn navigation(nav: &Nav<'_>, current: &str) -> String {
-    let link = |href: &str, label: &str, id: &str| {
+    app_chrome(nav, current, "all", "", None)
+}
+
+/// The chrome of a page about one report: its crumb ends with the report's title, after a link
+/// back to the reports.
+fn report_navigation(nav: &Nav<'_>, title: &str) -> String {
+    app_chrome(nav, "reports", "all", "", Some(title))
+}
+
+fn app_chrome(
+    nav: &Nav<'_>,
+    current: &str,
+    show: &str,
+    query: &str,
+    report: Option<&str>,
+) -> String {
+    let link = |href: &str, label: &str, id: &str, glyph: &str| {
         format!(
-            "<a href=\"{href}\"{}>{label}</a>",
+            "<a href=\"{href}\"{}>{}<span>{label}</span></a>",
             if id == current {
                 " aria-current=\"page\""
             } else {
                 ""
-            }
+            },
+            icon(glyph)
         )
     };
     let csrf = escape(nav.csrf);
+    let head = |name: &str, role: Option<&str>| {
+        format!(
+            "<span class=\"app-org__tile\" aria-hidden=\"true\">{}</span><span class=\"app-org__name\"><strong>{}</strong>{}</span>",
+            escape(
+                &name
+                    .chars()
+                    .next()
+                    .map(|c| c.to_uppercase().collect::<String>())
+                    .unwrap_or_default()
+            ),
+            escape(name),
+            role.map_or_else(String::new, |role| format!("<span>{}</span>", escape(role)))
+        )
+    };
     let organization = match (nav.org, nav.orgs.len()) {
-        (Some((current, _)), count) if count > 1 => {
-            let options: String = nav
+        (Some((current, name)), count) if count > 1 => {
+            let items: String = nav
                 .orgs
                 .iter()
-                .map(|(id, name)| {
+                .map(|(id, org)| {
                     format!(
-                        "<option value=\"{}\"{}>{}</option>",
+                        "<button class=\"app-org__item\" type=\"submit\" name=\"org\" value=\"{}\"{}><span class=\"app-org__tile\" aria-hidden=\"true\">{}</span>{}</button>",
                         escape(id),
-                        if id == current { " selected" } else { "" },
-                        escape(name)
+                        if id == current { " aria-current=\"true\"" } else { "" },
+                        escape(&org.chars().next().map(|c| c.to_uppercase().collect::<String>()).unwrap_or_default()),
+                        escape(org)
                     )
                 })
                 .collect();
             format!(
-                "<form class=\"org-switch\" method=\"post\" action=\"/ui/organization\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><select name=\"org\" aria-label=\"Organization\">{options}</select><button class=\"docs-button docs-button--secondary\" type=\"submit\">Switch</button></form>"
+                "<details class=\"app-org app-org--switch\"><summary>{}<span class=\"vh\">, switch organization</span>{}</summary><form class=\"app-org__menu\" method=\"post\" action=\"/ui/organization\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><p>Switch organization</p>{items}</form></details>",
+                head(name, nav.role),
+                icon("updown")
             )
         }
         // An organization of one carries its owner's name: say it once.
         (Some((_, name)), _) if name == nav.name => String::new(),
-        (Some((_, name)), _) => format!("<span class=\"org-name\">{}</span>", escape(name)),
+        (Some((_, name)), _) => format!("<div class=\"app-org\">{}</div>", head(name, nav.role)),
         (None, _) => String::new(),
     };
     // Members and CLI tokens belong to an organization; someone with only shared reports has none.
     let in_organization = nav.org.is_some() || !nav.orgs.is_empty();
+    let page = match current {
+        "members" => "Members",
+        "tokens" => "CLI tokens",
+        "account" => "Account",
+        _ => "Reports",
+    };
+    let crumbs = match nav.org {
+        Some((_, name)) => format!(
+            "<span>{}</span><span aria-hidden=\"true\">/</span>",
+            escape(name)
+        ),
+        None => String::new(),
+    };
+    // A long title gives way at the end of the line; its full text stays in the title attribute.
+    let place = match report {
+        Some(title) => format!(
+            "<a href=\"/\">{page}</a><span aria-hidden=\"true\">/</span><strong title=\"{0}\">{0}</strong>",
+            escape(title)
+        ),
+        None => format!("<strong>{page}</strong>"),
+    };
+    let scope = if show == "all" {
+        String::new()
+    } else {
+        format!(
+            "<input type=\"hidden\" name=\"show\" value=\"{}\">",
+            escape(show)
+        )
+    };
     format!(
-        "<div class=\"cowork-nav\"><nav aria-label=\"Account navigation\">{}{}{}{}</nav><div class=\"cowork-who\">{organization}<form method=\"post\" action=\"/ui/sign-out\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><span>{}</span><button class=\"docs-button docs-button--secondary\" type=\"submit\">Sign out</button></form></div></div>",
-        link("/", "Reports", "reports"),
+        "<aside class=\"app-rail\"><div class=\"app-rail__in\"><a class=\"app-brand\" href=\"/\">{MARK}<span>RichView</span></a>{organization}<nav class=\"app-nav\" aria-label=\"Account navigation\">{}{}{}{}<a class=\"app-nav__docs\" href=\"https://richview.ai/docs/\">{}<span>Docs</span></a></nav><div class=\"app-me\"><span class=\"app-me__avatar\" aria-hidden=\"true\">{}</span><span class=\"app-me__who\"><strong>{}</strong><span>{}</span></span><form method=\"post\" action=\"/ui/sign-out\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><button class=\"app-me__out\" type=\"submit\">{}<span>Sign out</span></button></form></div></div></aside><header class=\"app-top\"><p class=\"app-crumbs\">{crumbs}{place}</p><form class=\"app-search\" method=\"get\" action=\"/\" role=\"search\">{scope}{}<input type=\"search\" name=\"q\" value=\"{}\" placeholder=\"Search reports\" aria-label=\"Search reports by title\"></form></header>",
+        link("/", "Reports", "reports", "report"),
         if in_organization {
-            link("/members", "Members", "members")
+            link("/members", "Members", "members", "users")
         } else {
             String::new()
         },
         if in_organization {
-            link("/tokens", "CLI tokens", "tokens")
+            link("/tokens", "CLI tokens", "tokens", "key")
         } else {
             String::new()
         },
-        link("/account", "Account", "account"),
-        escape(nav.name)
+        link("/account", "Account", "account", "user"),
+        icon("book"),
+        escape(&initials(nav.name)),
+        escape(nav.name),
+        escape(nav.email),
+        icon("out"),
+        icon("search"),
+        escape(query)
     )
 }
 
@@ -185,6 +306,8 @@ pub(super) struct Report<'a> {
     pub updated: &'a str,
     pub version: &'a str,
     pub url: &'a str,
+    /// A small copy of the version's share card as a `data:` URL, when one has been drawn.
+    pub thumb: Option<&'a str>,
 }
 
 /// An invitation to an organization, addressed to the signed-in person.
@@ -230,17 +353,19 @@ pub(super) fn reports(list: &ReportList<'_>) -> String {
     } else {
         String::new()
     };
-    let usage = list.usage.map_or_else(String::new, |u| {
-        let used = u.reports;
-        let report_limit = u.report_limit;
-        let storage = escape(&mebibytes(u.bytes));
-        let limit = escape(&mebibytes(u.byte_limit));
-        let percent = if u.byte_limit == 0 { 0 } else { ((u.bytes as u128 * 100 / u.byte_limit as u128).min(100)) as u64 };
-        format!(r#"<p class="usage"><span>Reports <strong>{used} of {report_limit}</strong></span><progress max="{report_limit}" value="{used}" aria-label="Reports used">{used} of {report_limit}</progress><span>Storage <strong>{storage} of {limit}</strong></span><progress max="100" value="{percent}" aria-label="Storage used">{storage} of {limit}</progress></p>"#)
-    });
+    let usage = list.usage.map_or_else(String::new, meters);
+    let lede = if lede.is_empty() && list.total > 0 {
+        format!(
+            "<p class=\"lede\">{} {} you can open</p>",
+            list.total,
+            if list.total == 1 { "report" } else { "reports" }
+        )
+    } else {
+        lede
+    };
     let mut body = format!(
         r#"{}<div class="page-head"><div><h1>Reports</h1>{lede}</div>{usage}</div>{}"#,
-        navigation(nav, "reports"),
+        app_chrome(nav, "reports", list.show, list.query, None),
         note(list.notice)
     );
     for invite in list.invites {
@@ -254,18 +379,34 @@ pub(super) fn reports(list: &ReportList<'_>) -> String {
                     "export RICHVIEW_SERVER={}\nexport RICHVIEW_TOKEN=your-token\nrichview publish report.rmd --new",
                     shell_quote(list.server)
                 );
+                // An organization still carries the name sign-up gave it, after its owner, until
+                // it is renamed; colleagues see that name, so the owner hears where it changes.
+                let rename = match nav.org {
+                    Some((_, name))
+                        if nav.role == Some("Owner")
+                            && name == crate::access::first_organization_name(nav.name) =>
+                    {
+                        format!(
+                            "Your organization is “{}” until you rename it in <a href=\"/members#organization\">Organization settings</a>; colleagues see its name on invitations and shared reports. ",
+                            escape(name)
+                        )
+                    }
+                    _ => String::new(),
+                };
                 // The list's place comes first and the set-up second: someone who signs in expects
                 // their reports here (Daniel, 16 Nov).
-                body.push_str(&format!(r#"<ul class="rows report-rows report-rows--none"><li><div class="main"><h2>Your reports are listed here</h2><p class="about">Each with who can open it, its versions and a link to share.</p></div><div class="acts"><a class="act" href="https://richview.ai/showcase/openai-vs-anthropic/">Open an example</a></div></li></ul><section class="first"><h2>Publish your first report</h2><ol><li><p><strong>Install RichView.</strong> The command-line tool your agent uses to write and publish reports.</p><a class="act" href="https://richview.ai/docs/install">Install RichView</a></li><li><p><strong>Create a CLI token.</strong> It lets the tool publish as you. You see it once, with the two lines that set it.</p><a class="act" href="/tokens">Create a CLI token</a></li><li><p><strong>Publish.</strong> Ask your agent to publish a report, or run:</p>{}</li></ol><p class="then"><a href="/members">Invite your colleagues</a>, then share a report with them from its page.</p></section>"#, shell(&command)));
+                body.push_str(&format!(r#"<ul class="rows report-rows report-rows--none"><li><div class="main"><h2>Your reports are listed here</h2><p class="about">Each with who can open it, its versions and a link to share.</p></div><div class="acts"><a class="act" href="https://richview.ai/showcase/openai-vs-anthropic/">Open an example</a></div></li></ul><section class="first"><h2>Publish your first report</h2><ol><li><p><strong>Install RichView.</strong> The command-line tool your agent uses to write and publish reports.</p><a class="act" href="https://richview.ai/docs/install">Install RichView</a></li><li><p><strong>Create a CLI token.</strong> It lets the tool publish as you. You see it once, with the two lines that set it.</p><a class="act" href="/tokens">Create a CLI token</a></li><li><p><strong>Publish.</strong> Ask your agent to publish a report, or run:</p>{}</li></ol><p class="then">{}<a href="/members">Invite your colleagues</a>, then share a report with them from its page.</p></section>"#, shell(&command), rename));
             }
             Some(_) => {}
         }
         return body;
     }
     // Someone who only has reports shared with them can still start an organization of their own.
+    // They came to read, so the form waits behind one line; while an invitation waits above, joining
+    // is the way in and the line goes.
     let start = match nav.org {
-        None if list.show == "all" => format!(
-            "<section><h2>Publish your own</h2>{}</section>",
+        None if list.show == "all" && list.invites.is_empty() => format!(
+            "<details class=\"start-own\"><summary>Publish reports of your own</summary>{}</details>",
             create_organization(nav.csrf)
         ),
         _ => String::new(),
@@ -289,26 +430,43 @@ pub(super) fn reports(list: &ReportList<'_>) -> String {
             escape(label)
         )
     };
+    // The search box sits in the top bar; a search names what it looked for here.
+    let searched = if list.query.is_empty() {
+        String::new()
+    } else {
+        format!(
+            "<p class=\"report-searched\">Titles with “{query}” · <a href=\"{}\">Clear search</a></p>",
+            if list.show == "all" {
+                "/".to_owned()
+            } else {
+                format!("/?show={}", escape(list.show))
+            }
+        )
+    };
     body.push_str(&format!(
-        "<div class=\"report-tools\"><nav class=\"report-filter\" aria-label=\"Show\">{}{}{}{}</nav><form class=\"report-search\" method=\"get\" action=\"/\" role=\"search\"><input type=\"hidden\" name=\"show\" value=\"{}\"><input type=\"search\" name=\"q\" value=\"{query}\" placeholder=\"Search by title\" aria-label=\"Search reports by title\"><button class=\"docs-button docs-button--secondary\" type=\"submit\">Search</button></form></div>",
+        "<div class=\"report-panel\"><div class=\"report-tools\"><nav class=\"report-filter\" aria-label=\"Show\">{}{}{}{}</nav>{searched}<p class=\"report-order\">Newest first</p></div>",
         filter("all", "All"),
         nav.org
             .map_or_else(String::new, |_| filter("mine", "Mine")),
         filter("shared", "Shared with me"),
         nav.org.map_or_else(String::new, |(_, name)| filter("org", name)),
-        escape(list.show)
     ));
     if list.rows.is_empty() {
         body.push_str(match (list.query.is_empty(), list.show) {
-            (false, _) => "<p>No report title matches your search.</p>",
-            (true, "mine") => "<p>You haven’t published a report here yet.</p>",
-            (true, "shared") => "<p>Nobody has shared a report with you by name yet.</p>",
-            _ => "<p>Nothing here yet.</p>",
+            (false, _) => "<p class=\"report-none\">No report title matches your search.</p>",
+            (true, "mine") => {
+                "<p class=\"report-none\">You haven’t published a report here yet.</p>"
+            }
+            (true, "shared") => {
+                "<p class=\"report-none\">Nobody has shared a report with you by name yet.</p>"
+            }
+            _ => "<p class=\"report-none\">Nothing here yet.</p>",
         });
+        body.push_str("</div>");
         body.push_str(&start);
         return body;
     }
-    body.push_str(r#"<ul class="rows report-rows">"#);
+    body.push_str(r#"<table class="report-table"><thead><tr><th scope="col">Name</th><th scope="col">Who can open it</th><th scope="col" class="r-owner">Owner</th><th scope="col">Updated</th><th scope="col"><span class="vh">Actions</span></th></tr></thead><tbody>"#);
     for row in list.rows {
         let key = escape(row.key);
         let title = escape(row.title);
@@ -317,9 +475,30 @@ pub(super) fn reports(list: &ReportList<'_>) -> String {
         } else {
             ("Details", "Details and versions")
         };
-        body.push_str(&format!(r#"<li><div class="main"><h2><a href="/reports/{key}">{title}</a></h2><p class="about">{}</p></div><p class="open-to"><span class="vis vis--{}">{}</span><span>{}</span></p><p class="when"><span><strong>{}</strong> · {}</span><span>{}{}</span></p><div class="acts"><a class="act" href="/r/{key}">Open</a><figure class="docs-code copy-link"><code hidden>{}</code><button class="act" type="button" data-copy-code aria-label="Copy link to {title}">Copy link</button></figure><a class="act" href="/reports/{key}" aria-label="{label} of {title}">{action}</a></div></li>"#, escape(row.description), escape(row.kind), escape(row.badge), escape(row.who), escape(row.updated), escape(row.version), escape(&row.size.map_or_else(|| "Size unavailable".to_owned(), mebibytes)), if row.can_share { format!(" · {}", escape(row.owner)) } else { String::new() }, escape(row.url)));
+        let thumb = row.thumb.map_or_else(
+            || {
+                format!(
+                    "<span class=\"thumb thumb--none\">{}</span>",
+                    icon("report")
+                )
+            },
+            |src| {
+                format!(
+                    "<img class=\"thumb\" src=\"{}\" alt=\"\" width=\"60\" height=\"32\">",
+                    escape(src)
+                )
+            },
+        );
+        let access = match row.kind {
+            "org" => "org",
+            "public" => "globe",
+            "you" => "inbox",
+            _ => "lock",
+        };
+        let (url, more) = (escape(row.url), icon("more"));
+        body.push_str(&format!(r#"<tr><td class="r-name"><div>{thumb}<div><h2><a href="/reports/{key}">{title}</a><a class="r-open" href="/r/{key}">{title}</a></h2><p class="about">{}</p></div></div></td><td class="r-access"><span class="vis vis--{}">{}{}</span><span class="r-who">{}</span></td><td class="r-owner">{}</td><td class="r-when"><span>{}</span><span>{}</span></td><td class="r-acts"><div class="acts"><a class="act act--open" href="/r/{key}">Open</a><figure class="docs-code copy-link"><code hidden>{}</code><button class="act" type="button" data-copy-code aria-label="Copy link to {title}">Copy link</button></figure><a class="act" href="/reports/{key}" aria-label="{label} of {title}">{action}</a></div><details class="r-more"><summary aria-label="More for {title}">{more}</summary><div class="r-more__menu"><figure class="docs-code copy-link"><code hidden>{url}</code><button type="button" data-copy-code aria-label="Copy link to {title}">Copy link</button></figure><a href="/reports/{key}" aria-label="{label} of {title}">{action}</a></div></details></td></tr>"#, escape(row.description), escape(row.kind), icon(access), escape(row.badge), escape(row.who), escape(row.owner), escape(row.updated), escape(&[row.version.to_owned(), row.size.map_or_else(|| "Size unavailable".to_owned(), mebibytes)].into_iter().filter(|part| !part.is_empty()).collect::<Vec<_>>().join(" · ")), escape(row.url)));
     }
-    body.push_str("</ul>");
+    body.push_str("</tbody></table></div>");
     body.push_str(&start);
     body
 }
@@ -374,7 +553,16 @@ fn visibility_badge(kind: &str, organization: &str) -> String {
         "org" | "public" | "you" => kind,
         _ => "private",
     };
-    format!("<span class=\"vis vis--{kind}\">{label}</span>")
+    let glyph = match kind {
+        "org" => "org",
+        "public" => "globe",
+        "you" => "inbox",
+        _ => "lock",
+    };
+    format!(
+        "<span class=\"vis vis--{kind}\">{}{label}</span>",
+        icon(glyph)
+    )
 }
 
 fn people_count(count: usize) -> String {
@@ -434,7 +622,7 @@ pub(super) fn report(page: &ReportPage<'_>) -> String {
     let url = escape(page.url);
     let mut body = format!(
         "{}<p class=\"back\"><a href=\"/\">Reports</a></p><div class=\"page-head report-head\"><div><h1>{}</h1>{description}<p class=\"state\">{badge}{who}<span>v{}{date}</span></p><div class=\"address\"><a class=\"docs-button\" href=\"/r/{key}\">Open report</a><input class=\"url\" readonly value=\"{url}\" aria-label=\"Link to this report\"><figure class=\"docs-code copy-link\"><code hidden>{url}</code><button class=\"act\" type=\"button\" data-copy-code aria-label=\"Copy link to this report\">Copy link</button></figure></div></div></div>{}",
-        navigation(page.nav, "reports"),
+        report_navigation(page.nav, page.title),
         escape(page.title),
         escape(page.latest),
         note(page.notice),
@@ -578,6 +766,10 @@ pub(super) struct Member<'a> {
     pub me: bool,
     /// Whether the person looking may change this member's role or remove them.
     pub manageable: bool,
+    /// The day they joined.
+    pub joined: &'a str,
+    /// How many of the organization's reports they own: shown to owners and admins only.
+    pub reports: Option<usize>,
 }
 
 pub(super) struct PendingInvite<'a> {
@@ -598,6 +790,13 @@ pub(super) struct MembersPage<'a> {
     /// The roles the person looking may give, highest first.
     pub roles: &'a [&'a str],
     pub notice: &'a str,
+    /// The organization's usage, for those who may publish there.
+    pub usage: Option<&'a AccountUsage>,
+    /// Who takes the person's reports if they leave: the longest-standing other owner. `None`
+    /// when they are its only owner, who cannot leave.
+    pub heir: Option<&'a str>,
+    /// How many of the organization's reports the person looking owns, when known.
+    pub own_reports: Option<usize>,
 }
 
 pub(super) fn role_label(role: &str) -> &'static str {
@@ -609,16 +808,116 @@ pub(super) fn role_label(role: &str) -> &'static str {
     }
 }
 
+/// What a role can do, after its name in a role menu.
 fn role_detail(role: &str) -> &'static str {
     match role {
-        "owner" => "Owner: everything, including other owners",
-        "admin" => "Admin: manages members and every report",
-        "author" => "Author: publishes reports",
-        _ => "Reader: opens what is shared",
+        "owner" => "Everything, including other owners",
+        "admin" => "Manages members and every report",
+        "author" => "Publishes reports and shares them",
+        _ => "Opens what is shared",
     }
 }
 
-/// The people of the current organization and its open invitations.
+/// What a role can do, as a sentence under the invitation's role choice.
+fn role_sentence(role: &str, organization: &str) -> String {
+    match role {
+        "owner" => "Owners can do everything, including managing other owners.".to_owned(),
+        "admin" => "Admins manage members, invitations and every report.".to_owned(),
+        "author" => "Authors publish reports and choose who opens them.".to_owned(),
+        _ => format!("Readers open the reports shared with them or with {organization}."),
+    }
+}
+
+fn plural(count: usize, one: &str, many: &str) -> String {
+    format!("{count} {}", if count == 1 { one } else { many })
+}
+
+/// A person's initials in a circle, as the rail shows the person signed in.
+fn avatar(name: &str, me: bool) -> String {
+    format!(
+        "<span class=\"avatar{}\" aria-hidden=\"true\">{}</span>",
+        if me { " avatar--me" } else { "" },
+        escape(&initials(name))
+    )
+}
+
+/// A menu that works without script: a details element whose summary is the trigger. While it is
+/// open the summary's backdrop covers the page, so a click anywhere closes it; on a phone the menu
+/// is a sheet at the bottom of the screen.
+fn menu(class: &str, trigger: &str, label: &str, body: &str) -> String {
+    format!(
+        "<details class=\"pick{class}\"><summary class=\"pick__btn\"{label}>{trigger}</summary>{body}</details>"
+    )
+}
+
+/// A member's role as a chip whose menu lists the roles the person looking may give; one click on
+/// another posts the same `role` field the server reads.
+fn role_menu(org: &str, csrf: &str, member: &Member<'_>, roles: &[&str]) -> String {
+    let name = escape(member.name);
+    let items: String = roles
+        .iter()
+        .rev()
+        .map(|role| {
+            let now = *role == member.role;
+            format!(
+                "<button class=\"pick__item\" type=\"submit\" name=\"role\" value=\"{role}\" aria-pressed=\"{now}\">{}<span><strong>{}</strong><span>{}</span></span></button>",
+                icon("check"),
+                role_label(role),
+                role_detail(role)
+            )
+        })
+        .collect();
+    menu(
+        "",
+        &format!(
+            "<span class=\"vh\">Role of {name}: </span>{}{}",
+            role_label(member.role),
+            icon("chev")
+        ),
+        "",
+        &format!(
+            "<form class=\"pick__menu\" method=\"post\" action=\"/ui/orgs/{org}/members/{}/role\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><p class=\"pick__head\">Role of <strong>{name}</strong></p>{items}</form>",
+            escape(member.person)
+        ),
+    )
+}
+
+/// A destructive step behind a confirmation that says what happens: the summary opens it, and
+/// again closes it.
+fn confirm(class: &str, open: &str, close: &str, said: &str, form: &str) -> String {
+    format!(
+        "<details class=\"confirm{class}\"><summary><span class=\"confirm__open\">{open}</span><span class=\"confirm__close\">{close}</span></summary><div class=\"confirm__body\"><p>{said}</p>{form}</div></details>"
+    )
+}
+
+fn invite_bar(page: &MembersPage<'_>, org: &str, csrf: &str, organization: &str) -> String {
+    let roles: Vec<&str> = page.roles.iter().rev().copied().collect();
+    let segments: String = roles
+        .iter()
+        .enumerate()
+        .map(|(at, role)| {
+            format!(
+                "<input type=\"radio\" id=\"invite-role-{role}\" name=\"role\" value=\"{role}\"{} aria-describedby=\"invite-says-{role}\"><label for=\"invite-role-{role}\">{}</label>",
+                if at == 0 { " checked" } else { "" },
+                role_label(role)
+            )
+        })
+        .collect();
+    let says: String = roles
+        .iter()
+        .map(|role| {
+            format!(
+                "<span id=\"invite-says-{role}\" data-role=\"{role}\">{}</span>",
+                role_sentence(role, organization)
+            )
+        })
+        .collect();
+    format!(
+        "<form class=\"invite\" id=\"invite\" method=\"post\" action=\"/ui/orgs/{org}/invitations\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><div class=\"field invite__email\"><label for=\"invite-email\">Invite by email</label><input id=\"invite-email\" type=\"email\" name=\"email\" required autocomplete=\"off\" inputmode=\"email\" placeholder=\"name@company.com\"></div><fieldset class=\"invite__role\"><legend>Role</legend><div class=\"seg\">{segments}</div></fieldset><button class=\"docs-button\" type=\"submit\">Send invitation</button><p class=\"invite__says\">{says} They get a mail whose link works once within 24 hours; the invitation stays open for a week.</p></form>"
+    )
+}
+
+/// The people of the current organization, its open invitations and its settings.
 pub(super) fn members(page: &MembersPage<'_>) -> String {
     let nav = page.nav;
     let csrf = escape(nav.csrf);
@@ -631,81 +930,251 @@ pub(super) fn members(page: &MembersPage<'_>) -> String {
         );
     };
     let org = escape(org);
+    let organization = escape(name);
+    let mut lede = format!(
+        "{} of {organization}",
+        plural(page.members.len(), "member", "members")
+    );
+    if !page.invites.is_empty() {
+        lede.push_str(&format!(
+            " · {} open",
+            plural(page.invites.len(), "invitation", "invitations")
+        ));
+    }
     let mut body = format!(
-        "{}<div class=\"page-head\"><div><h1>{}</h1><p class=\"lede\">Organization · {} {}</p></div></div>{}<section><h2>Members</h2><ul class=\"rows rows--3\">",
+        "{}<div class=\"members\"><div class=\"page-head\"><div><h1>Members</h1><p class=\"lede\">{lede}</p></div><a class=\"docs-button docs-button--secondary to-settings\" href=\"#organization\">{}<span>Organization settings</span></a></div>{}<div class=\"people\">",
         navigation(nav, "members"),
-        escape(name),
-        page.members.len(),
-        if page.members.len() == 1 {
-            "member"
-        } else {
-            "members"
-        },
+        icon("org"),
         note(page.notice)
     );
-    for member in page.members {
-        let person = escape(member.person);
-        let member_name = escape(member.name);
-        let role = if member.manageable {
-            let options: String = page
-                .roles
-                .iter()
-                .map(|role| {
-                    format!(
-                        "<option value=\"{role}\"{}>{}</option>",
-                        if *role == member.role {
-                            " selected"
-                        } else {
-                            ""
-                        },
-                        role_label(role)
-                    )
-                })
-                .collect();
-            format!(
-                "<form class=\"role-form\" method=\"post\" action=\"/ui/orgs/{org}/members/{person}/role\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><select name=\"role\" aria-label=\"Role of {member_name}\">{options}</select><button class=\"act\" type=\"submit\">Save</button></form>"
-            )
+    if page.manager {
+        body.push_str(&invite_bar(page, &org, &csrf, &organization));
+    }
+    // Only owners and admins act on a row, so only they get the report counts and the actions.
+    let columns = if page.manager { 5 } else { 3 };
+    body.push_str(&format!(
+        "<table class=\"people-table\"><thead><tr><th scope=\"col\">Name</th><th scope=\"col\" class=\"p-role\">Role</th>{}<th scope=\"col\" class=\"p-joined\">Joined</th>{}</tr></thead><tbody>",
+        if page.manager {
+            "<th scope=\"col\" class=\"p-num\">Reports</th>"
         } else {
-            role_label(member.role).to_owned()
-        };
-        let action = if member.me {
+            ""
+        },
+        if page.manager {
+            "<th scope=\"col\" class=\"p-acts\"><span class=\"vh\">Actions</span></th>"
+        } else {
+            ""
+        }
+    ));
+    for member in page.members {
+        let member_name = escape(member.name);
+        let email = escape(member.email);
+        let joined = escape(member.joined);
+        let role = if member.manageable {
+            role_menu(&org, &csrf, member, page.roles)
+        } else {
             format!(
-                "<form method=\"post\" action=\"/ui/orgs/{org}/members/{person}/remove\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><button class=\"act--danger\" type=\"submit\">Leave</button></form>"
+                "<span class=\"p-role-text\">{}</span>",
+                role_label(member.role)
             )
-        } else if member.manageable {
-            format!(
-                "<form method=\"post\" action=\"/ui/orgs/{org}/members/{person}/remove\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><button class=\"act--danger\" type=\"submit\" aria-label=\"Remove {member_name}\">Remove</button></form>"
+        };
+        let meta = [
+            member
+                .reports
+                .map(|count| plural(count, "report", "reports")),
+            (!member.joined.is_empty()).then(|| format!("joined {joined}")),
+        ]
+        .into_iter()
+        .flatten()
+        .collect::<Vec<_>>()
+        .join(" · ");
+        let more = if member.manageable && !member.me {
+            let passes = match member.reports {
+                Some(0) | None => String::new(),
+                Some(count) => {
+                    format!(" Their {} pass to you.", plural(count, "report", "reports"))
+                }
+            };
+            menu(
+                " pick--more",
+                &icon("more"),
+                &format!(" aria-label=\"More for {member_name}\""),
+                &format!(
+                    "<div class=\"pick__menu\"><p class=\"pick__head\"><strong>{member_name}</strong> {email}</p>{}</div>",
+                    confirm(
+                        " confirm--item",
+                        &format!("Remove from {organization}…"),
+                        &format!("Keep {member_name}"),
+                        &format!(
+                            "{member_name} loses access to {organization} at once.{passes} Their CLI tokens for {organization} stop working."
+                        ),
+                        &format!(
+                            "<form method=\"post\" action=\"/ui/orgs/{org}/members/{}/remove\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><button class=\"docs-button docs-button--danger-solid\" type=\"submit\">Remove {member_name}</button></form>",
+                            escape(member.person)
+                        )
+                    )
+                ),
             )
         } else {
             String::new()
         };
-        body.push_str(&format!("<li><div class=\"who\"><strong>{member_name}</strong>{}<span class=\"quiet\">{}</span></div><div class=\"cells\">{role}</div><div class=\"acts\">{action}</div></li>", if member.me { " <span class=\"tag\">You</span>" } else { "" }, escape(member.email)));
+        body.push_str(&format!(
+            "<tr{}><td class=\"p-who\"><div>{}<div><strong>{member_name}</strong>{}<span class=\"p-mail\">{email}</span><span class=\"p-meta\">{meta}</span></div></div></td><td class=\"p-role\">{role}</td>{}<td class=\"p-joined\">{joined}</td>{}</tr>",
+            if member.me { " class=\"is-me\"" } else { "" },
+            avatar(member.name, member.me),
+            if member.me { " <span class=\"tag\">You</span>" } else { "" },
+            member
+                .reports
+                .map_or_else(String::new, |count| format!("<td class=\"p-num\">{count}</td>")),
+            if page.manager {
+                format!("<td class=\"p-acts\">{more}</td>")
+            } else {
+                String::new()
+            }
+        ));
     }
-    body.push_str("</ul><p class=\"roles-key\"><strong>Reader</strong> opens what is shared. <strong>Author</strong> publishes reports. <strong>Admin</strong> manages members and every report. <strong>Owner</strong> does everything, including other owners.</p></section>");
-    if !page.manager {
-        return body;
+    if page.manager && page.members.len() == 1 && page.invites.is_empty() {
+        body.push_str(&format!(
+            "<tr class=\"p-alone\"><td colspan=\"{columns}\">Just you so far. Invite a colleague to share reports with them, or to let them publish to {organization}.</td></tr>"
+        ));
     }
-    let options: String = page
-        .roles
-        .iter()
-        .rev()
-        .map(|role| format!("<option value=\"{role}\">{}</option>", role_detail(role)))
-        .collect();
-    body.push_str(&format!("<section><h2>Invite a colleague</h2><form class=\"share-form\" method=\"post\" action=\"/ui/orgs/{org}/invitations\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><div class=\"field\"><label for=\"invite-email\">Email</label><input id=\"invite-email\" type=\"email\" name=\"email\" required autocomplete=\"off\"></div><div class=\"field\"><label for=\"invite-role\">Role</label><select id=\"invite-role\" name=\"role\">{options}</select></div><button type=\"submit\">Send invitation</button><p class=\"hint\">They get a mail with a link that works for one hour. The invitation stays open for a week, and you can send it again.</p></form>"));
+    body.push_str("</tbody>");
     if !page.invites.is_empty() {
-        body.push_str("<h3>Open invitations</h3><ul class=\"rows rows--3\">");
+        // The notice after inviting names the address; that row is marked as the new one.
+        let notice = page.notice.to_lowercase();
+        body.push_str(&format!(
+            "<tbody class=\"p-invited\"><tr class=\"p-group\"><th scope=\"rowgroup\" colspan=\"{columns}\">Invited <span>{}</span></th></tr>",
+            page.invites.len()
+        ));
         for invite in page.invites {
             let id = escape(invite.id);
             let email = escape(invite.email);
-            body.push_str(&format!("<li><div class=\"who\"><strong>{email}</strong><span class=\"quiet\">Invited by {}</span></div><div class=\"cells\">{} <span class=\"tag\">Open until {}</span></div><div class=\"acts\"><form method=\"post\" action=\"/ui/orgs/{org}/invitations/{id}/resend\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><button class=\"act\" type=\"submit\" aria-label=\"Send the invitation to {email} again\">Send again</button></form><form method=\"post\" action=\"/ui/orgs/{org}/invitations/{id}/cancel\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><button class=\"act--danger\" type=\"submit\" aria-label=\"Cancel the invitation to {email}\">Cancel</button></form></div></li>", escape(invite.inviter), role_label(invite.role), escape(invite.expires)));
+            let address = invite.email.to_lowercase();
+            let new = (notice.starts_with(&format!("invited {address}."))
+                || notice.starts_with(&format!("invited {address} again.")))
+                && !notice.contains("could not be sent");
+            let again = |class: &str| {
+                format!(
+                    "<form method=\"post\" action=\"/ui/orgs/{org}/invitations/{id}/resend\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><button class=\"{class}\" type=\"submit\" aria-label=\"Send the invitation to {email} again\">Send again</button></form>"
+                )
+            };
+            let cancel = |class: &str, label: &str| {
+                format!(
+                    "<form method=\"post\" action=\"/ui/orgs/{org}/invitations/{id}/cancel\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><button class=\"{class}\" type=\"submit\" aria-label=\"Cancel the invitation to {email}\">{label}</button></form>"
+                )
+            };
+            body.push_str(&format!(
+                "<tr class=\"p-invite{}\"><td class=\"p-who\"><div><span class=\"avatar avatar--invite\" aria-hidden=\"true\">{}</span><div><strong>{email}</strong><span class=\"p-mail\">Invited by {} · open until {}</span></div></div></td><td class=\"p-role\"><span class=\"p-role-text\">{}</span></td>{}<td class=\"p-joined\"></td><td class=\"p-acts\"><div class=\"acts p-inline\">{}{}</div>{}</td></tr>",
+                if new { " is-new" } else { "" },
+                icon("mail"),
+                escape(invite.inviter),
+                escape(invite.expires),
+                role_label(invite.role),
+                if page.manager { "<td class=\"p-num\"></td>" } else { "" },
+                again("act"),
+                cancel("act act--quiet-danger", "Cancel"),
+                menu(
+                    " pick--more",
+                    &icon("more"),
+                    &format!(" aria-label=\"More for the invitation to {email}\""),
+                    &format!(
+                        "<div class=\"pick__menu\"><p class=\"pick__head\"><strong>{email}</strong> Open until {}</p>{}{}</div>",
+                        escape(invite.expires),
+                        again("pick__item pick__item--plain"),
+                        cancel("pick__item pick__item--plain pick__item--danger", "Cancel invitation")
+                    ),
+                )
+            ));
         }
-        body.push_str("</ul>");
+        body.push_str("</tbody>");
     }
-    body.push_str("</section>");
-    if page.owner {
-        body.push_str(&format!("<section><h2>Organization name</h2><form class=\"share-form share-form--one\" method=\"post\" action=\"/ui/orgs/{org}/name\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><div class=\"field\"><label for=\"org-name\">Organization name</label><input id=\"org-name\" name=\"name\" required maxlength=\"80\" value=\"{}\"></div><button class=\"docs-button docs-button--secondary\" type=\"submit\">Rename</button></form></section>", escape(name)));
+    body.push_str("</table>");
+    if !page.manager {
+        body.push_str("<p class=\"roles-key\"><strong>Reader</strong> opens what is shared. <strong>Author</strong> publishes reports. <strong>Admin</strong> manages members and every report. <strong>Owner</strong> does everything, including other owners.</p>");
     }
+    body.push_str("</div>");
+    body.push_str(&organization_settings(
+        page,
+        &org,
+        &csrf,
+        &organization,
+        name,
+    ));
+    body.push_str("</div>");
     body
+}
+
+/// The organization's own settings, one click from its people: its name, its usage and leaving it.
+fn organization_settings(
+    page: &MembersPage<'_>,
+    org: &str,
+    csrf: &str,
+    organization: &str,
+    raw_name: &str,
+) -> String {
+    let name = if page.owner {
+        format!(
+            "<form class=\"setting__form\" method=\"post\" action=\"/ui/orgs/{org}/name\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><label class=\"vh\" for=\"org-name\">Organization name</label><input id=\"org-name\" name=\"name\" required maxlength=\"80\" value=\"{}\"><button class=\"docs-button docs-button--secondary\" type=\"submit\">Rename</button></form>",
+            escape(raw_name)
+        )
+    } else {
+        format!("<p class=\"setting__value\">{organization}</p>")
+    };
+    let usage = page.usage.map_or_else(String::new, |usage| {
+        format!(
+            "<div class=\"setting\"><div class=\"setting__about\"><h3>Usage</h3><p>Every member’s reports count toward the organization’s limits.</p></div>{}</div>",
+            meters(usage)
+        )
+    });
+    let leave = match page.heir {
+        None => "<p class=\"setting__value setting__value--quiet\">You’re its only owner. Make someone else an owner first, then you can leave.</p>".to_owned(),
+        Some(heir) => {
+            let passes = match page.own_reports {
+                Some(0) | None => String::new(),
+                Some(count) => format!(
+                    " Your {} pass to {}.",
+                    plural(count, "report", "reports"),
+                    escape(heir)
+                ),
+            };
+            confirm(
+                " confirm--inline",
+                &format!("Leave {organization}…"),
+                "Stay",
+                &format!(
+                    "You lose access to {organization}’s reports at once.{passes} Your CLI tokens for {organization} stop working."
+                ),
+                &format!(
+                    "<form method=\"post\" action=\"/ui/orgs/{org}/members/{}/remove\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><button class=\"docs-button docs-button--danger-solid\" type=\"submit\">Leave {organization}</button></form>",
+                    escape(&me_person(page))
+                ),
+            )
+        }
+    };
+    format!(
+        "<section class=\"org-settings\" id=\"organization\" aria-labelledby=\"organization-title\"><h2 id=\"organization-title\">Organization</h2><div class=\"settings\"><div class=\"setting\"><div class=\"setting__about\"><h3>Name</h3><p>Shown in the rail, on invitations and on the reports you share.</p></div>{name}</div>{usage}<div class=\"setting setting--danger\"><div class=\"setting__about\"><h3>Leave {organization}</h3><p>Someone can invite you again later.</p></div>{leave}</div></div></section>"
+    )
+}
+
+fn me_person(page: &MembersPage<'_>) -> String {
+    page.members
+        .iter()
+        .find(|member| member.me)
+        .map_or_else(String::new, |member| member.person.to_owned())
+}
+
+/// Usage as the mark's bars, as the reports list shows it.
+fn meters(usage: &AccountUsage) -> String {
+    let (used, report_limit) = (usage.reports, usage.report_limit);
+    let storage = escape(&mebibytes(usage.bytes));
+    let limit = escape(&mebibytes(usage.byte_limit));
+    let percent = if usage.byte_limit == 0 {
+        0
+    } else {
+        ((usage.bytes as u128 * 100 / usage.byte_limit as u128).min(100)) as u64
+    };
+    format!(
+        r#"<p class="usage"><span>Reports <strong>{used} of {report_limit}</strong></span><progress max="{report_limit}" value="{used}" aria-label="Reports used">{used} of {report_limit}</progress><span>Storage <strong>{storage} of {limit}</strong></span><progress max="100" value="{percent}" aria-label="Storage used">{storage} of {limit}</progress></p>"#
+    )
 }
 
 /// What an invitation link opens. `token` is validated by the link handler; GET spends nothing.
@@ -723,7 +1192,44 @@ pub(super) struct InvitePage<'a> {
     pub error: &'a str,
 }
 
+/// What an invitation opens and who sent it, for the ink side beside its form, in place of the
+/// flagship's card: the page renderer lifts it out of the body (`ui::INVITE_OPENING`). It repeats
+/// what the lede says, so assistive technology reads the lede alone.
+fn invitation_card(page: &InvitePage<'_>) -> String {
+    let (verb, kind, glyph, name, from) = match page.report {
+        Some(report) => (
+            "shared a report with you",
+            "Report",
+            "report",
+            report,
+            (!same_name(page.inviter, page.organization)).then_some(page.organization),
+        ),
+        None => (
+            "invited you to join",
+            "Organization",
+            "org",
+            page.organization,
+            None,
+        ),
+    };
+    let from = from.map_or_else(String::new, |org| {
+        format!(
+            "<p class=\"auth-invite__org\">{}{}</p>",
+            icon("org"),
+            escape(org)
+        )
+    });
+    format!(
+        "<figure class=\"auth-invite\" aria-hidden=\"true\"><p class=\"auth-invite__from\"><span class=\"auth-invite__avatar\">{}</span><span><strong>{}</strong><span>{verb}</span></span></p><p class=\"auth-invite__kind\">{}{kind}</p><p class=\"auth-invite__title\">{}</p>{from}</figure>",
+        escape(&initials(page.inviter)),
+        escape(page.inviter),
+        icon(glyph),
+        escape(name)
+    )
+}
+
 pub(super) fn accept_invite(page: &InvitePage<'_>) -> String {
+    let card = invitation_card(page);
     let organization = escape(page.organization);
     let (title, sentence, action, button, hint) = match (page.report, page.role) {
         (Some(report), _) => (
@@ -765,7 +1271,7 @@ pub(super) fn accept_invite(page: &InvitePage<'_>) -> String {
     };
     if page.account_exists {
         return format!(
-            r#"<div class="cowork-auth"><h1>{title}</h1><p class="lede">{sentence}</p><form class="panel" method="post" action="/ui/link/{token}"><button type="submit">Accept and sign in</button><p class="fine">You already have a RichView account for this address. Accept, then sign in as usual.</p></form></div>"#
+            r#"{card}<div class="cowork-auth"><h1>{title}</h1><p class="lede">{sentence}</p><form class="panel" method="post" action="/ui/link/{token}"><button type="submit">Accept and sign in</button><p class="fine">You already have a RichView account for this address. Accept, then sign in as usual.</p></form></div>"#
         );
     }
     let hint = if hint {
@@ -774,7 +1280,7 @@ pub(super) fn accept_invite(page: &InvitePage<'_>) -> String {
         String::new()
     };
     format!(
-        r#"<div class="cowork-auth"><h1>{title}</h1><p class="lede">{sentence}</p>{hint}{notice}<form class="panel" method="post" action="/ui/link/{token}"><div class="field"><label for="name">Name</label><input id="name" name="name" required autocomplete="name"{name_value}></div><div class="field"><label for="password">Password</label><input id="password" type="password" name="password" required minlength="12" autocomplete="new-password" aria-describedby="password-hint"><p class="hint" id="password-hint">At least 12 characters.</p></div><div class="field"><label for="password-confirm">Confirm password</label><input id="password-confirm" type="password" name="password_confirm" required minlength="12" autocomplete="new-password"></div><button type="submit">{button}</button><p class="fine">By creating an account, you agree to the <a href="https://richview.ai/terms">Terms</a> and <a href="https://richview.ai/privacy">Privacy policy</a>.</p></form></div>"#
+        r#"{card}<div class="cowork-auth"><h1>{title}</h1><p class="lede">{sentence}</p>{hint}{notice}<form class="panel" method="post" action="/ui/link/{token}"><div class="field"><label for="name">Name</label><input id="name" name="name" required autocomplete="name"{name_value}></div><div class="field"><label for="password">Password</label><input id="password" type="password" name="password" required minlength="12" autocomplete="new-password" aria-describedby="password-hint"><p class="hint" id="password-hint">At least 12 characters.</p></div><div class="field"><label for="password-confirm">Confirm password</label><input id="password-confirm" type="password" name="password_confirm" required minlength="12" autocomplete="new-password"></div><button type="submit">{button}</button><p class="fine">By creating an account, you agree to the <a href="https://richview.ai/terms">Terms</a> and <a href="https://richview.ai/privacy">Privacy policy</a>.</p></form></div>"#
     )
 }
 
@@ -945,10 +1451,12 @@ pub(super) fn account(nav: &Nav<'_>, email: &str, usage: Option<&AccountUsage>) 
 }
 
 /// The key is supplied by an authorized report lookup, not an unvalidated path.
-pub(super) fn delete_confirmation(key: &str, title: &str, csrf: &str) -> String {
+pub(super) fn delete_confirmation(nav: &Nav<'_>, key: &str, title: &str) -> String {
     let key = escape(key);
+    let csrf = nav.csrf;
     format!(
-        "<div class=\"cowork-auth cowork-confirm\"><h1>Delete report?</h1><p class=\"lede\">Delete <strong>{}</strong> and all its versions? This cannot be undone.</p><ul class=\"destroys\"><li>Every version is removed.</li><li>Everyone it is shared with loses access, and its link stops working.</li><li>The address is never used again.</li></ul><form class=\"cowork-actions\" method=\"post\" action=\"/ui/reports/{key}/delete\"><input type=\"hidden\" name=\"csrf\" value=\"{}\"><button class=\"docs-button docs-button--danger-solid\" type=\"submit\">Delete report</button><a class=\"docs-button docs-button--secondary\" href=\"/reports/{key}\">Keep it</a></form></div>",
+        "{}<div class=\"cowork-auth cowork-confirm\"><h1>Delete report?</h1><p class=\"lede\">Delete <strong>{}</strong> and all its versions? This cannot be undone.</p><ul class=\"destroys\"><li>Every version is removed.</li><li>Everyone it is shared with loses access, and its link stops working.</li><li>The address is never used again.</li></ul><form class=\"cowork-actions\" method=\"post\" action=\"/ui/reports/{key}/delete\"><input type=\"hidden\" name=\"csrf\" value=\"{}\"><button class=\"docs-button docs-button--danger-solid\" type=\"submit\">Delete report</button><a class=\"docs-button docs-button--secondary\" href=\"/reports/{key}\">Keep it</a></form></div>",
+        report_navigation(nav, title),
         escape(title),
         escape(csrf)
     )
@@ -958,8 +1466,10 @@ pub(super) fn delete_confirmation(key: &str, title: &str, csrf: &str) -> String 
 fn test_nav<'a>(name: &'a str, csrf: &'a str) -> Nav<'a> {
     Nav {
         name,
+        email: "alex@example.test",
         csrf,
         org: Some(("ab123456", "Acme")),
+        role: Some("Owner"),
         orgs: &[],
     }
 }
@@ -1013,6 +1523,24 @@ mod report_tests {
     }
 
     #[test]
+    fn a_first_reports_page_names_the_organizations_sign_up_name_and_where_it_changes() {
+        let named = crate::access::first_organization_name("Alex");
+        let nav = Nav {
+            org: Some(("ab123456", &named)),
+            ..test_nav("Alex", "csrf")
+        };
+        let html = reports(&list(&nav, &[], 0));
+        assert!(html.contains("Your organization is “Alex’s organization” until you rename it in <a href=\"/members#organization\">Organization settings</a>"));
+        // Once renamed, or for someone who cannot rename it, the line goes.
+        assert!(!reports(&list(&test_nav("Alex", "csrf"), &[], 0)).contains("until you rename it"));
+        let author = Nav {
+            role: Some("Author"),
+            ..nav
+        };
+        assert!(!reports(&list(&author, &[], 0)).contains("until you rename it"));
+    }
+
+    #[test]
     fn empty_states_say_what_to_do_next_for_each_person() {
         let nav = test_nav("Alex", "csrf");
         let mut reader = list(&nav, &[], 0);
@@ -1033,6 +1561,45 @@ mod report_tests {
         let html = reports(&searched);
         assert!(html.contains("No report title matches your search."));
         assert!(html.contains("value=\"q&lt;3\""));
+    }
+
+    #[test]
+    fn a_reader_outside_any_organization_is_offered_one_only_behind_a_line_and_not_while_invited() {
+        let alone = Nav {
+            org: None,
+            ..test_nav("Eve", "csrf")
+        };
+        let rows = [Report {
+            key: "ab123456/report",
+            title: "Revenue",
+            description: "",
+            owner: "Alex",
+            kind: "you",
+            badge: "Shared with you",
+            who: "By Alex",
+            size: None,
+            can_share: false,
+            updated: "11 Nov 2026",
+            version: "v1.0.0",
+            url: "https://example.test/r/ab123456/report",
+            thumb: None,
+        }];
+        let html = reports(&list(&alone, &rows, 1));
+        assert!(html.contains(
+            "<details class=\"start-own\"><summary>Publish reports of your own</summary>"
+        ));
+        assert!(html.contains("action=\"/ui/orgs\""));
+        let invites = [Invite {
+            id: "i-1",
+            organization: "Acme",
+            inviter: "Alex",
+            role: "an author",
+        }];
+        let mut invited = list(&alone, &rows, 1);
+        invited.invites = &invites;
+        let html = reports(&invited);
+        assert!(html.contains("action=\"/ui/invitations/i-1/accept\""));
+        assert!(!html.contains("start-own") && !html.contains("action=\"/ui/orgs\""));
     }
 
     #[test]
@@ -1091,6 +1658,7 @@ mod report_tests {
             updated: "11 Nov 2026",
             version: "v1.0.0",
             url: "https://example.test/r/ab123456/report",
+            thumb: None,
         }];
         let html = reports(&list(&nav, &rows, 1));
         assert!(html.contains("&lt;Alex&gt;"));
@@ -1099,11 +1667,29 @@ mod report_tests {
         assert!(html.contains("value=\"a&quot;b\""));
         assert!(
             html.contains("Every member of Acme")
-                && html.contains("1.2 MiB · Jana &lt;N&gt;")
-                && html.contains("11 Nov 2026</strong> · v1.0.0")
+                && html.contains("<td class=\"r-owner\">Jana &lt;N&gt;</td>")
+                && html.contains("<td class=\"r-when\"><span>11 Nov 2026</span><span>v1.0.0 · 1.2 MiB</span></td>")
         );
         assert!(html.contains("href=\"/reports/ab123456/report\""));
         assert!(html.contains("href=\"/?show=shared\""));
+        // On a phone the title opens the report and the other actions sit behind one menu.
+        assert!(
+            html.contains("<a class=\"r-open\" href=\"/r/ab123456/report\">&lt;Revenue&gt;</a>")
+        );
+        assert!(html.contains(
+            "<details class=\"r-more\"><summary aria-label=\"More for &lt;Revenue&gt;\">"
+        ));
+        // Without a share card the row shows the report icon; with one, its small copy.
+        assert!(html.contains("<span class=\"thumb thumb--none\">"));
+        let card = [Report {
+            thumb: Some("data:image/png;base64,iVBOR\"x"),
+            ..rows[0]
+        }];
+        let html = reports(&list(&nav, &card, 1));
+        assert!(html.contains(
+            "<img class=\"thumb\" src=\"data:image/png;base64,iVBOR&quot;x\" alt=\"\" width=\"60\" height=\"32\">"
+        ));
+        assert!(!html.contains("thumb--none"));
     }
 
     fn page_for<'a>(
@@ -1145,6 +1731,10 @@ mod report_tests {
             pending: true,
         }];
         let html = report(&page_for(&nav, &people, "org", true, ""));
+        // The crumb ends with the report, escaped, after a link back to the list.
+        assert!(html.contains(
+            "<a href=\"/\">Reports</a><span aria-hidden=\"true\">/</span><strong title=\"&lt;Revenue&gt;\">&lt;Revenue&gt;</strong></p>"
+        ));
         // The current setting has no button; the other two post the same field the server reads.
         assert!(html.contains("name=\"visibility\" value=\"private\""));
         assert!(html.contains("name=\"visibility\" value=\"public\""));
@@ -1152,7 +1742,7 @@ mod report_tests {
         assert!(html.contains("action=\"/ui/share/ab123456/report\""));
         assert!(
             html.contains(
-                "aria-current=\"true\"><span class=\"vis vis--org\">A&lt;b&gt;cme</span>"
+                "aria-current=\"true\"><span class=\"vis vis--org\"><svg class=\"ic\" aria-hidden=\"true\"><use href=\"#i-org\"/></svg>A&lt;b&gt;cme</span>"
             )
         );
         assert!(html.contains("Every member of A&lt;b&gt;cme can open it."));
@@ -1195,7 +1785,7 @@ mod report_tests {
     fn a_reader_with_the_report_by_name_sees_shared_with_you_and_no_controls() {
         let nav = test_nav("Eve", "csrf");
         let html = report(&page_for(&nav, &[], "private", false, ""));
-        assert!(html.contains("<span class=\"vis vis--you\">Shared with you</span>"));
+        assert!(html.contains("<span class=\"vis vis--you\"><svg class=\"ic\" aria-hidden=\"true\"><use href=\"#i-inbox\"/></svg>Shared with you</span>"));
         assert!(!html.contains(">Private<"));
         assert!(!html.contains("/ui/share/"));
         assert!(!html.contains("/delete"));
@@ -1230,46 +1820,150 @@ mod report_tests {
         assert!(head < notice);
     }
 
+    fn member<'a>(person: &'a str, name: &'a str, role: &'a str, me: bool) -> Member<'a> {
+        Member {
+            person,
+            name,
+            email: "x@example.test",
+            role,
+            me,
+            manageable: true,
+            joined: "12 Nov 2026",
+            reports: Some(2),
+        }
+    }
+
+    fn members_page<'a>(
+        nav: &'a Nav<'a>,
+        rows: &'a [Member<'a>],
+        invites: &'a [PendingInvite<'a>],
+        manager: bool,
+    ) -> MembersPage<'a> {
+        MembersPage {
+            nav,
+            members: rows,
+            invites,
+            manager,
+            owner: manager,
+            roles: &["owner", "admin", "author", "reader"],
+            notice: "",
+            usage: None,
+            heir: Some("Alex"),
+            own_reports: None,
+        }
+    }
+
     #[test]
     fn members_page_shows_controls_only_to_managers() {
         let nav = test_nav("Alex", "csrf");
         let rows = [
+            member("u-1", "Alex", "owner", true),
+            member("u-2", "<Bo>", "author", false),
+        ];
+        let html = members(&members_page(&nav, &rows, &[], true));
+        // A role is a menu of submit buttons posting the field the server reads; the current one
+        // is pressed, and nothing needs a Save button.
+        assert!(html.contains("action=\"/ui/orgs/ab123456/members/u-2/role\""));
+        assert!(html.contains("name=\"role\" value=\"admin\" aria-pressed=\"false\""));
+        assert!(html.contains("name=\"role\" value=\"author\" aria-pressed=\"true\""));
+        assert!(!html.contains(">Save<"));
+        // Removal waits behind a confirmation that says what happens to the reports.
+        let confirm = html.find("Remove from Acme…").unwrap();
+        let remove = html
+            .find("action=\"/ui/orgs/ab123456/members/u-2/remove\"")
+            .unwrap();
+        assert!(confirm < remove);
+        assert!(
+            html.contains("&lt;Bo&gt; loses access to Acme at once. Their 2 reports pass to you.")
+        );
+        assert!(html.contains("&lt;Bo&gt;") && !html.contains("<Bo>"));
+        // Inviting: the role as segments, the first and least one chosen.
+        assert!(html.contains("action=\"/ui/orgs/ab123456/invitations\""));
+        assert!(html.contains("id=\"invite-role-reader\" name=\"role\" value=\"reader\" checked"));
+        assert!(html.contains("<th scope=\"col\" class=\"p-num\">Reports</th>"));
+        // The same lifetime the invitation's mail states.
+        assert!(html.contains("whose link works once within 24 hours"));
+        // Someone who does not manage sees the roles as words and no controls.
+        let reader = [
             Member {
-                person: "u-1",
-                name: "Alex",
-                email: "alex@example.test",
-                role: "owner",
-                me: true,
-                manageable: true,
+                manageable: false,
+                reports: None,
+                ..member("u-1", "Alex", "owner", false)
             },
             Member {
-                person: "u-2",
-                name: "<Bo>",
-                email: "bo@example.test",
-                role: "author",
-                me: false,
-                manageable: true,
+                manageable: false,
+                reports: None,
+                ..member("u-3", "Cy", "reader", true)
             },
         ];
-        let page = |manager: bool| {
-            members(&MembersPage {
-                nav: &nav,
-                members: &rows,
-                invites: &[],
-                manager,
-                owner: manager,
-                roles: &["owner", "admin", "author", "reader"],
-                notice: "",
-            })
-        };
-        let html = page(true);
-        assert!(html.contains("<ul class=\"rows rows--3\">"));
-        assert!(html.contains("action=\"/ui/orgs/ab123456/members/u-1/role\""));
-        assert!(html.contains("action=\"/ui/orgs/ab123456/invitations\""));
-        assert!(html.contains("action=\"/ui/orgs/ab123456/members/u-2/remove\""));
-        assert!(html.contains("&lt;Bo&gt;"));
-        assert!(!html.contains("<Bo>"));
-        assert!(!page(false).contains("/invitations"));
+        let html = members(&members_page(&nav, &reader, &[], false));
+        assert!(!html.contains("/invitations"));
+        assert!(!html.contains("/role\""));
+        assert!(!html.contains("p-num") && !html.contains("p-acts"));
+        assert!(html.contains("<span class=\"p-role-text\">Owner</span>"));
+        assert!(html.contains("<strong>Reader</strong> opens what is shared."));
+    }
+
+    #[test]
+    fn open_invitations_follow_the_members_and_the_new_one_is_marked() {
+        let nav = test_nav("Alex", "csrf");
+        let rows = [member("u-1", "Alex", "owner", true)];
+        let invites = [
+            PendingInvite {
+                id: "i-1",
+                email: "eve@example.test",
+                role: "reader",
+                inviter: "Alex",
+                expires: "24 Nov 2026",
+            },
+            PendingInvite {
+                id: "i-2",
+                email: "eve@example.tes",
+                role: "author",
+                inviter: "Alex",
+                expires: "24 Nov 2026",
+            },
+        ];
+        let mut page = members_page(&nav, &rows, &invites, true);
+        page.notice = "Invited eve@example.test. If the mail doesn’t arrive within a few minutes, ask them to look in their junk folder.";
+        let html = members(&page);
+        assert!(html.contains("1 member of Acme · 2 invitations open"));
+        assert!(html.contains("<th scope=\"rowgroup\" colspan=\"5\">Invited <span>2</span></th>"));
+        // Only the address the notice names, not one that merely starts the same way.
+        assert_eq!(html.matches("p-invite is-new").count(), 1);
+        let marked = html.find("p-invite is-new").unwrap();
+        assert!(html[marked..].starts_with(
+            "p-invite is-new\"><td class=\"p-who\"><div><span class=\"avatar avatar--invite\""
+        ));
+        assert!(
+            html[marked..]
+                .find("<strong>")
+                .map(|at| html[marked + at..].starts_with("<strong>eve@example.test</strong>"))
+                == Some(true)
+        );
+        assert!(html.contains("action=\"/ui/orgs/ab123456/invitations/i-1/resend\""));
+        assert!(html.contains("action=\"/ui/orgs/ab123456/invitations/i-2/cancel\""));
+        assert!(!html.contains("Just you so far"));
+        let alone = members(&members_page(&nav, &rows, &[], true));
+        assert!(alone.contains("Just you so far."));
+    }
+
+    #[test]
+    fn leaving_names_who_takes_the_reports_or_why_it_cannot_happen() {
+        let nav = test_nav("Alex", "csrf");
+        let rows = [member("u-1", "Alex", "author", true)];
+        let mut page = members_page(&nav, &rows, &[], false);
+        page.heir = Some("Jana <N>");
+        page.own_reports = Some(3);
+        let html = members(&page);
+        assert!(html.contains("Your 3 reports pass to Jana &lt;N&gt;."));
+        assert!(html.contains("action=\"/ui/orgs/ab123456/members/u-1/remove\""));
+        assert!(html.contains("href=\"#organization\""));
+        assert!(html.contains("id=\"organization\""));
+        page.heir = None;
+        let html = members(&page);
+        assert!(html.contains("You’re its only owner."));
+        assert!(!html.contains("/remove\""));
     }
 }
 
@@ -1281,8 +1975,10 @@ mod auth_page_tests {
     fn someone_without_an_organization_gets_no_members_or_tokens_tab() {
         let outside = Nav {
             name: "Dana",
+            email: "dana@example.test",
             csrf: "csrf",
             org: None,
+            role: None,
             orgs: &[],
         };
         let html = navigation(&outside, "reports");

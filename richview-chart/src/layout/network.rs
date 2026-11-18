@@ -287,6 +287,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 obs: Some(node_observations.len()),
             });
             let mut lines = vec![ReadoutLine {
+                label: None,
                 name: "Links".into(),
                 value: degree[k].to_string(),
                 series: Some(slot),
@@ -295,6 +296,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             }];
             if weighted {
                 lines.push(ReadoutLine {
+                    label: None,
                     name: format!("Total {value_name}"),
                     value: strength_text[k].clone(),
                     series: None,
@@ -338,6 +340,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             let (from, to) = (&g.names[l.source], &g.names[l.target]);
             let lines = if l.given {
                 vec![ReadoutLine {
+                    label: None,
                     name: value_name.clone(),
                     value: numbers::value(l.value, &readout),
                     series: Some(slot),
@@ -347,6 +350,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             } else {
                 vec![
                     ReadoutLine {
+                        label: None,
                         name: "From".into(),
                         value: from.clone(),
                         series: Some(slot),
@@ -354,6 +358,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                         derived: false,
                     },
                     ReadoutLine {
+                        label: None,
                         name: "To".into(),
                         value: to.clone(),
                         series: None,

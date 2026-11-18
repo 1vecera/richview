@@ -61,8 +61,10 @@ fn bind_style_links() {
         });
     }
 }
+/// The elements overview's one live frame, the typography sample, is laid out at a fixed width and
+/// scaled to its card; every other gallery card is a picture the build draws.
 fn scale_thumbnails() {
-    let Ok(frames) = document().query_selector_all("[data-docs-preview]") else {
+    let Ok(frames) = document().query_selector_all("[data-docs-scale]") else {
         return;
     };
     for i in 0..frames.length() {
@@ -75,14 +77,13 @@ fn scale_thumbnails() {
             let _ = frame
                 .style()
                 .set_property("transform", &format!("scale({scale})"));
-            // The frame shows once scaled and loaded; until then its box shows the loading state.
+            // The frame shows once scaled.
             let _ = frame.set_attribute("data-docs-scaled", "");
         }
     }
 }
 fn bind_thumbnail_scales() {
     scale_thumbnails();
-    crate::preview_frames::start();
     on(&window().into(), "resize", |_| scale_thumbnails());
 }
 

@@ -257,6 +257,14 @@ pub(super) fn diagnostic_response(
         .into_response()
 }
 
+/// The next patch release after a release version (`1.4.2` → `1.4.3`), for a fix that names
+/// the version to write; a pre-release or an unparsable version gets none.
+fn next_patch(version: &str) -> Option<String> {
+    let version = semver::Version::parse(version.trim()).ok()?;
+    (version.pre.is_empty() && version.build.is_empty())
+        .then(|| format!("{}.{}.{}", version.major, version.minor, version.patch + 1))
+}
+
 /// Map a refused publication to its status and diagnostic (TYP-63, TYP-64).
 fn publish_error_response(error: &PublishError, slug: &str, version: &str) -> Response {
     let path = "frontmatter.version";
@@ -269,7 +277,10 @@ fn publish_error_response(error: &PublishError, slug: &str, version: &str) -> Re
                 format!("{slug} {version} is already published with different content. Bump `version` in the frontmatter and publish again."),
                 path,
             )
-            .fix("Raise the version, for example to the next patch number")
+            .fix(next_patch(version).map_or_else(
+                || "Raise the version, for example to the next patch number".to_owned(),
+                |next| format!("Raise the version, for example to `version: {next}`"),
+            ))
             .with_details(json!({"storedContentSha256": stored_sha256})),
         ),
         PublishError::Quota { limit, used, needed } | PublishError::AccountQuota { limit, used, needed } => diagnostic_response(
@@ -1581,6 +1592,23 @@ pub(super) fn draw_share_card(
     report: &StoredReport,
     charts: &[serde_json::Value],
 ) -> Result<Vec<u8>, String> {
+    let (title, byline, style, company) = card_text(report);
+    richview_share::card_png_with_company(&title, &byline, &style, charts, company)
+}
+
+/// The same card as [`draw_share_card`], as SVG, for drawing small.
+pub(super) fn share_card_svg(
+    report: &StoredReport,
+    charts: &[serde_json::Value],
+) -> Result<String, String> {
+    let (title, byline, style, company) = card_text(report);
+    richview_share::card_svg_with_company(&title, &byline, &style, charts, company)
+}
+
+/// A stored version's card text, style and company brand.
+fn card_text(
+    report: &StoredReport,
+) -> (String, String, String, Option<richview_core::CompanyBrand>) {
     // The text is bounded before it is laid out: a card is 1200 x 630 and holds a few lines.
     let text = |key: &str, cap: usize| {
         report.frontmatter[key]
@@ -1600,18 +1628,17 @@ pub(super) fn draw_share_card(
     };
     let company = richview_core::report_company_brand(&report.frontmatter, &options);
     let style = company.base.as_deref().unwrap_or(&style).to_owned();
-    richview_share::card_png_with_company(
-        &text("title", 200).unwrap_or_else(|| report.slug.clone()),
-        &text("author", 120).unwrap_or_default(),
-        &style,
-        charts,
+    (
+        text("title", 200).unwrap_or_else(|| report.slug.clone()),
+        text("author", 120).unwrap_or_default(),
+        style,
         (company.logo.is_some() || company.accent.is_some()).then_some(company),
     )
 }
 
 /// The chart payloads of a stored version, from its stored source, folder inventory, data and
 /// styles; none when it does not render.
-fn charts_of(report: &StoredReport) -> Vec<serde_json::Value> {
+pub(super) fn charts_of(report: &StoredReport) -> Vec<serde_json::Value> {
     let options = RenderOptions {
         styles: report.styles.clone(),
         report_folder: report.report_folder.clone(),
@@ -1623,8 +1650,58 @@ fn charts_of(report: &StoredReport) -> Vec<serde_json::Value> {
         .unwrap_or_default()
 }
 
+/// The most recent values by key, up to a capacity; past it the oldest go first.
+pub(super) struct Recent<K, V> {
+    capacity: usize,
+    entries: std::collections::HashMap<K, V>,
+    order: std::collections::VecDeque<K>,
+}
+
+impl<K: Eq + std::hash::Hash + Clone, V: Clone> Recent<K, V> {
+    pub(super) fn new(capacity: usize) -> Self {
+        Self {
+            capacity,
+            entries: std::collections::HashMap::new(),
+            order: std::collections::VecDeque::new(),
+        }
+    }
+
+    pub(super) fn get(&self, key: &K) -> Option<V> {
+        self.entries.get(key).cloned()
+    }
+
+    pub(super) fn put(&mut self, key: K, value: V) {
+        if self.entries.insert(key.clone(), value).is_none() {
+            self.order.push_back(key);
+        }
+        while self.order.len() > self.capacity {
+            if let Some(old) = self.order.pop_front() {
+                self.entries.remove(&old);
+            }
+        }
+    }
+}
+
+/// Full-size cards for reports' latest addresses, by report, version and card design. Each is a
+/// whole picture, so only the most recent few are kept.
+const LATEST_CARDS: usize = 64;
+
+type CardKey = (String, String, u32);
+
+fn latest_cards() -> &'static std::sync::Mutex<Recent<CardKey, std::sync::Arc<Vec<u8>>>> {
+    static CARDS: std::sync::OnceLock<std::sync::Mutex<Recent<CardKey, std::sync::Arc<Vec<u8>>>>> =
+        std::sync::OnceLock::new();
+    CARDS.get_or_init(|| std::sync::Mutex::new(Recent::new(LATEST_CARDS)))
+}
+
 /// The 1200×630 card of a stored version, drawn natively from its title and byline (ARC-69).
 /// It is served under the report's own access rule and never from a hotlinked cover.
+///
+/// A version's immutable address serves the card kept beside it when it was published, as it
+/// promised. The latest address serves the card in today's design
+/// ([`richview_share::CARD_DESIGN`]), drawn again from the stored report and held in memory, so a
+/// report published before a redesign unfurls like one published after it, and nothing is written
+/// into the store.
 async fn share_card(
     state: AppState,
     headers: HeaderMap,
@@ -1659,19 +1736,39 @@ async fn share_card(
     } else {
         None
     };
-    let card = tokio::task::spawn_blocking(move || -> Result<Vec<u8>, String> {
+    let card = tokio::task::spawn_blocking(move || -> Result<std::sync::Arc<Vec<u8>>, String> {
         let _permit = permit;
         let report = storage
             .get(&slug, version.as_deref())?
             .ok_or_else(|| "Not found".to_owned())?;
+        if !immutable {
+            let key = (
+                report.slug.clone(),
+                report.version.clone(),
+                richview_share::CARD_DESIGN,
+            );
+            let cached = latest_cards()
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .get(&key);
+            if let Some(png) = cached {
+                return Ok(png);
+            }
+            let png = std::sync::Arc::new(draw_share_card(&report, &charts_of(&report))?);
+            latest_cards()
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .put(key, png.clone());
+            return Ok(png);
+        }
         if let Some(kept) = storage.share_card(&report.slug, &report.version)? {
-            return Ok(kept);
+            return Ok(std::sync::Arc::new(kept));
         }
         // Charts come from the stored source, so a card asked for before the publish-time draw
         // finished is the same card, and the one kept is never a title-only stand-in.
         let png = draw_share_card(&report, &charts_of(&report))?;
         let _ = storage.put_share_card(&report.slug, &report.version, &png);
-        Ok(png)
+        Ok(std::sync::Arc::new(png))
     })
     .await;
     match card {
@@ -1681,7 +1778,7 @@ async fn share_card(
                 (header::CACHE_CONTROL, cache_control(public, immutable)),
                 (header::VARY, "Cookie, Authorization"),
             ],
-            png,
+            png.as_ref().clone(),
         )
             .into_response(),
         Ok(Err(e)) if e == "Not found" => api_error(StatusCode::NOT_FOUND, "Not found"),
@@ -1743,6 +1840,22 @@ mod publish_refusal_tests;
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_version_that_exists_is_answered_with_the_next_patch_to_write() {
+        assert_eq!(next_patch("0.0.1").as_deref(), Some("0.0.2"));
+        assert_eq!(next_patch(" 1.4.9 ").as_deref(), Some("1.4.10"));
+        assert_eq!(next_patch("1.0.0-beta.1"), None);
+        assert_eq!(next_patch("draft"), None);
+        let response = publish_error_response(
+            &PublishError::Conflict {
+                stored_sha256: "x".into(),
+            },
+            "ab123456/q3",
+            "0.0.1",
+        );
+        assert_eq!(response.status(), StatusCode::CONFLICT);
+    }
 
     #[tokio::test]
     async fn hosted_page_limit_refuses_until_a_response_is_released() {
@@ -2006,6 +2119,74 @@ mod tests {
         drop(first);
         assert_eq!(file().await.status(), StatusCode::OK);
         drop(second);
+    }
+
+    #[tokio::test]
+    async fn the_latest_card_is_drawn_in_todays_design_and_a_versions_kept_card_stays() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(dir.path().join(".access")).unwrap();
+        let access_state = json!({"schema":2,"tenancy":"hosted",
+            "organizations":[{"id":"aaaa0001","name":"A","created":"now","limits":{}}],
+            "memberships":[], "users":[], "sessions":[],
+            "acls":{"aaaa0001/chart":{"org":"aaaa0001","owner":"a","visibility":"public","grants":[]}}});
+        std::fs::write(
+            dir.path().join(".access/state.json"),
+            serde_json::to_vec(&access_state).unwrap(),
+        )
+        .unwrap();
+        let storage = crate::storage::FsStorage::new(dir.path())
+            .unwrap()
+            .with_hosted(true);
+        let source = "---\ntitle: T\nstyles: [sleek]\n---\n\n```chart\ntype: bar\ntitle: Share\ndata:\n  inline:\n    - { year: \"2023\", share: 3.0 }\n    - { year: \"2024\", share: 18.2 }\nencoding: { x: year, y: share }\n```\n";
+        let report: StoredReport = serde_json::from_value(json!({
+            "slug": "aaaa0001/chart", "version": "1.0.0", "source": source, "html": "<html>chart</html>",
+            "frontmatter": { "title": "T", "styles": ["sleek"] }, "createdAt": "now",
+            "reportFolder": { "root": "card-fixture", "source": "report.rmd", "files": ["report.rmd"] },
+        }))
+        .unwrap();
+        storage.put_version(report.clone()).unwrap();
+        // The card kept at publication in an earlier design; the title card stands in for it.
+        let kept = draw_share_card(&report, &[]).unwrap();
+        storage
+            .put_share_card(&report.slug, &report.version, &kept)
+            .unwrap();
+        let state = AppState {
+            storage: storage.clone(),
+            access: crate::access::Access::open_hosted(dir.path()).unwrap(),
+            preview: None,
+            public_origin: None,
+            report_origin: None,
+        };
+        let png = |version: Option<&str>| {
+            let state = state.clone();
+            let version = version.map(str::to_owned);
+            async move {
+                let response =
+                    share_card(state, HeaderMap::new(), "aaaa0001/chart".into(), version).await;
+                assert_eq!(response.status(), StatusCode::OK);
+                axum::body::to_bytes(response.into_body(), 4_000_000)
+                    .await
+                    .unwrap()
+                    .to_vec()
+            }
+        };
+        assert_eq!(
+            png(Some("1.0.0")).await,
+            kept,
+            "an immutable address keeps its bytes"
+        );
+        let today = draw_share_card(&report, &charts_of(&report)).unwrap();
+        assert_ne!(today, kept);
+        assert_eq!(png(None).await, today);
+        assert_eq!(png(None).await, today, "drawn once, then from memory");
+        assert_eq!(
+            storage
+                .share_card(&report.slug, &report.version)
+                .unwrap()
+                .unwrap(),
+            kept,
+            "nothing is written into the store"
+        );
     }
 
     #[test]

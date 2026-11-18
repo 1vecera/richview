@@ -161,7 +161,7 @@ pub enum Tenancy {
 /// The name of the organization sign-up makes for a new author: "Jana Novak’s organization", so
 /// pages and mails never offer to share with the person by their own name. It stays within the
 /// limit a rename has, shortening a long name; the owner renames it on the members page.
-fn first_organization_name(person: &str) -> String {
+pub(crate) fn first_organization_name(person: &str) -> String {
     const SUFFIX: &str = "’s organization";
     let room = teams::MAX_NAME_CHARS - SUFFIX.chars().count();
     let person: String = person.trim().chars().take(room).collect();

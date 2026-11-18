@@ -2066,6 +2066,7 @@ fn paint(ctx: &mut Ctx, t: &Type, laid: &Laid, left: f64, top: f64) -> Panel {
 
 fn rl(name: &str, value: String, series: Option<usize>, derived: bool) -> ReadoutLine {
     ReadoutLine {
+        label: None,
         name: name.into(),
         value,
         series,

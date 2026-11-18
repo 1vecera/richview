@@ -328,6 +328,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 };
                 let share = s.share(xv);
                 lines.push(ReadoutLine {
+                    label: None,
                     name: format!("{prefix}Share at or below"),
                     value: numbers::value(share, &readout_percent),
                     series: Some(g),
@@ -335,6 +336,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     derived: true,
                 });
                 lines.push(ReadoutLine {
+                    label: None,
                     name: format!("{prefix}Observations"),
                     value: numbers::value(s.equal(xv) as f64, &count_format),
                     series: Some(g),

@@ -66,6 +66,8 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
     ctx.set_series(&groups);
     let label_format = block.label_format(&block.y, ctx.locale);
     let readout = block.readout_format(&block.y, ctx.locale);
+    // Automatic values print at the label's digits; the readout may carry more (FEA-CH-37).
+    let digits = block.label_digits(&block.y);
     let mut failures: Vec<Option<String>> = vec![None; facets.len()];
     let mut excluded = 0usize;
     let mut panels_bells: Vec<Vec<Bell>> = Vec::new();
@@ -230,7 +232,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         let text = if plan.horizontal {
             all.iter()
                 .flat_map(|b| [b.lower, b.upper])
-                .map(|v| ctx.text_width(&numbers::value(v, &readout)))
+                .map(|v| ctx.text_width(&numbers::label(v, &readout, digits)))
                 .fold(0.0f64, f64::max)
         } else {
             ctx.line_height()
@@ -348,7 +350,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 vec![(b.lower.min(b.upper), false), (b.lower.max(b.upper), true)]
             };
             for (v, after) in ends {
-                let text = numbers::value(v, &readout);
+                let text = numbers::label(v, &readout, digits);
                 let end = frame.at(v);
                 let place = if frame.horizontal {
                     let (x, anchor) = if after {
@@ -385,6 +387,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     heading: categories[b.category].clone(),
                     lines: vec![
                         ReadoutLine {
+                            label: numbers::printed(b.lower, &readout, digits),
                             name: format!("{prefix}Lower"),
                             value: numbers::value(b.lower, &readout),
                             series: Some(b.group),
@@ -392,6 +395,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                             derived: false,
                         },
                         ReadoutLine {
+                            label: numbers::printed(b.upper, &readout, digits),
                             name: format!("{prefix}Upper"),
                             value: numbers::value(b.upper, &readout),
                             series: Some(b.group),
@@ -399,6 +403,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                             derived: false,
                         },
                         ReadoutLine {
+                            label: None,
                             name: format!("{prefix}Change"),
                             value: changes[fi][bi].clone(),
                             series: Some(b.group),

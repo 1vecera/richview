@@ -3485,7 +3485,7 @@
       ]
     },
     "INT-41": {
-      "judged": "review: Cargo.toml, Cargo.lock, package.json and package-lock.json carry 3.0.0-alpha.1, and `richview --version` prints the workspace version of its build"
+      "judged": "review: Cargo.toml, Cargo.lock, package.json, package-lock.json and the VS Code extension carry 3.0.0-alpha.2, and `richview --version` prints the workspace version of its build"
     }
   }
 }

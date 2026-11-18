@@ -522,6 +522,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     .iter()
                     .filter_map(|&h| {
                         table[h][i].map(|cell| ReadoutLine {
+                            label: None,
                             name: groups[h].clone(),
                             value: numbers::value(cell.value, &readout),
                             series: Some(h),

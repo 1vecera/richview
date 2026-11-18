@@ -11,11 +11,11 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /**
- * Advisories that stay, each with the package it is filed against and why it does not apply.
- * Empty. The one entry this list held, GHSA-xcx6-jx8p-x3h5 (MSAL Node, reached through
- * @vscode/vsce's @azure/identity), went when @vscode/vsce 4.1.0 pulled @azure/identity 4.14.1, which
- * accepts @azure/msal-node 7.x, and the override and direct devDependency that forced 7.1.2 were
- * dropped (S27-807).
+ * Advisories that stay, each with the package it is filed against, why it does not apply and when it
+ * goes. An earlier entry, GHSA-xcx6-jx8p-x3h5 (MSAL Node, reached through @vscode/vsce's
+ * @azure/identity), went when @vscode/vsce 4.1.0 pulled @azure/identity 4.14.1, which accepts
+ * @azure/msal-node 7.x, and the override and direct devDependency that forced 7.1.2 were dropped
+ * (S27-807).
  *
  * The root package.json also overrides minimatch to ^11.0.3: GHSA-g3hv-75wg-m249 is fixed only from
  * 11.0.1, and @vscode/vsce (^10) and vscode-languageclient (^5) ask for older ranges. Both use the
@@ -23,7 +23,20 @@ import { fileURLToPath } from "node:url";
  * edges as invalid (ELSPROBLEMS); `npm ci`, the licence check, this audit and `vsce package` pass, and
  * nothing in the gate runs `npm ls`. Drop the override once both ask for 11 or later.
  */
-export const ACCEPTED = [];
+export const ACCEPTED = [
+	{
+		ghsa: "GHSA-fc5q-39xc-vjpf",
+		package: "picomatch",
+		reason:
+			"ReDoS on crafted extglobs, in every picomatch release (<=4.0.7, no patched version). It is a dev " +
+			"dependency reached only through @vscode/vsce -> tinyglobby, which matches the extension's own " +
+			"file list with the repository's own patterns when `vsce package` builds the VSIX on a maintainer's " +
+			"machine. No user input reaches it, and it is in neither the extension bundle nor any other RichView " +
+			"artifact. Every @vscode/vsce 4.x uses tinyglobby, and 3.9.2 reaches picomatch too (secretlint -> " +
+			"globby -> fast-glob -> micromatch) and brings GHSA-3g3m-2fjr-6pw4 back.",
+		drop: "when picomatch ships a fix (upstream PRs #238 and #254 were open on 17 Nov 2026)",
+	},
+];
 
 const ghsaOf = (url) => String(url ?? "").match(/GHSA-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}/)?.[0] ?? null;
 

@@ -331,6 +331,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     heading: w.text.clone(),
                     lines: vec![
                         ReadoutLine {
+                            label: None,
                             name: value_title.clone(),
                             value: numbers::value(w.value, &readout),
                             series: None,
@@ -338,6 +339,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                             derived: false,
                         },
                         ReadoutLine {
+                            label: None,
                             name: "Share".into(),
                             value: plan.shares[k].clone(),
                             series: None,

@@ -54,6 +54,8 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
     let title = block.y.label.clone().unwrap_or_else(|| y_field.clone());
     let label_format = block.label_format(&block.y, ctx.locale);
     let readout = block.readout_format(&block.y, ctx.locale);
+    // Automatic values print at the label's digits; the readout may carry more (FEA-CH-37).
+    let digits = block.label_digits(&block.y);
     let thresholds = match ranges(&block.raw) {
         Ok(r) => r,
         Err(reason) => {
@@ -190,7 +192,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             panels_bullets
                 .iter()
                 .flatten()
-                .map(|b| ctx.text_width(&numbers::value(b.actual, &readout)))
+                .map(|b| ctx.text_width(&numbers::label(b.actual, &readout, digits)))
                 .fold(0.0f64, f64::max)
         } else {
             ctx.line_height()
@@ -308,6 +310,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             let hi = reach.into_iter().fold(f64::NEG_INFINITY, f64::max);
             let area = frame.span(c0, c0 + full, lo, hi);
             let mut lines = vec![ReadoutLine {
+                label: numbers::printed(b.actual, &readout, digits),
                 name: block
                     .y
                     .label
@@ -320,6 +323,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             }];
             if let Some(t) = b.target {
                 lines.push(ReadoutLine {
+                    label: None,
                     name: "Target".into(),
                     value: numbers::value(t, &readout),
                     series: None,
@@ -329,6 +333,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             }
             if !thresholds.is_empty() {
                 lines.push(ReadoutLine {
+                    label: None,
                     name: "Ranges".into(),
                     value: thresholds
                         .iter()
@@ -345,7 +350,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             // when it does not fit there: the bar is at most 13 px thick and a line of figures is
             // taller, so it never fits and the value has no place.
             {
-                let text = numbers::value(b.actual, &readout);
+                let text = numbers::label(b.actual, &readout, digits);
                 let end = frame.at(b.actual);
                 let up = b.actual >= 0.0;
                 let beyond = if frame.horizontal {

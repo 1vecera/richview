@@ -308,6 +308,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 readout: Readout {
                     heading: categories[p.category].clone(),
                     lines: vec![ReadoutLine {
+                        label: None,
                         name: if multi { groups[p.group].clone() } else { title.clone() },
                         value: numbers::value(p.value, &readout),
                         series: Some(p.group),

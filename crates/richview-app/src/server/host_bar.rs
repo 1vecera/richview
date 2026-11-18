@@ -21,9 +21,37 @@ fn escape(text: &str) -> String {
         .replace('\'', "&#39;")
 }
 
-fn render(says: &str, go: &str) -> String {
+/// The bar: the mark, then whom the report comes from as a face (a person's initials in a circle,
+/// an organization's initial in a square), what it says, and its ways on as buttons.
+fn render(face: &str, says: &str, go: &str) -> String {
+    let face = if face.is_empty() {
+        String::new()
+    } else {
+        format!("<span class=\"rv-sep\" aria-hidden=\"true\"></span>{face}")
+    };
     format!(
-        "<div class=\"rv-host-bar\" role=\"region\" aria-label=\"RichView\"><div class=\"rv-in\"><p class=\"rv-says\">{MARK}<span>{says}</span></p><nav class=\"rv-go\" aria-label=\"RichView\">{go}</nav></div></div>"
+        "<div class=\"rv-host-bar\" role=\"region\" aria-label=\"RichView\"><div class=\"rv-in\"><p class=\"rv-says\">{MARK}{face}<span>{says}</span></p><nav class=\"rv-go\" aria-label=\"RichView\">{go}</nav></div></div>"
+    )
+}
+
+/// A person's initials in a circle, or an organization's initial in a square.
+fn face(name: &str, organization: bool) -> String {
+    let letters = if organization {
+        name.trim()
+            .chars()
+            .next()
+            .map(|c| c.to_uppercase().collect())
+            .unwrap_or_default()
+    } else {
+        super::ui::initials(name)
+    };
+    if letters.is_empty() {
+        return String::new();
+    }
+    format!(
+        "<span class=\"rv-face{}\" aria-hidden=\"true\">{}</span>",
+        if organization { " rv-face--org" } else { "" },
+        escape(&letters)
     )
 }
 
@@ -42,6 +70,7 @@ pub(super) fn bar(
     let app = escape(app);
     if public {
         return Some(render(
+            "",
             "<span class=\"rv-soft\">Published with</span> <strong>RichView</strong><span class=\"rv-soft rv-wide\"> · anyone with the link can open it</span>",
             &format!("<a href=\"{app}/\">Sign in</a>"),
         ));
@@ -85,6 +114,7 @@ pub(super) fn bar(
         // The author navigates from here too (Daniel, 16 Nov): back to the list, then Share. A
         // phone has room for one of them beside the badge, and keeps Share, which leads to the app.
         return Some(render(
+            "",
             &format!("Your report {badge}<span class=\"rv-soft rv-wide\"> · {who}</span>"),
             &format!(
                 "<a class=\"rv-wide\" href=\"{app}/\">All reports</a><a class=\"rv-pill\" href=\"{app}/reports/{}\">Share</a>",
@@ -98,6 +128,7 @@ pub(super) fn bar(
         .any(|row| !row.pending && row.email.eq_ignore_ascii_case(&user.email));
     if named {
         return Some(render(
+            &face(&access.owner_name, false),
             &format!("<strong>Shared with you</strong><span class=\"rv-soft\">{by}</span>{from}"),
             &format!(
                 "<a href=\"{app}/?show=shared\"><span class=\"rv-wide\">Find it again under Shared with me</span><span class=\"rv-narrow\">Find it again</span></a>"
@@ -106,6 +137,7 @@ pub(super) fn bar(
     }
     if access.visibility == Visibility::Org {
         return Some(render(
+            &face(&access.org_name, true),
             &format!(
                 "From <strong>{org}</strong><span class=\"rv-soft rv-wide\"> · every member can open it</span>"
             ),
@@ -113,6 +145,7 @@ pub(super) fn bar(
         ));
     }
     Some(render(
+        &face(&access.org_name, true),
         &if own {
             format!("<strong>{org}</strong>")
         } else {
@@ -165,8 +198,21 @@ mod tests {
 
     #[test]
     fn typed_names_cannot_add_markup_to_the_bar() {
-        let out = render(&escape("<b>Acme</b>"), "");
+        let out = render(&face("<b>Acme", true), &escape("<b>Acme</b>"), "");
         assert!(out.contains("&lt;b&gt;Acme&lt;/b&gt;"));
+        assert!(
+            out.contains("<span class=\"rv-face rv-face--org\" aria-hidden=\"true\">&lt;</span>")
+        );
         assert!(!out.contains("<b>"));
+    }
+
+    #[test]
+    fn a_person_shows_as_initials_and_no_name_shows_no_face() {
+        assert_eq!(
+            face("Tomáš Beneš", false),
+            "<span class=\"rv-face\" aria-hidden=\"true\">TB</span>"
+        );
+        assert_eq!(face("  ", true), "");
+        assert!(!render("", "Shared", "").contains("rv-sep"));
     }
 }

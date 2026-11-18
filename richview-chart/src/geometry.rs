@@ -638,6 +638,18 @@ pub struct ReadoutLine {
     /// True for values RichView computed (bins, quartiles, totals).
     #[serde(skip_serializing_if = "std::ops::Not::not")]
     pub derived: bool,
+    /// The same value at the chart's label precision, when it differs from the readout's: what
+    /// an automatic value prints on the mark. The author may give the readout more digits than
+    /// the labels (FEA-CH-37); a printed value never shows the readout's. Not in the model's JSON.
+    #[serde(skip)]
+    pub label: Option<String>,
+}
+
+impl ReadoutLine {
+    /// The text an automatic value prints for this line: its label text, else the readout's.
+    pub fn printed(&self) -> &str {
+        self.label.as_deref().unwrap_or(&self.value)
+    }
 }
 
 /// How a panel's observations are targeted (FEA-CH-41).
@@ -918,7 +930,8 @@ impl Geometry {
     }
 
     /// Restores dropped values and their diagnostics from the canonical observation readouts: a
-    /// value takes the text of the readout line it names, else of the first line of its series.
+    /// value takes the printed text of the readout line it names, else of the first line of its
+    /// series.
     pub fn restore_value_drop_text(&mut self) {
         let mut changed = false;
         for dropped in &mut self.dropped {
@@ -934,9 +947,9 @@ impl Geometry {
                     .and_then(|n| readout.lines.get(n))
                     .filter(|line| line.series == Some(series))
                     .or_else(|| readout.lines.iter().find(|line| line.series == Some(series)))
-                && dropped.text != line.value
+                && dropped.text != line.printed()
             {
-                dropped.text.clone_from(&line.value);
+                line.printed().clone_into(&mut dropped.text);
                 changed = true;
             }
         }

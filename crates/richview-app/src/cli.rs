@@ -786,8 +786,11 @@ fn publish_summary(result: &Value, server: &str) -> String {
     } else {
         ""
     };
+    let share = result["share"]
+        .as_str()
+        .map_or_else(String::new, |share| format!("\nShare: {share}"));
     format!(
-        "{action} {server}{operator}\nReport: {}\nVersion: {}\nVisibility: {}\nPermalink: {}",
+        "{action} {server}{operator}\nReport: {}\nVersion: {}\nVisibility: {}{share}\nPermalink: {}",
         result["url"].as_str().unwrap_or_default(),
         result["version"].as_str().unwrap_or_default(),
         match result["visibility"].as_str() {
@@ -1038,6 +1041,17 @@ async fn execute(command: Command) -> Result<(), Failure> {
                 Failure::usage(crate::publish_destination::missing_token(&server))
             })?;
             bound_token(&server, &token)?;
+            // The server renders the report before it answers, and a large upload takes a while:
+            // a person at a terminal hears that it started. JSON and piped output stay unchanged.
+            if matches!(format.format, OutputFormat::Pretty)
+                && std::io::IsTerminal::is_terminal(&std::io::stderr())
+            {
+                eprintln!(
+                    "Publishing {} to {}…",
+                    args.input.display(),
+                    server.trim_end_matches('/')
+                );
+            }
             let result = ops::publish_as(
                 &args.read.input(&args.input),
                 &server,
@@ -1146,12 +1160,22 @@ pub async fn publish_as(
     if !valid {
         return Err("Server returned an invalid report address".into());
     }
+    // A hosted address names its organization. Its page in the app is where people are named and
+    // who can open it is chosen, which the command line cannot do: the result says where it is.
+    let share = returned_slug
+        .contains('/')
+        .then(|| server.join(&format!("/reports/{returned_slug}")))
+        .transpose()
+        .map_err(|e| e.to_string())?;
     data["url"] = Value::String(
         server
             .join(&format!("/r/{returned_slug}"))
             .map_err(|e| e.to_string())?
             .to_string(),
     );
+    if let Some(share) = share {
+        data["share"] = Value::String(share.to_string());
+    }
     data["server"] = Value::String(server.as_str().trim_end_matches('/').to_owned());
     if server.as_str().trim_end_matches('/') == "https://app.richview.ai" {
         data["operator"] = Value::String("RichView".into());
@@ -1312,6 +1336,21 @@ mod tests {
     }
 
     #[test]
+    fn a_hosted_publish_says_where_to_share_the_report() {
+        let mut result = json!({"created": true, "slug": "ab123456/q3", "url": "https://app.test/r/ab123456/q3", "share": "https://app.test/reports/ab123456/q3", "version": "1.0.0", "visibility": "private", "permalink": "https://app.test/r/ab123456/q3/v/1.0.0"});
+        let summary = publish_summary(&result, "https://app.test");
+        assert!(
+            summary.contains(
+                "Visibility: private (you and the people you name)\nShare: https://app.test/reports/ab123456/q3\nPermalink:"
+            ),
+            "{summary}"
+        );
+        // A self-hosted address has no organization and no app page for it.
+        result.as_object_mut().unwrap().remove("share");
+        assert!(!publish_summary(&result, "http://127.0.0.1:4820").contains("Share:"));
+    }
+
+    #[test]
     fn human_lines_name_file_line_level_and_code_and_collapse_identical_infos() {
         let at = |line| {
             let mut d = Diagnostic::new("warning", "chart.clipping", "Clipped.", "chart");
@@ -1376,6 +1415,11 @@ mod tests {
         .await
         .unwrap();
         assert_eq!(result["url"], format!("{server}/r/aaaa0001/example"));
+        // The report's page in the app, where it is shared, for an agent reading the JSON.
+        assert_eq!(
+            result["share"],
+            format!("{server}/reports/aaaa0001/example")
+        );
         worker.abort();
     }
 
@@ -1435,6 +1479,8 @@ mod tests {
         .await
         .unwrap();
         assert_eq!(derived["url"], format!("{server}/r/istanbul-grows"));
+        // A self-hosted address has no app page to share it from.
+        assert!(derived.get("share").is_none());
         assert!(
             publish("# draft", &options, &server, "local-token", None, true)
                 .await

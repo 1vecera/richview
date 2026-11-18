@@ -468,6 +468,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)]) -> 
             let mid = a + sweep / 2.0;
             let lines = vec![
                 ReadoutLine {
+                    label: None,
                     name: block
                         .y
                         .label
@@ -479,6 +480,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)]) -> 
                     derived: true,
                 },
                 ReadoutLine {
+                    label: None,
                     name: "Share".into(),
                     value: texts.shares[k].clone(),
                     series: None,

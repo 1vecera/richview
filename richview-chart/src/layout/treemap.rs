@@ -203,7 +203,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     untiled += 1;
                     ctx.drop_label(&n.name, DropReason::Density, "tile", Some(n.rect));
                     if wanted.contains(&k) {
-                        ctx.drop_label(&texts[k][0], DropReason::Density, "value", Some(n.rect));
+                        ctx.drop_label(&texts[k][2], DropReason::Density, "value", Some(n.rect));
                         if let Some(dropped) = ctx.dropped.last_mut() {
                             dropped.observation = Some([fi, observations.len()]);
                             dropped.series = Some(slot);
@@ -310,7 +310,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 if wanted.contains(&k) {
                     // The value on a second line, in the name's ink, where the tile holds both.
                     let value = ctx.text(
-                        &texts[k][0],
+                        &texts[k][2],
                         label.x,
                         label.y + ctx.line_height(),
                         Anchor::Start,
@@ -321,7 +321,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     if named && valued.contains(&k) && value.bounds.inside(&n.rect.inflate(-3.0), 0.0) {
                         items.push(Item::Text(value));
                     } else {
-                        ctx.drop_label(&texts[k][0], DropReason::Density, "value", Some(n.rect));
+                        ctx.drop_label(&texts[k][2], DropReason::Density, "value", Some(n.rect));
                         if let Some(dropped) = ctx.dropped.last_mut() {
                             dropped.observation = Some([fi, observations.len() - 1]);
                             dropped.series = Some(slot);

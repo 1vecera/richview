@@ -1,7 +1,5 @@
 #[cfg(target_arch = "wasm32")]
 mod docs_ui;
-#[cfg(target_arch = "wasm32")]
-mod preview_frames;
 // Rust browser host: chart interactions, report authoring and theme controls execute in Wasm.
 #[cfg(target_arch = "wasm32")]
 mod browser;

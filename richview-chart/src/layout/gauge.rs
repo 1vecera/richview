@@ -448,7 +448,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         // Text boxes already placed, which later labels keep clear of.
         let mut kept: Vec<Rect> = Vec::new();
         // The value in the middle, as large as the opening allows, with the name under it.
-        let value_text = numbers::value(value, &readout);
+        let value_text = numbers::label(value, &readout, label_format.digits);
         let centre = c[1] + 0.42 * radius;
         let mut big = (size * 2.2).min(radius * 0.4).max(size);
         let chord = |s: f64| 2.0 * (inner * inner - (0.42 * radius + s * 0.5).powi(2)).max(1.0).sqrt();
@@ -567,6 +567,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             }
         }
         let mut lines = vec![ReadoutLine {
+            label: numbers::printed(value, &readout, label_format.digits),
             name: title.clone(),
             value: numbers::value(value, &readout),
             series: Some(0),
@@ -590,6 +591,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         };
         if let Some(label) = zone {
             lines.push(ReadoutLine {
+                label: None,
                 name: "Band".into(),
                 value: label,
                 series: None,
@@ -598,6 +600,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             });
         }
         lines.push(ReadoutLine {
+            label: None,
             name: "Scale".into(),
             value: format!("{} to {}", numbers::value(min, &readout), numbers::value(max, &readout)),
             series: None,

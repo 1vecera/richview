@@ -377,6 +377,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
     // One observation for a place that has a sum.
     let mut observe = |rect: Rect, t: &Tally, heading: String, derived: bool| {
         let mut lines = vec![ReadoutLine {
+            label: None,
             name: block
                 .y
                 .label
@@ -389,6 +390,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         }];
         if derived && t.count > 1 {
             lines.push(ReadoutLine {
+                label: None,
                 name: "Source rows".into(),
                 value: t.count.to_string(),
                 series: None,

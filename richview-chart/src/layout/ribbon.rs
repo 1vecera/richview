@@ -402,6 +402,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     }
                 }
                 let mut lines = vec![ReadoutLine {
+                    label: None,
                     name: groups[g].clone(),
                     value: numbers::value(cell.value, &readout),
                     series: Some(g),
@@ -410,6 +411,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 }];
                 if counts[c] > 1 {
                     lines.push(ReadoutLine {
+                        label: None,
                         name: "Rank".into(),
                         value: format!("{} of {}", visible_ranks[g][c].unwrap_or(1), counts[c]),
                         series: None,
@@ -419,6 +421,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 }
                 if totals[c] > 0.0 && counts[c] > 1 {
                     lines.push(ReadoutLine {
+                        label: None,
                         name: "Share".into(),
                         value: share_texts[g][c].clone(),
                         series: None,

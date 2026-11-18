@@ -288,6 +288,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         let label_on_z = block.encoding.label.as_ref() == Some(&zf);
         let mut lines = vec![
             ReadoutLine {
+                label: None,
                 name: x_name.clone(),
                 value: numbers::value(d.p[0], &read_x),
                 series: None,
@@ -295,6 +296,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 derived: false,
             },
             ReadoutLine {
+                label: None,
                 name: y_name.clone(),
                 value: numbers::value(d.p[1], &read_y),
                 series: None,
@@ -302,6 +304,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 derived: false,
             },
             ReadoutLine {
+                label: None,
                 name: z_name.clone(),
                 value: numbers::value(d.p[2], &read_z),
                 series: None,
@@ -311,6 +314,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         ];
         if let (Some(field), Some(s)) = (&size_field, d.size) {
             lines.push(ReadoutLine {
+                label: None,
                 name: block
                     .size_axis()
                     .label
@@ -351,6 +355,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             && heading != groups[d.group]
         {
             lines.push(ReadoutLine {
+                label: None,
                 name: super::cartesian::readable_name(field),
                 value: groups[d.group].clone(),
                 series: Some(d.group),

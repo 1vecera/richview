@@ -207,6 +207,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                             range(ey[j], ey[j + 1], &y_readout)
                         ),
                         lines: vec![ReadoutLine {
+                            label: None,
                             name: "Observations".into(),
                             value: text,
                             series: None,

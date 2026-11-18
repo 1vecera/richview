@@ -410,6 +410,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                             readout: Readout {
                                 heading: axis::full_date(d * MS_DAY, Precision::Day, ctx.locale),
                                 lines: vec![ReadoutLine {
+                                    label: None,
                                     name: block
                                         .y
                                         .label

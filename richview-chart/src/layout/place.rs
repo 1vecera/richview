@@ -501,6 +501,8 @@ struct BarEnd {
 ///   one), above a vertical bar (below a negative one); it may cross soft gridlines, which then
 ///   break round it, and above or below an edge column it slides back into the plot while its
 ///   centre stays over the bar;
+/// - for a vertical bar with one sibling beside it, that place slid away from the sibling until
+///   it keeps the usual clearance, its centre still over the bar;
 /// - for a horizontal bar in a group, that place slid away from its sibling until flush with
 ///   the bar's far edge, its centre still within the bar and its box at least 1 px clear of
 ///   the sibling; where the line box is taller than the bars, it slides on until the sibling's
@@ -567,6 +569,43 @@ fn bar_end_value(
             DropReason::OutOfBounds
         }
     };
+    // A column in a group with one sibling beside it: its value slides away from that sibling
+    // until it keeps the usual clearance from it, its centre still over its own column. A face
+    // with wide digits otherwise loses every value over the shorter column of a pair.
+    if let Some((rect, _)) = bar.filter(|_| !end.horizontal) {
+        let beside = |left: bool| {
+            panel.items.iter().find_map(|i| match i {
+                Item::Rect {
+                    rect: other,
+                    role: Role::Mark,
+                    obs: Some(o),
+                    ..
+                } if *o != c.observation && other.y < rect.bottom() && rect.y < other.bottom() => {
+                    let gap = if left {
+                        rect.x - other.right()
+                    } else {
+                        other.x - rect.right()
+                    };
+                    (-0.01..=1.5).contains(&gap).then_some(*other)
+                }
+                _ => None,
+            })
+        };
+        let away = CLEAR + 0.75;
+        let left = match (beside(true), beside(false)) {
+            (Some(sibling), None) => Some(sibling.right() + away),
+            (None, Some(sibling)) => Some(sibling.x - away - w),
+            _ => None,
+        };
+        if let Some(left) = left
+            && (rect.x..=rect.right()).contains(&(left + w / 2.0))
+        {
+            let top = if end.negative { y + 3.0 } else { y - 3.0 - h };
+            if let Some(t) = place((Rect::new(left, top, w, h), Anchor::Middle), None) {
+                return Ok(vec![(t, None)]);
+            }
+        }
+    }
     let Some((rect, fill)) = bar.filter(|_| end.horizontal) else {
         return Err(dropped());
     };
@@ -804,8 +843,8 @@ pub(super) fn sparse_values_in(
                 .enumerate()
                 .filter(|(_, line)| line.series == Some(value.series));
             let line = match own.next() {
-                Some((_, first)) if first.value != value.text => {
-                    own.find(|(_, line)| line.value == value.text).map(|(n, _)| n)
+                Some((_, first)) if first.printed() != value.text => {
+                    own.find(|(_, line)| line.printed() == value.text).map(|(n, _)| n)
                 }
                 _ => None,
             };
@@ -882,7 +921,7 @@ pub(super) fn combo_bar_values(ctx: &mut Ctx, index: usize, panel: &mut Panel, h
             background = composite(surface.with_alpha(0.88), background);
         }
         bars.push(Bar {
-            text: line.value.clone(),
+            text: line.printed().to_owned(),
             series,
             observation,
             at: o.at,
@@ -1066,7 +1105,7 @@ pub(super) fn value_labels(ctx: &mut Ctx, index: usize, panel: &mut Panel, polic
                     && line.value != "No observation"
                 {
                     groups.push(vec![ValueLabel {
-                        text: &line.value,
+                        text: line.printed(),
                         series,
                         observation,
                         at: o.at,
@@ -1095,7 +1134,7 @@ pub(super) fn value_labels(ctx: &mut Ctx, index: usize, panel: &mut Panel, polic
                         && let Some(line) = o.readout.lines.iter().find(|l| l.series == Some(s) && !l.derived)
                     {
                         series[s][k] = Some(ValueLabel {
-                            text: &line.value,
+                            text: line.printed(),
                             series: s,
                             observation,
                             at: dot.at,
@@ -1131,7 +1170,7 @@ pub(super) fn value_labels(ctx: &mut Ctx, index: usize, panel: &mut Panel, polic
                         })
                     {
                         let c = ValueLabel {
-                            text: &line.value,
+                            text: line.printed(),
                             series: dot.series,
                             observation,
                             at: dot.at,

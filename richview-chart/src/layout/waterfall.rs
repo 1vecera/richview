@@ -476,6 +476,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             let mut lines = Vec::new();
             match s.measure {
                 Measure::Delta => lines.push(ReadoutLine {
+                    label: None,
                     name: "Change".into(),
                     value: text_of.change.clone(),
                     series: Some(slot),
@@ -483,6 +484,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     derived: false,
                 }),
                 Measure::Start => lines.push(ReadoutLine {
+                    label: None,
                     name: "Start".into(),
                     value: text_of.change.clone(),
                     series: Some(slot),
@@ -492,6 +494,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 Measure::Total => {}
             }
             lines.push(ReadoutLine {
+                label: None,
                 name: if s.measure == Measure::Total {
                     "Total"
                 } else {

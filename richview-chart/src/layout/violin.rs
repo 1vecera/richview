@@ -380,6 +380,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 categories[s.category].clone()
             };
             let count = ReadoutLine {
+                label: None,
                 name: "Observations".into(),
                 value: numbers::grouped(n as f64, 0, ctx.locale, true),
                 series: Some(s.group),
@@ -389,6 +390,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             let [q1_text, median_text, q3_text] = forms[fi][si].texts.clone();
             let [lo_text, hi_text] = forms[fi][si].extent_texts.clone();
             let text_line = |name: &str, value: String, derived: bool| ReadoutLine {
+                label: None,
                 name: name.into(),
                 value,
                 series: Some(s.group),

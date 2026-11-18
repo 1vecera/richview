@@ -67,7 +67,7 @@ pub fn tool_definitions() -> Vec<Value> {
         ),
         tool(
             "richview_publish",
-            "Publishes a version of the report to the named RichView server. The token comes from the host environment (RICHVIEW_TOKEN), never from arguments. Same result as `richview publish`.",
+            "Publishes a version of the report to the named RichView server. The token comes from the host environment (RICHVIEW_TOKEN), never from arguments. Its result has slug, version, url, permalink and, from a hosted server, share: the report's page in the app, where people are named and who can open it is chosen. Same result as `richview publish`.",
             json!({"inputPath":input_path,"server":{"type":"string","description":"Server URL; defaults to RICHVIEW_SERVER and must equal it when that is set, so the token only goes to the configured server"},"slug":{"type":"string"},"new":{"type":"boolean","description":"Create a report address the server has not stored before"}}),
             vec!["inputPath"],
             false,

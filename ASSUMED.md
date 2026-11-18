@@ -162,7 +162,7 @@ Target: Charts — a shared readout says which of its rows the chart is emphasis
 
 ## Decided here, for Daniel to overrule
 
-- Signed-out pages (sign in, sign up, check your mail, the mail-link forms, link expired, sign-ups paused, errors) look like the sign-in of a product people know (Daniel, 15 November: the sign-in "does not look professional"): the RichView mark centred at the top, then one card with a centred 28 px heading, a soft lede, the form and one full-width primary button, and the other way on in the card's foot; below it only Privacy, Terms and Impressum, without the site navigation or full footer. "Forgot password?" sits beside the Password label, after the field in tab order. The card is the page's one floating sheet, with STY-48's soft shadow and STY-66's panel radius. Signed-in pages and the delete confirmation keep the site chrome.
+- Amended by "Hosted look — S27-986" below (17 Nov): signed-out pages are now a split sheet, signed-in pages and the delete confirmation carry the app's rail, and the reports list is a table. Signed-out pages (sign in, sign up, check your mail, the mail-link forms, link expired, sign-ups paused, errors) look like the sign-in of a product people know (Daniel, 15 November: the sign-in "does not look professional"): the RichView mark centred at the top, then one card with a centred 28 px heading, a soft lede, the form and one full-width primary button, and the other way on in the card's foot; below it only Privacy, Terms and Impressum, without the site navigation or full footer. "Forgot password?" sits beside the Password label, after the field in tab order. The card is the page's one floating sheet, with STY-48's soft shadow and STY-66's panel radius. Signed-in pages and the delete confirmation keep the site chrome.
 - The site header ends with a quiet "Sign in" to app.richview.ai, after the GitHub mark and a hairline, in the ink colour (Daniel, 15 November: "the main site needs a login link somewhere"). This amends FEA-SF-28; the header still has no sign-up button (FEA-SF-31).
 - Notices have three looks, decided from their text so no route changes: success (green wash), information (blue wash) and error (clay wash, `role="alert"`); any text not on the success or information list reads as an error.
 - Who can open a report is one badge with four looks wherever a report is named: Private (neutral), the organization (blue), Public link (the warning colour), and "Shared with you" (green) for a reader who has it by name, who never sees "Private".
@@ -269,6 +269,14 @@ Target: Delivery — a released build can be told from the one before it by its 
 
 INT-41 publishes builds from `prod` and names no version for them. The first public release, of 16 Nov 2026, is `v3.0.0-alpha.0` and its tag is fixed by the public repository's ruleset, so a later build with the same version cannot be released beside it. The workspace version therefore moves to `3.0.0-alpha.1` for the next release, in `Cargo.toml` (every workspace crate takes it), `Cargo.lock`, `package.json` and `package-lock.json`. `richview --version`, the generator tag of a rendered report and the server's version read it from the build. The VS Code extension keeps its own version (`packages/vscode/package.json`, already `3.0.0-alpha.1`), and the chart engine its own (`0.1.0`). Statements in the guide and the evidence files that record what an earlier build printed keep the number they saw. How versions advance after this one is not decided here.
 
+# The third released build is 3.0.0-alpha.2 — S27-986
+
+Target: Delivery — the release after `v3.0.0-alpha.1` (17 Nov 2026) can be published beside it. Lead, 18 Nov 2026, for Daniel to change.
+
+## INT-41 — each released build carries its own version (second step)
+
+`v3.0.0-alpha.1`'s tag is fixed like alpha.0's, so the next release's build calls itself `3.0.0-alpha.2`, in the same places as before: `Cargo.toml` (every workspace crate), `Cargo.lock`, `package.json` and `package-lock.json`. The VS Code extension, which was already `3.0.0-alpha.1` when the workspace caught up with it, now moves with the workspace to `3.0.0-alpha.2` (`packages/vscode/package.json`, its lock entry and the version its packaging check expects), so one release names one version. The chart engine keeps `0.1.0`, and records of what earlier builds printed keep their numbers. How versions advance after this one is still not decided here.
+
 # A Windows preview of the command line — S27-986
 
 Daniel, 16 November, on the open question of a Windows binary: "make windows happen using aws windows machine". ARC-67 is unanswered and its proposal says "Windows stays unsupported" and "a platform is added only together with a gate that runs on it". No Windows gate host exists, so this is built as a weaker class, a preview, and stays assumed until the lockdown owner records Daniel's answer. No accepted answer changes.
@@ -320,3 +328,91 @@ When the names cannot all stand inside, lines are named in a column at their rig
 A hidden series keeps its name inside the plot, dimmed, where its data is: right of its line's end when the refitted value axis still shows that end, and against the plot's edge on its data's side, at the right, when it does not; never on another series' line. While a series is hidden a name may stand on a steep stretch of its line, so hiding a series does not move the names out of the plot.
 
 Each frame of a zoom would place the names afresh, so they would jump. The names inside the plot fade out over 100 ms when a zoom glide starts (at once when the window jumps), stay away while the window moves, and fade in over 150 ms on the settled view once it has rested 120 ms. With reduced motion they move with the view at once (chart design, 16 November).
+
+# Hosted look — S27-986
+
+Target: Hosted app — sign-in and the pages after it read as production self-service BI software. Daniel, 17 November 2026: "the server login needs to look like a true ssbi production software using extreme modern design language, now the page after looks fairly cheap. Imagine datbaricks/pwoerbi/tawblue --> this is what we strive for". The lead chose direction B (the library) from the three on the stream's sheet on 17 November; Daniel's pick of the sheet is pending through the chief of staff. No accepted answer changes; the lockdown does not yet decide the app's look, so this proposes a card for part 06 (DEL-06).
+
+## Proposed card: the app's look (part 06)
+
+The app's pages (the signed-out pages, reports, one report, members, CLI tokens, account and the delete confirmation; hosted and self-hosted Cowork alike) are an application surface, not site pages, so STY-46's Newsreader headlines and STY-47's light-only rule govern the site and not them. They use the site's paper, ink and brand blue and Geist alone, on a fixed scale (12, 13, 14, 16 and 24 px; tabular figures), with:
+
+- a warm-ink navigation rail (the site's ink, `#1f1c19`) holding the mark in white (STY-03), the organization with its initial tile, role and switcher, the pages with their icons and Docs, and the person with Sign out at its foot; under 960 px it becomes a band with the pages as tabs;
+- a top bar with where the page is (organization / page) and a search of report titles;
+- functional stroke icons only (16 px, 1.5 px stroke, drawn for RichView) in navigation, actions and who-can-open labels, never as ornament (STY-50 unchanged);
+- 4 px controls, 12 px panels and pills for labels (STY-66); a shadow only on what floats, the organization menu (STY-37);
+- no site header or footer once signed in.
+
+The reports list is one panel: the filters as a segmented control in its head, then a table with fixed columns (name with the version's share-card thumbnail and description, who can open it, owner, updated with version and size, actions), newest first. Under 1,240 px the owner column goes; under 960 px each report is one card of its own, whose title opens the report and covers the card, with Copy link and Share behind one '⋯' menu at its top right (a details element, so it opens without script). A thumbnail is the version's kept share card (ARC-69) shrunk on the server to 120 × 63 and carried in the page as a `data:` image, so the app's CSP is unchanged; the list shows only reports the person may open, so it adds no access surface. A version without a card shows the report icon.
+
+Signed-out pages are a split sheet: on the ink side the mark, the flagship report's share card as RichView drew it, with the line "A report’s share card, drawn by RichView in the report’s own style.", three facts (private until you share them; owner, admin, author and reader roles; every version kept at its own address) and the legal links; on the paper side the form, flat. A phone stacks the mark's band, the form, the card, the facts and the legal links. A signed-out page without a form (an error, a mail to check) keeps only the mark's ink band above its message, which sits in one panel like the delete confirmation's, and the legal links below it.
+
+Who can open a report is one list of three rows (private, the organization, a public link), each with its label, what it means and its button, and the current one marked by a rule in its colour; forms and secondary buttons use the app's control height and hairline borders.
+
+An invitation's link opens the same split sheet, but its ink side holds the invitation instead of the flagship's card and the facts: a paper card with the sender's initials and name, what they did ("shared a report with you", "invited you to join"), and what it opens (the report's title and its organization, or the organization's name). It shows only what the page's own sentence already says. A phone shows the card above the form.
+
+The bar above a hosted report shows whom the report comes from as a face after the mark: the owner's initials in a circle for a report shared with you, the organization's initial in a square for one you open as a member. Its ways on (Find it again, All reports, Sign in) are buttons with the app's 4 px corners, and the author's Share is the filled one. Its words, its links and its one 44 px line on a phone are unchanged.
+
+A report's page and its delete confirmation end the top bar's crumb with the report's title (organization / Reports / title), cut off with an ellipsis when long.
+
+Usage meters are drawn as the mark's bars: a square start and a rounded end.
+
+## Decided here, for Daniel to overrule
+
+- The dark rail. Most reference products use a light grey rail (Databricks 2023 and Linear use dark ones); the rail's colour is one token, so a light rail is a one-line change.
+- The split-screen sign-in; every reference product signs in on one centred panel. Direction A on the sheet is that panel.
+- The reports list's count line ("9 reports you can open") and "Newest first" are new words; the list's order is unchanged.
+- An invitation shows the report's title, not its share card: the card would show the report's content to whoever holds the link before they have an account.
+- On a phone a report's title opens the report itself, while on a desktop it opens its details and the row's Open button opens the report; the lead asked for the phone card on 17 November.
+
+# Link cards and a gallery of pictures — S27-986
+
+Target: Sharing — a shared report unfurls as a card that looks like the report, and the docs gallery shows its charts at once. Daniel asked on 16 November that "when they share a link, I want the preview to look as cool as this does", and for the gallery's cards without live frames. These proposals stay assumed until the lockdown owner records his answers. No accepted answer is changed here.
+
+## STY-70 / FEA-SF-55 — a link card is the top of the report (proposal)
+
+A report's 1200 × 630 link card shows the report as it opens: its title, 58 px on at most two lines or else 48 px and never cut, over its first chart drawn whole, then the byline and a small RichView mark, on the report's own paper, inks and accent. A faceted chart shows its first row of panels, in its controls' first state. A report with no chart, or with a title too long to leave the chart room, keeps the title card. A company style's mark sits on its white plate above the title. The same drawing serves a hosted report's card, the app's local preview and each docs chart and report page's own og:image (`/docs/charts/<name>.share.png`, `/docs/gallery/<name>/share.png`); chart pages are drawn in Scientific, and the home page keeps its image.
+
+## ARC-69 — the latest card is drawn in today's design (amendment)
+
+A version's card is still drawn and kept beside it when it is stored, and its versioned address keeps serving that kept card, as promised. The reports list's small cards and the latest address `/r/<slug>/share.png` instead draw the card from the stored report in today's design on request, held in the server's memory and keyed by report, version and card design, so one list never mixes two looks and nothing new is written into the store (the lead, 17 November). The list waits at most 200 ms for cards it has not drawn; a card not ready by then shows the placeholder, never an older design, and is drawn for the next view.
+
+## FEA-SF-43 / STY-45 — the gallery shows pictures (amendment)
+
+The docs gallery's report cards, the Featured charts, the elements overview and the Reports page's larger previews show a picture the site build draws from the same source in the card's style, instead of a live frame; a click opens the live report. The elements overview's Type card, which is not a chart, stays a scaled live frame. A picture's alt text is the title of the chart it shows. The live frames' loading glyph and its motion are gone.
+
+# Printed values keep the label's digits, and scale words follow the locale — S27-986
+
+Okurka's charts set `digits: 3` and `readout_digits: 6`, and their printed values showed six digits, because a value on its mark printed its readout's text. Lead's approval of 17 November, 03:22, and ruling of 03:30: printed values at the label's digits, readouts at `readout_digits`, and one formatter whose scale words follow the locale for printed values, readouts and the Table view. No card decides the scale words; this proposal stands until the lockdown owner records Daniel's answer.
+
+## FEA-CH-37 — a printed value never shows the readout's extra digits (clarification)
+
+An automatic value printed on its mark (a bar's, a line's or area's, a combo's, a treemap tile's, a bullet's measure, a dumbbell's ends, a financial chart's last close, a box plot's median, a density's peak, a gauge's centre) shows the label's digits: the axis's `digits`, else the chart's, three by default, with whole numbers below 10,000 printed whole (FEA-CH-22). Its readout shows `readout_digits`. A chart with one precision prints what its readout says, as before.
+
+## FEA-CH-37 / TYP-08 — scale words follow the report's locale (addition)
+
+A compact value (from 10,000, or from 1,000 under `format: number_compact`) takes the scale words of its axis's locale, else the report's, in printed values, readouts and the Table view alike, so one chart never shows two forms: English `thousand`, `million`, `billion`, `trillion`; Czech `tis.`, `mil.`, `mld.`, `bil.` (`280,5 mil. Kč`); German `Tsd.`, `Mio.`, `Mrd.`, `Bio.` (`280,5 Mio.`); Japanese keeps the English words for now. Beyond the last word a value turns scientific, as before. Axis ticks keep K and M in every locale (FEA-CH-22). For 10^9 and 10^12, Czech ticks write `mld.` and `bil.` and German ticks `Mrd.` and `Bio.` (`3 mld. Kč`), because the Czech bilion and the German Billion are 10^12 and `3B Kč` invites a thousandfold misreading; other locales keep B and T. Magnitude units that scale themselves (`K`, `M`, `KBD`) keep their ladder. CSV keeps plain numbers (Chart design's proposal, lead's acceptance, 17 November, 05:03).
+
+Proposal for Daniel, not built: Japanese values in myriads, `万`, `億` and `兆`, steps of 10,000 written after the number without a space (`2.81億`), with values below a myriad printed whole. It changes the scale steps, not only the words, and no reader uses ja-JP yet (lead, 17 November, 03:39).
+
+# Members and smooth publishing — S27-986
+
+Target: the members area at the Hosted look's production bar, its phone design awesome rather than merely fitting, and publishing smooth from an author's first `richview publish` to a colleague opening the link (Daniel, 17 November, through the chief of staff). No accepted answer changes. This extends the proposed card "the app's look" under "Hosted look — S27-986" above (DEL-06).
+
+## Proposed addition to the app's look (part 06)
+
+The members page is one panel in the reports list's language. Owners and admins invite from a bar in its head: the address, the role as segments (reader first) whose meaning shows beneath, and one primary button. A table follows with each person's initials, name and address, their role, how many of the organization's reports they own (owners and admins only), the day they joined and a ⋯ menu; open invitations follow under "Invited" in the same table, with who invited them and until when, and Send again and Cancel in the row. A role is a chip whose menu lists the roles the person looking may give, each with one line on what it can do and the current one ticked; one click on another saves it. Removing a member waits in ⋯ behind a confirmation that says what happens: access ends at once, their reports pass to the person removing them and their CLI tokens for the organization stop working. "Organization settings" in the page head leads to the organization's section on the same page: its name (owners rename it in place), its usage (for those who publish, as on the reports list) and leaving it, whose confirmation names who takes the person's reports, the longest-standing other owner, or says that an only owner cannot leave. On a phone each person is one row with 44 px targets, and the role and ⋯ menus are sheets at the bottom of the screen over a dimmed page that a tap outside closes. Every menu is a details element and every choice a submit button, so the page works without script.
+
+A person in no organization who has reports shared with them reads them first: starting an organization of their own waits behind one line under the list, and the line goes while an invitation to join waits.
+
+The command line's publish result names the report's page in the app for a hosted address, where people are named and who can open it is chosen: a `Share:` line under Visibility, and `share` in the JSON result (additive; the MCP tool's description names it). On a terminal it says "Publishing <report> to <server>…" before the upload. A version that exists with other content is answered with the next patch to write (`version: 0.0.2`).
+
+Someone who makes an account from a share mail lands on the report itself: the report's page in the app, where the form's redirect has to stay under `form-action 'self'`, sends the browser on with an HTTP refresh to `/r/<key>`, whose handoff to the report origin already exists. No route or CSP change. The first Reports page tells an owner whose organization still carries its sign-up name ("Jana Novak’s organization") where to rename it.
+
+## Decided here, for Daniel to overrule
+
+- One page for members, invitations and the organization's settings, with the settings one click away by an anchor, rather than a Settings page of its own (a route) or tabs.
+- Removal and leaving confirm in place, inside the menu or the settings row, not on a page of their own (a route).
+- The report counts, the join day and usage on the members page are new facts there; nothing new is shown to someone who could not see it before (counts only to owners and admins, usage only to those who publish).
+- The invitation's hint gives the link's 24 hours, as its mail does; it said an hour.
+- The lead's GO of 18 November built the forward to the report, `share` in the publish JSON and the rename line; asking for the organization's name at sign-up waits for Daniel's open questions on the sign-up flow.

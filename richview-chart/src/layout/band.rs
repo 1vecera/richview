@@ -309,6 +309,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     String::new()
                 };
                 lines.push(ReadoutLine {
+                    label: None,
                     name: format!("{prefix}Upper"),
                     value: numbers::value(p.upper, &readout),
                     series: Some(g),
@@ -317,6 +318,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 });
                 if let (Some(c), Some(f)) = (p.centre, &y_field) {
                     lines.push(ReadoutLine {
+                        label: None,
                         name: format!("{prefix}{}", block.y.label.clone().unwrap_or_else(|| f.clone())),
                         value: numbers::value(c, &readout),
                         series: Some(g),
@@ -325,6 +327,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     });
                 }
                 lines.push(ReadoutLine {
+                    label: None,
                     name: format!("{prefix}Lower"),
                     value: numbers::value(p.lower, &readout),
                     series: Some(g),

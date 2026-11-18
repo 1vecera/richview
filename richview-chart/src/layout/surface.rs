@@ -401,6 +401,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             readout: Readout {
                 heading: format!("{xr} × {yr}"),
                 lines: vec![ReadoutLine {
+                    label: None,
                     name: block
                         .color
                         .label

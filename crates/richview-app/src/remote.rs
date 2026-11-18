@@ -135,8 +135,14 @@ mod tests {
 
     #[tokio::test]
     async fn publish_explains_a_proxy_413_without_relabeling_other_requests() {
-        use axum::{Router, http::StatusCode};
-        let app = Router::new().fallback(|| async {
+        use axum::{Router, body::Body, http::StatusCode};
+        // The stand-in proxy reads the whole request before it answers, as nginx's lingering close
+        // does. Answering first, hyper reads only what has arrived and closes the connection; a
+        // client the scheduler has not run meanwhile then writes the rest of its body into the
+        // closed connection and fails with "error sending request" (broken pipe), never seeing the
+        // 413. That is how this test flaked under load.
+        let app = Router::new().fallback(|body: Body| async move {
+            let _ = axum::body::to_bytes(body, usize::MAX).await;
             (
                 StatusCode::PAYLOAD_TOO_LARGE,
                 "Proxy says the request is too large",

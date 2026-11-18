@@ -103,8 +103,27 @@ impl Default for Format {
     }
 }
 
-const SCALE_WORDS: [&str; 5] = ["", "thousand", "million", "billion", "trillion"];
+/// The scale words of values and readouts, per locale, after the number (FEA-CH-37 as
+/// amended in ASSUMED.md): the Czech and German abbreviations, English words elsewhere.
+fn scale_words(locale: Locale) -> [&'static str; 5] {
+    match locale {
+        Locale::EnUs | Locale::EnGb | Locale::JaJp => ["", "thousand", "million", "billion", "trillion"],
+        Locale::CsCz => ["", "tis.", "mil.", "mld.", "bil."],
+        Locale::DeDe => ["", "Tsd.", "Mio.", "Mrd.", "Bio."],
+    }
+}
 const SCALE_SUFFIX: [&str; 5] = ["", "K", "M", "B", "T"];
+
+/// An axis's compact suffixes: K and M in every locale, then B and T, except where the
+/// language's own billion is 10^12. Czech and German ticks write their words for 10^9 and
+/// 10^12, so `3B Kč` is never read a thousandfold off (FEA-CH-22 as amended in ASSUMED.md).
+fn axis_suffixes(locale: Locale) -> [&'static str; 5] {
+    match locale {
+        Locale::CsCz => ["", "K", "M", " mld.", " bil."],
+        Locale::DeDe => ["", "K", "M", " Mrd.", " Bio."],
+        Locale::EnUs | Locale::EnGb | Locale::JaJp => SCALE_SUFFIX,
+    }
+}
 
 /// `value` rounded to `digits` significant digits, half away from zero, on its shortest decimal
 /// text: `1234.5` at four digits is `1235`, as the author wrote it, not the binary tie `1234`.
@@ -319,6 +338,27 @@ pub fn is_currency(unit: &str) -> bool {
     ["$", "€", "£", "¥"].iter().any(|s| unit.ends_with(s))
 }
 
+/// `v` as an automatic value prints it on its mark, when that differs from its readout text:
+/// the readout's format at the label's `digits`. The author may give readouts more digits than
+/// labels (FEA-CH-37); a printed value never shows more than the labels'. `None` when the
+/// readout has no more digits than the label, so the printed text is the readout's.
+pub fn printed(v: f64, readout: &Format, digits: u8) -> Option<String> {
+    (digits < readout.digits).then(|| {
+        value(
+            v,
+            &Format {
+                digits,
+                ..readout.clone()
+            },
+        )
+    })
+}
+
+/// `v` as its mark prints it: [`printed`]'s text, or the readout's when they agree.
+pub fn label(v: f64, readout: &Format, digits: u8) -> String {
+    printed(v, readout, digits).unwrap_or_else(|| value(v, readout))
+}
+
 /// One value as readouts, tables, metrics and CSV-adjacent text show it, with scale words.
 pub fn value(value: f64, format: &Format) -> String {
     if !value.is_finite() {
@@ -355,12 +395,13 @@ fn plain_or_scientific(v: f64, format: &Format) -> String {
 }
 
 fn compact_word(v: f64, format: &Format) -> String {
+    let words = scale_words(format.locale);
     let (k, mantissa) = scale_of(v, format.digits);
-    if k >= SCALE_WORDS.len() {
+    if k >= words.len() {
         return with_unit(&scientific(v, format.digits, format.locale), format.unit.as_deref());
     }
     let number = grouped(mantissa, decimals_of(mantissa), format.locale, true);
-    let words = format!("{number} {}", SCALE_WORDS[k]);
+    let words = format!("{number} {}", words[k]);
     with_unit(&words, format.unit.as_deref())
 }
 
@@ -415,7 +456,7 @@ pub fn axis_labels(ticks: &[f64], step: f64, format: &Format) -> Vec<String> {
                 (0, 1.0)
             };
             let decimals = step_decimals(step / scale);
-            let (magnitude_unit, suffix) = scaled_unit(unit, k);
+            let (magnitude_unit, suffix) = scaled_unit(unit, k, locale);
             // The 12-character limit measures the number; a unit's length never forces
             // scientific notation (FEA-CH-23).
             let numbers: Vec<String> = ticks
@@ -447,9 +488,10 @@ pub fn axis_labels(ticks: &[f64], step: f64, format: &Format) -> Vec<String> {
 
 /// Magnitude units scale once instead of taking a compact suffix (FEA-CH-23, TYP-23): `K`
 /// reads `M`, `M` reads `B`, `KBD` reads `MBD`. Other units keep the K, M, B suffix.
-fn scaled_unit(unit: Option<&str>, k: usize) -> (Option<String>, &'static str) {
+fn scaled_unit(unit: Option<&str>, k: usize, locale: Locale) -> (Option<String>, &'static str) {
+    let suffixes = axis_suffixes(locale);
     let Some(unit) = unit else {
-        return (None, SCALE_SUFFIX[k]);
+        return (None, suffixes[k]);
     };
     if k == 0 {
         return (Some(unit.to_owned()), "");
@@ -458,11 +500,11 @@ fn scaled_unit(unit: Option<&str>, k: usize) -> (Option<String>, &'static str) {
         "k" | "K" => &["K", "M", "B", "T"],
         "M" => &["M", "B", "T"],
         "KBD" => &["KBD", "MBD", "BBD"],
-        _ => return (Some(unit.to_owned()), SCALE_SUFFIX[k]),
+        _ => return (Some(unit.to_owned()), suffixes[k]),
     };
     match ladder.get(k) {
         Some(next) => (Some((*next).to_owned()), ""),
-        None => (Some(unit.to_owned()), SCALE_SUFFIX[k]),
+        None => (Some(unit.to_owned()), suffixes[k]),
     }
 }
 
@@ -589,6 +631,57 @@ mod tests {
             locale: Locale::CsCz,
         };
         assert_eq!(value(1234.0, &cz), "1\u{a0}234\u{a0}Kč");
+    }
+
+    #[test]
+    fn scale_words_follow_the_locale() {
+        let at = |locale: Locale, unit: Option<&str>, v: f64| {
+            value(
+                v,
+                &Format {
+                    kind: Kind::NumberCompact,
+                    unit: unit.map(Into::into),
+                    digits: 4,
+                    locale,
+                },
+            )
+        };
+        assert_eq!(at(Locale::CsCz, Some("Kč"), 280_512_345.0), "280,5 mil.\u{a0}Kč");
+        assert_eq!(
+            [12_345.0, 4.5e6, 7.25e9, 1.5e12].map(|v| at(Locale::CsCz, None, v)),
+            ["12,35 tis.", "4,5 mil.", "7,25 mld.", "1,5 bil."]
+        );
+        assert_eq!(
+            [12_345.0, 4.5e6, 7.25e9, 1.5e12].map(|v| at(Locale::DeDe, None, v)),
+            ["12,35 Tsd.", "4,5 Mio.", "7,25 Mrd.", "1,5 Bio."]
+        );
+        // Axis ticks keep K and M everywhere; Czech and German write their own words for 10^9
+        // and 10^12, where their billion is 10^12.
+        let axis = |locale: Locale, unit: Option<&str>, ticks: [f64; 3]| {
+            let f = Format {
+                kind: Kind::NumberCompact,
+                unit: unit.map(Into::into),
+                digits: 3,
+                locale,
+            };
+            axis_labels(&ticks, ticks[1] - ticks[0], &f)
+        };
+        let billions = [0.0, 1.5e9, 3e9];
+        let trillions = [0.0, 1.5e12, 3e12];
+        assert_eq!(
+            axis(Locale::CsCz, Some("Kč"), billions),
+            ["0", "1,5 mld.\u{a0}Kč", "3,0 mld.\u{a0}Kč"]
+        );
+        assert_eq!(axis(Locale::CsCz, None, trillions), ["0", "1,5 bil.", "3,0 bil."]);
+        assert_eq!(axis(Locale::DeDe, None, billions), ["0", "1,5 Mrd.", "3,0 Mrd."]);
+        assert_eq!(axis(Locale::DeDe, None, trillions), ["0", "1,5 Bio.", "3,0 Bio."]);
+        assert_eq!(axis(Locale::EnGb, None, billions), ["0", "1.5B", "3.0B"]);
+        assert_eq!(axis(Locale::EnUs, None, trillions), ["0", "1.5T", "3.0T"]);
+        assert_eq!(axis(Locale::JaJp, None, billions), ["0", "1.5B", "3.0B"]);
+        assert_eq!(axis(Locale::CsCz, None, [0.0, 1.5e6, 3e6]), ["0", "1,5M", "3,0M"]);
+        // Japanese keeps the English words for now; myriads are only proposed (ASSUMED.md).
+        assert_eq!(at(Locale::JaJp, None, 280_512_345.0), "280.5 million");
+        assert_eq!(at(Locale::EnGb, None, 4.5e6), "4.5 million");
     }
 
     #[test]

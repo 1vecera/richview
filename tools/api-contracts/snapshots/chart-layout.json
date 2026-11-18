@@ -191,7 +191,8 @@
           "pub value : String",
           "# [ serde ( skip_serializing_if = \"Option::is_none\" ) ] pub series : Option < usize >",
           "# [ serde ( skip_serializing_if = \"std::ops::Not::not\" ) ] pub names_series : bool",
-          "# [ serde ( skip_serializing_if = \"std::ops::Not::not\" ) ] pub derived : bool"
+          "# [ serde ( skip_serializing_if = \"std::ops::Not::not\" ) ] pub derived : bool",
+          "# [ serde ( skip ) ] pub label : Option < String >"
         ],
         "privateFields": false
       },
@@ -217,6 +218,21 @@
             "name": "series",
             "kind": "fn",
             "declaration": "pub fn series ( & self ) - > Option < usize >"
+          }
+        ]
+      },
+      {
+        "name": "impl ReadoutLine",
+        "kind": "impl",
+        "types": [
+          "ReadoutLine"
+        ],
+        "declaration": "impl ReadoutLine",
+        "members": [
+          {
+            "name": "printed",
+            "kind": "fn",
+            "declaration": "pub fn printed ( & self ) - > & str"
           }
         ]
       }

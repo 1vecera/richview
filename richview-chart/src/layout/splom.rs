@@ -319,6 +319,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     heading: field.clone(),
                     lines: vec![
                         ReadoutLine {
+                            label: None,
                             name: "Smallest".into(),
                             value: extreme_text[k][0].clone(),
                             series: None,
@@ -326,6 +327,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                             derived: false,
                         },
                         ReadoutLine {
+                            label: None,
                             name: "Largest".into(),
                             value: extreme_text[k][1].clone(),
                             series: None,
@@ -384,6 +386,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     heading: format!("{} and {}", dims[c], dims[r]),
                     lines: vec![
                         ReadoutLine {
+                            label: None,
                             name: "Correlation".into(),
                             value: text,
                             series: None,
@@ -391,6 +394,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                             derived: true,
                         },
                         ReadoutLine {
+                            label: None,
                             name: "Rows".into(),
                             value: numbers::value(visible.len() as f64, &count_format),
                             series: None,
@@ -453,6 +457,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     &block.encoding.color,
                 ) {
                     lines.push(ReadoutLine {
+                        label: None,
                         name: super::cartesian::readable_name(field),
                         value: groups[g].clone(),
                         series: Some(g),
@@ -465,6 +470,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                         continue;
                     }
                     lines.push(ReadoutLine {
+                        label: None,
                         name: super::cartesian::readable_name(&dims[k]),
                         value: numbers::value(record.values[k], &readout),
                         series: None,

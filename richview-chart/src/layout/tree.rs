@@ -162,6 +162,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             let mut lines = Vec::new();
             if let Some(g) = n.given {
                 lines.push(ReadoutLine {
+                    label: None,
                     name: value_field.clone(),
                     value: numbers::value(g, &readout),
                     series: Some(slot),
@@ -170,6 +171,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 });
             }
             lines.push(ReadoutLine {
+                label: None,
                 name: "Children".into(),
                 value: n.children.len().to_string(),
                 series: None,

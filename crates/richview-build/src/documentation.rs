@@ -497,6 +497,16 @@ fn stage_report_gallery(
             ));
         }
         let html = render_page(&wrapper, name, Place::Report(name), charts, flags)?;
+        let byline = front_value(&source, "author").unwrap_or_else(|| EXAMPLE_BYLINE.to_owned());
+        let html = own_preview(
+            &html,
+            &folder.join("share.png"),
+            &format!("/docs/gallery/{name}/share.png"),
+            &title,
+            &byline,
+            previews::style(name),
+            &rendered.charts,
+        )?;
         fs::write(folder.join("index.html"), html)?;
     }
     Ok(())
@@ -558,35 +568,51 @@ fn grammar_label(grammar: richview_core::StyleGrammar) -> String {
     }
 }
 
-/// Embed the actual export, so each report keeps its own style and working interactions.
+/// Each report on the Reports page: a picture of its first chart, drawn by the build from the
+/// report, which opens the live report like the button under it. The two block tours embed their
+/// complete export, which no picture can stand for.
 fn report_frames(html: &str) -> String {
     let mut html = html.to_owned();
+    let picture = |name: &str, title: &str, live: &str| {
+        format!(
+            "<div class=\"docs-report-preview__viewport\"><a href=\"{live}\">{}</a></div>",
+            previews::picture_img(
+                &previews::picture_src(
+                    &format!("report-{name}"),
+                    previews::style(name),
+                    previews::PAGE
+                ),
+                title,
+                previews::PAGE
+            )
+        )
+    };
     // The flagship opens on its showcase page, where the reader can switch its style.
     let url = previews::FLAGSHIP_URL;
     html = html.replace(
         &format!("<p>{{{{report:{}}}}}</p>", previews::FLAGSHIP),
         &format!(
-            "<div class=\"docs-report-preview\"><div class=\"docs-report-preview__viewport\"><iframe loading=\"lazy\" title=\"Live report: {name}\" src=\"/docs/previews/report-{name}/{style}.html#rv-chart-0\" sandbox=\"allow-scripts allow-downloads\" data-docs-preview></iframe></div><div class=\"docs-actions\"><a class=\"docs-button\" href=\"{url}\">Open live report</a><a class=\"docs-button docs-button--secondary\" href=\"{url}report.rmd\">Rich Markdown source</a><a href=\"{url}ledger/sources.csv\">Sources</a></div></div>",
-            name = previews::FLAGSHIP,
-            style = previews::style(previews::FLAGSHIP)
+            "<div class=\"docs-report-preview\">{}<div class=\"docs-actions\"><a class=\"docs-button\" href=\"{url}\">Open live report</a><a class=\"docs-button docs-button--secondary\" href=\"{url}report.rmd\">Rich Markdown source</a><a href=\"{url}ledger/sources.csv\">Sources</a></div></div>",
+            picture(previews::FLAGSHIP, previews::FLAGSHIP_TITLE, url)
         ),
     );
     for &(name, _) in REPORTS {
         let marker = format!("<p>{{{{report:{name}}}}}</p>");
         let url = format!("/docs/gallery/{name}");
+        let live = format!("{url}/Rendered/report.html");
         let preview = if matches!(name, "blocks" | "typography") {
             format!(
-                "<iframe loading=\"lazy\" title=\"Live report: {name}\" src=\"{url}/Rendered/report.html\" sandbox=\"allow-scripts allow-downloads\"></iframe>"
+                "<iframe loading=\"lazy\" title=\"Live report: {name}\" src=\"{live}\" sandbox=\"allow-scripts allow-downloads\"></iframe>"
             )
         } else {
-            format!(
-                "<div class=\"docs-report-preview__viewport\"><iframe title=\"Live report: {}\" data-src=\"/docs/previews/report-{name}/{style}.html#rv-chart-0\" sandbox=\"allow-scripts allow-downloads\" data-docs-preview></iframe></div>",
-                escape(name),
-                style = previews::style(name)
-            )
+            let title = previews::REPORT_CARDS
+                .iter()
+                .find(|(card, _, _)| *card == name)
+                .map_or(name, |(_, title, _)| title);
+            picture(name, title, &live)
         };
         let frame = format!(
-            "<div class=\"docs-report-preview\">{preview}<div class=\"docs-actions\"><a class=\"docs-button\" href=\"{url}/Rendered/report.html\">Open live report</a><a class=\"docs-button docs-button--secondary\" href=\"{url}/report.rmd\">Rich Markdown source</a><a href=\"{url}/\">Data &amp; credits</a></div></div>"
+            "<div class=\"docs-report-preview\">{preview}<div class=\"docs-actions\"><a class=\"docs-button\" href=\"{live}\">Open live report</a><a class=\"docs-button docs-button--secondary\" href=\"{url}/report.rmd\">Rich Markdown source</a><a href=\"{url}/\">Data &amp; credits</a></div></div>"
         );
         html = html.replace(&marker, &frame);
     }
@@ -1089,6 +1115,17 @@ fn stage_gallery(
             &options,
             flags,
         )?;
+        let shown = richview_core::document::render(&featured, &options)
+            .map_err(|errors| format!("Featured {slug} preview: {errors:?}"))?;
+        let html = own_preview(
+            &html,
+            &folder.join(format!("{slug}.share.png")),
+            &format!("/docs/charts/{slug}.share.png"),
+            label,
+            EXAMPLE_BYLINE,
+            "scientific",
+            &shown.charts,
+        )?;
         fs::write(folder.join(format!("{slug}.html")), html)?;
         fs::write(folder.join(format!("{slug}.md")), featured)?;
     }
@@ -1127,6 +1164,18 @@ fn stage_gallery(
             Place::ChartType(&page.name),
             charts,
             flags,
+        )?;
+        let example =
+            richview_core::document::render(&example_source(page), &documentation_options())
+                .map_err(|errors| format!("Chart {} preview: {errors:?}", page.name))?;
+        let html = own_preview(
+            &html,
+            &folder.join(format!("{}.share.png", page.name)),
+            &format!("/docs/charts/{}.share.png", page.name),
+            &page.title,
+            EXAMPLE_BYLINE,
+            "scientific",
+            &example.charts,
         )?;
         fs::write(folder.join(format!("{}.html", page.name)), html)?;
         // The playground and the page's Open link load the example from its own report folder.
@@ -1193,6 +1242,42 @@ fn style_frame(chart: &str) -> String {
 }
 
 /// The report the playground opens for a chart type: its frontmatter and live example.
+/// The home image every site page names until it has its own (FEA-SF-55).
+const HOME_PREVIEW: &str =
+    "<meta property=\"og:image\" content=\"https://richview.ai/share/home.png\" />";
+/// The byline of the site's own example reports on their cards.
+const EXAMPLE_BYLINE: &str = "RichView example";
+
+/// A page that is a report or a chart is its own link preview (FEA-SF-55; Daniel, 16 Nov 2026:
+/// "when they share a link, I want the preview to look as cool as this does"): the top of the
+/// report, drawn by this build beside the page from the charts it renders, names the page in
+/// place of the home image.
+fn own_preview(
+    html: &str,
+    file: &Path,
+    url: &str,
+    title: &str,
+    byline: &str,
+    style: &str,
+    charts: &[serde_json::Value],
+) -> Result<String> {
+    if !html.contains(HOME_PREVIEW) {
+        return Err(format!("{url} names no home preview to replace").into());
+    }
+    fs::write(
+        file,
+        richview_share::card_png(title, byline, style, charts)?,
+    )?;
+    Ok(html.replacen(
+        HOME_PREVIEW,
+        &format!(
+            "<meta property=\"og:image\" content=\"https://richview.ai{url}\" />\n\t\t<meta property=\"og:image:alt\" content=\"{}\" />",
+            escape(&richview_share::alt_text(title, byline))
+        ),
+        1,
+    ))
+}
+
 fn example_source(page: &ChartPage) -> String {
     format!(
         "---\ntitle: {}\nstyles: [scientific]\n---\n\n{}\n\n*Source: fictional inline example data.*\n",
@@ -1797,8 +1882,41 @@ mod tests {
         assert!(root.join(previews::FLAGSHIP_COVER).is_file());
         let html = report_frames("<p>{{report:openai-vs-anthropic}}</p>");
         assert!(html.contains("href=\"/showcase/openai-vs-anthropic/\">Open live report</a>"));
-        assert!(html.contains("src=\"/docs/previews/report-openai-vs-anthropic/"));
+        assert!(html.contains("<a href=\"/showcase/openai-vs-anthropic/\"><img src=\"/docs/previews/report-openai-vs-anthropic/sleek-page.png\" alt=\"The Most Expensive Race Ever Run\" width=\"1000\" height=\"750\""));
         assert!(!html.contains("{{report:"));
+    }
+
+    #[test]
+    fn a_chart_or_report_page_names_its_own_card_instead_of_the_home_image() {
+        let page = chrome::share_metadata(
+            "<html><head><title>Line chart</title></head><body></body></html>",
+        );
+        let dir = tempfile::tempdir().unwrap();
+        let file = dir.path().join("line.share.png");
+        let source = "---\ntitle: Line\nstyles: [scientific]\n---\n\n```chart\ntype: line\ntitle: Rates\ndata:\n  inline:\n    - {month: 1, rate: 1}\n    - {month: 2, rate: 3}\nencoding: {x: month, y: rate}\n```\n";
+        let charts = richview_core::document::render(source, &documentation_options())
+            .unwrap()
+            .charts;
+        let html = own_preview(
+            &page,
+            &file,
+            "/docs/charts/line.share.png",
+            "Line chart",
+            EXAMPLE_BYLINE,
+            "scientific",
+            &charts,
+        )
+        .unwrap();
+        assert!(html.contains("<meta property=\"og:image\" content=\"https://richview.ai/docs/charts/line.share.png\" />"));
+        assert!(html.contains(
+            "<meta property=\"og:image:alt\" content=\"Line chart, by RichView example\" />"
+        ));
+        assert!(
+            !html.contains("share/home.png") && html.contains("og:image:width\" content=\"1200\"")
+        );
+        assert_eq!(&fs::read(&file).unwrap()[1..4], b"PNG");
+        // A page without the home image is a page that names its own: it is refused, not changed.
+        assert!(own_preview(&html, &file, "/x", "X", "", "scientific", &charts).is_err());
     }
 
     #[test]

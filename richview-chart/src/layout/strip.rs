@@ -396,6 +396,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     },
                 });
                 let mut lines = vec![ReadoutLine {
+                    label: None,
                     name: title.clone(),
                     value: numbers::value(p.value, &readout),
                     series: Some(group),
@@ -404,6 +405,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 }];
                 if multi && x_field.is_some() && categories[category] != groups[group] {
                     lines.push(ReadoutLine {
+                        label: None,
                         name: block
                             .encoding
                             .color

@@ -269,6 +269,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             let base = ctx.series_color(b.group);
             let readout_lines = {
                 let mut lines = vec![ReadoutLine {
+                    label: None,
                     name: block
                         .y
                         .label
@@ -286,6 +287,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     lines.insert(
                         0,
                         ReadoutLine {
+                            label: None,
                             name: super::cartesian::readable_name(field),
                             value: groups[b.group].clone(),
                             series: Some(b.group),
@@ -295,6 +297,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     );
                 }
                 lines.push(ReadoutLine {
+                    label: None,
                     name: "Share".into(),
                     value: share.clone(),
                     series: None,

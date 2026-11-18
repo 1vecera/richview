@@ -163,12 +163,13 @@ export async function verifyRuntimeAccess(browser, { engine, dir, evidence }) {
       });
       await runStage('runtime access: gallery', async () => {
         await page.goto(`${base}/docs/`, { waitUntil: 'domcontentloaded' });
-        // The flagship leads the grid with a cover image (c8b65e10); the first live preview is the card after it.
-        const selector = '.docs-report-grid .docs-chart-card--flagship + article iframe[data-docs-preview]';
-        const frame = page.locator(selector);
-        await frame.scrollIntoViewIfNeeded();
-        if (!await waitForInlineRuntime(selector, 'runtime access: gallery')) return false;
-        await frame.contentFrame().locator('canvas').first().waitFor();
+        // A gallery card is a picture the build draws (16 Nov 2026), so it needs no runtime and no
+        // frame: the card after the flagship's cover loads its picture behind the same gate.
+        const picture = page.locator('.docs-report-grid .docs-chart-card--flagship + article .docs-thumbnail > img');
+        await picture.scrollIntoViewIfNeeded();
+        assert.match(await picture.getAttribute('src'), /^\/docs\/previews\/report-[\w-]+\/[\w-]+-card\.png$/, 'A gallery card shows its built picture');
+        await page.waitForFunction(selector => document.querySelector(selector)?.naturalWidth > 0, '.docs-report-grid .docs-chart-card--flagship + article .docs-thumbnail > img');
+        assert.equal(await page.locator('.docs-report-grid iframe').count(), 0, 'No gallery card is a live frame');
         return true;
       });
       assert.ok(authenticatedRuntime.some(path => /^\/docs\/runtime\/.+\/richview_runtime\.js$/.test(path)), 'Docs runtime script carried the cookie');

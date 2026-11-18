@@ -2,7 +2,9 @@
    report's own page, ink, rule, link and interface font from the variables the report sets on :root, with
    RichView's paper and ink where a report has none, so it belongs to the page in every theme, light or dark.
    Every rule sits under .rv-host-bar so the report's styles and the bar's never meet. It is static at the
-   top: it scrolls away with the page and never covers the report. Under 640px it keeps to one 44px line:
+   top: it scrolls away with the page and never covers the report. Whom the report comes from shows as a face
+   after the mark, as the app shows people and organizations, and the ways on are buttons in the app's 4px
+   corners, the next step filled. Under 640px it keeps to one 44px line:
    the .rv-wide clauses give way to the .rv-narrow ones, and what still does not fit ends in an ellipsis. */
 .rv-host-bar { all: initial; display: block; box-sizing: border-box; width: 100%; background: #f2eee7; background: color-mix(in oklch, var(--rv-bg, #faf9f6) 95%, var(--rv-ink, #1f1c19)); border-bottom: 1px solid var(--rv-rule, #ddd5c9); color: var(--rv-ink, #1f1c19); font: 400 13.5px/1.4 var(--rv-font-ui, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif); -webkit-font-smoothing: antialiased; }
 .rv-host-bar *, .rv-host-bar *::before { box-sizing: border-box; }
@@ -11,22 +13,27 @@
 .rv-host-bar .rv-says { display: flex; align-items: center; gap: 10px; min-width: 0; margin: 0; }
 .rv-host-bar svg { flex: none; width: 16px; height: 16px; color: var(--rv-link, #1a6dac); }
 .rv-host-bar strong { font-weight: 600; }
+.rv-host-bar .rv-sep { flex: none; width: 1px; height: 18px; background: var(--rv-rule, #ddd5c9); }
+.rv-host-bar .rv-face { display: inline-grid; place-items: center; flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--rv-link, #1a6dac); color: var(--rv-bg, #fff); font-size: 10.5px; font-weight: 600; line-height: 1; letter-spacing: .02em; }
+.rv-host-bar .rv-face--org { border-radius: 5px; }
 .rv-host-bar .rv-soft { color: var(--rv-ink-soft, #5e5750); }
 .rv-host-bar .rv-narrow { display: none; }
 .rv-host-bar .rv-vis { display: inline-flex; align-items: center; gap: 5px; margin-left: 4px; padding: 1px 8px 1px 7px; border: 1px solid var(--rv-rule, #ddd5c9); border-radius: 999px; background: var(--rv-bg, #fffefb); font-weight: 600; font-size: 12px; white-space: nowrap; vertical-align: 1px; }
 .rv-host-bar .rv-vis::before { content: ""; width: 7px; height: 7px; border: 1.5px solid var(--rv-ink-soft, #5e5750); border-radius: 50%; }
 .rv-host-bar .rv-go { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
-.rv-host-bar a { display: inline-flex; align-items: center; min-height: 32px; color: var(--rv-link, #155a8f); font-weight: 600; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; white-space: nowrap; }
-.rv-host-bar a:hover { color: var(--rv-ink, #1f1c19); }
+.rv-host-bar a { display: inline-flex; align-items: center; min-height: 30px; padding: 0 12px; border: 1px solid var(--rv-rule, #ddd5c9); border-radius: 4px; background: var(--rv-bg, #fffefb); color: var(--rv-ink, #1f1c19); font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap; transition: border-color 150ms ease-out, background-color 150ms ease-out; }
+.rv-host-bar a:hover { border-color: var(--rv-ink-soft, #5e5750); color: var(--rv-ink, #1f1c19); }
 .rv-host-bar a:focus-visible { outline: 2px solid var(--rv-link, #1a6dac); outline-offset: 2px; border-radius: 4px; }
-.rv-host-bar a.rv-pill { min-height: 30px; padding: 0 12px; border-radius: 999px; background: var(--rv-link, #1a6dac); color: var(--rv-bg, #fff); text-decoration: none; }
-.rv-host-bar a.rv-pill:hover { background: var(--rv-ink, #155a8f); color: var(--rv-bg, #fff); }
+.rv-host-bar a.rv-pill { border-color: var(--rv-link, #1a6dac); background: var(--rv-link, #1a6dac); color: var(--rv-bg, #fff); }
+.rv-host-bar a.rv-pill:hover { border-color: var(--rv-ink, #155a8f); background: var(--rv-ink, #155a8f); color: var(--rv-bg, #fff); }
 @media (max-width: 639px) {
   .rv-host-bar { font-size: 13px; }
   .rv-host-bar .rv-in { flex-wrap: nowrap; gap: 14px; height: 44px; padding-top: 0; padding-bottom: 0; }
   .rv-host-bar .rv-says { flex: 1 1 auto; gap: 8px; }
-  .rv-host-bar .rv-says > span { display: block; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .rv-host-bar .rv-says > span:last-child { display: block; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .rv-host-bar .rv-go { flex: none; flex-wrap: nowrap; }
+  .rv-host-bar .rv-sep { display: none; }
+  .rv-host-bar a { padding: 0 10px; }
   .rv-host-bar .rv-wide { display: none; }
   .rv-host-bar .rv-narrow { display: inline; }
 }

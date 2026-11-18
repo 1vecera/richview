@@ -128,6 +128,8 @@ fn paint(ctx: &mut Ctx, facets: &Facets, glyph: Glyph) -> Painted {
     }
     let fields: Vec<String> = fields.into_iter().flatten().collect();
     let readout = block.readout_format(&block.y, ctx.locale);
+    // Automatic values print at the label's digits; the readout may carry more (FEA-CH-37).
+    let digits = block.label_digits(&block.y);
     let label_format = block.label_format(&block.y, ctx.locale);
     let source = ctx.rows;
     let mut failures: Vec<Option<String>> = vec![None; facets.len()];
@@ -322,7 +324,7 @@ fn paint(ctx: &mut Ctx, facets: &Facets, glyph: Glyph) -> Painted {
         closing
             .iter()
             .zip(&panels_candles)
-            .filter_map(|(c, candles)| c.map(|c| ctx.text_width(&numbers::value(candles[c].close, &readout))))
+            .filter_map(|(c, candles)| c.map(|c| ctx.text_width(&numbers::label(candles[c].close, &readout, digits))))
             .fold(0.0f64, f64::max)
     } else {
         0.0
@@ -422,6 +424,7 @@ fn paint(ctx: &mut Ctx, facets: &Facets, glyph: Glyph) -> Painted {
                 }
             }
             let given = |name: &str, v: f64| ReadoutLine {
+                label: numbers::printed(v, &readout, digits),
                 name: name.into(),
                 value: numbers::value(v, &readout),
                 series: None,
@@ -453,6 +456,7 @@ fn paint(ctx: &mut Ctx, facets: &Facets, glyph: Glyph) -> Painted {
                             ..given("Close", s.close)
                         },
                         ReadoutLine {
+                            label: None,
                             name: "Change".into(),
                             value: change_text,
                             series: Some(slot),
@@ -472,7 +476,7 @@ fn paint(ctx: &mut Ctx, facets: &Facets, glyph: Glyph) -> Painted {
         // none.
         let plot = frame.plot;
         let value = last.map(|(slot, observation, close, edge)| {
-            let text = numbers::value(close, &readout);
+            let text = numbers::label(close, &readout, digits);
             let [x, y] = frame.pt(edge + 4.0, close);
             let ink = ctx.style.ink;
             let mut place = if frame.horizontal {

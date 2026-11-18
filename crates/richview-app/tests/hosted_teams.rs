@@ -768,7 +768,7 @@ async fn an_invitee_who_is_signed_in_joins_from_the_reports_page_and_nobody_else
         host.get(&me("eve"), "/")
             .await
             .body
-            .contains("org-name\">Acme")
+            .contains("app-org__name\"><strong>Acme")
     );
 }
 
@@ -1269,7 +1269,11 @@ async fn a_person_in_two_organizations_switches_between_them_and_tokens_follow_t
     let first = host.get(&dual, "/").await;
     assert!(first.body.contains("href=\"/reports/aaaa0001/areport\""));
     assert!(!first.body.contains("breport"));
-    assert!(first.body.contains("value=\"aaaa0001\" selected"));
+    assert!(
+        first
+            .body
+            .contains("value=\"aaaa0001\" aria-current=\"true\"")
+    );
 
     let switched = host.post(&dual, "/ui/organization", &[("org", B)]).await;
     assert_eq!(switched.status, StatusCode::SEE_OTHER);
@@ -1277,7 +1281,11 @@ async fn a_person_in_two_organizations_switches_between_them_and_tokens_follow_t
     let second = host.get(&dual, "/").await;
     assert!(second.body.contains("href=\"/reports/bbbb0002/breport\""));
     assert!(!second.body.contains("areport"));
-    assert!(second.body.contains("value=\"bbbb0002\" selected"));
+    assert!(
+        second
+            .body
+            .contains("value=\"bbbb0002\" aria-current=\"true\"")
+    );
 
     // A token made now is for the organization in view, and the page lists only that one's.
     let made = host.post(&dual, "/ui/tokens", &[("name", "laptop")]).await;
@@ -1302,7 +1310,7 @@ async fn a_person_in_two_organizations_switches_between_them_and_tokens_follow_t
         host.get(&dual, "/")
             .await
             .body
-            .contains("value=\"bbbb0002\" selected")
+            .contains("value=\"bbbb0002\" aria-current=\"true\"")
     );
 
     host.post(&dual, "/ui/organization", &[("org", A)]).await;
@@ -1343,7 +1351,7 @@ async fn a_person_in_no_organization_can_create_one_and_a_person_who_owns_one_ca
         "Lone Studio"
     );
     let list = host.get(&lone, "/").await;
-    assert!(list.body.contains("org-name\">Lone Studio"));
+    assert!(list.body.contains("app-org__name\"><strong>Lone Studio"));
     assert!(!list.body.contains("Create organization"));
 
     // One organization of their own is the limit, whether they made it or were given it.
@@ -1701,8 +1709,8 @@ fn row_for_invitation(body: &str, address: &str) -> String {
     let at = body
         .find(&format!("<strong>{address}</strong>"))
         .unwrap_or_else(|| panic!("no invitation row for {address}"));
-    let start = body[..at].rfind("<li>").unwrap();
-    let end = at + body[at..].find("</li>").unwrap() + "</li>".len();
+    let start = body[..at].rfind("<tr").unwrap();
+    let end = at + body[at..].find("</tr>").unwrap() + "</tr>".len();
     // The expiry and the identifier differ by nature; the wording must not.
     let row = blank(&body[start..end], address);
     let id = between(&row, "/invitations/", "/resend").to_owned();
@@ -1837,6 +1845,18 @@ async fn a_new_person_accepting_a_share_link_is_signed_in_with_that_one_report_a
     );
     assert_eq!(joined.notice(), "This report was shared with you.");
     let fiona = host.login_from(&joined);
+    // That page sends the browser on to the report in a navigation of its own; the page reached
+    // any other way stays put.
+    let landed = host.get(&fiona, &joined.location()).await;
+    assert_eq!(landed.status, StatusCode::OK);
+    assert_eq!(landed.headers["refresh"], "0; url=/r/aaaa0001/q3");
+    assert!(
+        !host
+            .get(&fiona, "/reports/aaaa0001/q3")
+            .await
+            .headers
+            .contains_key("refresh")
+    );
     let id = host.id_of("fresh@example.test");
     assert!(host.access.memberships_for(&id).is_empty());
     assert_eq!(host.access.acl("aaaa0001/q3").grants[0].user, id);

@@ -521,6 +521,7 @@ fn histogram(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)]) -> Painted 
                 });
                 if keys.len() > 1 {
                     lines.push(ReadoutLine {
+                        label: None,
                         name: ctx.series[g].name.clone(),
                         value: numbers::value(measure_of(*count, *total, b), &readout_y),
                         series: Some(g),
@@ -533,6 +534,7 @@ fn histogram(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)]) -> Painted 
             lines.insert(
                 0,
                 ReadoutLine {
+                    label: None,
                     name: measure_name.into(),
                     value: numbers::value(value, &readout_y),
                     series: None,
@@ -1269,7 +1271,7 @@ fn grouped(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)], kind: Kind2) 
             }
         }
         let mut observations = Vec::new();
-        // Each box with its median: observation, group, readout text, the box's span across the
+        // Each box with its median: observation, group, printed text, the box's span across the
         // category axis and the median's position (FEA-CH-28, chart design 16 Nov 2026).
         let mut boxes: Vec<(usize, usize, String, [f64; 2], f64)> = Vec::new();
         for s in slots.iter() {
@@ -1349,6 +1351,7 @@ fn grouped(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)], kind: Kind2) 
                     let f = &readout;
                     let lines = vec![
                         ReadoutLine {
+                            label: None,
                             name: "Observations".into(),
                             value: sum.count.to_string(),
                             series: None,
@@ -1356,6 +1359,7 @@ fn grouped(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)], kind: Kind2) 
                             derived: true,
                         },
                         ReadoutLine {
+                            label: None,
                             name: "Upper whisker".into(),
                             value: text.upper_whisker.clone(),
                             series: None,
@@ -1363,6 +1367,7 @@ fn grouped(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)], kind: Kind2) 
                             derived: true,
                         },
                         ReadoutLine {
+                            label: None,
                             name: "Third quartile".into(),
                             value: text.q3.clone(),
                             series: None,
@@ -1370,6 +1375,7 @@ fn grouped(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)], kind: Kind2) 
                             derived: true,
                         },
                         ReadoutLine {
+                            label: (text.median_label != text.median).then(|| text.median_label.clone()),
                             name: "Median".into(),
                             value: text.median.clone(),
                             series: Some(s.group),
@@ -1377,6 +1383,7 @@ fn grouped(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)], kind: Kind2) 
                             derived: true,
                         },
                         ReadoutLine {
+                            label: None,
                             name: "First quartile".into(),
                             value: text.q1.clone(),
                             series: None,
@@ -1384,6 +1391,7 @@ fn grouped(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)], kind: Kind2) 
                             derived: true,
                         },
                         ReadoutLine {
+                            label: None,
                             name: "Lower whisker".into(),
                             value: text.lower_whisker.clone(),
                             series: None,
@@ -1392,7 +1400,8 @@ fn grouped(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)], kind: Kind2) 
                         },
                     ];
                     let area = span(c0, c1, sum.lower_whisker, sum.upper_whisker);
-                    boxes.push((index, s.group, text.median.clone(), [c0, c1], vmap(sum.median)));
+                    // A median prints at the label's digits; its readout may carry more (FEA-CH-37).
+                    boxes.push((index, s.group, text.median_label.clone(), [c0, c1], vmap(sum.median)));
                     observations.push(Observation {
                         row: None,
                         dots: vec![],
@@ -1433,6 +1442,7 @@ fn grouped(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)], kind: Kind2) 
                             readout: Readout {
                                 heading: format!("{heading} · row {}", o + 1),
                                 lines: vec![ReadoutLine {
+                                    label: None,
                                     name: title.clone(),
                                     value: numbers::value(v, f),
                                     series: Some(s.group),
@@ -1480,6 +1490,7 @@ fn grouped(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)], kind: Kind2) 
                     }
                     let mut lines = vec![
                         ReadoutLine {
+                            label: None,
                             name: "Upper".into(),
                             value: numbers::value(b, &readout),
                             series: None,
@@ -1487,6 +1498,7 @@ fn grouped(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)], kind: Kind2) 
                             derived: false,
                         },
                         ReadoutLine {
+                            label: None,
                             name: "Lower".into(),
                             value: numbers::value(a, &readout),
                             series: None,
@@ -1498,6 +1510,7 @@ fn grouped(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)], kind: Kind2) 
                         lines.insert(
                             1,
                             ReadoutLine {
+                                label: None,
                                 name: block.y.label.clone().unwrap_or_else(|| y_field.clone()),
                                 value: numbers::value(e, &readout),
                                 series: Some(s.group),

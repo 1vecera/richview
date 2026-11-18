@@ -216,7 +216,7 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
-      "description": "Publishes a version of the report to the named RichView server. The token comes from the host environment (RICHVIEW_TOKEN), never from arguments. Same result as `richview publish`.",
+      "description": "Publishes a version of the report to the named RichView server. The token comes from the host environment (RICHVIEW_TOKEN), never from arguments. Its result has slug, version, url, permalink and, from a hosted server, share: the report's page in the app, where people are named and who can open it is chosen. Same result as `richview publish`.",
       "inputSchema": {
         "additionalProperties": false,
         "properties": {

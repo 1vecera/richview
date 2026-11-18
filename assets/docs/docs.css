@@ -1051,9 +1051,9 @@ body.docs-page .docs-chart-card__link:focus-visible {
 	outline-offset: -3px;
 	border-radius: 0;
 }
-/* A preview is the report's own page set on the docs' paper, with no border or panel around it
-   (Daniel, 16 Nov: the reports looked odd inside boxes). The raised paper shows only while the
-   frame loads. */
+/* A card's picture is the report's first chart on its own paper, drawn by the build (Daniel,
+   16 Nov: a static picture, not live reports loading one by one). The box keeps its size, and the
+   raised paper shows, while the picture loads. */
 .docs-thumbnail {
 	position: relative;
 	aspect-ratio: 1000 / 620;
@@ -1070,52 +1070,28 @@ body.docs-page .docs-chart-card__link:focus-visible {
 	height: 100%;
 	object-fit: contain;
 }
-.docs-thumbnail iframe,
-.docs-report-preview .docs-report-preview__viewport iframe {
-	width: 1000px;
-	height: 750px;
+.docs-thumbnail > img,
+.docs-report-preview__viewport img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: top left;
+}
+.docs-report-preview__viewport > a {
+	display: block;
+	height: 100%;
+}
+/* The typography sample is the one live frame: shown once the docs script has scaled it. */
+.docs-thumbnail iframe {
 	max-width: none;
 	border: 0;
 	transform-origin: top left;
 	visibility: hidden;
-}
-.docs-thumbnail iframe {
 	pointer-events: none;
 }
-/* Preview frames load progressively (preview_frames.rs): a frame shows once it is scaled and
-   loaded, and until then its box shows the tiny chart that marks loading (STY-45), fading in only
-   when loading takes longer than 300 ms. */
-.docs-thumbnail iframe[data-docs-scaled][data-docs-state="loaded"],
-.docs-report-preview .docs-report-preview__viewport iframe[data-docs-scaled][data-docs-state="loaded"] {
+.docs-thumbnail iframe[data-docs-scaled] {
 	visibility: visible;
-}
-.docs-report-preview__viewport {
-	position: relative;
-}
-.docs-thumbnail:has(> iframe[data-docs-preview]:not([data-docs-state="loaded"]))::before,
-.docs-report-preview__viewport:has(> iframe[data-docs-preview]:not([data-docs-state="loaded"]))::before {
-	content: "";
-	position: absolute;
-	left: 50%;
-	top: 50%;
-	width: 22px;
-	height: 18px;
-	margin: -9px 0 0 -11px;
-	color: var(--soft);
-	background:
-		linear-gradient(currentColor, currentColor) 0 100% / 4px 40% no-repeat,
-		linear-gradient(currentColor, currentColor) 50% 100% / 4px 70% no-repeat,
-		linear-gradient(currentColor, currentColor) 100% 100% / 4px 100% no-repeat;
-	opacity: 0;
-	pointer-events: none;
-	animation: docs-loading-in 200ms var(--ease-out) 300ms forwards, docs-loading 0.8s var(--ease-move) 300ms infinite alternate;
-}
-@keyframes docs-loading-in {
-	to { opacity: 0.6; }
-}
-@keyframes docs-loading {
-	from { background-size: 4px 30%, 4px 90%, 4px 50%; }
-	to { background-size: 4px 90%, 4px 40%, 4px 100%; }
 }
 body.docs-page .rv-report__body .docs-chart-card h3 {
 	max-width: none;
@@ -1565,10 +1541,6 @@ body.docs-page .docs-feedback__form:not([hidden]) {
 	}
 	.docs-styles__frame.is-swapped {
 		animation: none;
-	}
-	.docs-thumbnail::before,
-	.docs-report-preview__viewport::before {
-		animation-iteration-count: 1, 0 !important;
 	}
 }
 @media print {

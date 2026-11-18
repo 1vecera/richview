@@ -388,6 +388,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             let mut lines = Vec::new();
             if let Some(v) = a.value {
                 lines.push(ReadoutLine {
+                    label: None,
                     name: block
                         .color
                         .label
@@ -400,6 +401,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 });
             }
             lines.push(ReadoutLine {
+                label: None,
                 name: "Direction".into(),
                 value: numbers::value(a.angle, &angle_format),
                 series: None,

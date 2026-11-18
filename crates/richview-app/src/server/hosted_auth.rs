@@ -342,10 +342,10 @@ async fn accept_invitation(state: &AppState, token: &str, form: &LinkForm) -> Re
             );
             let target = match (&accepted.landing, &accepted.session) {
                 // The report lives on another origin, and a browser does not follow a form
-                // there under `form-action 'self'`: land on the report's page here, one click
-                // from the report itself.
+                // there under `form-action 'self'`: land on the report's page here, which sends
+                // the browser on to the report in a navigation of its own (`open`).
                 (Landing::Report(key), Some(_)) => {
-                    format!("/reports/{key}?m=This%20report%20was%20shared%20with%20you.")
+                    format!("/reports/{key}?m=This%20report%20was%20shared%20with%20you.&open=1")
                 }
                 (Landing::Report(key), None) => format!(
                     "/?m=Accepted.%20Sign%20in%20to%20open%20the%20report.&next={}",

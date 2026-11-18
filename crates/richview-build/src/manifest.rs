@@ -35,20 +35,73 @@ fn hash(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 
-/// Records source identity and the tools actually invoked, without absolute checkout paths.
-pub fn inputs(root: &Path, binder: Option<&str>) -> Result<Value> {
+/// The raw Cargo Wasm modules a build binds: `--wasm-from` takes exactly these instead of building
+/// them, so one platform's build can embed the Wasm another platform built.
+pub const RAW_WASM: [&str; 3] = ["docs.wasm", "richview_runtime.wasm", "richview_site.wasm"];
+
+/// Checks that `dir` holds exactly the raw Wasm modules a build binds, each a regular Wasm file,
+/// and returns its canonical path. Any other, missing or extra file refuses the folder, so a build
+/// never mixes its own Wasm with someone else's.
+pub fn wasm_from(dir: &Path) -> Result<std::path::PathBuf> {
+    let dir = dir
+        .canonicalize()
+        .map_err(|error| format!("--wasm-from {}: {error}", dir.display()))?;
+    let mut names = fs::read_dir(&dir)?
+        .map(|entry| Ok(entry?.file_name().to_string_lossy().into_owned()))
+        .collect::<Result<Vec<_>>>()?;
+    names.sort();
+    if names != RAW_WASM {
+        return Err(format!(
+            "--wasm-from {} must hold exactly {}; it holds {}",
+            dir.display(),
+            RAW_WASM.join(", "),
+            if names.is_empty() {
+                "nothing".into()
+            } else {
+                names.join(", ")
+            }
+        )
+        .into());
+    }
+    for name in RAW_WASM {
+        let path = dir.join(name);
+        if !fs::symlink_metadata(&path)?.is_file() || !fs::read(&path)?.starts_with(b"\0asm") {
+            return Err(format!("--wasm-from {name} is not a regular Wasm module").into());
+        }
+    }
+    Ok(dir)
+}
+
+/// The size and SHA-256 of each module in a `--wasm-from` folder, by file name.
+fn wasm_record(dir: &Path) -> Result<Value> {
+    let mut record = BTreeMap::new();
+    for name in RAW_WASM {
+        let bytes = fs::read(dir.join(name))?;
+        record.insert(name, json!({"bytes": bytes.len(), "sha256": hash(&bytes)}));
+    }
+    Ok(json!(record))
+}
+
+/// Records source identity and the tools actually invoked, without absolute checkout paths. A
+/// build that took its Wasm from another build (`--wasm-from`) also records those modules' hashes;
+/// an ordinary build's record has no such entry.
+pub fn inputs(root: &Path, binder: Option<&str>, wasm_from: Option<&Path>) -> Result<Value> {
     let mut config = BTreeMap::new();
     for path in ["Cargo.lock", "package-lock.json", "rust-toolchain.toml"] {
         config.insert(path, hash(&fs::read(root.join(path))?));
     }
-    Ok(json!({
+    let mut record = json!({
         "commit": text(root, "git", &["rev-parse", "HEAD"] )?,
         "source_diff_sha256": hash(&output(root, "git", &["diff", "--binary", "HEAD", "--"])?),
         "dirty": !output(root, "git", &["status", "--porcelain", "--untracked-files=normal"] )?.is_empty(),
         "rustc": text(root, "rustc", &["--version"] )?,
         "wasm_bindgen": binder.map(|program| text(root, program, &["--version"])).transpose()?,
         "config": config,
-    }))
+    });
+    if let Some(dir) = wasm_from {
+        record["wasm_from"] = wasm_record(dir)?;
+    }
+    Ok(record)
 }
 
 fn collect(
@@ -87,9 +140,10 @@ pub fn write(
     target: &Path,
     mode: &str,
     binder: Option<&str>,
+    wasm_from: Option<&Path>,
     before: &Value,
 ) -> Result<()> {
-    if &inputs(root, binder)? != before {
+    if &inputs(root, binder, wasm_from)? != before {
         return Err("build inputs changed while staging; rerun the build (ARC-46)".into());
     }
     if mode == "full" {
@@ -183,6 +237,108 @@ mod tests {
         assert_eq!(
             entries["checkout:artifact"],
             json!({"bytes": 3, "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"})
+        );
+        fs::remove_dir_all(folder).unwrap();
+    }
+
+    const MODULE: &[u8] = b"\0asm\x01\0\0\0";
+
+    /// A test folder's files: name and bytes.
+    type Files<'a> = Vec<(&'a str, &'a [u8])>;
+
+    /// A fresh folder under the checkout's tmp/ holding `files`.
+    fn wasm_folder(name: &str, files: &[(&str, &[u8])]) -> std::path::PathBuf {
+        let folder = Path::new(env!("CARGO_MANIFEST_DIR")).join(format!(
+            "../../tmp/wasm-from-test-{name}-{}",
+            std::process::id()
+        ));
+        if folder.exists() {
+            fs::remove_dir_all(&folder).unwrap();
+        }
+        fs::create_dir_all(&folder).unwrap();
+        for (file, bytes) in files {
+            fs::write(folder.join(file), bytes).unwrap();
+        }
+        folder
+    }
+
+    #[test]
+    fn wasm_from_takes_only_a_folder_of_exactly_the_three_raw_modules() {
+        let three = [
+            ("docs.wasm", MODULE),
+            ("richview_runtime.wasm", MODULE),
+            ("richview_site.wasm", MODULE),
+        ];
+        let folder = wasm_folder("exact", &three);
+        assert_eq!(wasm_from(&folder).unwrap(), folder.canonicalize().unwrap());
+        fs::remove_dir_all(folder).unwrap();
+
+        let refused: [(&str, Files, &str); 5] = [
+            (
+                "missing",
+                three[..2].to_vec(),
+                "it holds docs.wasm, richview_runtime.wasm",
+            ),
+            (
+                "extra",
+                [&three[..], &[("richview_runtime_bg.wasm", MODULE)]].concat(),
+                "richview_runtime_bg.wasm",
+            ),
+            (
+                "renamed",
+                vec![three[0], three[1], ("richview_site_bg.wasm", MODULE)],
+                "it holds docs.wasm, richview_runtime.wasm, richview_site_bg.wasm",
+            ),
+            ("empty", vec![], "it holds nothing"),
+            (
+                "not-wasm",
+                vec![
+                    three[0],
+                    ("richview_runtime.wasm", &b"\x1f\x8b\x08"[..]),
+                    three[2],
+                ],
+                "richview_runtime.wasm is not a regular Wasm module",
+            ),
+        ];
+        for (name, files, message) in refused {
+            let folder = wasm_folder(name, &files);
+            let error = wasm_from(&folder).unwrap_err().to_string();
+            assert!(error.contains(message), "{name}: {error}");
+            fs::remove_dir_all(folder).unwrap();
+        }
+        let error = wasm_from(Path::new("tmp/wasm-from-test-absent")).unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .starts_with("--wasm-from tmp/wasm-from-test-absent: ")
+        );
+    }
+
+    #[test]
+    fn build_inputs_record_the_wasm_from_hashes_and_only_when_given() {
+        let folder = wasm_folder(
+            "record",
+            &[
+                ("docs.wasm", MODULE),
+                ("richview_runtime.wasm", &b"\0asm\x01\0\0\0runtime"[..]),
+                ("richview_site.wasm", MODULE),
+            ],
+        );
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let module = json!({"bytes": 8, "sha256": "93a44bbb96c751218e4c00d479e4c14358122a389acca16205b1e4d0dc5f9476"});
+        assert_eq!(
+            inputs(&root, None, Some(&folder)).unwrap()["wasm_from"],
+            json!({
+                "docs.wasm": module,
+                "richview_runtime.wasm": {"bytes": 15, "sha256": "f952c231e01c8e682b08f85d85870c3315470a644f4dc9a2aba58e02a61b50be"},
+                "richview_site.wasm": module,
+            })
+        );
+        assert!(
+            inputs(&root, None, None)
+                .unwrap()
+                .get("wasm_from")
+                .is_none()
         );
         fs::remove_dir_all(folder).unwrap();
     }

@@ -209,6 +209,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     stacked += 1;
                 }
                 lines.push(ReadoutLine {
+                    label: None,
                     name: if multi {
                         groups[g].clone()
                     } else {

@@ -1029,6 +1029,7 @@ pub(super) fn paint_flows(ctx: &mut Ctx, facets: &Facets, flows: &[Result<Flow, 
                 obs: Some(obs),
             });
             let mut lines = vec![ReadoutLine {
+                label: None,
                 name: look.value_name.clone(),
                 value: texts.links[li][0].clone(),
                 series: Some(l.slot),
@@ -1037,6 +1038,7 @@ pub(super) fn paint_flows(ctx: &mut Ctx, facets: &Facets, flows: &[Result<Flow, 
             }];
             if let (Some(group_name), Some(group)) = (&look.group_name, &l.group) {
                 lines.push(ReadoutLine {
+                    label: None,
                     name: group_name.clone(),
                     value: group.clone(),
                     series: None,
@@ -1050,6 +1052,7 @@ pub(super) fn paint_flows(ctx: &mut Ctx, facets: &Facets, flows: &[Result<Flow, 
             {
                 if !text.is_empty() {
                     lines.push(ReadoutLine {
+                        label: None,
                         name: name.into(),
                         value: text.clone(),
                         series: None,
@@ -1098,6 +1101,7 @@ pub(super) fn paint_flows(ctx: &mut Ctx, facets: &Facets, flows: &[Result<Flow, 
             });
             let [through, input, output, share] = &texts.nodes[k];
             let mut lines = vec![ReadoutLine {
+                label: None,
                 name: look.value_name.clone(),
                 value: through.clone(),
                 series: n.slot,
@@ -1107,6 +1111,7 @@ pub(super) fn paint_flows(ctx: &mut Ctx, facets: &Facets, flows: &[Result<Flow, 
             for (name, text) in [("In", input), ("Out", output), (look.share_name, share)] {
                 if !text.is_empty() {
                     lines.push(ReadoutLine {
+                        label: None,
                         name: name.into(),
                         value: text.clone(),
                         series: None,

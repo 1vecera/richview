@@ -447,6 +447,12 @@ impl ChartBlock {
         }
     }
 
+    /// The significant digits an automatic value prints with on a value axis or channel: the
+    /// axis's own, else the chart's (FEA-CH-37). Readouts may carry more.
+    pub fn label_digits(&self, axis: &Axis) -> u8 {
+        axis.digits.unwrap_or(self.digits)
+    }
+
     /// Readout format for a value axis or channel: the author's readout precision (FEA-CH-37).
     pub fn readout_format(&self, axis: &Axis, locale: Locale) -> Format {
         Format {

@@ -445,6 +445,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             let mut readout_lines = Vec::new();
             if let (true, Some(field)) = (multi && t.label != groups[g], &block.encoding.color) {
                 readout_lines.push(ReadoutLine {
+                    label: None,
                     name: super::cartesian::readable_name(field),
                     value: groups[g].clone(),
                     series: Some(g),
@@ -453,6 +454,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 });
             }
             readout_lines.push(ReadoutLine {
+                label: None,
                 name: "Start".into(),
                 value: when(t.start),
                 series: None,
@@ -460,6 +462,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 derived: false,
             });
             readout_lines.push(ReadoutLine {
+                label: None,
                 name: "End".into(),
                 value: when(t.end),
                 series: None,
@@ -470,6 +473,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             if let Some(value) = duration {
                 computed = true;
                 readout_lines.push(ReadoutLine {
+                    label: None,
                     name: "Duration".into(),
                     value,
                     series: None,

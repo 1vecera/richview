@@ -505,6 +505,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)]) -> 
                         readout: Readout {
                             heading: format!("{} · {}", columns[cell.column], lines[cell.line]),
                             lines: vec![ReadoutLine {
+                                label: None,
                                 name: value_name.clone(),
                                 value: read,
                                 series: None,

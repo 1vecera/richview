@@ -37,6 +37,7 @@ mod tests {
 
     fn line(name: &str, derived: bool) -> ReadoutLine {
         ReadoutLine {
+            label: None,
             name: name.into(),
             value: name.into(),
             series: None,
@@ -103,6 +104,7 @@ mod tests {
     #[test]
     fn cues_name_series_only_when_they_help_distinguish_them() {
         let row = |name: &str, value: &str, slot: usize, names_series: bool| ReadoutLine {
+            label: None,
             name: name.into(),
             value: value.into(),
             series: Some(slot),

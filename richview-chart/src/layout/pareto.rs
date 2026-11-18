@@ -337,6 +337,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                 }
             }
             let mut lines = vec![ReadoutLine {
+                label: None,
                 name: title.clone(),
                 value: numbers::value(b.value, &readout),
                 series: Some(0),
@@ -358,6 +359,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     obs: Some(observations.len()),
                 });
                 lines.push(ReadoutLine {
+                    label: None,
                     name: "Share".into(),
                     value: ranking.shares.get(c).cloned().unwrap_or_default(),
                     series: Some(0),
@@ -365,6 +367,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                     derived: true,
                 });
                 lines.push(ReadoutLine {
+                    label: None,
                     name: cumulative.clone(),
                     value: ranking.running.get(c).cloned().unwrap_or_default(),
                     series: Some(1),

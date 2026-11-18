@@ -726,7 +726,7 @@ Agents parse this output, so its shape is part of the format. INT-81 (D-AGENT-CO
 | `generate` | `{ok, output, blocks, diagnostics, renderDiagnostics: {status, parse, diagnostics, charts}, interactive}`; PDF output adds `to`, `page`, `pages`, `bytes`, `browser` and `settled`, and omits `interactive` (`crates/richview-app/src/cli.rs:255`, `crates/richview-app/src/cli.rs:278`) |
 | `validate` | `{ok, blocks, diagnostics}` |
 | `check` | `{status, diagnostics, charts}`, without `ok` |
-| `publish` | The server's `{ok, slug, version, url, created, permalink}`, with `url` rewritten to the chosen server |
+| `publish` | The server's `{ok, slug, version, url, created, permalink}`, with `url` rewritten to the chosen server and, for a hosted address, `share`: the report's page in the app |
 | Any failure | `{ok: false, error, diagnostics}`: a diagnostic failure repeats the array as a string in `error`; any other failure puts text in `error` and `null` in `diagnostics` |
 
 Keys print in alphabetical order on one line, and `learn` prints plain text. Captured runs on the fixture: [validate](../lockdown/screenshots/product/cli/validate-json-fixture.txt), [check](../lockdown/screenshots/product/cli/check-json-fixture.txt) and [generate](../lockdown/screenshots/product/cli/generate-json-fixture.txt).

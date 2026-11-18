@@ -33,6 +33,9 @@
 //! changing callers.
 mod look;
 mod text;
+mod top;
+
+pub use top::{chart_picture_png, chart_picture_title};
 
 use look::{FACES, Look, PLEX, look};
 
@@ -104,7 +107,10 @@ pub fn card_png(
     card_png_with_company(title, byline, style, charts, None)
 }
 
-/// Draw a report's share card with its validated company mark when one was supplied.
+/// Draw a report's share card with its validated company mark when one was supplied. A report
+/// with a chart gets the top of the report: its title over its first chart, laid out wide and
+/// whole, on its own paper, with the byline and a small mark (Daniel, 16 Nov 2026). A report
+/// without one, or whose title leaves its chart no room, gets the title card.
 pub fn card_png_with_company(
     title: &str,
     byline: &str,
@@ -112,7 +118,35 @@ pub fn card_png_with_company(
     charts: &[serde_json::Value],
     company: Option<richview_core::CompanyBrand>,
 ) -> Result<Vec<u8>, String> {
-    render(&ShareCard {
+    raster(
+        &card_svg_with_company(title, byline, style, charts, company)?,
+        WIDTH,
+        HEIGHT,
+    )
+}
+
+/// The design of the card [`card_png_with_company`] draws. Raise it when a change to the card should
+/// reach versions whose card was drawn before it: the app keys the cards it draws again on request
+/// by this number, and keeps each version's first card for its immutable address.
+pub const CARD_DESIGN: u32 = 2;
+
+/// The card [`card_png_with_company`] draws, as SVG of [`WIDTH`] by [`HEIGHT`].
+pub fn card_svg_with_company(
+    title: &str,
+    byline: &str,
+    style: &str,
+    charts: &[serde_json::Value],
+    company: Option<richview_core::CompanyBrand>,
+) -> Result<String, String> {
+    if let Some(company) = &company {
+        check_company(company)?;
+    }
+    if let Some(svg) = top::first(charts, f64::from(WIDTH) - 2.0 * f64::from(MARGIN))
+        .and_then(|first| top::card_svg(title, byline, style, &first, company.as_ref()))
+    {
+        return Ok(svg);
+    }
+    Ok(compose(&ShareCard {
         title: title.to_owned(),
         byline: byline.to_owned(),
         style: style.to_owned(),
@@ -120,7 +154,19 @@ pub fn card_png_with_company(
         lead: chart_svg(charts).map_or(Lead::None, Lead::ChartSvg),
         company,
         ..Default::default()
-    })
+    }))
+}
+
+/// A card's SVG drawn `width` pixels wide at the card's aspect ratio, as a PNG, for a list of
+/// reports. Drawing the vector small is quicker than drawing it whole and shrinking the picture, and
+/// each thin line still lands on the pixels it covers.
+pub fn card_png_small(svg: &str, width: u32) -> Result<Vec<u8>, String> {
+    if width == 0 || width >= WIDTH {
+        return Err("A small card is narrower than its card".into());
+    }
+    let height = ((u64::from(HEIGHT) * u64::from(width) + u64::from(WIDTH) / 2) / u64::from(WIDTH))
+        .max(1) as u32;
+    raster(svg, width, height)
 }
 
 pub const WIDTH: u32 = 1200;
@@ -183,31 +229,44 @@ pub fn alt_text(title: &str, byline: &str) -> String {
 /// The card as a PNG, or why it could not be drawn.
 pub fn render(card: &ShareCard) -> Result<Vec<u8>, String> {
     if let Some(company) = &card.company {
-        for logo in [company.logo.as_ref(), company.logo_dark.as_ref()]
-            .into_iter()
-            .flatten()
+        check_company(company)?;
+    }
+    raster(&compose(card), WIDTH, HEIGHT)
+}
+
+/// A company mark is drawn only when every logo's bytes are what its metadata says.
+fn check_company(company: &richview_core::CompanyBrand) -> Result<(), String> {
+    for logo in [company.logo.as_ref(), company.logo_dark.as_ref()]
+        .into_iter()
+        .flatten()
+    {
+        let checked = richview_core::validate_company_logo(&logo.bytes)
+            .map_err(|error| format!("Company logo: {error}"))?;
+        if checked.mime != logo.mime || checked.width != logo.width || checked.height != logo.height
         {
-            let checked = richview_core::validate_company_logo(&logo.bytes)
-                .map_err(|error| format!("Company logo: {error}"))?;
-            if checked.mime != logo.mime
-                || checked.width != logo.width
-                || checked.height != logo.height
-            {
-                return Err("Company logo metadata differs from its bytes".into());
-            }
+            return Err("Company logo metadata differs from its bytes".into());
         }
     }
-    let svg = compose(card);
+    Ok(())
+}
+
+/// An SVG as a PNG of `width` by `height` pixels, scaled from the SVG's own size, with the bundled
+/// faces only.
+fn raster(svg: &str, width: u32, height: u32) -> Result<Vec<u8>, String> {
     let options = usvg::Options {
         fontdb: fonts(),
         font_family: PLEX.family.into(),
         ..usvg::Options::default()
     };
-    let tree = usvg::Tree::from_str(&svg, &options).map_err(|e| e.to_string())?;
-    let mut pixmap = tiny_skia::Pixmap::new(WIDTH, HEIGHT).ok_or("Share image has no pixels")?;
+    let tree = usvg::Tree::from_str(svg, &options).map_err(|e| e.to_string())?;
+    let mut pixmap = tiny_skia::Pixmap::new(width, height).ok_or("Share image has no pixels")?;
+    let size = tree.size();
     resvg::render(
         &tree,
-        tiny_skia::Transform::identity(),
+        tiny_skia::Transform::from_scale(
+            width as f32 / size.width(),
+            height as f32 / size.height(),
+        ),
         &mut pixmap.as_mut(),
     );
     pixmap.encode_png().map_err(|e| e.to_string())
@@ -267,7 +326,7 @@ fn compose(card: &ShareCard) -> String {
         out.push_str(&markup);
     }
     let mark = (!neutral)
-        .then(|| company_mark(card.company.as_ref(), look.dark))
+        .then(|| company_mark(card.company.as_ref(), look.dark, 72.0))
         .flatten();
     if let Some((markup, _)) = &mark {
         out.push_str(markup);
@@ -346,6 +405,7 @@ fn compose(card: &ShareCard) -> String {
 fn company_mark(
     company: Option<&richview_core::CompanyBrand>,
     dark: bool,
+    top: f32,
 ) -> Option<(String, f32)> {
     let company = company?;
     let standard = company.logo.as_ref()?;
@@ -363,10 +423,10 @@ fn company_mark(
         height = width / ratio;
     }
     let (pad_x, pad_y) = if plate { (12.0, 8.0) } else { (0.0, 0.0) };
-    let (x, y) = (MARGIN + pad_x, 72.0 + pad_y);
+    let (x, y) = (MARGIN + pad_x, top + pad_y);
     let background = if plate {
         format!(
-            "<rect x=\"{MARGIN}\" y=\"72\" width=\"{}\" height=\"{}\" rx=\"8\" fill=\"#fff\"/>",
+            "<rect x=\"{MARGIN}\" y=\"{top}\" width=\"{}\" height=\"{}\" rx=\"8\" fill=\"#fff\"/>",
             width + 2.0 * pad_x,
             height + 2.0 * pad_y
         )
@@ -537,6 +597,51 @@ fn base64(bytes: &[u8]) -> String {
         }
     }
     out
+}
+
+/// A small copy of a stored card, `width` pixels wide at the card's own aspect ratio, as a PNG, for
+/// a list of reports. The card is halved step by step before the last scale, so a chart's thin lines
+/// are averaged into the small copy rather than skipped between samples.
+pub fn thumbnail(card: &[u8], width: u32) -> Result<Vec<u8>, String> {
+    let mut image = tiny_skia::Pixmap::decode_png(card).map_err(|e| e.to_string())?;
+    if width == 0 || width >= image.width() {
+        return Err("A thumbnail is narrower than its card".into());
+    }
+    let height = ((u64::from(image.height()) * u64::from(width) + u64::from(image.width()) / 2)
+        / u64::from(image.width()))
+    .max(1) as u32;
+    // A bilinear sample at exactly half the size averages each two-by-two block.
+    while image.width() / 2 >= width && image.height() / 2 >= height {
+        let (half_width, half_height) = (image.width() / 2, image.height() / 2);
+        image = scaled(
+            &image,
+            half_width,
+            half_height,
+            tiny_skia::FilterQuality::Bilinear,
+        )?;
+    }
+    scaled(&image, width, height, tiny_skia::FilterQuality::Bicubic)?
+        .encode_png()
+        .map_err(|e| e.to_string())
+}
+
+fn scaled(
+    image: &tiny_skia::Pixmap,
+    width: u32,
+    height: u32,
+    quality: tiny_skia::FilterQuality,
+) -> Result<tiny_skia::Pixmap, String> {
+    let mut out = tiny_skia::Pixmap::new(width, height).ok_or("A thumbnail has no pixels")?;
+    let transform = tiny_skia::Transform::from_scale(
+        width as f32 / image.width() as f32,
+        height as f32 / image.height() as f32,
+    );
+    let paint = tiny_skia::PixmapPaint {
+        quality,
+        ..tiny_skia::PixmapPaint::default()
+    };
+    out.draw_pixmap(0, 0, image.as_ref(), &paint, transform, None);
+    Ok(out)
 }
 
 #[cfg(test)]

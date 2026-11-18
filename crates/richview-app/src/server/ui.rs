@@ -3,6 +3,8 @@
 //! clipboard runtime. Session changes use CSRF-protected POST forms.
 #[path = "hosted_pages.rs"]
 mod hosted_pages;
+/// The host bar draws faces as the app does.
+pub(super) use hosted_pages::initials;
 #[path = "hosted_teams.rs"]
 mod hosted_teams;
 pub use hosted_teams::*;
@@ -53,7 +55,57 @@ fn icon() -> &'static str {
 /// as the sign-in of any product people know. A page opts in by opening with the plain
 /// `cowork-auth` column; the delete confirmation adds a class and keeps the signed-in chrome.
 const AUTH_OPENING: &str = "<div class=\"cowork-auth\">";
+/// An invitation's card (`hosted_pages::accept_invite`), first in its body: the renderer lifts it
+/// onto the ink side, where it takes the place of the flagship's card and the facts.
+const INVITE_OPENING: &str = "<figure class=\"auth-invite\"";
+const INVITE_END: &str = "</figure>";
 const AUTH_FOOTER: &str = "<footer class=\"auth-foot\"><a href=\"https://richview.ai/privacy\">Privacy</a><a href=\"https://richview.ai/terms\">Terms</a><a href=\"https://richview.ai/impressum\">Impressum</a></footer>";
+
+/// What the product makes, beside every signed-out form: the flagship report's share card as
+/// RichView drew it (ARC-69), carried in the page like the mark because the app's pages allow images
+/// only from `data:`. Drawn by the release build of 681116c81e from examples/openai-vs-anthropic.
+fn auth_card() -> &'static str {
+    static CARD: OnceLock<String> = OnceLock::new();
+    CARD.get_or_init(|| {
+        format!(
+            "data:image/png;base64,{}",
+            base64::engine::general_purpose::STANDARD.encode(include_bytes!("sign-in-card.png"))
+        )
+    })
+}
+
+/// The ink side of a signed-out page: the mark home, the card and three facts about the app. The
+/// form's own words stay in the card beside it.
+fn auth_side() -> &'static str {
+    static SIDE: OnceLock<String> = OnceLock::new();
+    SIDE.get_or_init(|| {
+        let fact = |glyph: &str, words: &str| {
+            format!(
+                "<li><svg class=\"ic\" aria-hidden=\"true\"><use href=\"#i-{glyph}\"/></svg>{words}</li>"
+            )
+        };
+        format!(
+            "<aside class=\"auth-side\">{}<figure class=\"auth-show\"><img src=\"{}\" alt=\"The share card of the report The Most Expensive Race Ever Run: its title beside its first chart, a bar chart of Anthropic’s share by population.\" width=\"1200\" height=\"630\"><figcaption>A report’s share card, drawn by RichView in the report’s own style.</figcaption></figure><ul class=\"auth-facts\">{}{}{}</ul></aside>",
+            auth_header(),
+            auth_card(),
+            fact("lock", "Private until you share them"),
+            fact("users", "Owner, admin, author and reader roles"),
+            fact("report", "Every version kept at its own address")
+        )
+    })
+}
+
+/// The ink side of a signed-out page without a form, such as an error: the mark alone, so the
+/// message stands by itself.
+fn auth_plain() -> &'static str {
+    static SIDE: OnceLock<String> = OnceLock::new();
+    SIDE.get_or_init(|| {
+        format!(
+            "<aside class=\"auth-side auth-side--plain\">{}</aside>",
+            auth_header()
+        )
+    })
+}
 
 fn auth_header() -> &'static str {
     static HEAD: OnceLock<String> = OnceLock::new();
@@ -103,12 +155,62 @@ fn hosted_page(title: &str, body: &str) -> Response {
     render_page(title, body, true)
 }
 
+/// A signed-in page opens with the app's rail; its chrome ends with the top bar.
+const APP_OPENING: &str = "<aside class=\"app-rail\"";
+const APP_CHROME_END: &str = "</header>";
+
 fn render_page(title: &str, body: &str, hosted: bool) -> Response {
     let body = body.replace("<button type=", "<button class=\"docs-button\" type=");
-    let (classes, header, footer) = if body.starts_with(AUTH_OPENING) {
-        ("docs-page auth-page", auth_header(), AUTH_FOOTER)
+    let (invite, body) = body
+        .starts_with(INVITE_OPENING)
+        .then(|| body.find(INVITE_END))
+        .flatten()
+        .map_or(("", &body[..]), |end| body.split_at(end + INVITE_END.len()));
+    // Signed-out pages: the ink side, the form, the legal links. Signed-in pages: the rail and top bar
+    // the page opened with, lifted out of the content. Anything else keeps the site's chrome.
+    let app_split = body
+        .starts_with(APP_OPENING)
+        .then(|| body.find(APP_CHROME_END))
+        .flatten()
+        .map(|end| end + APP_CHROME_END.len());
+    let (classes, header, content, footer) = if body.starts_with(AUTH_OPENING) {
+        (
+            "docs-page auth-page",
+            format!(
+                "{}{}",
+                hosted_pages::ICONS,
+                if !invite.is_empty() {
+                    format!(
+                        "<aside class=\"auth-side auth-side--invite\">{}{invite}</aside>",
+                        auth_header()
+                    )
+                } else if body.contains("<form") {
+                    auth_side().to_owned()
+                } else {
+                    auth_plain().to_owned()
+                }
+            ),
+            body,
+            AUTH_FOOTER,
+        )
+    } else if let Some(end) = app_split {
+        (
+            "docs-page app-page",
+            format!(
+                "{}<a class=\"skip\" href=\"#content\">Skip to content</a>{}",
+                hosted_pages::ICONS,
+                &body[..end]
+            ),
+            &body[end..],
+            "",
+        )
     } else {
-        ("docs-page", HEADER, FOOTER)
+        ("docs-page", HEADER.to_owned(), body, FOOTER)
+    };
+    let main = if classes == "docs-page app-page" {
+        "<main class=\"cowork\" id=\"content\">"
+    } else {
+        "<main class=\"cowork\">"
     };
     let (policy, page_type, scripts) = if hosted {
         (
@@ -130,7 +232,7 @@ fn render_page(title: &str, body: &str, hosted: bool) -> Response {
             (header::CONTENT_SECURITY_POLICY, policy),
         ],
         format!(
-            "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{} · RichView</title>{}<style>{}\n{DOCS_CSS}\n{EDITORIAL_FONTS}\n{UI_FONTS}\n{}\n{COWORK_CSS}</style></head><body class=\"{classes}\"{page_type}>{header}<main class=\"cowork\">{body}</main>{footer}{scripts}</body></html>",
+            "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{} · RichView</title>{}<style>{}\n{DOCS_CSS}\n{EDITORIAL_FONTS}\n{UI_FONTS}\n{}\n{COWORK_CSS}</style></head><body class=\"{classes}\"{page_type}>{header}{main}{content}</main>{footer}{scripts}</body></html>",
             escape(title), icon(), site_rules(), display_fonts()
         ),
     )
@@ -386,6 +488,9 @@ pub struct Notice {
     /// Hosted report list: words the title must contain.
     #[serde(default)]
     q: String,
+    /// A report's page reached from its share link's new account: forward to the report itself.
+    #[serde(default)]
+    open: String,
 }
 
 /// A return address that is a report path on this host, with its query, and nothing else.
@@ -733,6 +838,7 @@ async fn hosted_index(
         stamp: String,
         updated: String,
         version: String,
+        stored_version: String,
         url: String,
         relation: Relation,
     }
@@ -818,6 +924,7 @@ async fn hosted_index(
                 } else {
                     format!("v{version}")
                 },
+                stored_version: version.to_owned(),
                 url: format!("{}/r/{}", origin.trim_end_matches('/'), report.key),
                 relation: report.relation,
                 key: report.key,
@@ -840,9 +947,23 @@ async fn hosted_index(
         }) && (needle.is_empty() || row.title.to_lowercase().contains(&needle))
     });
     rows.sort_by(|a, b| b.stamp.cmp(&a.stamp).then_with(|| a.key.cmp(&b.key)));
+    let storage = state.storage.clone();
+    let wanted: Vec<(String, String)> = rows
+        .iter()
+        .map(|row| (row.key.clone(), row.stored_version.clone()))
+        .collect();
+    let thumbs = tokio::task::spawn_blocking(move || thumbnails(&storage, &wanted, THUMB_WAIT))
+        .await
+        .unwrap_or_default();
     let reports: Vec<_> = rows
         .iter()
-        .map(|row| hosted_pages::Report {
+        .zip(
+            thumbs
+                .iter()
+                .map(|thumb| thumb.as_deref())
+                .chain(std::iter::repeat(None)),
+        )
+        .map(|(row, thumb)| hosted_pages::Report {
             key: &row.key,
             title: &row.title,
             description: &row.description,
@@ -855,6 +976,7 @@ async fn hosted_index(
             updated: &row.updated,
             version: &row.version,
             url: &row.url,
+            thumb,
         })
         .collect();
     let invitations = state.access.invitations_for(&caller.principal);
@@ -904,6 +1026,156 @@ async fn hosted_index(
         usage: usage.as_ref(),
     });
     hosted_page("Reports", &body)
+}
+
+/// The width in pixels of a report's small card in the list: twice the 60 CSS pixels it is shown at.
+const THUMB_WIDTH: u32 = 120;
+/// The most small cards the server keeps; past it the oldest go first.
+const THUMB_CACHE: usize = 1024;
+/// How long a list waits for small cards not drawn before. The rest show the placeholder and are
+/// drawn in the background, for the next view, so a list never waits on a heavy report.
+const THUMB_WAIT: std::time::Duration = std::time::Duration::from_millis(200);
+/// The most threads drawing small cards at once, over every list.
+const THUMB_WORKERS: usize = 4;
+
+type ThumbKey = (String, String, u32);
+
+/// Small cards by report, version and card design ([`richview_share::CARD_DESIGN`]). A version's
+/// card in one design never changes, so an entry stays right until it is pushed out; `None`
+/// remembers a report whose card cannot be drawn. `drawing` holds the cards a worker has taken,
+/// so two lists never draw the same card.
+struct Thumbs {
+    cards: super::reports::Recent<ThumbKey, Option<std::sync::Arc<str>>>,
+    drawing: std::collections::HashSet<ThumbKey>,
+    workers: usize,
+}
+
+fn thumbs() -> &'static std::sync::Mutex<Thumbs> {
+    static THUMBS: OnceLock<std::sync::Mutex<Thumbs>> = OnceLock::new();
+    THUMBS.get_or_init(|| {
+        std::sync::Mutex::new(Thumbs {
+            cards: super::reports::Recent::new(THUMB_CACHE),
+            drawing: std::collections::HashSet::new(),
+            workers: 0,
+        })
+    })
+}
+
+fn lock_thumbs() -> std::sync::MutexGuard<'static, Thumbs> {
+    thumbs().lock().unwrap_or_else(|e| e.into_inner())
+}
+
+/// The list's small cards as `data:` URLs, in the order of `wanted` (report key, stored version):
+/// the list page allows images only from `data:`, and it lists only reports the person may open.
+/// Each is drawn from the stored report in today's card design rather than shrunk from the card
+/// kept at publication, so one list never mixes cards drawn before a redesign with cards drawn
+/// after it, and nothing is written into the store. Cards not seen before are drawn on a few
+/// threads for at most `wait`; a card not ready by then is `None` this time.
+fn thumbnails(
+    storage: &crate::storage::FsStorage,
+    wanted: &[(String, String)],
+    wait: std::time::Duration,
+) -> Vec<Option<std::sync::Arc<str>>> {
+    let deadline = std::time::Instant::now() + wait;
+    let key = |n: usize| -> ThumbKey {
+        (
+            wanted[n].0.clone(),
+            wanted[n].1.clone(),
+            richview_share::CARD_DESIGN,
+        )
+    };
+    let (mut found, queue, spawn) = {
+        let mut state = lock_thumbs();
+        let found: Vec<Option<Option<std::sync::Arc<str>>>> = (0..wanted.len())
+            .map(|n| state.cards.get(&key(n)))
+            .collect();
+        let mut queue = std::collections::VecDeque::new();
+        for n in (0..wanted.len()).filter(|n| found[*n].is_none()) {
+            if state.drawing.insert(key(n)) {
+                queue.push_back(key(n));
+            }
+        }
+        let spawn = THUMB_WORKERS.saturating_sub(state.workers).min(queue.len());
+        if spawn == 0 {
+            // No worker is free: the cards stay undrawn, for a later view to take.
+            for item in &queue {
+                state.drawing.remove(item);
+            }
+            queue.clear();
+        }
+        state.workers += spawn;
+        (found, queue, spawn)
+    };
+    let (sender, receiver) = std::sync::mpsc::channel::<(ThumbKey, Option<std::sync::Arc<str>>)>();
+    let queue = std::sync::Arc::new(std::sync::Mutex::new(queue));
+    for _ in 0..spawn {
+        let (queue, sender, storage) = (queue.clone(), sender.clone(), storage.clone());
+        std::thread::spawn(move || {
+            loop {
+                let next = queue.lock().unwrap_or_else(|e| e.into_inner()).pop_front();
+                let Some(item) = next else { break };
+                // A report that cannot be drawn, even by a panic, gets no card and frees its worker.
+                let url = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    small_card(&storage, &item.0, &item.1)
+                }))
+                .unwrap_or(None);
+                {
+                    let mut state = lock_thumbs();
+                    state.drawing.remove(&item);
+                    state.cards.put(item.clone(), url.clone());
+                }
+                // The list may have stopped waiting; the card is kept for the next view.
+                let _ = sender.send((item, url));
+            }
+            lock_thumbs().workers -= 1;
+        });
+    }
+    drop(sender);
+    let mut waiting = found.iter().filter(|card| card.is_none()).count();
+    while waiting > 0 {
+        let Some(left) = deadline.checked_duration_since(std::time::Instant::now()) else {
+            break;
+        };
+        match receiver.recv_timeout(left) {
+            Ok((item, url)) => {
+                for (n, card) in found.iter_mut().enumerate() {
+                    if card.is_none() && key(n) == item {
+                        *card = Some(url.clone());
+                        waiting -= 1;
+                    }
+                }
+            }
+            Err(_) => break,
+        }
+    }
+    // A card another list's worker drew meanwhile counts too.
+    if waiting > 0 {
+        let state = lock_thumbs();
+        for (n, card) in found.iter_mut().enumerate() {
+            if card.is_none() {
+                *card = state.cards.get(&key(n));
+            }
+        }
+    }
+    found.into_iter().map(Option::flatten).collect()
+}
+
+/// One listed version's small card as a `data:` URL, drawn from its stored report: over its first
+/// chart when the report renders, else its title card, as its link card is drawn.
+fn small_card(
+    storage: &crate::storage::FsStorage,
+    key: &str,
+    version: &str,
+) -> Option<std::sync::Arc<str>> {
+    let report = storage.get(key, Some(version)).ok().flatten()?;
+    let svg = super::reports::share_card_svg(&report, &super::reports::charts_of(&report))
+        .or_else(|_| super::reports::share_card_svg(&report, &[]))
+        .ok()?;
+    let png = richview_share::card_png_small(&svg, THUMB_WIDTH).ok()?;
+    Some(std::sync::Arc::from(format!(
+        "data:image/png;base64,{}",
+        base64::engine::general_purpose::STANDARD.encode(png)
+    )))
 }
 
 fn owner_label(relation: crate::access::Relation, owner: &str) -> String {
@@ -1175,7 +1447,7 @@ pub async fn delete_confirmation_page(
     let title = report["frontmatter"]["title"].as_str().unwrap_or(&slug);
     hosted_page(
         "Delete report",
-        &hosted_pages::delete_confirmation(&key, title, &hosted.csrf),
+        &hosted_pages::delete_confirmation(&hosted.nav(), &key, title),
     )
 }
 
@@ -1510,11 +1782,20 @@ impl Hosted<'_> {
     fn nav(&self) -> hosted_pages::Nav<'_> {
         hosted_pages::Nav {
             name: &self.person.name,
+            email: &self.person.email,
             csrf: &self.csrf,
             org: self
                 .org
                 .as_ref()
                 .map(|org| (org.id.as_str(), org.name.as_str())),
+            role: self.role.map(|role| {
+                hosted_pages::role_label(match role {
+                    OrgRole::Owner => "owner",
+                    OrgRole::Admin => "admin",
+                    OrgRole::Author => "author",
+                    OrgRole::Reader => "reader",
+                })
+            }),
             orgs: &self.orgs,
         }
     }
@@ -1849,13 +2130,99 @@ mod hosted_response_tests {
     }
 
     #[tokio::test]
-    async fn signed_in_pages_keep_the_site_chrome() {
-        let confirmation = hosted_pages::delete_confirmation("org/report", "Q3", "csrf");
+    async fn signed_out_pages_without_a_form_show_only_the_mark_beside_the_message() {
+        let body = body_of(error_page(StatusCode::NOT_FOUND)).await;
+        assert!(
+            body.contains(
+                "<aside class=\"auth-side auth-side--plain\"><header class=\"auth-head\">"
+            )
+        );
+        // The inline stylesheet names both classes, so look for the elements.
+        assert!(!body.contains("class=\"auth-show\"") && !body.contains("class=\"auth-facts\""));
+        assert!(body.contains("<h1>Not found</h1>"));
+        let sign_in = body_of(hosted_page("Sign in", &hosted_pages::sign_in("", None))).await;
+        assert!(
+            sign_in.contains("class=\"auth-show\"")
+                && !sign_in.contains("class=\"auth-side auth-side--plain\"")
+        );
+    }
+
+    #[tokio::test]
+    async fn an_invitation_shows_what_it_opens_and_who_sent_it_beside_its_form() {
+        let invite = |report| hosted_pages::InvitePage {
+            token: "t0ken",
+            inviter: "Klára Nováková",
+            inviter_email: "klara@example.test",
+            organization: "Okurka <Retail>",
+            role: Some("a reader, who opens what is shared"),
+            report,
+            account_exists: false,
+            submitted_name: "",
+            error: "",
+        };
+        let body = body_of(hosted_page(
+            "Invitation",
+            &hosted_pages::accept_invite(&invite(Some("Backlog <fell>"))),
+        ))
+        .await;
+        let side = &body[body
+            .find("<aside class=\"auth-side auth-side--invite\">")
+            .unwrap()..body.find("</aside>").unwrap()];
+        assert!(side.contains("<span class=\"auth-invite__avatar\">KN</span><span><strong>Klára Nováková</strong><span>shared a report with you</span>"));
+        assert!(side.contains("<p class=\"auth-invite__title\">Backlog &lt;fell&gt;</p>"));
+        assert!(side.contains("Okurka &lt;Retail&gt;</p>"));
+        // The card replaces the flagship's; the form and its words stay in the main column.
+        assert!(!body.contains("class=\"auth-show\"") && !body.contains("class=\"auth-facts\""));
+        let main = &body[body.find("<main").unwrap()..];
+        assert!(main.contains("<div class=\"cowork-auth\"><h1>Open the shared report</h1>"));
+        assert!(!main.contains("class=\"auth-invite__title\""));
+        let join = body_of(hosted_page(
+            "Invitation",
+            &hosted_pages::accept_invite(&invite(None)),
+        ))
+        .await;
+        assert!(join.contains("<span>invited you to join</span>"));
+        assert!(join.contains("<p class=\"auth-invite__title\">Okurka &lt;Retail&gt;</p>"));
+        assert!(!join.contains("class=\"auth-invite__org\""));
+    }
+
+    #[tokio::test]
+    async fn signed_in_pages_get_the_apps_rail_instead_of_the_sites_chrome() {
+        let nav = hosted_pages::Nav {
+            name: "Alex",
+            email: "alex@example.test",
+            csrf: "csrf",
+            org: Some(("ab123456", "Acme")),
+            role: Some("Owner"),
+            orgs: &[],
+        };
+        let confirmation = hosted_pages::delete_confirmation(&nav, "org/report", "Q3");
         let body = body_of(hosted_page("Delete report", &confirmation)).await;
-        assert!(body.contains("<body class=\"docs-page\" data-richview-page=\"docs\">"));
-        assert!(body.contains("class=\"nav__links\""));
-        assert!(body.contains(">Third-party notices</a>"));
-        assert!(!body.contains("<footer class=\"auth-foot\""));
+        assert!(body.contains("<body class=\"docs-page app-page\" data-richview-page=\"docs\">"));
+        // The rail and top bar sit beside the content, which the skip link reaches first.
+        let main = body.find("<main class=\"cowork\" id=\"content\">").unwrap();
+        assert!(body.find("<aside class=\"app-rail\"").unwrap() < main);
+        assert!(body.find("<header class=\"app-top\"").unwrap() < main);
+        assert!(body.find("href=\"#content\">Skip to content</a>").unwrap() < main);
+        assert!(body[main..].contains("Delete report?"));
+        assert!(body.contains("<symbol id=\"i-report\""));
+        assert!(!body.contains("class=\"nav__links\""));
+        assert!(!body.contains(">Third-party notices</a>"));
+        assert!(!body.contains("<footer"));
+    }
+
+    #[tokio::test]
+    async fn signed_out_pages_show_what_the_app_makes_beside_the_form() {
+        let body = body_of(hosted_page("Sign in", &hosted_pages::sign_in("", None))).await;
+        let side = &body
+            [body.find("<aside class=\"auth-side\">").unwrap()..body.find("</aside>").unwrap()];
+        assert!(side.contains("<img src=\"data:image/png;base64,iVBOR"));
+        assert!(
+            side.contains("alt=\"The share card of the report The Most Expensive Race Ever Run")
+        );
+        assert_eq!(side.matches("<li>").count(), 3);
+        // The form comes after the side in reading order, inside the page's main landmark.
+        assert!(body.find("</aside>").unwrap() < body.find("<main class=\"cowork\">").unwrap());
     }
 
     #[test]
@@ -1879,5 +2246,47 @@ mod hosted_response_tests {
             .unwrap();
         assert!(!policy.contains("script-src"));
         assert!(!response.headers().contains_key(header::REFERRER_POLICY));
+    }
+
+    #[test]
+    fn a_listed_reports_small_card_is_drawn_in_todays_design_not_shrunk_from_its_kept_card() {
+        use super::super::reports::{charts_of, draw_share_card, share_card_svg};
+        let dir = tempfile::tempdir().unwrap();
+        let storage = crate::storage::FsStorage::new(dir.path()).unwrap();
+        let source = "---\ntitle: T\nstyles: [sleek]\n---\n\n```chart\ntype: bar\ntitle: Share\ndata:\n  inline:\n    - { year: \"2023\", share: 3.0 }\n    - { year: \"2024\", share: 18.2 }\nencoding: { x: year, y: share }\n```\n";
+        let report: crate::storage::StoredReport = serde_json::from_value(serde_json::json!({
+            "slug": "small-card-today", "version": "1.0.0", "source": source, "html": "<html>chart</html>",
+            "frontmatter": { "title": "T", "styles": ["sleek"] }, "createdAt": "now",
+            "reportFolder": { "root": "card-fixture", "source": "report.rmd", "files": ["report.rmd"] },
+        }))
+        .unwrap();
+        storage.put_version(report.clone()).unwrap();
+        // The card kept at publication in an earlier design; the title card stands in for it.
+        let kept = draw_share_card(&report, &[]).unwrap();
+        storage
+            .put_share_card("small-card-today", "1.0.0", &kept)
+            .unwrap();
+        let data = |png: &[u8]| {
+            format!(
+                "data:image/png;base64,{}",
+                base64::engine::general_purpose::STANDARD.encode(png)
+            )
+        };
+        let today = richview_share::card_png_small(
+            &share_card_svg(&report, &charts_of(&report)).unwrap(),
+            THUMB_WIDTH,
+        )
+        .unwrap();
+        let shrunk = richview_share::thumbnail(&kept, THUMB_WIDTH).unwrap();
+        let wanted = [
+            ("small-card-today".to_owned(), "1.0.0".to_owned()),
+            ("small-card-gone".to_owned(), "1.0.0".to_owned()),
+        ];
+        for _ in 0..2 {
+            let urls = thumbnails(&storage, &wanted, std::time::Duration::from_secs(60));
+            assert_eq!(urls[0].as_deref(), Some(data(&today).as_str()));
+            assert_ne!(urls[0].as_deref(), Some(data(&shrunk).as_str()));
+            assert_eq!(urls[1], None, "a version that is not stored has no card");
+        }
     }
 }
