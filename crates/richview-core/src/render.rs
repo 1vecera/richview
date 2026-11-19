@@ -262,6 +262,11 @@ fn render_document_internal(
     let mut resolved = style::resolve_styles(&refs, &mut doc.diagnostics);
     style::embed_brand_fonts(&mut resolved, &options.data, &mut doc.diagnostics);
     let company = crate::resolve_company_brand(&resolved, &options.data, &mut doc.diagnostics);
+    let background_picture = crate::company_brand::read_background_picture(
+        &resolved,
+        &options.data,
+        &mut doc.diagnostics,
+    );
     style::shift_style_paths(&mut doc.diagnostics[first..], default_below);
     for d in &mut doc.diagnostics[first..] {
         if let Some((_, file)) = files.iter().find(|(index, _)| {
@@ -370,12 +375,52 @@ fn render_document_internal(
             [first, second, ..] => [*first, *second],
         },
         pdf: pdf.then(|| [width, options.page.text_area().1]),
+        stacked: None,
     };
     let failed_prefix = crate::parser::failed_prefix(
         doc.block_placeholder_prefix
             .as_deref()
             .unwrap_or(crate::parser::BLOCK_PLACEHOLDER_PREFIX),
     );
+    // A chart in a column is laid out at its column's width (FEA-RP-68), so the first paint
+    // matches the runtime's first layout; a phone stacks the columns and keeps the phone width.
+    let block_prefix = doc
+        .block_placeholder_prefix
+        .clone()
+        .unwrap_or_else(|| crate::parser::BLOCK_PLACEHOLDER_PREFIX.to_owned());
+    let placements = crate::columns::placements(&doc.body, &block_prefix, doc.blocks.len());
+    let line_px = body_line_px(&resolved);
+    let page_height = options.page.text_area().1;
+    let column_context = |placement: &crate::columns::Placement| {
+        let inset = style::frame_inset_px(&resolved.document);
+        let options = &placement.options;
+        let container = if options.wide {
+            desktop_column(&resolved.document)
+        } else {
+            figure_width(&resolved)
+        };
+        let desktop = options
+            .column_px(placement.column, container, line_px)
+            .round()
+            - inset;
+        // Between a phone and the width where the columns stand side by side they stack, and a
+        // chart takes the whole container: the box it reserves there comes from a layout at the
+        // widest stacked container, so a tablet does not stretch the side-by-side box (the
+        // window is the container plus the report's 24 px gutters).
+        let stack = options.stack_px(line_px);
+        let stacked = (container >= stack).then(|| (stack.floor() - inset, stack + 48.0));
+        // Paper sets type at its own scale, so its gaps are the printed line's.
+        let paper = pdf.then(|| {
+            [
+                options
+                    .column_px(placement.column, width, line_px * style::PRINT_TYPE_SCALE)
+                    .floor(),
+                page_height,
+            ]
+        });
+        (desktop, paper, stacked)
+    };
+    let mut column_css = String::new();
     let mut bodies = Vec::with_capacity(doc.blocks.len());
     let mut block_bytes = 0usize;
     let mut charts = vec![];
@@ -417,13 +462,30 @@ fn render_document_internal(
         } else if block.tag == "chart" {
             let (rows, order) = chart_rows(&block.value);
             let id = format!("rv-chart-{i}");
+            let in_column = placements.get(i).cloned().flatten().map(|placement| {
+                let (desktop, paper, stacked) = column_context(&placement);
+                if let Some((_, window)) = stacked.filter(|_| !pdf) {
+                    // Up to where the columns stand side by side, and at least to the phone
+                    // width under which they always stack (columns.css).
+                    let below = (window - 0.02).max(640.0);
+                    column_css.push_str(&format!(
+                        "@media screen and (min-width:601px) and (max-width:{below:.2}px){{#{id} .rv-chart__frame{{aspect-ratio:var(--rv-ratio-stacked,var(--rv-ratio))}}}}\n"
+                    ));
+                }
+                figure::Context {
+                    widths: [figure_context.widths[0], desktop],
+                    pdf: paper.or(figure_context.pdf),
+                    stacked: if pdf { None } else { stacked.map(|(width, _)| width) },
+                    ..figure_context
+                }
+            });
             let figure = figure::chart(
                 &block.value,
                 &rows,
                 &order,
                 &id,
                 block.line,
-                &figure_context,
+                in_column.as_ref().unwrap_or(&figure_context),
             );
             doc.diagnostics.extend(figure.diagnostics);
             charts.extend(figure.payload);
@@ -606,12 +668,27 @@ fn render_document_internal(
         .block_placeholder_prefix
         .clone()
         .unwrap_or_else(|| crate::parser::BLOCK_PLACEHOLDER_PREFIX.to_owned());
+    let collapsed: Vec<(usize, &str)> = doc
+        .frontmatter
+        .get("collapsed_sections")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .enumerate()
+        .filter_map(|(index, value)| value.as_str().map(|anchor| (index, anchor)))
+        .collect();
+    let heading_marker = placeholder.replacen("block:", "heading:", 1);
+    let mut encoded_sections: std::collections::HashSet<String> = collapsed
+        .iter()
+        .map(|(_, anchor)| markdown::heading_marker_id(anchor))
+        .collect();
     let body_line = doc.body_line;
     let markdown_body = markdown::markdown_html(
         &doc.body,
         options,
         &markdown::Context {
             heading_ids: &heading_ids,
+            section_markers: !collapsed.is_empty(),
             first_line: (body_line > 0).then_some(body_line),
             columns: true,
             path: "markdown",
@@ -626,6 +703,56 @@ fn render_document_internal(
     }
     // The contents list the body's own sections, before its blocks fill in (FEA-RP-63).
     let sections = reading::sections(&markdown_body);
+    if !collapsed.is_empty() {
+        let first = doc.diagnostics.len();
+        let mut headings = std::collections::HashMap::new();
+        let mut after_previous = 0;
+        for (at, _) in markdown_body.match_indices(&heading_marker) {
+            let meta = at + heading_marker.len();
+            let Some((marker, _)) = markdown_body[meta..].split_once("-->") else {
+                break;
+            };
+            let Some((level, id)) = marker.split_once(':') else {
+                continue;
+            };
+            let start_tag = format!("<h{level} id=\"");
+            let contains_link = markdown_body[after_previous..at]
+                .rfind(&start_tag)
+                .is_some_and(|offset| markdown_body[after_previous + offset..at].contains("<a "));
+            headings.insert(id, contains_link);
+            after_previous = meta + marker.len() + 3;
+        }
+        for (index, anchor) in &collapsed {
+            let encoded = markdown::heading_marker_id(anchor);
+            let finding = match headings.get(encoded.as_str()) {
+                None => Some((
+                    "section.anchor-missing",
+                    format!(
+                        "Collapsed section anchor \"{anchor}\" does not name a top-level heading"
+                    ),
+                )),
+                Some(true) => {
+                    encoded_sections.remove(&encoded);
+                    Some((
+                        "section.heading-interactive",
+                        format!("Collapsed section heading \"{anchor}\" contains a link"),
+                    ))
+                }
+                Some(false) => None,
+            };
+            if let Some((code, message)) = finding {
+                doc.diagnostics.push(Diagnostic::new(
+                    "warning",
+                    code,
+                    message,
+                    format!("frontmatter.collapsed_sections[{index}]"),
+                ));
+            }
+        }
+        let mut findings = doc.diagnostics.split_off(first);
+        crate::parser::place_frontmatter(&doc, &mut findings);
+        doc.diagnostics.extend(findings);
+    }
     // On paper a chart and its source note are one unit, so no page break separates them. Browser
     // print needs the box too: Chrome gives up the second avoided break in a heading, chart and
     // note chain. On screen the box generates none (`display: contents`).
@@ -645,7 +772,7 @@ fn render_document_internal(
         .collect();
     let markdown_body = expand_blocks(&markdown_body, &failed_prefix, &failed, &[])
         .map_err(|_| output_limit(None))?;
-    let mut body = expand_blocks(
+    let body = expand_blocks(
         &markdown_body,
         doc.block_placeholder_prefix
             .as_deref()
@@ -655,6 +782,8 @@ fn render_document_internal(
     )
     .map_err(|_| output_limit(None))?;
     drop(bodies);
+    let mut body = crate::columns::expand(&body, &block_prefix);
+    let has_columns = body.contains("<div class=\"rv-columns");
     let runtime = runtime_script(options);
     let tabs_output = if pdf {
         TabsOutput::Paper
@@ -670,11 +799,16 @@ fn render_document_internal(
             body,
             &authored,
             tabs_output,
+            &heading_marker,
+            &encoded_sections,
             &mut doc.diagnostics,
         );
         let mut tabs = doc.diagnostics.split_off(first);
         crate::parser::place_frontmatter(&doc, &mut tabs);
         doc.diagnostics.extend(tabs);
+    }
+    if !tabbed && !collapsed.is_empty() {
+        body = fold_sections(&body, &heading_marker, &encoded_sections, pdf);
     }
     let title = doc
         .frontmatter
@@ -782,7 +916,22 @@ fn render_document_internal(
         figure::FIGURE_CSS,
         print.css
     );
+    // Only a report that holds columns carries their rules (FEA-RP-68), so every other report
+    // keeps its bytes.
+    if has_columns {
+        css.push_str(COLUMNS_CSS);
+        css.push_str(&column_css);
+    }
     css.push_str(&company.header_css());
+    // Paper drops the background (STY-74); its CSS is screen only, and a PDF leaves it out.
+    if let Some(picture) = background_picture.as_ref().filter(|_| !pdf) {
+        css.push_str(&style::background::picture_css(
+            &resolved.document,
+            &picture.data_uri(),
+            picture.width,
+            picture.height,
+        ));
+    }
     if pdf {
         css.push_str(&page_css(&print, options.page, title));
     }
@@ -1410,6 +1559,18 @@ fn figure_width(style: &style::ResolvedStyle) -> f64 {
     token_px(style, "--rv-measure").map_or(column, |m| m.clamp(PHONE_COLUMN + 1.0, column).round())
 }
 
+/// One line of body text in px: the base size times the line height, as `--rv-line` is.
+fn body_line_px(style: &style::ResolvedStyle) -> f64 {
+    let size = token_px(style, "--rv-size-base").unwrap_or(16.0);
+    let line = style
+        .custom_properties
+        .get("--rv-line-base")
+        .and_then(|value| value.trim().parse::<f64>().ok())
+        .filter(|line| line.is_finite() && *line > 0.0)
+        .unwrap_or(1.5);
+    size * line
+}
+
 /// The theme's desktop column: its report width less the two 24 px gutters of the report grid.
 fn desktop_column(document: &Value) -> f64 {
     let width = document
@@ -1607,6 +1768,8 @@ fn apply_tabs(
     body: String,
     authored: &[String],
     output: TabsOutput,
+    heading_marker: &str,
+    collapsed: &std::collections::HashSet<String>,
     diagnostics: &mut Vec<Diagnostic>,
 ) -> (String, bool) {
     let Some(spec) = frontmatter.get("tabs").and_then(Value::as_object) else {
@@ -1670,7 +1833,13 @@ fn apply_tabs(
         .unwrap_or(entries[0].0);
     let mut html = String::with_capacity(body.len() + 256 * entries.len());
     // Content above the first panel is always shown, so the notes it cites follow it.
-    html.push_str(&panel_notes(&body[..entries[0].2], &notes, &mut copies));
+    let prefix = panel_notes(&body[..entries[0].2], &notes, &mut copies);
+    html.push_str(&fold_sections(
+        &prefix,
+        heading_marker,
+        collapsed,
+        output == TabsOutput::Paper,
+    ));
     if export_active && entries.len() > 1 {
         match output {
             // Paper names what it leaves out, in full (FEA-BR-09).
@@ -1715,10 +1884,80 @@ fn apply_tabs(
         html.push_str(&format!(
             "<section class=\"rv-tabpanel\" id=\"panel-{id}\" data-rv-tab=\"{id}\" data-rv-tab-label=\"{label}\"{default}{export}>"
         ));
-        html.push_str(&panel_notes(&body[*start..end], &notes, &mut copies));
+        let panel = panel_notes(&body[*start..end], &notes, &mut copies);
+        html.push_str(&fold_sections(
+            &panel,
+            heading_marker,
+            collapsed,
+            output == TabsOutput::Paper,
+        ));
         html.push_str("</section>");
     }
     (html, true)
+}
+
+/// Wrap marked top-level Markdown sections after tabs have split the body. Markers are produced
+/// by the Markdown renderer, so headings inside rich blocks do not change section boundaries.
+/// The Notes that end a body or a panel are never folded: every fold closes before them, so a
+/// reference above still finds its note in view. On paper nothing folds: the markers go and the
+/// body is the unfolded report's, so a PDF places a section's blocks as its own.
+fn fold_sections(
+    body: &str,
+    marker: &str,
+    collapsed: &std::collections::HashSet<String>,
+    paper: bool,
+) -> String {
+    const NOTES: &str = "<section class=\"rv-notes\"";
+    let mut html = String::with_capacity(body.len());
+    let mut cursor = 0;
+    let mut open_levels = Vec::new();
+    while let Some(relative) = body[cursor..].find(marker) {
+        let at = cursor + relative;
+        let metadata = at + marker.len();
+        let Some(end) = body[metadata..].find("-->").map(|n| metadata + n) else {
+            break;
+        };
+        let Some((level, id)) = body[metadata..end].split_once(':') else {
+            break;
+        };
+        let Ok(level) = level.parse::<u8>() else {
+            break;
+        };
+        let heading = format!("<h{level} id=\"");
+        let Some(start) = body[cursor..at].rfind(&heading).map(|n| cursor + n) else {
+            break;
+        };
+        html.push_str(&body[cursor..start]);
+        while open_levels
+            .last()
+            .is_some_and(|previous| *previous >= level)
+        {
+            html.push_str("</details>");
+            open_levels.pop();
+        }
+        if collapsed.contains(id) && !paper {
+            html.push_str("<details class=\"rv-section\"><summary>");
+            html.push_str(&body[start..at]);
+            html.push_str("</summary>");
+            open_levels.push(level);
+        } else {
+            html.push_str(&body[start..at]);
+        }
+        cursor = end + 3;
+    }
+    // The closing Notes are the last `rv-notes` section and end the body; a callout's or an
+    // expand's own notes sit inside their block, so they never match.
+    let rest = &body[cursor..];
+    let notes = rest
+        .rfind(NOTES)
+        .filter(|n| rest[*n..].trim_end().ends_with("</ol></section>"))
+        .unwrap_or(rest.len());
+    html.push_str(&rest[..notes]);
+    while open_levels.pop().is_some() {
+        html.push_str("</details>");
+    }
+    html.push_str(&rest[notes..]);
+    html
 }
 
 /// One footnote of the report: its number and the HTML inside its `<li>`.
@@ -1870,6 +2109,9 @@ const PRINT_CSS: &str = include_str!("../assets/print.css");
 
 /// The scrollytelling element's layout, emitted only by reports that hold one (FEA-RP-48).
 const SCROLLY_CSS: &str = include_str!("../assets/scrolly.css");
+
+/// The columns' layout, emitted only by reports that hold them (FEA-RP-68).
+const COLUMNS_CSS: &str = include_str!("../assets/columns.css");
 
 /// Rules every report carries beyond its style. On screen a number cell never breaks inside its
 /// value, as a date or an id never does: a table too wide for its column scrolls in its own box

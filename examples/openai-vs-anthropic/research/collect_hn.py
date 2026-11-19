@@ -53,7 +53,7 @@ SWITCH_VERBS = (
 SWITCH_SQL = f"""
 SELECT id, toString(time) AS time, text
 FROM hackernews.hackernews
-WHERE type = 'comment' AND deleted = 0 AND dead = 0 AND time >= '2023-01-01' AND time < '2026-10-01'
+WHERE type = 'comment' AND deleted = 0 AND dead = 0 AND time >= '2023-01-01' AND time < '2026-11-01'
   AND match(lower(text),
     '{SWITCH_VERBS}[^.?!]{{0,40}}\\\\b(openai|chatgpt|anthropic|claude|codex|gpt)')
 """
@@ -68,7 +68,7 @@ SELECT id, toString(time) AS time, side, text FROM (
     FROM (
       SELECT id, time, text, match(lower(text), '{OPENAI_RE}') AS oa, match(lower(text), '{ANTHROPIC_RE}') AS an
       FROM hackernews.hackernews
-      WHERE type = 'comment' AND deleted = 0 AND dead = 0 AND time >= '2023-01-01' AND time < '2026-10-01'
+      WHERE type = 'comment' AND deleted = 0 AND dead = 0 AND time >= '2023-01-01' AND time < '2026-11-01'
         AND length(text) BETWEEN 80 AND 4000
     ) WHERE oa OR an
   )
@@ -85,7 +85,7 @@ SELECT toString(month) AS month, side, id, title, score, descendants FROM (
     SELECT time, id, title, score, descendants,
       match(lower(title), '{OPENAI_RE}') AS oa, match(lower(title), '{ANTHROPIC_RE}') AS an
     FROM hackernews.hackernews
-    WHERE type = 'story' AND deleted = 0 AND dead = 0 AND time >= '2023-01-01' AND time < '2026-10-01'
+    WHERE type = 'story' AND deleted = 0 AND dead = 0 AND time >= '2023-01-01' AND time < '2026-11-01'
   ) WHERE oa OR an
 ) WHERE rank_in_month <= 5
 ORDER BY month, side, score DESC
@@ -97,7 +97,7 @@ def main() -> None:
     fetcher = common.CachedFetcher("clickhouse", timeout_s=300.0)
     monthly = []
     for year in range(2022, 2027):
-        sql = MONTHLY_SQL.replace("{start}", f"{year}-01-01").replace("{end}", min(f"{year + 1}-01-01", "2026-10-01"))
+        sql = MONTHLY_SQL.replace("{start}", f"{year}-01-01").replace("{end}", min(f"{year + 1}-01-01", "2026-11-01"))
         monthly.extend(common.clickhouse_rows(fetcher, sql))
     common.write_rows(common.DERIVED_DIR / "hn_monthly_mentions.csv", monthly)
 

@@ -34,7 +34,7 @@ BENCHMARKS = {
     "ARC-AGI-2": ("arc_agi_2_external.csv", "Score"),
 }
 LABS = ["OpenAI", "Anthropic", "Google"]
-LEAD_WINDOW = (date(2025, 10, 1), date(2026, 9, 30))
+LEAD_WINDOW = (date(2025, 11, 1), date(2026, 10, 31))
 STYLE_CONTROL_DEFAULT_FROM = date(2025, 5, 16)
 
 
@@ -149,7 +149,9 @@ def lmarena_leaders() -> list[dict[str, Any]]:
 def main() -> None:
     """Download inputs and write the ECI frontier, benchmark lead days and LMArena leader tables."""
     download_missing()
-    common.write_rows(common.DERIVED_DIR / "capability_eci_frontier.csv", eci_frontier())
+    frontier = eci_frontier()
+    eci_end = max(str(row["date"]) for row in frontier)
+    common.write_rows(common.DERIVED_DIR / "capability_eci_frontier.csv", frontier)
     rows = []
     for benchmark, (file_name, score_column) in BENCHMARKS.items():
         scores = benchmark_scores(file_name, score_column)
@@ -169,7 +171,9 @@ def main() -> None:
             )
         print(benchmark, days, flush=True)
     common.write_rows(common.DERIVED_DIR / "capability_lead_days.csv", rows)
-    common.write_rows(common.DERIVED_DIR / "lmarena_lab_best.csv", lmarena_leaders())
+    leaders = lmarena_leaders()
+    arena_end = max(str(row["snapshot"]) for row in leaders)
+    common.write_rows(common.DERIVED_DIR / "lmarena_lab_best.csv", leaders)
     common.upsert_collection_run(
         {
             "run_id": "capability-datasets",
@@ -185,7 +189,8 @@ def main() -> None:
             "requests": len(DOWNLOADS),
             "cache_hits": 0,
             "cost_usd": 0,
-            "notes": "Downloaded 2026-10-02; Epoch archive runs to 2026-09-29, LMArena to 2026-09-30.",
+            "notes": f"Downloaded {date.today().isoformat()}; Epoch Capabilities Index to {eci_end}, LMArena to "
+            f"{arena_end}; the report reads both to {LEAD_WINDOW[1].isoformat()}.",
         }
     )
 

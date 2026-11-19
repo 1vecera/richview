@@ -2,799 +2,1167 @@
 	"arena_anthropic_first_top": {
 		"value": "2026-02-06",
 		"display": "6 February 2026",
-		"sources": ["D-ARENA"],
+		"sources": [
+			"D-ARENA"
+		],
 		"note": ""
 	},
 	"arena_google_retake": {
 		"value": "2026-09-30",
 		"display": "30 September 2026",
-		"sources": ["D-ARENA"],
+		"sources": [
+			"D-ARENA"
+		],
 		"note": "new leader: Google"
 	},
 	"benchmarks_led_anthropic": {
 		"value": 3,
 		"display": "METR time horizon, OSWorld, SWE-bench Verified",
-		"sources": ["D-EPOCH"],
-		"note": "benchmarks led on at least half the days, 2025-10..2026-09"
+		"sources": [
+			"D-EPOCH"
+		],
+		"note": "benchmarks led on at least half the days, 2025-11..2026-10"
 	},
 	"benchmarks_led_google": {
 		"value": 1,
 		"display": "Humanity's Last Exam",
-		"sources": ["D-EPOCH"],
-		"note": "benchmarks led on at least half the days, 2025-10..2026-09"
+		"sources": [
+			"D-EPOCH"
+		],
+		"note": "benchmarks led on at least half the days, 2025-11..2026-10"
 	},
 	"benchmarks_led_openai": {
 		"value": 5,
 		"display": "ARC-AGI-2, FrontierMath, GDPval, GPQA Diamond, Terminal-Bench",
-		"sources": ["D-EPOCH"],
-		"note": "benchmarks led on at least half the days, 2025-10..2026-09"
+		"sources": [
+			"D-EPOCH"
+		],
+		"note": "benchmarks led on at least half the days, 2025-11..2026-10"
 	},
 	"bias_claude_own_gap": {
-		"value": -0.025,
+		"value": -0.026,
 		"display": "-0.03",
-		"sources": ["D-LABELS"],
+		"sources": [
+			"D-LABELS"
+		],
 		"note": "claude-haiku-4-5 vs neutral on anthropic"
 	},
 	"bias_claude_rival_gap": {
-		"value": -0.042,
-		"display": "-0.04",
-		"sources": ["D-LABELS"],
+		"value": -0.046,
+		"display": "-0.05",
+		"sources": [
+			"D-LABELS"
+		],
 		"note": "claude-haiku-4-5 vs neutral on openai"
 	},
 	"bias_claude_self_preference": {
-		"value": 0.017,
+		"value": 0.02,
 		"display": "+0.02",
-		"sources": ["D-LABELS"],
+		"sources": [
+			"D-LABELS"
+		],
 		"note": "own-company gap minus rival gap, stance scale -1..+1"
 	},
 	"bias_gpt_own_gap": {
-		"value": -0.039,
-		"display": "-0.04",
-		"sources": ["D-LABELS"],
+		"value": -0.047,
+		"display": "-0.05",
+		"sources": [
+			"D-LABELS"
+		],
 		"note": "gpt-oss-120b vs neutral on openai"
 	},
 	"bias_gpt_rival_gap": {
-		"value": -0.089,
+		"value": -0.085,
 		"display": "-0.09",
-		"sources": ["D-LABELS"],
+		"sources": [
+			"D-LABELS"
+		],
 		"note": "gpt-oss-120b vs neutral on anthropic"
 	},
 	"bias_gpt_self_preference": {
-		"value": 0.049,
-		"display": "+0.05",
-		"sources": ["D-LABELS"],
+		"value": 0.038,
+		"display": "+0.04",
+		"sources": [
+			"D-LABELS"
+		],
 		"note": "own-company gap minus rival gap, stance scale -1..+1"
 	},
 	"coding_github_share_latest": {
-		"value": 59.7,
-		"display": "60%",
-		"sources": ["D-GH"],
-		"note": "2026-09"
+		"value": 66.1,
+		"display": "66%",
+		"sources": [
+			"D-GH"
+		],
+		"note": "2026-10"
 	},
 	"coding_github_share_peak": {
-		"value": 60.7,
-		"display": "61%",
-		"sources": ["D-GH"],
-		"note": "2026-07"
+		"value": 66.1,
+		"display": "66%",
+		"sources": [
+			"D-GH"
+		],
+		"note": "2026-10"
 	},
 	"coding_hacker_share_latest": {
-		"value": 40.5,
-		"display": "40%",
-		"sources": ["D-HN"],
-		"note": "2026-09"
+		"value": 54.3,
+		"display": "54%",
+		"sources": [
+			"D-HN"
+		],
+		"note": "2026-10"
 	},
 	"coding_hacker_share_peak": {
 		"value": 91.6,
 		"display": "92%",
-		"sources": ["D-HN"],
+		"sources": [
+			"D-HN"
+		],
 		"note": "2025-07"
 	},
 	"coding_npm_share_latest": {
-		"value": 39.5,
-		"display": "40%",
-		"sources": ["D-NPM"],
-		"note": "2026-09"
+		"value": 33.0,
+		"display": "33%",
+		"sources": [
+			"D-NPM"
+		],
+		"note": "2026-10"
 	},
 	"coding_npm_share_peak": {
 		"value": 99.3,
 		"display": "99%",
-		"sources": ["D-NPM"],
+		"sources": [
+			"D-NPM"
+		],
 		"note": "2025-07"
 	},
 	"eci_anthropic_latest": {
-		"value": 167.35,
-		"display": "167.3",
-		"sources": ["D-EPOCH"],
+		"value": 168.7,
+		"display": "168.7",
+		"sources": [
+			"D-EPOCH"
+		],
 		"note": "Claude Opus 5.5"
 	},
 	"eci_google_latest": {
-		"value": 157.44,
-		"display": "157.4",
-		"sources": ["D-EPOCH"],
-		"note": "Gemini 3.7 Flash"
+		"value": 166.57,
+		"display": "166.6",
+		"sources": [
+			"D-EPOCH"
+		],
+		"note": "Gemini 4 Argon"
 	},
 	"eci_openai_latest": {
-		"value": 166.51,
-		"display": "166.5",
-		"sources": ["D-EPOCH"],
+		"value": 169.2,
+		"display": "169.2",
+		"sources": [
+			"D-EPOCH"
+		],
 		"note": "GPT-6 Astra"
 	},
 	"hn_first_majority_month": {
 		"value": "2025-07",
 		"display": "July 2025",
-		"sources": ["D-HN"],
+		"sources": [
+			"D-HN"
+		],
 		"note": ""
 	},
+	"hn_labelled_primary": {
+		"value": 7946,
+		"display": "7,946 of 7,965",
+		"sources": [
+			"D-LABELS"
+		],
+		"note": "qwen3-235b"
+	},
+	"hn_labelled_replica": {
+		"value": 7965,
+		"display": "7,965 of 7,965",
+		"sources": [
+			"D-LABELS"
+		],
+		"note": "devstral-2"
+	},
 	"hn_neg_business_finance_anthropic": {
-		"value": 16.9,
-		"display": "17%",
-		"sources": ["D-HN", "D-LABELS"],
-		"note": "2025-10..2026-09"
+		"value": 17.7,
+		"display": "18%",
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
+		"note": "2025-11..2026-10"
 	},
 	"hn_neg_business_finance_openai": {
 		"value": 21.8,
 		"display": "22%",
-		"sources": ["D-HN", "D-LABELS"],
-		"note": "2025-10..2026-09"
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
+		"note": "2025-11..2026-10"
 	},
 	"hn_neg_hype_skepticism_anthropic": {
-		"value": 13.5,
-		"display": "14%",
-		"sources": ["D-HN", "D-LABELS"],
-		"note": "2025-10..2026-09"
+		"value": 13.0,
+		"display": "13%",
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
+		"note": "2025-11..2026-10"
 	},
 	"hn_neg_hype_skepticism_openai": {
-		"value": 19.4,
-		"display": "19%",
-		"sources": ["D-HN", "D-LABELS"],
-		"note": "2025-10..2026-09"
+		"value": 18.1,
+		"display": "18%",
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
+		"note": "2025-11..2026-10"
 	},
 	"hn_neg_pricing_limits_anthropic": {
-		"value": 13.5,
+		"value": 14.0,
 		"display": "14%",
-		"sources": ["D-HN", "D-LABELS"],
-		"note": "2025-10..2026-09"
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
+		"note": "2025-11..2026-10"
 	},
 	"hn_neg_pricing_limits_openai": {
-		"value": 8.7,
-		"display": "8.7%",
-		"sources": ["D-HN", "D-LABELS"],
-		"note": "2025-10..2026-09"
+		"value": 9.7,
+		"display": "9.7%",
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
+		"note": "2025-11..2026-10"
 	},
 	"hn_neg_reliability_outages_anthropic": {
-		"value": 19.0,
-		"display": "19%",
-		"sources": ["D-HN", "D-LABELS"],
-		"note": "2025-10..2026-09"
+		"value": 18.2,
+		"display": "18%",
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
+		"note": "2025-11..2026-10"
 	},
 	"hn_neg_reliability_outages_openai": {
-		"value": 10.7,
-		"display": "11%",
-		"sources": ["D-HN", "D-LABELS"],
-		"note": "2025-10..2026-09"
+		"value": 10.1,
+		"display": "10%",
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
+		"note": "2025-11..2026-10"
 	},
 	"hn_neg_safety_ethics_anthropic": {
-		"value": 20.3,
-		"display": "20%",
-		"sources": ["D-HN", "D-LABELS"],
-		"note": "2025-10..2026-09"
-	},
-	"hn_neg_safety_ethics_openai": {
 		"value": 21.4,
 		"display": "21%",
-		"sources": ["D-HN", "D-LABELS"],
-		"note": "2025-10..2026-09"
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
+		"note": "2025-11..2026-10"
+	},
+	"hn_neg_safety_ethics_openai": {
+		"value": 22.6,
+		"display": "23%",
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
+		"note": "2025-11..2026-10"
 	},
 	"hn_negative_n_anthropic": {
-		"value": 384,
-		"display": "384",
-		"sources": ["D-HN", "D-LABELS"],
+		"value": 401,
+		"display": "401",
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"hn_negative_n_openai": {
-		"value": 449,
-		"display": "449",
-		"sources": ["D-HN", "D-LABELS"],
+		"value": 464,
+		"display": "464",
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"hn_net_anthropic_2025h1": {
-		"value": 23.1,
+		"value": 22.6,
 		"display": "+23",
-		"sources": ["D-HN", "D-LABELS"],
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"hn_net_anthropic_2025h1_replica": {
 		"value": 17.1,
 		"display": "+17",
-		"sources": ["D-HN", "D-LABELS"],
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": "Devstral 2 replication"
 	},
 	"hn_net_anthropic_latest": {
-		"value": -15.7,
+		"value": -15.5,
 		"display": "−16",
-		"sources": ["D-HN", "D-LABELS"],
-		"note": "2026 Q3, ±7.6 (95%), n=363"
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
+		"note": "2026 Q3, ±7.5 (95%), n=367"
 	},
 	"hn_net_anthropic_latest_replica": {
-		"value": -24.2,
+		"value": -24.0,
 		"display": "−24",
-		"sources": ["D-HN", "D-LABELS"],
-		"note": "Devstral 2 replication, n=360"
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
+		"note": "Devstral 2 replication, n=362"
 	},
 	"hn_net_anthropic_max_2023_2025": {
-		"value": 31.4,
-		"display": "+31",
-		"sources": ["D-HN", "D-LABELS"],
+		"value": 31.5,
+		"display": "+32",
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": "2023 Q1..2025 Q4"
 	},
 	"hn_net_anthropic_min_2023_2025": {
-		"value": 11.5,
+		"value": 11.9,
 		"display": "+12",
-		"sources": ["D-HN", "D-LABELS"],
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": "2023 Q1..2025 Q4"
 	},
 	"hn_net_anthropic_peak": {
-		"value": 31.4,
-		"display": "+31",
-		"sources": ["D-HN", "D-LABELS"],
-		"note": "2023 Q1"
+		"value": 31.5,
+		"display": "+32",
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
+		"note": "2024 Q3"
 	},
 	"hn_net_anthropic_peak_quarter": {
-		"value": "2023 Q1",
-		"display": "2023 Q1",
-		"sources": ["D-HN", "D-LABELS"],
+		"value": "2024 Q3",
+		"display": "2024 Q3",
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"hn_net_openai_2025h1": {
-		"value": -4.0,
-		"display": "−4",
-		"sources": ["D-HN", "D-LABELS"],
+		"value": -3.4,
+		"display": "−3",
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"hn_net_openai_2025h1_replica": {
 		"value": -10.8,
 		"display": "−11",
-		"sources": ["D-HN", "D-LABELS"],
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": "Devstral 2 replication"
 	},
 	"hn_net_openai_latest": {
-		"value": -14.2,
+		"value": -14.4,
 		"display": "−14",
-		"sources": ["D-HN", "D-LABELS"],
-		"note": "2026 Q3, ±7.3 (95%), n=372"
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
+		"note": "2026 Q3, ±7.2 (95%), n=376"
 	},
 	"hn_net_openai_latest_replica": {
-		"value": -25.7,
+		"value": -25.5,
 		"display": "−26",
-		"sources": ["D-HN", "D-LABELS"],
-		"note": "Devstral 2 replication, n=370"
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
+		"note": "Devstral 2 replication, n=372"
 	},
 	"hn_net_openai_max_2023_2025": {
-		"value": 4.3,
+		"value": 4.5,
 		"display": "+4",
-		"sources": ["D-HN", "D-LABELS"],
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": "2023 Q1..2025 Q4"
 	},
 	"hn_net_openai_min_2023_2025": {
-		"value": -8.2,
+		"value": -8.4,
 		"display": "−8",
-		"sources": ["D-HN", "D-LABELS"],
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": "2023 Q1..2025 Q4"
 	},
 	"hn_net_openai_peak": {
-		"value": 4.3,
+		"value": 4.5,
 		"display": "+4",
-		"sources": ["D-HN", "D-LABELS"],
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": "2024 Q1"
 	},
 	"hn_net_openai_peak_quarter": {
 		"value": "2024 Q1",
 		"display": "2024 Q1",
-		"sources": ["D-HN", "D-LABELS"],
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"hn_pos_coding_anthropic": {
-		"value": 47.5,
-		"display": "48%",
-		"sources": ["D-HN", "D-LABELS"],
+		"value": 46.8,
+		"display": "47%",
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": "share of positive Anthropic comments about coding tools"
 	},
-	"hn_share_2026_09": {
-		"value": 56.5,
-		"display": "57%",
-		"sources": ["D-HN"],
-		"note": ""
-	},
 	"hn_share_baseline": {
-		"value": 39.1,
-		"display": "39%",
-		"sources": ["D-HN"],
-		"note": "2024-10..2025-09 pooled"
+		"value": 39.9,
+		"display": "40%",
+		"sources": [
+			"D-HN"
+		],
+		"note": "2024-11..2025-10 pooled"
+	},
+	"hn_share_latest": {
+		"value": 64.8,
+		"display": "65%",
+		"sources": [
+			"D-HN"
+		],
+		"note": "2026-10"
 	},
 	"hn_share_peak": {
 		"value": 73.3,
 		"display": "73%",
-		"sources": ["D-HN"],
+		"sources": [
+			"D-HN"
+		],
 		"note": "2026-04"
 	},
 	"hn_share_peak_month": {
 		"value": "2026-04",
 		"display": "April 2026",
-		"sources": ["D-HN"],
+		"sources": [
+			"D-HN"
+		],
 		"note": ""
 	},
 	"hn_share_recent": {
-		"value": 64.9,
-		"display": "65%",
-		"sources": ["D-HN"],
-		"note": "2025-10..2026-09 pooled"
+		"value": 65.9,
+		"display": "66%",
+		"sources": [
+			"D-HN"
+		],
+		"note": "2025-11..2026-10 pooled"
 	},
 	"ios_ratings_ratio": {
 		"value": 40.0,
 		"display": "40×",
-		"sources": ["D-ITUNES"],
-		"note": "ChatGPT 10,883,936 vs Claude 271,740 US ratings"
+		"sources": [
+			"D-ITUNES"
+		],
+		"note": "ChatGPT 12,351,058 vs Claude 307,644 US ratings"
 	},
 	"landing_series_months": {
-		"value": 45,
-		"display": "45",
-		"sources": ["D-HN"],
+		"value": 46,
+		"display": "46",
+		"sources": [
+			"D-HN"
+		],
 		"note": "rows in hn-comment-mentions-monthly.csv"
 	},
+	"latest_month": {
+		"value": "2026-10",
+		"display": "October 2026",
+		"sources": [
+			"D-HN"
+		],
+		"note": ""
+	},
 	"npm_share_baseline": {
-		"value": 24.3,
-		"display": "24%",
-		"sources": ["D-NPM"],
-		"note": "2024-10..2025-09 pooled"
+		"value": 24.7,
+		"display": "25%",
+		"sources": [
+			"D-NPM"
+		],
+		"note": "2024-11..2025-10 pooled"
 	},
 	"npm_share_recent": {
-		"value": 43.9,
-		"display": "44%",
-		"sources": ["D-NPM"],
-		"note": "2025-10..2026-09 pooled"
+		"value": 46.0,
+		"display": "46%",
+		"sources": [
+			"D-NPM"
+		],
+		"note": "2025-11..2026-10 pooled"
 	},
 	"pew_ever_chatgpt": {
 		"value": 44,
 		"display": "44%",
-		"sources": ["S002"],
+		"sources": [
+			"S002"
+		],
 		"note": ""
 	},
 	"pew_ever_claude": {
 		"value": 6,
 		"display": "6%",
-		"sources": ["S002"],
+		"sources": [
+			"S002"
+		],
 		"note": ""
 	},
 	"population_share_high": {
 		"value": 70.9,
 		"display": "71%",
-		"sources": ["S065"],
+		"sources": [
+			"S097"
+		],
 		"note": "Agent at work"
 	},
 	"population_share_low": {
 		"value": 2.4,
 		"display": "2.4%",
-		"sources": ["D-ITUNES"],
+		"sources": [
+			"D-ITUNES"
+		],
 		"note": "US iOS ratings"
 	},
 	"pref_anthropic_2025": {
-		"value": 67.5,
-		"display": "68% (n=151)",
-		"sources": ["D-HN", "D-LABELS"],
+		"value": 66.9,
+		"display": "67% (n=157)",
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": "2025-01..2025-12, comparison comments that pick a side"
 	},
 	"pref_anthropic_latest": {
-		"value": 46.7,
-		"display": "47% (n=45)",
-		"sources": ["D-HN", "D-LABELS"],
-		"note": "2026-07..2026-09, comparison comments that pick a side"
-	},
-	"q2_2026_revenue_anthropic": {
-		"value": 11.5,
-		"display": "$11.5bn",
-		"sources": ["C110"],
-		"note": "preliminary"
-	},
-	"q2_2026_revenue_openai": {
-		"value": 6.7,
-		"display": "$6.7bn",
-		"sources": ["C015"],
-		"note": ""
+		"value": 52.5,
+		"display": "52% (n=40)",
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
+		"note": "2026-08..2026-10, comparison comments that pick a side"
 	},
 	"ramp_anthropic_2025_07": {
 		"value": 11.1,
 		"display": "11.1%",
-		"sources": ["C168"],
+		"sources": [
+			"C168"
+		],
 		"note": ""
 	},
 	"ramp_anthropic_latest": {
-		"value": 43.8,
-		"display": "43.8%",
-		"sources": ["C196"],
-		"note": "Aug 2026"
+		"value": 44.8,
+		"display": "44.8%",
+		"sources": [
+			"C211"
+		],
+		"note": "October 2026"
 	},
 	"ramp_crossover_month": {
 		"value": "2026-04",
 		"display": "April 2026",
-		"sources": ["C185"],
+		"sources": [
+			"C185"
+		],
+		"note": ""
+	},
+	"ramp_latest_month": {
+		"value": "2026-10",
+		"display": "October 2026",
+		"sources": [
+			"C211"
+		],
 		"note": ""
 	},
 	"ramp_openai_latest": {
-		"value": 39.8,
-		"display": "39.8%",
-		"sources": ["C196"],
-		"note": "Aug 2026"
+		"value": 40.6,
+		"display": "40.6%",
+		"sources": [
+			"C211"
+		],
+		"note": "October 2026"
 	},
 	"reddit_chatgpt_last": {
-		"value": 5709,
-		"display": "5,709",
-		"sources": ["D-REDDIT"],
-		"note": "2026-08"
+		"value": 5703,
+		"display": "5,703",
+		"sources": [
+			"D-REDDIT"
+		],
+		"note": "2026-10"
 	},
 	"reddit_chatgpt_peak": {
-		"value": 23651,
-		"display": "23,651",
-		"sources": ["D-REDDIT"],
+		"value": 23643,
+		"display": "23,643",
+		"sources": [
+			"D-REDDIT"
+		],
 		"note": "2025-08"
 	},
 	"reddit_claudeai_drop": {
-		"value": 48,
-		"display": "48%",
-		"sources": ["D-REDDIT"],
-		"note": "fall from peak to Sep 2026"
+		"value": 32,
+		"display": "32%",
+		"sources": [
+			"D-REDDIT"
+		],
+		"note": "fall from peak to Oct 2026"
 	},
 	"reddit_claudeai_latest": {
-		"value": 8255,
-		"display": "8,255",
-		"sources": ["D-REDDIT"],
-		"note": "2026-09"
+		"value": 10769,
+		"display": "10,769",
+		"sources": [
+			"D-REDDIT"
+		],
+		"note": "2026-10"
 	},
 	"reddit_claudeai_peak": {
-		"value": 15911,
-		"display": "15,911",
-		"sources": ["D-REDDIT"],
+		"value": 15910,
+		"display": "15,910",
+		"sources": [
+			"D-REDDIT"
+		],
 		"note": "2026-03"
 	},
 	"reddit_claudecode_latest": {
-		"value": 5357,
-		"display": "5,357",
-		"sources": ["D-REDDIT"],
+		"value": 6310,
+		"display": "6,310",
+		"sources": [
+			"D-REDDIT"
+		],
 		"note": ""
 	},
 	"reddit_codex_2026_01": {
 		"value": 617,
 		"display": "617",
-		"sources": ["D-REDDIT"],
+		"sources": [
+			"D-REDDIT"
+		],
 		"note": ""
 	},
 	"reddit_codex_latest": {
-		"value": 8911,
-		"display": "8,911",
-		"sources": ["D-REDDIT"],
+		"value": 4680,
+		"display": "4,680",
+		"sources": [
+			"D-REDDIT"
+		],
+		"note": ""
+	},
+	"revenue_latest_anthropic": {
+		"value": 16.956,
+		"display": "$17.0bn",
+		"sources": [
+			"C212"
+		],
+		"note": "Q3 2026, filed (S-1/A), quarter unaudited"
+	},
+	"revenue_latest_openai": {
+		"value": 10.0,
+		"display": "about $10bn",
+		"sources": [
+			"C213"
+		],
+		"note": "Q3 2026, about, reported to investors"
+	},
+	"revenue_latest_quarter": {
+		"value": "Q3 2026",
+		"display": "the third quarter of 2026",
+		"sources": [
+			"C212",
+			"C213"
+		],
 		"note": ""
 	},
 	"reviews_bugs_crashes_chatgpt": {
 		"value": 17.7,
 		"display": "18%",
-		"sources": ["D-REVIEWS", "D-LABELS"],
+		"sources": [
+			"D-REVIEWS",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"reviews_bugs_crashes_claude": {
 		"value": 11.5,
 		"display": "12%",
-		"sources": ["D-REVIEWS", "D-LABELS"],
+		"sources": [
+			"D-REVIEWS",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"reviews_login_account_chatgpt": {
 		"value": 2.6,
 		"display": "2.6%",
-		"sources": ["D-REVIEWS", "D-LABELS"],
+		"sources": [
+			"D-REVIEWS",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"reviews_login_account_claude": {
 		"value": 10.7,
 		"display": "11%",
-		"sources": ["D-REVIEWS", "D-LABELS"],
+		"sources": [
+			"D-REVIEWS",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"reviews_low_share_chatgpt": {
 		"value": 12.9,
 		"display": "13%",
-		"sources": ["D-REVIEWS", "D-LABELS"],
+		"sources": [
+			"D-REVIEWS",
+			"D-LABELS"
+		],
 		"note": "1-2 stars, n=2973, Sep 2026, US Google Play + App Store"
 	},
 	"reviews_low_share_claude": {
 		"value": 28.9,
 		"display": "29%",
-		"sources": ["D-REVIEWS", "D-LABELS"],
+		"sources": [
+			"D-REVIEWS",
+			"D-LABELS"
+		],
 		"note": "1-2 stars, n=1872, Sep 2026, US Google Play + App Store"
 	},
 	"reviews_mean_chatgpt": {
 		"value": 4.36,
 		"display": "4.4",
-		"sources": ["D-REVIEWS"],
+		"sources": [
+			"D-REVIEWS"
+		],
 		"note": "n=2973"
 	},
 	"reviews_mean_claude": {
 		"value": 3.7,
 		"display": "3.7",
-		"sources": ["D-REVIEWS"],
+		"sources": [
+			"D-REVIEWS"
+		],
 		"note": "n=1872"
 	},
 	"reviews_refusals_censorship_chatgpt": {
 		"value": 8.6,
 		"display": "8.6%",
-		"sources": ["D-REVIEWS", "D-LABELS"],
+		"sources": [
+			"D-REVIEWS",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"reviews_refusals_censorship_claude": {
 		"value": 18.5,
 		"display": "18%",
-		"sources": ["D-REVIEWS", "D-LABELS"],
+		"sources": [
+			"D-REVIEWS",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"reviews_usage_limits_chatgpt": {
 		"value": 13.3,
 		"display": "13%",
-		"sources": ["D-REVIEWS", "D-LABELS"],
+		"sources": [
+			"D-REVIEWS",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"reviews_usage_limits_claude": {
 		"value": 19.4,
 		"display": "19%",
-		"sources": ["D-REVIEWS", "D-LABELS"],
+		"sources": [
+			"D-REVIEWS",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"run_rate_anthropic_2024_12": {
 		"value": 1,
 		"display": "$1bn",
-		"sources": ["C083"],
+		"sources": [
+			"C083"
+		],
 		"note": "about, Dec 2024"
-	},
-	"run_rate_anthropic_latest": {
-		"value": 100.0,
-		"display": "$100bn",
-		"sources": ["C115"],
-		"note": "pacing above 2026-09"
 	},
 	"run_rate_openai_2024_12": {
 		"value": 5.5,
 		"display": "$5.5bn",
-		"sources": ["C001"],
+		"sources": [
+			"C001"
+		],
 		"note": "about, Dec 2024"
-	},
-	"run_rate_openai_latest": {
-		"value": 70.0,
-		"display": "$70bn",
-		"sources": ["C021"],
-		"note": "almost 2026-09"
 	},
 	"ssrs_aware_claude_feb": {
 		"value": 21,
 		"display": "21%",
-		"sources": ["S006"],
+		"sources": [
+			"S006"
+		],
 		"note": ""
 	},
 	"ssrs_aware_claude_may": {
 		"value": 42,
 		"display": "42%",
-		"sources": ["S007"],
+		"sources": [
+			"S007"
+		],
 		"note": ""
 	},
 	"ssrs_week_chatgpt_may": {
 		"value": 43,
 		"display": "43%",
-		"sources": ["S005"],
+		"sources": [
+			"S005"
+		],
 		"note": ""
 	},
 	"ssrs_week_claude_feb": {
 		"value": 4,
 		"display": "4%",
-		"sources": ["S004"],
+		"sources": [
+			"S004"
+		],
 		"note": ""
 	},
 	"ssrs_week_claude_may": {
 		"value": 9,
 		"display": "9%",
-		"sources": ["S005"],
+		"sources": [
+			"S005"
+		],
 		"note": ""
 	},
 	"survey_dev_ratio": {
-		"value": 1.9,
-		"display": "1.9",
-		"sources": ["S054"],
+		"value": 1.0,
+		"display": "1.0",
+		"sources": [
+			"S096"
+		],
 		"note": ""
 	},
 	"survey_reach_ratio_max": {
-		"value": 22.0,
-		"display": "22",
-		"sources": ["S002", "S004", "S005", "S015"],
+		"value": 9.0,
+		"display": "9",
+		"sources": [
+			"S002",
+			"S004",
+			"S005",
+			"S095"
+		],
 		"note": ""
 	},
 	"survey_reach_ratio_min": {
 		"value": 4.8,
 		"display": "5",
-		"sources": ["S002", "S004", "S005", "S015"],
+		"sources": [
+			"S002",
+			"S004",
+			"S005",
+			"S095"
+		],
 		"note": ""
 	},
 	"switch_to_anthropic_2026_q1": {
 		"value": 92,
 		"display": "92",
-		"sources": ["D-HN", "D-LABELS"],
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"switch_to_anthropic_2026_q2": {
 		"value": 65,
 		"display": "65",
-		"sources": ["D-HN", "D-LABELS"],
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"switch_to_anthropic_2026_q3": {
-		"value": 37,
-		"display": "37",
-		"sources": ["D-HN", "D-LABELS"],
+		"value": 38,
+		"display": "38",
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"switch_to_openai_2026_q1": {
 		"value": 43,
 		"display": "43",
-		"sources": ["D-HN", "D-LABELS"],
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"switch_to_openai_2026_q2": {
-		"value": 108,
-		"display": "108",
-		"sources": ["D-HN", "D-LABELS"],
+		"value": 110,
+		"display": "110",
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"switch_to_openai_2026_q3": {
-		"value": 159,
-		"display": "159",
-		"sources": ["D-HN", "D-LABELS"],
+		"value": 160,
+		"display": "160",
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"trends_company_share_recent": {
-		"value": 23.3,
-		"display": "23%",
-		"sources": ["D-GT"],
-		"note": "2025-10..2026-09"
+		"value": 25.2,
+		"display": "25%",
+		"sources": [
+			"D-GT"
+		],
+		"note": "2025-11..2026-10"
 	},
 	"trends_geo_bottom": {
-		"value": 5.0,
-		"display": "Brazil 5.0%",
-		"sources": ["D-GT"],
+		"value": 6.0,
+		"display": "Brazil 6.0%",
+		"sources": [
+			"D-GT"
+		],
 		"note": ""
 	},
 	"trends_geo_top": {
-		"value": 23.0,
-		"display": "China 23%",
-		"sources": ["D-GT"],
+		"value": 25.0,
+		"display": "S. Korea 25%",
+		"sources": [
+			"D-GT"
+		],
 		"note": ""
 	},
 	"trends_product_ratio": {
-		"value": 10.5,
-		"display": "10",
-		"sources": ["D-GT"],
+		"value": 9.1,
+		"display": "9",
+		"sources": [
+			"D-GT"
+		],
 		"note": "ChatGPT searches per Claude search, latest twelve months"
 	},
 	"trends_product_share_recent": {
-		"value": 8.7,
-		"display": "8.7%",
-		"sources": ["D-GT"],
-		"note": "2025-10..2026-09"
+		"value": 9.9,
+		"display": "9.9%",
+		"sources": [
+			"D-GT"
+		],
+		"note": "2025-11..2026-10"
 	},
 	"trends_share_baseline": {
 		"value": 2.0,
 		"display": "2.0%",
-		"sources": ["D-GT"],
-		"note": "2024-10..2025-09 pooled"
+		"sources": [
+			"D-GT"
+		],
+		"note": "2024-11..2025-10 pooled"
 	},
 	"trends_share_recent": {
-		"value": 8.7,
-		"display": "8.7%",
-		"sources": ["D-GT"],
-		"note": "2025-10..2026-09 pooled"
+		"value": 9.9,
+		"display": "9.9%",
+		"sources": [
+			"D-GT"
+		],
+		"note": "2025-11..2026-10 pooled"
 	},
 	"us_trends_claude_aug_sep": {
-		"value": 12.0,
-		"display": "12",
-		"sources": ["D-GT"],
+		"value": 13.1,
+		"display": "13",
+		"sources": [
+			"D-GT"
+		],
 		"note": ""
 	},
 	"us_trends_claude_gain_held": {
-		"value": 44.0,
-		"display": "44%",
-		"sources": ["D-GT"],
-		"note": "share of Jan-to-peak gain still present Aug-Sep"
+		"value": 51.0,
+		"display": "51%",
+		"sources": [
+			"D-GT"
+		],
+		"note": "share of Jan-to-peak gain still present Sep-Oct"
 	},
 	"us_trends_claude_jan": {
-		"value": 5.8,
+		"value": 6.0,
 		"display": "6",
-		"sources": ["D-GT"],
+		"sources": [
+			"D-GT"
+		],
 		"note": ""
 	},
 	"us_trends_claude_peak": {
 		"value": 20,
 		"display": "20",
-		"sources": ["D-GT"],
-		"note": "2026-03-01"
+		"sources": [
+			"D-GT"
+		],
+		"note": "2026-04-12"
 	},
 	"validation_agreement_max": {
 		"value": 85,
 		"display": "85%",
-		"sources": ["D-LABELS"],
+		"sources": [
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"validation_agreement_min": {
-		"value": 72,
-		"display": "72%",
-		"sources": ["D-LABELS"],
+		"value": 71,
+		"display": "71%",
+		"sources": [
+			"D-LABELS"
+		],
 		"note": ""
 	},
 	"validation_n": {
-		"value": 589,
-		"display": "589",
-		"sources": ["D-LABELS"],
+		"value": 598,
+		"display": "598",
+		"sources": [
+			"D-LABELS"
+		],
 		"note": ""
 	},
-	"web_chatgpt_2025_08": {
-		"value": 73.3,
-		"display": "73.3%",
-		"sources": ["C170"],
+	"web_chatgpt_latest": {
+		"value": 55.7,
+		"display": "55.7%",
+		"sources": [
+			"C214"
+		],
+		"note": "2026-10"
+	},
+	"web_chatgpt_year_ago": {
+		"value": 69.5,
+		"display": "69.5%",
+		"sources": [
+			"C214"
+		],
+		"note": "2025-11"
+	},
+	"web_claude_latest": {
+		"value": 11.5,
+		"display": "11.5%",
+		"sources": [
+			"C214"
+		],
+		"note": "2026-10"
+	},
+	"web_claude_year_ago": {
+		"value": 2.1,
+		"display": "2.1%",
+		"sources": [
+			"C214"
+		],
+		"note": "2025-11"
+	},
+	"web_gemini_latest": {
+		"value": 24.2,
+		"display": "24.2%",
+		"sources": [
+			"C214"
+		],
+		"note": "2026-10"
+	},
+	"web_gemini_year_ago": {
+		"value": 15.9,
+		"display": "15.9%",
+		"sources": [
+			"C214"
+		],
+		"note": "2025-11"
+	},
+	"web_latest_month": {
+		"value": "2026-10",
+		"display": "October 2026",
+		"sources": [
+			"C214"
+		],
 		"note": ""
 	},
-	"web_chatgpt_2026_08": {
-		"value": 55.5,
-		"display": "55.5%",
-		"sources": ["C195"],
-		"note": ""
-	},
-	"web_claude_2025_08": {
-		"value": 1.9,
-		"display": "1.9%",
-		"sources": ["C170"],
-		"note": ""
-	},
-	"web_claude_2026_08": {
-		"value": 9.3,
-		"display": "9.3%",
-		"sources": ["C195"],
-		"note": ""
-	},
-	"web_gemini_2026_08": {
-		"value": 25.6,
-		"display": "25.6%",
-		"sources": ["C195"],
+	"web_year_ago_month": {
+		"value": "2025-11",
+		"display": "November 2025",
+		"sources": [
+			"C214"
+		],
 		"note": ""
 	},
 	"wiki_amodei_share_recent": {
-		"value": 45.4,
-		"display": "45%",
-		"sources": ["D-WIKI"],
+		"value": 47.6,
+		"display": "48%",
+		"sources": [
+			"D-WIKI"
+		],
 		"note": "Dario Amodei vs Sam Altman, English"
 	},
 	"wiki_company_share_recent": {
-		"value": 55.8,
-		"display": "56%",
-		"sources": ["D-WIKI"],
-		"note": "2025-10..2026-09"
+		"value": 57.5,
+		"display": "58%",
+		"sources": [
+			"D-WIKI"
+		],
+		"note": "2025-11..2026-10"
 	},
 	"wiki_product_share_recent": {
-		"value": 6.6,
-		"display": "6.6%",
-		"sources": ["D-WIKI"],
-		"note": "2025-10..2026-09"
+		"value": 7.2,
+		"display": "7.2%",
+		"sources": [
+			"D-WIKI"
+		],
+		"note": "2025-11..2026-10"
 	},
 	"wiki_share_baseline": {
 		"value": 2.0,
 		"display": "2.0%",
-		"sources": ["D-WIKI"],
-		"note": "2024-10..2025-09 pooled"
+		"sources": [
+			"D-WIKI"
+		],
+		"note": "2024-11..2025-10 pooled"
 	},
 	"wiki_share_recent": {
-		"value": 6.6,
-		"display": "6.6%",
-		"sources": ["D-WIKI"],
-		"note": "2025-10..2026-09 pooled"
+		"value": 7.2,
+		"display": "7.2%",
+		"sources": [
+			"D-WIKI"
+		],
+		"note": "2025-11..2026-10 pooled"
 	}
 }

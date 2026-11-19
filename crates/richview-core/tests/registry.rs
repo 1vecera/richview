@@ -284,7 +284,7 @@ fn a_finding_without_its_own_fix_carries_its_codes_fix() {
 #[test]
 fn the_public_docs_use_only_registered_keys() {
     let fence = Regex::new(
-        r"(?ms)^```(?:chart|table|metric|callout|image|embed|audio|video|scrolly)\n.*?^```\n",
+        r"(?ms)^```(?:chart|table|metric|callout|expand|code|image|embed|audio|video|scrolly)\n.*?^```\n",
     )
     .unwrap();
     let mut found = Vec::new();

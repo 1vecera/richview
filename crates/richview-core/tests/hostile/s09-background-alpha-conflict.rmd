@@ -1,0 +1,6 @@
+---
+title: A picture with an alpha channel and a texture
+styles: [air, s09-background-alpha-conflict.rstyle.yaml]
+---
+
+The picture stands alone; its texture is left out.

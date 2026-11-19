@@ -1,6 +1,6 @@
 # Boundaries
 
-Status: regenerated on 2026-10-27 from Daniel's answers in the lockdown app (77 of 769 cards answered, 70 of the 134 key cards among them) and the current proposals in `parts/`. DEL-81's model amendment of 2026-10-29 is applied by hand.
+Status: regenerated on 2026-10-27 from Daniel's answers in the lockdown app (77 of 769 cards answered, 70 of the 134 key cards among them) and the current proposals in `parts/`. DEL-81's model amendment of 2026-10-29 and STY-73 of 2026-11-18 are applied by hand.
 
 Where RichView's parts end, who owns what, what a source file can never do, which changes an agent makes alone and which reach Daniel.
 
@@ -82,7 +82,7 @@ Safety is a floor that is never traded, and a hostile-input fixture proves these
 - Private uploads stay private, and public delivery is an explicit choice (INT-79).
 - Every server endpoint that renders, publishes or regenerates requires a token and is bounded, except the loopback preview (INT-79).
 - Authors customize only through declared, validated vocabulary; no raw CSS, JavaScript, HTML, engine specs or raw SVG (INT-28).
-- Style files may change everything the built-in styles differ by, never the underlying mechanics such as phone or page width; every value passes the closed vocabulary and is measured at render (STY-14, OPN-59).
+- Style files take a preset, the author's colours and five-step settings; token-level keys still apply with a `style.legacy` warning. Nothing changes the underlying mechanics such as phone or page width; every value passes the closed vocabulary and is measured at render (STY-73, which overrides that part of STY-14 and OPN-59).
 - Data-source credentials stay in the server's configuration and never appear in `.rmd` files, report folders, rendered output, MCP arguments or agent context (OPN-63). The Unsplash key comes only from `UNSPLASH_ACCESS_KEY` and never appears in sources, output or agent context (FEA-RP-62).
 - Readers never get more precision than the author chose: readouts, tooltips, the Table view, CSV and every export show the author's precision, and the exact source values cannot be retrieved (FEA-CH-37). This also keeps an author's calculation precision private.
 - A link preview never reveals a private story: a story shared only with signed-in readers shows its title and thumbnail only to them, and an anonymous unfurler gets neither (INT-07, OPN-54; FEA-SF-55, ARC-69, TYP-65).

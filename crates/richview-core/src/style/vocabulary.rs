@@ -17,12 +17,15 @@ use serde_json::{Map, Value, json};
 use std::{collections::BTreeMap, sync::OnceLock};
 
 /// Whether an agent may play with a leaf freely (`Safe`), may break the layout with it
-/// (`Experimental`), or may not set it at all (`Internal`: it fixes the page's mechanics).
+/// (`Experimental`), may not set it at all (`Internal`: it fixes the page's mechanics), or sets
+/// a preset's internal vocabulary that still applies but is no longer taught (`Legacy`: presets,
+/// `colors` and the five-step settings replace it, STY-73).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum Mark {
     Safe,
     Experimental,
     Internal,
+    Legacy,
 }
 
 /// The values a leaf accepts.
@@ -59,6 +62,10 @@ pub enum Grammar {
     BrandName,
     /// A report-relative raster image path.
     BrandLogo,
+    /// One of the five steps, `xsmall` to `xlarge` (STY-73).
+    Step,
+    /// A builtin or extended preset name.
+    Preset,
 }
 
 use serde::Serialize;
@@ -113,7 +120,7 @@ fn build() -> Vec<Leaf> {
         add(
             &format!("tokens.{name}"),
             Grammar::Colour,
-            Mark::Safe,
+            Mark::Legacy,
             about,
         );
     }
@@ -140,6 +147,18 @@ fn build() -> Vec<Leaf> {
         Grammar::Dimension,
         Mark::Experimental,
         "Line height of body text",
+    );
+    add(
+        "tokens.grid",
+        Grammar::Colour,
+        Mark::Internal,
+        "The chart's soft rules: gridlines, tracks and empty cells (the `gridlines` setting)",
+    );
+    add(
+        "tokens.on-accent",
+        Grammar::Colour,
+        Mark::Internal,
+        "Text set on the accent, as in a knockout metric: white or black, whichever stands out more",
     );
     add(
         "tokens.measure",
@@ -381,6 +400,12 @@ fn build() -> Vec<Leaf> {
         "Hatches and dashes that stand in for colour",
     );
     add(
+        "chart.glow",
+        Grammar::Enum(&["medium", "flat"]),
+        Mark::Internal,
+        "How a highlighted mark glows: the soft glow, or one flat band in a pen-drawn style",
+    );
+    add(
         "chart.curve",
         Grammar::Enum(&["linear", "monotone", "step", "step_before", "step_after"]),
         Mark::Safe,
@@ -475,9 +500,9 @@ fn build() -> Vec<Leaf> {
     );
     add(
         "motion",
-        Grammar::Enum(&["on", "off"]),
+        Grammar::Enum(&MOTION_WORDS),
         Mark::Safe,
-        "`off` renders every chart settled",
+        "How far and how long blocks and charts move: `xsmall` is still; `on` and `off` are the old words",
     );
     add(
         "colophon",
@@ -493,7 +518,135 @@ fn build() -> Vec<Leaf> {
             "A bundled family or a brand font file",
         );
     }
+
+    // STY-73: a preset, the author's colours and the five-step settings.
+    add(
+        "preset",
+        Grammar::Preset,
+        Mark::Safe,
+        "The preset the file starts from",
+    );
+    add(
+        "colors.brand",
+        Grammar::BrandColour,
+        Mark::Safe,
+        "Your colour: the accent, links and the first series; RichView derives the rest",
+    );
+    add(
+        "colors.secondary",
+        Grammar::BrandColour,
+        Mark::Safe,
+        "An optional second colour: the second series",
+    );
+    add(
+        "colors.background",
+        Grammar::BrandColour,
+        Mark::Safe,
+        "An optional page colour; a dark one makes a dark report",
+    );
+    for setting in super::settings::SETTINGS {
+        if setting.name != "motion" {
+            add(setting.name, Grammar::Step, Mark::Safe, setting.about);
+        }
+    }
+
+    // STY-74: the background behind the report, in closed words and a picture path.
+    add(
+        "background",
+        Grammar::Enum(&["none"]),
+        Mark::Safe,
+        "The background behind the report: a mapping, or `none` to clear an earlier file's",
+    );
+    add(
+        "background.texture",
+        Grammar::Enum(&super::background::TEXTURES),
+        Mark::Safe,
+        "A texture drawn in a colour derived from the page: grain (paper), dots, grid (graph paper) or lines (ruled on the text's line pitch)",
+    );
+    add(
+        "background.gradient",
+        Grammar::Enum(&super::background::GRADIENTS),
+        Mark::Safe,
+        "A gradient from your colours: soft (a wash from the top) or glow (from the top corner); without colors, the preset's accent",
+    );
+    add(
+        "background.picture",
+        Grammar::BrandLogo,
+        Mark::Safe,
+        "Your picture: a still PNG, JPEG or WebP in the report folder, at most 400 KiB and 2400 px; it stands alone",
+    );
+    add(
+        "background.place",
+        Grammar::Enum(&super::background::PLACES),
+        Mark::Safe,
+        "Where it sits: page (behind everything; text keeps its contrast), margins (around the report, which sits on a solid sheet) or header (behind the title; a picture puts the title on a solid panel). Default page, header for a picture",
+    );
+    add(
+        "background.strength",
+        Grammar::Step,
+        Mark::Safe,
+        "How visible it is: xsmall to xlarge, medium the designed default; never past what text needs",
+    );
+
+    // Everything a preset sets inside its sections is internal vocabulary now: it still applies
+    // from an author's file, with a `style.legacy` warning naming what replaces it (STY-73).
+    for leaf in &mut leaves {
+        let section = SECTIONS
+            .iter()
+            .any(|section| leaf.path.starts_with(&format!("{section}.")));
+        let old_setting = matches!(
+            leaf.path.as_str(),
+            "density"
+                | "block-gap"
+                | "type-size"
+                | "accent"
+                | "company.color"
+                | "company.secondary"
+                | "company.base"
+        );
+        if (section && leaf.mark != Mark::Internal) || old_setting {
+            leaf.mark = Mark::Legacy;
+        }
+    }
     leaves
+}
+
+/// The words `motion` takes: the five steps, and the old `on` and `off`.
+const MOTION_WORDS: [&str; 7] = ["xsmall", "small", "medium", "large", "xlarge", "on", "off"];
+
+/// What replaces a legacy leaf, for its `style.legacy` warning; `None` when no setting covers it
+/// and the preset decides.
+pub(super) fn legacy_replacement(path: &str) -> Option<&'static str> {
+    let leaf = path
+        .split_once('.')
+        .map_or(path, |(_, rest)| rest)
+        .trim_end_matches("-phone");
+    Some(match path {
+        "density" | "tokens.density" => "padding",
+        "block-gap" => "spacing",
+        "type-size" => "text-size",
+        "accent" | "company.color" => "colors.brand",
+        "company.secondary" => "colors.secondary",
+        "company.base" => "preset",
+        "chart.bar-radius" => "corners",
+        "chart.palette" | "chart.ramp" | "chart.negative-ramp" => "colors",
+        "components.callout.border-width"
+        | "components.header.border-top"
+        | "components.header.border-bottom" => "lines",
+        _ if path.starts_with("motion.") => "motion",
+        _ if path.starts_with("tokens.") => match leaf {
+            "bg" | "bg-elev" | "bg-chart" | "scheme" => "colors.background",
+            "accent" | "accent-soft" | "link" => "colors.brand",
+            "ink" | "ink-soft" | "ink-faint" | "chart-ink" | "rule" => "colors and tint",
+            "rule-soft" => "gridlines",
+            "radius-s" | "radius-m" => "corners",
+            "block-gap" => "spacing",
+            _ if leaf.starts_with("size-") => "text-size",
+            _ if leaf.starts_with("font-") => "fonts",
+            _ => return None,
+        },
+        _ => return None,
+    })
 }
 
 /// Every leaf of the style vocabulary, in a stable order. `richview learn`, the docs and
@@ -587,6 +740,8 @@ fn accepts(grammar: Grammar, value: &Value) -> bool {
                 && !color.contains('/')
                 && !lower.starts_with("rgba(")
                 && !lower.starts_with("hsla(")
+                // The legacy comma form's fourth value is an alpha too.
+                && color.matches(',').count() <= 2
                 && !color
                     .strip_prefix('#')
                     .is_some_and(|hex| matches!(hex.len(), 4 | 8))
@@ -598,6 +753,12 @@ fn accepts(grammar: Grammar, value: &Value) -> bool {
             path.len() <= 200
                 && !path.chars().any(char::is_control)
                 && crate::folder::report_relative_path(path)
+        }),
+        Grammar::Step => value
+            .as_str()
+            .is_some_and(|word| super::settings::step_index(word).is_some()),
+        Grammar::Preset => value.as_str().is_some_and(|name| {
+            builtin_style_names().contains(&name) || super::presets::recipe(name).is_some()
         }),
     }
 }
@@ -643,6 +804,8 @@ fn grammar_name(grammar: Grammar) -> String {
         Grammar::BrandColour => "an opaque colour".into(),
         Grammar::BrandName => "a non-empty company name".into(),
         Grammar::BrandLogo => "a report-relative image file".into(),
+        Grammar::Step => super::settings::STEPS.join(", "),
+        Grammar::Preset => format!("one of {}", super::presets::preset_names().join(", ")),
     }
 }
 
@@ -685,8 +848,9 @@ impl Walk<'_> {
             format!("{path}.{key}")
         };
         if let Some(leaf) = index().get(full.as_str()).copied() {
-            // `motion` is a section and a setting: a mapping is the section.
-            if full == "motion" && value.is_object() {
+            // `motion` is a section and a setting: a mapping is the section. `background` is a
+            // mapping, or `none`.
+            if (full == "motion" || full == "background") && value.is_object() {
                 self.branch(&full, value);
                 return;
             }
@@ -725,6 +889,10 @@ impl Walk<'_> {
                         "'{full}' is experimental: it can break the layout in ways nobody expects"
                     );
                     self.report("info", "style.experimental", message, &full);
+                }
+                let old_motion = full == "motion" && matches!(value.as_str(), Some("on" | "off"));
+                if (leaf.mark == Mark::Legacy || old_motion) && !self.builtin {
+                    self.legacy(&full, value);
                 }
                 self.keep(&full, value);
             }
@@ -774,6 +942,43 @@ impl Walk<'_> {
                 Diagnostic::new("warning", "style.unknown-key", message, self.at(&full)).fix(fix),
             );
         }
+    }
+
+    /// Warn that a leaf of the old vocabulary still applies, and name what replaces it.
+    fn legacy(&mut self, full: &str, value: &Value) {
+        let (message, fix) = if full == "motion" {
+            let step = if value.as_str() == Some("off") {
+                "xsmall"
+            } else {
+                "medium"
+            };
+            (
+                format!(
+                    "'motion: {}' still applies; write `motion: {step}`",
+                    crate::text(value)
+                ),
+                format!("Write `motion: {step}`."),
+            )
+        } else {
+            match legacy_replacement(full) {
+                Some(replacement) => (
+                    format!(
+                        "'{full}' is a preset's internal setting; it still applies, but `{replacement}` replaces it"
+                    ),
+                    format!(
+                        "Use `{replacement}` (`richview learn style` shows presets, colors and the five-step settings)."
+                    ),
+                ),
+                None => (
+                    format!(
+                        "'{full}' is a preset's internal setting; it still applies, but no setting covers it: the preset decides"
+                    ),
+                    "Remove it, or choose the preset whose look you want.".to_owned(),
+                ),
+            }
+        };
+        self.diagnostics
+            .push(Diagnostic::new("warning", "style.legacy", message, self.at(full)).fix(fix));
     }
 
     fn branch(&mut self, path: &str, value: &Value) {
@@ -853,7 +1058,49 @@ fn expand(doc: Value) -> Value {
         && let Some(word) = motion.as_str()
     {
         doc.remove("motion");
-        section(&mut doc, "motion").insert("enabled".into(), json!(word == "on"));
+        if let Some(step) = super::settings::step_index(word) {
+            section(&mut doc, "settings")
+                .entry("steps")
+                .or_insert_with(|| json!({}))
+                .as_object_mut()
+                .expect("steps are a mapping")
+                .insert("motion".into(), json!(step));
+        } else {
+            section(&mut doc, "motion").insert("enabled".into(), json!(word == "on"));
+        }
+    }
+    for setting in super::settings::SETTINGS {
+        if setting.name == "motion" {
+            continue;
+        }
+        if let Some(Value::String(word)) = doc.remove(setting.name)
+            && let Some(step) = super::settings::step_index(&word)
+        {
+            section(&mut doc, "settings")
+                .entry("steps")
+                .or_insert_with(|| json!({}))
+                .as_object_mut()
+                .expect("steps are a mapping")
+                .insert(setting.name.into(), json!(step));
+        }
+    }
+    match doc.remove("background") {
+        Some(Value::Object(mut background)) => {
+            if let Some(word) = background.get("strength").and_then(Value::as_str)
+                && let Some(step) = super::settings::step_index(word)
+            {
+                background.insert("strength".into(), json!(step));
+            }
+            section(&mut doc, "settings").insert("background".into(), Value::Object(background));
+        }
+        // `background: none` clears an earlier file's background.
+        Some(_) => {
+            section(&mut doc, "settings").insert("background".into(), json!({}));
+        }
+        None => {}
+    }
+    if let Some(Value::Object(colours)) = doc.remove("colors") {
+        section(&mut doc, "settings").insert("colors".into(), Value::Object(colours));
     }
     if let Some(Value::Object(fonts)) = doc.remove("fonts") {
         for (role, setting) in fonts {

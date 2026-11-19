@@ -28,6 +28,12 @@ The accepted `data.url` field is not loaded by the native or browser hosts. Down
 The native host also resolves SQL, MetricFlow and cached results. A report names its connector in `report.connectors.yaml`; a trusted host configuration binds that name to a runtime and data source. Credentials belong to that configuration, never to the report.
 
 On Linux, reports with SQL data sources need kernel 6.2 or newer with Landlock ABI 3 enabled. Debian 12’s default 6.1 kernel and Ubuntu 22.04’s original 5.15 kernel are below this requirement; use a newer kernel for SQL. Reports without SQL need glibc 2.35 or newer and do not have this additional kernel requirement.
+<!-- windows-preview:start -->
+
+On Windows, the SQL worker is confined as on Linux and macOS, and it reads a copy. Each render that runs a query first copies the declared database into a new folder in your temporary folder that only that render's worker may open, and deletes the copy when the render ends. A database over 4 GiB is refused, as is one whose copy would leave less than 1 GiB free in the temporary folder. Rows served from the cache need no copy.
+<!-- windows-preview:end -->
+
+The worker reads the database file alone, so a DuckDB database whose last changes are still in the `.wal` file beside it is refused: close the program writing it, or run `CHECKPOINT` in it, then render again.
 
 ### Work through a local DuckDB query
 

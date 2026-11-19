@@ -17,7 +17,7 @@
       ]
     },
     "richBlock": {
-      "begin": "^(```)(chart|table|metric|callout|image|embed|scrolly|audio|video)\\s*$",
+      "begin": "^(```)(chart|table|metric|callout|expand|code|image|embed|scrolly|audio|video)\\s*$",
       "beginCaptures": {
         "1": { "name": "punctuation.definition.markdown" },
         "2": { "name": "entity.name.tag.rmd" }

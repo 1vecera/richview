@@ -22,8 +22,11 @@ import common
 
 FACTS_PATH = common.REPORT_DIR / "data" / "facts.json"
 INDEX_PATH = common.CHART_DIR / "index.json"
-RECENT = ("2025-10", "2026-09")  # latest twelve full months
-BASELINE = ("2024-10", "2025-09")  # the twelve months before
+SNAPSHOT = "2026-11-18"  # the day the snapshot was collected
+LATEST = "2026-10"  # the latest full month
+RECENT = ("2025-11", LATEST)  # latest twelve full months
+BASELINE = ("2024-11", "2025-10")  # the twelve months before
+LATEST_QUARTER = ("2026-08", LATEST)  # the latest three full months
 
 
 @dataclass
@@ -245,8 +248,9 @@ def chart_share_over_time(facts: Facts) -> ChartSpec:
     peak_row = peak.sort("s", descending=True).row(0, named=True)
     facts.add("hn_share_peak", round(100 * peak_row["s"], 1), pct(100 * peak_row["s"]), ["D-HN"], peak_row["month"])
     facts.add("hn_share_peak_month", peak_row["month"], month_name(peak_row["month"]), ["D-HN"])
-    last = peak.filter(pl.col("month") == "2026-09").row(0, named=True)
-    facts.add("hn_share_2026_09", round(100 * last["s"], 1), pct(100 * last["s"]), ["D-HN"])
+    last = peak.filter(pl.col("month") == LATEST).row(0, named=True)
+    facts.add("hn_share_latest", round(100 * last["s"], 1), pct(100 * last["s"]), ["D-HN"], LATEST)
+    facts.add("latest_month", LATEST, month_name(LATEST), ["D-HN"])
     first_cross = peak.filter(pl.col("s") > 0.5).sort("month").row(0, named=True)
     facts.add("hn_first_majority_month", first_cross["month"], month_name(first_cross["month"]), ["D-HN"])
 
@@ -260,7 +264,7 @@ def chart_share_over_time(facts: Facts) -> ChartSpec:
         axes={"x": {"label": "Month"}, "y": {"label": "Anthropic share, %"}},
         sources=["D-HN", "D-NPM", "D-GT", "D-WIKI"],
         population="Hacker News commenters; npm installs; Google searchers; English Wikipedia readers",
-        window="2023-01 to 2026-09",
+        window=f"2023-01 to {LATEST}",
         notes=(
             "HN: comments matching openai|chatgpt vs anthropic|claude (whole words). npm: median daily downloads of "
             "@anthropic-ai/sdk vs openai. Google: Claude vs ChatGPT knowledge-graph topics in one comparison "
@@ -293,13 +297,13 @@ def chart_share_by_population(facts: Facts) -> ChartSpec:
         (
             "US iOS ratings",
             "Consumers",
-            "cumulative App Store ratings, US, 2026-10-02",
+            f"cumulative App Store ratings, US, {SNAPSHOT}",
             claude_ratings,
             chatgpt_ratings,
             "D-ITUNES",
         ),
         ("App users", "Consumers", "mobile monthly active users, Q2 2026 (Sensor Tower)", 56, 1000, "C186"),
-        ("Web visits", "Consumers", "share of gen-AI web visits, Aug 2026 (Similarweb)", 9.3, 55.5, "C195"),
+        ("Web visits", "Consumers", "share of gen-AI web visits, Oct 2026 (Similarweb)", 11.5, 55.7, "C214"),
         ("Weekly use", "US adults", "used in past week, May 2026 (SSRS probability panel)", 9, 43, "S005"),
         (
             "Company searches",
@@ -333,33 +337,47 @@ def chart_share_by_population(facts: Facts) -> ChartSpec:
             float(wiki.filter(pl.col("month").is_between(pl.lit(RECENT[0]), pl.lit(RECENT[1])))["openai"].sum()),
             "D-WIKI",
         ),
-        ("Dev usage", "Developers", "used for development, 2025 (Stack Overflow survey)", 42.8, 81.4, "S054"),
+        (
+            "Dev usage",
+            "Developers",
+            "model vendor used for work, 2026 (Stack Overflow survey)",
+            74.6,
+            74.3,
+            "S096",
+        ),
         (
             "PyPI SDK",
             "Developers",
-            "Python SDK median daily downloads, Sep 2026",
-            float(pypi.filter(pl.col("month") == "2026-09")["anthropic"][0]),
-            float(pypi.filter(pl.col("month") == "2026-09")["openai"][0]),
+            f"Python SDK median daily downloads, {month_name(LATEST)}",
+            float(pypi.filter(pl.col("month") == LATEST)["anthropic"][0]),
+            float(pypi.filter(pl.col("month") == LATEST)["openai"][0]),
             "D-PYPI",
         ),
         (
             "npm SDK",
             "Developers",
-            "JavaScript SDK median daily downloads, Sep 2026",
-            float(npm.filter(pl.col("month") == "2026-09")["anthropic"][0]),
-            float(npm.filter(pl.col("month") == "2026-09")["openai"][0]),
+            f"JavaScript SDK median daily downloads, {month_name(LATEST)}",
+            float(npm.filter(pl.col("month") == LATEST)["anthropic"][0]),
+            float(npm.filter(pl.col("month") == LATEST)["openai"][0]),
             "D-NPM",
         ),
-        ("Firms paying", "Businesses", "US businesses paying each vendor, Aug 2026 (Ramp)", 43.8, 39.8, "C196"),
+        ("Firms paying", "Businesses", "US businesses paying each vendor, Oct 2026 (Ramp)", 44.8, 40.6, "C211"),
         (
             "API spend",
             "Enterprises",
-            "enterprise LLM API spend, end-2025 (Menlo, an Anthropic investor)",
-            40,
-            27,
-            "C174",
+            "enterprise LLM API spend, Sep 2026 survey (Menlo, an Anthropic investor)",
+            55,
+            31,
+            "C215",
         ),
-        ("Q2 revenue", "Investors", "recognised revenue, Q2 2026 (reported documents)", 11.5, 6.7, "C110"),
+        (
+            "Q3 revenue",
+            "Investors",
+            "recognised revenue, Q3 2026 (Anthropic's S-1/A; OpenAI about $10bn, reported to investors)",
+            16.956,
+            10.0,
+            "C212;C213",
+        ),
         (
             "HN comments",
             "Developers",
@@ -368,7 +386,7 @@ def chart_share_by_population(facts: Facts) -> ChartSpec:
             float(hn.filter(pl.col("month").is_between(pl.lit(RECENT[0]), pl.lit(RECENT[1])))["openai_side"].sum()),
             "D-HN",
         ),
-        ("Agent at work", "Developers", "coding agent used at work, mid-2026 (JetBrains survey)", 39, 16, "S065"),
+        ("Agent at work", "Developers", "coding agent used at work, mid-2026 (JetBrains survey)", 39, 16, "S097"),
     ]
     rows = [
         {
@@ -430,14 +448,14 @@ def chart_share_by_population(facts: Facts) -> ChartSpec:
         "population_share_low",
         low["anthropic_share_pct"],
         pct(low["anthropic_share_pct"]),
-        [str(low["source_id"])],
+        str(low["source_id"]).split(";"),
         str(low["measure"]),
     )
     facts.add(
         "population_share_high",
         high["anthropic_share_pct"],
         pct(high["anthropic_share_pct"]),
-        [str(high["source_id"])],
+        str(high["source_id"]).split(";"),
         str(high["measure"]),
     )
     facts.add(
@@ -458,11 +476,11 @@ def chart_share_by_population(facts: Facts) -> ChartSpec:
         rows=chart_rows,
         encoding={"x": "measure", "y": "anthropic_share_pct"},
         axes={"x": {"label": ""}, "y": {"label": "Anthropic share, %"}},
-        sources=sorted({str(row["source_id"]) for row in chart_rows}),
+        sources=sorted({source for row in chart_rows for source in str(row["source_id"]).split(";")}),
         population=(
             "Eight of the sixteen measures in population-shares.csv, from US iPhone owners to professional developers"
         ),
-        window="Latest available period per measure (2025 to 2026-10-02)",
+        window=f"Latest available period per measure (2025 to {SNAPSHOT})",
         notes="Share = Anthropic / (Anthropic + OpenAI). Measures use different units; compare shares, not levels.",
         ratio="16:9",
     )
@@ -507,10 +525,10 @@ def chart_company_vs_product(facts: Facts) -> ChartSpec:
         axes={"x": {"label": ""}, "y": {"label": "Anthropic share, %"}},
         sources=["D-GT", "D-WIKI"],
         population="Google searchers worldwide; English Wikipedia readers",
-        window="2025-10 to 2026-09",
+        window=f"{RECENT[0]} to {RECENT[1]}",
         notes=(
             "Searches: knowledge-graph topics compared in pairs. Wikipedia: English articles, redirects included. "
-            "Oct 2025 to Sep 2026."
+            "Nov 2025 to Oct 2026."
         ),
         annotations=[{"kind": "line", "at": {"y": 50}, "text": ""}],
     )
@@ -526,7 +544,7 @@ def chart_ios_ratings(facts: Facts) -> ChartSpec:
         id="ios-ratings",
         type="bar",
         title=f"ChatGPT has {ratio} as many US App Store ratings as Claude",
-        subtitle="Cumulative US App Store ratings at 2 October 2026",
+        subtitle="Cumulative US App Store ratings at 18 November 2026",
         # Claude first, so each bar takes its company's series colour, as in every other chart here.
         rows=[
             {"app": "Claude", "ratings": int(ratings["anthropic_value"])},
@@ -536,7 +554,7 @@ def chart_ios_ratings(facts: Facts) -> ChartSpec:
         axes={"x": {"label": ""}, "y": {"label": "Ratings"}},
         sources=[ratings["source_id"]],
         population="US App Store users who rated either app",
-        window="cumulative to 2026-10-02",
+        window=f"cumulative to {SNAPSHOT}",
         ratio="2:1",
     )
 
@@ -643,7 +661,7 @@ def chart_coding_agents(facts: Facts) -> ChartSpec:
         axes={"x": {"label": "Month"}, "y": {"label": "Claude Code share, %"}},
         sources=["D-HN", "D-NPM", "D-GT", "D-GH"],
         population="Hacker News commenters; npm installs; Google searchers; public GitHub repositories",
-        window="2025-04 to 2026-09",
+        window=f"2025-04 to {LATEST}",
         notes=(
             "npm (median daily downloads) understates Claude Code after Anthropic moved users to a native installer. "
             "GitHub counts pull requests opened from codex/ and claude/ branches, the default branch prefixes of each "
@@ -678,22 +696,8 @@ def chart_run_rate(facts: Facts) -> ChartSpec:
         "quarter",
         "company",
     )
-    anthropic_latest = reports.filter(pl.col("company") == "Anthropic").sort("as_of").row(-1, named=True)
-    openai_latest = reports.filter(pl.col("company") == "OpenAI").sort("as_of").row(-1, named=True)
-    facts.add(
-        "run_rate_anthropic_latest",
-        anthropic_latest["value_usd_bn"],
-        f"${anthropic_latest['value_usd_bn']:.0f}bn",
-        [anthropic_latest["source_id"]],
-        f"{anthropic_latest['qualifier']} {anthropic_latest['as_of']}",
-    )
-    facts.add(
-        "run_rate_openai_latest",
-        openai_latest["value_usd_bn"],
-        f"${openai_latest['value_usd_bn']:.0f}bn",
-        [openai_latest["source_id"]],
-        f"{openai_latest['qualifier']} {openai_latest['as_of']}",
-    )
+    # The latest run-rates are left out of the facts: the two companies' newest figures differ in date and
+    # basis (C021, C115 and Anthropic's S-1/A), so the report compares recognised revenue instead.
     first_ahead = reports.filter(pl.col("company") == "Anthropic").join(
         reports.filter(pl.col("company") == "OpenAI").select("as_of", pl.col("value_usd_bn").alias("openai")),
         on="as_of",
@@ -722,29 +726,50 @@ def chart_run_rate(facts: Facts) -> ChartSpec:
 
 
 def chart_quarterly_revenue(facts: Facts) -> ChartSpec:
-    """Recognised quarterly revenue in 2026 from documents reported by Bloomberg and the WSJ."""
+    """Recognised quarterly revenue in 2026: Anthropic's filed quarters against OpenAI's reported ones."""
     revenue = pl.read_csv(common.REPORT_DIR / "research" / "curated" / "quarterly_revenue.csv")
     rows = order_rows(revenue.to_dicts(), "quarter", "company")
-    q2 = {row["company"]: row["revenue_usd_bn"] for row in rows if row["quarter"] == "Q2 2026"}
-    facts.add("q2_2026_revenue_anthropic", q2["Anthropic"], f"${q2['Anthropic']:.1f}bn", ["C110"], "preliminary")
-    facts.add("q2_2026_revenue_openai", q2["OpenAI"], f"${q2['OpenAI']:.1f}bn", ["C015"])
+    quarters = sorted({row["quarter"] for row in rows}, key=lambda q: (q.split()[1], q.split()[0]))
+    latest_quarter = quarters[-1]
+    latest = {row["company"]: row for row in rows if row["quarter"] == latest_quarter}
+    for company, row in latest.items():
+        about = "about " if str(row["status"]).startswith("about") else ""
+        value = row["revenue_usd_bn"]
+        facts.add(
+            f"revenue_latest_{company.lower()}",
+            value,
+            f"{about}${value:.0f}bn" if about else f"${value:.1f}bn",
+            [row["source_id"]],
+            f"{latest_quarter}, {row['status']}",
+        )
+    number = {"Q1": "first", "Q2": "second", "Q3": "third", "Q4": "fourth"}[latest_quarter.split()[0]]
+    facts.add(
+        "revenue_latest_quarter",
+        latest_quarter,
+        f"the {number} quarter of {latest_quarter.split()[1]}",
+        sorted({str(row["source_id"]) for row in latest.values()}),
+    )
     return ChartSpec(
         id="quarterly-revenue",
         type="bar",
-        title="In recognised revenue, Anthropic overtook OpenAI in Q2 2026",
-        subtitle="Quarterly revenue, $bn, from documents reported by Bloomberg (Anthropic) and the WSJ (OpenAI)",
+        title="In recognised revenue, Anthropic overtook OpenAI in Q2 2026 and widened the gap in Q3",
+        subtitle=(
+            "Quarterly revenue, $bn: Anthropic's from its S-1/A filing (quarters unaudited), OpenAI's as reported to "
+            "investors (press)"
+        ),
         rows=rows,
         encoding={"x": "quarter", "y": "revenue_usd_bn", "color": "company"},
         axes={"x": {"label": "Quarter"}, "y": {"label": "Revenue, $bn"}},
-        sources=["C015", "C110"],
+        sources=sorted({str(row["source_id"]) for row in rows}),
         population=(
-            "Company documents reported by the press; as of the 2 October snapshot neither company had a public "
-            "S-1. Anthropic filed one on 26 October 2026 (C208) and amended it on 10 November (C209)"
+            "Anthropic's registration statement, filed 26 October 2026 (C208); figures of the 10 November amendment (C209), "
+            "repeated unchanged in the latest, of 17 November (C220); "
+            "OpenAI's figures as reported to investors and relayed by the press"
         ),
-        window="2026 Q1 to 2026 Q2",
+        window=f"2026 Q1 to {latest_quarter.split()[1]} {latest_quarter.split()[0]}",
         notes=(
-            "Anthropic's Q2 figure is preliminary. For FY2025 OpenAI booked $13.07bn (C009) "
-            "vs Anthropic ~$4.6bn (C093)."
+            f"OpenAI's {latest_quarter} figure is about $10bn, as reported to investors. For FY2025 OpenAI booked "
+            "$13.07bn (C009); Anthropic's four 2025 quarters in its filing sum to $4.585bn (C212)."
         ),
     )
 
@@ -762,10 +787,19 @@ def chart_ramp(facts: Facts) -> ChartSpec:
         .sort("month")
         .row(0, named=True)
     )
-    facts.add("ramp_crossover_month", crossover["month"], "April 2026", ["C185"])
+    facts.add("ramp_crossover_month", crossover["month"], month_name(crossover["month"]), ["C185"])
     facts.add("ramp_anthropic_2025_07", 11.1, "11.1%", ["C168"])
-    facts.add("ramp_anthropic_latest", 43.8, "43.8%", ["C196"], "Aug 2026")
-    facts.add("ramp_openai_latest", 39.8, "39.8%", ["C196"], "Aug 2026")
+    newest = ramp.filter(pl.col("month") == ramp["month"].max())
+    for company in ("Anthropic", "OpenAI"):
+        row = newest.filter(pl.col("company") == company).row(0, named=True)
+        facts.add(
+            f"ramp_{company.lower()}_latest",
+            row["share_pct"],
+            f"{row['share_pct']:.1f}%",
+            [row["source_id"]],
+            month_name(row["month"]),
+        )
+    facts.add("ramp_latest_month", ramp["month"].max(), month_name(ramp["month"].max()), [newest["source_id"][0]])
     return ChartSpec(
         id="ramp-adoption",
         type="line",
@@ -776,7 +810,7 @@ def chart_ramp(facts: Facts) -> ChartSpec:
         axes={"x": {"label": "Month"}, "y": {"label": "Businesses paying, %"}},
         sources=sorted(ramp["source_id"].unique().to_list()),
         population="US businesses using Ramp's corporate cards and bill pay (skews to tech-forward firms)",
-        window="2025-07 to 2026-08",
+        window=f"2025-07 to {ramp['month'].max()}",
         notes="Ramp added bill-pay capture in May 2026 (C187): levels before and after the break are not comparable.",
         annotations=[{"kind": "band", "from": {"x": "2026-04"}, "to": {"x": "2026-05"}, "text": "method change"}],
     )
@@ -786,11 +820,18 @@ def chart_web_share(facts: Facts) -> ChartSpec:
     """Generative-AI web traffic shares: ChatGPT lost share mostly to Gemini, Claude grew from a small base."""
     web = pl.read_csv(common.REPORT_DIR / "research" / "curated" / "web_share.csv")
     rows = order_rows(web.to_dicts(), "as_of", "product")
-    facts.add("web_chatgpt_2025_08", 73.3, "73.3%", ["C170"])
-    facts.add("web_chatgpt_2026_08", 55.5, "55.5%", ["C195"])
-    facts.add("web_claude_2025_08", 1.9, "1.9%", ["C170"])
-    facts.add("web_claude_2026_08", 9.3, "9.3%", ["C195"])
-    facts.add("web_gemini_2026_08", 25.6, "25.6%", ["C195"])
+    newest = web["as_of"].max()
+    # The newest release's own year-ago point, so both ends come from one release.
+    source = web.filter(pl.col("as_of") == newest)["source_id"][0]
+    year_ago = web.filter((pl.col("source_id") == source) & (pl.col("as_of") != newest))["as_of"].max()
+    for as_of, key in ((year_ago, "year_ago"), (newest, "latest")):
+        for product in ("ChatGPT", "Claude", "Gemini"):
+            row = web.filter((pl.col("as_of") == as_of) & (pl.col("product") == product))
+            if row.height:
+                value = float(row["share_pct"][0])
+                facts.add(f"web_{product.lower()}_{key}", value, f"{value:.1f}%", [row["source_id"][0]], as_of)
+    facts.add("web_latest_month", newest, month_name(newest), [source])
+    facts.add("web_year_ago_month", year_ago, month_name(year_ago), [source])
     return ChartSpec(
         id="web-share",
         type="bar",
@@ -799,9 +840,9 @@ def chart_web_share(facts: Facts) -> ChartSpec:
         rows=rows,
         encoding={"x": "as_of", "y": "share_pct", "color": "product"},
         axes={"x": {"label": "Month"}, "y": {"label": "Share of gen-AI web visits, %"}},
-        sources=["C170", "C191", "C195"],
+        sources=sorted(web["source_id"].unique().to_list()),
         population="Worldwide desktop and mobile web visits to gen-AI sites (excludes apps and API use)",
-        window="2025-08 to 2026-08",
+        window=f"{web['as_of'].min()} to {newest}",
         notes="Similarweb revises earlier points between releases; values are as first published in each release.",
     )
 
@@ -810,7 +851,7 @@ def chart_capability(facts: Facts) -> ChartSpec:
     """Best Epoch Capabilities Index score each lab had released by the end of every month."""
     frontier = pl.read_csv(common.DERIVED_DIR / "capability_eci_frontier.csv")
     rows = []
-    for month in months_between("2024-01", "2026-09"):
+    for month in months_between("2024-01", LATEST):
         month_end = common.next_month(date(int(month[:4]), int(month[5:7]), 1)).isoformat()
         for lab in ("OpenAI", "Anthropic", "Google"):
             released = frontier.filter((pl.col("lab") == lab) & (pl.col("date") < month_end))
@@ -826,7 +867,7 @@ def chart_capability(facts: Facts) -> ChartSpec:
                         "ci_high": best["ci_high"],
                     }
                 )
-    latest = {row["lab"]: row for row in rows if row["month"] == "2026-09"}
+    latest = {row["lab"]: row for row in rows if row["month"] == LATEST}
     facts.add(
         "eci_anthropic_latest",
         latest["Anthropic"]["best_eci"],
@@ -859,8 +900,13 @@ def chart_capability(facts: Facts) -> ChartSpec:
         axes={"x": {"label": "Month"}, "y": {"label": "Epoch Capabilities Index"}},
         sources=["D-EPOCH"],
         population="Frontier models with enough benchmark coverage for Epoch's index",
-        window="2024-01 to 2026-09",
-        notes="Epoch's confidence intervals overlap: Claude Opus 5.5 164-172, GPT-6 Astra 163-171.",
+        window=f"2024-01 to {LATEST}",
+        notes="Epoch's confidence intervals overlap: "
+        + ", ".join(
+            f"{latest[lab]['model']} {float(latest[lab]['ci_low']):.0f}-{float(latest[lab]['ci_high']):.0f}"
+            for lab in ("Anthropic", "OpenAI")
+        )
+        + ".",
     )
 
 
@@ -872,7 +918,7 @@ def chart_capability_leads(facts: Facts) -> ChartSpec:
             "benchmark": row["benchmark"],
             "lab": row["lab"],
             "lead_share_pct": round(100 * row["lead_days"] / row["window_days"], 1),
-            "best_model_by_2026_09_30": row["best_model"] or "",
+            "best_model_by_2026_10_31": row["best_model"] or "",
         }
         for row in leads.iter_rows(named=True)
     ]
@@ -885,19 +931,19 @@ def chart_capability_leads(facts: Facts) -> ChartSpec:
             len(led),
             ", ".join(led) or "none",
             ["D-EPOCH"],
-            "benchmarks led on at least half the days, 2025-10..2026-09",
+            f"benchmarks led on at least half the days, {RECENT[0]}..{RECENT[1]}",
         )
     return ChartSpec(
         id="capability-leads",
         type="heatmap",
         title="Anthropic leads coding and long tasks; OpenAI leads maths and reasoning",
-        subtitle="Share of days from Oct 2025 to Sep 2026 on which each lab held the best released score, %",
+        subtitle="Share of days from Nov 2025 to Oct 2026 on which each lab held the best released score, %",
         rows=rows,
         encoding={"x": "lab", "y": "benchmark", "color": "lead_share_pct"},
         axes={"x": {"label": "Lab"}, "y": {"label": "Benchmark"}},
         sources=["D-EPOCH"],
         population="Models with published scores in Epoch AI's Benchmarking Hub",
-        window="2025-10-01 to 2026-09-30",
+        window="2025-11-01 to 2026-10-31",
         notes=(
             "Leads inside measurement error still count. METR horizons stop at April 2026; "
             "OSWorld lacks recent OpenAI runs."
@@ -917,8 +963,8 @@ def chart_surveys(facts: Facts) -> ChartSpec:
         "S005": "Week, May",
         "S006": "Aware, Feb",
         "S007": "Aware, May",
-        "S015": "6 nations",
-        "S054": "Dev use",
+        "S095": "6 nations",
+        "S096": "Dev vendor",
     }
     rows: list[dict[str, Any]] = []
     for row in surveys.iter_rows(named=True):
@@ -942,16 +988,16 @@ def chart_surveys(facts: Facts) -> ChartSpec:
     facts.add("ssrs_aware_claude_feb", 21, "21%", ["S006"])
     facts.add("ssrs_aware_claude_may", 42, "42%", ["S007"])
     ratios = {row["source_id"]: row["chatgpt_pct"] / row["claude_pct"] for row in surveys.iter_rows(named=True)}
-    public = [ratios[source] for source in ("S002", "S004", "S005", "S015")]
-    facts.add("survey_reach_ratio_min", round(min(public), 1), f"{min(public):.0f}", ["S002", "S004", "S005", "S015"])
-    facts.add("survey_reach_ratio_max", round(max(public), 1), f"{max(public):.0f}", ["S002", "S004", "S005", "S015"])
-    facts.add("survey_dev_ratio", round(ratios["S054"], 1), f"{ratios['S054']:.1f}", ["S054"])
+    public = [ratios[source] for source in ("S002", "S004", "S005", "S095")]
+    facts.add("survey_reach_ratio_min", round(min(public), 1), f"{min(public):.0f}", ["S002", "S004", "S005", "S095"])
+    facts.add("survey_reach_ratio_max", round(max(public), 1), f"{max(public):.0f}", ["S002", "S004", "S005", "S095"])
+    facts.add("survey_dev_ratio", round(ratios["S096"], 1), f"{ratios['S096']:.1f}", ["S096"])
     return ChartSpec(
         id="surveys",
         type="bar",
         title=(
             f"ChatGPT reaches {min(public):.0f} to {max(public):.0f} times as many people as Claude; "
-            f"developers, {ratios['S054']:.0f}x"
+            f"developers use the two vendors about equally ({ratios['S096']:.1f}x)"
         ),
         subtitle="Share of each surveyed population using or aware of each assistant, %",
         rows=rows,
@@ -959,9 +1005,10 @@ def chart_surveys(facts: Facts) -> ChartSpec:
         axes={"x": {"label": ""}, "y": {"label": "% of respondents"}},
         sources=sorted(surveys["source_id"].to_list()),
         population=(
-            "US adults (Pew, SSRS), online adults in six countries (Reuters Institute), developers (Stack Overflow)"
+            "US adults (Pew, SSRS), online adults in six countries (Reuters Institute), developers (Stack Overflow, "
+            "model vendors used for work)"
         ),
-        window="2025-06 to 2026-07 fieldwork",
+        window="2026-02 to 2026-09 fieldwork",
         notes="Developer surveys are opt-in professional samples, not probability samples.",
     )
 
@@ -1005,13 +1052,13 @@ def chart_trends_geo(facts: Facts) -> ChartSpec:
         id="trends-geo",
         type="bar",
         title="Claude's searchers concentrate in East Asian and other tech-heavy markets",
-        subtitle="Claude's share of Claude + ChatGPT Google search interest, Oct 2025 to Sep 2026, nine markets, %",
+        subtitle="Claude's share of Claude + ChatGPT Google search interest, Nov 2025 to Oct 2026, nine markets, %",
         rows=rows,
         encoding={"x": "country", "y": "claude_share_pct"},
         axes={"x": {"label": ""}, "y": {"label": "Claude share of searches, %"}},
         sources=["D-GT"],
         population="Google searchers per country (China reflects VPN and Google-accessible users only)",
-        window="2025-10-01 to 2026-09-30",
+        window="2025-11-01 to 2026-10-31",
         notes="Google's compared-breakdown shares split each country's combined interest between the two topics.",
     )
 
@@ -1032,7 +1079,7 @@ def chart_pentagon_week(facts: Facts) -> ChartSpec:
     claude = [row for row in rows if row["topic"] == "Claude"]
     before = [row["interest"] for row in claude if "2026-01-01" <= row["week"] < "2026-02-01"]
     peak = max(claude, key=lambda row: row["interest"])
-    after = [row["interest"] for row in claude if "2026-08-01" <= row["week"] < "2026-09-30"]
+    after = [row["interest"] for row in claude if "2026-09-01" <= row["week"] < "2026-10-31"]
     january = sum(before) / len(before)
     late = sum(after) / len(after)
     held = 100 * (late - january) / (peak["interest"] - january)
@@ -1044,20 +1091,20 @@ def chart_pentagon_week(facts: Facts) -> ChartSpec:
         round(held, 0),
         f"{held:.0f}%",
         ["D-GT"],
-        "share of Jan-to-peak gain still present Aug-Sep",
+        "share of Jan-to-peak gain still present Sep-Oct",
     )
     multiple = peak["interest"] / january
     return ChartSpec(
         id="pentagon-week",
         type="line",
-        title=f"Claude's US search interest rose {multiple:.1f}x around the Pentagon split; {held:.0f}% held",
+        title=f"Claude's US search interest rose about {multiple:.0f}x after the Pentagon split; {held:.0f}% held",
         subtitle="Weekly US Google search interest in the Claude and ChatGPT topics (0-100, same comparison)",
         rows=rows,
         encoding={"x": "week", "y": "interest", "color": "topic"},
         axes={"x": {"label": "Week starting"}, "y": {"label": "Search interest (0-100)"}},
         sources=["D-GT", "E078", "E088"],
         population="US Google searchers",
-        window="2025-11 to 2026-09",
+        window=f"2025-11 to {LATEST}",
         notes=(
             "Super Bowl 'no ads' campaign 2026-02-08 (E078); Pentagon supply-chain-risk designation 2026-02-27 (E088)."
         ),
@@ -1077,24 +1124,28 @@ def chart_reddit(facts: Facts) -> ChartSpec:
     posts = pl.read_csv(common.DERIVED_DIR / "reddit_monthly_posts.csv", infer_schema_length=0).filter(
         pl.col("subreddit").is_in(["ChatGPT", "ClaudeAI", "ClaudeCode", "codex"]) & (pl.col("month") >= "2024-07")
     )
+    counted = posts.filter(pl.col("posts") != "")
     rows = [
         {"month": row["month"], "community": f"r/{row['subreddit']}", "posts": int(row["posts"])}
-        for row in posts.filter(pl.col("posts") != "").sort("month", "subreddit").iter_rows(named=True)
+        for row in counted.sort("month", "subreddit").iter_rows(named=True)
     ]
     by = {(row["community"], row["month"]): row["posts"] for row in rows}
+    latest_day = counted["counted"].max()
+    earlier = counted.filter(pl.col("counted") != latest_day)
+    gaps = posts.height - counted.height
     claude_peak = max((row for row in rows if row["community"] == "r/ClaudeAI"), key=lambda row: row["posts"])
-    claude_latest = by[("r/ClaudeAI", "2026-09")]
+    claude_latest = by[("r/ClaudeAI", LATEST)]
     drop = 100 * (1 - claude_latest / claude_peak["posts"])
     facts.add(
         "reddit_claudeai_peak", claude_peak["posts"], f"{claude_peak['posts']:,}", ["D-REDDIT"], claude_peak["month"]
     )
-    facts.add("reddit_claudeai_latest", claude_latest, f"{claude_latest:,}", ["D-REDDIT"], "2026-09")
-    facts.add("reddit_claudeai_drop", round(drop), f"{drop:.0f}%", ["D-REDDIT"], "fall from peak to Sep 2026")
-    facts.add("reddit_codex_latest", by[("r/codex", "2026-09")], f"{by[('r/codex', '2026-09')]:,}", ["D-REDDIT"])
+    facts.add("reddit_claudeai_latest", claude_latest, f"{claude_latest:,}", ["D-REDDIT"], LATEST)
+    facts.add("reddit_claudeai_drop", round(drop), f"{drop:.0f}%", ["D-REDDIT"], "fall from peak to Oct 2026")
+    facts.add("reddit_codex_latest", by[("r/codex", LATEST)], f"{by[('r/codex', LATEST)]:,}", ["D-REDDIT"])
     facts.add(
         "reddit_claudecode_latest",
-        by[("r/ClaudeCode", "2026-09")],
-        f"{by[('r/ClaudeCode', '2026-09')]:,}",
+        by[("r/ClaudeCode", LATEST)],
+        f"{by[('r/ClaudeCode', LATEST)]:,}",
         ["D-REDDIT"],
     )
     facts.add("reddit_codex_2026_01", by[("r/codex", "2026-01")], f"{by[('r/codex', '2026-01')]:,}", ["D-REDDIT"])
@@ -1107,18 +1158,34 @@ def chart_reddit(facts: Facts) -> ChartSpec:
     facts.add(
         "reddit_chatgpt_last", chatgpt_last["posts"], f"{chatgpt_last['posts']:,}", ["D-REDDIT"], chatgpt_last["month"]
     )
+    # Which agent community posted more in the latest month, as the data says.
+    codex, claude_code = by[("r/codex", LATEST)], by[("r/ClaudeCode", LATEST)]
+    ahead, behind = ("r/codex", "r/ClaudeCode") if codex > claude_code else ("r/ClaudeCode", "r/codex")
+    month = date.fromisoformat(f"{LATEST}-01").strftime("%B")
+    kept = (
+        f" Where the archive timed out, {earlier.height} months keep their count of {earlier['counted'].max()}."
+        if earlier.height
+        else ""
+    )
     return ChartSpec(
         id="reddit-communities",
         type="line",
-        title=(f"r/codex now out-posts r/ClaudeCode; r/ClaudeAI is down {drop:.0f}% from its peak"),
+        title=f"{ahead} out-posted {behind} in {month}; r/ClaudeAI is down {drop:.0f}% from its peak",
         subtitle="Posts per month in each product's home community on Reddit",
         rows=rows,
         encoding={"x": "month", "y": "posts", "color": "community"},
         axes={"x": {"label": "Month"}, "y": {"label": "Posts per month"}},
         sources=["D-REDDIT"],
         population="Reddit users posting in r/ChatGPT, r/ClaudeAI, r/ClaudeCode and r/codex",
-        window="2024-07 to 2026-09",
-        notes="Gaps are months the archive could not count (timeouts on the largest subreddit), not zero.",
+        window=f"2024-07 to {LATEST}",
+        notes=(
+            f"Counted on {latest_day}.{kept}"
+            + (
+                f" {gaps} {'months' if gaps != 1 else 'month'} never counted {'stay' if gaps != 1 else 'stays'} empty."
+                if gaps
+                else ""
+            )
+        ),
     )
 
 
@@ -1195,8 +1262,10 @@ def net_stance(labels: pl.DataFrame, company: str, by: str) -> pl.DataFrame:
 def chart_hn_stance(facts: Facts) -> ChartSpec:
     """Quarterly net stance of Hacker News comments toward each company, primary judge, with a replication."""
     rows = []
+    # Only complete quarters: data to October would otherwise add a one-month fourth quarter as the latest point.
+    last_full = f"{LATEST[:5]}{int(LATEST[5:]) - int(LATEST[5:]) % 3:02d}"
     for judge in (classify_primary(), "devstral-2"):
-        labels = stance_labels(judge)
+        labels = stance_labels(judge).filter(pl.col("month") <= last_full)
         for company, name in (("openai", "OpenAI"), ("anthropic", "Anthropic")):
             for row in net_stance(labels, company, "quarter").iter_rows(named=True):
                 rows.append(
@@ -1214,6 +1283,8 @@ def chart_hn_stance(facts: Facts) -> ChartSpec:
     for company in ("OpenAI", "Anthropic"):
         series = [row for row in primary if row["company"] == company]
         latest = series[-1]
+        if latest["quarter"] != "2026 Q3":
+            raise ValueError(f"latest complete quarter is {latest['quarter']}; update the window and the wording")
         peak = max(series, key=lambda row: float(row["net_stance"]))
         key = company.lower()
         facts.add(
@@ -1265,7 +1336,7 @@ def chart_hn_stance(facts: Facts) -> ChartSpec:
     comparisons = stance_labels(classify_primary()).filter(
         (pl.col("side") == "both") & pl.col("prefers").is_in(["openai", "anthropic"])
     )
-    for key, window in (("2025", ("2025-01", "2025-12")), ("latest", ("2026-07", "2026-09"))):
+    for key, window in (("2025", ("2025-01", "2025-12")), ("latest", LATEST_QUARTER)):
         picked = comparisons.filter(pl.col("month").is_between(pl.lit(window[0]), pl.lit(window[1])))
         prefer = 100 * mean_of(picked["prefers"] == "anthropic")
         facts.add(
@@ -1305,6 +1376,8 @@ def classify_primary() -> str:
 def chart_hn_topics(facts: Facts) -> ChartSpec:
     """What each company is criticised for: topic shares among negative HN comments in the latest twelve months."""
     labels = stance_labels(classify_primary()).filter(pl.col("month").is_between(pl.lit(RECENT[0]), pl.lit(RECENT[1])))
+    if labels["month"].max() != RECENT[1]:
+        raise ValueError(f"HN labels end in {labels['month'].max()}, before the window's {RECENT[1]}; run label_hn.py")
     rows = []
     for company, name in (("openai", "OpenAI"), ("anthropic", "Anthropic")):
         negative = labels.filter(pl.col(company) == "negative")
@@ -1352,14 +1425,14 @@ def chart_hn_topics(facts: Facts) -> ChartSpec:
         type="bar",
         title="Anthropic draws complaints about reliability; OpenAI about money and hype",
         subtitle=(
-            "Share of negative Hacker News comments about each company that concern each topic, Oct 2025 to Sep 2026, %"
+            "Share of negative Hacker News comments about each company that concern each topic, Nov 2025 to Oct 2026, %"
         ),
         rows=rows,
         encoding={"x": "topic", "y": "share_of_negative_pct", "color": "company"},
         axes={"x": {"label": ""}, "y": {"label": "% of negative comments"}},
         sources=["D-HN", "D-LABELS"],
         population="Hacker News commenters (negative comments in the labelled sample)",
-        window="2025-10 to 2026-09",
+        window=f"{RECENT[0]} to {RECENT[1]}",
         notes="A comment can carry up to two topics, so shares do not sum to 100.",
     )
 
@@ -1521,6 +1594,10 @@ def validation_facts(facts: Facts) -> None:
     complete = shared.group_by("id").agg(pl.col("judge").n_unique().alias("judges")).filter(pl.col("judges") == 4)["id"]
     shared = shared.filter(pl.col("id").is_in(complete.to_list()))
     facts.add("validation_n", complete.len(), f"{complete.len():,}", ["D-LABELS"])
+    sampled = pl.read_csv(common.DERIVED_DIR / "hn_comment_sample_ids.csv").height
+    for judge, key in (("qwen3-235b", "primary"), ("devstral-2", "replica")):
+        labelled = labels.filter(pl.col("judge") == judge)["id"].n_unique()
+        facts.add(f"hn_labelled_{key}", labelled, f"{labelled:,} of {sampled:,}", ["D-LABELS"], judge)
     agreements = []
     wide = {judge: shared.filter(pl.col("judge") == judge).sort("id") for judge in judges}
     for index, first in enumerate(judges):

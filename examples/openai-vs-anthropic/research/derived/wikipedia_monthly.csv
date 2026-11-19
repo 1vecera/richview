@@ -40,10 +40,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,en,openai,OpenAI,OpenAI,23,237132
 2026-04,en,openai,OpenAI,OpenAI,23,245010
 2026-05,en,openai,OpenAI,OpenAI,23,251974
-2026-06,en,openai,OpenAI,OpenAI,23,221465
-2026-07,en,openai,OpenAI,OpenAI,23,195294
-2026-08,en,openai,OpenAI,OpenAI,23,175908
-2026-09,en,openai,OpenAI,OpenAI,23,311096
+2026-06,en,openai,OpenAI,OpenAI,23,218782
+2026-07,en,openai,OpenAI,OpenAI,23,183025
+2026-08,en,openai,OpenAI,OpenAI,23,168981
+2026-09,en,openai,OpenAI,OpenAI,23,303103
+2026-10,en,openai,OpenAI,OpenAI,23,251845
 2023-01,de,openai,OpenAI,OpenAI,8,148101
 2023-02,de,openai,OpenAI,OpenAI,8,86786
 2023-03,de,openai,OpenAI,OpenAI,8,73816
@@ -85,10 +86,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,de,openai,OpenAI,OpenAI,8,12019
 2026-04,de,openai,OpenAI,OpenAI,8,10729
 2026-05,de,openai,OpenAI,OpenAI,8,12495
-2026-06,de,openai,OpenAI,OpenAI,8,13578
-2026-07,de,openai,OpenAI,OpenAI,8,13806
-2026-08,de,openai,OpenAI,OpenAI,8,13850
-2026-09,de,openai,OpenAI,OpenAI,8,18969
+2026-06,de,openai,OpenAI,OpenAI,8,13436
+2026-07,de,openai,OpenAI,OpenAI,8,13374
+2026-08,de,openai,OpenAI,OpenAI,8,13398
+2026-09,de,openai,OpenAI,OpenAI,8,18437
+2026-10,de,openai,OpenAI,OpenAI,8,14301
 2023-01,fr,openai,OpenAI,OpenAI,2,137469
 2023-02,fr,openai,OpenAI,OpenAI,2,84881
 2023-03,fr,openai,OpenAI,OpenAI,2,71408
@@ -130,10 +132,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,fr,openai,OpenAI,OpenAI,2,9642
 2026-04,fr,openai,OpenAI,OpenAI,2,10095
 2026-05,fr,openai,OpenAI,OpenAI,2,10195
-2026-06,fr,openai,OpenAI,OpenAI,2,9091
-2026-07,fr,openai,OpenAI,OpenAI,2,6462
-2026-08,fr,openai,OpenAI,OpenAI,2,8122
-2026-09,fr,openai,OpenAI,OpenAI,2,15137
+2026-06,fr,openai,OpenAI,OpenAI,2,9005
+2026-07,fr,openai,OpenAI,OpenAI,2,6222
+2026-08,fr,openai,OpenAI,OpenAI,2,7722
+2026-09,fr,openai,OpenAI,OpenAI,2,14713
+2026-10,fr,openai,OpenAI,OpenAI,2,8831
 2023-01,es,openai,OpenAI,OpenAI,2,56929
 2023-02,es,openai,OpenAI,OpenAI,2,51730
 2023-03,es,openai,OpenAI,OpenAI,2,100582
@@ -175,10 +178,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,es,openai,OpenAI,OpenAI,2,7390
 2026-04,es,openai,OpenAI,OpenAI,2,7497
 2026-05,es,openai,OpenAI,OpenAI,2,6958
-2026-06,es,openai,OpenAI,OpenAI,2,5553
-2026-07,es,openai,OpenAI,OpenAI,2,5128
-2026-08,es,openai,OpenAI,OpenAI,2,6502
-2026-09,es,openai,OpenAI,OpenAI,2,15114
+2026-06,es,openai,OpenAI,OpenAI,2,5580
+2026-07,es,openai,OpenAI,OpenAI,2,5241
+2026-08,es,openai,OpenAI,OpenAI,2,6630
+2026-09,es,openai,OpenAI,OpenAI,2,15535
+2026-10,es,openai,OpenAI,OpenAI,2,8501
 2023-01,it,openai,OpenAI,OpenAI,1,41915
 2023-02,it,openai,OpenAI,OpenAI,1,22331
 2023-03,it,openai,OpenAI,OpenAI,1,25184
@@ -220,10 +224,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,it,openai,OpenAI,OpenAI,1,4712
 2026-04,it,openai,OpenAI,OpenAI,1,4085
 2026-05,it,openai,OpenAI,OpenAI,1,4637
-2026-06,it,openai,OpenAI,OpenAI,1,4829
-2026-07,it,openai,OpenAI,OpenAI,1,3451
-2026-08,it,openai,OpenAI,OpenAI,1,3651
-2026-09,it,openai,OpenAI,OpenAI,1,9944
+2026-06,it,openai,OpenAI,OpenAI,1,4593
+2026-07,it,openai,OpenAI,OpenAI,1,3353
+2026-08,it,openai,OpenAI,OpenAI,1,3591
+2026-09,it,openai,OpenAI,OpenAI,1,9852
+2026-10,it,openai,OpenAI,OpenAI,1,6140
 2023-01,pt,openai,OpenAI,OpenAI,1,21596
 2023-02,pt,openai,OpenAI,OpenAI,1,29189
 2023-03,pt,openai,OpenAI,OpenAI,1,28046
@@ -265,10 +270,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,pt,openai,OpenAI,OpenAI,1,2221
 2026-04,pt,openai,OpenAI,OpenAI,1,2406
 2026-05,pt,openai,OpenAI,OpenAI,1,2578
-2026-06,pt,openai,OpenAI,OpenAI,1,2498
-2026-07,pt,openai,OpenAI,OpenAI,1,2290
-2026-08,pt,openai,OpenAI,OpenAI,1,2591
-2026-09,pt,openai,OpenAI,OpenAI,1,4421
+2026-06,pt,openai,OpenAI,OpenAI,1,2460
+2026-07,pt,openai,OpenAI,OpenAI,1,2196
+2026-08,pt,openai,OpenAI,OpenAI,1,2546
+2026-09,pt,openai,OpenAI,OpenAI,1,4464
+2026-10,pt,openai,OpenAI,OpenAI,1,3356
 2023-02,pl,openai,OpenAI,OpenAI,1,57
 2023-03,pl,openai,OpenAI,OpenAI,1,10946
 2023-04,pl,openai,OpenAI,OpenAI,1,14625
@@ -309,10 +315,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,pl,openai,OpenAI,OpenAI,1,2860
 2026-04,pl,openai,OpenAI,OpenAI,1,2259
 2026-05,pl,openai,OpenAI,OpenAI,1,2551
-2026-06,pl,openai,OpenAI,OpenAI,1,2260
-2026-07,pl,openai,OpenAI,OpenAI,1,2242
-2026-08,pl,openai,OpenAI,OpenAI,1,2167
-2026-09,pl,openai,OpenAI,OpenAI,1,4133
+2026-06,pl,openai,OpenAI,OpenAI,1,2226
+2026-07,pl,openai,OpenAI,OpenAI,1,2156
+2026-08,pl,openai,OpenAI,OpenAI,1,2103
+2026-09,pl,openai,OpenAI,OpenAI,1,4077
+2026-10,pl,openai,OpenAI,OpenAI,1,3549
 2023-01,cs,openai,OpenAI,OpenAI,1,3355
 2023-02,cs,openai,OpenAI,OpenAI,1,4332
 2023-03,cs,openai,OpenAI,OpenAI,1,4991
@@ -354,10 +361,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,cs,openai,OpenAI,OpenAI,1,795
 2026-04,cs,openai,OpenAI,OpenAI,1,741
 2026-05,cs,openai,OpenAI,OpenAI,1,1415
-2026-06,cs,openai,OpenAI,OpenAI,1,3576
-2026-07,cs,openai,OpenAI,OpenAI,1,5371
-2026-08,cs,openai,OpenAI,OpenAI,1,1296
-2026-09,cs,openai,OpenAI,OpenAI,1,1383
+2026-06,cs,openai,OpenAI,OpenAI,1,1756
+2026-07,cs,openai,OpenAI,OpenAI,1,904
+2026-08,cs,openai,OpenAI,OpenAI,1,617
+2026-09,cs,openai,OpenAI,OpenAI,1,1019
+2026-10,cs,openai,OpenAI,OpenAI,1,732
 2023-01,ru,openai,OpenAI,OpenAI,2,43749
 2023-02,ru,openai,OpenAI,OpenAI,2,90068
 2023-03,ru,openai,OpenAI,OpenAI,2,87584
@@ -399,55 +407,57 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,ru,openai,OpenAI,OpenAI,2,14302
 2026-04,ru,openai,OpenAI,OpenAI,2,13975
 2026-05,ru,openai,OpenAI,OpenAI,2,12461
-2026-06,ru,openai,OpenAI,OpenAI,2,11833
-2026-07,ru,openai,OpenAI,OpenAI,2,10487
-2026-08,ru,openai,OpenAI,OpenAI,2,10531
-2026-09,ru,openai,OpenAI,OpenAI,2,21264
-2023-01,ja,openai,OpenAI,OpenAI,2,49028
-2023-02,ja,openai,OpenAI,OpenAI,2,98026
-2023-03,ja,openai,OpenAI,OpenAI,2,93455
-2023-04,ja,openai,OpenAI,OpenAI,2,114524
-2023-05,ja,openai,OpenAI,OpenAI,2,48373
-2023-06,ja,openai,OpenAI,OpenAI,2,33246
-2023-07,ja,openai,OpenAI,OpenAI,2,26538
-2023-08,ja,openai,OpenAI,OpenAI,2,19153
-2023-09,ja,openai,OpenAI,OpenAI,2,14439
-2023-10,ja,openai,OpenAI,OpenAI,2,13172
-2023-11,ja,openai,OpenAI,OpenAI,2,40400
-2023-12,ja,openai,OpenAI,OpenAI,2,15664
-2024-01,ja,openai,OpenAI,OpenAI,2,16872
-2024-02,ja,openai,OpenAI,OpenAI,2,19122
-2024-03,ja,openai,OpenAI,OpenAI,2,15063
-2024-04,ja,openai,OpenAI,OpenAI,2,14805
-2024-05,ja,openai,OpenAI,OpenAI,2,18546
-2024-06,ja,openai,OpenAI,OpenAI,2,16173
-2024-07,ja,openai,OpenAI,OpenAI,2,11394
-2024-08,ja,openai,OpenAI,OpenAI,2,10031
-2024-09,ja,openai,OpenAI,OpenAI,2,12804
-2024-10,ja,openai,OpenAI,OpenAI,2,14269
-2024-11,ja,openai,OpenAI,OpenAI,2,13555
-2024-12,ja,openai,OpenAI,OpenAI,2,14828
-2025-01,ja,openai,OpenAI,OpenAI,2,23548
-2025-02,ja,openai,OpenAI,OpenAI,2,30865
-2025-03,ja,openai,OpenAI,OpenAI,2,14296
-2025-04,ja,openai,OpenAI,OpenAI,2,21178
-2025-05,ja,openai,OpenAI,OpenAI,2,22391
-2025-06,ja,openai,OpenAI,OpenAI,2,18694
-2025-07,ja,openai,OpenAI,OpenAI,2,16865
-2025-08,ja,openai,OpenAI,OpenAI,2,19193
-2025-09,ja,openai,OpenAI,OpenAI,2,18953
-2025-10,ja,openai,OpenAI,OpenAI,2,29746
-2025-11,ja,openai,OpenAI,OpenAI,2,23648
-2025-12,ja,openai,OpenAI,OpenAI,2,21903
-2026-01,ja,openai,OpenAI,OpenAI,2,20496
-2026-02,ja,openai,OpenAI,OpenAI,2,20713
-2026-03,ja,openai,OpenAI,OpenAI,2,18832
-2026-04,ja,openai,OpenAI,OpenAI,2,17591
-2026-05,ja,openai,OpenAI,OpenAI,2,26881
-2026-06,ja,openai,OpenAI,OpenAI,2,28065
-2026-07,ja,openai,OpenAI,OpenAI,2,16345
-2026-08,ja,openai,OpenAI,OpenAI,2,15448
-2026-09,ja,openai,OpenAI,OpenAI,2,23938
+2026-06,ru,openai,OpenAI,OpenAI,2,11921
+2026-07,ru,openai,OpenAI,OpenAI,2,10685
+2026-08,ru,openai,OpenAI,OpenAI,2,10879
+2026-09,ru,openai,OpenAI,OpenAI,2,21859
+2026-10,ru,openai,OpenAI,OpenAI,2,27256
+2023-01,ja,openai,OpenAI,OpenAI,3,49028
+2023-02,ja,openai,OpenAI,OpenAI,3,98026
+2023-03,ja,openai,OpenAI,OpenAI,3,93455
+2023-04,ja,openai,OpenAI,OpenAI,3,114524
+2023-05,ja,openai,OpenAI,OpenAI,3,48373
+2023-06,ja,openai,OpenAI,OpenAI,3,33246
+2023-07,ja,openai,OpenAI,OpenAI,3,26538
+2023-08,ja,openai,OpenAI,OpenAI,3,19153
+2023-09,ja,openai,OpenAI,OpenAI,3,14439
+2023-10,ja,openai,OpenAI,OpenAI,3,13172
+2023-11,ja,openai,OpenAI,OpenAI,3,40400
+2023-12,ja,openai,OpenAI,OpenAI,3,15664
+2024-01,ja,openai,OpenAI,OpenAI,3,16872
+2024-02,ja,openai,OpenAI,OpenAI,3,19122
+2024-03,ja,openai,OpenAI,OpenAI,3,15063
+2024-04,ja,openai,OpenAI,OpenAI,3,14805
+2024-05,ja,openai,OpenAI,OpenAI,3,18546
+2024-06,ja,openai,OpenAI,OpenAI,3,16173
+2024-07,ja,openai,OpenAI,OpenAI,3,11394
+2024-08,ja,openai,OpenAI,OpenAI,3,10031
+2024-09,ja,openai,OpenAI,OpenAI,3,12804
+2024-10,ja,openai,OpenAI,OpenAI,3,14269
+2024-11,ja,openai,OpenAI,OpenAI,3,13555
+2024-12,ja,openai,OpenAI,OpenAI,3,14828
+2025-01,ja,openai,OpenAI,OpenAI,3,23548
+2025-02,ja,openai,OpenAI,OpenAI,3,30865
+2025-03,ja,openai,OpenAI,OpenAI,3,14296
+2025-04,ja,openai,OpenAI,OpenAI,3,21178
+2025-05,ja,openai,OpenAI,OpenAI,3,22391
+2025-06,ja,openai,OpenAI,OpenAI,3,18694
+2025-07,ja,openai,OpenAI,OpenAI,3,16865
+2025-08,ja,openai,OpenAI,OpenAI,3,19193
+2025-09,ja,openai,OpenAI,OpenAI,3,18953
+2025-10,ja,openai,OpenAI,OpenAI,3,29746
+2025-11,ja,openai,OpenAI,OpenAI,3,23648
+2025-12,ja,openai,OpenAI,OpenAI,3,21903
+2026-01,ja,openai,OpenAI,OpenAI,3,20496
+2026-02,ja,openai,OpenAI,OpenAI,3,20713
+2026-03,ja,openai,OpenAI,OpenAI,3,18832
+2026-04,ja,openai,OpenAI,OpenAI,3,17591
+2026-05,ja,openai,OpenAI,OpenAI,3,26881
+2026-06,ja,openai,OpenAI,OpenAI,3,26056
+2026-07,ja,openai,OpenAI,OpenAI,3,15146
+2026-08,ja,openai,OpenAI,OpenAI,3,14472
+2026-09,ja,openai,OpenAI,OpenAI,3,23275
+2026-10,ja,openai,OpenAI,OpenAI,3,20595
 2023-01,ko,openai,OpenAI,오픈AI,8,7512
 2023-02,ko,openai,OpenAI,오픈AI,8,13332
 2023-03,ko,openai,OpenAI,오픈AI,8,8180
@@ -489,10 +499,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,ko,openai,OpenAI,오픈AI,8,1675
 2026-04,ko,openai,OpenAI,오픈AI,8,1561
 2026-05,ko,openai,OpenAI,오픈AI,8,1728
-2026-06,ko,openai,OpenAI,오픈AI,8,1742
-2026-07,ko,openai,OpenAI,오픈AI,8,1445
-2026-08,ko,openai,OpenAI,오픈AI,8,1194
-2026-09,ko,openai,OpenAI,오픈AI,8,1745
+2026-06,ko,openai,OpenAI,오픈AI,8,1719
+2026-07,ko,openai,OpenAI,오픈AI,8,1365
+2026-08,ko,openai,OpenAI,오픈AI,8,1043
+2026-09,ko,openai,OpenAI,오픈AI,8,1533
+2026-10,ko,openai,OpenAI,오픈AI,8,1942
 2023-01,zh,openai,OpenAI,OpenAI,4,29772
 2023-02,zh,openai,OpenAI,OpenAI,4,157115
 2023-03,zh,openai,OpenAI,OpenAI,4,88225
@@ -534,55 +545,57 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,zh,openai,OpenAI,OpenAI,4,11729
 2026-04,zh,openai,OpenAI,OpenAI,4,11324
 2026-05,zh,openai,OpenAI,OpenAI,4,13702
-2026-06,zh,openai,OpenAI,OpenAI,4,12584
-2026-07,zh,openai,OpenAI,OpenAI,4,11182
-2026-08,zh,openai,OpenAI,OpenAI,4,9686
-2026-09,zh,openai,OpenAI,OpenAI,4,12972
-2023-01,en,anthropic,Anthropic,Anthropic,11,277
-2023-02,en,anthropic,Anthropic,Anthropic,11,5120
-2023-03,en,anthropic,Anthropic,Anthropic,11,8408
-2023-04,en,anthropic,Anthropic,Anthropic,11,12817
-2023-05,en,anthropic,Anthropic,Anthropic,11,21665
-2023-06,en,anthropic,Anthropic,Anthropic,11,13417
-2023-07,en,anthropic,Anthropic,Anthropic,11,23826
-2023-08,en,anthropic,Anthropic,Anthropic,11,17486
-2023-09,en,anthropic,Anthropic,Anthropic,11,32151
-2023-10,en,anthropic,Anthropic,Anthropic,11,29721
-2023-11,en,anthropic,Anthropic,Anthropic,11,53795
-2023-12,en,anthropic,Anthropic,Anthropic,11,24278
-2024-01,en,anthropic,Anthropic,Anthropic,11,25839
-2024-02,en,anthropic,Anthropic,Anthropic,11,23840
-2024-03,en,anthropic,Anthropic,Anthropic,11,93144
-2024-04,en,anthropic,Anthropic,Anthropic,11,48191
-2024-05,en,anthropic,Anthropic,Anthropic,11,46887
-2024-06,en,anthropic,Anthropic,Anthropic,11,52718
-2024-07,en,anthropic,Anthropic,Anthropic,11,47103
-2024-08,en,anthropic,Anthropic,Anthropic,11,46659
-2024-09,en,anthropic,Anthropic,Anthropic,11,47655
-2024-10,en,anthropic,Anthropic,Anthropic,11,61033
-2024-11,en,anthropic,Anthropic,Anthropic,11,67359
-2024-12,en,anthropic,Anthropic,Anthropic,11,61132
-2025-01,en,anthropic,Anthropic,Anthropic,11,101580
-2025-02,en,anthropic,Anthropic,Anthropic,11,84497
-2025-03,en,anthropic,Anthropic,Anthropic,11,78747
-2025-04,en,anthropic,Anthropic,Anthropic,11,64183
-2025-05,en,anthropic,Anthropic,Anthropic,11,88690
-2025-06,en,anthropic,Anthropic,Anthropic,11,95828
-2025-07,en,anthropic,Anthropic,Anthropic,11,112342
-2025-08,en,anthropic,Anthropic,Anthropic,11,124391
-2025-09,en,anthropic,Anthropic,Anthropic,11,116041
-2025-10,en,anthropic,Anthropic,Anthropic,11,140263
-2025-11,en,anthropic,Anthropic,Anthropic,11,154187
-2025-12,en,anthropic,Anthropic,Anthropic,11,131163
-2026-01,en,anthropic,Anthropic,Anthropic,11,191012
-2026-02,en,anthropic,Anthropic,Anthropic,11,760218
-2026-03,en,anthropic,Anthropic,Anthropic,11,487546
-2026-04,en,anthropic,Anthropic,Anthropic,11,386964
-2026-05,en,anthropic,Anthropic,Anthropic,11,346550
-2026-06,en,anthropic,Anthropic,Anthropic,11,354461
-2026-07,en,anthropic,Anthropic,Anthropic,11,201300
-2026-08,en,anthropic,Anthropic,Anthropic,11,204676
-2026-09,en,anthropic,Anthropic,Anthropic,11,323644
+2026-06,zh,openai,OpenAI,OpenAI,4,12044
+2026-07,zh,openai,OpenAI,OpenAI,4,10236
+2026-08,zh,openai,OpenAI,OpenAI,4,8635
+2026-09,zh,openai,OpenAI,OpenAI,4,12115
+2026-10,zh,openai,OpenAI,OpenAI,4,11734
+2023-01,en,anthropic,Anthropic,Anthropic,13,277
+2023-02,en,anthropic,Anthropic,Anthropic,13,5120
+2023-03,en,anthropic,Anthropic,Anthropic,13,8408
+2023-04,en,anthropic,Anthropic,Anthropic,13,12817
+2023-05,en,anthropic,Anthropic,Anthropic,13,21665
+2023-06,en,anthropic,Anthropic,Anthropic,13,13417
+2023-07,en,anthropic,Anthropic,Anthropic,13,23826
+2023-08,en,anthropic,Anthropic,Anthropic,13,17486
+2023-09,en,anthropic,Anthropic,Anthropic,13,32151
+2023-10,en,anthropic,Anthropic,Anthropic,13,29721
+2023-11,en,anthropic,Anthropic,Anthropic,13,53795
+2023-12,en,anthropic,Anthropic,Anthropic,13,24278
+2024-01,en,anthropic,Anthropic,Anthropic,13,25839
+2024-02,en,anthropic,Anthropic,Anthropic,13,23840
+2024-03,en,anthropic,Anthropic,Anthropic,13,93144
+2024-04,en,anthropic,Anthropic,Anthropic,13,48191
+2024-05,en,anthropic,Anthropic,Anthropic,13,46887
+2024-06,en,anthropic,Anthropic,Anthropic,13,52718
+2024-07,en,anthropic,Anthropic,Anthropic,13,47103
+2024-08,en,anthropic,Anthropic,Anthropic,13,46659
+2024-09,en,anthropic,Anthropic,Anthropic,13,47655
+2024-10,en,anthropic,Anthropic,Anthropic,13,61033
+2024-11,en,anthropic,Anthropic,Anthropic,13,67359
+2024-12,en,anthropic,Anthropic,Anthropic,13,61132
+2025-01,en,anthropic,Anthropic,Anthropic,13,101580
+2025-02,en,anthropic,Anthropic,Anthropic,13,84497
+2025-03,en,anthropic,Anthropic,Anthropic,13,78747
+2025-04,en,anthropic,Anthropic,Anthropic,13,64183
+2025-05,en,anthropic,Anthropic,Anthropic,13,88690
+2025-06,en,anthropic,Anthropic,Anthropic,13,95828
+2025-07,en,anthropic,Anthropic,Anthropic,13,112342
+2025-08,en,anthropic,Anthropic,Anthropic,13,124391
+2025-09,en,anthropic,Anthropic,Anthropic,13,116041
+2025-10,en,anthropic,Anthropic,Anthropic,13,140263
+2025-11,en,anthropic,Anthropic,Anthropic,13,154187
+2025-12,en,anthropic,Anthropic,Anthropic,13,131163
+2026-01,en,anthropic,Anthropic,Anthropic,13,191012
+2026-02,en,anthropic,Anthropic,Anthropic,13,760218
+2026-03,en,anthropic,Anthropic,Anthropic,13,487546
+2026-04,en,anthropic,Anthropic,Anthropic,13,386964
+2026-05,en,anthropic,Anthropic,Anthropic,13,346550
+2026-06,en,anthropic,Anthropic,Anthropic,13,352858
+2026-07,en,anthropic,Anthropic,Anthropic,13,193991
+2026-08,en,anthropic,Anthropic,Anthropic,13,194141
+2026-09,en,anthropic,Anthropic,Anthropic,13,318147
+2026-10,en,anthropic,Anthropic,Anthropic,13,261619
 2023-02,de,anthropic,Anthropic,Anthropic,2,67
 2023-03,de,anthropic,Anthropic,Anthropic,2,257
 2023-04,de,anthropic,Anthropic,Anthropic,2,1
@@ -619,10 +632,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,de,anthropic,Anthropic,Anthropic,2,57429
 2026-04,de,anthropic,Anthropic,Anthropic,2,57029
 2026-05,de,anthropic,Anthropic,Anthropic,2,50474
-2026-06,de,anthropic,Anthropic,Anthropic,2,55809
-2026-07,de,anthropic,Anthropic,Anthropic,2,28392
-2026-08,de,anthropic,Anthropic,Anthropic,2,26263
-2026-09,de,anthropic,Anthropic,Anthropic,2,31673
+2026-06,de,anthropic,Anthropic,Anthropic,2,54607
+2026-07,de,anthropic,Anthropic,Anthropic,2,27832
+2026-08,de,anthropic,Anthropic,Anthropic,2,25601
+2026-09,de,anthropic,Anthropic,Anthropic,2,31392
+2026-10,de,anthropic,Anthropic,Anthropic,2,27533
 2023-05,fr,anthropic,Anthropic,Anthropic,1,115
 2023-06,fr,anthropic,Anthropic,Anthropic,1,328
 2023-07,fr,anthropic,Anthropic,Anthropic,1,559
@@ -660,10 +674,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,fr,anthropic,Anthropic,Anthropic,1,65442
 2026-04,fr,anthropic,Anthropic,Anthropic,1,54887
 2026-05,fr,anthropic,Anthropic,Anthropic,1,48656
-2026-06,fr,anthropic,Anthropic,Anthropic,1,48956
-2026-07,fr,anthropic,Anthropic,Anthropic,1,19946
-2026-08,fr,anthropic,Anthropic,Anthropic,1,18002
-2026-09,fr,anthropic,Anthropic,Anthropic,1,27834
+2026-06,fr,anthropic,Anthropic,Anthropic,1,48367
+2026-07,fr,anthropic,Anthropic,Anthropic,1,18929
+2026-08,fr,anthropic,Anthropic,Anthropic,1,17150
+2026-09,fr,anthropic,Anthropic,Anthropic,1,27319
+2026-10,fr,anthropic,Anthropic,Anthropic,1,17866
 2023-07,es,anthropic,Anthropic,Anthropic,1,202
 2023-08,es,anthropic,Anthropic,Anthropic,1,324
 2023-09,es,anthropic,Anthropic,Anthropic,1,627
@@ -699,10 +714,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,es,anthropic,Anthropic,Anthropic,1,26316
 2026-04,es,anthropic,Anthropic,Anthropic,1,20757
 2026-05,es,anthropic,Anthropic,Anthropic,1,17607
-2026-06,es,anthropic,Anthropic,Anthropic,1,14491
-2026-07,es,anthropic,Anthropic,Anthropic,1,7174
-2026-08,es,anthropic,Anthropic,Anthropic,1,7776
-2026-09,es,anthropic,Anthropic,Anthropic,1,20523
+2026-06,es,anthropic,Anthropic,Anthropic,1,14567
+2026-07,es,anthropic,Anthropic,Anthropic,1,7342
+2026-08,es,anthropic,Anthropic,Anthropic,1,7669
+2026-09,es,anthropic,Anthropic,Anthropic,1,21157
+2026-10,es,anthropic,Anthropic,Anthropic,1,9920
 2023-03,it,anthropic,Anthropic,Anthropic,1,16
 2024-03,it,anthropic,Anthropic,Anthropic,1,23
 2024-11,it,anthropic,Anthropic,Anthropic,1,1
@@ -718,10 +734,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,it,anthropic,Anthropic,Anthropic,1,15616
 2026-04,it,anthropic,Anthropic,Anthropic,1,10755
 2026-05,it,anthropic,Anthropic,Anthropic,1,14226
-2026-06,it,anthropic,Anthropic,Anthropic,1,12632
-2026-07,it,anthropic,Anthropic,Anthropic,1,4564
-2026-08,it,anthropic,Anthropic,Anthropic,1,5640
-2026-09,it,anthropic,Anthropic,Anthropic,1,15364
+2026-06,it,anthropic,Anthropic,Anthropic,1,12627
+2026-07,it,anthropic,Anthropic,Anthropic,1,4540
+2026-08,it,anthropic,Anthropic,Anthropic,1,5642
+2026-09,it,anthropic,Anthropic,Anthropic,1,15360
+2026-10,it,anthropic,Anthropic,Anthropic,1,8316
 2023-06,pt,anthropic,Anthropic,Anthropic,1,73
 2023-07,pt,anthropic,Anthropic,Anthropic,1,261
 2023-08,pt,anthropic,Anthropic,Anthropic,1,101
@@ -758,10 +775,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,pt,anthropic,Anthropic,Anthropic,1,8278
 2026-04,pt,anthropic,Anthropic,Anthropic,1,5099
 2026-05,pt,anthropic,Anthropic,Anthropic,1,4631
-2026-06,pt,anthropic,Anthropic,Anthropic,1,5483
-2026-07,pt,anthropic,Anthropic,Anthropic,1,2839
-2026-08,pt,anthropic,Anthropic,Anthropic,1,2715
-2026-09,pt,anthropic,Anthropic,Anthropic,1,3994
+2026-06,pt,anthropic,Anthropic,Anthropic,1,5462
+2026-07,pt,anthropic,Anthropic,Anthropic,1,2787
+2026-08,pt,anthropic,Anthropic,Anthropic,1,2680
+2026-09,pt,anthropic,Anthropic,Anthropic,1,4072
+2026-10,pt,anthropic,Anthropic,Anthropic,1,2722
 2025-08,pl,anthropic,Anthropic,Anthropic,1,477
 2025-09,pl,anthropic,Anthropic,Anthropic,1,504
 2025-10,pl,anthropic,Anthropic,Anthropic,1,718
@@ -772,10 +790,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,pl,anthropic,Anthropic,Anthropic,1,5413
 2026-04,pl,anthropic,Anthropic,Anthropic,1,4444
 2026-05,pl,anthropic,Anthropic,Anthropic,1,3693
-2026-06,pl,anthropic,Anthropic,Anthropic,1,4787
-2026-07,pl,anthropic,Anthropic,Anthropic,1,2655
-2026-08,pl,anthropic,Anthropic,Anthropic,1,2388
-2026-09,pl,anthropic,Anthropic,Anthropic,1,4554
+2026-06,pl,anthropic,Anthropic,Anthropic,1,4768
+2026-07,pl,anthropic,Anthropic,Anthropic,1,2602
+2026-08,pl,anthropic,Anthropic,Anthropic,1,2342
+2026-09,pl,anthropic,Anthropic,Anthropic,1,4527
+2026-10,pl,anthropic,Anthropic,Anthropic,1,5151
 2024-10,cs,anthropic,Anthropic,Anthropic,1,0
 2025-05,cs,anthropic,Anthropic,Anthropic,1,21
 2025-06,cs,anthropic,Anthropic,Anthropic,1,180
@@ -790,10 +809,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,cs,anthropic,Anthropic,Anthropic,1,2088
 2026-04,cs,anthropic,Anthropic,Anthropic,1,1577
 2026-05,cs,anthropic,Anthropic,Anthropic,1,1045
-2026-06,cs,anthropic,Anthropic,Anthropic,1,1445
-2026-07,cs,anthropic,Anthropic,Anthropic,1,776
-2026-08,cs,anthropic,Anthropic,Anthropic,1,813
-2026-09,cs,anthropic,Anthropic,Anthropic,1,1242
+2026-06,cs,anthropic,Anthropic,Anthropic,1,1368
+2026-07,cs,anthropic,Anthropic,Anthropic,1,612
+2026-08,cs,anthropic,Anthropic,Anthropic,1,659
+2026-09,cs,anthropic,Anthropic,Anthropic,1,1189
+2026-10,cs,anthropic,Anthropic,Anthropic,1,937
 2023-06,ru,anthropic,Anthropic,Anthropic,2,98
 2023-07,ru,anthropic,Anthropic,Anthropic,2,361
 2023-08,ru,anthropic,Anthropic,Anthropic,2,452
@@ -830,10 +850,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,ru,anthropic,Anthropic,Anthropic,2,19588
 2026-04,ru,anthropic,Anthropic,Anthropic,2,18845
 2026-05,ru,anthropic,Anthropic,Anthropic,2,17515
-2026-06,ru,anthropic,Anthropic,Anthropic,2,22060
-2026-07,ru,anthropic,Anthropic,Anthropic,2,13152
-2026-08,ru,anthropic,Anthropic,Anthropic,2,10523
-2026-09,ru,anthropic,Anthropic,Anthropic,2,14969
+2026-06,ru,anthropic,Anthropic,Anthropic,2,20038
+2026-07,ru,anthropic,Anthropic,Anthropic,2,10686
+2026-08,ru,anthropic,Anthropic,Anthropic,2,10385
+2026-09,ru,anthropic,Anthropic,Anthropic,2,15157
+2026-10,ru,anthropic,Anthropic,Anthropic,2,15209
 2023-05,ja,anthropic,Anthropic,Anthropic,3,219
 2023-06,ja,anthropic,Anthropic,Anthropic,3,413
 2023-07,ja,anthropic,Anthropic,Anthropic,3,631
@@ -871,10 +892,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,ja,anthropic,Anthropic,Anthropic,3,51682
 2026-04,ja,anthropic,Anthropic,Anthropic,3,49211
 2026-05,ja,anthropic,Anthropic,Anthropic,3,71941
-2026-06,ja,anthropic,Anthropic,Anthropic,3,64111
-2026-07,ja,anthropic,Anthropic,Anthropic,3,25595
-2026-08,ja,anthropic,Anthropic,Anthropic,3,22348
-2026-09,ja,anthropic,Anthropic,Anthropic,3,34034
+2026-06,ja,anthropic,Anthropic,Anthropic,3,64036
+2026-07,ja,anthropic,Anthropic,Anthropic,3,25206
+2026-08,ja,anthropic,Anthropic,Anthropic,3,21917
+2026-09,ja,anthropic,Anthropic,Anthropic,3,33620
+2026-10,ja,anthropic,Anthropic,Anthropic,3,36136
 2023-11,ko,anthropic,Anthropic,앤트로픽,3,48
 2023-12,ko,anthropic,Anthropic,앤트로픽,3,160
 2024-01,ko,anthropic,Anthropic,앤트로픽,3,179
@@ -906,94 +928,97 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,ko,anthropic,Anthropic,앤트로픽,3,6493
 2026-04,ko,anthropic,Anthropic,앤트로픽,3,7071
 2026-05,ko,anthropic,Anthropic,앤트로픽,3,9292
-2026-06,ko,anthropic,Anthropic,앤트로픽,3,7694
-2026-07,ko,anthropic,Anthropic,앤트로픽,3,6606
-2026-08,ko,anthropic,Anthropic,앤트로픽,3,3613
-2026-09,ko,anthropic,Anthropic,앤트로픽,3,3311
-2023-07,zh,anthropic,Anthropic,Anthropic,4,878
-2023-08,zh,anthropic,Anthropic,Anthropic,4,977
-2023-09,zh,anthropic,Anthropic,Anthropic,4,1160
-2023-10,zh,anthropic,Anthropic,Anthropic,4,1929
-2023-11,zh,anthropic,Anthropic,Anthropic,4,2381
-2023-12,zh,anthropic,Anthropic,Anthropic,4,1405
-2024-01,zh,anthropic,Anthropic,Anthropic,4,1212
-2024-02,zh,anthropic,Anthropic,Anthropic,4,1313
-2024-03,zh,anthropic,Anthropic,Anthropic,4,6164
-2024-04,zh,anthropic,Anthropic,Anthropic,4,2513
-2024-05,zh,anthropic,Anthropic,Anthropic,4,2312
-2024-06,zh,anthropic,Anthropic,Anthropic,4,3230
-2024-07,zh,anthropic,Anthropic,Anthropic,4,3367
-2024-08,zh,anthropic,Anthropic,Anthropic,4,3278
-2024-09,zh,anthropic,Anthropic,Anthropic,4,2629
-2024-10,zh,anthropic,Anthropic,Anthropic,4,2981
-2024-11,zh,anthropic,Anthropic,Anthropic,4,3527
-2024-12,zh,anthropic,Anthropic,Anthropic,4,3731
-2025-01,zh,anthropic,Anthropic,Anthropic,4,4907
-2025-02,zh,anthropic,Anthropic,Anthropic,4,5316
-2025-03,zh,anthropic,Anthropic,Anthropic,4,5357
-2025-04,zh,anthropic,Anthropic,Anthropic,4,3766
-2025-05,zh,anthropic,Anthropic,Anthropic,4,4450
-2025-06,zh,anthropic,Anthropic,Anthropic,4,4403
-2025-07,zh,anthropic,Anthropic,Anthropic,4,5241
-2025-08,zh,anthropic,Anthropic,Anthropic,4,5436
-2025-09,zh,anthropic,Anthropic,Anthropic,4,7981
-2025-10,zh,anthropic,Anthropic,Anthropic,4,6626
-2025-11,zh,anthropic,Anthropic,Anthropic,4,8696
-2025-12,zh,anthropic,Anthropic,Anthropic,4,7644
-2026-01,zh,anthropic,Anthropic,Anthropic,4,9839
-2026-02,zh,anthropic,Anthropic,Anthropic,4,28610
-2026-03,zh,anthropic,Anthropic,Anthropic,4,27205
-2026-04,zh,anthropic,Anthropic,Anthropic,4,24431
-2026-05,zh,anthropic,Anthropic,Anthropic,4,24394
-2026-06,zh,anthropic,Anthropic,Anthropic,4,26140
-2026-07,zh,anthropic,Anthropic,Anthropic,4,14091
-2026-08,zh,anthropic,Anthropic,Anthropic,4,14758
-2026-09,zh,anthropic,Anthropic,Anthropic,4,20131
-2023-01,en,chatgpt,OpenAI,ChatGPT,39,5354198
-2023-02,en,chatgpt,OpenAI,ChatGPT,39,5959958
-2023-03,en,chatgpt,OpenAI,ChatGPT,39,6927765
-2023-04,en,chatgpt,OpenAI,ChatGPT,39,8020097
-2023-05,en,chatgpt,OpenAI,ChatGPT,39,7141681
-2023-06,en,chatgpt,OpenAI,ChatGPT,39,5737854
-2023-07,en,chatgpt,OpenAI,ChatGPT,39,2932430
-2023-08,en,chatgpt,OpenAI,ChatGPT,39,1912223
-2023-09,en,chatgpt,OpenAI,ChatGPT,39,2126020
-2023-10,en,chatgpt,OpenAI,ChatGPT,39,2143009
-2023-11,en,chatgpt,OpenAI,ChatGPT,39,2255238
-2023-12,en,chatgpt,OpenAI,ChatGPT,39,2055005
-2024-01,en,chatgpt,OpenAI,ChatGPT,39,2453779
-2024-02,en,chatgpt,OpenAI,ChatGPT,39,2413603
-2024-03,en,chatgpt,OpenAI,ChatGPT,39,1919279
-2024-04,en,chatgpt,OpenAI,ChatGPT,39,1482496
-2024-05,en,chatgpt,OpenAI,ChatGPT,39,1382821
-2024-06,en,chatgpt,OpenAI,ChatGPT,39,1678527
-2024-07,en,chatgpt,OpenAI,ChatGPT,39,794791
-2024-08,en,chatgpt,OpenAI,ChatGPT,39,656178
-2024-09,en,chatgpt,OpenAI,ChatGPT,39,1064710
-2024-10,en,chatgpt,OpenAI,ChatGPT,39,1540171
-2024-11,en,chatgpt,OpenAI,ChatGPT,39,1801596
-2024-12,en,chatgpt,OpenAI,ChatGPT,39,1691199
-2025-01,en,chatgpt,OpenAI,ChatGPT,39,2596577
-2025-02,en,chatgpt,OpenAI,ChatGPT,39,2662992
-2025-03,en,chatgpt,OpenAI,ChatGPT,39,2799304
-2025-04,en,chatgpt,OpenAI,ChatGPT,39,4472648
-2025-05,en,chatgpt,OpenAI,ChatGPT,39,2451873
-2025-06,en,chatgpt,OpenAI,ChatGPT,39,5295347
-2025-07,en,chatgpt,OpenAI,ChatGPT,39,3307974
-2025-08,en,chatgpt,OpenAI,ChatGPT,39,4201058
-2025-09,en,chatgpt,OpenAI,ChatGPT,39,4368468
-2025-10,en,chatgpt,OpenAI,ChatGPT,39,4235564
-2025-11,en,chatgpt,OpenAI,ChatGPT,39,3648378
-2025-12,en,chatgpt,OpenAI,ChatGPT,39,3165412
-2026-01,en,chatgpt,OpenAI,ChatGPT,39,3178884
-2026-02,en,chatgpt,OpenAI,ChatGPT,39,2466037
-2026-03,en,chatgpt,OpenAI,ChatGPT,39,2323709
-2026-04,en,chatgpt,OpenAI,ChatGPT,39,2273346
-2026-05,en,chatgpt,OpenAI,ChatGPT,39,2285386
-2026-06,en,chatgpt,OpenAI,ChatGPT,39,2732419
-2026-07,en,chatgpt,OpenAI,ChatGPT,39,2849527
-2026-08,en,chatgpt,OpenAI,ChatGPT,39,1624973
-2026-09,en,chatgpt,OpenAI,ChatGPT,39,1820352
+2026-06,ko,anthropic,Anthropic,앤트로픽,3,6542
+2026-07,ko,anthropic,Anthropic,앤트로픽,3,3387
+2026-08,ko,anthropic,Anthropic,앤트로픽,3,2854
+2026-09,ko,anthropic,Anthropic,앤트로픽,3,2903
+2026-10,ko,anthropic,Anthropic,앤트로픽,3,7614
+2023-07,zh,anthropic,Anthropic,Anthropic,5,878
+2023-08,zh,anthropic,Anthropic,Anthropic,5,977
+2023-09,zh,anthropic,Anthropic,Anthropic,5,1160
+2023-10,zh,anthropic,Anthropic,Anthropic,5,1929
+2023-11,zh,anthropic,Anthropic,Anthropic,5,2381
+2023-12,zh,anthropic,Anthropic,Anthropic,5,1405
+2024-01,zh,anthropic,Anthropic,Anthropic,5,1212
+2024-02,zh,anthropic,Anthropic,Anthropic,5,1313
+2024-03,zh,anthropic,Anthropic,Anthropic,5,6164
+2024-04,zh,anthropic,Anthropic,Anthropic,5,2513
+2024-05,zh,anthropic,Anthropic,Anthropic,5,2312
+2024-06,zh,anthropic,Anthropic,Anthropic,5,3230
+2024-07,zh,anthropic,Anthropic,Anthropic,5,3367
+2024-08,zh,anthropic,Anthropic,Anthropic,5,3278
+2024-09,zh,anthropic,Anthropic,Anthropic,5,2629
+2024-10,zh,anthropic,Anthropic,Anthropic,5,2981
+2024-11,zh,anthropic,Anthropic,Anthropic,5,3527
+2024-12,zh,anthropic,Anthropic,Anthropic,5,3731
+2025-01,zh,anthropic,Anthropic,Anthropic,5,4907
+2025-02,zh,anthropic,Anthropic,Anthropic,5,5316
+2025-03,zh,anthropic,Anthropic,Anthropic,5,5357
+2025-04,zh,anthropic,Anthropic,Anthropic,5,3766
+2025-05,zh,anthropic,Anthropic,Anthropic,5,4450
+2025-06,zh,anthropic,Anthropic,Anthropic,5,4403
+2025-07,zh,anthropic,Anthropic,Anthropic,5,5241
+2025-08,zh,anthropic,Anthropic,Anthropic,5,5436
+2025-09,zh,anthropic,Anthropic,Anthropic,5,7981
+2025-10,zh,anthropic,Anthropic,Anthropic,5,6626
+2025-11,zh,anthropic,Anthropic,Anthropic,5,8696
+2025-12,zh,anthropic,Anthropic,Anthropic,5,7644
+2026-01,zh,anthropic,Anthropic,Anthropic,5,9839
+2026-02,zh,anthropic,Anthropic,Anthropic,5,28610
+2026-03,zh,anthropic,Anthropic,Anthropic,5,27205
+2026-04,zh,anthropic,Anthropic,Anthropic,5,24431
+2026-05,zh,anthropic,Anthropic,Anthropic,5,24394
+2026-06,zh,anthropic,Anthropic,Anthropic,5,25302
+2026-07,zh,anthropic,Anthropic,Anthropic,5,13449
+2026-08,zh,anthropic,Anthropic,Anthropic,5,13529
+2026-09,zh,anthropic,Anthropic,Anthropic,5,19375
+2026-10,zh,anthropic,Anthropic,Anthropic,5,22946
+2023-01,en,chatgpt,OpenAI,ChatGPT,40,5354198
+2023-02,en,chatgpt,OpenAI,ChatGPT,40,5959958
+2023-03,en,chatgpt,OpenAI,ChatGPT,40,6927765
+2023-04,en,chatgpt,OpenAI,ChatGPT,40,8020097
+2023-05,en,chatgpt,OpenAI,ChatGPT,40,7141681
+2023-06,en,chatgpt,OpenAI,ChatGPT,40,5737854
+2023-07,en,chatgpt,OpenAI,ChatGPT,40,2932430
+2023-08,en,chatgpt,OpenAI,ChatGPT,40,1912223
+2023-09,en,chatgpt,OpenAI,ChatGPT,40,2126020
+2023-10,en,chatgpt,OpenAI,ChatGPT,40,2143009
+2023-11,en,chatgpt,OpenAI,ChatGPT,40,2255238
+2023-12,en,chatgpt,OpenAI,ChatGPT,40,2055005
+2024-01,en,chatgpt,OpenAI,ChatGPT,40,2453779
+2024-02,en,chatgpt,OpenAI,ChatGPT,40,2413603
+2024-03,en,chatgpt,OpenAI,ChatGPT,40,1919279
+2024-04,en,chatgpt,OpenAI,ChatGPT,40,1482496
+2024-05,en,chatgpt,OpenAI,ChatGPT,40,1382821
+2024-06,en,chatgpt,OpenAI,ChatGPT,40,1678527
+2024-07,en,chatgpt,OpenAI,ChatGPT,40,794791
+2024-08,en,chatgpt,OpenAI,ChatGPT,40,656178
+2024-09,en,chatgpt,OpenAI,ChatGPT,40,1064710
+2024-10,en,chatgpt,OpenAI,ChatGPT,40,1540171
+2024-11,en,chatgpt,OpenAI,ChatGPT,40,1801596
+2024-12,en,chatgpt,OpenAI,ChatGPT,40,1691199
+2025-01,en,chatgpt,OpenAI,ChatGPT,40,2596577
+2025-02,en,chatgpt,OpenAI,ChatGPT,40,2662992
+2025-03,en,chatgpt,OpenAI,ChatGPT,40,2799836
+2025-04,en,chatgpt,OpenAI,ChatGPT,40,4474497
+2025-05,en,chatgpt,OpenAI,ChatGPT,40,2454351
+2025-06,en,chatgpt,OpenAI,ChatGPT,40,5297609
+2025-07,en,chatgpt,OpenAI,ChatGPT,40,3310104
+2025-08,en,chatgpt,OpenAI,ChatGPT,40,4202772
+2025-09,en,chatgpt,OpenAI,ChatGPT,40,4369999
+2025-10,en,chatgpt,OpenAI,ChatGPT,40,4237208
+2025-11,en,chatgpt,OpenAI,ChatGPT,40,3649919
+2025-12,en,chatgpt,OpenAI,ChatGPT,40,3166794
+2026-01,en,chatgpt,OpenAI,ChatGPT,40,3180301
+2026-02,en,chatgpt,OpenAI,ChatGPT,40,2467373
+2026-03,en,chatgpt,OpenAI,ChatGPT,40,2324986
+2026-04,en,chatgpt,OpenAI,ChatGPT,40,2274408
+2026-05,en,chatgpt,OpenAI,ChatGPT,40,2286417
+2026-06,en,chatgpt,OpenAI,ChatGPT,40,2743320
+2026-07,en,chatgpt,OpenAI,ChatGPT,40,2919724
+2026-08,en,chatgpt,OpenAI,ChatGPT,40,1701836
+2026-09,en,chatgpt,OpenAI,ChatGPT,40,1876305
+2026-10,en,chatgpt,OpenAI,ChatGPT,40,2525699
 2023-01,de,chatgpt,OpenAI,ChatGPT,2,732076
 2023-02,de,chatgpt,OpenAI,ChatGPT,2,523432
 2023-03,de,chatgpt,OpenAI,ChatGPT,2,373033
@@ -1035,10 +1060,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,de,chatgpt,OpenAI,ChatGPT,2,281952
 2026-04,de,chatgpt,OpenAI,ChatGPT,2,240257
 2026-05,de,chatgpt,OpenAI,ChatGPT,2,227105
-2026-06,de,chatgpt,OpenAI,ChatGPT,2,131898
-2026-07,de,chatgpt,OpenAI,ChatGPT,2,166779
-2026-08,de,chatgpt,OpenAI,ChatGPT,2,177499
-2026-09,de,chatgpt,OpenAI,ChatGPT,2,212358
+2026-06,de,chatgpt,OpenAI,ChatGPT,2,131447
+2026-07,de,chatgpt,OpenAI,ChatGPT,2,165701
+2026-08,de,chatgpt,OpenAI,ChatGPT,2,176429
+2026-09,de,chatgpt,OpenAI,ChatGPT,2,210832
+2026-10,de,chatgpt,OpenAI,ChatGPT,2,247503
 2023-01,fr,chatgpt,OpenAI,ChatGPT,3,516629
 2023-02,fr,chatgpt,OpenAI,ChatGPT,3,299789
 2023-03,fr,chatgpt,OpenAI,ChatGPT,3,329279
@@ -1080,10 +1106,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,fr,chatgpt,OpenAI,ChatGPT,3,155451
 2026-04,fr,chatgpt,OpenAI,ChatGPT,3,172746
 2026-05,fr,chatgpt,OpenAI,ChatGPT,3,175545
-2026-06,fr,chatgpt,OpenAI,ChatGPT,3,160953
-2026-07,fr,chatgpt,OpenAI,ChatGPT,3,129872
-2026-08,fr,chatgpt,OpenAI,ChatGPT,3,107627
-2026-09,fr,chatgpt,OpenAI,ChatGPT,3,143235
+2026-06,fr,chatgpt,OpenAI,ChatGPT,3,160793
+2026-07,fr,chatgpt,OpenAI,ChatGPT,3,130532
+2026-08,fr,chatgpt,OpenAI,ChatGPT,3,107628
+2026-09,fr,chatgpt,OpenAI,ChatGPT,3,141524
+2026-10,fr,chatgpt,OpenAI,ChatGPT,3,212816
 2023-01,es,chatgpt,OpenAI,ChatGPT,3,185607
 2023-02,es,chatgpt,OpenAI,ChatGPT,3,290691
 2023-03,es,chatgpt,OpenAI,ChatGPT,3,789694
@@ -1125,10 +1152,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,es,chatgpt,OpenAI,ChatGPT,3,265754
 2026-04,es,chatgpt,OpenAI,ChatGPT,3,351043
 2026-05,es,chatgpt,OpenAI,ChatGPT,3,351519
-2026-06,es,chatgpt,OpenAI,ChatGPT,3,258847
-2026-07,es,chatgpt,OpenAI,ChatGPT,3,209926
-2026-08,es,chatgpt,OpenAI,ChatGPT,3,212386
-2026-09,es,chatgpt,OpenAI,ChatGPT,3,246898
+2026-06,es,chatgpt,OpenAI,ChatGPT,3,260229
+2026-07,es,chatgpt,OpenAI,ChatGPT,3,215642
+2026-08,es,chatgpt,OpenAI,ChatGPT,3,219366
+2026-09,es,chatgpt,OpenAI,ChatGPT,3,251421
+2026-10,es,chatgpt,OpenAI,ChatGPT,3,357114
 2023-01,it,chatgpt,OpenAI,ChatGPT,2,165322
 2023-02,it,chatgpt,OpenAI,ChatGPT,2,135627
 2023-03,it,chatgpt,OpenAI,ChatGPT,2,174970
@@ -1170,10 +1198,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,it,chatgpt,OpenAI,ChatGPT,2,52089
 2026-04,it,chatgpt,OpenAI,ChatGPT,2,79292
 2026-05,it,chatgpt,OpenAI,ChatGPT,2,74039
-2026-06,it,chatgpt,OpenAI,ChatGPT,2,42479
-2026-07,it,chatgpt,OpenAI,ChatGPT,2,85492
-2026-08,it,chatgpt,OpenAI,ChatGPT,2,48657
-2026-09,it,chatgpt,OpenAI,ChatGPT,2,41090
+2026-06,it,chatgpt,OpenAI,ChatGPT,2,42369
+2026-07,it,chatgpt,OpenAI,ChatGPT,2,85460
+2026-08,it,chatgpt,OpenAI,ChatGPT,2,48557
+2026-09,it,chatgpt,OpenAI,ChatGPT,2,40837
+2026-10,it,chatgpt,OpenAI,ChatGPT,2,101675
 2023-01,pt,chatgpt,OpenAI,ChatGPT,3,129283
 2023-02,pt,chatgpt,OpenAI,ChatGPT,3,210142
 2023-03,pt,chatgpt,OpenAI,ChatGPT,3,279299
@@ -1215,10 +1244,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,pt,chatgpt,OpenAI,ChatGPT,3,30663
 2026-04,pt,chatgpt,OpenAI,ChatGPT,3,29894
 2026-05,pt,chatgpt,OpenAI,ChatGPT,3,27264
-2026-06,pt,chatgpt,OpenAI,ChatGPT,3,25857
-2026-07,pt,chatgpt,OpenAI,ChatGPT,3,24412
-2026-08,pt,chatgpt,OpenAI,ChatGPT,3,25966
-2026-09,pt,chatgpt,OpenAI,ChatGPT,3,26877
+2026-06,pt,chatgpt,OpenAI,ChatGPT,3,25909
+2026-07,pt,chatgpt,OpenAI,ChatGPT,3,24440
+2026-08,pt,chatgpt,OpenAI,ChatGPT,3,26147
+2026-09,pt,chatgpt,OpenAI,ChatGPT,3,26533
+2026-10,pt,chatgpt,OpenAI,ChatGPT,3,177673
 2023-01,pl,chatgpt,OpenAI,ChatGPT,1,47977
 2023-02,pl,chatgpt,OpenAI,ChatGPT,1,53941
 2023-03,pl,chatgpt,OpenAI,ChatGPT,1,64632
@@ -1260,10 +1290,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,pl,chatgpt,OpenAI,ChatGPT,1,41790
 2026-04,pl,chatgpt,OpenAI,ChatGPT,1,14578
 2026-05,pl,chatgpt,OpenAI,ChatGPT,1,8823
-2026-06,pl,chatgpt,OpenAI,ChatGPT,1,7146
-2026-07,pl,chatgpt,OpenAI,ChatGPT,1,5237
-2026-08,pl,chatgpt,OpenAI,ChatGPT,1,4182
-2026-09,pl,chatgpt,OpenAI,ChatGPT,1,6037
+2026-06,pl,chatgpt,OpenAI,ChatGPT,1,7010
+2026-07,pl,chatgpt,OpenAI,ChatGPT,1,4930
+2026-08,pl,chatgpt,OpenAI,ChatGPT,1,3908
+2026-09,pl,chatgpt,OpenAI,ChatGPT,1,5679
+2026-10,pl,chatgpt,OpenAI,ChatGPT,1,8849
 2023-01,cs,chatgpt,OpenAI,ChatGPT,1,3121
 2023-02,cs,chatgpt,OpenAI,ChatGPT,1,18335
 2023-03,cs,chatgpt,OpenAI,ChatGPT,1,22315
@@ -1305,10 +1336,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,cs,chatgpt,OpenAI,ChatGPT,1,2172
 2026-04,cs,chatgpt,OpenAI,ChatGPT,1,3458
 2026-05,cs,chatgpt,OpenAI,ChatGPT,1,2916
-2026-06,cs,chatgpt,OpenAI,ChatGPT,1,2403
-2026-07,cs,chatgpt,OpenAI,ChatGPT,1,1684
-2026-08,cs,chatgpt,OpenAI,ChatGPT,1,1214
-2026-09,cs,chatgpt,OpenAI,ChatGPT,1,1830
+2026-06,cs,chatgpt,OpenAI,ChatGPT,1,2366
+2026-07,cs,chatgpt,OpenAI,ChatGPT,1,1597
+2026-08,cs,chatgpt,OpenAI,ChatGPT,1,1139
+2026-09,cs,chatgpt,OpenAI,ChatGPT,1,1740
+2026-10,cs,chatgpt,OpenAI,ChatGPT,1,1995
 2023-01,ru,chatgpt,OpenAI,ChatGPT,3,219479
 2023-02,ru,chatgpt,OpenAI,ChatGPT,3,622507
 2023-03,ru,chatgpt,OpenAI,ChatGPT,3,490884
@@ -1350,10 +1382,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,ru,chatgpt,OpenAI,ChatGPT,3,118779
 2026-04,ru,chatgpt,OpenAI,ChatGPT,3,119044
 2026-05,ru,chatgpt,OpenAI,ChatGPT,3,103503
-2026-06,ru,chatgpt,OpenAI,ChatGPT,3,73235
-2026-07,ru,chatgpt,OpenAI,ChatGPT,3,77085
-2026-08,ru,chatgpt,OpenAI,ChatGPT,3,81053
-2026-09,ru,chatgpt,OpenAI,ChatGPT,3,113658
+2026-06,ru,chatgpt,OpenAI,ChatGPT,3,74359
+2026-07,ru,chatgpt,OpenAI,ChatGPT,3,81056
+2026-08,ru,chatgpt,OpenAI,ChatGPT,3,85669
+2026-09,ru,chatgpt,OpenAI,ChatGPT,3,118567
+2026-10,ru,chatgpt,OpenAI,ChatGPT,3,127600
 2023-01,ja,chatgpt,OpenAI,ChatGPT,3,102657
 2023-02,ja,chatgpt,OpenAI,ChatGPT,3,403116
 2023-03,ja,chatgpt,OpenAI,ChatGPT,3,454181
@@ -1395,10 +1428,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,ja,chatgpt,OpenAI,ChatGPT,3,52934
 2026-04,ja,chatgpt,OpenAI,ChatGPT,3,53085
 2026-05,ja,chatgpt,OpenAI,ChatGPT,3,63242
-2026-06,ja,chatgpt,OpenAI,ChatGPT,3,41893
-2026-07,ja,chatgpt,OpenAI,ChatGPT,3,32804
-2026-08,ja,chatgpt,OpenAI,ChatGPT,3,37160
-2026-09,ja,chatgpt,OpenAI,ChatGPT,3,52306
+2026-06,ja,chatgpt,OpenAI,ChatGPT,3,41598
+2026-07,ja,chatgpt,OpenAI,ChatGPT,3,31559
+2026-08,ja,chatgpt,OpenAI,ChatGPT,3,35798
+2026-09,ja,chatgpt,OpenAI,ChatGPT,3,51162
+2026-10,ja,chatgpt,OpenAI,ChatGPT,3,52177
 2023-01,ko,chatgpt,OpenAI,챗GPT,21,33229
 2023-02,ko,chatgpt,OpenAI,챗GPT,21,113215
 2023-03,ko,chatgpt,OpenAI,챗GPT,21,103229
@@ -1440,97 +1474,100 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,ko,chatgpt,OpenAI,챗GPT,21,43188
 2026-04,ko,chatgpt,OpenAI,챗GPT,21,15496
 2026-05,ko,chatgpt,OpenAI,챗GPT,21,28411
-2026-06,ko,chatgpt,OpenAI,챗GPT,21,16016
-2026-07,ko,chatgpt,OpenAI,챗GPT,21,8344
-2026-08,ko,chatgpt,OpenAI,챗GPT,21,6390
-2026-09,ko,chatgpt,OpenAI,챗GPT,21,6736
-2023-01,zh,chatgpt,OpenAI,ChatGPT,5,113132
-2023-02,zh,chatgpt,OpenAI,ChatGPT,5,969316
-2023-03,zh,chatgpt,OpenAI,ChatGPT,5,616123
-2023-04,zh,chatgpt,OpenAI,ChatGPT,5,310511
-2023-05,zh,chatgpt,OpenAI,ChatGPT,5,207947
-2023-06,zh,chatgpt,OpenAI,ChatGPT,5,113628
-2023-07,zh,chatgpt,OpenAI,ChatGPT,5,71362
-2023-08,zh,chatgpt,OpenAI,ChatGPT,5,54926
-2023-09,zh,chatgpt,OpenAI,ChatGPT,5,47443
-2023-10,zh,chatgpt,OpenAI,ChatGPT,5,58779
-2023-11,zh,chatgpt,OpenAI,ChatGPT,5,61652
-2023-12,zh,chatgpt,OpenAI,ChatGPT,5,64115
-2024-01,zh,chatgpt,OpenAI,ChatGPT,5,93742
-2024-02,zh,chatgpt,OpenAI,ChatGPT,5,55902
-2024-03,zh,chatgpt,OpenAI,ChatGPT,5,79034
-2024-04,zh,chatgpt,OpenAI,ChatGPT,5,70542
-2024-05,zh,chatgpt,OpenAI,ChatGPT,5,59555
-2024-06,zh,chatgpt,OpenAI,ChatGPT,5,64122
-2024-07,zh,chatgpt,OpenAI,ChatGPT,5,38570
-2024-08,zh,chatgpt,OpenAI,ChatGPT,5,26244
-2024-09,zh,chatgpt,OpenAI,ChatGPT,5,31582
-2024-10,zh,chatgpt,OpenAI,ChatGPT,5,33305
-2024-11,zh,chatgpt,OpenAI,ChatGPT,5,43251
-2024-12,zh,chatgpt,OpenAI,ChatGPT,5,98648
-2025-01,zh,chatgpt,OpenAI,ChatGPT,5,77247
-2025-02,zh,chatgpt,OpenAI,ChatGPT,5,55934
-2025-03,zh,chatgpt,OpenAI,ChatGPT,5,66614
-2025-04,zh,chatgpt,OpenAI,ChatGPT,5,94339
-2025-05,zh,chatgpt,OpenAI,ChatGPT,5,52006
-2025-06,zh,chatgpt,OpenAI,ChatGPT,5,35261
-2025-07,zh,chatgpt,OpenAI,ChatGPT,5,23054
-2025-08,zh,chatgpt,OpenAI,ChatGPT,5,26028
-2025-09,zh,chatgpt,OpenAI,ChatGPT,5,36443
-2025-10,zh,chatgpt,OpenAI,ChatGPT,5,24299
-2025-11,zh,chatgpt,OpenAI,ChatGPT,5,25980
-2025-12,zh,chatgpt,OpenAI,ChatGPT,5,21074
-2026-01,zh,chatgpt,OpenAI,ChatGPT,5,19440
-2026-02,zh,chatgpt,OpenAI,ChatGPT,5,17046
-2026-03,zh,chatgpt,OpenAI,ChatGPT,5,22329
-2026-04,zh,chatgpt,OpenAI,ChatGPT,5,39958
-2026-05,zh,chatgpt,OpenAI,ChatGPT,5,46273
-2026-06,zh,chatgpt,OpenAI,ChatGPT,5,56689
-2026-07,zh,chatgpt,OpenAI,ChatGPT,5,39600
-2026-08,zh,chatgpt,OpenAI,ChatGPT,5,25602
-2026-09,zh,chatgpt,OpenAI,ChatGPT,5,25312
-2023-04,en,claude,Anthropic,Claude (AI),40,8
-2023-05,en,claude,Anthropic,Claude (AI),40,14
-2023-06,en,claude,Anthropic,Claude (AI),40,3
-2023-07,en,claude,Anthropic,Claude (AI),40,37
-2023-08,en,claude,Anthropic,Claude (AI),40,244
-2023-09,en,claude,Anthropic,Claude (AI),40,122
-2023-10,en,claude,Anthropic,Claude (AI),40,103
-2023-11,en,claude,Anthropic,Claude (AI),40,307
-2023-12,en,claude,Anthropic,Claude (AI),40,379
-2024-01,en,claude,Anthropic,Claude (AI),40,2490
-2024-02,en,claude,Anthropic,Claude (AI),40,8730
-2024-03,en,claude,Anthropic,Claude (AI),40,55341
-2024-04,en,claude,Anthropic,Claude (AI),40,37316
-2024-05,en,claude,Anthropic,Claude (AI),40,39807
-2024-06,en,claude,Anthropic,Claude (AI),40,37927
-2024-07,en,claude,Anthropic,Claude (AI),40,51033
-2024-08,en,claude,Anthropic,Claude (AI),40,35281
-2024-09,en,claude,Anthropic,Claude (AI),40,35462
-2024-10,en,claude,Anthropic,Claude (AI),40,48394
-2024-11,en,claude,Anthropic,Claude (AI),40,57766
-2024-12,en,claude,Anthropic,Claude (AI),40,62022
-2025-01,en,claude,Anthropic,Claude (AI),40,78481
-2025-02,en,claude,Anthropic,Claude (AI),40,71441
-2025-03,en,claude,Anthropic,Claude (AI),40,70759
-2025-04,en,claude,Anthropic,Claude (AI),40,53240
-2025-05,en,claude,Anthropic,Claude (AI),40,60482
-2025-06,en,claude,Anthropic,Claude (AI),40,63187
-2025-07,en,claude,Anthropic,Claude (AI),40,67874
-2025-08,en,claude,Anthropic,Claude (AI),40,74853
-2025-09,en,claude,Anthropic,Claude (AI),40,65904
-2025-10,en,claude,Anthropic,Claude (AI),40,77903
-2025-11,en,claude,Anthropic,Claude (AI),40,83435
-2025-12,en,claude,Anthropic,Claude (AI),40,80933
-2026-01,en,claude,Anthropic,Claude (AI),40,122973
-2026-02,en,claude,Anthropic,Claude (AI),40,306864
-2026-03,en,claude,Anthropic,Claude (AI),40,343525
-2026-04,en,claude,Anthropic,Claude (AI),40,278234
-2026-05,en,claude,Anthropic,Claude (AI),40,244047
-2026-06,en,claude,Anthropic,Claude (AI),40,233165
-2026-07,en,claude,Anthropic,Claude (AI),40,179115
-2026-08,en,claude,Anthropic,Claude (AI),40,157110
-2026-09,en,claude,Anthropic,Claude (AI),40,194456
+2026-06,ko,chatgpt,OpenAI,챗GPT,21,15868
+2026-07,ko,chatgpt,OpenAI,챗GPT,21,8036
+2026-08,ko,chatgpt,OpenAI,챗GPT,21,5886
+2026-09,ko,chatgpt,OpenAI,챗GPT,21,6340
+2026-10,ko,chatgpt,OpenAI,챗GPT,21,7188
+2023-01,zh,chatgpt,OpenAI,ChatGPT,6,113132
+2023-02,zh,chatgpt,OpenAI,ChatGPT,6,969316
+2023-03,zh,chatgpt,OpenAI,ChatGPT,6,616123
+2023-04,zh,chatgpt,OpenAI,ChatGPT,6,310511
+2023-05,zh,chatgpt,OpenAI,ChatGPT,6,207947
+2023-06,zh,chatgpt,OpenAI,ChatGPT,6,113628
+2023-07,zh,chatgpt,OpenAI,ChatGPT,6,71362
+2023-08,zh,chatgpt,OpenAI,ChatGPT,6,54926
+2023-09,zh,chatgpt,OpenAI,ChatGPT,6,47443
+2023-10,zh,chatgpt,OpenAI,ChatGPT,6,58779
+2023-11,zh,chatgpt,OpenAI,ChatGPT,6,61652
+2023-12,zh,chatgpt,OpenAI,ChatGPT,6,64115
+2024-01,zh,chatgpt,OpenAI,ChatGPT,6,93742
+2024-02,zh,chatgpt,OpenAI,ChatGPT,6,55902
+2024-03,zh,chatgpt,OpenAI,ChatGPT,6,79034
+2024-04,zh,chatgpt,OpenAI,ChatGPT,6,70542
+2024-05,zh,chatgpt,OpenAI,ChatGPT,6,59555
+2024-06,zh,chatgpt,OpenAI,ChatGPT,6,64122
+2024-07,zh,chatgpt,OpenAI,ChatGPT,6,38570
+2024-08,zh,chatgpt,OpenAI,ChatGPT,6,26244
+2024-09,zh,chatgpt,OpenAI,ChatGPT,6,31582
+2024-10,zh,chatgpt,OpenAI,ChatGPT,6,33305
+2024-11,zh,chatgpt,OpenAI,ChatGPT,6,43251
+2024-12,zh,chatgpt,OpenAI,ChatGPT,6,98648
+2025-01,zh,chatgpt,OpenAI,ChatGPT,6,77247
+2025-02,zh,chatgpt,OpenAI,ChatGPT,6,55934
+2025-03,zh,chatgpt,OpenAI,ChatGPT,6,66614
+2025-04,zh,chatgpt,OpenAI,ChatGPT,6,94339
+2025-05,zh,chatgpt,OpenAI,ChatGPT,6,52006
+2025-06,zh,chatgpt,OpenAI,ChatGPT,6,35261
+2025-07,zh,chatgpt,OpenAI,ChatGPT,6,23054
+2025-08,zh,chatgpt,OpenAI,ChatGPT,6,26028
+2025-09,zh,chatgpt,OpenAI,ChatGPT,6,36443
+2025-10,zh,chatgpt,OpenAI,ChatGPT,6,24299
+2025-11,zh,chatgpt,OpenAI,ChatGPT,6,25980
+2025-12,zh,chatgpt,OpenAI,ChatGPT,6,21074
+2026-01,zh,chatgpt,OpenAI,ChatGPT,6,19440
+2026-02,zh,chatgpt,OpenAI,ChatGPT,6,17046
+2026-03,zh,chatgpt,OpenAI,ChatGPT,6,22329
+2026-04,zh,chatgpt,OpenAI,ChatGPT,6,39958
+2026-05,zh,chatgpt,OpenAI,ChatGPT,6,46273
+2026-06,zh,chatgpt,OpenAI,ChatGPT,6,47450
+2026-07,zh,chatgpt,OpenAI,ChatGPT,6,35208
+2026-08,zh,chatgpt,OpenAI,ChatGPT,6,19725
+2026-09,zh,chatgpt,OpenAI,ChatGPT,6,22242
+2026-10,zh,chatgpt,OpenAI,ChatGPT,6,27071
+2023-04,en,claude,Anthropic,Claude (AI),45,8
+2023-05,en,claude,Anthropic,Claude (AI),45,14
+2023-06,en,claude,Anthropic,Claude (AI),45,3
+2023-07,en,claude,Anthropic,Claude (AI),45,37
+2023-08,en,claude,Anthropic,Claude (AI),45,244
+2023-09,en,claude,Anthropic,Claude (AI),45,122
+2023-10,en,claude,Anthropic,Claude (AI),45,103
+2023-11,en,claude,Anthropic,Claude (AI),45,307
+2023-12,en,claude,Anthropic,Claude (AI),45,379
+2024-01,en,claude,Anthropic,Claude (AI),45,2490
+2024-02,en,claude,Anthropic,Claude (AI),45,8730
+2024-03,en,claude,Anthropic,Claude (AI),45,55341
+2024-04,en,claude,Anthropic,Claude (AI),45,37316
+2024-05,en,claude,Anthropic,Claude (AI),45,39807
+2024-06,en,claude,Anthropic,Claude (AI),45,37927
+2024-07,en,claude,Anthropic,Claude (AI),45,51033
+2024-08,en,claude,Anthropic,Claude (AI),45,35281
+2024-09,en,claude,Anthropic,Claude (AI),45,35462
+2024-10,en,claude,Anthropic,Claude (AI),45,48394
+2024-11,en,claude,Anthropic,Claude (AI),45,57766
+2024-12,en,claude,Anthropic,Claude (AI),45,62022
+2025-01,en,claude,Anthropic,Claude (AI),45,78481
+2025-02,en,claude,Anthropic,Claude (AI),45,71441
+2025-03,en,claude,Anthropic,Claude (AI),45,70759
+2025-04,en,claude,Anthropic,Claude (AI),45,53240
+2025-05,en,claude,Anthropic,Claude (AI),45,60482
+2025-06,en,claude,Anthropic,Claude (AI),45,63187
+2025-07,en,claude,Anthropic,Claude (AI),45,67874
+2025-08,en,claude,Anthropic,Claude (AI),45,74853
+2025-09,en,claude,Anthropic,Claude (AI),45,65904
+2025-10,en,claude,Anthropic,Claude (AI),45,77903
+2025-11,en,claude,Anthropic,Claude (AI),45,83435
+2025-12,en,claude,Anthropic,Claude (AI),45,80933
+2026-01,en,claude,Anthropic,Claude (AI),45,122973
+2026-02,en,claude,Anthropic,Claude (AI),45,306864
+2026-03,en,claude,Anthropic,Claude (AI),45,343526
+2026-04,en,claude,Anthropic,Claude (AI),45,278234
+2026-05,en,claude,Anthropic,Claude (AI),45,244047
+2026-06,en,claude,Anthropic,Claude (AI),45,227787
+2026-07,en,claude,Anthropic,Claude (AI),45,167417
+2026-08,en,claude,Anthropic,Claude (AI),45,149396
+2026-09,en,claude,Anthropic,Claude (AI),45,184059
+2026-10,en,claude,Anthropic,Claude (AI),45,218747
 2023-01,de,claude,Anthropic,Claude,5,82
 2023-02,de,claude,Anthropic,Claude,5,93
 2023-03,de,claude,Anthropic,Claude,5,147
@@ -1572,10 +1609,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,de,claude,Anthropic,Claude,5,56157
 2026-04,de,claude,Anthropic,Claude,5,46416
 2026-05,de,claude,Anthropic,Claude,5,41672
-2026-06,de,claude,Anthropic,Claude,5,35401
-2026-07,de,claude,Anthropic,Claude,5,27206
-2026-08,de,claude,Anthropic,Claude,5,22231
-2026-09,de,claude,Anthropic,Claude,5,22584
+2026-06,de,claude,Anthropic,Claude,5,34759
+2026-07,de,claude,Anthropic,Claude,5,26241
+2026-08,de,claude,Anthropic,Claude,5,21531
+2026-09,de,claude,Anthropic,Claude,5,21995
+2026-10,de,claude,Anthropic,Claude,5,25816
 2024-03,fr,claude,Anthropic,Claude (modèle de langage),4,1449
 2024-04,fr,claude,Anthropic,Claude (modèle de langage),4,1930
 2024-05,fr,claude,Anthropic,Claude (modèle de langage),4,2292
@@ -1603,10 +1641,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,fr,claude,Anthropic,Claude (modèle de langage),4,90757
 2026-04,fr,claude,Anthropic,Claude (modèle de langage),4,67230
 2026-05,fr,claude,Anthropic,Claude (modèle de langage),4,59996
-2026-06,fr,claude,Anthropic,Claude (modèle de langage),4,46584
-2026-07,fr,claude,Anthropic,Claude (modèle de langage),4,22245
-2026-08,fr,claude,Anthropic,Claude (modèle de langage),4,16557
-2026-09,fr,claude,Anthropic,Claude (modèle de langage),4,22832
+2026-06,fr,claude,Anthropic,Claude (modèle de langage),4,45881
+2026-07,fr,claude,Anthropic,Claude (modèle de langage),4,21630
+2026-08,fr,claude,Anthropic,Claude (modèle de langage),4,15694
+2026-09,fr,claude,Anthropic,Claude (modèle de langage),4,21392
+2026-10,fr,claude,Anthropic,Claude (modèle de langage),4,28513
 2023-06,es,claude,Anthropic,Claude (chatbot),1,148
 2023-07,es,claude,Anthropic,Claude (chatbot),1,377
 2023-08,es,claude,Anthropic,Claude (chatbot),1,615
@@ -1643,10 +1682,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,es,claude,Anthropic,Claude (chatbot),1,26102
 2026-04,es,claude,Anthropic,Claude (chatbot),1,26257
 2026-05,es,claude,Anthropic,Claude (chatbot),1,26501
-2026-06,es,claude,Anthropic,Claude (chatbot),1,25905
-2026-07,es,claude,Anthropic,Claude (chatbot),1,17589
-2026-08,es,claude,Anthropic,Claude (chatbot),1,14279
-2026-09,es,claude,Anthropic,Claude (chatbot),1,18224
+2026-06,es,claude,Anthropic,Claude (chatbot),1,25571
+2026-07,es,claude,Anthropic,Claude (chatbot),1,17311
+2026-08,es,claude,Anthropic,Claude (chatbot),1,13939
+2026-09,es,claude,Anthropic,Claude (chatbot),1,17762
+2026-10,es,claude,Anthropic,Claude (chatbot),1,35256
 2024-11,it,claude,Anthropic,Claude (intelligenza artificiale),2,0
 2024-12,it,claude,Anthropic,Claude (intelligenza artificiale),2,1
 2025-05,it,claude,Anthropic,Claude (intelligenza artificiale),2,3
@@ -1654,10 +1694,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,it,claude,Anthropic,Claude (intelligenza artificiale),2,10509
 2026-04,it,claude,Anthropic,Claude (intelligenza artificiale),2,6895
 2026-05,it,claude,Anthropic,Claude (intelligenza artificiale),2,10563
-2026-06,it,claude,Anthropic,Claude (intelligenza artificiale),2,10065
-2026-07,it,claude,Anthropic,Claude (intelligenza artificiale),2,5910
-2026-08,it,claude,Anthropic,Claude (intelligenza artificiale),2,4802
-2026-09,it,claude,Anthropic,Claude (intelligenza artificiale),2,8994
+2026-06,it,claude,Anthropic,Claude (intelligenza artificiale),2,9978
+2026-07,it,claude,Anthropic,Claude (intelligenza artificiale),2,5798
+2026-08,it,claude,Anthropic,Claude (intelligenza artificiale),2,4684
+2026-09,it,claude,Anthropic,Claude (intelligenza artificiale),2,8835
+2026-10,it,claude,Anthropic,Claude (intelligenza artificiale),2,12970
 2024-10,pt,claude,Anthropic,Claude,2,17
 2024-11,pt,claude,Anthropic,Claude,2,435
 2024-12,pt,claude,Anthropic,Claude,2,487
@@ -1678,10 +1719,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,pt,claude,Anthropic,Claude,2,5731
 2026-04,pt,claude,Anthropic,Claude,2,4602
 2026-05,pt,claude,Anthropic,Claude,2,5393
-2026-06,pt,claude,Anthropic,Claude,2,6354
-2026-07,pt,claude,Anthropic,Claude,2,4648
-2026-08,pt,claude,Anthropic,Claude,2,4330
-2026-09,pt,claude,Anthropic,Claude,2,4479
+2026-06,pt,claude,Anthropic,Claude,2,6146
+2026-07,pt,claude,Anthropic,Claude,2,4394
+2026-08,pt,claude,Anthropic,Claude,2,4012
+2026-09,pt,claude,Anthropic,Claude,2,4193
+2026-10,pt,claude,Anthropic,Claude,2,15717
 2025-04,pl,claude,Anthropic,Claude (model językowy),1,400
 2025-05,pl,claude,Anthropic,Claude (model językowy),1,1111
 2025-06,pl,claude,Anthropic,Claude (model językowy),1,1056
@@ -1696,10 +1738,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,pl,claude,Anthropic,Claude (model językowy),1,5831
 2026-04,pl,claude,Anthropic,Claude (model językowy),1,4332
 2026-05,pl,claude,Anthropic,Claude (model językowy),1,4108
-2026-06,pl,claude,Anthropic,Claude (model językowy),1,3332
-2026-07,pl,claude,Anthropic,Claude (model językowy),1,2793
-2026-08,pl,claude,Anthropic,Claude (model językowy),1,2260
-2026-09,pl,claude,Anthropic,Claude (model językowy),1,3082
+2026-06,pl,claude,Anthropic,Claude (model językowy),1,3258
+2026-07,pl,claude,Anthropic,Claude (model językowy),1,2417
+2026-08,pl,claude,Anthropic,Claude (model językowy),1,2095
+2026-09,pl,claude,Anthropic,Claude (model językowy),1,2879
+2026-10,pl,claude,Anthropic,Claude (model językowy),1,4226
 2025-01,cs,claude,Anthropic,Claude (jazykový model),2,401
 2025-02,cs,claude,Anthropic,Claude (jazykový model),2,364
 2025-03,cs,claude,Anthropic,Claude (jazykový model),2,471
@@ -1717,10 +1760,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,cs,claude,Anthropic,Claude (jazykový model),2,2683
 2026-04,cs,claude,Anthropic,Claude (jazykový model),2,1423
 2026-05,cs,claude,Anthropic,Claude (jazykový model),2,1197
-2026-06,cs,claude,Anthropic,Claude (jazykový model),2,1126
-2026-07,cs,claude,Anthropic,Claude (jazykový model),2,821
-2026-08,cs,claude,Anthropic,Claude (jazykový model),2,867
-2026-09,cs,claude,Anthropic,Claude (jazykový model),2,879
+2026-06,cs,claude,Anthropic,Claude (jazykový model),2,1117
+2026-07,cs,claude,Anthropic,Claude (jazykový model),2,762
+2026-08,cs,claude,Anthropic,Claude (jazykový model),2,804
+2026-09,cs,claude,Anthropic,Claude (jazykový model),2,807
+2026-10,cs,claude,Anthropic,Claude (jazykový model),2,1172
 2023-01,ru,claude,Anthropic,Claude,2,0
 2023-02,ru,claude,Anthropic,Claude,2,8
 2023-03,ru,claude,Anthropic,Claude,2,6
@@ -1762,10 +1806,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,ru,claude,Anthropic,Claude,2,32799
 2026-04,ru,claude,Anthropic,Claude,2,26690
 2026-05,ru,claude,Anthropic,Claude,2,24462
-2026-06,ru,claude,Anthropic,Claude,2,20707
-2026-07,ru,claude,Anthropic,Claude,2,15396
-2026-08,ru,claude,Anthropic,Claude,2,13772
-2026-09,ru,claude,Anthropic,Claude,2,16837
+2026-06,ru,claude,Anthropic,Claude,2,20800
+2026-07,ru,claude,Anthropic,Claude,2,15792
+2026-08,ru,claude,Anthropic,Claude,2,13910
+2026-09,ru,claude,Anthropic,Claude,2,17101
+2026-10,ru,claude,Anthropic,Claude,2,28783
 2024-03,ja,claude,Anthropic,Claude,3,396
 2024-04,ja,claude,Anthropic,Claude,3,998
 2024-05,ja,claude,Anthropic,Claude,3,2218
@@ -1793,39 +1838,41 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,ja,claude,Anthropic,Claude,3,41636
 2026-04,ja,claude,Anthropic,Claude,3,33555
 2026-05,ja,claude,Anthropic,Claude,3,39601
-2026-06,ja,claude,Anthropic,Claude,3,29194
-2026-07,ja,claude,Anthropic,Claude,3,17997
-2026-08,ja,claude,Anthropic,Claude,3,12824
-2026-09,ja,claude,Anthropic,Claude,3,14172
-2024-05,ko,claude,Anthropic,클로드 (언어 모델),67,6
-2024-06,ko,claude,Anthropic,클로드 (언어 모델),67,595
-2024-07,ko,claude,Anthropic,클로드 (언어 모델),67,1123
-2024-08,ko,claude,Anthropic,클로드 (언어 모델),67,772
-2024-09,ko,claude,Anthropic,클로드 (언어 모델),67,994
-2024-10,ko,claude,Anthropic,클로드 (언어 모델),67,1858
-2024-11,ko,claude,Anthropic,클로드 (언어 모델),67,2112
-2024-12,ko,claude,Anthropic,클로드 (언어 모델),67,1542
-2025-01,ko,claude,Anthropic,클로드 (언어 모델),67,1858
-2025-02,ko,claude,Anthropic,클로드 (언어 모델),67,2189
-2025-03,ko,claude,Anthropic,클로드 (언어 모델),67,2536
-2025-04,ko,claude,Anthropic,클로드 (언어 모델),67,1922
-2025-05,ko,claude,Anthropic,클로드 (언어 모델),67,1335
-2025-06,ko,claude,Anthropic,클로드 (언어 모델),67,1609
-2025-07,ko,claude,Anthropic,클로드 (언어 모델),67,1097
-2025-08,ko,claude,Anthropic,클로드 (언어 모델),67,1082
-2025-09,ko,claude,Anthropic,클로드 (언어 모델),67,1239
-2025-10,ko,claude,Anthropic,클로드 (언어 모델),67,1867
-2025-11,ko,claude,Anthropic,클로드 (언어 모델),67,3082
-2025-12,ko,claude,Anthropic,클로드 (언어 모델),67,2890
-2026-01,ko,claude,Anthropic,클로드 (언어 모델),67,3366
-2026-02,ko,claude,Anthropic,클로드 (언어 모델),67,13676
-2026-03,ko,claude,Anthropic,클로드 (언어 모델),67,25425
-2026-04,ko,claude,Anthropic,클로드 (언어 모델),67,26223
-2026-05,ko,claude,Anthropic,클로드 (언어 모델),67,21083
-2026-06,ko,claude,Anthropic,클로드 (언어 모델),67,13954
-2026-07,ko,claude,Anthropic,클로드 (언어 모델),67,6179
-2026-08,ko,claude,Anthropic,클로드 (언어 모델),67,4475
-2026-09,ko,claude,Anthropic,클로드 (언어 모델),67,3215
+2026-06,ja,claude,Anthropic,Claude,3,29048
+2026-07,ja,claude,Anthropic,Claude,3,17524
+2026-08,ja,claude,Anthropic,Claude,3,12332
+2026-09,ja,claude,Anthropic,Claude,3,13924
+2026-10,ja,claude,Anthropic,Claude,3,14848
+2024-05,ko,claude,Anthropic,클로드 (언어 모델),69,6
+2024-06,ko,claude,Anthropic,클로드 (언어 모델),69,595
+2024-07,ko,claude,Anthropic,클로드 (언어 모델),69,1123
+2024-08,ko,claude,Anthropic,클로드 (언어 모델),69,772
+2024-09,ko,claude,Anthropic,클로드 (언어 모델),69,994
+2024-10,ko,claude,Anthropic,클로드 (언어 모델),69,1858
+2024-11,ko,claude,Anthropic,클로드 (언어 모델),69,2112
+2024-12,ko,claude,Anthropic,클로드 (언어 모델),69,1542
+2025-01,ko,claude,Anthropic,클로드 (언어 모델),69,1858
+2025-02,ko,claude,Anthropic,클로드 (언어 모델),69,2189
+2025-03,ko,claude,Anthropic,클로드 (언어 모델),69,2536
+2025-04,ko,claude,Anthropic,클로드 (언어 모델),69,1922
+2025-05,ko,claude,Anthropic,클로드 (언어 모델),69,1335
+2025-06,ko,claude,Anthropic,클로드 (언어 모델),69,1609
+2025-07,ko,claude,Anthropic,클로드 (언어 모델),69,1097
+2025-08,ko,claude,Anthropic,클로드 (언어 모델),69,1082
+2025-09,ko,claude,Anthropic,클로드 (언어 모델),69,1239
+2025-10,ko,claude,Anthropic,클로드 (언어 모델),69,1867
+2025-11,ko,claude,Anthropic,클로드 (언어 모델),69,3082
+2025-12,ko,claude,Anthropic,클로드 (언어 모델),69,2890
+2026-01,ko,claude,Anthropic,클로드 (언어 모델),69,3366
+2026-02,ko,claude,Anthropic,클로드 (언어 모델),69,13676
+2026-03,ko,claude,Anthropic,클로드 (언어 모델),69,25425
+2026-04,ko,claude,Anthropic,클로드 (언어 모델),69,26223
+2026-05,ko,claude,Anthropic,클로드 (언어 모델),69,21083
+2026-06,ko,claude,Anthropic,클로드 (언어 모델),69,13833
+2026-07,ko,claude,Anthropic,클로드 (언어 모델),69,5666
+2026-08,ko,claude,Anthropic,클로드 (언어 모델),69,3887
+2026-09,ko,claude,Anthropic,클로드 (언어 모델),69,2699
+2026-10,ko,claude,Anthropic,클로드 (언어 모델),69,3352
 2023-07,zh,claude,Anthropic,Claude (语言模型),4,153
 2023-08,zh,claude,Anthropic,Claude (语言模型),4,88
 2023-09,zh,claude,Anthropic,Claude (语言模型),4,115
@@ -1861,55 +1908,57 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,zh,claude,Anthropic,Claude (语言模型),4,27331
 2026-04,zh,claude,Anthropic,Claude (语言模型),4,24582
 2026-05,zh,claude,Anthropic,Claude (语言模型),4,21162
-2026-06,zh,claude,Anthropic,Claude (语言模型),4,16594
-2026-07,zh,claude,Anthropic,Claude (语言模型),4,13608
-2026-08,zh,claude,Anthropic,Claude (语言模型),4,11237
-2026-09,zh,claude,Anthropic,Claude (语言模型),4,13059
-2023-01,en,sam_altman,OpenAI,Sam Altman,21,365646
-2023-02,en,sam_altman,OpenAI,Sam Altman,21,345937
-2023-03,en,sam_altman,OpenAI,Sam Altman,21,411517
-2023-04,en,sam_altman,OpenAI,Sam Altman,21,269015
-2023-05,en,sam_altman,OpenAI,Sam Altman,21,339794
-2023-06,en,sam_altman,OpenAI,Sam Altman,21,245196
-2023-07,en,sam_altman,OpenAI,Sam Altman,21,153566
-2023-08,en,sam_altman,OpenAI,Sam Altman,21,110695
-2023-09,en,sam_altman,OpenAI,Sam Altman,21,133305
-2023-10,en,sam_altman,OpenAI,Sam Altman,21,145857
-2023-11,en,sam_altman,OpenAI,Sam Altman,21,1720764
-2023-12,en,sam_altman,OpenAI,Sam Altman,21,276788
-2024-01,en,sam_altman,OpenAI,Sam Altman,21,236348
-2024-02,en,sam_altman,OpenAI,Sam Altman,21,222209
-2024-03,en,sam_altman,OpenAI,Sam Altman,21,218601
-2024-04,en,sam_altman,OpenAI,Sam Altman,21,158113
-2024-05,en,sam_altman,OpenAI,Sam Altman,21,244760
-2024-06,en,sam_altman,OpenAI,Sam Altman,21,179679
-2024-07,en,sam_altman,OpenAI,Sam Altman,21,127678
-2024-08,en,sam_altman,OpenAI,Sam Altman,21,100670
-2024-09,en,sam_altman,OpenAI,Sam Altman,21,194311
-2024-10,en,sam_altman,OpenAI,Sam Altman,21,171062
-2024-11,en,sam_altman,OpenAI,Sam Altman,21,146991
-2024-12,en,sam_altman,OpenAI,Sam Altman,21,222818
-2025-01,en,sam_altman,OpenAI,Sam Altman,21,600503
-2025-02,en,sam_altman,OpenAI,Sam Altman,21,456471
-2025-03,en,sam_altman,OpenAI,Sam Altman,21,158087
-2025-04,en,sam_altman,OpenAI,Sam Altman,21,242744
-2025-05,en,sam_altman,OpenAI,Sam Altman,21,401659
-2025-06,en,sam_altman,OpenAI,Sam Altman,21,3416206
-2025-07,en,sam_altman,OpenAI,Sam Altman,21,275851
-2025-08,en,sam_altman,OpenAI,Sam Altman,21,450308
-2025-09,en,sam_altman,OpenAI,Sam Altman,21,363001
-2025-10,en,sam_altman,OpenAI,Sam Altman,21,411998
-2025-11,en,sam_altman,OpenAI,Sam Altman,21,376413
-2025-12,en,sam_altman,OpenAI,Sam Altman,21,296024
-2026-01,en,sam_altman,OpenAI,Sam Altman,21,231675
-2026-02,en,sam_altman,OpenAI,Sam Altman,21,345411
-2026-03,en,sam_altman,OpenAI,Sam Altman,21,287047
-2026-04,en,sam_altman,OpenAI,Sam Altman,21,553574
-2026-05,en,sam_altman,OpenAI,Sam Altman,21,329227
-2026-06,en,sam_altman,OpenAI,Sam Altman,21,239385
-2026-07,en,sam_altman,OpenAI,Sam Altman,21,200000
-2026-08,en,sam_altman,OpenAI,Sam Altman,21,293089
-2026-09,en,sam_altman,OpenAI,Sam Altman,21,495671
+2026-06,zh,claude,Anthropic,Claude (语言模型),4,16256
+2026-07,zh,claude,Anthropic,Claude (语言模型),4,12657
+2026-08,zh,claude,Anthropic,Claude (语言模型),4,10464
+2026-09,zh,claude,Anthropic,Claude (语言模型),4,12336
+2026-10,zh,claude,Anthropic,Claude (语言模型),4,18803
+2023-01,en,sam_altman,OpenAI,Sam Altman,22,365646
+2023-02,en,sam_altman,OpenAI,Sam Altman,22,345937
+2023-03,en,sam_altman,OpenAI,Sam Altman,22,411517
+2023-04,en,sam_altman,OpenAI,Sam Altman,22,269015
+2023-05,en,sam_altman,OpenAI,Sam Altman,22,339794
+2023-06,en,sam_altman,OpenAI,Sam Altman,22,245196
+2023-07,en,sam_altman,OpenAI,Sam Altman,22,153566
+2023-08,en,sam_altman,OpenAI,Sam Altman,22,110695
+2023-09,en,sam_altman,OpenAI,Sam Altman,22,133305
+2023-10,en,sam_altman,OpenAI,Sam Altman,22,145857
+2023-11,en,sam_altman,OpenAI,Sam Altman,22,1720764
+2023-12,en,sam_altman,OpenAI,Sam Altman,22,276788
+2024-01,en,sam_altman,OpenAI,Sam Altman,22,236348
+2024-02,en,sam_altman,OpenAI,Sam Altman,22,222209
+2024-03,en,sam_altman,OpenAI,Sam Altman,22,218601
+2024-04,en,sam_altman,OpenAI,Sam Altman,22,158113
+2024-05,en,sam_altman,OpenAI,Sam Altman,22,244760
+2024-06,en,sam_altman,OpenAI,Sam Altman,22,179679
+2024-07,en,sam_altman,OpenAI,Sam Altman,22,127678
+2024-08,en,sam_altman,OpenAI,Sam Altman,22,100670
+2024-09,en,sam_altman,OpenAI,Sam Altman,22,194311
+2024-10,en,sam_altman,OpenAI,Sam Altman,22,171062
+2024-11,en,sam_altman,OpenAI,Sam Altman,22,146991
+2024-12,en,sam_altman,OpenAI,Sam Altman,22,222818
+2025-01,en,sam_altman,OpenAI,Sam Altman,22,600503
+2025-02,en,sam_altman,OpenAI,Sam Altman,22,456471
+2025-03,en,sam_altman,OpenAI,Sam Altman,22,158087
+2025-04,en,sam_altman,OpenAI,Sam Altman,22,242744
+2025-05,en,sam_altman,OpenAI,Sam Altman,22,401659
+2025-06,en,sam_altman,OpenAI,Sam Altman,22,3416206
+2025-07,en,sam_altman,OpenAI,Sam Altman,22,275851
+2025-08,en,sam_altman,OpenAI,Sam Altman,22,450308
+2025-09,en,sam_altman,OpenAI,Sam Altman,22,363001
+2025-10,en,sam_altman,OpenAI,Sam Altman,22,411998
+2025-11,en,sam_altman,OpenAI,Sam Altman,22,376413
+2025-12,en,sam_altman,OpenAI,Sam Altman,22,296024
+2026-01,en,sam_altman,OpenAI,Sam Altman,22,231675
+2026-02,en,sam_altman,OpenAI,Sam Altman,22,345411
+2026-03,en,sam_altman,OpenAI,Sam Altman,22,287047
+2026-04,en,sam_altman,OpenAI,Sam Altman,22,553574
+2026-05,en,sam_altman,OpenAI,Sam Altman,22,329227
+2026-06,en,sam_altman,OpenAI,Sam Altman,22,239269
+2026-07,en,sam_altman,OpenAI,Sam Altman,22,196938
+2026-08,en,sam_altman,OpenAI,Sam Altman,22,296130
+2026-09,en,sam_altman,OpenAI,Sam Altman,22,499346
+2026-10,en,sam_altman,OpenAI,Sam Altman,22,375586
 2023-01,de,sam_altman,OpenAI,Sam Altman,5,26567
 2023-02,de,sam_altman,OpenAI,Sam Altman,5,22419
 2023-03,de,sam_altman,OpenAI,Sam Altman,5,15686
@@ -1951,10 +2000,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,de,sam_altman,OpenAI,Sam Altman,5,16107
 2026-04,de,sam_altman,OpenAI,Sam Altman,5,24013
 2026-05,de,sam_altman,OpenAI,Sam Altman,5,22654
-2026-06,de,sam_altman,OpenAI,Sam Altman,5,22247
-2026-07,de,sam_altman,OpenAI,Sam Altman,5,16809
-2026-08,de,sam_altman,OpenAI,Sam Altman,5,22628
-2026-09,de,sam_altman,OpenAI,Sam Altman,5,36643
+2026-06,de,sam_altman,OpenAI,Sam Altman,5,21896
+2026-07,de,sam_altman,OpenAI,Sam Altman,5,16563
+2026-08,de,sam_altman,OpenAI,Sam Altman,5,22620
+2026-09,de,sam_altman,OpenAI,Sam Altman,5,36474
+2026-10,de,sam_altman,OpenAI,Sam Altman,5,19596
 2023-01,fr,sam_altman,OpenAI,Sam Altman,2,23700
 2023-02,fr,sam_altman,OpenAI,Sam Altman,2,12519
 2023-03,fr,sam_altman,OpenAI,Sam Altman,2,16013
@@ -1996,10 +2046,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,fr,sam_altman,OpenAI,Sam Altman,2,11665
 2026-04,fr,sam_altman,OpenAI,Sam Altman,2,23709
 2026-05,fr,sam_altman,OpenAI,Sam Altman,2,17317
-2026-06,fr,sam_altman,OpenAI,Sam Altman,2,10543
-2026-07,fr,sam_altman,OpenAI,Sam Altman,2,8782
-2026-08,fr,sam_altman,OpenAI,Sam Altman,2,14306
-2026-09,fr,sam_altman,OpenAI,Sam Altman,2,24656
+2026-06,fr,sam_altman,OpenAI,Sam Altman,2,10508
+2026-07,fr,sam_altman,OpenAI,Sam Altman,2,8684
+2026-08,fr,sam_altman,OpenAI,Sam Altman,2,14289
+2026-09,fr,sam_altman,OpenAI,Sam Altman,2,24558
+2026-10,fr,sam_altman,OpenAI,Sam Altman,2,12741
 2023-01,es,sam_altman,OpenAI,Sam Altman,1,9432
 2023-02,es,sam_altman,OpenAI,Sam Altman,1,13838
 2023-03,es,sam_altman,OpenAI,Sam Altman,1,17657
@@ -2041,10 +2092,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,es,sam_altman,OpenAI,Sam Altman,1,11301
 2026-04,es,sam_altman,OpenAI,Sam Altman,1,15779
 2026-05,es,sam_altman,OpenAI,Sam Altman,1,11325
-2026-06,es,sam_altman,OpenAI,Sam Altman,1,9006
-2026-07,es,sam_altman,OpenAI,Sam Altman,1,9226
-2026-08,es,sam_altman,OpenAI,Sam Altman,1,14654
-2026-09,es,sam_altman,OpenAI,Sam Altman,1,33807
+2026-06,es,sam_altman,OpenAI,Sam Altman,1,9105
+2026-07,es,sam_altman,OpenAI,Sam Altman,1,9451
+2026-08,es,sam_altman,OpenAI,Sam Altman,1,15066
+2026-09,es,sam_altman,OpenAI,Sam Altman,1,35174
+2026-10,es,sam_altman,OpenAI,Sam Altman,1,17378
 2023-01,it,sam_altman,OpenAI,Sam Altman,1,1
 2023-03,it,sam_altman,OpenAI,Sam Altman,1,3135
 2023-04,it,sam_altman,OpenAI,Sam Altman,1,5519
@@ -2085,10 +2137,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,it,sam_altman,OpenAI,Sam Altman,1,8571
 2026-04,it,sam_altman,OpenAI,Sam Altman,1,8906
 2026-05,it,sam_altman,OpenAI,Sam Altman,1,6974
-2026-06,it,sam_altman,OpenAI,Sam Altman,1,7138
-2026-07,it,sam_altman,OpenAI,Sam Altman,1,4148
-2026-08,it,sam_altman,OpenAI,Sam Altman,1,6415
-2026-09,it,sam_altman,OpenAI,Sam Altman,1,14843
+2026-06,it,sam_altman,OpenAI,Sam Altman,1,7120
+2026-07,it,sam_altman,OpenAI,Sam Altman,1,4076
+2026-08,it,sam_altman,OpenAI,Sam Altman,1,6354
+2026-09,it,sam_altman,OpenAI,Sam Altman,1,14820
+2026-10,it,sam_altman,OpenAI,Sam Altman,1,10556
 2023-01,pt,sam_altman,OpenAI,Sam Altman,1,2885
 2023-02,pt,sam_altman,OpenAI,Sam Altman,1,9646
 2023-03,pt,sam_altman,OpenAI,Sam Altman,1,9521
@@ -2130,10 +2183,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,pt,sam_altman,OpenAI,Sam Altman,1,2566
 2026-04,pt,sam_altman,OpenAI,Sam Altman,1,5013
 2026-05,pt,sam_altman,OpenAI,Sam Altman,1,4631
-2026-06,pt,sam_altman,OpenAI,Sam Altman,1,2596
-2026-07,pt,sam_altman,OpenAI,Sam Altman,1,2797
-2026-08,pt,sam_altman,OpenAI,Sam Altman,1,4182
-2026-09,pt,sam_altman,OpenAI,Sam Altman,1,9092
+2026-06,pt,sam_altman,OpenAI,Sam Altman,1,2606
+2026-07,pt,sam_altman,OpenAI,Sam Altman,1,2766
+2026-08,pt,sam_altman,OpenAI,Sam Altman,1,4234
+2026-09,pt,sam_altman,OpenAI,Sam Altman,1,9298
+2026-10,pt,sam_altman,OpenAI,Sam Altman,1,4090
 2023-05,pl,sam_altman,OpenAI,Sam Altman,1,1556
 2023-06,pl,sam_altman,OpenAI,Sam Altman,1,1932
 2023-07,pl,sam_altman,OpenAI,Sam Altman,1,1152
@@ -2171,10 +2225,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,pl,sam_altman,OpenAI,Sam Altman,1,3663
 2026-04,pl,sam_altman,OpenAI,Sam Altman,1,5028
 2026-05,pl,sam_altman,OpenAI,Sam Altman,1,4361
-2026-06,pl,sam_altman,OpenAI,Sam Altman,1,3828
-2026-07,pl,sam_altman,OpenAI,Sam Altman,1,2660
-2026-08,pl,sam_altman,OpenAI,Sam Altman,1,3197
-2026-09,pl,sam_altman,OpenAI,Sam Altman,1,7509
+2026-06,pl,sam_altman,OpenAI,Sam Altman,1,3766
+2026-07,pl,sam_altman,OpenAI,Sam Altman,1,2547
+2026-08,pl,sam_altman,OpenAI,Sam Altman,1,3116
+2026-09,pl,sam_altman,OpenAI,Sam Altman,1,7268
+2026-10,pl,sam_altman,OpenAI,Sam Altman,1,5554
 2023-07,cs,sam_altman,OpenAI,Sam Altman,2,187
 2023-08,cs,sam_altman,OpenAI,Sam Altman,2,292
 2023-09,cs,sam_altman,OpenAI,Sam Altman,2,278
@@ -2210,10 +2265,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,cs,sam_altman,OpenAI,Sam Altman,2,785
 2026-04,cs,sam_altman,OpenAI,Sam Altman,2,1117
 2026-05,cs,sam_altman,OpenAI,Sam Altman,2,914
-2026-06,cs,sam_altman,OpenAI,Sam Altman,2,788
-2026-07,cs,sam_altman,OpenAI,Sam Altman,2,568
-2026-08,cs,sam_altman,OpenAI,Sam Altman,2,702
-2026-09,cs,sam_altman,OpenAI,Sam Altman,2,1610
+2026-06,cs,sam_altman,OpenAI,Sam Altman,2,724
+2026-07,cs,sam_altman,OpenAI,Sam Altman,2,500
+2026-08,cs,sam_altman,OpenAI,Sam Altman,2,655
+2026-09,cs,sam_altman,OpenAI,Sam Altman,2,1564
+2026-10,cs,sam_altman,OpenAI,Sam Altman,2,995
 2023-02,ru,sam_altman,OpenAI,"Альтман, Сэм",8,7264
 2023-03,ru,sam_altman,OpenAI,"Альтман, Сэм",8,12325
 2023-04,ru,sam_altman,OpenAI,"Альтман, Сэм",8,9063
@@ -2254,10 +2310,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,ru,sam_altman,OpenAI,"Альтман, Сэм",8,9741
 2026-04,ru,sam_altman,OpenAI,"Альтман, Сэм",8,15936
 2026-05,ru,sam_altman,OpenAI,"Альтман, Сэм",8,11441
-2026-06,ru,sam_altman,OpenAI,"Альтман, Сэм",8,9062
-2026-07,ru,sam_altman,OpenAI,"Альтман, Сэм",8,9498
-2026-08,ru,sam_altman,OpenAI,"Альтман, Сэм",8,9529
-2026-09,ru,sam_altman,OpenAI,"Альтман, Сэм",8,24852
+2026-06,ru,sam_altman,OpenAI,"Альтман, Сэм",8,9144
+2026-07,ru,sam_altman,OpenAI,"Альтман, Сэм",8,9749
+2026-08,ru,sam_altman,OpenAI,"Альтман, Сэм",8,9787
+2026-09,ru,sam_altman,OpenAI,"Альтман, Сэм",8,25696
+2026-10,ru,sam_altman,OpenAI,"Альтман, Сэм",8,31772
 2023-02,ja,sam_altman,OpenAI,サム・アルトマン,3,4565
 2023-03,ja,sam_altman,OpenAI,サム・アルトマン,3,20460
 2023-04,ja,sam_altman,OpenAI,サム・アルトマン,3,67333
@@ -2298,10 +2355,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,ja,sam_altman,OpenAI,サム・アルトマン,3,10371
 2026-04,ja,sam_altman,OpenAI,サム・アルトマン,3,12903
 2026-05,ja,sam_altman,OpenAI,サム・アルトマン,3,12908
-2026-06,ja,sam_altman,OpenAI,サム・アルトマン,3,14211
-2026-07,ja,sam_altman,OpenAI,サム・アルトマン,3,8106
-2026-08,ja,sam_altman,OpenAI,サム・アルトマン,3,9016
-2026-09,ja,sam_altman,OpenAI,サム・アルトマン,3,18811
+2026-06,ja,sam_altman,OpenAI,サム・アルトマン,3,14151
+2026-07,ja,sam_altman,OpenAI,サム・アルトマン,3,7935
+2026-08,ja,sam_altman,OpenAI,サム・アルトマン,3,8741
+2026-09,ja,sam_altman,OpenAI,サム・アルトマン,3,18558
+2026-10,ja,sam_altman,OpenAI,サム・アルトマン,3,13814
 2023-02,ko,sam_altman,OpenAI,샘 올트먼,3,1416
 2023-03,ko,sam_altman,OpenAI,샘 올트먼,3,2730
 2023-04,ko,sam_altman,OpenAI,샘 올트먼,3,1489
@@ -2342,10 +2400,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,ko,sam_altman,OpenAI,샘 올트먼,3,1540
 2026-04,ko,sam_altman,OpenAI,샘 올트먼,3,1834
 2026-05,ko,sam_altman,OpenAI,샘 올트먼,3,1537
-2026-06,ko,sam_altman,OpenAI,샘 올트먼,3,2010
-2026-07,ko,sam_altman,OpenAI,샘 올트먼,3,1327
-2026-08,ko,sam_altman,OpenAI,샘 올트먼,3,851
-2026-09,ko,sam_altman,OpenAI,샘 올트먼,3,1047
+2026-06,ko,sam_altman,OpenAI,샘 올트먼,3,1970
+2026-07,ko,sam_altman,OpenAI,샘 올트먼,3,1278
+2026-08,ko,sam_altman,OpenAI,샘 올트먼,3,766
+2026-09,ko,sam_altman,OpenAI,샘 올트먼,3,930
+2026-10,ko,sam_altman,OpenAI,샘 올트먼,3,900
 2023-01,zh,sam_altman,OpenAI,萨姆·奥尔特曼,6,2366
 2023-02,zh,sam_altman,OpenAI,萨姆·奥尔特曼,6,17201
 2023-03,zh,sam_altman,OpenAI,萨姆·奥尔特曼,6,12071
@@ -2387,49 +2446,51 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,zh,sam_altman,OpenAI,萨姆·奥尔特曼,6,5919
 2026-04,zh,sam_altman,OpenAI,萨姆·奥尔特曼,6,8893
 2026-05,zh,sam_altman,OpenAI,萨姆·奥尔特曼,6,8789
-2026-06,zh,sam_altman,OpenAI,萨姆·奥尔特曼,6,6040
-2026-07,zh,sam_altman,OpenAI,萨姆·奥尔特曼,6,6319
-2026-08,zh,sam_altman,OpenAI,萨姆·奥尔特曼,6,6163
-2026-09,zh,sam_altman,OpenAI,萨姆·奥尔特曼,6,9765
-2023-07,en,dario_amodei,Anthropic,Dario Amodei,5,39
-2023-08,en,dario_amodei,Anthropic,Dario Amodei,5,96
-2023-09,en,dario_amodei,Anthropic,Dario Amodei,5,68
-2023-10,en,dario_amodei,Anthropic,Dario Amodei,5,66
-2023-11,en,dario_amodei,Anthropic,Dario Amodei,5,123
-2023-12,en,dario_amodei,Anthropic,Dario Amodei,5,2003
-2024-01,en,dario_amodei,Anthropic,Dario Amodei,5,5572
-2024-02,en,dario_amodei,Anthropic,Dario Amodei,5,6916
-2024-03,en,dario_amodei,Anthropic,Dario Amodei,5,25896
-2024-04,en,dario_amodei,Anthropic,Dario Amodei,5,22614
-2024-05,en,dario_amodei,Anthropic,Dario Amodei,5,18280
-2024-06,en,dario_amodei,Anthropic,Dario Amodei,5,21510
-2024-07,en,dario_amodei,Anthropic,Dario Amodei,5,18167
-2024-08,en,dario_amodei,Anthropic,Dario Amodei,5,16921
-2024-09,en,dario_amodei,Anthropic,Dario Amodei,5,16868
-2024-10,en,dario_amodei,Anthropic,Dario Amodei,5,30134
-2024-11,en,dario_amodei,Anthropic,Dario Amodei,5,48658
-2024-12,en,dario_amodei,Anthropic,Dario Amodei,5,26350
-2025-01,en,dario_amodei,Anthropic,Dario Amodei,5,54982
-2025-02,en,dario_amodei,Anthropic,Dario Amodei,5,38825
-2025-03,en,dario_amodei,Anthropic,Dario Amodei,5,46118
-2025-04,en,dario_amodei,Anthropic,Dario Amodei,5,28368
-2025-05,en,dario_amodei,Anthropic,Dario Amodei,5,53953
-2025-06,en,dario_amodei,Anthropic,Dario Amodei,5,59780
-2025-07,en,dario_amodei,Anthropic,Dario Amodei,5,50118
-2025-08,en,dario_amodei,Anthropic,Dario Amodei,5,62142
-2025-09,en,dario_amodei,Anthropic,Dario Amodei,5,57843
-2025-10,en,dario_amodei,Anthropic,Dario Amodei,5,61698
-2025-11,en,dario_amodei,Anthropic,Dario Amodei,5,93073
-2025-12,en,dario_amodei,Anthropic,Dario Amodei,5,79067
-2026-01,en,dario_amodei,Anthropic,Dario Amodei,5,141518
-2026-02,en,dario_amodei,Anthropic,Dario Amodei,5,626364
-2026-03,en,dario_amodei,Anthropic,Dario Amodei,5,422189
-2026-04,en,dario_amodei,Anthropic,Dario Amodei,5,321120
-2026-05,en,dario_amodei,Anthropic,Dario Amodei,5,283948
-2026-06,en,dario_amodei,Anthropic,Dario Amodei,5,369721
-2026-07,en,dario_amodei,Anthropic,Dario Amodei,5,167272
-2026-08,en,dario_amodei,Anthropic,Dario Amodei,5,237997
-2026-09,en,dario_amodei,Anthropic,Dario Amodei,5,573608
+2026-06,zh,sam_altman,OpenAI,萨姆·奥尔特曼,6,5889
+2026-07,zh,sam_altman,OpenAI,萨姆·奥尔特曼,6,5988
+2026-08,zh,sam_altman,OpenAI,萨姆·奥尔特曼,6,5672
+2026-09,zh,sam_altman,OpenAI,萨姆·奥尔特曼,6,9441
+2026-10,zh,sam_altman,OpenAI,萨姆·奥尔特曼,6,9212
+2023-07,en,dario_amodei,Anthropic,Dario Amodei,6,39
+2023-08,en,dario_amodei,Anthropic,Dario Amodei,6,96
+2023-09,en,dario_amodei,Anthropic,Dario Amodei,6,68
+2023-10,en,dario_amodei,Anthropic,Dario Amodei,6,66
+2023-11,en,dario_amodei,Anthropic,Dario Amodei,6,123
+2023-12,en,dario_amodei,Anthropic,Dario Amodei,6,2003
+2024-01,en,dario_amodei,Anthropic,Dario Amodei,6,5572
+2024-02,en,dario_amodei,Anthropic,Dario Amodei,6,6916
+2024-03,en,dario_amodei,Anthropic,Dario Amodei,6,25896
+2024-04,en,dario_amodei,Anthropic,Dario Amodei,6,22614
+2024-05,en,dario_amodei,Anthropic,Dario Amodei,6,18280
+2024-06,en,dario_amodei,Anthropic,Dario Amodei,6,21510
+2024-07,en,dario_amodei,Anthropic,Dario Amodei,6,18167
+2024-08,en,dario_amodei,Anthropic,Dario Amodei,6,16921
+2024-09,en,dario_amodei,Anthropic,Dario Amodei,6,16868
+2024-10,en,dario_amodei,Anthropic,Dario Amodei,6,30134
+2024-11,en,dario_amodei,Anthropic,Dario Amodei,6,48658
+2024-12,en,dario_amodei,Anthropic,Dario Amodei,6,26350
+2025-01,en,dario_amodei,Anthropic,Dario Amodei,6,54982
+2025-02,en,dario_amodei,Anthropic,Dario Amodei,6,38825
+2025-03,en,dario_amodei,Anthropic,Dario Amodei,6,46118
+2025-04,en,dario_amodei,Anthropic,Dario Amodei,6,28368
+2025-05,en,dario_amodei,Anthropic,Dario Amodei,6,53953
+2025-06,en,dario_amodei,Anthropic,Dario Amodei,6,59780
+2025-07,en,dario_amodei,Anthropic,Dario Amodei,6,50118
+2025-08,en,dario_amodei,Anthropic,Dario Amodei,6,62142
+2025-09,en,dario_amodei,Anthropic,Dario Amodei,6,57843
+2025-10,en,dario_amodei,Anthropic,Dario Amodei,6,61698
+2025-11,en,dario_amodei,Anthropic,Dario Amodei,6,93073
+2025-12,en,dario_amodei,Anthropic,Dario Amodei,6,79067
+2026-01,en,dario_amodei,Anthropic,Dario Amodei,6,141518
+2026-02,en,dario_amodei,Anthropic,Dario Amodei,6,626364
+2026-03,en,dario_amodei,Anthropic,Dario Amodei,6,422189
+2026-04,en,dario_amodei,Anthropic,Dario Amodei,6,321120
+2026-05,en,dario_amodei,Anthropic,Dario Amodei,6,283948
+2026-06,en,dario_amodei,Anthropic,Dario Amodei,6,370463
+2026-07,en,dario_amodei,Anthropic,Dario Amodei,6,167877
+2026-08,en,dario_amodei,Anthropic,Dario Amodei,6,240759
+2026-09,en,dario_amodei,Anthropic,Dario Amodei,6,579175
+2026-10,en,dario_amodei,Anthropic,Dario Amodei,6,337093
 2025-05,de,dario_amodei,Anthropic,Dario Amodei,1,974
 2025-06,de,dario_amodei,Anthropic,Dario Amodei,1,1193
 2025-07,de,dario_amodei,Anthropic,Dario Amodei,1,875
@@ -2443,10 +2504,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,de,dario_amodei,Anthropic,Dario Amodei,1,19561
 2026-04,de,dario_amodei,Anthropic,Dario Amodei,1,17657
 2026-05,de,dario_amodei,Anthropic,Dario Amodei,1,14748
-2026-06,de,dario_amodei,Anthropic,Dario Amodei,1,22638
-2026-07,de,dario_amodei,Anthropic,Dario Amodei,1,12524
-2026-08,de,dario_amodei,Anthropic,Dario Amodei,1,18201
-2026-09,de,dario_amodei,Anthropic,Dario Amodei,1,36037
+2026-06,de,dario_amodei,Anthropic,Dario Amodei,1,22549
+2026-07,de,dario_amodei,Anthropic,Dario Amodei,1,12349
+2026-08,de,dario_amodei,Anthropic,Dario Amodei,1,18115
+2026-09,de,dario_amodei,Anthropic,Dario Amodei,1,35876
+2026-10,de,dario_amodei,Anthropic,Dario Amodei,1,19501
 2024-03,fr,dario_amodei,Anthropic,Dario Amodei,1,652
 2024-04,fr,dario_amodei,Anthropic,Dario Amodei,1,502
 2024-05,fr,dario_amodei,Anthropic,Dario Amodei,1,535
@@ -2474,10 +2536,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,fr,dario_amodei,Anthropic,Dario Amodei,1,20294
 2026-04,fr,dario_amodei,Anthropic,Dario Amodei,1,16511
 2026-05,fr,dario_amodei,Anthropic,Dario Amodei,1,15477
-2026-06,fr,dario_amodei,Anthropic,Dario Amodei,1,21286
-2026-07,fr,dario_amodei,Anthropic,Dario Amodei,1,9480
-2026-08,fr,dario_amodei,Anthropic,Dario Amodei,1,9931
-2026-09,fr,dario_amodei,Anthropic,Dario Amodei,1,29040
+2026-06,fr,dario_amodei,Anthropic,Dario Amodei,1,21292
+2026-07,fr,dario_amodei,Anthropic,Dario Amodei,1,9498
+2026-08,fr,dario_amodei,Anthropic,Dario Amodei,1,10000
+2026-09,fr,dario_amodei,Anthropic,Dario Amodei,1,29035
+2026-10,fr,dario_amodei,Anthropic,Dario Amodei,1,11637
 2025-11,es,dario_amodei,Anthropic,Dario Amodei,1,252
 2025-12,es,dario_amodei,Anthropic,Dario Amodei,1,1342
 2026-01,es,dario_amodei,Anthropic,Dario Amodei,1,2782
@@ -2485,10 +2548,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,es,dario_amodei,Anthropic,Dario Amodei,1,14703
 2026-04,es,dario_amodei,Anthropic,Dario Amodei,1,12151
 2026-05,es,dario_amodei,Anthropic,Dario Amodei,1,9606
-2026-06,es,dario_amodei,Anthropic,Dario Amodei,1,11789
-2026-07,es,dario_amodei,Anthropic,Dario Amodei,1,6019
-2026-08,es,dario_amodei,Anthropic,Dario Amodei,1,8019
-2026-09,es,dario_amodei,Anthropic,Dario Amodei,1,29455
+2026-06,es,dario_amodei,Anthropic,Dario Amodei,1,11868
+2026-07,es,dario_amodei,Anthropic,Dario Amodei,1,6075
+2026-08,es,dario_amodei,Anthropic,Dario Amodei,1,8242
+2026-09,es,dario_amodei,Anthropic,Dario Amodei,1,30342
+2026-10,es,dario_amodei,Anthropic,Dario Amodei,1,11547
 2024-03,it,dario_amodei,Anthropic,Dario Amodei,1,132
 2024-04,it,dario_amodei,Anthropic,Dario Amodei,1,1313
 2024-05,it,dario_amodei,Anthropic,Dario Amodei,1,1277
@@ -2516,10 +2580,11 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,it,dario_amodei,Anthropic,Dario Amodei,1,41510
 2026-04,it,dario_amodei,Anthropic,Dario Amodei,1,23905
 2026-05,it,dario_amodei,Anthropic,Dario Amodei,1,25377
-2026-06,it,dario_amodei,Anthropic,Dario Amodei,1,28663
-2026-07,it,dario_amodei,Anthropic,Dario Amodei,1,8596
-2026-08,it,dario_amodei,Anthropic,Dario Amodei,1,16431
-2026-09,it,dario_amodei,Anthropic,Dario Amodei,1,80855
+2026-06,it,dario_amodei,Anthropic,Dario Amodei,1,28631
+2026-07,it,dario_amodei,Anthropic,Dario Amodei,1,8486
+2026-08,it,dario_amodei,Anthropic,Dario Amodei,1,16352
+2026-09,it,dario_amodei,Anthropic,Dario Amodei,1,80814
+2026-10,it,dario_amodei,Anthropic,Dario Amodei,1,28925
 2025-03,pt,dario_amodei,Anthropic,Dario Amodei,1,0
 2025-06,pt,dario_amodei,Anthropic,Dario Amodei,1,321
 2025-07,pt,dario_amodei,Anthropic,Dario Amodei,1,243
@@ -2533,27 +2598,30 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,pt,dario_amodei,Anthropic,Dario Amodei,1,4570
 2026-04,pt,dario_amodei,Anthropic,Dario Amodei,1,4127
 2026-05,pt,dario_amodei,Anthropic,Dario Amodei,1,2921
-2026-06,pt,dario_amodei,Anthropic,Dario Amodei,1,3890
-2026-07,pt,dario_amodei,Anthropic,Dario Amodei,1,1789
-2026-08,pt,dario_amodei,Anthropic,Dario Amodei,1,2113
-2026-09,pt,dario_amodei,Anthropic,Dario Amodei,1,6351
+2026-06,pt,dario_amodei,Anthropic,Dario Amodei,1,3644
+2026-07,pt,dario_amodei,Anthropic,Dario Amodei,1,1743
+2026-08,pt,dario_amodei,Anthropic,Dario Amodei,1,1993
+2026-09,pt,dario_amodei,Anthropic,Dario Amodei,1,6270
+2026-10,pt,dario_amodei,Anthropic,Dario Amodei,1,2624
 2025-12,pl,dario_amodei,Anthropic,Dario Amodei,1,64
 2026-01,pl,dario_amodei,Anthropic,Dario Amodei,1,787
 2026-02,pl,dario_amodei,Anthropic,Dario Amodei,1,2674
 2026-03,pl,dario_amodei,Anthropic,Dario Amodei,1,3038
 2026-04,pl,dario_amodei,Anthropic,Dario Amodei,1,2498
 2026-05,pl,dario_amodei,Anthropic,Dario Amodei,1,1734
-2026-06,pl,dario_amodei,Anthropic,Dario Amodei,1,2365
-2026-07,pl,dario_amodei,Anthropic,Dario Amodei,1,1092
-2026-08,pl,dario_amodei,Anthropic,Dario Amodei,1,1700
-2026-09,pl,dario_amodei,Anthropic,Dario Amodei,1,4332
+2026-06,pl,dario_amodei,Anthropic,Dario Amodei,1,2366
+2026-07,pl,dario_amodei,Anthropic,Dario Amodei,1,1080
+2026-08,pl,dario_amodei,Anthropic,Dario Amodei,1,1630
+2026-09,pl,dario_amodei,Anthropic,Dario Amodei,1,4149
+2026-10,pl,dario_amodei,Anthropic,Dario Amodei,1,3083
 2026-03,ru,dario_amodei,Anthropic,"Амодеи, Дарио",9,5658
 2026-04,ru,dario_amodei,Anthropic,"Амодеи, Дарио",9,7340
 2026-05,ru,dario_amodei,Anthropic,"Амодеи, Дарио",9,6514
-2026-06,ru,dario_amodei,Anthropic,"Амодеи, Дарио",9,9202
-2026-07,ru,dario_amodei,Anthropic,"Амодеи, Дарио",9,5121
-2026-08,ru,dario_amodei,Anthropic,"Амодеи, Дарио",9,6207
-2026-09,ru,dario_amodei,Anthropic,"Амодеи, Дарио",9,13520
+2026-06,ru,dario_amodei,Anthropic,"Амодеи, Дарио",9,9267
+2026-07,ru,dario_amodei,Anthropic,"Амодеи, Дарио",9,4987
+2026-08,ru,dario_amodei,Anthropic,"Амодеи, Дарио",9,5961
+2026-09,ru,dario_amodei,Anthropic,"Амодеи, Дарио",9,13538
+2026-10,ru,dario_amodei,Anthropic,"Амодеи, Дарио",9,10271
 2024-06,ja,dario_amodei,Anthropic,ダリオ・アモデイ,1,329
 2024-07,ja,dario_amodei,Anthropic,ダリオ・アモデイ,1,321
 2024-08,ja,dario_amodei,Anthropic,ダリオ・アモデイ,1,277
@@ -2578,19 +2646,22 @@ month,lang,entity,company,title,titles_summed,views
 2026-03,ja,dario_amodei,Anthropic,ダリオ・アモデイ,1,13949
 2026-04,ja,dario_amodei,Anthropic,ダリオ・アモデイ,1,14043
 2026-05,ja,dario_amodei,Anthropic,ダリオ・アモデイ,1,21341
-2026-06,ja,dario_amodei,Anthropic,ダリオ・アモデイ,1,22861
-2026-07,ja,dario_amodei,Anthropic,ダリオ・アモデイ,1,7762
-2026-08,ja,dario_amodei,Anthropic,ダリオ・アモデイ,1,8056
-2026-09,ja,dario_amodei,Anthropic,ダリオ・アモデイ,1,18438
+2026-06,ja,dario_amodei,Anthropic,ダリオ・アモデイ,1,22572
+2026-07,ja,dario_amodei,Anthropic,ダリオ・アモデイ,1,7619
+2026-08,ja,dario_amodei,Anthropic,ダリオ・アモデイ,1,7814
+2026-09,ja,dario_amodei,Anthropic,ダリオ・アモデイ,1,18159
+2026-10,ja,dario_amodei,Anthropic,ダリオ・アモデイ,1,12136
 2026-05,ko,dario_amodei,Anthropic,다리오 아모데이,1,618
-2026-06,ko,dario_amodei,Anthropic,다리오 아모데이,1,1089
-2026-07,ko,dario_amodei,Anthropic,다리오 아모데이,1,1106
-2026-08,ko,dario_amodei,Anthropic,다리오 아모데이,1,685
-2026-09,ko,dario_amodei,Anthropic,다리오 아모데이,1,1476
+2026-06,ko,dario_amodei,Anthropic,다리오 아모데이,1,1067
+2026-07,ko,dario_amodei,Anthropic,다리오 아모데이,1,1070
+2026-08,ko,dario_amodei,Anthropic,다리오 아모데이,1,643
+2026-09,ko,dario_amodei,Anthropic,다리오 아모데이,1,1416
+2026-10,ko,dario_amodei,Anthropic,다리오 아모데이,1,1283
 2026-03,zh,dario_amodei,Anthropic,达里奥·阿莫代伊,3,0
 2026-04,zh,dario_amodei,Anthropic,达里奥·阿莫代伊,3,730
 2026-05,zh,dario_amodei,Anthropic,达里奥·阿莫代伊,3,7288
-2026-06,zh,dario_amodei,Anthropic,达里奥·阿莫代伊,3,8425
-2026-07,zh,dario_amodei,Anthropic,达里奥·阿莫代伊,3,6125
-2026-08,zh,dario_amodei,Anthropic,达里奥·阿莫代伊,3,6276
-2026-09,zh,dario_amodei,Anthropic,达里奥·阿莫代伊,3,10874
+2026-06,zh,dario_amodei,Anthropic,达里奥·阿莫代伊,3,8182
+2026-07,zh,dario_amodei,Anthropic,达里奥·阿莫代伊,3,5969
+2026-08,zh,dario_amodei,Anthropic,达里奥·阿莫代伊,3,6017
+2026-09,zh,dario_amodei,Anthropic,达里奥·阿莫代伊,3,10537
+2026-10,zh,dario_amodei,Anthropic,达里奥·阿莫代伊,3,12772

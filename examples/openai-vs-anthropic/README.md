@@ -22,7 +22,7 @@ A public-data investigation of how perception of OpenAI and Anthropic shifted fr
 
 ## Rebuild the fixed snapshot offline
 
-The committed `derived/`, `curated/` and `discovery/` inputs are the evidence for the 2 October 2026 snapshot. Regenerate and verify them without collection or paid model calls:
+The committed `derived/`, `curated/` and `discovery/` inputs are the evidence for the 18 November 2026 snapshot, with data to October 2026. The app-store review samples and their labels keep their 2 October 2026 window, because the report prints none of their figures. Regenerate and verify them without collection or paid model calls:
 
 ```sh
 cd examples/openai-vs-anthropic/research
@@ -57,7 +57,7 @@ uv run collect_github.py        # GitHub search totals (free, rate-limited; ~40 
 uv run collect_reddit.py        # Arctic Shift Reddit archive (free)
 uv run collect_capability.py    # Epoch AI + LMArena datasets (free, ~125 MB)
 uv run collect_app_stores.py    # iTunes lookup + Apify review runs (needs APIFY_TOKEN; ~$2.60)
-uv run label_hn.py              # Bedrock labelling (needs Bedrock credentials; ~$3)
+uv run label_hn.py              # Bedrock labelling (needs Bedrock credentials; ~$3 cold, new comments only on a refresh)
 uv run label_reviews.py
 uv run analyze.py && uv run build_ledger.py && uv run build_report.py
 ```
@@ -71,8 +71,8 @@ The web distribution serves this example's report, content, chart data and ledge
 - **Name the population.** Every chart and claim says who it measures; scraped or opt-in samples are never called "the public".
 - **Trace every number.** It comes from a computed fact or a ledger row with a URL and a quote. Unknowns stay empty; nothing is interpolated or estimated.
 - **Keep model labels neutral.** No label comes from either lab's model by default: the primary judge is Qwen3-235B, Devstral 2 replicates every trend, and Claude Haiku 4.5 and gpt-oss-120b test for self-preference.
-- **Keep the scope bounded.** Time window 2023-01 to 2026-09. "Recent" means October 2025 to September 2026, compared against the twelve months before.
+- **Keep the scope bounded.** Time window 2023-01 to 2026-10. "Recent" means November 2025 to October 2026, compared against the twelve months before.
 
 ## Known limits
 
-Neither company has an audited public filing, so revenue figures come from documents reported by the press. Anthropic publishes no user counts. Two series have breaks: Ramp changed method in May 2026, and Claude Code moved to a native installer. Hacker News story points are frozen at ingestion in the ClickHouse copy from mid-December 2025, so only item counts are used. The committed report is a fixed research snapshot, not a claim that these historical figures remain current.
+Anthropic's revenue comes from its registration statement (S-1 filed 26 October 2026; figures of the 10 November amendment, repeated unchanged in the latest, of 17 November); OpenAI had published no registration statement as of 18 November 2026, so its revenue comes from figures it reported to investors, as the press reported them. Anthropic publishes no user counts. Two series have breaks: Ramp changed method in May 2026, and Claude Code moved to a native installer. Hacker News story points are frozen at ingestion in the ClickHouse copy from mid-December 2025, so only item counts are used. The committed report is a fixed research snapshot, not a claim that these historical figures remain current.

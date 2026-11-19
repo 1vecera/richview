@@ -20,30 +20,19 @@ FRONTMATTER = {
     "title": "The Most Expensive Race Ever Run",
     "description": (
         "Anthropic is winning the people who build with AI; OpenAI still has everyone else. "
-        "Attention, use, money and capability, population by population, January 2023–September 2026."
+        "Attention, use, money and capability, population by population, January 2023–October 2026."
     ),
     "author": "Daniel Vecera",
-    "date": "2026-10-02",
+    "date": "2026-11-18",
     "version": "0.1.0",
     "slug": "openai-vs-anthropic",
     "tags": ["ai", "openai", "anthropic", "market-perception", "public-data"],
     "styles": ["scientific", "report.rstyle.yaml"],
-    # The image revisions are separate from the fixed 2 October research snapshot.
+    # The cover's text alternative and caption are written from the committed data (title_image()).
     "title_image": {
         "src": "assets/cover-two-publics.svg",
-        "alt": (
-            "Two publics. Everyone else: ChatGPT has 40× as many US App Store ratings as Claude "
-            "(10,883,936 against 271,740). People who build with AI: 39% of professional developers used "
-            "Claude Code at work against 16% for OpenAI's Codex. Below, sixteen measures on one line of "
-            "Anthropic's share of the OpenAI plus Anthropic total, from 2.4% for US App Store ratings to "
-            "70.9% for coding agents at work; each measure has its own population and window."
-        ),
-        "caption": (
-            "Original RichView graphic, 23 October 2026, MIT; embedded fonts SIL OFL 1.1. "
-            "Each measure is normalized within its own OpenAI–Anthropic pair; populations and windows "
-            "differ and audiences can overlap. Sources: D-ITUNES (2 October), S065 (mid-2026) and the "
-            "sixteen population measures."
-        ),
+        "alt": "",
+        "caption": "",
         "width": 1200,
         "height": 630,
         "fit": "contain",
@@ -51,6 +40,38 @@ FRONTMATTER = {
     # The format marker the core migration wrote into report.rmd (TYP-78).
     "format": "rmd/1",
 }
+
+
+def title_image() -> dict[str, str]:
+    """The cover's text alternative and caption, from the population shares and facts the cover draws."""
+    with (common.CHART_DIR / "population-shares.csv").open(newline="") as handle:
+        rows = sorted(csv.DictReader(handle), key=lambda row: float(row["anthropic_share_pct"]))
+    by = {row["measure"]: row for row in rows}
+    facts = json.loads((common.REPORT_DIR / "data" / "facts.json").read_text())
+    ratings, agents = by["US iOS ratings"], by["Agent at work"]
+    low, high = rows[0], rows[-1]
+    claude_code, codex = int(float(agents["anthropic_value"])), int(float(agents["openai_value"]))
+    return {
+        "alt": (
+            f"One race, {len(rows)} lanes. Everyone else: ChatGPT has {facts['ios_ratings_ratio']['display']} as many "
+            f"US App Store ratings as Claude ({int(ratings['openai_value']):,} against "
+            f"{int(ratings['anthropic_value']):,}). People who build with AI: {claude_code}% of professional "
+            f"developers used Claude Code at work against {codex}% for OpenAI's Codex. Below, one lane per measure, "
+            "each with a runner at Anthropic's share of the OpenAI plus Anthropic total, from "
+            f"{float(low['anthropic_share_pct']):g}% for {low['measure']} to "
+            f"{float(high['anthropic_share_pct']):g}% for {high['measure']}; each measure has its own population "
+            "and window."
+        ),
+        "caption": (
+            "Original RichView graphic, 23 October 2026, redrawn as a race track on 18 November 2026, MIT; "
+            "embedded fonts SIL OFL 1.1. Each measure is normalized within its own OpenAI–Anthropic pair; "
+            "populations and windows differ and audiences can overlap. Some inputs are rounded, OpenAI's figures "
+            "most of all (its Q3 revenue is about $10bn), so a lane's last decimal is less certain than it looks. "
+            "Sources: "
+            f"{ratings['source_id']} ({FRONTMATTER['date']}), {agents['source_id']} (mid-2026) and the "
+            f"{len(rows)} population measures."
+        ),
+    }
 
 
 def load_sources() -> dict[str, dict[str, str]]:
@@ -190,6 +211,7 @@ def main() -> None:
     sources = load_sources()
     facts["ledger_rows"] = {"value": len(sources), "display": f"{len(sources):,}", "sources": [], "note": "ledger rows"}
     body = render(TEMPLATE.read_text(), specs, facts, sources)
+    FRONTMATTER["title_image"].update(title_image())  # type: ignore[union-attr]
     frontmatter = yaml.safe_dump(FRONTMATTER, sort_keys=False, allow_unicode=True, width=1000)
     (common.REPORT_DIR / "report.rmd").write_text(f"---\n{frontmatter}---\n\n{body.strip()}\n")
     content = portable_content(body)

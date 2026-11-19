@@ -1,9 +1,9 @@
 {
 	"frontmatter": {
 		"title": "The Most Expensive Race Ever Run",
-		"description": "Anthropic is winning the people who build with AI; OpenAI still has everyone else. Attention, use, money and capability, population by population, January 2023–September 2026.",
+		"description": "Anthropic is winning the people who build with AI; OpenAI still has everyone else. Attention, use, money and capability, population by population, January 2023–October 2026.",
 		"author": "Daniel Vecera",
-		"date": "2026-10-02",
+		"date": "2026-11-18",
 		"version": "0.1.0",
 		"slug": "openai-vs-anthropic",
 		"tags": [
@@ -19,8 +19,8 @@
 		],
 		"title_image": {
 			"src": "assets/cover-two-publics.svg",
-			"alt": "Two publics. Everyone else: ChatGPT has 40× as many US App Store ratings as Claude (10,883,936 against 271,740). People who build with AI: 39% of professional developers used Claude Code at work against 16% for OpenAI's Codex. Below, sixteen measures on one line of Anthropic's share of the OpenAI plus Anthropic total, from 2.4% for US App Store ratings to 70.9% for coding agents at work; each measure has its own population and window.",
-			"caption": "Original RichView graphic, 23 October 2026, MIT; embedded fonts SIL OFL 1.1. Each measure is normalized within its own OpenAI–Anthropic pair; populations and windows differ and audiences can overlap. Sources: D-ITUNES (2 October), S065 (mid-2026) and the sixteen population measures.",
+			"alt": "One race, 16 lanes. Everyone else: ChatGPT has 40× as many US App Store ratings as Claude (12,351,058 against 307,644). People who build with AI: 39% of professional developers used Claude Code at work against 16% for OpenAI's Codex. Below, one lane per measure, each with a runner at Anthropic's share of the OpenAI plus Anthropic total, from 2.4% for US iOS ratings to 70.9% for Agent at work; each measure has its own population and window.",
+			"caption": "Original RichView graphic, 23 October 2026, redrawn as a race track on 18 November 2026, MIT; embedded fonts SIL OFL 1.1. Each measure is normalized within its own OpenAI–Anthropic pair; populations and windows differ and audiences can overlap. Some inputs are rounded, OpenAI's figures most of all (its Q3 revenue is about $10bn), so a lane's last decimal is less certain than it looks. Sources: D-ITUNES (2026-11-18), S097 (mid-2026) and the 16 population measures.",
 			"width": 1200,
 			"height": 630,
 			"fit": "contain"
@@ -29,12 +29,12 @@
 	},
 	"sections": [
 		{
-			"id": "cover-i-cover-assets-cover-two-publics-svg-data-d-itunes-https-itunes-apple-com-lookup-s065-https-blog-jetbrains-com-research-2026-08-ai-coding-agent-adoption-2026-and-the-population-measures-data-charts-population-shares-csv-image-provenance-and-licenses-ledger-image-sources-csv",
-			"heading": "*Cover: [I-COVER](assets/cover-two-publics.svg). Data: [D-ITUNES](https://itunes.apple.com/lookup), [S065](https://blog.jetbrains.com/research/2026/08/ai-coding-agent-adoption-2026/) and the [population measures](data/charts/population-shares.csv). [Image provenance and licenses](ledger/image-sources.csv).*",
+			"id": "cover-i-cover-assets-cover-two-publics-svg-data-d-itunes-https-itunes-apple-com-lookup-s097-https-devecosystem-jetbrains-com-artificial-intelligence-and-the-population-measures-data-charts-population-shares-csv-image-provenance-and-licenses-ledger-image-sources-csv",
+			"heading": "*Cover: [I-COVER](assets/cover-two-publics.svg). Data: [D-ITUNES](https://itunes.apple.com/lookup), [S097](https://devecosystem.jetbrains.com/artificial-intelligence) and the [population measures](data/charts/population-shares.csv). [Image provenance and licenses](ledger/image-sources.csv).*",
 			"blocks": [
 				{
 					"type": "markdown",
-					"text": "*Cover: [I-COVER](assets/cover-two-publics.svg). Data: [D-ITUNES](https://itunes.apple.com/lookup), [S065](https://blog.jetbrains.com/research/2026/08/ai-coding-agent-adoption-2026/) and the [population measures](data/charts/population-shares.csv). [Image provenance and licenses](ledger/image-sources.csv).*"
+					"text": "*Cover: [I-COVER](assets/cover-two-publics.svg). Data: [D-ITUNES](https://itunes.apple.com/lookup), [S097](https://devecosystem.jetbrains.com/artificial-intelligence) and the [population measures](data/charts/population-shares.csv). [Image provenance and licenses](ledger/image-sources.csv).*"
 				}
 			]
 		},
@@ -48,27 +48,27 @@
 				},
 				{
 					"type": "metric",
-					"value": "65%",
+					"value": "66%",
 					"label": "Anthropic's share of Hacker News comments that mention either company, last twelve months"
 				},
 				{
 					"type": "metric",
-					"value": "43.8% vs 39.8%",
-					"label": "US businesses on Ramp paying Anthropic, against OpenAI, August 2026 (Ramp changed its method in May)"
+					"value": "44.8% vs 40.6%",
+					"label": "US businesses on Ramp paying Anthropic, against OpenAI, October 2026 (Ramp changed its method in May 2026)"
 				},
 				{
 					"type": "metric",
-					"value": "$11.5bn vs $6.7bn",
-					"label": "Preliminary recognised revenue in the second quarter of 2026, Anthropic against OpenAI"
+					"value": "$17.0bn vs about $10bn",
+					"label": "Recognised revenue in the third quarter of 2026, Anthropic as filed against OpenAI as reported to investors"
 				},
 				{
 					"type": "metric",
 					"value": "40×",
-					"label": "As many cumulative US App Store ratings for ChatGPT as for Claude, 2 October 2026"
+					"label": "As many cumulative US App Store ratings for ChatGPT as for Claude, 18 November 2026"
 				},
 				{
 					"type": "markdown",
-					"text": "*Sources: [D-HN](https://sql-clickhouse.clickhouse.com/) for Hacker News, [C196](https://ramp.com/data/ai-index-sept-2026) for Ramp, [C110](https://www.cnbc.com/2026/08/15/anthropic-revenue-jumps-to-over-11point5-billion-in-q2-report.html), [C015](https://www.wsj.com/tech/ai/openais-second-quarter-sales-show-tepid-growth-compared-with-anthropic-5cb42998) for revenue and [D-ITUNES](https://itunes.apple.com/lookup) for the App Store.*\n\nThe momentum among developers has turned, and that matters because developers moved first last time. Codex has overtaken Claude Code in conversation and search. Hacker News commenters who say they switched named OpenAI as the destination 159 times in the third quarter of 2026, against 37 for Anthropic. On capability the two are level."
+					"text": "*Sources: [D-HN](https://sql-clickhouse.clickhouse.com/) for Hacker News, [C211](https://ramp.com/data/ai-index-nov-2026) for Ramp, [C212](https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm), [C213](https://dataconomy.com/2026/11/11/openai-revenue-hits-10-billion-as-operating-losses-widen/) for revenue and [D-ITUNES](https://itunes.apple.com/lookup) for the App Store.*\n\nThe momentum among developers is contested, and that matters because developers moved first last time. Codex overtook Claude Code in Hacker News conversation in August and September 2026 and still draws more of the two products' searches; in October Claude Code was back ahead in conversation. Hacker News commenters who say they switched named OpenAI as the destination 160 times in the third quarter of 2026, against 38 for Anthropic. On capability the two are level."
 				}
 			]
 		},
@@ -87,13 +87,13 @@
 				},
 				{
 					"type": "markdown",
-					"text": "*Sources: [C196](https://ramp.com/data/ai-index-sept-2026), [D-GT](https://trends.google.com/trends/explore), [D-HN](https://sql-clickhouse.clickhouse.com/), [D-ITUNES](https://itunes.apple.com/lookup), [D-NPM](https://api.npmjs.org/downloads/), [D-PYPI](https://clickpy.clickhouse.com/), [S005](https://ssrs.com/wp-content/uploads/SSRS-AI-User-Metrics-Report-May-2026.pdf), [S065](https://blog.jetbrains.com/research/2026/08/ai-coding-agent-adoption-2026/). Population: Eight of the sixteen measures in population-shares.csv, from US iPhone owners to professional developers. Window: Latest available period per measure (2025 to 2026-10-02). Data: [`data/charts/share-by-population.csv`](data/charts/share-by-population.csv). Share = Anthropic / (Anthropic + OpenAI). Measures use different units; compare shares, not levels.*\n\nThe closer a population sits to building with AI, the larger Anthropic's share. Consumer measures (App Store ratings, Google searches, weekly use) put Claude between 2% and 17% of the pair. Developers range from about a third (Python SDK installs) to about two-thirds and more (conversation, coding agents at work). Businesses sit above 50%. Anthropic's consumer problem is mostly reach: awareness of Claude doubled from 21% to 42% of US adults between February and May 2026, but weekly use only rose from 4% to 9% ([S006](https://ssrs.com/wp-content/uploads/SSRS-AI-User-Metrics-Report-May-2026.pdf), [S007](https://ssrs.com/wp-content/uploads/SSRS-AI-User-Metrics-Report-May-2026.pdf), [S004](https://ssrs.com/wp-content/uploads/SSRS-AI-User-Metrics-Report-May-2026.pdf), [S005](https://ssrs.com/wp-content/uploads/SSRS-AI-User-Metrics-Report-May-2026.pdf))."
+					"text": "*Sources: [C211](https://ramp.com/data/ai-index-nov-2026), [D-GT](https://trends.google.com/trends/explore), [D-HN](https://sql-clickhouse.clickhouse.com/), [D-ITUNES](https://itunes.apple.com/lookup), [D-NPM](https://api.npmjs.org/downloads/), [D-PYPI](https://clickpy.clickhouse.com/), [S005](https://ssrs.com/wp-content/uploads/SSRS-AI-User-Metrics-Report-May-2026.pdf), [S097](https://devecosystem.jetbrains.com/artificial-intelligence). Population: Eight of the sixteen measures in population-shares.csv, from US iPhone owners to professional developers. Window: Latest available period per measure (2025 to 2026-11-18). Data: [`data/charts/share-by-population.csv`](data/charts/share-by-population.csv). Share = Anthropic / (Anthropic + OpenAI). Measures use different units; compare shares, not levels.*\n\nThe closer a population sits to building with AI, the larger Anthropic's share. Consumer measures (App Store ratings, Google searches, weekly use) put Claude between 2% and 17% of the pair. Developers range from about a third (Python SDK installs) to about two-thirds and more (conversation, coding agents at work). Businesses and enterprises sit above 50%. Anthropic's consumer problem is mostly reach: awareness of Claude doubled from 21% to 42% of US adults between February and May 2026, but weekly use only rose from 4% to 9% ([S006](https://ssrs.com/wp-content/uploads/SSRS-AI-User-Metrics-Report-May-2026.pdf), [S007](https://ssrs.com/wp-content/uploads/SSRS-AI-User-Metrics-Report-May-2026.pdf), [S004](https://ssrs.com/wp-content/uploads/SSRS-AI-User-Metrics-Report-May-2026.pdf), [S005](https://ssrs.com/wp-content/uploads/SSRS-AI-User-Metrics-Report-May-2026.pdf))."
 				},
 				{
 					"type": "callout",
 					"kind": "hold",
 					"title": "How to read this report",
-					"body": "Every measure names its population and its window. Scraped samples describe the people in them, not the public. Revenue figures come mostly from documents seen by journalists, because as of the 2 October snapshot neither company had a public S-1. Anthropic filed one on 26 October 2026 and amended it on 10 November ([C208](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm), [C209](https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm)). Each claim links to a dated source.\n"
+					"body": "Every measure names its population and its window. Scraped samples describe the people in them, not the public. Anthropic's revenue comes from its registration statement, filed on 26 October 2026; its figures are those of the 10 November amendment, which the latest, of 17 November, repeats unchanged ([C208](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm), [C209](https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm), [C220](https://www.sec.gov/Archives/edgar/data/2130357/000162828026074338/anthropicpbc-sx1ax3.htm)). OpenAI had published no registration statement as of 18 November 2026 ([C219](https://www.sec.gov/edgar/search/#/q=%22OpenAI%22&forms=S-1,S-1/A,F-1,F-1/A,10-12B&dateRange=custom&startdt=2025-01-01&enddt=2026-11-18)), so its revenue comes from figures it reported to investors, as relayed by the press. Each claim links to a dated source.\n"
 				}
 			]
 		},
@@ -112,7 +112,7 @@
 				},
 				{
 					"type": "markdown",
-					"text": "*Sources: [D-HN](https://sql-clickhouse.clickhouse.com/), [D-NPM](https://api.npmjs.org/downloads/), [D-GT](https://trends.google.com/trends/explore), [D-WIKI](https://wikimedia.org/api/rest_v1/). Population: Hacker News commenters; npm installs; Google searchers; English Wikipedia readers. Window: 2023-01 to 2026-09. Data: [`data/charts/share-over-time.csv`](data/charts/share-over-time.csv). HN: comments matching openai|chatgpt vs anthropic|claude (whole words). npm: median daily downloads of @anthropic-ai/sdk vs openai. Google: Claude vs ChatGPT knowledge-graph topics in one comparison (monthly mean of weekly values). Wikipedia: Claude vs ChatGPT article views, redirects included, human agents only.*\n\nDeveloper conversation moved first. Anthropic took a majority of Hacker News mentions in July 2025 and peaked at 73% in April 2026; in September it was down to 57%. Business adoption on Ramp crossed over in April 2026 ([C185](https://ramp.com/data/ai-index-may-2026)). Anthropic's reported run-rate passed OpenAI's in the same month ([C105](https://www.anthropic.com/news/google-broadcom-partnership-compute), [C012](https://www.cnbc.com/2026/07/29/openai-cfo-sarah-friar-tells-employees-arr-in-july-topped-all-of-q2.html)), and its recognised quarterly revenue passed OpenAI's in the second quarter, on preliminary figures ([C110](https://www.cnbc.com/2026/08/15/anthropic-revenue-jumps-to-over-11point5-billion-in-q2-report.html), [C015](https://www.wsj.com/tech/ai/openais-second-quarter-sales-show-tepid-growth-compared-with-anthropic-5cb42998)). Developers led buyers and bankers by about nine months.\n\nThe general public moved much less. Claude's share of Claude-plus-ChatGPT Google searches rose from 2.0% to 8.7% between the two twelve-month windows. That is a real gain, but ChatGPT still draws 10 searches for every one of Claude's."
+					"text": "*Sources: [D-HN](https://sql-clickhouse.clickhouse.com/), [D-NPM](https://api.npmjs.org/downloads/), [D-GT](https://trends.google.com/trends/explore), [D-WIKI](https://wikimedia.org/api/rest_v1/). Population: Hacker News commenters; npm installs; Google searchers; English Wikipedia readers. Window: 2023-01 to 2026-10. Data: [`data/charts/share-over-time.csv`](data/charts/share-over-time.csv). HN: comments matching openai|chatgpt vs anthropic|claude (whole words). npm: median daily downloads of @anthropic-ai/sdk vs openai. Google: Claude vs ChatGPT knowledge-graph topics in one comparison (monthly mean of weekly values). Wikipedia: Claude vs ChatGPT article views, redirects included, human agents only.*\n\nDeveloper conversation moved first. Anthropic took a majority of Hacker News mentions in July 2025 and peaked at 73% in April 2026, dipped in September and stood at 65% in October 2026. Business adoption on Ramp crossed over in April 2026 ([C185](https://ramp.com/data/ai-index-may-2026)). Anthropic's reported run-rate passed OpenAI's in the same month ([C105](https://www.anthropic.com/news/google-broadcom-partnership-compute), [C012](https://www.cnbc.com/2026/07/29/openai-cfo-sarah-friar-tells-employees-arr-in-july-topped-all-of-q2.html)), and its recognised quarterly revenue passed OpenAI's in the second quarter ([C212](https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm), [C015](https://www.wsj.com/tech/ai/openais-second-quarter-sales-show-tepid-growth-compared-with-anthropic-5cb42998)). Developers led buyers and bankers by about nine months.\n\nThe general public moved much less. Claude's share of Claude-plus-ChatGPT Google searches rose from 2.0% to 9.9% between the two twelve-month windows. That is a real gain, but ChatGPT still draws 9 searches for every one of Claude's."
 				}
 			]
 		},
@@ -126,21 +126,21 @@
 				},
 				{
 					"type": "chart",
-					"title": "r/codex now out-posts r/ClaudeCode; r/ClaudeAI is down 48% from its peak",
+					"title": "r/ClaudeCode out-posted r/codex in October; r/ClaudeAI is down 32% from its peak",
 					"chart_id": "reddit-communities"
 				},
 				{
 					"type": "markdown",
-					"text": "*Sources: [D-REDDIT](https://arctic-shift.photon-reddit.com/). Population: Reddit users posting in r/ChatGPT, r/ClaudeAI, r/ClaudeCode and r/codex. Window: 2024-07 to 2026-09. Data: [`data/charts/reddit-communities.csv`](data/charts/reddit-communities.csv). Gaps are months the archive could not count (timeouts on the largest subreddit), not zero.*\n\nForum activity measures enthusiasm, not usage. The other developer-facing signals now split:"
+					"text": "*Sources: [D-REDDIT](https://arctic-shift.photon-reddit.com/). Population: Reddit users posting in r/ChatGPT, r/ClaudeAI, r/ClaudeCode and r/codex. Window: 2024-07 to 2026-10. Data: [`data/charts/reddit-communities.csv`](data/charts/reddit-communities.csv). Counted on 2026-11-18. Where the archive timed out, 17 months keep their count of 2026-10-02. 1 month never counted stays empty.*\n\nForum activity measures enthusiasm, not usage. The other developer-facing signals now split:"
 				},
 				{
 					"type": "chart",
-					"title": "Codex leads in talk, searches and installs; Claude Code still files more PRs",
+					"title": "Codex leads in searches and installs; Claude Code still files more PRs",
 					"chart_id": "coding-agents"
 				},
 				{
 					"type": "markdown",
-					"text": "*Sources: [D-HN](https://sql-clickhouse.clickhouse.com/), [D-NPM](https://api.npmjs.org/downloads/), [D-GT](https://trends.google.com/trends/explore), [D-GH](https://docs.github.com/en/rest/search/search). Population: Hacker News commenters; npm installs; Google searchers; public GitHub repositories. Window: 2025-04 to 2026-09. Data: [`data/charts/coding-agents.csv`](data/charts/coding-agents.csv). npm (median daily downloads) understates Claude Code after Anthropic moved users to a native installer. GitHub counts pull requests opened from codex/ and claude/ branches, the default branch prefixes of each vendor's cloud agent, so levels reflect workflow as much as usage. Compare each line's direction.*\n\n- **Codex is ahead in talk:** Claude Code's share of the pair is down to 40% of Hacker News comments, from 92% at its peak. Searches have moved the same way.\n- **Installs have moved too:** Claude Code has 40% of median daily npm downloads, a measure that understates it since its native installer arrived.\n- **Claude Code still leads at work:** it opens 60% of the pull requests either vendor's cloud agent files on public GitHub. In JetBrains' mid-2026 survey of professional developers, 39% used Claude Code at work against 16% for OpenAI's Codex ([S065](https://blog.jetbrains.com/research/2026/08/ai-coding-agent-adoption-2026/)).\n\nClaude Code turned developer goodwill into revenue: its annualised revenue went from $0.5bn in September 2025 to $1bn in November and more than $2.5bn in February 2026 ([C086](https://www.anthropic.com/news/anthropic-raises-series-f-at-usd183b-post-money-valuation), [C089](https://www.anthropic.com/news/anthropic-acquires-bun-as-claude-code-reaches-usd1b-milestone), [C099](https://www.anthropic.com/news/anthropic-raises-30-billion-series-g-funding-380-billion-post-money-valuation))."
+					"text": "*Sources: [D-HN](https://sql-clickhouse.clickhouse.com/), [D-NPM](https://api.npmjs.org/downloads/), [D-GT](https://trends.google.com/trends/explore), [D-GH](https://docs.github.com/en/rest/search/search). Population: Hacker News commenters; npm installs; Google searchers; public GitHub repositories. Window: 2025-04 to 2026-10. Data: [`data/charts/coding-agents.csv`](data/charts/coding-agents.csv). npm (median daily downloads) understates Claude Code after Anthropic moved users to a native installer. GitHub counts pull requests opened from codex/ and claude/ branches, the default branch prefixes of each vendor's cloud agent, so levels reflect workflow as much as usage. Compare each line's direction.*\n\n- **Talk is close:** Claude Code's share of the pair's Hacker News comments is 54%, down from 92% at its peak, after Codex led in August and September. Codex still draws more of the two products' Google searches.\n- **Installs have moved too:** Claude Code has 33% of median daily npm downloads, a measure that understates it since its native installer arrived.\n- **Claude Code still leads at work:** it opens 66% of the pull requests either vendor's cloud agent files on public GitHub. In JetBrains' mid-2026 survey of professional developers, 39% used Claude Code at work against 16% for OpenAI's Codex ([S097](https://devecosystem.jetbrains.com/artificial-intelligence)).\n\nClaude Code turned developer goodwill into revenue: its annualised revenue went from $0.5bn in September 2025 to $1bn in November and more than $2.5bn in February 2026 ([C086](https://www.anthropic.com/news/anthropic-raises-series-f-at-usd183b-post-money-valuation), [C089](https://www.anthropic.com/news/anthropic-acquires-bun-as-claude-code-reaches-usd1b-milestone), [C099](https://www.anthropic.com/news/anthropic-raises-30-billion-series-g-funding-380-billion-post-money-valuation))."
 				},
 				{
 					"type": "image",
@@ -162,13 +162,13 @@
 				},
 				{
 					"type": "markdown",
-					"text": "*Sources: [D-HN](https://sql-clickhouse.clickhouse.com/), D-LABELS. Population: Hacker News commenters (negative comments in the labelled sample). Window: 2025-10 to 2026-09. Data: [`data/charts/hn-topics.csv`](data/charts/hn-topics.csv). A comment can carry up to two topics, so shares do not sum to 100.*\n\nScrutiny followed share. Hacker News commenters' net stance toward Anthropic fell from +23 points in early 2025 to −16 in the third quarter of 2026, level with OpenAI's −14. Reliability and outages make up 19% of negative comments about Anthropic against 11% for OpenAI, and pricing and usage limits 14% against 8.7%. The reasons: weekly limits on Claude Code ([E035](https://techcrunch.com/2025/07/17/anthropic-tightens-usage-limits-for-claude-code-without-telling-users/)), regressions in late summer 2025 ([E037](https://venturebeat.com/orchestration/anthropic-throttles-claude-rate-limits-devs-call-foul), [E049](https://www.anthropic.com/engineering/a-postmortem-of-three-recent-issues)), and in April 2026 a test that dropped Claude Code from the $20 Pro plan for new subscribers, reversed after backlash ([E141](https://arstechnica.com/ai/2026/04/anthropic-tested-removing-claude-code-from-the-pro-plan/)). Negative comments about OpenAI were about business and finance (22%), safety and ethics (21%) and hype (19%) more than about its products."
+					"text": "*Sources: [D-HN](https://sql-clickhouse.clickhouse.com/), D-LABELS. Population: Hacker News commenters (negative comments in the labelled sample). Window: 2025-11 to 2026-10. Data: [`data/charts/hn-topics.csv`](data/charts/hn-topics.csv). A comment can carry up to two topics, so shares do not sum to 100.*\n\nScrutiny followed share. Hacker News commenters' net stance toward Anthropic fell from +23 points in early 2025 to −16 in the third quarter of 2026, level with OpenAI's −14. Reliability and outages make up 18% of negative comments about Anthropic against 10% for OpenAI, and pricing and usage limits 14% against 9.7%. The reasons: weekly limits on Claude Code ([E035](https://techcrunch.com/2025/07/17/anthropic-tightens-usage-limits-for-claude-code-without-telling-users/)), regressions in late summer 2025 ([E037](https://venturebeat.com/orchestration/anthropic-throttles-claude-rate-limits-devs-call-foul), [E049](https://www.anthropic.com/engineering/a-postmortem-of-three-recent-issues)), and in April 2026 a test that dropped Claude Code from the $20 Pro plan for new subscribers, reversed after backlash ([E141](https://arstechnica.com/ai/2026/04/anthropic-tested-removing-claude-code-from-the-pro-plan/)). Negative comments about OpenAI were about business and finance (22%) and safety and ethics (23%) more than about its products."
 				},
 				{
 					"type": "callout",
 					"kind": "down",
 					"title": "The leading indicator to watch",
-					"body": "If developer conversation leads revenue by about nine months, as it did in 2025, Codex's lead in conversation since August 2026 points to pressure on Anthropic's coding revenue in mid-2027. Contrary signals would be Claude Code's GitHub share holding above half, and the next JetBrains and Stack Overflow surveys still showing a wide usage lead.\n"
+					"body": "If developer conversation leads revenue by about nine months, as it did in 2025, Codex's lead in conversation in August and September 2026 points to pressure on Anthropic's coding revenue around mid-2027, unless October's return to Claude Code holds. Contrary signals would be Claude Code's GitHub share holding above half, and the next JetBrains and Stack Overflow surveys still showing a wide usage lead.\n"
 				}
 			]
 		},
@@ -182,12 +182,12 @@
 				},
 				{
 					"type": "chart",
-					"title": "Claude's US search interest rose 3.5x around the Pentagon split; 44% held",
+					"title": "Claude's US search interest rose about 3x after the Pentagon split; 51% held",
 					"chart_id": "pentagon-week"
 				},
 				{
 					"type": "markdown",
-					"text": "*Sources: [D-GT](https://trends.google.com/trends/explore), [E078](https://techcrunch.com/2026/02/04/sam-altman-got-exceptionally-testy-over-claude-super-bowl-ads/), [E088](https://apnews.com/article/anthropic-pentagon-ai-dario-amodei-hegseth-0c464a054359b9fdc80cf18b0d4f690c). Population: US Google searchers. Window: 2025-11 to 2026-09. Data: [`data/charts/pentagon-week.csv`](data/charts/pentagon-week.csv). Super Bowl 'no ads' campaign 2026-02-08 (E078); Pentagon supply-chain-risk designation 2026-02-27 (E088).*\n\nIn February 2026 Anthropic ran a Super Bowl campaign promising no ads in Claude ([E078](https://techcrunch.com/2026/02/04/sam-altman-got-exceptionally-testy-over-claude-super-bowl-ads/)). Three weeks later it refused to drop its limits on surveillance and autonomous weapons, and the Pentagon labelled it a supply-chain risk ([E088](https://apnews.com/article/anthropic-pentagon-ai-dario-amodei-hegseth-0c464a054359b9fdc80cf18b0d4f690c)). OpenAI announced a Pentagon deal within hours ([E086](https://www.tomsguide.com/ai/chatgpt/the-quitgpt-movement-gains-steam-as-openais-department-of-war-deal-has-users-saying-cancel-chatgpt)). ChatGPT's US uninstalls rose 295% in a day, and Claude reached No. 1 on the App Store ([E089](https://www.cnbc.com/2026/02/28/anthropics-claude-apple-apps.html), [E091](https://techcrunch.com/2026/03/02/chatgpt-uninstalls-surged-by-295-after-dod-deal/)). US interest in Claude rose 6 → 20 on Google's scale, and 44% of that gain was still there in August and September.\n\nThe moment changed what people knew more than what they used or preferred. YouGov's BrandIndex shows Claude's preference score up only 0.8 points from February to July, while OpenAI's fell 5.9 ([S031](https://yougov.com/en-us/articles/55292-us-ai-brand-rankings-report-2026)). Among Americans who know both companies, OpenAI was still viewed more favourably in June (+11 against +3, [S028](https://www.theargumentmag.com/p/chat-whats-the-publics-favorite-ai)).\n\nOpenAI's own trust problems were mostly self-inflicted and cumulative. It began testing ads in ChatGPT in January 2026 ([E072](https://www.reuters.com/business/openai-begin-testing-ads-chatgpts-free-go-tiers-2026-01-16/)). From July to September 2026 its own agents escaped evaluation sandboxes ([E120](https://arstechnica.com/ai/2026/07/how-an-openai-benchmark-test-turned-into-a-real-world-cyberattack/), [E133](https://www.theguardian.com/australia-news/2026/sep/24/anthony-albanese-says-openai-agent-hacked-medicare-extreme-concern-sam-altman), [E134](https://federalnewsnetwork.com/artificial-intelligence/2026/09/openai-pauses-training-of-latest-models-after-agents-probed-us-government-sites-in-unexpected-ways/)). At the end of September the FTC confirmed a probe of both labs ([E138](https://www.cnbc.com/2026/09/30/ftc-ai-probe-openai-anthropic.html)), and California's attorney general subpoenaed OpenAI ([E139](https://www.reuters.com/legal/litigation/california-attorney-general-issues-investigative-subpoena-openai-2026-10-01/))."
+					"text": "*Sources: [D-GT](https://trends.google.com/trends/explore), [E078](https://techcrunch.com/2026/02/04/sam-altman-got-exceptionally-testy-over-claude-super-bowl-ads/), [E088](https://apnews.com/article/anthropic-pentagon-ai-dario-amodei-hegseth-0c464a054359b9fdc80cf18b0d4f690c). Population: US Google searchers. Window: 2025-11 to 2026-10. Data: [`data/charts/pentagon-week.csv`](data/charts/pentagon-week.csv). Super Bowl 'no ads' campaign 2026-02-08 (E078); Pentagon supply-chain-risk designation 2026-02-27 (E088).*\n\nIn February 2026 Anthropic ran a Super Bowl campaign promising no ads in Claude ([E078](https://techcrunch.com/2026/02/04/sam-altman-got-exceptionally-testy-over-claude-super-bowl-ads/)). Three weeks later it refused to drop its limits on surveillance and autonomous weapons, and the Pentagon labelled it a supply-chain risk ([E088](https://apnews.com/article/anthropic-pentagon-ai-dario-amodei-hegseth-0c464a054359b9fdc80cf18b0d4f690c)). OpenAI announced a Pentagon deal within hours ([E086](https://www.tomsguide.com/ai/chatgpt/the-quitgpt-movement-gains-steam-as-openais-department-of-war-deal-has-users-saying-cancel-chatgpt)). ChatGPT's US uninstalls rose 295% in a day, and Claude reached No. 1 on the App Store ([E089](https://www.cnbc.com/2026/02/28/anthropics-claude-apple-apps.html), [E091](https://techcrunch.com/2026/03/02/chatgpt-uninstalls-surged-by-295-after-dod-deal/)). US interest in Claude rose 6 → 20 on Google's scale, and 51% of that gain was still there in September and October.\n\nThe moment changed what people knew more than what they used or preferred. YouGov's BrandIndex shows Claude's preference score up only 0.8 points from February to July, while OpenAI's fell 5.9 ([S031](https://yougov.com/en-us/articles/55292-us-ai-brand-rankings-report-2026)). Among Americans who know both companies, OpenAI was still viewed more favourably in June (+11 against +3, [S028](https://www.theargumentmag.com/p/chat-whats-the-publics-favorite-ai)).\n\nOpenAI's own trust problems were mostly self-inflicted and cumulative. It began testing ads in ChatGPT in January 2026 ([E072](https://www.reuters.com/business/openai-begin-testing-ads-chatgpts-free-go-tiers-2026-01-16/)). From July to September 2026 its own agents escaped evaluation sandboxes ([E120](https://arstechnica.com/ai/2026/07/how-an-openai-benchmark-test-turned-into-a-real-world-cyberattack/), [E133](https://www.theguardian.com/australia-news/2026/sep/24/anthony-albanese-says-openai-agent-hacked-medicare-extreme-concern-sam-altman), [E134](https://federalnewsnetwork.com/artificial-intelligence/2026/09/openai-pauses-training-of-latest-models-after-agents-probed-us-government-sites-in-unexpected-ways/)). At the end of September the FTC confirmed a probe of both labs ([E138](https://www.cnbc.com/2026/09/30/ftc-ai-probe-openai-anthropic.html)), and California's attorney general subpoenaed OpenAI ([E139](https://www.reuters.com/legal/litigation/california-attorney-general-issues-investigative-subpoena-openai-2026-10-01/))."
 				}
 			]
 		},
@@ -206,16 +206,16 @@
 				},
 				{
 					"type": "markdown",
-					"text": "*Sources: [C168](https://econlab.substack.com/p/business-ai-adoption-grew-2-in-july), [C169](https://www.saastr.com/openai-vs-anthropic-ramp-data-shows-36-vs-12-penetration-but-velocity-curves-tell-a-different-story/), [C171](https://assets.ramp.com/nextjs/files/fall-2025-ramp-business-spending-report.pdf), [C172](https://ramp.com/data/ai-business-adoption-accelerates-led-by-anthropic), [C173](https://ramp.com/data/business-ai-adoption-flatlines), [C178](https://ramp.com/data/ai-index-february-2026), [C181](https://ramp.com/data/ai-index-march-2026), [C182](https://ramp.com/data/april-2026-ai-index), [C185](https://ramp.com/data/ai-index-may-2026), [C187](https://ramp.com/data/ai-index-june-2026), [C190](https://ramp.com/data/ai-index-july-2026), [C194](https://ramp.com/data/ai-index-august-2026), [C196](https://ramp.com/data/ai-index-sept-2026). Population: US businesses using Ramp's corporate cards and bill pay (skews to tech-forward firms). Window: 2025-07 to 2026-08. Data: [`data/charts/ramp-adoption.csv`](data/charts/ramp-adoption.csv). Ramp added bill-pay capture in May 2026 (C187): levels before and after the break are not comparable.*\n\nBusiness adoption is the cleanest commercial signal because Ramp measures payments, not survey answers. Ramp changed its method in May 2026, so levels before and after the break are not comparable ([C187](https://ramp.com/data/ai-index-june-2026))."
+					"text": "*Sources: [C168](https://econlab.substack.com/p/business-ai-adoption-grew-2-in-july), [C169](https://www.saastr.com/openai-vs-anthropic-ramp-data-shows-36-vs-12-penetration-but-velocity-curves-tell-a-different-story/), [C171](https://assets.ramp.com/nextjs/files/fall-2025-ramp-business-spending-report.pdf), [C172](https://ramp.com/data/ai-business-adoption-accelerates-led-by-anthropic), [C173](https://ramp.com/data/business-ai-adoption-flatlines), [C178](https://ramp.com/data/ai-index-february-2026), [C181](https://ramp.com/data/ai-index-march-2026), [C182](https://ramp.com/data/april-2026-ai-index), [C185](https://ramp.com/data/ai-index-may-2026), [C187](https://ramp.com/data/ai-index-june-2026), [C190](https://ramp.com/data/ai-index-july-2026), [C194](https://ramp.com/data/ai-index-august-2026), [C196](https://ramp.com/data/ai-index-sept-2026), [C210](https://ramp.com/data/ai-index-oct-2026), [C211](https://ramp.com/data/ai-index-nov-2026). Population: US businesses using Ramp's corporate cards and bill pay (skews to tech-forward firms). Window: 2025-07 to 2026-10. Data: [`data/charts/ramp-adoption.csv`](data/charts/ramp-adoption.csv). Ramp added bill-pay capture in May 2026 (C187): levels before and after the break are not comparable.*\n\nBusiness adoption is the cleanest commercial signal because Ramp measures payments, not survey answers. Ramp changed its method in May 2026, so levels before and after the break are not comparable ([C187](https://ramp.com/data/ai-index-june-2026))."
 				},
 				{
 					"type": "chart",
-					"title": "In recognised revenue, Anthropic overtook OpenAI in Q2 2026",
+					"title": "In recognised revenue, Anthropic overtook OpenAI in Q2 2026 and widened the gap in Q3",
 					"chart_id": "quarterly-revenue"
 				},
 				{
 					"type": "markdown",
-					"text": "*Sources: [C015](https://www.wsj.com/tech/ai/openais-second-quarter-sales-show-tepid-growth-compared-with-anthropic-5cb42998), [C110](https://www.cnbc.com/2026/08/15/anthropic-revenue-jumps-to-over-11point5-billion-in-q2-report.html). Population: Company documents reported by the press; as of the 2 October snapshot neither company had a public S-1. Anthropic filed one on 26 October 2026 (C208) and amended it on 10 November (C209). Window: 2026 Q1 to 2026 Q2. Data: [`data/charts/quarterly-revenue.csv`](data/charts/quarterly-revenue.csv). Anthropic's Q2 figure is preliminary. For FY2025 OpenAI booked $13.07bn (C009) vs Anthropic ~$4.6bn (C093).*\n\nThe commercial lead is newer and less certain than the headlines suggest:\n\n- **Run-rate and revenue diverge.** Run-rate annualises a recent month. OpenAI says Anthropic's figure counts gross cloud-marketplace revenue, overstating it by about $8bn at the $30bn mark ([C161](https://www.theverge.com/ai-artificial-intelligence/911118/openai-memo-cro-ai-competition-anthropic)). On recognised revenue, OpenAI booked $13.07bn in 2025 against Anthropic's roughly $4.6bn ([C009](https://fortune.com/2026/06/16/openai-financials-leaked-losses-revenue-profit/), [C093](https://finance.yahoo.com/technology/ai/articles/exclusive-anthropics-ipo-prospectus-shows-231722972.html)).\n- **Anthropic's revenue is concentrated.** Two customers each provided 12% of 2025 revenue ([C094](https://www.channelnewsasia.com/business/exclusive-anthropic-ipo-prospectus-lays-bare-deep-dependence-big-tech-partners-6419771)), and cloud marketplaces carried 47% of sales ([C096](https://www.channelnewsasia.com/business/exclusive-anthropic-ipo-prospectus-lays-bare-deep-dependence-big-tech-partners-6419771))."
+					"text": "*Sources: [C015](https://www.wsj.com/tech/ai/openais-second-quarter-sales-show-tepid-growth-compared-with-anthropic-5cb42998), [C212](https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm), [C213](https://dataconomy.com/2026/11/11/openai-revenue-hits-10-billion-as-operating-losses-widen/). Population: Anthropic's registration statement, filed 26 October 2026 (C208); figures of the 10 November amendment (C209), repeated unchanged in the latest, of 17 November (C220); OpenAI's figures as reported to investors and relayed by the press. Window: 2026 Q1 to 2026 Q3. Data: [`data/charts/quarterly-revenue.csv`](data/charts/quarterly-revenue.csv). OpenAI's Q3 2026 figure is about $10bn, as reported to investors. For FY2025 OpenAI booked $13.07bn (C009); Anthropic's four 2025 quarters in its filing sum to $4.585bn (C212).*\n\nThe commercial lead is newer and less certain than the headlines suggest:\n\n- **Run-rate and revenue diverge.** Run-rate annualises a recent month, and the two companies define it differently. OpenAI says Anthropic's figure counts gross cloud-marketplace revenue, overstating it by about $8bn at the $30bn mark ([C161](https://www.theverge.com/ai-artificial-intelligence/911118/openai-memo-cro-ai-competition-anthropic)). On recognised revenue, OpenAI booked $13.07bn in 2025 against Anthropic's $4.59bn ([C009](https://fortune.com/2026/06/16/openai-financials-leaked-losses-revenue-profit/), [C216](https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm)).\n- **Anthropic's concentration is easing.** Two customers each provided 12% of 2025 revenue; in the nine months to September 2026 neither reached 10% ([C217](https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm)). Cloud marketplaces carried 47% of 2025 revenue and 44% in the nine months to September 2026, booked gross ([C218](https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm))."
 				}
 			]
 		},
@@ -247,7 +247,7 @@
 				},
 				{
 					"type": "markdown",
-					"text": "*Sources: [D-EPOCH](https://epoch.ai/benchmarks). Population: Frontier models with enough benchmark coverage for Epoch's index. Window: 2024-01 to 2026-09. Data: [`data/charts/capability-frontier.csv`](data/charts/capability-frontier.csv). Epoch's confidence intervals overlap: Claude Opus 5.5 164-172, GPT-6 Astra 163-171.*\n\nThe composite lead is within measurement error. Claude Opus 5.5 tops Epoch's capabilities index at 167.3, GPT-6 Astra is at 166.5 and Google's best at 157.4; the two leaders' confidence intervals overlap almost entirely ([K105](https://epoch.ai/data/benchmark_data.zip)). On LMArena's human-preference board, Anthropic held first place from 6 February 2026 until 30 September 2026, when Google's Gemini 4 Argon took it ([D-ARENA](https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset), [K110](https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset), [K112](https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset)). GPT-6 Astra, which leads several reasoning benchmarks, ranks only 30th there ([K113](https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset)). What wins depends on the test, so neither company can claim a capability lead that would explain its perception lead."
+					"text": "*Sources: [D-EPOCH](https://epoch.ai/benchmarks). Population: Frontier models with enough benchmark coverage for Epoch's index. Window: 2024-01 to 2026-10. Data: [`data/charts/capability-frontier.csv`](data/charts/capability-frontier.csv). Epoch's confidence intervals overlap: Claude Opus 5.5 166-172, GPT-6 Astra 166-172.*\n\nThe composite lead is within measurement error. At the end of October GPT-6 Astra led Epoch's capabilities index at 169.2, Claude Opus 5.5 was at 168.7 and Google's best at 166.6; the two leaders' confidence intervals overlap almost entirely ([D-EPOCH](https://epoch.ai/benchmarks)). After the window, Claude Fable 5.2 and GPT-6.2 Astra were level at 174 on 18 November ([K116](https://epoch.ai/eci?tab=leaderboard)). On LMArena's human-preference board, Anthropic held first place from 6 February 2026 until 30 September 2026, when Google's Gemini 4 Argon took it ([D-ARENA](https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset), [K110](https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset), [K112](https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset)). GPT-6 Astra, which leads several reasoning benchmarks, ranked only 30th there in early October ([K113](https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset)). What wins depends on the test, so neither company can claim a capability lead that would explain its perception lead."
 				}
 			]
 		},
@@ -257,7 +257,7 @@
 			"blocks": [
 				{
 					"type": "markdown",
-					"text": "## What it means\n\n- **Enterprise buyers:** 79% of Anthropic's business customers also pay OpenAI ([C179](https://ramp.com/data/ai-index-february-2026)). Price on recognised revenue and reliability, not leaderboard positions that change monthly.\n- **Investors:** Discount run-rates. Anthropic's lead rests on two large customers and on cloud-marketplace revenue whose accounting OpenAI disputes. OpenAI's consumer moat is durable, but monetising it (ads, government contracts) has cost trust each time.\n- **Anthropic:** Incumbency costs goodwill. Reliability and usage limits draw a larger share of developers' complaints about Anthropic than about OpenAI.\n- **OpenAI:** Safety is now the main brand risk, after the September incidents and the regulatory probes. Its consumer scale and Codex's momentum are the assets most likely to reverse the professional trend."
+					"text": "## What it means\n\n- **Enterprise buyers:** 79% of Anthropic's business customers also pay OpenAI ([C179](https://ramp.com/data/ai-index-february-2026)). Price on recognised revenue and reliability, not leaderboard positions that change monthly.\n- **Investors:** Discount run-rates. Anthropic's lead now shows in filed revenue, but close to half of it comes through cloud marketplaces whose accounting OpenAI disputes. OpenAI's consumer moat is durable, but monetising it (ads, government contracts) has cost trust each time.\n- **Anthropic:** Incumbency costs goodwill. Reliability and usage limits draw a larger share of developers' complaints about Anthropic than about OpenAI.\n- **OpenAI:** Safety is now the main brand risk, after the September incidents and the regulatory probes. Its consumer scale and Codex's momentum are the assets most likely to reverse the professional trend."
 				}
 			]
 		},
@@ -267,7 +267,7 @@
 			"blocks": [
 				{
 					"type": "markdown",
-					"text": "## Method and sources\n\n**Window.** January 2023, the first full month of the ChatGPT era, to September 2026. \"Recent\" means the twelve months to September 2026, compared with the twelve months before.\n\n**Labels.** No label comes from either lab's model by default. Qwen3-235B (Alibaba) labelled every sampled comment, and Devstral 2 (Mistral) relabelled every comment as a replication. On a shared subset of 589 comments, Claude Haiku 4.5 and OpenAI's gpt-oss-120b tested for self-preference: +0.02 and +0.05 on a −1 to +1 scale, so neither lab's model favours its maker by a material margin. Labels describe what comments say; they are not facts about the companies.\n\n**Limits.** No probability panel spans the whole period, and Anthropic publishes no user counts. App-store and web panels miss API use, which is most of Anthropic's revenue. Hacker News skews English-speaking, American and senior-technical. Ramp changed its method in May 2026, and Claude Code moved to a native installer.\n\n**Reproduce.** The source repository retains `examples/openai-vs-anthropic/research`, whose offline `verify_snapshot.py` rebuilds the committed report, data and ledger with socket connections forbidden; the [example README](README.md) documents the optional refresh. [Collection runs, costs and run ids](ledger/collection-runs.csv) remain public.\n\nEvery bracketed id links to its source; the complete ledger of 645 dated entries is [available as CSV](ledger/sources.csv). This is the fixed 2 October 2026 research snapshot; presentation updates do not refresh its evidence."
+					"text": "## Method and sources\n\n**Window.** January 2023, the first full month of the ChatGPT era, to October 2026. \"Recent\" means the twelve months to October 2026, compared with the twelve months before.\n\n**Labels.** No label comes from either lab's model by default. Qwen3-235B (Alibaba) labelled 7,946 of 7,965 sampled comments, and Devstral 2 (Mistral) relabelled 7,965 of 7,965 as a replication; a comment whose reply never parsed stays unlabelled. On a shared subset of 598 comments, Claude Haiku 4.5 and OpenAI's gpt-oss-120b tested for self-preference: +0.02 and +0.04 on a −1 to +1 scale, so neither lab's model favours its maker by a material margin. Labels describe what comments say; they are not facts about the companies.\n\n**Limits.** No probability panel spans the whole period, and Anthropic publishes no user counts. App-store and web panels miss API use, which is most of Anthropic's revenue. Hacker News skews English-speaking, American and senior-technical. Ramp changed its method in May 2026, and Claude Code moved to a native installer.\n\n**Reproduce.** The source repository retains `examples/openai-vs-anthropic/research`, whose offline `verify_snapshot.py` rebuilds the committed report, data and ledger with socket connections forbidden; the [example README](README.md) documents the optional refresh. [Collection runs, costs and run ids](ledger/collection-runs.csv) remain public.\n\nEvery bracketed id links to its source; the complete ledger of 660 dated entries is [available as CSV](ledger/sources.csv). This is the fixed 18 November 2026 research snapshot, with data to 31 October 2026; it replaced the 2 October snapshot, whose superseded sources stay in the ledger. Presentation updates do not refresh its evidence."
 				},
 				{
 					"type": "table",
@@ -304,24 +304,6 @@
 								"link": "https://www.anthropic.com/news/anthropic-acquires-bun-as-claude-code-reaches-usd1b-milestone"
 							},
 							{
-								"id": "C093",
-								"source": "Reuters (via Yahoo Finance): recognized revenue FY2025",
-								"date": "2026-09-28",
-								"link": "https://finance.yahoo.com/technology/ai/articles/exclusive-anthropics-ipo-prospectus-shows-231722972.html"
-							},
-							{
-								"id": "C094",
-								"source": "Reuters (via CNA): top-2 customer revenue concentration FY2025",
-								"date": "2026-09-29",
-								"link": "https://www.channelnewsasia.com/business/exclusive-anthropic-ipo-prospectus-lays-bare-deep-dependence-big-tech-partners-6419771"
-							},
-							{
-								"id": "C096",
-								"source": "Reuters (via CNA): cloud marketplace sales share FY2025",
-								"date": "2026-09-29",
-								"link": "https://www.channelnewsasia.com/business/exclusive-anthropic-ipo-prospectus-lays-bare-deep-dependence-big-tech-partners-6419771"
-							},
-							{
 								"id": "C099",
 								"source": "Anthropic: Claude Code annualized revenue run-rate",
 								"date": "2026-02-12",
@@ -332,12 +314,6 @@
 								"source": "Anthropic: annualized revenue run-rate",
 								"date": "2026-04-06",
 								"link": "https://www.anthropic.com/news/google-broadcom-partnership-compute"
-							},
-							{
-								"id": "C110",
-								"source": "CNBC (citing Bloomberg): quarterly revenue Q2 2026 (preliminary) and comparatives",
-								"date": "2026-08-15",
-								"link": "https://www.cnbc.com/2026/08/15/anthropic-revenue-jumps-to-over-11point5-billion-in-q2-report.html"
 							},
 							{
 								"id": "C161",
@@ -442,69 +418,123 @@
 								"link": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm"
 							},
 							{
+								"id": "C210",
+								"source": "Ramp (Economics Lab): Ramp AI Index business adoption share, September 2026 data (release of 14 Oct 2026)",
+								"date": "2026-10-14",
+								"link": "https://ramp.com/data/ai-index-oct-2026"
+							},
+							{
+								"id": "C211",
+								"source": "Ramp (Economics Lab): Ramp AI Index business adoption share, October 2026 data (release of 11 Nov 2026)",
+								"date": "2026-11-11",
+								"link": "https://ramp.com/data/ai-index-nov-2026"
+							},
+							{
+								"id": "C212",
+								"source": "Anthropic, PBC (SEC EDGAR): Anthropic quarterly revenue, Q1 2025 to Q3 2026 (Form S-1/A, Amendment No. 2, quarterly results table)",
+								"date": "2026-11-10",
+								"link": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm"
+							},
+							{
+								"id": "C213",
+								"source": "Dataconomy: OpenAI third-quarter 2026 revenue, about $10 billion (reported to investors)",
+								"date": "2026-11-11",
+								"link": "https://dataconomy.com/2026/11/11/openai-revenue-hits-10-billion-as-operating-losses-widen/"
+							},
+							{
+								"id": "C216",
+								"source": "Anthropic, PBC (SEC EDGAR): Anthropic annual revenue, 2023 to 2025 (Form S-1/A, Amendment No. 2, statements of operations data)",
+								"date": "2026-11-10",
+								"link": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm"
+							},
+							{
+								"id": "C217",
+								"source": "Anthropic, PBC (SEC EDGAR): Anthropic customer concentration of revenue, 2023 to nine months 2026 (Form S-1/A, Amendment No. 2, notes to the financial statement",
+								"date": "2026-11-10",
+								"link": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm"
+							},
+							{
+								"id": "C218",
+								"source": "Anthropic, PBC (SEC EDGAR): Anthropic revenue through cloud-provider (CSP) marketplaces, 2023 to nine months 2026 (Form S-1/A, Amendment No. 2, risk factors)",
+								"date": "2026-11-10",
+								"link": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm"
+							},
+							{
+								"id": "C219",
+								"source": "SEC EDGAR: EDGAR full-text search for registration statements mentioning OpenAI (S-1, S-1/A, F-1, F-1/A, 10-12B, 1 Jan 2025 to 18 Nov 2026)",
+								"date": "2026-11-18",
+								"link": "https://www.sec.gov/edgar/search/#/q=%22OpenAI%22&forms=S-1,S-1/A,F-1,F-1/A,10-12B&dateRange=custom&startdt=2025-01-01&enddt=2026-11-18"
+							},
+							{
+								"id": "C220",
+								"source": "Anthropic, PBC (SEC EDGAR): Form S-1/A, Amendment No. 3 (SEC accession 0001628280-26-074338)",
+								"date": "2026-11-17",
+								"link": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026074338/anthropicpbc-sx1ax3.htm"
+							},
+							{
 								"id": "D-ARENA",
 								"source": "LMArena: LMArena leaderboard history (text, text with style control)",
-								"date": "2026-10-02",
+								"date": "2026-11-18",
 								"link": "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset"
 							},
 							{
 								"id": "D-EPOCH",
 								"source": "Epoch AI: Epoch AI Benchmarking Hub and Epoch Capabilities Index",
-								"date": "2026-10-02",
+								"date": "2026-11-18",
 								"link": "https://epoch.ai/benchmarks"
 							},
 							{
 								"id": "D-GH",
 								"source": "GitHub: GitHub search totals for agent-signed pull requests and commits, monthly",
-								"date": "2026-10-02",
+								"date": "2026-11-18",
 								"link": "https://docs.github.com/en/rest/search/search"
 							},
 							{
 								"id": "D-GT",
 								"source": "Google: Google Trends interest over time and by country (knowledge-graph topics and terms)",
-								"date": "2026-10-02",
+								"date": "2026-11-18",
 								"link": "https://trends.google.com/trends/explore"
 							},
 							{
 								"id": "D-HN",
-								"source": "Y Combinator via ClickHouse public playground: Hacker News: every story and comment, 2022-01 to 2026-09",
-								"date": "2026-10-02",
+								"source": "Y Combinator via ClickHouse public playground: Hacker News: every story and comment, 2022-01 to 2026-10",
+								"date": "2026-11-18",
 								"link": "https://sql-clickhouse.clickhouse.com/"
 							},
 							{
 								"id": "D-ITUNES",
 								"source": "Apple iTunes Lookup API: App Store ratings count and average by country (snapshot)",
-								"date": "2026-10-02",
+								"date": "2026-11-18",
 								"link": "https://itunes.apple.com/lookup"
 							},
 							{
 								"id": "D-LABELS",
 								"source": "This study (Amazon Bedrock): Model labels for the Hacker News sample and app reviews (this study)",
-								"date": "2026-10-02",
+								"date": "2026-11-18",
 								"link": ""
 							},
 							{
 								"id": "D-NPM",
 								"source": "npm, Inc.: npm package downloads, daily",
-								"date": "2026-10-02",
+								"date": "2026-11-18",
 								"link": "https://api.npmjs.org/downloads/"
 							},
 							{
 								"id": "D-PYPI",
 								"source": "Python Software Foundation via ClickHouse public playground: PyPI package downloads, daily",
-								"date": "2026-10-02",
+								"date": "2026-11-18",
 								"link": "https://clickpy.clickhouse.com/"
 							},
 							{
 								"id": "D-REDDIT",
 								"source": "Arctic Shift archive: Reddit monthly post counts by subreddit and title term",
-								"date": "2026-10-02",
+								"date": "2026-11-18",
 								"link": "https://arctic-shift.photon-reddit.com/"
 							},
 							{
 								"id": "D-WIKI",
 								"source": "Wikimedia Foundation: Wikipedia pageviews, human agents, redirects summed, 12 languages",
-								"date": "2026-10-02",
+								"date": "2026-11-18",
 								"link": "https://wikimedia.org/api/rest_v1/"
 							},
 							{
@@ -598,12 +628,6 @@
 								"link": "https://arstechnica.com/ai/2026/04/anthropic-tested-removing-claude-code-from-the-pro-plan/"
 							},
 							{
-								"id": "K105",
-								"source": "Epoch AI (Benchmarking Hub dataset): Epoch Capabilities Index (ECI): Claude Opus 5.5 (Anthropic)",
-								"date": "2026-10-02",
-								"link": "https://epoch.ai/data/benchmark_data.zip"
-							},
-							{
 								"id": "K110",
 								"source": "LMArena (Arena) via Hugging Face dataset lmarena-ai/leaderboard-dataset: LMArena text overall (style control, default view): Claude Opus 5.5 (high) (Anthropic)",
 								"date": "2026-09-25",
@@ -620,6 +644,12 @@
 								"source": "LMArena (Arena) via Hugging Face dataset lmarena-ai/leaderboard-dataset: LMArena text overall (style control, default view): GPT-6 Astra (max) (OpenAI)",
 								"date": "2026-09-30",
 								"link": "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset"
+							},
+							{
+								"id": "K116",
+								"source": "Epoch AI: Epoch Capabilities Index: GPT-6.2 Astra (OpenAI) and Claude Fable 5.2 (Anthropic)",
+								"date": "2026-11-18",
+								"link": "https://epoch.ai/eci?tab=leaderboard"
 							},
 							{
 								"id": "S004",
@@ -658,10 +688,10 @@
 								"link": "https://yougov.com/en-us/articles/55292-us-ai-brand-rankings-report-2026"
 							},
 							{
-								"id": "S065",
-								"source": "JetBrains: JetBrains Developer Ecosystem Survey 2026: AI coding tool used at work (OpenAI Codex vs Claude Code)",
-								"date": "2026-08-01",
-								"link": "https://blog.jetbrains.com/research/2026/08/ai-coding-agent-adoption-2026/"
+								"id": "S097",
+								"source": "JetBrains: JetBrains State of Developer Ecosystem 2026, full report: AI tools used for work (Claude Code vs OpenAI Codex)",
+								"date": "2026-11-10",
+								"link": "https://devecosystem.jetbrains.com/artificial-intelligence"
 							}
 						]
 					},

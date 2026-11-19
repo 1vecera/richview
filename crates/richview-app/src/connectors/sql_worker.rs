@@ -9,10 +9,11 @@ use super::{
     },
 };
 use protocol::{Failure, Reply, Request};
+#[cfg(unix)]
+use std::process::{Child, Command, Stdio};
 use std::{
     io::{self, Write},
     path::Path,
-    process::{Child, Command, Stdio},
     sync::mpsc,
     time::{Duration, Instant},
 };
@@ -20,7 +21,65 @@ use std::{
 const TIMEOUT: Duration = Duration::from_secs(30);
 const MEMORY_BYTES: u64 = 256 * 1024 * 1024;
 
-pub(super) fn execute(
+/// The copies of SQL sources one render has made. On Windows the confined worker reads only a
+/// copy of its source (see sandbox.rs); a render copies each source once, again only when the
+/// source's size or write time changes, and removes the copies when it drops this, at its end.
+/// Elsewhere it holds nothing.
+#[derive(Default)]
+pub(super) struct SourceCopies {
+    #[cfg(windows)]
+    copies: std::sync::Mutex<
+        Vec<(
+            std::path::PathBuf,
+            Stamp,
+            std::sync::Arc<sandbox::SourceCopy>,
+        )>,
+    >,
+}
+
+/// A source's size and last write time when it was copied.
+#[cfg(windows)]
+type Stamp = (u64, Option<std::time::SystemTime>);
+
+#[cfg(windows)]
+impl SourceCopies {
+    /// The run's copy of `source` as it is now.
+    fn of(&self, source: &Path) -> io::Result<std::sync::Arc<sandbox::SourceCopy>> {
+        let metadata = std::fs::metadata(source)?;
+        let stamp = (metadata.len(), metadata.modified().ok());
+        let mut copies = self
+            .copies
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        if let Some((_, _, copy)) = copies
+            .iter()
+            .find(|(path, kept, _)| path == source && *kept == stamp)
+        {
+            return Ok(copy.clone());
+        }
+        // An older copy goes once the workers still reading it have ended.
+        copies.retain(|(path, _, _)| path != source);
+        let copy = sandbox::SourceCopy::new(source)?;
+        copies.push((source.to_path_buf(), stamp, copy.clone()));
+        Ok(copy)
+    }
+}
+
+/// Run `query` against `source` in the restricted worker and return its rows.
+///
+/// The connector calls this after its own SQL preguard; called directly, the worker's own
+/// policy is the only one that applies.
+pub fn execute(
+    source: &Path,
+    worker: Option<&Path>,
+    query: &Query<'_>,
+) -> Result<DatasetSnapshot, ConnectorError> {
+    execute_in(&SourceCopies::default(), source, worker, query)
+}
+
+/// [`execute`] within a run that keeps its source copies in `copies`.
+pub(super) fn execute_in(
+    #[cfg_attr(not(windows), allow(unused_variables))] copies: &SourceCopies,
     source: &Path,
     worker: Option<&Path>,
     query: &Query<'_>,
@@ -29,9 +88,12 @@ pub(super) fn execute(
         let worker = worker
             .map(Path::to_path_buf)
             .or_else(|| {
-                std::env::current_exe()
-                    .ok()
-                    .map(|path| path.with_file_name("richview-sql-worker"))
+                std::env::current_exe().ok().map(|path| {
+                    path.with_file_name(format!(
+                        "richview-sql-worker{}",
+                        std::env::consts::EXE_SUFFIX
+                    ))
+                })
             })
             .ok_or(Failure::Sandbox)?;
         if !worker.is_absolute() {
@@ -40,29 +102,85 @@ pub(super) fn execute(
         let QueryBody::Sql(sql) = query.body else {
             return Err(Failure::Input);
         };
-        let request = Request {
-            version: protocol::VERSION,
-            source: source
-                .canonicalize()
-                .map_err(|_| Failure::Query(SqlError::Database))?,
-            sql: sql.to_owned(),
-            connector: query.connector.to_owned(),
-            fingerprint: query.fingerprint.to_owned(),
-            params: query.params.clone(),
+        let source = source
+            .canonicalize()
+            .map_err(|_| Failure::Query(SqlError::Database))?;
+        // DuckDB keeps changes it has not yet written into a database in `<database>.wal`. The
+        // worker may read the database file alone, on every platform, so it would miss them.
+        match std::fs::symlink_metadata(wal_of(&source)) {
+            Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+            _ => return Err(Failure::PendingWal),
+        }
+        let request = |source: std::path::PathBuf| {
+            protocol::encode(&Request {
+                version: protocol::VERSION,
+                source,
+                sql: sql.to_owned(),
+                connector: query.connector.to_owned(),
+                fingerprint: query.fingerprint.to_owned(),
+                params: query.params.clone(),
+            })
+            .map_err(|_| Failure::Input)
         };
-        let input = protocol::encode(&request).map_err(|_| Failure::Input)?;
-        let child = Command::new(worker)
-            .env_clear()
-            // DuckDB consults cgroup files even with memory_limit set. Its fixed memory
-            // discovery hint avoids those forbidden reads; no host environment is inherited.
-            .env("SLURM_MEM_PER_NODE", "128M")
-            .current_dir("/")
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::null())
-            .spawn()
+        #[cfg(unix)]
+        let output = {
+            let input = request(source)?;
+            let mut child = Command::new(worker)
+                .env_clear()
+                // DuckDB consults cgroup files even with memory_limit set. Its fixed memory
+                // discovery hint avoids those forbidden reads; no host environment is inherited.
+                .env("SLURM_MEM_PER_NODE", "128M")
+                .current_dir("/")
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::null())
+                .spawn()
+                .map_err(|_| Failure::Sandbox)?;
+            let stdin = child.stdin.take().ok_or(Failure::Sandbox)?;
+            let stdout = child.stdout.take().ok_or(Failure::Sandbox)?;
+            supervise(child, stdin, stdout, input, TIMEOUT, MEMORY_BYTES)?
+        };
+        // The host starts the worker already confined and admits it to the run's copy of the
+        // source, which it may read only while it runs (see sandbox.rs); the Windows folder is
+        // the one host value the worker keeps, beside DuckDB's memory hint.
+        #[cfg(windows)]
+        let output = {
+            let copy = copies.of(&source).map_err(|error| match error.kind() {
+                io::ErrorKind::FileTooLarge => Failure::CopyTooLarge,
+                io::ErrorKind::StorageFull => Failure::CopyNoSpace,
+                _ => Failure::Query(SqlError::Database),
+            })?;
+            let windows = std::env::var_os("SystemRoot").unwrap_or_else(|| "C:\\Windows".into());
+            let sandboxed = sandbox::spawn(
+                &worker,
+                &copy,
+                &[
+                    ("SLURM_MEM_PER_NODE", std::ffi::OsStr::new("128M")),
+                    ("SystemRoot", &windows),
+                ],
+            )
             .map_err(|_| Failure::Sandbox)?;
-        let output = supervise(child, input, TIMEOUT, MEMORY_BYTES)?;
+            let sandbox::Sandboxed {
+                process,
+                job,
+                stdin,
+                stdout,
+                admitted,
+            } = sandboxed;
+            let input = request(admitted.source().to_path_buf())?;
+            supervise(
+                Confined {
+                    process,
+                    job,
+                    _admitted: admitted,
+                },
+                stdin,
+                stdout,
+                input,
+                TIMEOUT,
+                MEMORY_BYTES,
+            )?
+        };
         match serde_json::from_slice::<Reply>(&output).map_err(|_| Failure::Output)? {
             Reply::Failed { error } => Err(error),
             Reply::Complete { rows, schema } => {
@@ -111,10 +229,6 @@ fn connector_error(failure: Failure, connector: &str) -> ConnectorError {
         }
         Failure::Timeout => "SQL worker exceeded the 30000 ms timeout",
         Failure::Memory => "SQL worker exceeded its memory limit",
-        // The Windows preview has no sandbox for the worker, so it runs no author SQL (ARC-67).
-        Failure::Sandbox if cfg!(windows) => {
-            "SQL data sources are not available on Windows yet: the SQL worker has no sandbox there"
-        }
         Failure::Sandbox => {
             "SQL worker isolation is unavailable; check the trusted helper and OS sandbox support"
         }
@@ -122,22 +236,85 @@ fn connector_error(failure: Failure, connector: &str) -> ConnectorError {
         Failure::Terminated => "SQL worker terminated before completing the query",
         Failure::Input => "SQL worker request exceeds its limit or is invalid",
         Failure::Output => "SQL worker result exceeds its limit or is invalid",
+        Failure::PendingWal => {
+            "the SQL database has changes not yet written into it, in the .wal file beside it; close the program writing it, or run CHECKPOINT in it, then render again"
+        }
+        #[cfg(windows)]
+        Failure::CopyTooLarge => {
+            "the SQL database is larger than 4 GiB, the most RichView copies into its Windows sandbox"
+        }
+        #[cfg(windows)]
+        Failure::CopyNoSpace => {
+            "the temporary folder lacks the free space to copy the SQL database into the Windows sandbox"
+        }
     };
     ConnectorError::QueryRejected {
         reason: reason.into(),
     }
 }
 
-struct Worker(Child);
-impl Drop for Worker {
+/// What the host needs of a running worker, on every platform.
+trait Supervised {
+    /// `Some(succeeded)` once the worker has exited.
+    fn exited(&mut self) -> io::Result<Option<bool>>;
+    fn kill(&mut self);
+    fn reap(&mut self);
+    fn resident_bytes(&self) -> io::Result<u64>;
+}
+
+#[cfg(unix)]
+impl Supervised for Child {
+    fn exited(&mut self) -> io::Result<Option<bool>> {
+        Ok(self.try_wait()?.map(|status| status.success()))
+    }
+    fn kill(&mut self) {
+        let _ = Child::kill(self);
+    }
+    fn reap(&mut self) {
+        let _ = self.wait();
+    }
+    fn resident_bytes(&self) -> io::Result<u64> {
+        resident_bytes(self.id())
+    }
+}
+
+/// The confined worker, its job and its admission to the run's copy of the source; ending the
+/// job ends the worker, and the admission ends once the worker has.
+#[cfg(windows)]
+struct Confined {
+    process: crate::win_process::Process,
+    job: crate::win_process::Job,
+    _admitted: sandbox::Admitted,
+}
+
+#[cfg(windows)]
+impl Supervised for Confined {
+    fn exited(&mut self) -> io::Result<Option<bool>> {
+        Ok(self.process.try_wait()?.map(|code| code == 0))
+    }
+    fn kill(&mut self) {
+        let _ = self.job.terminate();
+    }
+    fn reap(&mut self) {
+        let _ = self.process.wait_for(Some(Duration::from_secs(5)));
+    }
+    fn resident_bytes(&self) -> io::Result<u64> {
+        self.process.resident_bytes()
+    }
+}
+
+struct Worker<C: Supervised>(C);
+impl<C: Supervised> Drop for Worker<C> {
     fn drop(&mut self) {
-        let _ = self.0.kill();
-        let _ = self.0.wait();
+        self.0.kill();
+        self.0.reap();
     }
 }
 
 fn supervise(
-    child: Child,
+    child: impl Supervised,
+    mut stdin: impl Write + Send,
+    stdout: impl io::Read + Send,
     input: Vec<u8>,
     timeout: Duration,
     memory: u64,
@@ -146,8 +323,6 @@ fn supervise(
     std::thread::scope(|scope| {
         // The guard drops inside the scope, before scope joins can wait for child pipe EOF.
         let mut child = Worker(child);
-        let mut stdin = child.0.stdin.take().ok_or(Failure::Sandbox)?;
-        let stdout = child.0.stdout.take().ok_or(Failure::Sandbox)?;
         let writer = scope.spawn(move || stdin.write_all(&input));
         let (send, receive) = mpsc::channel();
         let reader = scope.spawn(move || {
@@ -166,9 +341,9 @@ fn supervise(
                 }
                 _ => {}
             }
-            match child.0.try_wait() {
-                Ok(Some(status)) => {
-                    if !status.success() {
+            match child.0.exited() {
+                Ok(Some(succeeded)) => {
+                    if !succeeded {
                         break Err(Failure::Terminated);
                     }
                     break bytes.take().map(Ok).unwrap_or_else(|| {
@@ -182,12 +357,12 @@ fn supervise(
                 Err(_) => break Err(Failure::Sandbox),
                 _ => {}
             }
-            match resident_bytes(child.0.id()) {
+            match child.0.resident_bytes() {
                 Ok(bytes) if bytes > memory => break Err(Failure::Memory),
                 Ok(_) => {}
                 Err(_) => {
                     // A worker can exit between try_wait and the kernel accounting call.
-                    if !matches!(child.0.try_wait(), Ok(Some(_))) {
+                    if !matches!(child.0.exited(), Ok(Some(_))) {
                         break Err(Failure::Sandbox);
                     }
                 }
@@ -195,9 +370,9 @@ fn supervise(
             std::thread::sleep(Duration::from_millis(5));
         };
         if result.is_err() {
-            let _ = child.0.kill();
+            child.0.kill();
         }
-        let _ = child.0.wait();
+        child.0.reap();
         let written = writer
             .join()
             .map_err(|_| Failure::Input)?
@@ -240,7 +415,7 @@ fn resident_bytes(pid: u32) -> io::Result<u64> {
         .ok_or_else(|| io::Error::other("SQL worker memory accounting overflow"))
 }
 
-#[cfg(not(any(target_os = "macos", target_os = "linux")))]
+#[cfg(all(unix, not(any(target_os = "macos", target_os = "linux"))))]
 fn resident_bytes(_pid: u32) -> io::Result<u64> {
     Err(io::Error::new(
         io::ErrorKind::Unsupported,
@@ -294,9 +469,27 @@ fn worker_request() -> Result<DatasetSnapshot, Failure> {
         .source
         .canonicalize()
         .map_err(|_| Failure::Query(SqlError::Database))?;
+    // On Windows the source is the run's copy, alone in a folder that the restricted token may
+    // pass through but no folder above it. The worker takes a handle to that folder while its
+    // startup token may still open it, and DuckDB's opens of files in that folder go through
+    // the handle (see sandbox.rs). On every platform DuckDB opens the source only once the
+    // restriction holds.
+    #[cfg(windows)]
+    let database = {
+        let folder = source.parent().ok_or(Failure::Input)?;
+        if source.file_name() != Some(std::ffi::OsStr::new(sandbox::STAGED_NAME)) {
+            return Err(Failure::Input);
+        }
+        sandbox::open_through(&plain_path(folder)).map_err(|_| Failure::Sandbox)?;
+        start_duckdb().map_err(|_| Failure::Sandbox)?;
+        plain_path(&source)
+    };
+    #[cfg(not(windows))]
+    let database = source.clone();
     sandbox::restrict(&source).map_err(sandbox_failure)?;
-    DuckDbConnector::execute_read_only(
-        &source,
+    let open = || DuckDbConnector::open_read_only(&database, &request.connector);
+    DuckDbConnector::execute_read_only_with(
+        open,
         &Query {
             connector: &request.connector,
             body: QueryBody::Sql(&request.sql),
@@ -351,12 +544,51 @@ fn resource_limits() -> io::Result<()> {
     Ok(())
 }
 
-#[cfg(not(unix))]
+/// On Windows the host's job sets the limits before the worker runs; the worker only checks
+/// that it is inside that job.
+#[cfg(windows)]
+fn resource_limits() -> io::Result<()> {
+    sandbox::require_job()
+}
+
+#[cfg(not(any(unix, windows)))]
 fn resource_limits() -> io::Result<()> {
     Err(io::Error::new(
         io::ErrorKind::Unsupported,
         "Unsupported SQL worker platform",
     ))
+}
+
+/// DuckDB loads some system libraries the first time it starts, its random source among them,
+/// and the restricted token can load nothing by path. So the worker starts DuckDB once with an
+/// empty in-memory database, which holds no author input, while its startup token still can.
+#[cfg(windows)]
+fn start_duckdb() -> io::Result<()> {
+    duckdb::Connection::open_in_memory()
+        .map(drop)
+        .map_err(|error| io::Error::other(error.to_string()))
+}
+
+/// Where DuckDB keeps the changes it has not yet written into `database`.
+fn wal_of(database: &Path) -> std::path::PathBuf {
+    let mut name = database.as_os_str().to_owned();
+    name.push(".wal");
+    name.into()
+}
+
+#[cfg(windows)]
+const _: () = assert!(sandbox::COPY_LIMIT == 4 << 30, "the refusal names 4 GiB");
+
+/// A drive path without its `\\?\` prefix, which `canonicalize` adds and DuckDB need not parse.
+#[cfg(windows)]
+fn plain_path(path: &Path) -> std::path::PathBuf {
+    let text = path.as_os_str().to_string_lossy();
+    match text.strip_prefix(r"\\?\") {
+        Some(rest) if rest.as_bytes().get(1) == Some(&b':') && !text.contains('\u{fffd}') => {
+            rest.into()
+        }
+        _ => path.to_path_buf(),
+    }
 }
 
 #[cfg(target_os = "linux")]
@@ -403,7 +635,13 @@ fn close_inherited_descriptors() -> io::Result<()> {
     Ok(())
 }
 
-#[cfg(not(any(target_os = "macos", target_os = "linux")))]
+/// The host's launch names the three standard handles as the only ones the worker inherits.
+#[cfg(windows)]
+fn close_inherited_descriptors() -> io::Result<()> {
+    Ok(())
+}
+
+#[cfg(not(any(target_os = "macos", target_os = "linux", windows)))]
 fn close_inherited_descriptors() -> io::Result<()> {
     Err(io::Error::new(
         io::ErrorKind::Unsupported,

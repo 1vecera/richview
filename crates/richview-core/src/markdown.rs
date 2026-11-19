@@ -1,6 +1,7 @@
 use crate::{Diagnostic, RenderOptions, escape};
 use pulldown_cmark::{
-    Alignment, CowStr, Event, HeadingLevel, LinkType, Options, Parser, Tag, TagEnd, html,
+    Alignment, CodeBlockKind, CowStr, Event, HeadingLevel, LinkType, Options, Parser, Tag, TagEnd,
+    html,
 };
 use regex_lite::Regex;
 use std::{borrow::Cow, collections::HashSet, sync::OnceLock};
@@ -9,6 +10,8 @@ use std::{borrow::Cow, collections::HashSet, sync::OnceLock};
 pub(crate) struct Context<'a> {
     /// Explicit heading ids that tab panels name; every other authored id is ignored.
     pub heading_ids: &'a [String],
+    /// Mark top-level headings for section folding after tab panels are assembled.
+    pub section_markers: bool,
     /// The source line of the string's first line, when it is known.
     pub first_line: Option<usize>,
     /// Whether the string is the report's own text, line for line, so a finding also gets its
@@ -70,6 +73,31 @@ pub(crate) fn remote_image_finding(src: &str, path: &str) -> Diagnostic {
 /// produces a name with one of them.
 const RUNTIME_PREFIXES: [&str; 4] = ["rv", "richview", "tab-", "panel-"];
 
+/// The heading being read.
+struct OpenHeading {
+    /// Where its start tag sits in `events`.
+    index: usize,
+    /// Its level after the body's shift.
+    level: usize,
+    /// A kept `{#id}`.
+    explicit: Option<String>,
+    /// A bare brace phrase such as ` {USD}`, given back as the heading's last text.
+    literal: Option<String>,
+    /// Whether it stands at the top level, outside every list, quote and table.
+    top_level: bool,
+}
+
+/// Encode a heading ID in an internal comment without allowing it to end the comment.
+pub(crate) fn heading_marker_id(id: &str) -> String {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut encoded = String::with_capacity(id.len() * 2);
+    for byte in id.bytes() {
+        encoded.push(HEX[usize::from(byte >> 4)] as char);
+        encoded.push(HEX[usize::from(byte & 15)] as char);
+    }
+    encoded
+}
+
 fn runtime_name(name: &str) -> bool {
     let lower = name.trim().to_ascii_lowercase();
     RUNTIME_PREFIXES
@@ -78,9 +106,27 @@ fn runtime_name(name: &str) -> bool {
 }
 
 /// Classes the Markdown renderer itself generates. The sanitizer keeps no others.
-const GENERATED_CLASSES: [&str; 11] = [
+const GENERATED_CLASSES: [&str; 28] = [
     "num",
     "rv-code-line",
+    // The highlighter's spans in a code fence of a language it knows (FEA-RP-17).
+    "hl-code",
+    "hl-comment",
+    "hl-fence",
+    "hl-fm",
+    "hl-heading",
+    "hl-key",
+    "hl-link",
+    "hl-mark",
+    "hl-punc",
+    "hl-str",
+    "hl-url",
+    "hl-cmd",
+    "hl-flag",
+    "hl-num",
+    "hl-strong",
+    "hl-tag",
+    "hl-val",
     "center",
     "rv-source",
     "rv-source__label",
@@ -135,14 +181,15 @@ pub(crate) fn markdown_html(
     let mut events = Vec::new();
     let mut code_block = false;
     let mut code_text = String::new();
+    let mut code_language: Option<String> = None;
     let mut link_depth = 0usize;
     let mut verbatim_link = false;
     let mut pending_text = String::new();
     let mut pending_start = 0usize;
     let mut pending_end = 0usize;
-    // The heading being read: where its start tag sits in `events`, its level, a kept `{#id}`
-    // and its source offset.
-    let mut heading: Option<(usize, usize, Option<String>, Option<String>)> = None;
+    let mut heading: Option<OpenHeading> = None;
+    let mut container_depth = 0usize;
+    let mut in_columns = false;
     // Generated slugs must not take a later panel heading's explicit anchor.
     let mut used_ids: HashSet<String> = authored_heading_ids(&source)
         .into_iter()
@@ -191,6 +238,19 @@ pub(crate) fn markdown_html(
     // The raw HTML block being read, and where each of its lines starts in it and in the source.
     let mut html_block: Option<(String, Vec<(usize, usize)>)> = None;
     for (event, range) in Parser::new_ext(&source, FLAGS).into_offset_iter() {
+        match &event {
+            Event::Start(
+                Tag::BlockQuote(_) | Tag::List(_) | Tag::Item | Tag::FootnoteDefinition(_),
+            ) => {
+                container_depth += 1;
+            }
+            Event::End(
+                TagEnd::BlockQuote(_) | TagEnd::List(_) | TagEnd::Item | TagEnd::FootnoteDefinition,
+            ) => {
+                container_depth = container_depth.saturating_sub(1);
+            }
+            _ => {}
+        }
         if table.head {
             match &event {
                 Event::Text(text) | Event::Code(text) => {
@@ -258,12 +318,22 @@ pub(crate) fn markdown_html(
             Event::Start(Tag::CodeBlock(kind)) => {
                 code_block = true;
                 code_text.clear();
+                code_language = match &kind {
+                    CodeBlockKind::Fenced(info) => {
+                        info.split_whitespace().next().map(str::to_owned)
+                    }
+                    CodeBlockKind::Indented => None,
+                };
                 events.push(Event::Start(Tag::CodeBlock(kind)));
             }
             Event::Text(text) if code_block => code_text.push_str(&text),
             Event::End(TagEnd::CodeBlock) => {
                 code_block = false;
-                events.push(Event::Html(CowStr::from(code_lines(&code_text))));
+                events.push(Event::Html(CowStr::from(code_lines_in(
+                    &code_text,
+                    code_language.as_deref(),
+                    &[],
+                ))));
                 events.push(Event::End(TagEnd::CodeBlock));
             }
             // Link text is prose, except an autolink or email address shown as itself.
@@ -552,11 +622,24 @@ pub(crate) fn markdown_html(
                 } else {
                     level += shift;
                 }
-                heading = Some((events.len(), level, id.map(|id| id.to_string()), literal));
+                heading = Some(OpenHeading {
+                    index: events.len(),
+                    level,
+                    explicit: id.map(|id| id.to_string()),
+                    literal,
+                    top_level: container_depth == 0 && !in_columns,
+                });
                 events.push(Event::Html(CowStr::from("")));
             }
             Event::End(TagEnd::Heading(_)) => {
-                if let Some((index, level, explicit, literal)) = heading.take() {
+                if let Some(OpenHeading {
+                    index,
+                    level,
+                    explicit,
+                    literal,
+                    top_level,
+                }) = heading.take()
+                {
                     if let Some(literal) = literal {
                         events.push(Event::Text(CowStr::from(literal)));
                     }
@@ -575,6 +658,13 @@ pub(crate) fn markdown_html(
                     events[index] =
                         Event::Html(CowStr::from(format!("<h{level} id=\"{}\">", escape(&id))));
                     events.push(Event::Html(CowStr::from(format!("</h{level}>\n"))));
+                    if context.section_markers && top_level {
+                        let prefix = context.placeholder.replacen("block:", "heading:", 1);
+                        events.push(Event::Html(CowStr::from(format!(
+                            "{prefix}{level}:{}-->",
+                            heading_marker_id(&id)
+                        ))));
+                    }
                 }
             }
             Event::Start(Tag::FootnoteDefinition(label)) => {
@@ -619,6 +709,16 @@ pub(crate) fn markdown_html(
                     if !context.placeholder.is_empty()
                         && is_placeholder(&buffer, context.placeholder)
                     {
+                        // A heading in a column never starts or ends a folded section, so a
+                        // fold always holds whole columns (FEA-RP-67, FEA-RP-68).
+                        match crate::columns::mark_of(
+                            &buffer,
+                            &crate::columns::prefix(context.placeholder),
+                        ) {
+                            Some(crate::columns::Mark::Open(_)) => in_columns = true,
+                            Some(crate::columns::Mark::Close) => in_columns = false,
+                            _ => {}
+                        }
                         events.push(Event::Html(CowStr::from(buffer)));
                     } else {
                         let at_line = |diagnostic: Diagnostic, here: usize| {
@@ -757,18 +857,86 @@ pub(crate) fn markdown_html(
 /// and an `rv-code-line--i<n>` class for a line indented by `n` columns: print hangs each line's
 /// continuations from its own indent (FEA-RP-17), and the text a reader copies is unchanged.
 pub(crate) fn code_lines(text: &str) -> String {
-    let mut html = String::with_capacity(text.len() + 48 * text.lines().count());
-    for line in text.split_inclusive('\n') {
-        match code_indent(line) {
-            0 => html.push_str("<span class=\"rv-code-line\">"),
-            columns => html.push_str(&format!(
-                "<span class=\"rv-code-line rv-code-line--i{columns}\">"
-            )),
+    code_lines_in(text, None, &[])
+}
+
+/// [`code_lines`] in `language`: a language the highlighter knows (Rich Markdown, YAML, shell)
+/// is set in its `hl-` spans, which a line's end closes and the next line opens again, and any
+/// other is plain. A line whose number (from 1) is in `marked` also has `rv-code-line--mark`.
+pub(crate) fn code_lines_in(text: &str, language: Option<&str>, marked: &[usize]) -> String {
+    use crate::highlight::{HighlightLanguage, highlight_html};
+    let language = language.map_or(HighlightLanguage::Plain, HighlightLanguage::from_name);
+    let plain = || {
+        text.split_inclusive('\n')
+            .map(escape)
+            .collect::<Vec<String>>()
+    };
+    let lines = match language {
+        HighlightLanguage::Plain => plain(),
+        known => {
+            // The highlighter keeps every character, so its lines are the text's lines; were
+            // they ever not, the code is shown plain rather than cut.
+            let lines = split_spans(&highlight_html(text, known));
+            if lines.len() == text.split_inclusive('\n').count() {
+                lines
+            } else {
+                plain()
+            }
         }
-        html.push_str(&escape(line));
+    };
+    let mut html = String::with_capacity(text.len() * 2 + 48 * lines.len());
+    for (n, (line, inner)) in text.split_inclusive('\n').zip(&lines).enumerate() {
+        html.push_str("<span class=\"rv-code-line");
+        match code_indent(line) {
+            0 => {}
+            columns => html.push_str(&format!(" rv-code-line--i{columns}")),
+        }
+        if marked.contains(&(n + 1)) {
+            html.push_str(" rv-code-line--mark");
+        }
+        html.push_str("\">");
+        html.push_str(inner);
         html.push_str("</span>");
     }
     html
+}
+
+/// Highlighted HTML split after each newline, every line closing the spans still open at its
+/// end and the next opening them again, so each line nests on its own.
+fn split_spans(html: &str) -> Vec<String> {
+    let mut lines = vec![];
+    let mut open: Vec<&str> = vec![];
+    let mut line = String::new();
+    // Whether the line holds text, not only the spans the line before left open.
+    let mut text = false;
+    let mut rest = html;
+    while !rest.is_empty() {
+        if let Some(tail) = rest.strip_prefix("</span>") {
+            open.pop();
+            line.push_str("</span>");
+            rest = tail;
+        } else if rest.starts_with("<span") {
+            let end = rest.find('>').map_or(rest.len(), |i| i + 1);
+            open.push(&rest[..end]);
+            line.push_str(&rest[..end]);
+            rest = &rest[end..];
+        } else {
+            let c = rest.chars().next().unwrap_or_default();
+            line.push(c);
+            text = true;
+            rest = &rest[c.len_utf8()..];
+            if c == '\n' {
+                line.push_str(&"</span>".repeat(open.len()));
+                lines.push(std::mem::take(&mut line));
+                line.extend(open.iter().copied());
+                text = false;
+            }
+        }
+    }
+    if text {
+        lines.push(line);
+    }
+    lines
 }
 
 /// The tab width of printed code: the browser's default `tab-size`.
@@ -804,6 +972,10 @@ fn code_indent_class(class: &str) -> bool {
 fn is_placeholder(html: &str, prefix: &str) -> bool {
     // The marker of a block and the marker of a fence that failed (FEA-RP-29).
     let failed = crate::parser::failed_prefix(prefix);
+    // A column marker (FEA-RP-68) only in its own grammar.
+    if crate::columns::mark_of(html, &crate::columns::prefix(prefix)).is_some() {
+        return true;
+    }
     [prefix, failed.as_str()].into_iter().any(|prefix| {
         html.trim()
             .strip_prefix(prefix)
@@ -1713,6 +1885,7 @@ mod tests {
             &RenderOptions::default(),
             &Context {
                 heading_ids: &["mine".into()],
+                section_markers: false,
                 first_line: Some(1),
                 columns: true,
                 path: "markdown",

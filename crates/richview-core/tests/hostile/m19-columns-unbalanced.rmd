@@ -1,0 +1,42 @@
+---
+title: Columns that do not balance
+---
+
+Columns that do not close, nest or hold stray text stay text, so no box opens without closing.
+
+::: columns
+::: column
+::: columns
+::: column
+HOSTILE_NESTED
+:::
+::: column
+Inner.
+:::
+:::
+:::
+::: column
+Outer.
+:::
+:::
+
+::: column
+Alone.
+:::
+
+::: columns
+Loose text between the columns.
+::: column
+A.
+:::
+::: column
+B.
+:::
+:::
+
+::: columns
+::: column
+Unclosed HOSTILE_UNCLOSED.
+:::
+::: column
+Still open, and no closing line follows.

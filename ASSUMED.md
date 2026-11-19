@@ -197,7 +197,7 @@ Every report carries a 3 px bar along the bottom of the window, filled with the 
 
 ## INT-10 — the flagship, shortened
 
-The flagship keeps its 2 October 2026 snapshot, wording rules and sources, and is cut from 13 sections and 19 charts to 9 and 9. It opens with a four-metric scorecard and the population chart, and Sources cited folds after eight rows.
+The flagship is refreshed to a snapshot of 18 November 2026 with data to October 2026 (Daniel, 17 November 22:50: "Yes, all recommendations"), keeps its wording rules and adds the newer sources, and is cut from 13 sections and 19 charts to 9 and 9. It opens with a four-metric scorecard and the population chart, and Sources cited folds after eight rows.
 
 # Less ink on highlight — S27-986
 
@@ -277,13 +277,25 @@ Target: Delivery — the release after `v3.0.0-alpha.1` (17 Nov 2026) can be pub
 
 `v3.0.0-alpha.1`'s tag is fixed like alpha.0's, so the next release's build calls itself `3.0.0-alpha.2`, in the same places as before: `Cargo.toml` (every workspace crate), `Cargo.lock`, `package.json` and `package-lock.json`. The VS Code extension, which was already `3.0.0-alpha.1` when the workspace caught up with it, now moves with the workspace to `3.0.0-alpha.2` (`packages/vscode/package.json`, its lock entry and the version its packaging check expects), so one release names one version. The chart engine keeps `0.1.0`, and records of what earlier builds printed keep their numbers. How versions advance after this one is still not decided here.
 
-# A Windows preview of the command line — S27-986
+# The fourth released build is 3.0.0-alpha.3 — S27-986
 
-Daniel, 16 November, on the open question of a Windows binary: "make windows happen using aws windows machine". ARC-67 is unanswered and its proposal says "Windows stays unsupported" and "a platform is added only together with a gate that runs on it". No Windows gate host exists, so this is built as a weaker class, a preview, and stays assumed until the lockdown owner records Daniel's answer. No accepted answer changes.
+Target: Delivery — the release after `v3.0.0-alpha.2` (18 Nov 2026) can be published beside it. Lead, 18 Nov 2026, for Daniel to change.
 
-## ARC-67 — Windows x64 as a preview (replacement of "Windows stays unsupported")
+## INT-41 — each released build carries its own version (third step)
 
-RichView supports macOS on arm64 and Linux on x64. Windows 10 and 11 on x64 (`x86_64-pc-windows-msvc`) is a preview: the CLI with its MCP server and local preview, and the editor service for the extension. On Windows, PDF output and SQL data sources are not available yet and each says so in one diagnostic; the report server for hosting is not offered there. The binaries are unsigned. Windows is proven for each release by a recorded smoke run of the archive on a Windows x64 machine: install with the PowerShell script, `richview --version`, generate and check the flagship report, start the MCP server, uninstall. A supported platform is still added only together with a gate that runs on it; a preview platform needs the recorded smoke run.
+`v3.0.0-alpha.2`'s tag is fixed like the earlier ones, so the next release's build, candidate/22 with Windows at parity, calls itself `3.0.0-alpha.3`, in the same places as alpha.2: `Cargo.toml` (every workspace crate), `Cargo.lock`, `package.json`, `package-lock.json`, the VS Code extension (`packages/vscode/package.json`, its lock entry and the version its packaging check expects) and the INT-41 judgement in `tools/rv-gate/coverage.json`. The chart engine keeps `0.1.0`, and records of what earlier builds printed keep their numbers. How versions advance after this one is still not decided here.
+
+# Windows at parity with macOS and Linux — S27-986
+
+Daniel, 16 November, on the open question of a Windows binary: "make windows happen using aws windows machine"; 3.0.0-alpha.2 shipped it as a preview without PDF output or SQL data sources. Daniel, 18 November: "yes, i wanna windows to work e2e, it can be tested on some aws machine, make sure it will be done e2e". ARC-67 and ARC-30 are unanswered, so this is built as their rewritten proposals and stays assumed until the lockdown owner records Daniel's answer. No accepted answer changes.
+
+## ARC-67 — Windows x64 at parity (replacement of "Windows stays unsupported" and of the preview)
+
+RichView supports macOS on arm64, Linux on x64, and Windows 10 and 11 on x64 (`x86_64-pc-windows-msvc`) with the same features: the CLI with its local preview, the MCP server, the editor service for the extension, PDF output and SQL data sources. On Windows the SQL worker runs under a restricted token whose only restricting SID is new for each launch, with no privileges, at Untrusted integrity, in a one-process job, and without a console. As on Linux and macOS, DuckDB opens the declared source only inside that confinement. Once per render the host copies the source's bytes, unparsed, into a new folder in the temporary folder that only the running launch's SID may read. It refuses a source over 4 GiB, one that would leave less than 1 GiB free there, and a temporary folder on a network share or named by volume GUID, and the next render sweeps the copies a killed render left. On every platform the worker may read the database file alone, so a database whose last changes are still in its `.wal` file is refused until a writer has written them into it. The restricted token can open nothing by path, so before it drops the token it started with (which keeps only SeChangeNotify of the user's privileges) the worker takes a handle to that folder, and its opens of files in that folder, and only those, go through the handle; every other path reaches Windows unchanged and is refused, and the restricted token decides every open. Its probe, run on Windows Server 2025, shows no file, network (a TCP endpoint opened on the network driver as Winsock does included) or process reach beyond the Linux sandbox's, for author SQL and for DuckDB's own extension loading. Windows is proven for each candidate by the recorded end-to-end walk on a fresh AWS Windows Server 2025 machine (`tools/windows-e2e`); Windows 10 and 11 share its kernel and are expected to behave the same, but stay untested because AWS offers no Windows 11 image. The probe's record and the record walk of this change's final commit are in pull request #191. `merge-prod` refuses a candidate that ships Windows without a passing walk on its exact commit, and it refuses one whose `release.json` is missing or unreadable. The full reports its `windows` step `unrun` with that reason. The programs stay unsigned until a certificate is bought.
+
+## ARC-30 — the browser host service runs on Windows (addition)
+
+PDF export finds Edge or Chrome on Windows as it finds Chrome elsewhere. The browser's DevTools pipe ends travel as C runtime descriptors 3 and 4, and only those handles are inherited. A kill-on-close job ends the browser's whole process tree when printing is done, as the process group does on Unix. Its temporary profile folder has a DACL for the user alone and inherits nothing from the temporary folder, as mode 0700 gives it on Unix.
 
 ## INT-71 — a PowerShell installer beside the shell script (addition)
 
@@ -381,6 +393,8 @@ A version's card is still drawn and kept beside it when it is stored, and its ve
 
 The docs gallery's report cards, the Featured charts, the elements overview and the Reports page's larger previews show a picture the site build draws from the same source in the card's style, instead of a live frame; a click opens the live report. The elements overview's Type card, which is not a chart, stays a scaled live frame. A picture's alt text is the title of the chart it shows. The live frames' loading glyph and its motion are gone.
 
+The elements page's "Type and fonts" shows one live typography sample with a row of the builtin styles that swaps it, as a chart page's style row does, instead of five live samples side by side, and an "Open the sample" link follows the choice. No docs page starts more than three RichView runtimes when it loads, its own and one per live frame of the site, and the site build fails one that would: iOS gives a page's process three fast Wasm memories (the lead, 18 November, after Daniel's iPhone stopped loading the gallery and charts).
+
 # Printed values keep the label's digits, and scale words follow the locale — S27-986
 
 Okurka's charts set `digits: 3` and `readout_digits: 6`, and their printed values showed six digits, because a value on its mark printed its readout's text. Lead's approval of 17 November, 03:22, and ruling of 03:30: printed values at the label's digits, readouts at `readout_digits`, and one formatter whose scale words follow the locale for printed values, readouts and the Table view. No card decides the scale words; this proposal stands until the lockdown owner records Daniel's answer.
@@ -416,3 +430,58 @@ Someone who makes an account from a share mail lands on the report itself: the r
 - The report counts, the join day and usage on the members page are new facts there; nothing new is shown to someone who could not see it before (counts only to owners and admins, usage only to those who publish).
 - The invitation's hint gives the link's 24 hours, as its mail does; it said an hour.
 - The lead's GO of 18 November built the forward to the report, `share` in the publish JSON and the rename line; asking for the organization's name at sign-up waits for Daniel's open questions on the sign-up flow.
+
+## INT-73 — the impressum names Daniel as a sole trader (amendment)
+
+RichView stays Daniel's personal project. Its impressum now says that he builds and operates it as a sole trader registered in the Czech Republic (IČO 00923192, read from the public ARES register on 18 November 2026) instead of calling it a personal hobby project, and its meta description follows. Startup-credit applications screen the site for its founder and operator, and the hobby line blocked them. The proposal text is amended in part 01; the card stays open for Daniel's answer, and the line reaches richview.ai only with his go for candidate/22.
+
+# Expands, code blocks and one long format reference — S27-986
+
+Target: Reports — an author folds long detail and whole sections away from the reader's first pass, and shows code as a designed block, in every style, on screen, on a phone and on paper. Daniel's review of candidate/17 on 16 November asked for expands and code blocks as elements of the format, an elements gallery that lists every element and a format reference on one long page; on 18 November he called expands a huge priority. The full card texts are in `docs/lockdown/parts/`. No accepted answer changes.
+
+## FEA-RP-66 — Expands (new card)
+
+An `expand` block (`title`, Markdown `body`, `open`) renders as a native disclosure: it reads without scripts, find-in-page opens it, its title row is at least 44 px tall with a line chevron, and on paper every expand is open under a small heading. One level only: a rich block inside it is a `block.nested` error with the not-rendered notice, as in a callout. `expand` is a rich fence tag from now on.
+
+## FEA-RP-67 — Collapsible sections (new card)
+
+`collapsed_sections` in the frontmatter names top-level heading anchors whose sections, charts and tables included, start closed under their heading, with the expand's chevron at the heading's size. A section ends at the next heading of its level or above, at a tab boundary or before the report's Notes, and prints open; a PDF is laid out as the unfolded report. A missing anchor (`section.anchor-missing`) or a heading with a link (`section.heading-interactive`) warns and stays open.
+
+## FEA-RP-17 — Code blocks (amended)
+
+A fence renders as preformatted text in the style's mono face, highlighted when its info string is Rich Markdown, YAML or shell. The label, the title, line numbers that are never copied, marked lines (a rule plus a tint; `code.mark` warns past the last line) and a report-folder file of at most 400 lines as the source belong to the `code` block. Highlighting is at build time, in two tones of the style's own text colours, with bold and italic only from faces the style embeds. The card proposed no highlighting; this builds its "Highlight known languages" option. `code` and `expand` are now rich fence tags, so a plain fence written as ```` ```code ```` or ```` ```expand ```` is read as the block.
+
+## FEA-SF-41 — the sidebar and the references (amended)
+
+The sidebar's Reference group holds the elements gallery and the format reference, each one page with its parts as anchors. The format reference is one long page, and a topic's old address forwards to its part, kept out of search. The elements gallery has a part for each element that has one and a compact card for each of the others, linking to the guide section that shows it live.
+
+# Columns — S27-986
+
+Target: Reports — an author puts two to four blocks side by side, such as two charts, a chart beside its explanation, a row of metrics or an image beside text, and the page looks designed in every style, on a phone and on paper. Daniel called blocks and columns a huge priority on 18 November; the lead approved the proposal's option A the same day. The full card text is in `docs/lockdown/parts/`. No accepted answer changes.
+
+## FEA-RP-68 — Columns (new card)
+
+`::: columns`, one `::: column` per column and `:::` to close each, the fenced-div shape of Pandoc, Quarto and MyST, around ordinary Markdown and rich fences. Options in a YAML flow mapping of closed vocabulary: `widths` (`equal` or a ratio such as `2-1`), `gap`, `align` and `wide`, which defaults to `true`. Reading order is source order; the columns stack, all of them, when the narrowest would fall under its floor (a phone's column for a chart, table, frame, video or code; 11rem otherwise), on screen and on paper alike, and always on a phone. Malformed columns warn with a `columns.*` code and render exactly as without columns.
+
+## Decided here, for Daniel to overrule
+
+- `wide: true` is the default, unlike single blocks: on the text measure two columns are a phone's width each.
+- A wrong option value (`widths: 70%`) is a `block.schema` error as in a block, and the markers stay text; the proposal said it would fall back to the default with a warning.
+- A heading inside a column never starts or ends a collapsed section (FEA-RP-67), so a fold always holds whole columns; an anchor that names such a heading warns `section.anchor-missing`.
+- A `:::` line after a paragraph was a definition (`: `) before columns existed; any `:::` line that is not part of well-formed columns still renders that way.
+
+## STY-74 and STY-50 — backgrounds behind a report
+
+Daniel, 18 November 2026 about 14:05 CET, relayed by the lead: "actual background styles are also priority to make it much more personal." The lead approved the proposal at 14:39; the look sheet went to Daniel as Q33. This proposal is pending its lockdown capture; no accepted answer is changed.
+
+A style file may set `background`: a `texture` (`grain`, `dots`, `grid`, `lines`), a `gradient` from the author's colours (`soft`, `glow`) or a report-relative `picture` (a still PNG, JPEG or WebP, at most 400 KiB and 2400 px), at a `place` (`page`, `margins`, `header`) and a five-step `strength`. Every ink keeps its STY-25 floor over the background's worst pixel: inks the author did not set move in lightness first, and the background weakens only when they cannot. A picture under text is washed by the least page-coloured layer that holds over a black or a white pixel; in the margins the report sits on a solid sheet, and behind the header a picture puts the title on a solid panel. Charts, tables, code and embeds keep solid surfaces. Nothing moves; paper, high contrast and forced colours show the flat page.
+
+STY-50, unanswered, is amended with it: "no decorative gradients … in RichView's chrome; an author's `background` may use the derived gradients and textures of STY-74." STY-62's "styles do not tint images" stays true for image blocks. Behind a chosen section (`::: band`) waits for the Columns stream's fenced divs.
+
+# Glow on highlight — S27-986
+
+Target: Charts — a highlighted mark glows the way Daniel picked from the glow sheet on 17 November ("Medium, Far for scatter points"). No accepted answer changes.
+
+## FEA-CH-53 — the glow (replaces the 4 px halo band outside Hand-drawn)
+
+A highlighted mark glows in its own colour: many thin bands of equal strength, so the glow fades evenly outwards, with the page showing between mark and glow. Every highlighted mark in Sleek, Air, Scientific and Brutalist, and the hover dot on a line, glows Medium: 10 px, 34% at the mark. A single point is small, so it carries the larger glow. Far is for small single dots that stand apart: the points of scatter, strip, Q-Q and 3-D scatter charts glow Far, 18 px and 36% at the mark, and the point grows by 60% instead of 25%. A dot plot's dots are large and touch, so they glow Medium and do not grow (the lead, 18 November, from the glow sheet). Packed bubbles and a scatter or 3-D scatter sized by a field draw bubbles, which keep Medium; of these only the sized scatter's bubble grows, by a quarter, as before. Hand-drawn keeps its flat 4 px band at 25%, because a soft glow on paper reads as a drop shadow, which a pen drawing does not have. That is the style's own setting, an internal `chart.glow: flat` leaf that only Hand-drawn and the presets built on it carry, so an author's `chart.decals` switch changes no glow. A line inside its mark's own box, as a boxplot's median, gets no glow. This replaces the 25%, 4 px halo of the FEA-CH-52 and FEA-CH-53 amendment above for every style but Hand-drawn. Assumed: the lead read "Far for scatter points" as every small single dot that stands apart (18 November); Daniel may narrow it to the scatter chart alone.

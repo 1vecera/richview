@@ -143,6 +143,7 @@ $cli = Quote (Join-Path (Join-Path $Prefix 'bin') 'richview.exe')
 "Add $(Join-Path $Prefix 'bin') to PATH, or invoke the CLI by its full path."
 "Start a report: & $cli init my-report"
 "Agent MCP command: & $cli mcp"
-'PDF output and SQL data sources are not available on Windows yet.'
+"Optional Cowork server: & $cli server --help"
+'When you publish, choose RichView-hosted Cowork or your own server; no hosted service was started.'
 "Uninstall: powershell -ExecutionPolicy Bypass -File $(Quote (Join-Path $Prefix 'uninstall.ps1')) -Uninstall -Prefix $(Quote $Prefix)"
 }

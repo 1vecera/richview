@@ -59,13 +59,17 @@ fn snippet_catalog_contains_each_block_and_chart_once() {
         .chain(
             richview_core::registry::TAGS
                 .iter()
+                .chain(richview_core::registry::LAYOUTS)
                 .map(|tag| tag.name)
                 .filter(|name| *name != "chart"),
         )
         .collect();
     ids.sort();
     expected.sort();
-    assert_eq!(ids, expected, "one snippet per block and chart type");
+    assert_eq!(
+        ids, expected,
+        "one snippet per block, layout and chart type"
+    );
 }
 
 #[test]

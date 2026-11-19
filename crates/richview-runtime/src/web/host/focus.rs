@@ -52,7 +52,17 @@ pub(super) fn ring(v: &View) -> (Vec<Item>, f64) {
     let contoured = v.geometry.panels.get(t.panel).is_some_and(|panel| {
         panel.observations.get(t.observation).is_some_and(|o| {
             let clear = Rgba([0.0; 4]);
-            super::contour::items(kind, panel, t.observation, o.wedge, clear, clear, 0.0).is_some()
+            super::contour::items(
+                kind,
+                panel,
+                t.observation,
+                o.wedge,
+                clear,
+                clear,
+                0.0,
+                super::contour::Glow::MEDIUM,
+            )
+            .is_some()
                 || (panel.targeting == Targeting::Contain
                     && super::contour::tiles(kind, panel, t.observation, clear, 0.0).is_some())
         })
@@ -72,7 +82,16 @@ pub(super) fn ring(v: &View) -> (Vec<Item>, f64) {
         // A gauge's contour is the band its value falls in, not every mark its reading owns.
         Some(panel) if kind == "gauge" => {
             let clear = Rgba([0.0; 4]);
-            let drawn = super::contour::items(kind, panel, t.observation, None, clear, clear, 1.0);
+            let drawn = super::contour::items(
+                kind,
+                panel,
+                t.observation,
+                None,
+                clear,
+                clear,
+                1.0,
+                super::contour::Glow::MEDIUM,
+            );
             drawn_outlines(&drawn.unwrap_or_default())
         }
         _ => outlines(kind, &v.geometry, t, v.pointer, contoured),
@@ -1908,8 +1927,17 @@ mod tests {
         let g = chart(&fixture);
         let panel = &g.panels[0];
         let clear = Rgba([0.0; 4]);
-        let drawn = crate::test_contour::items("gauge", panel, 0, None, clear, clear, 1.0)
-            .expect("the contour draws a gauge's band");
+        let drawn = crate::test_contour::items(
+            "gauge",
+            panel,
+            0,
+            None,
+            clear,
+            clear,
+            1.0,
+            crate::test_contour::Glow::MEDIUM,
+        )
+        .expect("the contour draws a gauge's band");
         let outlines = drawn_outlines(&drawn);
         let [
             Outline::Polygon {

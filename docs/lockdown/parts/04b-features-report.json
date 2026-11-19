@@ -835,7 +835,7 @@
       "title": "Code blocks",
       "question": "How do ordinary fenced code blocks render: plain, in the style’s mono face, or highlighted?",
       "why": "Only inline code gets the style’s mono face; `pre code` falls back to the browser’s default monospace, so the fixture PDF reports 137 glyphs drawn in Menlo (`export.font-fallback`). A highlighter for Rich Markdown, YAML and shell exists, but only the site uses it.",
-      "proposed": "Fenced code blocks, including unknown tags such as `sql` or `mermaid`, render as plain preformatted text in the style’s mono face at the small size, scrolling horizontally on screen and wrapping on paper. Reports apply no syntax highlighting, and diagram languages are not executed.",
+      "proposed": "A fenced code block renders as preformatted text in the style's mono face at the small size. On screen it scrolls sideways inside its own box; on paper it wraps, each wrapped line hanging from its own indent. An info string of Rich Markdown, YAML or shell (such as `rmd`, `yaml` or `sh`) is highlighted as below; any other leaves the code plain.\n\nThe label, the title, line numbers and marks belong to the `code` block. Its head shows `lang` as the language label and `title`, a file name or caption, and it has three more fields:\n\n- `lines`: line numbers, which are never copied with the code.\n- `mark`: lines and ranges such as `5-6`, set as a rule plus a tint, never colour alone. A mark past the last line warns `code.mark`.\n- `src`: a UTF-8 text file of the report folder, given instead of `text`. It holds 400 lines at most; a longer file is a `block.schema` error that says to excerpt it.\n\nCode is text and is never executed. Diagram languages such as `mermaid` are code like any other.\n\nRich Markdown, YAML and shell are highlighted when the report is built, in two tones of the style's own text colours: keys, commands, tags and headings strong, comments and punctuation soft. A strong tone takes the code face's 600, and a comment its italic, only where the style embeds that face; otherwise the ink alone carries the tone, never a synthesized bold or slant. Every other language is plain.\n\n`code` is a rich fence tag, so a plain fence whose info string is `code` is now read as the block; a listing written that way needs another info string.",
       "options": [
         {
           "label": "Plain, style mono face",
@@ -850,7 +850,7 @@
           "detail": "Browser monospace; PDF depends on the printing machine’s fonts."
         }
       ],
-      "recommendation": "Plain, style mono face: reports are data stories, and code is rare.",
+      "recommendation": "Highlight known languages: Daniel asked for code blocks as an element of the format (16 November 2026), and RichView's own examples are Rich Markdown, YAML and shell. The two tones come from each style's existing text colours, so no style needs new colours.",
       "confidence": "observed",
       "sources": [
         {
@@ -867,6 +867,11 @@
           "label": "Highlighter used by the docs build and homepage only",
           "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-build/src/main.rs#L358",
           "date": "2026-10-16"
+        },
+        {
+          "label": "Daniel's review of candidate/17, 16 November 2026: “two new things that I really need to build”, expands and code blocks; the elements gallery should list everything; the format reference topics should be one long page",
+          "ref": "Daniel's annotations on candidate/17",
+          "date": "2026-11-16"
         }
       ],
       "conflicts": "`evidence/product.md` (F-CORE-CODE-HIGHLIGHT) lists highlighting as a core feature; no report path calls it."
@@ -971,6 +976,141 @@
         }
       ],
       "conflicts": "TYP-01 defines a rich fence by its info string alone; accepting adds the top-level rule there and `block.nested` to TYP-55’s catalogue. Cross-part contradiction: answer OPN-58 first; it decides this card's conflict."
+    },
+    {
+      "id": "FEA-RP-66",
+      "kind": "feature",
+      "importance": "important",
+      "refId": "F-EXPAND",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Rich blocks: callouts, media and embeds",
+      "title": "Expands",
+      "question": "Can an author fold long detail into a titled part of the report that the reader opens?",
+      "why": "Daniel asked for expands as an element of the format in his review of candidate/17 on 16 November 2026 and called them a huge priority on 18 November. An author has no way to fold detail today. The runtime's own disclosures (a table's overflow, a transcript, provenance) set the precedent for the look and for reading without scripts.",
+      "proposed": "An `expand` block is a titled part of the report that the reader opens. Its fields are `title` (text, required), `body` (Markdown, required: paragraphs, lists, Markdown tables and code) and `open` (default `false`).\n\nIt renders as a native disclosure, so it works before the runtime starts and with scripts off (FEA-RP-39), and the browser's find-in-page opens it. Its title row spans the measure, is at least 44 px tall and carries a line chevron that turns as it opens; expands that follow one another share one hairline.\n\nOn paper and in a PDF every expand is open, its title set as a small heading and the chevron gone.\n\nIt has one level only. A rich block in the body, another expand included, is not rendered: it shows the not-rendered notice with a `block.nested` error, as in a callout (FEA-RP-53). An empty `title` or `body` is a `block.schema` error.\n\nA whole section with its charts folds as a collapsible section (FEA-RP-67), not as an expand.\n\n`expand` is a rich fence tag, so a plain fence whose info string is `expand` is now read as the block.",
+      "options": [
+        {
+          "label": "Build as proposed",
+          "detail": "Markdown in the body, one level; sections with charts fold through FEA-RP-67."
+        },
+        {
+          "label": "Rich blocks in the body too",
+          "detail": "Charts and tables inside an expand: the parser renders a body as a small report, and a closed chart must keep its box."
+        },
+        {
+          "label": "Drop",
+          "detail": "Authors keep long detail in the flow of the report."
+        }
+      ],
+      "recommendation": "Build as proposed: it covers short detail safely, and FEA-RP-67 covers a section with its charts.",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "Daniel's review of candidate/17, 16 November 2026: “two new things that I really need to build”, expands and code blocks; the elements gallery should list everything; the format reference topics should be one long page",
+          "ref": "Daniel's annotations on candidate/17",
+          "date": "2026-11-16"
+        },
+        {
+          "label": "Daniel, 18 November 2026: “blocks and columns expand elements are a huge priority for me”",
+          "ref": "Daniel's message of 18 November 2026",
+          "date": "2026-11-18"
+        },
+        {
+          "label": "The block's render and its print rule",
+          "ref": "crates/richview-core/src/blocks.rs, crates/richview-core/assets/report.css, crates/richview-core/assets/print.css",
+          "date": "2026-11-18"
+        }
+      ]
+    },
+    {
+      "id": "FEA-RP-67",
+      "kind": "feature",
+      "importance": "important",
+      "refId": "F-COLLAPSIBLE-SECTIONS",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Document and header",
+      "title": "Collapsible sections",
+      "question": "Can an author fold a whole section of a report, charts and all, under its heading?",
+      "why": "An expand holds Markdown only (FEA-RP-66), and long reports put their method, sources and appendices in whole sections with charts and tables. Daniel asked for collapsible sections on 9 November 2026, again in his review of candidate/17 on 16 November, and called expands a huge priority on 18 November.",
+      "proposed": "`collapsed_sections` in the frontmatter lists the generated anchors of top-level headings whose sections start closed on screen. The heading becomes the control of a native disclosure, with the expand's line chevron (FEA-RP-66) at the heading's size, centred on its first line.\n\nA section holds its lower-level headings and every rich block, charts and tables included. It ends at the next heading of the same or a higher level, at a tab boundary, before the report's Notes or at the end of the report. Without scripts the disclosure still opens (FEA-RP-39).\n\nOn paper every section is open, on the report's measure, without the chevron: a PDF is laid out as the unfolded report, and a browser's print opens each disclosure.\n\nTwo cases warn and leave the section open, so nothing an author wrote becomes unreachable: an anchor that names no top-level heading (`section.anchor-missing`), and a heading that holds a link (`section.heading-interactive`), whose link would otherwise sit inside another control. An entry repeated in the list folds its section once.",
+      "options": [
+        {
+          "label": "Build as proposed",
+          "detail": "A frontmatter list of anchors; the source's headings stay ordinary Markdown."
+        },
+        {
+          "label": "A marker on the heading",
+          "detail": "Needs new heading syntax in the source."
+        },
+        {
+          "label": "Drop",
+          "detail": "Only expands fold, and they hold no charts."
+        }
+      ],
+      "recommendation": "Build as proposed: the source stays plain Markdown, and removing the line unfolds every section.",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "Daniel's review of candidate/17, 16 November 2026: “two new things that I really need to build”, expands and code blocks; the elements gallery should list everything; the format reference topics should be one long page",
+          "ref": "Daniel's annotations on candidate/17",
+          "date": "2026-11-16"
+        },
+        {
+          "label": "Daniel, 18 November 2026: “blocks and columns expand elements are a huge priority for me”",
+          "ref": "Daniel's message of 18 November 2026",
+          "date": "2026-11-18"
+        },
+        {
+          "label": "The section fold and its ten tests",
+          "ref": "crates/richview-core/src/render.rs (fold_sections), crates/richview-core/tests/collapsible_sections.rs",
+          "date": "2026-11-18"
+        }
+      ]
+    },
+    {
+      "id": "FEA-RP-68",
+      "kind": "feature",
+      "importance": "important",
+      "refId": "F-COLUMNS",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Rich blocks: callouts, media and embeds",
+      "title": "Columns",
+      "question": "Can an author put two to four blocks side by side, such as two charts, a chart beside its explanation or a row of metrics?",
+      "why": "Daniel called blocks and columns a huge priority on 18 November 2026. Every block stacks in one column today, so a chart and the sentence that explains it, or three headline numbers, can only follow one another.",
+      "proposed": "A `::: columns` line opens two to four columns, each `::: column` holds one column and a line of `:::` closes each column and the columns, the fenced-div shape of Pandoc, Quarto and MyST. A column holds prose, headings of level 3 and below and rich blocks with their source notes, written as at the top level. It cannot hold other columns, a scrolly block, a level 1 or 2 heading or the heading a tab or a collapsed section starts at.\n\nThe options after `::: columns` are a YAML flow mapping of closed vocabulary, checked like a block's fields: `widths` (`equal`, or a ratio such as `2-1` or `1-2-1`), `gap` (`small`, `medium`, `large`), `align` (`top`, `center`, `bottom`) and `wide` (default `true`: the report's width; `false` keeps the text measure). No author writes a class, a style or a length.\n\nReading order is source order. The columns stand side by side while the narrowest would be at least its floor, a phone's column for a chart, table, frame, video or code and 11rem otherwise, and stack, all of them, below it; the same rule holds on paper, where a column is not split and a PDF's float and fit pass treats the whole columns box as one unit, so a chart in a column is never floated or fitted on its own. On a phone they always stack. A chart is laid out at its column's width, and between a phone and the width where the columns stand side by side at the stacked column's width, so the box the page reserves matches the runtime's layout above the width where the columns stand side by side and on a phone, and comes within a few pixels of it between them.\n\nA value outside the vocabulary (`widths: 70%`) is a `block.schema` error, as in a block, and leaves the markers as text.\n\nColumns that are not well formed warn with their own `columns.*` code and every line stays as it was, so the content renders in one column exactly as it would without columns. Other fenced divs stay text without a warning.",
+      "options": [
+        {
+          "label": "Build as proposed",
+          "detail": "Fenced divs around ordinary Markdown and rich fences; closed widths; wide by default; stacking by each column's floor."
+        },
+        {
+          "label": "One fence of four backticks with separators",
+          "detail": "Shorter, but editors and GitHub show the whole thing as code, and the separator is a new invention."
+        },
+        {
+          "label": "A YAML block listing the columns",
+          "detail": "Fits the field walker, but prose becomes YAML block scalars, data sits two levels deeper and source notes do not work."
+        }
+      ],
+      "recommendation": "Build as proposed: the content of a column is written exactly as at the top level, with its own diagnostics and line numbers, and the shape is the one authors and agents already know from Quarto.",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "Daniel, 18 November 2026: “blocks and columns expand elements are a huge priority for me”",
+          "ref": "Daniel's message of 18 November 2026",
+          "date": "2026-11-18"
+        },
+        {
+          "label": "The lead's approval of the columns proposal, option A as written, with wide by default and stacking by each column's floor, 18 November 2026",
+          "ref": "The RichView lead's message of 18 November 2026",
+          "date": "2026-11-18"
+        },
+        {
+          "label": "The markers, their checks and the layout",
+          "ref": "crates/richview-core/src/columns.rs, crates/richview-core/assets/report.css, crates/richview-core/assets/print.css",
+          "date": "2026-11-18"
+        }
+      ]
     },
     {
       "id": "FEA-RP-19",

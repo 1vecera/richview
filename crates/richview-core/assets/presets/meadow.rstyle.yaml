@@ -1,0 +1,11 @@
+# Meadow: Air in forest green and amber, soft corners and room to breathe. An extended preset
+# (STY-73), written in the author syntax.
+preset: air
+colors:
+  brand: "oklch(0.5185 0.1100 157.66)"
+  secondary: "oklch(0.7060 0.1505 71.87)"
+corners: large
+spacing: large
+padding: large
+tint: large
+motion: large

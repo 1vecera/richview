@@ -50,6 +50,36 @@
       ]
     },
     {
+      "case": "s07-background-injection",
+      "sink": "style file background leaves: texture, gradient, place and strength carrying CSS, markup and remote URLs",
+      "expect": [
+        "style.schema"
+      ],
+      "absent": [
+        "HOSTILE_TEXTURE",
+        "HOSTILE_GRADIENT",
+        "HOSTILE_PLACE"
+      ]
+    },
+    {
+      "case": "s08-background-picture-paths",
+      "sink": "style file background.picture: a path out of the report folder and an SVG data URL",
+      "expect": [
+        "style.schema"
+      ],
+      "absent": [
+        "HOSTILE_PICTURE",
+        "HOSTILE_SVG"
+      ]
+    },
+    {
+      "case": "s09-background-alpha-conflict",
+      "sink": "style file background: a picture with an alpha channel beside a texture",
+      "expect": [
+        "style.background-conflict"
+      ]
+    },
+    {
       "case": "m01-raw-html-tags",
       "sink": "Markdown raw HTML: script, handlers, style, iframe, form, object, embed, link, meta, base, svg, math, table, media",
       "expect": [
@@ -521,6 +551,60 @@
       "expect": [
         "security.html",
         "style.schema"
+      ]
+    },
+    {
+      "case": "m17-columns-options",
+      "sink": "columns opener options: widths, gap, unknown class, style and id keys, HTML in place of options",
+      "expect": [
+        "block.schema",
+        "block.unknown-key",
+        "columns.options",
+        "security.html"
+      ],
+      "absent": [
+        "HOSTILE_STYLE",
+        "HOSTILE_ONERROR",
+        "HOSTILE_HANDLER"
+      ],
+      "forbidden_ids": [
+        "rv-chart-0"
+      ],
+      "forbidden_classes": [
+        "rv-hostile-columns",
+        "rv-hostile-inner"
+      ],
+      "present": [
+        "rv-columns--center"
+      ]
+    },
+    {
+      "case": "m18-columns-forgery",
+      "sink": "column placeholder comments typed into the body, a callout, code and a column",
+      "expect": [
+        "security.html"
+      ],
+      "absent": [
+        "<!--richview:columns",
+        "<!--richview:generated",
+        "rv-hostile"
+      ],
+      "present": [
+        "rv-metric__value\">7",
+        "<div class=\"rv-column\">"
+      ]
+    },
+    {
+      "case": "m19-columns-unbalanced",
+      "sink": "nested, unclosed and stray column markers",
+      "expect": [
+        "columns.nested",
+        "columns.stray",
+        "columns.unclosed"
+      ],
+      "forbidden_classes": [
+        "rv-columns",
+        "rv-column"
       ]
     }
   ]

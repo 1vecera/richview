@@ -105,6 +105,9 @@ chart:
   legend: bottom
   font-family: "Patrick Hand, cursive"
   decals: true
+  # A highlighted mark keeps one flat 4 px band: a soft glow on paper reads as a drop shadow, which
+  # a pen drawing does not have (FEA-CH-53).
+  glow: flat
   # Data in greys, ink for text. The first four sit at least 0.15 apart in lightness and reach 3:1 on
   # the paper; hatches and dashes carry identity as well (STY-22, STY-23).
   palette: hand-drawn

@@ -1,0 +1,69 @@
+{
+  "chart": {
+    "bar-radius": 0,
+    "legend": "bottom",
+    "negative-ramp": [
+      "oklch(0.965 0.015 52)",
+      "oklch(0.72 0.12 52)",
+      "oklch(0.46 0.112 54)"
+    ],
+    "palette": [
+      "#112233",
+      "#AA5500"
+    ],
+    "ramp": [
+      "oklch(0.965 0.015 262)",
+      "oklch(0.72 0.12 262)",
+      "oklch(0.46 0.21 264)"
+    ]
+  },
+  "css": ":root {\n  --rv-accent: oklch(0.48 0.22 264);\n  --rv-accent-soft: oklch(0.48 0.22 264 / 0.12);\n  --rv-bg: #FAFAFA;\n  --rv-bg-chart: oklch(1 0 0);\n  --rv-bg-elev: oklch(0.9769 0.0109 274.9);\n  --rv-block-gap: 5rem;\n  --rv-brand: oklch(0.48 0.22 264);\n  --rv-chart-ink: oklch(0 0 0);\n  --rv-density: 1.25;\n  --rv-down: oklch(0.55 0.19 27);\n  --rv-font-display: Space Grotesk, Inter, sans-serif;\n  --rv-font-mono: Geist Mono, JetBrains Mono, ui-monospace, monospace;\n  --rv-font-text: Geist, Inter, system-ui, sans-serif;\n  --rv-font-ui: Geist, Inter, system-ui, sans-serif;\n  --rv-hold: oklch(0.55 0.12 70);\n  --rv-ink: oklch(0 0 0);\n  --rv-ink-faint: oklch(0.5456 0.0327 268.08);\n  --rv-ink-soft: oklch(0.3313 0.0195 260.65);\n  --rv-line-base: 1.65;\n  --rv-link: oklch(0.48 0.22 264);\n  --rv-measure: 42rem;\n  --rv-radius-m: 4px;\n  --rv-radius-s: 12px;\n  --rv-report-max-width: 880px;\n  --rv-rule: oklch(0.8635 0.0277 267.5);\n  --rv-rule-soft: oklch(0.9399 0.0141 268.49);\n  --rv-shadow-float: 0 2px 8px oklch(0 0 0 / 0.12);\n  --rv-size-base: 18px;\n  --rv-size-display: 50px;\n  --rv-size-h1: 40px;\n  --rv-size-h2: 30px;\n  --rv-size-h3: 22px;\n  --rv-size-small: 15px;\n  --rv-up: oklch(0.52 0.13 150);\n}\n@media (max-width: 640px) {\n:root {\n  --rv-block-gap: 3rem;\n  --rv-size-base: 17px;\n  --rv-size-display: 38px;\n  --rv-size-h1: 33px;\n  --rv-size-h2: 28px;\n  --rv-size-h3: 21px;\n  --rv-size-small: 14px;\n}\n}\n:root{color-scheme:light}\n:root{--rv-motion-duration:640ms;--rv-motion-easing:cubic-bezier(0.25,0.8,0.25,1);--rv-motion-stagger:50ms;--rv-motion-distance:10px;--rv-motion-block:fade-up}\n.rv-report__body blockquote{font-style:italic}\n.rv-callout{border-top-width:1px}\n.rv-report__title{letter-spacing:-0.035em}\n.rv-chart{border:2px solid var(--rv-ink);padding:1rem 1.25rem}\n.rv-chart.rv-chart--expanded{border:0;background:none;border-radius:0}\n@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}\n",
+  "custom_properties": {
+    "--rv-accent": "oklch(0.48 0.22 264)",
+    "--rv-accent-soft": "oklch(0.48 0.22 264 / 0.12)",
+    "--rv-bg": "#FAFAFA",
+    "--rv-bg-chart": "oklch(1 0 0)",
+    "--rv-bg-elev": "oklch(0.9769 0.0109 274.9)",
+    "--rv-block-gap": "5rem",
+    "--rv-block-gap-phone": "3rem",
+    "--rv-brand": "oklch(0.48 0.22 264)",
+    "--rv-chart-ink": "oklch(0 0 0)",
+    "--rv-density": "1.25",
+    "--rv-down": "oklch(0.55 0.19 27)",
+    "--rv-font-display": "Space Grotesk, Inter, sans-serif",
+    "--rv-font-mono": "Geist Mono, JetBrains Mono, ui-monospace, monospace",
+    "--rv-font-text": "Geist, Inter, system-ui, sans-serif",
+    "--rv-font-ui": "Geist, Inter, system-ui, sans-serif",
+    "--rv-hold": "oklch(0.55 0.12 70)",
+    "--rv-ink": "oklch(0 0 0)",
+    "--rv-ink-faint": "oklch(0.5456 0.0327 268.08)",
+    "--rv-ink-soft": "oklch(0.3313 0.0195 260.65)",
+    "--rv-line-base": "1.65",
+    "--rv-link": "oklch(0.48 0.22 264)",
+    "--rv-measure": "42rem",
+    "--rv-radius-m": "4px",
+    "--rv-radius-s": "12px",
+    "--rv-report-max-width": "880px",
+    "--rv-rule": "oklch(0.8635 0.0277 267.5)",
+    "--rv-rule-soft": "oklch(0.9399 0.0141 268.49)",
+    "--rv-shadow-float": "0 2px 8px oklch(0 0 0 / 0.12)",
+    "--rv-size-base": "18px",
+    "--rv-size-base-phone": "17px",
+    "--rv-size-display": "50px",
+    "--rv-size-display-phone": "38px",
+    "--rv-size-h1": "40px",
+    "--rv-size-h1-phone": "33px",
+    "--rv-size-h2": "30px",
+    "--rv-size-h2-phone": "28px",
+    "--rv-size-h3": "22px",
+    "--rv-size-h3-phone": "21px",
+    "--rv-size-small": "15px",
+    "--rv-size-small-phone": "14px",
+    "--rv-up": "oklch(0.52 0.13 150)"
+  },
+  "refs": [
+    "air",
+    "tokens:\n  radius-m: 4px\n  bg: '#FAFAFA'\n  size-h2: 30px\nchart:\n  bar-radius: 0\n  palette: ['#112233', '#AA5500']\ncomponents:\n  figure:\n    frame: outline\n"
+  ],
+  "scheme": "light"
+}

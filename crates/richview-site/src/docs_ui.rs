@@ -41,7 +41,14 @@ fn bind_style_links() {
             let Some(url) = selected.get_attribute("data-preview-src") else {
                 return;
             };
-            let Some(frame) = query(".docs-styles__frame")
+            // Each style row swaps its own frame: a chart page's, or the elements page's type sample.
+            let Some(row) = selected.closest(".docs-styles").ok().flatten() else {
+                return;
+            };
+            let Some(frame) = row
+                .query_selector(".docs-styles__frame")
+                .ok()
+                .flatten()
                 .and_then(|node| node.dyn_into::<web_sys::HtmlIFrameElement>().ok())
             else {
                 return;
@@ -49,7 +56,10 @@ fn bind_style_links() {
             event.prevent_default();
             frame.set_src(&url);
             let _ = frame.remove_attribute("hidden");
-            if let Ok(all) = document().query_selector_all("[data-style-link]") {
+            if let Ok(Some(open)) = row.query_selector("[data-style-open]") {
+                let _ = open.set_attribute("href", &url);
+            }
+            if let Ok(all) = row.query_selector_all("[data-style-link]") {
                 for i in 0..all.length() {
                     if let Some(node) = all.item(i).and_then(|node| node.dyn_into::<Element>().ok())
                     {

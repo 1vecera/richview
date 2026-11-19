@@ -13,7 +13,7 @@ import { FRESH_AGENT_SCHEDULE, STEPS, stepsForTier } from "../lib/steps.mjs";
 import { appendChange, listReceipts, readBaseline, readChanges, receiptNotes, writeBaseline, writeReceipt, writeReceiptNote } from "../lib/store.mjs";
 
 const git = (cwd, ...args) => execFileSync("git", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
-const passingSteps = () => stepsForTier("full", "full").map(({id}) => ({id, status: ["voiceover", "hosted-smoke"].includes(id) ? "unrun" : "pass", reason: "Standing gap, Daniel29Oct"}));
+const passingSteps = () => stepsForTier("full", "full").map(({id}) => ({id, status: ["voiceover", "hosted-smoke", "windows"].includes(id) ? "unrun" : "pass", reason: "Standing gap, Daniel29Oct"}));
 test("only a qualified approved prelaunch rotation can authorize a full gap",()=>{
 	const policy={phase:"prelaunch",since:"2026-10-30",by:"Daniel",rotation:["slow-a","slow-b","slow-c"]};
 	const steps=policy.rotation.map(id=>({id}));
@@ -61,6 +61,10 @@ function fixture(t) {
 	git(root, "init", "-b", "dev", cwd);
 	for (const [key, value] of [["user.name", "Fixture"], ["user.email", "fixture@example.test"], ["commit.gpgsign", "false"], ["core.hooksPath", "/dev/null"]]) git(cwd, "config", key, value);
 	const commit = text => { writeFileSync(join(cwd, "report.txt"), text); git(cwd, "add", "report.txt"); git(cwd, "commit", "-qm", text); return git(cwd, "rev-parse", "HEAD"); };
+	// merge-prod reads whether the candidate ships Windows from this file and refuses without it.
+	mkdirSync(join(cwd, "assets/install"), { recursive: true });
+	writeFileSync(join(cwd, "assets/install/release.json"), '{"enabled": false, "windows": false}\n');
+	git(cwd, "add", "assets/install/release.json");
 	const first = commit("first");
 	git(cwd, "remote", "add", "origin", remote);
 	git(cwd, "push", "-q", "origin", "HEAD:dev", "HEAD:pre-prod", "HEAD:prod");

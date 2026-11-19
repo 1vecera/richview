@@ -1,0 +1,6 @@
+---
+title: Background pictures outside the report folder
+styles: [s08-background-picture-paths.rstyle.yaml, s08-background-picture-paths.second.rstyle.yaml]
+---
+
+A picture must be a still raster inside the report folder.

@@ -58,6 +58,7 @@ styles: [scientific]
 | `format` | text |  | `rmd/1` | The format version the report was written for; a newer major version is refused. |
 | `tags` | text or list of text |  |  | Labels for the report; one string is one tag. |
 | `styles` | text or list of text |  |  | Style names or report-relative style files; the first is the base and later ones override it. One string is one entry. |
+| `collapsed_sections` | list of text |  |  | Heading anchors for sections initially closed on screen; their content remains available in print. |
 | `title_image` | text or mapping |  |  | The header image; a bare source string stands for `{src}`. |
 | `title_image.src` | text | yes |  | The image: a report-relative path, a data address or a credited Unsplash photo address. |
 | `title_image.alt` | text |  |  | The text alternative. |
@@ -155,6 +156,22 @@ The HTML report holds every panel in order. The runtime adds the tab buttons and
 
 A malformed tab configuration, including invalid field types or an unsupported export value, warns and renders the complete body without tabs. Missing, repeated or out-of-order starting anchors follow the same recovery. An unknown string default remains recoverable: it warns and selects the first panel.
 
+### Collapsible sections
+
+List a section's generated heading anchor in the frontmatter to make it initially closed on screen:
+
+````rmd
+---
+collapsed_sections: [sources-cited]
+---
+
+## Sources cited
+
+The sources and any rich blocks in this section.
+````
+
+The heading is the disclosure control. A section includes its lower-level headings and ends at the next heading of the same or a higher level, at a tab boundary, before the report's notes, or at the end of the report. In a PDF nothing folds: the report is laid out as if no section were listed. An anchor that does not name a top-level heading warns and leaves the content visible. A heading with a link also warns and stays unfolded, so its link does not become an interactive control inside another control. Move the link into the section to fold it. The generated frontmatter reference defines the field.
+
 ## Rich fences
 
 The fence tags:
@@ -166,6 +183,8 @@ The fence tags:
 | `table` | A table drawn from block-local data. |
 | `metric` | A single large number with its caption and change. |
 | `callout` | A highlighted note with a direction. |
+| `expand` | A titled part of the report that the reader opens; open on paper. |
+| `code` | Code with a title, line numbers and marked lines; shown as text, never run. |
 | `image` | An image from the report folder or a credited Unsplash photo. |
 | `embed` | An iframe of an allowed https host. |
 | `scrolly` | One image that stays in view beside narrative steps, each naming the state the figure takes. |
@@ -903,6 +922,96 @@ Scrollytelling keeps one image in view beside ordered steps:
 
 External assets are diagnosed, and `_richview.offline` is false while resources remain external. Unsafe media and link protocols are removed or replaced with visible blocked output. Raw HTML never renders (see Markdown extensions).
 
+## Expands and code
+
+An `expand` is a titled part of the report that the reader opens. It renders as a native disclosure, so it works before the runtime starts and with scripts off, and the browser's find-in-page opens it. It starts closed unless `open: true`; on paper and in a PDF every expand is open, its title set as a small heading. Its `body` is Markdown: paragraphs, lists, tables and code. A rich block inside it is not rendered: it shows a notice and a `block.nested` error, as in a callout. An empty `title` or `body` is a `block.schema` error.
+
+```yaml expand
+# expand
+title: How the sample was drawn
+body: |
+  1,200 orders drawn at random, at least 150 in each region.
+```
+
+<!-- registry:begin fields/expand -->
+| Field | Type | Required | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `title` | text | yes |  | The line the reader sees while it is closed, and taps to open it. |
+| `open` | `true` or `false` |  | `false` | Whether it starts open on screen; on paper it is always open. |
+| `body` | inline Markdown | yes |  | What opens: Markdown text, lists, tables and code. |
+<!-- registry:end -->
+
+A `code` block shows code as text, never run: give it as `text`, or name a UTF-8 text file of the report folder as `src` (400 lines at most; a longer file is a `block.schema` error that says to excerpt it). `lang` is shown as the block's label, `title` (a file name or caption) beside it, `lines: true` numbers the lines, and `mark` marks lines and ranges such as `5-6`; a mark past the last line is a warning. The numbers are generated, so a reader who copies the code gets the code alone. Code in Rich Markdown (`rmd`), YAML or shell (`sh`, `bash`) is highlighted when the report is built, in two tones of the style's own text colours; any other language is plain. An ordinary fenced code block is highlighted the same way by its info string. Diagram languages such as `mermaid` are code like any other.
+
+```yaml code
+# code
+title: orders_by_region.sql
+lang: sql
+lines: true
+mark: [3]
+text: |
+  select region, sum(amount) as amount
+  from orders
+  where refunded_within_a_day = false
+  group by region
+```
+
+<!-- registry:begin fields/code -->
+| Field | Type | Required | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `text` | text |  |  | The code; give it or `src`, not both. |
+| `src` | report-folder file |  |  | A UTF-8 text file of the report folder to show instead of `text`; 400 lines at most. |
+| `lang` | text |  |  | The language, shown as the block's label; rmd, yaml and shell are highlighted. |
+| `title` | text |  |  | A file name or caption in the block's head. |
+| `lines` | `true` or `false` |  | `false` | Whether the lines are numbered; the numbers are never copied with the code. |
+| `mark` | list of any value |  |  | Lines to mark: line numbers and ranges such as `5-6`. |
+<!-- registry:end -->
+
+## Columns
+
+Two to four columns stand side by side: two charts, a chart beside its explanation, three metrics, an image beside text. A `::: columns` line opens them, each `::: column` holds one column's prose and rich fences, written exactly as at the top level, and a line of `:::` closes each column and the columns themselves:
+
+````rmd
+::: columns {widths: 2-1}
+
+::: column
+```chart
+type: line
+title: Orders doubled after the launch
+data:
+  inline:
+    - {week: 8, orders: 481}
+    - {week: 9, orders: 502}
+    - {week: 10, orders: 690}
+    - {week: 11, orders: 812}
+    - {week: 12, orders: 845}
+encoding: {x: week, y: orders}
+```
+*Source: illustrative data.*
+:::
+
+::: column
+The launch week alone brought **1,240** orders, more than March and April together.
+:::
+
+:::
+````
+
+The options after `::: columns` are a YAML flow mapping, checked like a block's fields: an unknown key warns `block.unknown-key` and is dropped, and a value outside its vocabulary is a `block.schema` error that leaves the markers as text.
+
+<!-- registry:begin fields/columns -->
+| Field | Type | Required | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `widths` | one of `equal`, `2-1`, `1-2`, `3-2`, `2-3`, `3-1`, `1-3`, `2-1-1`, `1-2-1` or `1-1-2` |  | `equal` | The columns' shares of the width, left to right; a ratio needs as many parts as there are columns. |
+| `gap` | one of `small`, `medium` or `large` |  | `medium` | The space between the columns: half, one or one and a half lines of body text. |
+| `align` | one of `top`, `center` or `bottom` |  | `top` | Where shorter columns sit beside the tallest one. |
+| `wide` | `true` or `false` |  | `true` | Whether the columns take the report's full width; false keeps them within the text measure. |
+<!-- registry:end -->
+
+A column holds prose, headings of level 3 and below, and rich blocks, each with its source note. It cannot hold other columns, a scrolly block, a level 1 or 2 heading, or the heading a tab or a collapsed section starts at. Markers count only at the top level of the body, outside code, lists and quotes, and other fenced divs such as `::: note` stay text. Columns that are not well formed (one column or more than four, an empty column, text between the columns, a missing `:::`, or a column that holds what it cannot) warn with their own `columns.*` code at the line, and every line stays as it was, so the content renders in one column exactly as it would without columns. `widths` with a different number of parts than there are columns warns `columns.widths` and the columns are equal.
+
+The columns keep source order for reading: screen readers, find in page, copied text and the page without scripts read the first column, then the second. Each column's share of the width follows `widths`. The columns stand side by side while the narrowest column is at least its floor, a phone's column for a chart, table, frame or video and 11rem for anything else, and otherwise stack, all of them, in source order; the same rule applies on paper, where a column stays on one page. On a phone the columns always stack. Inside a column, the column is its blocks' measure: a chart is laid out for the column's width, with its readout, zoom and labels inside it, a table scrolls inside the column, and an image keeps its ratio.
+
 ## Markdown extensions
 
 CommonMark prose supports GFM tables, strikethrough, disabled task-list checkboxes and definition lists. Footnote references link to numbered endnotes at the end of the body, with links back to their references. A wikilink renders as its label and warns; links between reports use ordinary Markdown links. Quotations use a Markdown block quote with attribution on its last line. The `[!quote]` marker stays text and warns.
@@ -927,16 +1036,21 @@ A paragraph that directly follows a rich block (chart, table, metric, callout or
 
 ## Styles and motion
 
-`.rstyle.yaml` recognizes `tokens`, `layout`, `chart`, `motion` and `components`. Every value passes a closed grammar. A colour is `#` with 3, 4, 6 or 8 hex digits, `rgb()`, `rgba()`, `hsl()`, `hsla()`, `lab()`, `lch()`, `oklab()` or `oklch()`, or one of the CSS Color 4 named colours (148 keywords) plus `transparent` and `currentcolor`, in any case; any other word is refused. A chart `palette` or `ramp` entry must also be a colour the chart can draw, so `transparent` and `currentcolor` are valid only for page tokens. A refused leaf is skipped and reported; the rest of the file still applies. The builtin names and default below come from the same definitions as the style loader. Removed names fail with `style.renamed`; see [renamed and removed names](#renamed-and-removed-names).
+A `.rstyle.yaml` file names a `preset`, the author's `colors` (`brand`, an optional `secondary` and an optional `background`, from which every other colour is derived with its contrast floor met) and five-step settings, each `xsmall`, `small`, `medium`, `large` or `xlarge`, where `medium` is the preset's own value (STY-73). A `background` mapping adds a `texture` (`grain`, `dots`, `grid`, `lines`), a `gradient` (`soft`, `glow`) or a report-relative `picture`, at a `place` (`page`, `margins`, `header`) and a five-step `strength`; every ink keeps its contrast floor over it, figures keep solid surfaces, and paper drops it (STY-74). The sections `tokens`, `layout`, `chart`, `motion` and `components` are the presets' internal vocabulary: from an author's file they still apply, with a `style.legacy` warning naming the replacement. Every value passes a closed grammar. A colour is `#` with 3, 4, 6 or 8 hex digits, `rgb()`, `rgba()`, `hsl()`, `hsla()`, `lab()`, `lch()`, `oklab()` or `oklch()`, or one of the CSS Color 4 named colours (148 keywords) plus `transparent` and `currentcolor`, in any case; any other word is refused. A chart `palette` or `ramp` entry must also be a colour the chart can draw, so `transparent` and `currentcolor` are valid only for page tokens. A refused leaf is skipped and reported; the rest of the file still applies. The preset names, the default and which presets the menus show below come from the same definitions as the style loader. Removed names fail with `style.renamed`; see [renamed and removed names](#renamed-and-removed-names).
 
 <!-- registry:begin styles -->
-| Style | Default |
-| --- | --- |
-| `sleek` | yes |
-| `air` |  |
-| `scientific` |  |
-| `brutalist` |  |
-| `hand-drawn` |  |
+| Style | Default | Menu |
+| --- | --- | --- |
+| `sleek` | yes | main |
+| `air` |  | main |
+| `scientific` |  | main |
+| `brutalist` |  | main |
+| `hand-drawn` |  | main |
+| `midnight` |  | more presets |
+| `ledger` |  | more presets |
+| `meadow` |  | more presets |
+| `signal` |  | more presets |
+| `chalk` |  | more presets |
 <!-- registry:end -->
 
 The separate flagship showcase has its own presentation selector.
@@ -1076,10 +1190,19 @@ Every code keeps its level; renaming or removing one is a format change (TYP-55)
 | `style.logo-dimensions` | error |  | A company logo exceeds the image dimension limit. | Use a logo no larger than 1024 pixels on either side. |
 | `style.logo-animated` | error |  | A company logo is animated. | Use a still PNG, JPEG or WebP logo. |
 | `style.logo-name` | warning |  | A company logo has no name and is decorative. | Set company.name to the company name, or leave the mark decorative. |
+| `style.background-path` | error |  | A background picture path is not report-relative. | Use a file path inside the report folder. |
+| `style.background-missing` | error |  | A background picture is not available. | Put the background picture file inside the report folder. |
+| `style.background-format` | error |  | A background picture is not a valid raster image. | Use a valid still PNG, JPEG or WebP image. |
+| `style.background-size` | error |  | A background picture exceeds the file size limit. | Use a file no larger than 400 KiB. |
+| `style.background-dimensions` | error |  | A background picture exceeds the image dimension limit. | Use an image no larger than 2400 pixels on either side. |
+| `style.background-animated` | error |  | A background picture is animated. | Use a still PNG, JPEG or WebP image. |
+| `style.background-conflict` | warning |  | A background picture is set with a texture or gradient; the picture stands alone. | Keep the picture, or remove it to use the texture and gradient. |
+| `style.background-adjusted` | info |  | The background was made fainter so that text keeps its contrast over it. | Keep it, or choose a lower strength or a lighter page colour. |
 | `style.properties` | error |  | Custom style properties are invalid. | Fix the custom style properties to the documented names and values. |
 | `style.fonts-unavailable` | warning |  | The host has no bundled fonts, so text falls back to system fonts. | Generate the report with the CLI, which embeds the bundled fonts. |
 | `style.unknown-key` | warning |  | A style leaf is not in the style vocabulary and is skipped. | Remove the leaf, or rename it to the style key the message names. |
 | `style.experimental` | warning |  | A style leaf is experimental: it can break the layout in ways nobody expects. | Remove the leaf, or keep it only after checking the report at phone and desktop widths. |
+| `style.legacy` | warning |  | A style leaf of the presets' internal vocabulary still applies; a preset, colours or a five-step setting replaces it. | Use the replacement the message names: a preset, `colors` or a five-step setting. |
 | `style.internal` | warning |  | A style leaf fixes the page's mechanics and is ignored. | Remove the leaf; the page sets it itself. |
 | `style.contrast` | warning |  | A style colour is below its contrast floor on a surface. | Darken or lighten the colour until it reaches the floor the message names on that surface. |
 | `style.type-scale` | warning |  | Two neighbouring type sizes are closer than the minimum ratio. | Move the two sizes apart until each step is at least the ratio the message names. |
@@ -1097,6 +1220,7 @@ Every code keeps its level; renaming or removing one is a format change (TYP-55)
 | `image.alt-missing` | warning |  | The header image has no alt text, so it is treated as decorative. | Describe the image in `alt`, or write `alt: ""` to mark it decorative. |
 | `editor.service` | error |  | The editor service could not answer a request. | Retry the request; restart the editor service if it keeps failing. |
 | `block.nested` | error | yes | A rich block sits inside a list, quote or note. | Move the rich block out of the list, quote or note to the top level. |
+| `code.mark` | warning |  | A code block marks a line past its last line. | Mark only lines the code has, or add the lines you meant. |
 | `block.unknown-tag` | warning | yes | A fence names no rich tag; a close match is suggested. | Change the fence tag to the rich tag the message suggests, or keep the fence as code. |
 | `callout.title` | warning | yes | A callout has no title, so colour alone carries the finding. | Add a `title` that names the finding. |
 | `block.source` | warning |  | A chart or table has no source note directly after it. | Add a source note directly after the block, such as *Source: data/sales.csv.*, and name synthetic data as such. |
@@ -1116,7 +1240,18 @@ Every code keeps its level; renaming or removing one is a format change (TYP-55)
 | `table.total` | warning | yes | A table total skips columns it cannot sum. | List the columns to sum, such as `total: [accounts, revenue]`. |
 | `security.runtime-url` | warning |  | The chart runtime address is not allowed. | Use the embedded runtime, or a root-relative path or an https base without credentials, query or fragment. |
 | `tabs.anchor-missing` | warning |  | A tab panel's anchor is not in the body, so the body renders without tabs. | Give the body a heading with the panel's anchor, such as `## Costs {#costs}`, or correct the panel's `from`. |
+| `section.anchor-missing` | warning |  | A collapsed section names no top-level heading, so it stays unfolded. | Use the generated anchor of a top-level heading in collapsed_sections, or remove the entry. |
+| `section.heading-interactive` | warning |  | A collapsed section heading contains a link, so the section stays unfolded. | Move links out of the section heading, or remove its entry from collapsed_sections. |
 | `tabs.order` | warning |  | Tab anchors are not distinct and in document order, so the body renders without tabs. | List the panels in the order their headings appear, each starting from a different anchor. |
+| `columns.count` | warning | yes | Columns hold two to four columns, so these markers stay text and their content renders in one column. | Write two to four `::: column` sections between `::: columns` and its closing `:::`. |
+| `columns.empty` | warning | yes | A column holds nothing, so these markers stay text and the content renders in one column. | Put prose or a block in every column, or remove the empty `::: column` and its `:::`. |
+| `columns.nested` | warning | yes | Columns cannot sit inside a column, so these markers stay text and the content renders in one column. | Close the outer columns before opening the next, or put the blocks in the outer columns. |
+| `columns.heading` | warning | yes | A column holds a section heading or a tab's start, so these markers stay text and the content renders in one column. | Move the level 1 or 2 heading, or the heading a tab starts at, above the `::: columns` line. |
+| `columns.block` | warning | yes | A column holds a block that needs the page's width, so these markers stay text and the content renders in one column. | Move the scrolly block out of the columns. |
+| `columns.unclosed` | warning | yes | A columns or column marker has no closing `:::`, so the markers stay text and the content renders in one column. | Close each `::: column` and the `::: columns` itself with a line of `:::`. |
+| `columns.stray` | warning | yes | A column marker or text sits outside a column, so the markers stay text and the content renders in one column. | Put every line between `::: columns` and its closing `:::` inside a `::: column`, and open columns before a `::: column`. |
+| `columns.widths` | warning | yes | The widths name a different number of columns than there are, so the columns are equal. | Give `widths` one part per column, such as `2-1` for two columns, or remove it. |
+| `columns.options` | warning | yes | The options after `::: columns` are not a YAML mapping, so the columns take their defaults. | Write the options as a mapping, such as `::: columns {widths: 2-1, gap: large}`. |
 | `chart.invalid` | error | yes | A chart block could not be read. | Fix the chart block's fields to match the chart schema. |
 | `chart.failed` | error | yes | A chart failed to draw. | Check the chart's data and encodings, then fix the errors reported with it. |
 | `chart.states-unchecked` | warning | yes | Only the first reader states of a chart were checked. | Nothing to change if the checked states are typical; fewer control values let every state be checked. |

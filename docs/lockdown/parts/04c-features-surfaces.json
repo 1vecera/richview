@@ -2663,7 +2663,7 @@
 			"title": "Documentation guides",
 			"question": "Do the docs keep six task guides, with every reference fact generated from the code?",
 			"why": "S27-591 asked for a short, reliable path for a person or agent to produce a report, with shipped kept apart from planned. The six guides exist, but the sidebar says “RichView v3 alpha” (INT-42 allows only “Coming soon”), the format reference links a raw Markdown file, and several pages document flags and tools this part removes.",
-			"proposed": "Keep six guides: “Getting started”, “Writing Rich Markdown”, “Themes & styling”, “CLI, MCP & VS Code”, “Export & publishing” and “Troubleshooting”, plus the chart gallery (FEA-SF-43) and a rendered format reference page that replaces today's link to raw `RMD-SPEC.md`. Every table of commands, flags, tools, block keys, chart types and styles is generated from core (ARC-09), and the build fails when prose names something the code lacks (DEL-18). Each page links its Markdown source (`/docs/<guide>.md`). The status label reads “Coming soon” until launch (INT-42). How pages are rendered follows ARC-43.",
+			"proposed": "Keep six guides: “Getting started”, “Writing Rich Markdown”, “Themes & styling”, “CLI, MCP & VS Code”, “Export & publishing” and “Troubleshooting”, plus the chart gallery (FEA-SF-43) and a rendered format reference page that replaces today's link to raw `RMD-SPEC.md`. Every table of commands, flags, tools, block keys, chart types and styles is generated from core (ARC-09), and the build fails when prose names something the code lacks (DEL-18). Each page links its Markdown source (`/docs/<guide>.md`). The status label reads “Coming soon” until launch (INT-42). How pages are rendered follows ARC-43.\n\n**The sidebar and the references (Daniel, 16 November 2026).** The sidebar has the groups Gallery, Playground, How to use, Reference and Nitty-gritty. Reference holds the elements gallery and the format reference, each one page, with its parts listed under it as anchors in that page.\n\nThe format reference is one long page, `/docs/reference`, with every topic in the contract's order. A topic's old address is a small page that forwards to its part and is kept out of search and indexes.\n\nThe elements gallery is the overview of what a report is made of, with a way in to each element:\n\n- A card and a part of its own for charts, flow charts, tables, expands, code blocks, type and fonts, and pictures.\n- A compact card for each of the others (metrics, callouts, audio, video, external embeds, scrollytelling, tabs and contents). It opens the guide section that shows it live; a build test fails when that section is missing.",
 			"confidence": "observed",
 			"sources": [
 				{
@@ -2685,6 +2685,11 @@
 					"label": "INT-42: “Coming soon” is the only status label",
 					"ref": "docs/lockdown/parts/01-intent.json (INT-42)",
 					"date": "2026-10-21"
+				},
+				{
+					"label": "Daniel's review of candidate/17, 16 November 2026: “two new things that I really need to build”, expands and code blocks; the elements gallery should list everything; the format reference topics should be one long page",
+					"ref": "Daniel's annotations on candidate/17",
+					"date": "2026-11-16"
 				}
 			],
 			"images": [

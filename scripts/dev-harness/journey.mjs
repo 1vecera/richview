@@ -68,7 +68,8 @@ try {
         assert.deepEqual(table, [['Jul', '120'], ['Aug', '150'], ['Sep', '180']]);
         assert.match(await page.locator('.rv-table tfoot').innerText(), /450/);
         const accent = await page.locator('body').evaluate(body => getComputedStyle(body).getPropertyValue('--rv-accent').trim());
-        assert.equal(accent, 'oklch(0.4806 0.1597 25.56)', 'The report-local style must reach the browser');
+        // The report-local brand #A52A2A, as the style cascade writes it.
+        assert.equal(accent, 'oklch(0.48061 0.15966 25.562)', 'The report-local style must reach the browser');
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
         assert.ok(overflow <= 1, `${width}px report overflows by ${overflow}px`);
         assert.equal(await page.locator('.rv-chart__frame').count(), 1);

@@ -17,7 +17,7 @@ npm,@ai-sdk/anthropic,2025-06,1713107,67112.5,30,Anthropic
 npm,@ai-sdk/anthropic,2025-07,2290855,83324.0,31,Anthropic
 npm,@ai-sdk/anthropic,2025-08,2852612,109934.0,31,Anthropic
 npm,@ai-sdk/anthropic,2025-09,3670686,140193.5,30,Anthropic
-npm,@ai-sdk/anthropic,2025-10,4528819,177411.0,29,Anthropic
+npm,@ai-sdk/anthropic,2025-10,4800384,177411.0,31,Anthropic
 npm,@ai-sdk/anthropic,2025-11,5432466,217126.0,30,Anthropic
 npm,@ai-sdk/anthropic,2025-12,6403902,228570.0,31,Anthropic
 npm,@ai-sdk/anthropic,2026-01,9678497,353686.0,31,Anthropic
@@ -25,10 +25,11 @@ npm,@ai-sdk/anthropic,2026-02,12927302,528584.0,28,Anthropic
 npm,@ai-sdk/anthropic,2026-03,17692032,635207.0,31,Anthropic
 npm,@ai-sdk/anthropic,2026-04,20988274,798305.5,30,Anthropic
 npm,@ai-sdk/anthropic,2026-05,25481184,959789.0,31,Anthropic
-npm,@ai-sdk/anthropic,2026-06,30022752,1162436.0,29,Anthropic
-npm,@ai-sdk/anthropic,2026-07,39614115,1443322.0,30,Anthropic
-npm,@ai-sdk/anthropic,2026-08,45858982,1756058.0,30,Anthropic
-npm,@ai-sdk/anthropic,2026-09,53520809,2308212.0,26,Anthropic
+npm,@ai-sdk/anthropic,2026-06,31223179,1179918.0,30,Anthropic
+npm,@ai-sdk/anthropic,2026-07,40317621,1429537.0,31,Anthropic
+npm,@ai-sdk/anthropic,2026-08,47607761,1755439.0,31,Anthropic
+npm,@ai-sdk/anthropic,2026-09,55808354,2303978.0,27,Anthropic
+npm,@ai-sdk/anthropic,2026-10,68722296,2921055.5,26,Anthropic
 npm,@ai-sdk/google,2024-04,3154,101.0,19,Google
 npm,@ai-sdk/google,2024-05,17598,524.0,31,Google
 npm,@ai-sdk/google,2024-06,30885,954.5,30,Google
@@ -55,10 +56,11 @@ npm,@ai-sdk/google,2026-02,10009217,408670.5,28,Google
 npm,@ai-sdk/google,2026-03,13109021,479416.0,31,Google
 npm,@ai-sdk/google,2026-04,15387326,576251.0,30,Google
 npm,@ai-sdk/google,2026-05,18636150,690177.0,31,Google
-npm,@ai-sdk/google,2026-06,21979596,849423.0,29,Google
-npm,@ai-sdk/google,2026-07,27735611,1004167.5,30,Google
-npm,@ai-sdk/google,2026-08,30268523,1166310.0,30,Google
-npm,@ai-sdk/google,2026-09,34418228,1464296.5,26,Google
+npm,@ai-sdk/google,2026-06,22833478,849562.5,30,Google
+npm,@ai-sdk/google,2026-07,28275271,1001155.0,31,Google
+npm,@ai-sdk/google,2026-08,31423125,1159563.0,31,Google
+npm,@ai-sdk/google,2026-09,35893109,1474881.0,27,Google
+npm,@ai-sdk/google,2026-10,42456391,1841629.0,26,Google
 npm,@ai-sdk/openai,2024-04,8320,361.0,19,OpenAI
 npm,@ai-sdk/openai,2024-05,68853,2240.0,31,OpenAI
 npm,@ai-sdk/openai,2024-06,143135,4518.0,30,OpenAI
@@ -85,12 +87,13 @@ npm,@ai-sdk/openai,2026-02,16003574,662882.5,28,OpenAI
 npm,@ai-sdk/openai,2026-03,20699908,781041.0,31,OpenAI
 npm,@ai-sdk/openai,2026-04,23677016,898077.5,30,OpenAI
 npm,@ai-sdk/openai,2026-05,27731263,1044832.0,31,OpenAI
-npm,@ai-sdk/openai,2026-06,32057336,1243443.0,29,OpenAI
-npm,@ai-sdk/openai,2026-07,40350536,1475914.5,30,OpenAI
-npm,@ai-sdk/openai,2026-08,45981302,1751343.5,30,OpenAI
-npm,@ai-sdk/openai,2026-09,55545972,2369864.5,26,OpenAI
+npm,@ai-sdk/openai,2026-06,33317380,1245730.0,30,OpenAI
+npm,@ai-sdk/openai,2026-07,41120820,1451364.0,31,OpenAI
+npm,@ai-sdk/openai,2026-08,47757730,1757878.0,31,OpenAI
+npm,@ai-sdk/openai,2026-09,57880719,2363948.0,27,OpenAI
+npm,@ai-sdk/openai,2026-10,71178948,2986462.0,26,OpenAI
 npm,@anthropic-ai/claude-agent-sdk,2025-09,21270,1892.5,4,Anthropic
-npm,@anthropic-ai/claude-agent-sdk,2025-10,912467,30112.5,30,Anthropic
+npm,@anthropic-ai/claude-agent-sdk,2025-10,960042,31483.0,31,Anthropic
 npm,@anthropic-ai/claude-agent-sdk,2025-11,1368619,47087.5,30,Anthropic
 npm,@anthropic-ai/claude-agent-sdk,2025-12,3214318,83739.0,31,Anthropic
 npm,@anthropic-ai/claude-agent-sdk,2026-01,5804675,195847.0,31,Anthropic
@@ -98,10 +101,11 @@ npm,@anthropic-ai/claude-agent-sdk,2026-02,8518352,330404.0,28,Anthropic
 npm,@anthropic-ai/claude-agent-sdk,2026-03,14507387,516985.0,31,Anthropic
 npm,@anthropic-ai/claude-agent-sdk,2026-04,18468329,699788.5,30,Anthropic
 npm,@anthropic-ai/claude-agent-sdk,2026-05,25773001,860081.0,31,Anthropic
-npm,@anthropic-ai/claude-agent-sdk,2026-06,28143670,1122963.0,29,Anthropic
-npm,@anthropic-ai/claude-agent-sdk,2026-07,35701196,1309214.0,30,Anthropic
-npm,@anthropic-ai/claude-agent-sdk,2026-08,44350592,1595047.5,30,Anthropic
-npm,@anthropic-ai/claude-agent-sdk,2026-09,48498492,2048601.0,26,Anthropic
+npm,@anthropic-ai/claude-agent-sdk,2026-06,29260925,1120844.0,30,Anthropic
+npm,@anthropic-ai/claude-agent-sdk,2026-07,36393762,1303915.0,31,Anthropic
+npm,@anthropic-ai/claude-agent-sdk,2026-08,45885915,1591598.0,31,Anthropic
+npm,@anthropic-ai/claude-agent-sdk,2026-09,51020659,2063099.0,27,Anthropic
+npm,@anthropic-ai/claude-agent-sdk,2026-10,56248229,2327030.5,26,Anthropic
 npm,@anthropic-ai/claude-code,2025-02,147648,29752.0,5,Anthropic
 npm,@anthropic-ai/claude-code,2025-03,650866,21588.0,31,Anthropic
 npm,@anthropic-ai/claude-code,2025-04,862556,27928.5,30,Anthropic
@@ -118,10 +122,11 @@ npm,@anthropic-ai/claude-code,2026-02,30510428,1156911.5,28,Anthropic
 npm,@anthropic-ai/claude-code,2026-03,44445736,1593678.0,31,Anthropic
 npm,@anthropic-ai/claude-code,2026-04,49361496,1860750.5,30,Anthropic
 npm,@anthropic-ai/claude-code,2026-05,34562178,1111086.0,31,Anthropic
-npm,@anthropic-ai/claude-code,2026-06,44038610,1623575.0,29,Anthropic
-npm,@anthropic-ai/claude-code,2026-07,49100543,1701841.0,30,Anthropic
-npm,@anthropic-ai/claude-code,2026-08,82199042,2893736.0,30,Anthropic
-npm,@anthropic-ai/claude-code,2026-09,55930237,2314396.0,26,Anthropic
+npm,@anthropic-ai/claude-code,2026-06,45442697,1578254.0,30,Anthropic
+npm,@anthropic-ai/claude-code,2026-07,49735569,1684117.0,31,Anthropic
+npm,@anthropic-ai/claude-code,2026-08,85648010,3015160.0,31,Anthropic
+npm,@anthropic-ai/claude-code,2026-09,58923758,2354840.0,27,Anthropic
+npm,@anthropic-ai/claude-code,2026-10,49604836,1971092.0,26,Anthropic
 npm,@anthropic-ai/sdk,2023-01,97,97.0,1,Anthropic
 npm,@anthropic-ai/sdk,2023-02,928,19.5,28,Anthropic
 npm,@anthropic-ai/sdk,2023-03,57504,294.0,31,Anthropic
@@ -155,7 +160,7 @@ npm,@anthropic-ai/sdk,2025-06,7484293,274595.5,30,Anthropic
 npm,@anthropic-ai/sdk,2025-07,8410174,309773.0,31,Anthropic
 npm,@anthropic-ai/sdk,2025-08,9386947,355954.0,31,Anthropic
 npm,@anthropic-ai/sdk,2025-09,9816552,377240.5,30,Anthropic
-npm,@anthropic-ai/sdk,2025-10,10874996,417624.0,29,Anthropic
+npm,@anthropic-ai/sdk,2025-10,11560875,417624.0,31,Anthropic
 npm,@anthropic-ai/sdk,2025-11,11884122,461690.5,30,Anthropic
 npm,@anthropic-ai/sdk,2025-12,13301274,450291.0,31,Anthropic
 npm,@anthropic-ai/sdk,2026-01,17226666,584640.0,31,Anthropic
@@ -163,10 +168,11 @@ npm,@anthropic-ai/sdk,2026-02,24055363,930320.0,28,Anthropic
 npm,@anthropic-ai/sdk,2026-03,40746913,1315730.0,31,Anthropic
 npm,@anthropic-ai/sdk,2026-04,63810977,2245907.5,30,Anthropic
 npm,@anthropic-ai/sdk,2026-05,85366234,2877255.0,31,Anthropic
-npm,@anthropic-ai/sdk,2026-06,97548464,3697572.0,29,Anthropic
-npm,@anthropic-ai/sdk,2026-07,117147185,4144720.5,30,Anthropic
-npm,@anthropic-ai/sdk,2026-08,142833257,5101583.5,30,Anthropic
-npm,@anthropic-ai/sdk,2026-09,165410854,6831095.5,26,Anthropic
+npm,@anthropic-ai/sdk,2026-06,101069782,3672357.5,30,Anthropic
+npm,@anthropic-ai/sdk,2026-07,119715133,4084111.0,31,Anthropic
+npm,@anthropic-ai/sdk,2026-08,148116129,5110627.0,31,Anthropic
+npm,@anthropic-ai/sdk,2026-09,172395278,6910559.0,27,Anthropic
+npm,@anthropic-ai/sdk,2026-10,212674709,8649305.0,26,Anthropic
 npm,@google/gemini-cli,2025-06,341480,45516.5,6,Google
 npm,@google/gemini-cli,2025-07,825600,24261.0,31,Google
 npm,@google/gemini-cli,2025-08,959645,25294.0,31,Google
@@ -179,10 +185,11 @@ npm,@google/gemini-cli,2026-02,2727397,98068.0,28,Google
 npm,@google/gemini-cli,2026-03,3201602,99676.0,31,Google
 npm,@google/gemini-cli,2026-04,3471911,112117.0,30,Google
 npm,@google/gemini-cli,2026-05,3185224,97115.0,31,Google
-npm,@google/gemini-cli,2026-06,2515086,83175.0,29,Google
-npm,@google/gemini-cli,2026-07,2025282,69109.5,30,Google
-npm,@google/gemini-cli,2026-08,1636285,59625.5,30,Google
-npm,@google/gemini-cli,2026-09,1629189,64540.5,26,Google
+npm,@google/gemini-cli,2026-06,2651187,83862.5,30,Google
+npm,@google/gemini-cli,2026-07,2077435,67218.0,31,Google
+npm,@google/gemini-cli,2026-08,1688011,59143.0,31,Google
+npm,@google/gemini-cli,2026-09,1701355,64576.0,27,Google
+npm,@google/gemini-cli,2026-10,1651270,65413.5,26,Google
 npm,@google/genai,2025-03,23882,431.0,21,Google
 npm,@google/genai,2025-04,326467,9308.0,30,Google
 npm,@google/genai,2025-05,823917,26676.0,31,Google
@@ -198,10 +205,11 @@ npm,@google/genai,2026-02,24110829,796393.5,28,Google
 npm,@google/genai,2026-03,40968692,1390772.0,31,Google
 npm,@google/genai,2026-04,43751007,1531867.0,30,Google
 npm,@google/genai,2026-05,50620018,1677291.0,31,Google
-npm,@google/genai,2026-06,65111568,2404159.0,29,Google
-npm,@google/genai,2026-07,70548374,2432539.5,30,Google
-npm,@google/genai,2026-08,86560794,2865860.0,30,Google
-npm,@google/genai,2026-09,96758368,3955683.0,26,Google
+npm,@google/genai,2026-06,67319346,2396528.0,30,Google
+npm,@google/genai,2026-07,72181769,2421556.0,31,Google
+npm,@google/genai,2026-08,89584168,2894214.0,31,Google
+npm,@google/genai,2026-09,100825524,4016619.0,27,Google
+npm,@google/genai,2026-10,107811604,4461525.5,26,Google
 npm,@modelcontextprotocol/sdk,2024-11,13822,88.0,20,Anthropic-originated standard
 npm,@modelcontextprotocol/sdk,2024-12,102851,3079.0,31,Anthropic-originated standard
 npm,@modelcontextprotocol/sdk,2025-01,176533,5306.0,31,Anthropic-originated standard
@@ -213,7 +221,7 @@ npm,@modelcontextprotocol/sdk,2025-06,16837593,607915.5,30,Anthropic-originated 
 npm,@modelcontextprotocol/sdk,2025-07,21605761,798331.0,31,Anthropic-originated standard
 npm,@modelcontextprotocol/sdk,2025-08,24658353,929746.0,31,Anthropic-originated standard
 npm,@modelcontextprotocol/sdk,2025-09,31258519,1179668.5,30,Anthropic-originated standard
-npm,@modelcontextprotocol/sdk,2025-10,31805028,1248164.0,29,Anthropic-originated standard
+npm,@modelcontextprotocol/sdk,2025-10,33786684,1248164.0,31,Anthropic-originated standard
 npm,@modelcontextprotocol/sdk,2025-11,35008987,1388122.0,30,Anthropic-originated standard
 npm,@modelcontextprotocol/sdk,2025-12,38516712,1313172.0,31,Anthropic-originated standard
 npm,@modelcontextprotocol/sdk,2026-01,50249918,1835267.0,31,Anthropic-originated standard
@@ -221,15 +229,16 @@ npm,@modelcontextprotocol/sdk,2026-02,71656771,2554023.5,28,Anthropic-originated
 npm,@modelcontextprotocol/sdk,2026-03,141911796,3946351.0,31,Anthropic-originated standard
 npm,@modelcontextprotocol/sdk,2026-04,140092905,5248196.0,30,Anthropic-originated standard
 npm,@modelcontextprotocol/sdk,2026-05,153164130,5610454.0,31,Anthropic-originated standard
-npm,@modelcontextprotocol/sdk,2026-06,165176305,6274991.0,29,Anthropic-originated standard
-npm,@modelcontextprotocol/sdk,2026-07,198867876,7084971.5,30,Anthropic-originated standard
-npm,@modelcontextprotocol/sdk,2026-08,217328148,8261170.5,30,Anthropic-originated standard
-npm,@modelcontextprotocol/sdk,2026-09,231910527,9750019.5,26,Anthropic-originated standard
+npm,@modelcontextprotocol/sdk,2026-06,171229606,6249756.5,30,Anthropic-originated standard
+npm,@modelcontextprotocol/sdk,2026-07,202755593,7068571.0,31,Anthropic-originated standard
+npm,@modelcontextprotocol/sdk,2026-08,225916792,8296056.0,31,Anthropic-originated standard
+npm,@modelcontextprotocol/sdk,2026-09,241754775,9751300.0,27,Anthropic-originated standard
+npm,@modelcontextprotocol/sdk,2026-10,295595332,12641957.0,26,Anthropic-originated standard
 npm,@openai/agents,2025-06,45746,1296.5,28,OpenAI
 npm,@openai/agents,2025-07,127708,4319.0,31,OpenAI
 npm,@openai/agents,2025-08,221004,7549.0,31,OpenAI
 npm,@openai/agents,2025-09,364826,14591.0,30,OpenAI
-npm,@openai/agents,2025-10,514212,18435.5,30,OpenAI
+npm,@openai/agents,2025-10,537211,18676.0,31,OpenAI
 npm,@openai/agents,2025-11,793472,30051.0,30,OpenAI
 npm,@openai/agents,2025-12,979975,33916.0,31,OpenAI
 npm,@openai/agents,2026-01,1258122,46154.0,31,OpenAI
@@ -237,17 +246,18 @@ npm,@openai/agents,2026-02,1355263,56972.5,28,OpenAI
 npm,@openai/agents,2026-03,2056068,77329.0,31,OpenAI
 npm,@openai/agents,2026-04,2435244,94496.5,30,OpenAI
 npm,@openai/agents,2026-05,3619010,126597.0,31,OpenAI
-npm,@openai/agents,2026-06,4764978,183192.0,29,OpenAI
-npm,@openai/agents,2026-07,6108759,230293.0,30,OpenAI
-npm,@openai/agents,2026-08,6560169,258093.5,30,OpenAI
-npm,@openai/agents,2026-09,7482741,318812.0,26,OpenAI
+npm,@openai/agents,2026-06,4935879,179419.5,30,OpenAI
+npm,@openai/agents,2026-07,6216360,227188.0,31,OpenAI
+npm,@openai/agents,2026-08,6809694,256522.0,31,OpenAI
+npm,@openai/agents,2026-09,7790409,318718.0,27,OpenAI
+npm,@openai/agents,2026-10,9057913,393050.0,26,OpenAI
 npm,@openai/codex,2025-04,82164,3398.0,15,OpenAI
 npm,@openai/codex,2025-05,134689,2482.0,31,OpenAI
 npm,@openai/codex,2025-06,104618,3663.0,30,OpenAI
 npm,@openai/codex,2025-07,122799,4013.0,31,OpenAI
 npm,@openai/codex,2025-08,392237,10817.0,31,OpenAI
 npm,@openai/codex,2025-09,871011,27012.5,30,OpenAI
-npm,@openai/codex,2025-10,1083560,34789.0,30,OpenAI
+npm,@openai/codex,2025-10,1120267,34980.0,31,OpenAI
 npm,@openai/codex,2025-11,1453966,47996.0,30,OpenAI
 npm,@openai/codex,2025-12,1980311,62800.0,31,OpenAI
 npm,@openai/codex,2026-01,2327895,69490.0,31,OpenAI
@@ -255,10 +265,11 @@ npm,@openai/codex,2026-02,5801153,193120.0,28,OpenAI
 npm,@openai/codex,2026-03,14529757,450617.0,31,OpenAI
 npm,@openai/codex,2026-04,31367293,580412.5,30,OpenAI
 npm,@openai/codex,2026-05,239381470,1419482.0,31,OpenAI
-npm,@openai/codex,2026-06,46157876,1569705.0,29,OpenAI
-npm,@openai/codex,2026-07,62207401,2128235.0,30,OpenAI
-npm,@openai/codex,2026-08,74276500,2525795.5,30,OpenAI
-npm,@openai/codex,2026-09,89664560,3544341.0,26,OpenAI
+npm,@openai/codex,2026-06,48111986,1570154.5,30,OpenAI
+npm,@openai/codex,2026-07,63516823,2126506.0,31,OpenAI
+npm,@openai/codex,2026-08,76946177,2575226.0,31,OpenAI
+npm,@openai/codex,2026-09,93359932,3551831.0,27,OpenAI
+npm,@openai/codex,2026-10,97595423,4002580.5,26,OpenAI
 npm,openai,2023-01,572272,19031.0,31,OpenAI
 npm,openai,2023-02,811981,30616.0,28,OpenAI
 npm,openai,2023-03,1542131,54673.0,31,OpenAI
@@ -299,11 +310,12 @@ npm,openai,2026-01,42229601,1524521.0,31,OpenAI
 npm,openai,2026-02,50093720,1966100.0,28,OpenAI
 npm,openai,2026-03,71409136,2543988.0,31,OpenAI
 npm,openai,2026-04,78839300,2915846.5,30,OpenAI
-npm,openai,2026-05,93459170,3477557.0,30,OpenAI
-npm,openai,2026-06,107525418,4051472.0,29,OpenAI
-npm,openai,2026-07,129765443,4724977.5,30,OpenAI
-npm,openai,2026-08,148136807,5383672.5,30,OpenAI
-npm,openai,2026-09,162818065,6888305.0,26,OpenAI
+npm,openai,2026-05,95235004,3466948.0,31,OpenAI
+npm,openai,2026-06,112026248,4059325.5,30,OpenAI
+npm,openai,2026-07,132614937,4698910.0,31,OpenAI
+npm,openai,2026-08,153514147,5378076.0,31,OpenAI
+npm,openai,2026-09,169854826,6923180.0,27,OpenAI
+npm,openai,2026-10,191922780,7944154.5,26,OpenAI
 pypi,anthropic,2023-02,1223,49.5,20,Anthropic
 pypi,anthropic,2023-03,4800,133.0,31,Anthropic
 pypi,anthropic,2023-04,17243,627.5,30,Anthropic
@@ -348,6 +360,7 @@ pypi,anthropic,2026-06,158137485,5591451.5,30,Anthropic
 pypi,anthropic,2026-07,185031696,6353204.0,31,Anthropic
 pypi,anthropic,2026-08,195641796,6629181.0,31,Anthropic
 pypi,anthropic,2026-09,146997263,5247993.5,30,Anthropic
+pypi,anthropic,2026-10,193761104,6752831.0,31,Anthropic
 pypi,claude-agent-sdk,2025-09,4375,959.0,3,Anthropic
 pypi,claude-agent-sdk,2025-10,413906,13183.0,31,Anthropic
 pypi,claude-agent-sdk,2025-11,831241,29972.5,30,Anthropic
@@ -361,6 +374,7 @@ pypi,claude-agent-sdk,2026-06,20058754,686231.5,30,Anthropic
 pypi,claude-agent-sdk,2026-07,30204316,1003769.0,31,Anthropic
 pypi,claude-agent-sdk,2026-08,31550503,1075012.0,31,Anthropic
 pypi,claude-agent-sdk,2026-09,30033689,1100590.5,30,Anthropic
+pypi,claude-agent-sdk,2026-10,34810048,1265317.0,31,Anthropic
 pypi,claude-code-sdk,2025-05,288,8.5,12,Anthropic
 pypi,claude-code-sdk,2025-06,17819,473.5,30,Anthropic
 pypi,claude-code-sdk,2025-07,74642,2087.0,31,Anthropic
@@ -378,6 +392,7 @@ pypi,claude-code-sdk,2026-06,710032,27492.5,30,Anthropic
 pypi,claude-code-sdk,2026-07,624908,20931.0,31,Anthropic
 pypi,claude-code-sdk,2026-08,577899,22569.0,31,Anthropic
 pypi,claude-code-sdk,2026-09,502361,18961.5,30,Anthropic
+pypi,claude-code-sdk,2026-10,562279,20981.0,31,Anthropic
 pypi,google-genai,2024-12,65053,3239.0,22,Google
 pypi,google-genai,2025-01,164658,5680.0,31,Google
 pypi,google-genai,2025-02,827222,24800.0,28,Google
@@ -400,6 +415,7 @@ pypi,google-genai,2026-06,286268076,9819801.5,30,Google
 pypi,google-genai,2026-07,298057113,10183154.0,31,Google
 pypi,google-genai,2026-08,260323225,8852808.0,31,Google
 pypi,google-genai,2026-09,138176212,4933331.0,30,Google
+pypi,google-genai,2026-10,161320372,5709300.0,31,Google
 pypi,langchain-anthropic,2023-12,300,14.0,12,Anthropic
 pypi,langchain-anthropic,2024-01,845,19.0,31,Anthropic
 pypi,langchain-anthropic,2024-02,1485,40.0,29,Anthropic
@@ -434,6 +450,7 @@ pypi,langchain-anthropic,2026-06,21440364,795245.0,30,Anthropic
 pypi,langchain-anthropic,2026-07,23552318,856660.0,31,Anthropic
 pypi,langchain-anthropic,2026-08,22886079,812106.0,31,Anthropic
 pypi,langchain-anthropic,2026-09,18105583,680625.0,30,Anthropic
+pypi,langchain-anthropic,2026-10,22546883,852606.0,31,Anthropic
 pypi,langchain-google-genai,2023-12,20183,1152.0,19,Google
 pypi,langchain-google-genai,2024-01,50242,1752.0,31,Google
 pypi,langchain-google-genai,2024-02,78165,2733.0,29,Google
@@ -468,6 +485,7 @@ pypi,langchain-google-genai,2026-06,17455086,646652.5,30,Google
 pypi,langchain-google-genai,2026-07,17653598,643385.0,31,Google
 pypi,langchain-google-genai,2026-08,16856840,591317.0,31,Google
 pypi,langchain-google-genai,2026-09,13623426,518954.0,30,Google
+pypi,langchain-google-genai,2026-10,17139783,624164.0,31,Google
 pypi,langchain-openai,2024-01,329058,10727.0,27,OpenAI
 pypi,langchain-openai,2024-02,945787,32395.0,29,OpenAI
 pypi,langchain-openai,2024-03,1480791,56870.0,31,OpenAI
@@ -501,6 +519,7 @@ pypi,langchain-openai,2026-06,69958699,2637696.5,30,OpenAI
 pypi,langchain-openai,2026-07,69460096,2562572.0,31,OpenAI
 pypi,langchain-openai,2026-08,69351625,2326928.0,31,OpenAI
 pypi,langchain-openai,2026-09,37916279,1432296.0,30,OpenAI
+pypi,langchain-openai,2026-10,44046253,1637245.0,31,OpenAI
 pypi,litellm,2023-07,925,142.0,5,Neutral router
 pypi,litellm,2023-08,38487,1190.0,31,Neutral router
 pypi,litellm,2023-09,275591,6290.0,30,Neutral router
@@ -540,6 +559,7 @@ pypi,litellm,2026-06,633249670,19771685.0,30,Neutral router
 pypi,litellm,2026-07,682801701,21434392.0,31,Neutral router
 pypi,litellm,2026-08,639210245,24021662.0,31,Neutral router
 pypi,litellm,2026-09,91220891,3122964.0,30,Neutral router
+pypi,litellm,2026-10,100334735,3422624.0,31,Neutral router
 pypi,mcp,2023-01,53,2.0,25,Anthropic-originated standard
 pypi,mcp,2023-02,107,3.0,26,Anthropic-originated standard
 pypi,mcp,2023-03,96,3.0,29,Anthropic-originated standard
@@ -585,6 +605,7 @@ pypi,mcp,2026-06,281302965,9597531.0,30,Anthropic-originated standard
 pypi,mcp,2026-07,319279041,10627429.0,31,Anthropic-originated standard
 pypi,mcp,2026-08,328137373,11227171.0,31,Anthropic-originated standard
 pypi,mcp,2026-09,231738794,7944894.5,30,Anthropic-originated standard
+pypi,mcp,2026-10,293019413,9775092.0,31,Anthropic-originated standard
 pypi,openai,2023-01,822025,26252.0,31,OpenAI
 pypi,openai,2023-02,1331429,52621.0,28,OpenAI
 pypi,openai,2023-03,2362994,78966.0,31,OpenAI
@@ -630,6 +651,7 @@ pypi,openai,2026-06,369000146,13291254.0,30,OpenAI
 pypi,openai,2026-07,398225459,13464356.0,31,OpenAI
 pypi,openai,2026-08,425448747,14274085.0,31,OpenAI
 pypi,openai,2026-09,293758677,10341113.0,30,OpenAI
+pypi,openai,2026-10,359073421,12326931.0,31,OpenAI
 pypi,openai-agents,2025-03,135616,5681.5,28,OpenAI
 pypi,openai-agents,2025-04,299498,10233.5,30,OpenAI
 pypi,openai-agents,2025-05,875975,32631.0,31,OpenAI
@@ -649,3 +671,4 @@ pypi,openai-agents,2026-06,31133275,1112563.0,30,OpenAI
 pypi,openai-agents,2026-07,35205629,1233382.0,31,OpenAI
 pypi,openai-agents,2026-08,35703814,1332814.0,31,OpenAI
 pypi,openai-agents,2026-09,12593415,463834.5,30,OpenAI
+pypi,openai-agents,2026-10,16598315,538569.0,31,OpenAI

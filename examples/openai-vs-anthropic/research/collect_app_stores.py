@@ -116,6 +116,25 @@ def main() -> None:
                 }
             )
     common.write_rows(common.DERIVED_DIR / "app_store_ratings_by_country.csv", snapshot)
+    common.upsert_collection_run(
+        {
+            "run_id": "app-store-ratings",
+            "source": "iTunes lookup API (ratings by country)",
+            "collector": "research/collect_app_stores.py",
+            "finished_at": common.utc_now(),
+            "query": f"iOS apps={','.join(name for name, _ in IOS_APPS.values())}; countries={len(COUNTRIES)}",
+            "window_start": "snapshot",
+            "window_end": common.utc_now()[:10],
+            "items": len(snapshot),
+            "requests": fetcher.requests,
+            "cache_hits": fetcher.cache_hits,
+            "cost_usd": 0,
+            "notes": f"Rating counts and averages as each of the {len(COUNTRIES)} storefronts reported them that day.",
+        }
+    )
+    if "APIFY_TOKEN" not in os.environ:
+        print(f"snapshot={len(snapshot)}; no APIFY_TOKEN, so the review samples keep their previous run")
+        return
 
     token = os.environ["APIFY_TOKEN"]
     client = httpx.Client(timeout=120)

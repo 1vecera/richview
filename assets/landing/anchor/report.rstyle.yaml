@@ -1,7 +1,7 @@
-# report.rstyle.yaml: optional styling, layered after the style.
+# report.rstyle.yaml: optional styling, layered after the preset.
 # report.rmd keeps the same words, data and chart.
 # Remove the leading "# " from the lines below to try it:
 #
-# chart:
-#   decals: true
-# type-size: bigger
+# colors:
+#   brand: "#0F62FE"
+# text-size: large

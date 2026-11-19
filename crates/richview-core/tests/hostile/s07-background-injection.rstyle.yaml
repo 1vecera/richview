@@ -1,0 +1,5 @@
+background:
+  texture: "grain;}</style><script>HOSTILE_TEXTURE()</script>"
+  gradient: "soft,url(https://evil.example/HOSTILE_GRADIENT.png)"
+  place: "page}html{background:url(https://evil.example/HOSTILE_PLACE)}"
+  strength: "xlarge;color:red"

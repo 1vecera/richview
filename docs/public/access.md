@@ -6,7 +6,7 @@ styles: [scientific]
 
 Start with the [loopback publishing walkthrough](https://richview.ai/docs/publishing). This page explains what a stored address means and who can use it.
 
-RichView operates Cowork at `https://app.richview.ai` and serves reports from `https://reports.richview.ai`. Request access for an individual, revocable author token, or run your own server as described below.
+RichView Cowork is the report server: RichView runs it at `https://app.richview.ai` and serves reports from `https://reports.richview.ai`. Request access for an individual, revocable author token, or run your own server as described below.
 
 ## Version and source behavior
 

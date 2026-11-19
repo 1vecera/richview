@@ -4,14 +4,86 @@ use richview_chart::geometry::{
     Cmd, Fill, Item, Panel, Path, Rect, Rgba, Role, Shape, Stroke, Wedge,
 };
 
-/// How far the soft halo reaches past a mark's contour, in CSS pixels (FEA-CH-53).
-pub(super) const HALO_REACH: f64 = 4.0;
 /// Where the contour's surface separator ends outside a filled mark's edge.
 const SEPARATOR: f64 = 1.75;
 
-/// The halo's paint: the mark's own colour at a quarter of its strength.
-pub(super) fn halo(color: Rgba, level: f64) -> Rgba {
-    color.with_alpha(0.25 * color.alpha() * level.clamp(0.0, 1.0))
+/// The glow round a selected mark, in the mark's own colour (FEA-CH-53; Daniel's pick of
+/// 17 Nov 2026): `bands` nested bands of equal strength out to `reach` CSS pixels, which
+/// together give `inner` of the colour's strength at the mark, so the glow fades evenly
+/// outwards instead of stepping in rings. A hovered scatter point grows by `grow`.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(super) struct Glow {
+    pub reach: f64,
+    pub bands: u32,
+    pub inner: f64,
+    pub grow: f64,
+}
+
+impl Glow {
+    /// One flat band, four pixels wide: a soft grey glow on paper reads as a drop shadow, which a
+    /// pen drawing does not have.
+    pub(super) const FLAT: Glow = Glow {
+        reach: 4.0,
+        bands: 1,
+        inner: 0.25,
+        grow: 0.25,
+    };
+    /// Soft and close to the mark, so it never reaches a neighbour's label.
+    pub(super) const MEDIUM: Glow = Glow {
+        reach: 10.0,
+        bands: 10,
+        inner: 0.34,
+        grow: 0.25,
+    };
+    /// A single point is small, so it carries the larger glow and grows by 60%.
+    pub(super) const FAR: Glow = Glow {
+        reach: 18.0,
+        bands: 14,
+        inner: 0.36,
+        grow: 0.6,
+    };
+
+    /// A style's glow for a mark or a hover dot: a style that sets `chart.glow: flat` (Hand-drawn)
+    /// keeps the flat band; every other style glows medium.
+    pub(super) fn style(flat: bool) -> Glow {
+        if flat { Glow::FLAT } else { Glow::MEDIUM }
+    }
+
+    /// The glow of a `kind`'s marks: the style's, except that a small single dot that stands apart
+    /// glows far: the points of scatter, strip, Q-Q and 3-D scatter charts. A scatter or 3-D
+    /// scatter sized by a field draws bubbles, which keep the medium glow, as packed bubbles do,
+    /// and a dot plot's dots are large and touch, so they glow medium and do not grow.
+    pub(super) fn of(kind: &str, flat: bool, sized: bool) -> Glow {
+        let dot =
+            matches!(kind, "strip" | "qq") || (matches!(kind, "scatter" | "scatter3d") && !sized);
+        if !flat && dot {
+            Glow::FAR
+        } else {
+            Glow::style(flat)
+        }
+    }
+
+    /// Each band's reach and its share of the colour's strength, innermost first.
+    pub(super) fn bands(self) -> impl Iterator<Item = (f64, f64)> {
+        let alpha = 1.0 - (1.0 - self.inner).powf(1.0 / self.bands as f64);
+        (1..=self.bands).map(move |k| (self.reach * k as f64 / self.bands as f64, alpha))
+    }
+
+    /// Discs of the glow round a dot of `radius` at `level`, outermost first, for a dot drawn
+    /// over them.
+    pub(super) fn discs(self, radius: f64, color: Rgba, level: f64) -> Vec<(f64, Rgba)> {
+        let mut discs: Vec<(f64, Rgba)> = self
+            .bands()
+            .map(|(reach, alpha)| (radius + reach, halo(color, alpha, level)))
+            .collect();
+        discs.reverse();
+        discs
+    }
+}
+
+/// One band's paint: the mark's own colour at `alpha` of its strength.
+pub(super) fn halo(color: Rgba, alpha: f64, level: f64) -> Rgba {
+    color.with_alpha(alpha * color.alpha() * level.clamp(0.0, 1.0))
 }
 
 /// Draw the existing hover-dot treatment at a contour grid node, never its hit box.
@@ -21,40 +93,47 @@ pub(super) fn node(
     level: f64,
     color: Rgba,
     surface: Rgba,
+    glow: Glow,
 ) -> Option<Vec<Item>> {
     let center = panel.observations.get(observation)?.at;
     if level <= 0.0 {
         return Some(Vec::new());
     }
     let scale = 0.4 + 0.6 * level;
-    Some(
-        [
-            ((8.0 + HALO_REACH) * scale, halo(color, level)),
-            (
-                8.0 * scale,
-                surface.with_alpha(surface.alpha() * level.min(1.0)),
-            ),
-            (
-                6.0 * scale,
-                color.with_alpha(color.alpha() * level.min(1.0)),
-            ),
-        ]
+    let mut discs: Vec<(f64, Rgba)> = glow
+        .discs(8.0, color, level)
         .into_iter()
-        .map(|(radius, fill)| Item::Point {
-            center,
-            radius,
-            shape: Shape::Circle,
-            fill: Some(Fill::solid(fill)),
-            stroke: None,
-            role: Role::Annotation,
-            series: None,
-            obs: None,
-        })
-        .collect(),
+        .map(|(radius, fill)| (radius * scale, fill))
+        .collect();
+    discs.extend([
+        (
+            8.0 * scale,
+            surface.with_alpha(surface.alpha() * level.min(1.0)),
+        ),
+        (
+            6.0 * scale,
+            color.with_alpha(color.alpha() * level.min(1.0)),
+        ),
+    ]);
+    Some(
+        discs
+            .into_iter()
+            .map(|(radius, fill)| Item::Point {
+                center,
+                radius,
+                shape: Shape::Circle,
+                fill: Some(Fill::solid(fill)),
+                stroke: None,
+                role: Role::Annotation,
+                series: None,
+                obs: None,
+            })
+            .collect(),
     )
 }
 
 /// Fade a contour along owned marks; other families retain their existing feedback.
+#[allow(clippy::too_many_arguments)] // The mark, its place, its colours, the fade and its glow.
 pub(super) fn items(
     kind: &str,
     panel: &Panel,
@@ -63,6 +142,7 @@ pub(super) fn items(
     ink: Rgba,
     surface: Rgba,
     level: f64,
+    glow: Glow,
 ) -> Option<Vec<Item>> {
     if kind == "gauge" {
         let mark = gauge_band(panel, observation);
@@ -95,13 +175,16 @@ pub(super) fn items(
             series: None,
             obs: None,
         };
-        let mut result = vec![Item::Area {
-            path: halo_outside(&rings, &front),
-            fill: Fill::solid(halo(color, level)),
-            role: Role::Annotation,
-            series: None,
-            obs: None,
-        }];
+        let mut result: Vec<Item> = glow
+            .bands()
+            .map(|(reach, alpha)| Item::Area {
+                path: halo_outside(&rings, &front, reach),
+                fill: Fill::solid(halo(color, alpha, level)),
+                role: Role::Annotation,
+                series: None,
+                obs: None,
+            })
+            .collect();
         for (width, color) in [
             (3.5, surface.with_alpha(level)),
             (1.5, ink.with_alpha(0.85 * level)),
@@ -123,13 +206,20 @@ pub(super) fn items(
                 series: None,
                 obs: None,
             };
-            let mut glow = stroke.clone();
-            glow.color = stroke.color.with_alpha(0.25 * level);
-            glow.width += 1.0 + 2.0 * HALO_REACH;
+            let mut lines: Vec<Item> = glow
+                .bands()
+                .map(|(reach, alpha)| {
+                    let mut band = stroke.clone();
+                    band.color = stroke.color.with_alpha(alpha * level);
+                    band.width += 1.0 + 2.0 * reach;
+                    line(band)
+                })
+                .collect();
             let mut selected = stroke.clone();
             selected.color = stroke.color.with_alpha(stroke.color.alpha() * level);
             selected.width += level;
-            return Some(vec![line(glow), line(selected)]);
+            lines.push(line(selected));
+            return Some(lines);
         }
     }
     if matches!(kind, "hexbin" | "waffle") {
@@ -236,13 +326,14 @@ pub(super) fn items(
             }
         }
     }
-    // A hovered scatter point grows by a quarter (FEA-CH-53), over a disc of the page so its
-    // translucent fill does not double over the original.
+    // A hovered scatter point, and any dot with the far glow, grows by its glow's share
+    // (FEA-CH-53), over a disc of the page so its translucent fill does not double over the
+    // original.
     let mut grown = Vec::new();
-    if kind == "scatter" {
+    if kind == "scatter" || glow == Glow::FAR {
         for mark in &mut marks {
             if let Item::Point { center, radius, .. } = mark {
-                *radius *= 1.0 + 0.25 * level;
+                *radius *= 1.0 + glow.grow * level;
                 grown.push(Item::Point {
                     center: *center,
                     radius: *radius,
@@ -265,9 +356,35 @@ pub(super) fn items(
     // no ink outline: the page shows between mark and halo (FEA-CH-53; Chart design, 15 Nov).
     // Each is one filled band, painted once: a translucent stroke would overlap itself at
     // every join of a curve.
-    let halos: Vec<Option<Item>> = marks
+    // A line inside the mark's own box, as a boxplot's median, glows into nothing: its glow
+    // would band the box's fill, and the box's own glow already marks the selection.
+    let boxes: Vec<Rect> = marks
         .iter()
-        .map(|mark| halo_band(kind, mark, wedge, level))
+        .filter_map(|m| match m {
+            Item::Rect { rect, .. } => Some(rect.inflate(0.5)),
+            _ => None,
+        })
+        .collect();
+    let inside = |mark: &Item| match mark {
+        Item::Line { path, .. } if matches!(kind, "boxplot" | "candlestick" | "interval") => {
+            path.bounds().is_some_and(|b| {
+                boxes
+                    .iter()
+                    .any(|r| r.contains([b.x, b.y]) && r.contains([b.right(), b.bottom()]))
+            })
+        }
+        _ => false,
+    };
+    let halos: Vec<Vec<Item>> = marks
+        .iter()
+        .map(|mark| {
+            if inside(mark) {
+                return Vec::new();
+            }
+            glow.bands()
+                .filter_map(|(reach, alpha)| halo_band(kind, mark, wedge, level, reach, alpha))
+                .collect()
+        })
         .collect();
     items.extend(halos.iter().flatten().cloned());
     items.extend(grown);
@@ -279,7 +396,7 @@ pub(super) fn items(
         (1.5, ink.with_alpha(0.85 * level), 2.5),
     ] {
         for (mark, halo) in marks.iter().zip(&halos) {
-            if halo.is_some() {
+            if !halo.is_empty() || inside(mark) {
                 continue;
             }
             let base = match mark {
@@ -292,7 +409,8 @@ pub(super) fn items(
     // Restore the original coloured line components together, with their original widths, over
     // the separator of a mark without a halo.
     for (mark, halo) in marks.into_iter().zip(&halos) {
-        if halo.is_none()
+        if halo.is_empty()
+            && !inside(&mark)
             && let Item::Line { stroke, .. } = &mark
         {
             items.push(outline(
@@ -628,9 +746,9 @@ fn subtract(polygon: Vec<[f64; 2]>, hole: &[[f64; 2]]) -> Vec<Vec<[f64; 2]>> {
     pieces
 }
 
-/// The halo band outside a convex silhouette, between `SEPARATOR` and `SEPARATOR + HALO_REACH`
-/// from it, less the faces in front.
-fn halo_outside(rings: &[Vec<[f64; 2]>], front: &[Vec<[f64; 2]>]) -> Path {
+/// The halo band outside a convex silhouette, between `SEPARATOR` and `SEPARATOR + reach` from
+/// it, less the faces in front.
+fn halo_outside(rings: &[Vec<[f64; 2]>], front: &[Vec<[f64; 2]>], reach: f64) -> Path {
     let mut quads: Vec<Vec<[f64; 2]>> = Vec::new();
     for ring in rings {
         let n = ring.len();
@@ -646,7 +764,7 @@ fn halo_outside(rings: &[Vec<[f64; 2]>], front: &[Vec<[f64; 2]>]) -> Path {
             [turn * d[1] / len, -turn * d[0] / len]
         };
         let off = |p: [f64; 2], m: [f64; 2], r: f64| [p[0] + m[0] * r, p[1] + m[1] * r];
-        let (inner, outer) = (SEPARATOR, SEPARATOR + HALO_REACH);
+        let (inner, outer) = (SEPARATOR, SEPARATOR + reach);
         for i in 0..n {
             let (a, b, m) = (ring[i], ring[(i + 1) % n], normal(i));
             quads.push(vec![
@@ -861,9 +979,16 @@ fn cross_ring(
     }
 }
 
-/// The halo of one mark as a band outside its contour, or none for a mark that keeps the
-/// ink glow: lines, and filled marks whose neighbours touch them.
-fn halo_band(kind: &str, mark: &Item, wedge: Option<Wedge>, level: f64) -> Option<Item> {
+/// One band of a mark's glow, `reach` past its contour at `alpha` of its colour, or none for a
+/// mark that keeps the ink glow: lines, and filled marks whose neighbours touch them.
+fn halo_band(
+    kind: &str,
+    mark: &Item,
+    wedge: Option<Wedge>,
+    level: f64,
+    reach: f64,
+    alpha: f64,
+) -> Option<Item> {
     let (path, color) = match mark {
         Item::Point {
             center,
@@ -876,14 +1001,14 @@ fn halo_band(kind: &str, mark: &Item, wedge: Option<Wedge>, level: f64) -> Optio
             let color = fill.map(|f| f.color).or(stroke.as_ref().map(|s| s.color))?;
             let half = stroke.as_ref().map_or(0.0, |s| s.width / 2.0);
             // The page shows between the marker and its halo; a cross reaches its corners.
-            let reach = match shape {
+            let extent = match shape {
                 Shape::Circle => *radius,
                 Shape::Square => radius * 0.85 * std::f64::consts::SQRT_2,
                 Shape::Triangle | Shape::Diamond | Shape::Plus | Shape::Cross => *radius,
             };
-            let inner = reach + half + SEPARATOR;
+            let inner = extent + half + SEPARATOR;
             let mut path = Path::new();
-            ring(&mut path, *center, inner + HALO_REACH);
+            ring(&mut path, *center, inner + reach);
             ring(&mut path, *center, inner);
             (path, color)
         }
@@ -892,7 +1017,7 @@ fn halo_band(kind: &str, mark: &Item, wedge: Option<Wedge>, level: f64) -> Optio
             if w.end - w.start <= 0.0 {
                 return None;
             }
-            let (inner, outer) = (w.radius + SEPARATOR, w.radius + SEPARATOR + HALO_REACH);
+            let (inner, outer) = (w.radius + SEPARATOR, w.radius + SEPARATOR + reach);
             let steps = (((w.end - w.start) * outer / 3.0).ceil() as usize).clamp(2, 240);
             let at = |r: f64, k: usize| {
                 let a = w.start + (w.end - w.start) * k as f64 / steps as f64
@@ -927,7 +1052,7 @@ fn halo_band(kind: &str, mark: &Item, wedge: Option<Wedge>, level: f64) -> Optio
         ) =>
         {
             let mut path = Path::new();
-            rounded(&mut path, rect.inflate(SEPARATOR), SEPARATOR + HALO_REACH);
+            rounded(&mut path, rect.inflate(SEPARATOR), SEPARATOR + reach);
             rounded(&mut path, rect.inflate(SEPARATOR), SEPARATOR);
             (path, stroke.as_ref().map_or(fill.color, |s| s.color))
         }
@@ -935,8 +1060,8 @@ fn halo_band(kind: &str, mark: &Item, wedge: Option<Wedge>, level: f64) -> Optio
             if matches!(kind, "boxplot" | "candlestick" | "interval") =>
         {
             let mut halo_stroke = stroke.clone();
-            halo_stroke.color = halo(stroke.color, level);
-            halo_stroke.width += 2.0 * (SEPARATOR + HALO_REACH);
+            halo_stroke.color = halo(stroke.color, alpha, level);
+            halo_stroke.width += 2.0 * (SEPARATOR + reach);
             return Some(Item::Line {
                 path: path.clone(),
                 stroke: halo_stroke,
@@ -948,7 +1073,7 @@ fn halo_band(kind: &str, mark: &Item, wedge: Option<Wedge>, level: f64) -> Optio
         Item::Area { path, fill, .. } if kind == "violin" => {
             let mut band = Path::new();
             for points in path.flatten(0.5) {
-                offset_polygon(&mut band, &points, SEPARATOR + HALO_REACH);
+                offset_polygon(&mut band, &points, SEPARATOR + reach);
                 offset_polygon(&mut band, &points, SEPARATOR);
             }
             (band, fill.color)
@@ -957,7 +1082,7 @@ fn halo_band(kind: &str, mark: &Item, wedge: Option<Wedge>, level: f64) -> Optio
     };
     Some(Item::Area {
         path,
-        fill: Fill::solid(halo(color, level)),
+        fill: Fill::solid(halo(color, alpha, level)),
         role: Role::Annotation,
         series: None,
         obs: None,
@@ -1134,6 +1259,7 @@ mod tests {
                     Rgba([0.0, 0.0, 0.0, 1.0]),
                     geometry.background,
                     1.0,
+                    Glow::of(kind, false, false),
                 )
                 .unwrap_or_else(|| panic!("{kind} has no contour"));
                 let body = marks.iter().find_map(|mark| match mark {
@@ -1163,7 +1289,7 @@ mod tests {
                 for mark in &marks {
                     // A mark with a halo answers with the halo alone; the others keep their
                     // ink contour (FEA-CH-53; Chart design, 15 Nov).
-                    let haloed = halo_band(kind, mark, observation.wedge, 1.0).is_some();
+                    let haloed = halo_band(kind, mark, observation.wedge, 1.0, 4.0, 0.25).is_some();
                     let outlined = contours
                         .iter()
                         .any(|item| follows(mark, item) && inked(item));
@@ -1183,12 +1309,21 @@ mod tests {
                     !contours.is_empty(),
                     "{kind} observation {index} shows no feedback"
                 );
+                // A glow reaches its own width past the mark, and past a dot grown by its share.
+                let glow = Glow::of(kind, false, false);
                 for item in &contours {
                     let owned = if matches!(item, Item::Area { .. }) {
                         item.bounds().is_some_and(|r| {
                             marks.iter().any(|mark| {
                                 mark.bounds().is_some_and(|b| {
-                                    let b = b.inflate(25.0);
+                                    // Only a point grows; a bar's or a tile's glow stays
+                                    // within its reach.
+                                    let grown = if matches!(mark, Item::Point { .. }) {
+                                        0.5 * b.w.max(b.h) * glow.grow
+                                    } else {
+                                        0.0
+                                    };
+                                    let b = b.inflate(glow.reach + grown + 7.0);
                                     r.x >= b.x
                                         && r.y >= b.y
                                         && r.right() <= b.right()
@@ -1206,6 +1341,160 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn glow_is_medium_far_for_small_dots_and_flat_in_hand_drawn() {
+        for kind in ["bar", "pie", "packed-bubble", "boxplot", "dotplot"] {
+            assert_eq!(Glow::of(kind, false, false), Glow::MEDIUM, "{kind}");
+        }
+        for kind in ["scatter", "strip", "qq", "scatter3d"] {
+            assert_eq!(Glow::of(kind, false, false), Glow::FAR, "{kind}");
+            assert_eq!(Glow::of(kind, true, false), Glow::FLAT, "{kind}");
+        }
+        // A scatter sized by a field draws bubbles, which glow medium and grow by a quarter.
+        assert_eq!(Glow::of("scatter", false, true), Glow::MEDIUM);
+        assert_eq!(Glow::of("scatter3d", false, true), Glow::MEDIUM);
+        assert_eq!(Glow::MEDIUM.grow, 0.25);
+        assert_eq!(Glow::FAR.grow, 0.6);
+        assert_eq!(Glow::of("bar", true, false), Glow::FLAT);
+        for glow in [Glow::FLAT, Glow::MEDIUM, Glow::FAR] {
+            let bands: Vec<(f64, f64)> = glow.bands().collect();
+            assert_eq!(bands.len(), glow.bands as usize);
+            assert_eq!(bands.last().unwrap().0, glow.reach);
+            let at_mark = 1.0 - bands.iter().map(|(_, a)| 1.0 - a).product::<f64>();
+            assert!((at_mark - glow.inner).abs() < 1e-9);
+        }
+
+        let scatter = r#"{"spec":{"type":"scatter","title":"T","encoding":{"x":"a","y":"b"}},"rows":[{"a":1,"b":2},{"a":2,"b":4},{"a":3,"b":1}]}"#;
+        let input: serde_json::Value = serde_json::from_str(scatter).unwrap();
+        let geometry = layout(
+            &ChartBlock::from_value(&input["spec"]).unwrap(),
+            input["rows"].as_array().unwrap(),
+            &ChartTheme::default(),
+            &Options::default(),
+        );
+        let panel = &geometry.panels[0];
+        let radius = panel
+            .items
+            .iter()
+            .find_map(|item| match item {
+                Item::Point {
+                    role: Role::Mark,
+                    obs: Some(0),
+                    radius,
+                    ..
+                } => Some(*radius),
+                _ => None,
+            })
+            .unwrap();
+        let ink = Rgba([0.0, 0.0, 0.0, 1.0]);
+        for (pen, grow, bands) in [(false, 0.6, 14), (true, 0.25, 1)] {
+            let drawn = items(
+                "scatter",
+                panel,
+                0,
+                None,
+                ink,
+                geometry.background,
+                1.0,
+                Glow::of("scatter", pen, false),
+            )
+            .unwrap();
+            let glow = drawn
+                .iter()
+                .filter(|item| matches!(item, Item::Area { .. }))
+                .count();
+            assert_eq!(glow, bands, "pen {pen}");
+            // The grown point is drawn over a disc of the page of the same size.
+            let grown: Vec<f64> = drawn
+                .iter()
+                .filter_map(|item| match item {
+                    Item::Point { radius, .. } => Some(*radius),
+                    _ => None,
+                })
+                .collect();
+            assert_eq!(grown.len(), 2, "pen {pen}");
+            for r in grown {
+                assert!((r - radius * (1.0 + grow)).abs() < 1e-9, "pen {pen}: {r}");
+            }
+        }
+
+        // A boxplot's median lies inside its own box: it glows into nothing, while the box and
+        // the whiskers glow.
+        let boxplot = r#"{"spec":{"type":"boxplot","title":"T","encoding":{"x":"k","y":"v"}},"rows":[{"k":"a","v":1},{"k":"a","v":2},{"k":"a","v":3},{"k":"a","v":4},{"k":"a","v":9}]}"#;
+        let input: serde_json::Value = serde_json::from_str(boxplot).unwrap();
+        let geometry = layout(
+            &ChartBlock::from_value(&input["spec"]).unwrap(),
+            input["rows"].as_array().unwrap(),
+            &ChartTheme::default(),
+            &Options::default(),
+        );
+        let panel = &geometry.panels[0];
+        let owned: Vec<&Item> = panel
+            .items
+            .iter()
+            .filter(|item| {
+                matches!(
+                    item,
+                    Item::Rect {
+                        role: Role::Mark,
+                        obs: Some(0),
+                        ..
+                    } | Item::Line {
+                        role: Role::Mark,
+                        obs: Some(0),
+                        ..
+                    }
+                )
+            })
+            .collect();
+        let rect = owned
+            .iter()
+            .find_map(|item| match item {
+                Item::Rect { rect, .. } => Some(*rect),
+                _ => None,
+            })
+            .unwrap();
+        let median = owned
+            .iter()
+            .find_map(|item| match item {
+                Item::Line { path, .. }
+                    if path.bounds().is_some_and(|b| {
+                        let r = rect.inflate(0.5);
+                        r.contains([b.x, b.y]) && r.contains([b.right(), b.bottom()])
+                    }) =>
+                {
+                    Some(path.clone())
+                }
+                _ => None,
+            })
+            .expect("a boxplot draws its median inside the box");
+        let drawn = items(
+            "boxplot",
+            panel,
+            0,
+            None,
+            ink,
+            geometry.background,
+            1.0,
+            Glow::of("boxplot", false, false),
+        )
+        .unwrap();
+        assert!(
+            !drawn
+                .iter()
+                .any(|item| matches!(item, Item::Line { path, .. } if *path == median)),
+            "the median glows inside its own box"
+        );
+        assert!(
+            drawn
+                .iter()
+                .filter(|item| matches!(item, Item::Area { .. }))
+                .count()
+                >= Glow::MEDIUM.bands as usize,
+            "the box glows"
+        );
     }
 
     #[test]
@@ -1363,10 +1652,19 @@ mod tests {
                     Rgba([0.0, 0.0, 0.0, 1.0]),
                     geometry.background,
                     1.0,
+                    Glow::of(kind, false, false),
                 )
                 .unwrap();
+                // The glow's bands along the path, then the path itself one pixel thicker.
+                let (glow, selected) = items.split_at(items.len() - 1);
+                assert_eq!(glow.len(), Glow::MEDIUM.bands as usize, "{kind}: {items:?}");
                 assert!(
-                    matches!(items.as_slice(), [Item::Line { path: halo_path, .. }, Item::Line { path: selected_path, stroke: selected, .. }] if halo_path == path && selected_path == path && (selected.width - stroke.width - 1.0).abs() < 1e-9),
+                    glow.iter()
+                        .all(|item| matches!(item, Item::Line { path: band, .. } if band == path)),
+                    "{kind} must glow along the selected path without a point: {items:?}"
+                );
+                assert!(
+                    matches!(selected, [Item::Line { path: selected_path, stroke: selected, .. }] if selected_path == path && (selected.width - stroke.width - 1.0).abs() < 1e-9),
                     "{kind} must thicken the selected path without a point: {items:?}"
                 );
             }
@@ -1449,18 +1747,20 @@ mod tests {
                 Rgba([0.0, 0.0, 0.0, 1.0]),
                 geometry.background,
                 1.0,
+                Glow::of("bar3d", false, false),
             )
             .unwrap();
+            let (bands, lines) = contour.split_at(contour.len().saturating_sub(2));
             let [
-                Item::Area { path: band, .. },
                 Item::Line {
                     path: separator, ..
                 },
                 Item::Line { path: ink, .. },
-            ] = contour.as_slice()
+            ] = lines
             else {
-                panic!("bar {index}: a halo, a separator and an ink line");
+                panic!("bar {index}: a glow, a separator and an ink line");
             };
+            assert_eq!(bands.len(), Glow::MEDIUM.bands as usize, "bar {index}");
             assert_eq!(separator.flatten(0.5), ink.flatten(0.5));
             for p in along(&ink.flatten(0.5)) {
                 assert!(
@@ -1468,7 +1768,10 @@ mod tests {
                     "rows {rows}, bar {index}: its contour runs over a bar in front at {p:?}"
                 );
             }
-            for piece in band.flatten(0.5) {
+            for piece in bands.iter().flat_map(|band| match band {
+                Item::Area { path, .. } => path.flatten(0.5),
+                _ => panic!("bar {index}: a glow band is an area"),
+            }) {
                 let piece = open_ring(piece);
                 let n = piece.len() as f64;
                 let centre = [
@@ -1539,10 +1842,11 @@ mod tests {
                     Rgba([0.0, 0.0, 0.0, 1.0]),
                     geometry.background,
                     1.0,
+                    Glow::of("bar3d", false, false),
                 )
                 .unwrap();
-                let Item::Line { path: ink, .. } = &contour[2] else {
-                    panic!("bar {index}: a halo, a separator and an ink line");
+                let Some(Item::Line { path: ink, .. }) = contour.last() else {
+                    panic!("bar {index}: a glow, a separator and an ink line");
                 };
                 let (all, shown) = (length(silhouette.flatten(0.5)), length(ink.flatten(0.5)));
                 assert!((shown - all).abs() < 1e-6, "bar {index}: {shown} of {all}");
@@ -1696,6 +2000,7 @@ mod tests {
                 Rgba([0.0, 0.0, 0.0, 1.0]),
                 geometry.background,
                 1.0,
+                Glow::of("map", false, false),
             )
             .unwrap();
             // A spot answers with its own halo, centred on it, and no ink ring.
@@ -1727,7 +2032,7 @@ mod tests {
         let color = Rgba([0.3, 0.4, 0.5, 1.0]);
         for panel in &geometry.panels {
             for (index, observation) in panel.observations.iter().enumerate() {
-                let dot = node(panel, index, 1.0, color, geometry.background).unwrap();
+                let dot = node(panel, index, 1.0, color, geometry.background, Glow::FLAT).unwrap();
                 assert_eq!(dot.len(), 3);
                 for (item, radius) in dot.iter().zip([12.0, 8.0, 6.0]) {
                     assert!(
@@ -1735,7 +2040,7 @@ mod tests {
                     );
                 }
                 assert!(
-                    matches!(dot[0], Item::Point { fill: Some(fill), .. } if fill.color == halo(color, 1.0))
+                    matches!(dot[0], Item::Point { fill: Some(fill), .. } if fill.color == halo(color, 0.25, 1.0))
                 );
             }
             assert!(
@@ -1744,7 +2049,8 @@ mod tests {
                     panel.observations.len(),
                     1.0,
                     color,
-                    geometry.background
+                    geometry.background,
+                    Glow::FLAT,
                 )
                 .is_none()
             );
@@ -1787,6 +2093,7 @@ mod tests {
                 Rgba([0.0, 0.0, 0.0, 1.0]),
                 geometry.background,
                 1.0,
+                Glow::of("network", false, false),
             )
             .unwrap();
             // A node answers with its own halo, centred on it, and no ink ring.
@@ -1850,6 +2157,7 @@ mod tests {
                 Rgba([0.0, 0.0, 0.0, 1.0]),
                 geometry.background,
                 1.0,
+                Glow::of("gauge", false, false),
             )
             .unwrap();
             assert!(
@@ -1888,6 +2196,7 @@ mod tests {
             Rgba([0.0, 0.0, 0.0, 1.0]),
             geometry.background,
             1.0,
+            Glow::of("gauge", false, false),
         )
         .unwrap();
         assert!(matches!(outlines.as_slice(), [Item::Line { path, .. }] if path == track));
@@ -1932,6 +2241,7 @@ mod tests {
                     Rgba([0.0, 0.0, 0.0, 1.0]),
                     geometry.background,
                     1.0,
+                    Glow::of("flow", false, false),
                 )
                 .unwrap();
                 assert!(
@@ -1984,6 +2294,7 @@ mod tests {
                 ink,
                 geometry.background,
                 1.0,
+                Glow::of(kind, false, false),
             )
         }
         .expect("the mark has an outline");
@@ -2058,6 +2369,7 @@ mod tests {
                 ink,
                 geometry.background,
                 1.0,
+                Glow::of("chord", false, false),
             )
             .unwrap();
             assert!(

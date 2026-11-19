@@ -1578,9 +1578,9 @@ checksum = "678cf5bdb3ba63a264e6e0c9eee36538ca1d2da0afa4dd801c1f96309e710765"
 
 [[package]]
 name = "lettre"
-version = "0.11.23"
+version = "0.11.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2c646bd5cc763b1087b15493e29a64be6147ba8f19342004fa52048ee596eae"
+checksum = "f294f3d7cdb313e578acef7d7727d4e8d897e0fcd0d6d58c19959cec95073f19"
 dependencies = [
  "async-trait",
  "base64 0.23.1",
@@ -2299,7 +2299,7 @@ dependencies = [
 
 [[package]]
 name = "richview-app"
-version = "3.0.0-alpha.2"
+version = "3.0.0-alpha.3"
 dependencies = [
  "argon2",
  "axum",
@@ -2334,11 +2334,12 @@ dependencies = [
  "tokio-rustls",
  "tower",
  "tower-http",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
 name = "richview-authoring"
-version = "3.0.0-alpha.2"
+version = "3.0.0-alpha.3"
 dependencies = [
  "pulldown-cmark",
  "richview-core",
@@ -2348,7 +2349,7 @@ dependencies = [
 
 [[package]]
 name = "richview-bench"
-version = "3.0.0-alpha.2"
+version = "3.0.0-alpha.3"
 dependencies = [
  "csv",
  "richview-app",
@@ -2358,7 +2359,7 @@ dependencies = [
 
 [[package]]
 name = "richview-build"
-version = "3.0.0-alpha.2"
+version = "3.0.0-alpha.3"
 dependencies = [
  "base64 0.22.1",
  "cargo-config2",
@@ -2385,7 +2386,7 @@ dependencies = [
 
 [[package]]
 name = "richview-core"
-version = "3.0.0-alpha.2"
+version = "3.0.0-alpha.3"
 dependencies = [
  "ammonia",
  "base64 0.22.1",
@@ -2406,7 +2407,7 @@ dependencies = [
 
 [[package]]
 name = "richview-editor"
-version = "3.0.0-alpha.2"
+version = "3.0.0-alpha.3"
 dependencies = [
  "richview-app",
  "richview-authoring",
@@ -2417,7 +2418,7 @@ dependencies = [
 
 [[package]]
 name = "richview-publish"
-version = "3.0.0-alpha.2"
+version = "3.0.0-alpha.3"
 dependencies = [
  "clap",
  "richview-app",
@@ -2432,7 +2433,7 @@ dependencies = [
 
 [[package]]
 name = "richview-publish-server"
-version = "3.0.0-alpha.2"
+version = "3.0.0-alpha.3"
 dependencies = [
  "base64 0.22.1",
  "richview-core",
@@ -2444,7 +2445,7 @@ dependencies = [
 
 [[package]]
 name = "richview-runtime"
-version = "3.0.0-alpha.2"
+version = "3.0.0-alpha.3"
 dependencies = [
  "js-sys",
  "richview-chart",
@@ -2458,7 +2459,7 @@ dependencies = [
 
 [[package]]
 name = "richview-share"
-version = "3.0.0-alpha.2"
+version = "3.0.0-alpha.3"
 dependencies = [
  "resvg",
  "richview-chart",
@@ -2469,7 +2470,7 @@ dependencies = [
 
 [[package]]
 name = "richview-site"
-version = "3.0.0-alpha.2"
+version = "3.0.0-alpha.3"
 dependencies = [
  "base64 0.22.1",
  "js-sys",
@@ -2915,7 +2916,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.4.3",
+ "getrandom 0.3.4",
  "once_cell",
  "rustix 1.1.5",
  "windows-sys 0.61.2",

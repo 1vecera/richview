@@ -1,7 +1,7 @@
-# Optional local customization, after the scientific builtin.
-tokens:
-  bg: 'oklch(0.9695 0.0336 86.31)'
-  accent: 'oklch(0.4806 0.1597 25.56)'
-chart:
-  palette: ['oklch(0.4806 0.1597 25.56)', 'oklch(0.5429 0.0892 211.21)']
-  bar-radius: 8
+# Optional local customization, after the scientific preset.
+# Your colours; RichView picks the rest, with contrast guaranteed.
+colors:
+  brand: '#A52A2A'
+  secondary: '#167D8D'
+  background: '#FFF4DC'
+corners: large

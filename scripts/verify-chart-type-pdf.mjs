@@ -6,7 +6,7 @@ import { channel } from 'node:diagnostics_channel';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, writeFileSync } from 'node:fs';
 import { basename, dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
@@ -16,8 +16,13 @@ import { launchBrowser } from '../tools/rv-gate/lib/browser-launch.mjs';
 import { waitForBenchmark } from '../tools/rv-gate/lib/quiet.mjs';
 import { paintedShapes, pageStreams, parseBlocks, parseWords, locateTitles, overlapShare } from './export-types.mjs';
 import { builtinStyles, chartTypes, requireTypes, matchPainted, selectableLabels, framePaints, chartPaperRoots } from './chart-type-evidence.mjs';
+// A process is its ids, its start time and its executable, none of which it can change while it runs: Linux's
+// /proc/<pid>/exe, and macOS's ucomm, the name the kernel took from the executable at exec. ps's comm is no
+// identity: on Linux it is the main thread's name, which Node renames from node to node-MainThread once it has
+// started, and on both systems process.title rewrites it. null: no such process.
 export function identity(pid){
- try{const line=execFileSync('/bin/ps',['-p',String(pid),'-o','pid=,ppid=,pgid=,lstart=,comm='],{encoding:'utf8',timeout:1000}).trim();const m=line.match(/^(\d+)\s+(\d+)\s+(\d+)\s+(.{24})\s+(.+)$/);if(!m)throw Error('Unrecognized own-process identity');return{pid:+m[1],ppid:+m[2],pgid:+m[3],birth:m[4],comm:m[5]};}catch(e){if(e.status===1)return null;throw e;}
+ const linux=process.platform==='linux';
+ try{const line=execFileSync('/bin/ps',['-p',String(pid),'-o','pid=,ppid=,pgid=,lstart='+(linux?'':',ucomm=')],{encoding:'utf8',timeout:1000}).trim();const m=line.match(linux?/^(\d+)\s+(\d+)\s+(\d+)\s+(.{24})$/:/^(\d+)\s+(\d+)\s+(\d+)\s+(.{24})\s+(.+)$/);if(!m)throw Error('Unrecognized own-process identity');return{pid:+m[1],ppid:+m[2],pgid:+m[3],birth:m[4],exe:linux?readlinkSync(`/proc/${pid}/exe`):m[5]};}catch(e){if(e.status===1||(e.code==='ENOENT'&&e.syscall==='readlink'))return null;throw e;}
 }
 export function ownRoots(){
  const scope=new AsyncLocalStorage(),spawn=channel('tracing:child_process.spawn:start'),roots=[];

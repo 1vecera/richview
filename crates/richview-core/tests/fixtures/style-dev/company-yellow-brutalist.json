@@ -1,0 +1,72 @@
+{
+  "chart": {
+    "bar-radius": 0,
+    "legend": "bottom",
+    "negative-ramp": [
+      "oklch(0.94 0.012 45)",
+      "oklch(0.67 0.08 46)",
+      "oklch(0.37 0.098 48)"
+    ],
+    "palette": [
+      "#ad8a00",
+      "#124a8c",
+      "#a24e10",
+      "#157554",
+      "#8656a6",
+      "#2f9398"
+    ],
+    "ramp": [
+      "oklch(0.94 0.012 255)",
+      "oklch(0.67 0.08 256)",
+      "oklch(0.37 0.115 258)"
+    ]
+  },
+  "css": ":root {\n  --rv-accent: oklch(0.643 0.131 90.6);\n  --rv-accent-soft: oklch(0.643 0.131 90.6 / 0.12);\n  --rv-bg: oklch(0.985 0.012 90.6);\n  --rv-bg-chart: oklch(0.975 0.012 90.6);\n  --rv-bg-elev: oklch(0.97 0.012 90.6);\n  --rv-block-gap: 4rem;\n  --rv-brand: oklch(0.4128 0.1233 255.65);\n  --rv-chart-ink: oklch(0.2 0.035 90.6);\n  --rv-density: 1;\n  --rv-down: oklch(0.50 0.16 25);\n  --rv-font-display: Big Shoulders, Arial Narrow, sans-serif;\n  --rv-font-mono: Space Mono, ui-monospace, monospace;\n  --rv-font-text: Newsreader, Georgia, Palatino Linotype, serif;\n  --rv-font-ui: Space Mono, ui-monospace, monospace;\n  --rv-hold: oklch(0.55 0.13 70);\n  --rv-ink: oklch(0.2 0.035 90.6);\n  --rv-ink-faint: oklch(0.62 0.035 90.6);\n  --rv-ink-soft: oklch(0.4 0.035 90.6);\n  --rv-line-base: 1.65;\n  --rv-link: oklch(0.543 0.111 90.6);\n  --rv-measure: 38rem;\n  --rv-radius-m: 0px;\n  --rv-radius-s: 0px;\n  --rv-report-max-width: 880px;\n  --rv-rule: oklch(0.16 0.02 90.6);\n  --rv-rule-soft: oklch(0.88 0.02 90.6);\n  --rv-shadow-float: none;\n  --rv-size-base: 17px;\n  --rv-size-display: 52px;\n  --rv-size-h1: 34px;\n  --rv-size-h2: 28px;\n  --rv-size-h3: 21px;\n  --rv-size-small: 14px;\n  --rv-up: oklch(0.45 0.12 150);\n}\n@media (max-width: 640px) {\n:root {\n  --rv-block-gap: 2.5rem;\n  --rv-size-base: 17px;\n  --rv-size-display: 34px;\n  --rv-size-h1: 30px;\n  --rv-size-h2: 26px;\n  --rv-size-h3: 21px;\n  --rv-size-small: 14px;\n}\n}\n:root{color-scheme:light}\n:root{--rv-motion-duration:160ms;--rv-motion-easing:cubic-bezier(0.2,0,0,1);--rv-motion-stagger:0ms;--rv-motion-distance:0px;--rv-motion-block:none}\n.rv-report__body blockquote{font-style:italic}\n.rv-report__lede,.rv-report__subtitle{font-style:italic}\n.rv-report__header{padding-top:calc(var(--rv-line) * .75);padding-bottom:var(--rv-line)}\n.rv-metric{background:var(--rv-accent);border:2px solid var(--rv-ink);padding:calc(var(--rv-line) * .75 * var(--rv-density)) 1.25rem;color:oklch(1 0 0)}.rv-metric__value,.rv-metric__label,.rv-metric__delta,.rv-metric__delta--up,.rv-metric__delta--down{color:oklch(1 0 0)}\n.rv-callout{border-top-width:2px}\n.rv-report__header{border-top:4px solid var(--rv-ink)}\n.rv-report__header{border-bottom:4px solid var(--rv-ink)}\n.rv-report__title{text-transform:uppercase}\n.rv-report__title{font-weight:800}\n.rv-report__title{letter-spacing:0.02em}\n.rv-report__body h1,.rv-report__body h2,.rv-report__body h3,.rv-callout__title,.rv-chart .rv-chart__title,.rv-chart-dialog__title{text-transform:uppercase}\n.rv-report__body h1,.rv-report__body h2,.rv-report__body h3,.rv-callout__title,.rv-chart .rv-chart__title,.rv-chart-dialog__title{font-weight:800}\n.rv-report__body h1,.rv-report__body h2,.rv-report__body h3,.rv-callout__title,.rv-chart .rv-chart__title,.rv-chart-dialog__title{letter-spacing:0.02em}\n.rv-report__body th,.rv-chart-dialog th{text-transform:uppercase}\n.rv-report__body th,.rv-chart-dialog th{font-weight:normal}\n.rv-report__body th,.rv-chart-dialog th{letter-spacing:0.06em}\n.rv-chart{border:2px solid var(--rv-ink);padding:1rem 1.25rem}\n.rv-chart.rv-chart--expanded{border:0;background:none;border-radius:0}\n@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}\n",
+  "custom_properties": {
+    "--rv-accent": "oklch(0.643 0.131 90.6)",
+    "--rv-accent-soft": "oklch(0.643 0.131 90.6 / 0.12)",
+    "--rv-bg": "oklch(0.985 0.012 90.6)",
+    "--rv-bg-chart": "oklch(0.975 0.012 90.6)",
+    "--rv-bg-elev": "oklch(0.97 0.012 90.6)",
+    "--rv-block-gap": "4rem",
+    "--rv-block-gap-phone": "2.5rem",
+    "--rv-brand": "oklch(0.4128 0.1233 255.65)",
+    "--rv-chart-ink": "oklch(0.2 0.035 90.6)",
+    "--rv-density": "1",
+    "--rv-down": "oklch(0.50 0.16 25)",
+    "--rv-font-display": "Big Shoulders, Arial Narrow, sans-serif",
+    "--rv-font-mono": "Space Mono, ui-monospace, monospace",
+    "--rv-font-text": "Newsreader, Georgia, Palatino Linotype, serif",
+    "--rv-font-ui": "Space Mono, ui-monospace, monospace",
+    "--rv-hold": "oklch(0.55 0.13 70)",
+    "--rv-ink": "oklch(0.2 0.035 90.6)",
+    "--rv-ink-faint": "oklch(0.62 0.035 90.6)",
+    "--rv-ink-soft": "oklch(0.4 0.035 90.6)",
+    "--rv-line-base": "1.65",
+    "--rv-link": "oklch(0.543 0.111 90.6)",
+    "--rv-measure": "38rem",
+    "--rv-radius-m": "0px",
+    "--rv-radius-s": "0px",
+    "--rv-report-max-width": "880px",
+    "--rv-rule": "oklch(0.16 0.02 90.6)",
+    "--rv-rule-soft": "oklch(0.88 0.02 90.6)",
+    "--rv-shadow-float": "none",
+    "--rv-size-base": "17px",
+    "--rv-size-base-phone": "17px",
+    "--rv-size-display": "52px",
+    "--rv-size-display-phone": "34px",
+    "--rv-size-h1": "34px",
+    "--rv-size-h1-phone": "30px",
+    "--rv-size-h2": "28px",
+    "--rv-size-h2-phone": "26px",
+    "--rv-size-h3": "21px",
+    "--rv-size-h3-phone": "21px",
+    "--rv-size-small": "14px",
+    "--rv-size-small-phone": "14px",
+    "--rv-up": "oklch(0.45 0.12 150)"
+  },
+  "refs": [
+    "company:\n  color: '#F2C200'\n  base: brutalist\n"
+  ],
+  "scheme": "light"
+}

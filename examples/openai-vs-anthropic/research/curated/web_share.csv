@@ -2,6 +2,9 @@ as_of,product,share_pct,source_id
 2025-08,ChatGPT,73.3,C170
 2025-08,Gemini,12.9,C170
 2025-08,Claude,1.9,C170
+2025-11,ChatGPT,69.5,C214
+2025-11,Gemini,15.9,C214
+2025-11,Claude,2.1,C214
 2026-03,ChatGPT,56.7,C191
 2026-03,Gemini,25.4,C191
 2026-03,Claude,6.0,C191
@@ -11,3 +14,6 @@ as_of,product,share_pct,source_id
 2026-08,ChatGPT,55.5,C195
 2026-08,Gemini,25.6,C195
 2026-08,Claude,9.3,C195
+2026-10,ChatGPT,55.7,C214
+2026-10,Gemini,24.2,C214
+2026-10,Claude,11.5,C214

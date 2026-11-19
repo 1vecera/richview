@@ -4,12 +4,12 @@ version: 1.0.0
 styles: [sleek]
 ---
 
-Every month, Hacker News commenters write thousands of comments that mention OpenAI or Anthropic. Anthropic's share of those mentions passed half in July 2025, peaked in April 2026 and has fallen back since.
+Every month, Hacker News commenters write thousands of comments that mention OpenAI or Anthropic. Anthropic's share of those mentions passed half in July 2025, peaked in April 2026, fell back to 57% in September and recovered to 65% in October.
 
 ```chart
 type: combo
 title: Anthropic's share of mentions passed half in July 2025
-subtitle: Comments that mention Anthropic each month (bars) and its share of OpenAI and Anthropic mentions (line), January 2023 to September 2026
+subtitle: Comments that mention Anthropic each month (bars) and its share of OpenAI and Anthropic mentions (line), January 2023 to October 2026
 data: {csv: data/hn-comment-mentions-monthly.csv}
 encoding: {x: month, y: anthropic_comments, line: anthropic_share}
 axes:
@@ -26,17 +26,17 @@ format: percent
 ```
 
 ```metric
-value: 0.5651
-label: Anthropic's share in September 2026
+value: 0.6477
+label: Anthropic's share in October 2026
 format: percent
-delta: -0.1683
+delta: -0.0857
 delta_label: since April
 trend: down
 ```
 
 ```metric
-value: 9676
-label: Comments that mention Anthropic, September 2026
+value: 9325
+label: Comments that mention Anthropic, October 2026
 format: number
 ```
 

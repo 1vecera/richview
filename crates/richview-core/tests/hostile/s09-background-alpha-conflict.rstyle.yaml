@@ -1,0 +1,4 @@
+background:
+  picture: s09-background-alpha-conflict.png
+  texture: grain
+  place: margins

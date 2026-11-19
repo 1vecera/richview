@@ -38,6 +38,8 @@ const QUERY_PREFIX: &str = "SELECT * FROM (\n";
 pub struct DuckDbConnector {
     database: PathBuf,
     worker: Option<PathBuf>,
+    /// The run's copies of the source, for the Windows worker; they go with the connector.
+    copies: super::sql_worker::SourceCopies,
 }
 
 impl DuckDbConnector {
@@ -46,6 +48,7 @@ impl DuckDbConnector {
         Self {
             database,
             worker: None,
+            copies: Default::default(),
         }
     }
 
@@ -55,6 +58,7 @@ impl DuckDbConnector {
         Self {
             database,
             worker: Some(worker),
+            copies: Default::default(),
         }
     }
 }
@@ -92,14 +96,34 @@ impl Connector for DuckDbConnector {
                 reason: "SQL source binding changed; reload trusted connector configuration".into(),
             });
         }
-        super::sql_worker::execute(&self.database, self.worker.as_deref(), request)
+        super::sql_worker::execute_in(
+            &self.copies,
+            &self.database,
+            self.worker.as_deref(),
+            request,
+        )
     }
 }
 
 impl DuckDbConnector {
     /// Open the declared source in the restricted worker; no report controls engine settings.
+    #[cfg(test)]
     pub(super) fn execute_read_only(
         database: &Path,
+        request: &Query<'_>,
+        timeout: Duration,
+    ) -> Result<DatasetSnapshot, ConnectorError> {
+        Self::execute_read_only_with(
+            || Self::open_read_only(database, request.connector),
+            request,
+            timeout,
+        )
+    }
+
+    /// Run the request on the connection `open` returns, which is called only after the
+    /// request's SQL and values have been checked.
+    pub(super) fn execute_read_only_with(
+        open: impl FnOnce() -> Result<Connection, ConnectorError>,
         request: &Query<'_>,
         timeout: Duration,
     ) -> Result<DatasetSnapshot, ConnectorError> {
@@ -127,7 +151,7 @@ impl DuckDbConnector {
             .map(|(name, value)| (*name, value as &dyn ToSql))
             .collect();
 
-        let connection = Self::open_read_only(database, request.connector)?;
+        let connection = open()?;
         with_timeout(&connection, timeout, || {
             Self::check_definitions(&connection, request.connector)?;
             let mut statement = connection
@@ -219,7 +243,10 @@ impl DuckDbConnector {
             })
         })
     }
-    fn open_read_only(database: &Path, connector: &str) -> Result<Connection, ConnectorError> {
+    pub(super) fn open_read_only(
+        database: &Path,
+        connector: &str,
+    ) -> Result<Connection, ConnectorError> {
         let config = Config::default()
             .access_mode(duckdb::AccessMode::ReadOnly)
             .and_then(|config| config.enable_external_access(false))

@@ -10,7 +10,7 @@ import { chromiumPath, root, serveStatic, settled } from '../../../scripts/brows
 const report = join(root, 'examples/openai-vs-anthropic');
 const assets = join(report, 'assets'); mkdirSync(assets, { recursive: true });
 const scratch = mkdtempSync(join(root, 'tmp/editorial-images-'));
-const source = join(report, 'data/charts/population-shares.csv');
+const source = join(report, 'assets/editorial-charts-source-2026-10-02.csv');
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const rows = JSON.parse(execFileSync('uv', ['run', '--no-project', 'python', '-c', 'import csv,json,sys;print(json.dumps(list(csv.DictReader(open(sys.argv[1])))))', source], { encoding: 'utf8' }));
 const row = name => { const value = rows.find(row => row.measure === name); if (!value) throw new Error(`Missing frozen measure: ${name}`); return value; };
@@ -51,7 +51,7 @@ const notices = [readFileSync(join(root, 'LICENSE'), 'utf8'), ...['source-serif-
 const xml = text => text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 const server = await serveStatic(routes);
 const browser = await chromium.launch({ headless: true, executablePath: chromiumPath(), args: ['--no-sandbox'] });
-const evidence = { snapshot: '2026-10-02', imageRevision: '2026-10-15', source: 'data/charts/population-shares.csv', source_sha256: hash(readFileSync(source)), renderer_commit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(), runtime_sha256: hash(readFileSync(join(root, 'dist/web/richview_site_bg.wasm'))), browser: browser.version(), assets: [] };
+const evidence = { snapshot: '2026-10-02', imageRevision: '2026-10-15', source: 'assets/editorial-charts-source-2026-10-02.csv', source_sha256: hash(readFileSync(source)), renderer_commit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(), runtime_sha256: hash(readFileSync(join(root, 'dist/web/richview_site_bg.wasm'))), browser: browser.version(), assets: [] };
 try {
   const page = await browser.newPage({ viewport: { width: 1200, height: 1000 }, reducedMotion: 'reduce', acceptDownloads: true });
   for (const item of specifications) {

@@ -1,7 +1,7 @@
 {
   "snapshot": "2026-10-02",
   "imageRevision": "2026-10-15",
-  "source": "data/charts/population-shares.csv",
+  "source": "assets/editorial-charts-source-2026-10-02.csv",
   "source_sha256": "1cdcaf87979207e1f01a6496b15febca515d3a5e48b76764c1724eb6bd0fa5c3",
   "renderer_commit": "407e62c520cd60ba835d8e5e23c2c03fb2503d36",
   "runtime_sha256": "b9c8954f9d0c13bb265bd346e1d7d80ceceb283d5deb79958aa6b88919263896",

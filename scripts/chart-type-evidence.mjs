@@ -24,9 +24,9 @@ export function chartTypes(guide) {
   return guideInventory(guide, '### Chart types', /^- ([a-z][a-z0-9-]*) \([^()]*\): \S/, 'chart-contract');
 }
 
-/** Read builtin styles from the tested native guide without copying its inventory. */
+/** Read the main presets, not the extended ones, from the tested native guide without copying its inventory. */
 export function builtinStyles(guide) {
-  return guideInventory(guide, '### The builtin styles', /^- \*\*([a-z][a-z-]*)\*\*[:,] \S/, 'style guide');
+  return guideInventory(guide, '### The presets', /^- \*\*([a-z][a-z-]*)\*\*[:,] \S/, 'style guide');
 }
 
 /** Check selectable labels independently of PDF serialization, preserving multiplicities. */

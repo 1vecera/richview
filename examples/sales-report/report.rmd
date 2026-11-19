@@ -15,6 +15,9 @@ This is a synthetic sales-report example. The figures illustrate report structur
 
 The example ends September at **$630K MRR**, up **61.5% from July's $390K**. Enterprise supplied $140K of the $240K increase; mid-market supplied the remaining $100K.
 
+::: columns {wide: false}
+
+::: column
 ```metric
 value: 630000
 label: Q3 ending MRR
@@ -24,6 +27,33 @@ delta: 0.6153846154
 delta_label: vs July
 trend: up
 ```
+:::
+
+::: column
+```metric
+value: 420000
+label: Enterprise MRR, September
+format: number_compact
+unit: $
+delta: 0.5
+delta_label: vs July
+trend: up
+```
+:::
+
+::: column
+```metric
+value: 210000
+label: Mid-market MRR, September
+format: number_compact
+unit: $
+delta: 0.9090909091
+delta_label: vs July
+trend: up
+```
+:::
+
+:::
 
 ## What drove the lift
 

@@ -121,7 +121,19 @@ impl Connector for MetricFlowConnector {
             "--limit",
             &spec.limit.unwrap_or(ceiling).min(ceiling).to_string(),
         ]);
-        let output = command.output().map_err(ConnectorError::Io)?;
+        command
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped());
+        // On Windows a child inherits every inheritable handle, so it waits while an SQL worker
+        // or a browser is being started with its pipe ends inheritable.
+        #[cfg(windows)]
+        let child = crate::win_process::spawn(&mut command);
+        #[cfg(not(windows))]
+        let child = command.spawn();
+        let output = child
+            .and_then(std::process::Child::wait_with_output)
+            .map_err(ConnectorError::Io)?;
         if !output.status.success() {
             return Err(ConnectorError::Execution {
                 connector: request.connector.to_owned(),

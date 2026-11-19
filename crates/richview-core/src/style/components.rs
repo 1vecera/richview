@@ -25,7 +25,16 @@ pub(super) fn css(components: Option<&Value>, props: &BTreeMap<String, String>) 
     // the delta's sign and words carry the trend, not its colour (STY-33).
     match c.pointer("/metric/style").and_then(Value::as_str) {
         Some("bracket") => css.push_str(".rv-metric{border-bottom:1px solid var(--rv-rule);padding-bottom:calc(var(--rv-line) * .5 * var(--rv-density))}\n"),
-        Some("knockout") => css.push_str(".rv-metric{background:var(--rv-accent);border:2px solid var(--rv-ink);padding:calc(var(--rv-line) * .75 * var(--rv-density)) 1.25rem;color:oklch(1 0 0)}.rv-metric__value,.rv-metric__label,.rv-metric__delta,.rv-metric__delta--up,.rv-metric__delta--down{color:oklch(1 0 0)}\n"),
+        Some("knockout") => {
+            // Text on the accent is white, or `on-accent` when the author's colours chose the
+            // accent (STY-73).
+            let text = if props.contains_key("--rv-on-accent") {
+                "var(--rv-on-accent)"
+            } else {
+                "oklch(1 0 0)"
+            };
+            css.push_str(&format!(".rv-metric{{background:var(--rv-accent);border:2px solid var(--rv-ink);padding:calc(var(--rv-line) * .75 * var(--rv-density)) 1.25rem;color:{text}}}.rv-metric__value,.rv-metric__label,.rv-metric__delta,.rv-metric__delta--up,.rv-metric__delta--down{{color:{text}}}\n"));
+        }
         _ => {}
     }
     const TITLE: &str = ".rv-report__title";
@@ -229,8 +238,8 @@ pub(crate) fn frame_inset_px(document: &Value) -> f64 {
         .pointer("/components/figure/frame")
         .and_then(Value::as_str)
     {
-        Some("shaded") => 40.0,
-        Some("outline") => 44.0,
+        Some("shaded") => 40.0 * super::settings::frame_padding(document),
+        Some("outline") => 4.0 + 40.0 * super::settings::frame_padding(document),
         _ => 0.0,
     }
 }

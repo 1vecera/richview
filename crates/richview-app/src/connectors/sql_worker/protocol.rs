@@ -49,6 +49,15 @@ pub(super) enum Failure {
     Terminated,
     Input,
     Output,
+    /// The host's own refusals, before any worker starts; a worker cannot send them.
+    #[serde(skip)]
+    PendingWal,
+    #[cfg(windows)]
+    #[serde(skip)]
+    CopyTooLarge,
+    #[cfg(windows)]
+    #[serde(skip)]
+    CopyNoSpace,
 }
 
 pub(super) fn read(mut source: impl Read) -> io::Result<Vec<u8>> {

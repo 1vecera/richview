@@ -29,6 +29,7 @@
           "pub size : f64",
           "pub bar_radius : f64",
           "pub decals : bool",
+          "# [ serde ( skip_serializing_if = \"std::ops::Not::not\" ) ] pub flat_glow : bool",
           "pub sign_hatch : bool",
           "pub curve : String",
           "pub curvature : f64",

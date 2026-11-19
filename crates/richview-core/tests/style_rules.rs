@@ -180,6 +180,14 @@ fn quotes_code_and_total_rows_follow_the_notes_card() {
             font.contains("--rv-font-mono"),
             "{style}: code face is {font}"
         );
+        // Code shows every character as written: no ligature joins `--` over a space.
+        for needle in ["pre", "code:not(pre code)"] {
+            assert_eq!(
+                of(needle, "font-variant-ligatures").as_deref(),
+                Some("none"),
+                "{style}: {needle} keeps its face's ligatures"
+            );
+        }
     }
 }
 

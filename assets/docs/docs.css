@@ -257,10 +257,10 @@ body.docs-page .docs-search [data-docs-search-results] a:focus-visible {
 }
 /* The galleries use the room the reading measure leaves: they run across the page's headings
    column too, and give up that column's list (the page has few headings). */
-.docs-layout:has(.docs-featured-grid, .docs-report-grid, .docs-type-grid) > .rv-report {
+.docs-layout:has(.docs-featured-grid, .docs-report-grid, .docs-styles--type) > .rv-report {
 	grid-column: 2 / -1;
 }
-.docs-layout:has(.docs-featured-grid, .docs-report-grid, .docs-type-grid) > .docs-toc {
+.docs-layout:has(.docs-featured-grid, .docs-report-grid, .docs-styles--type) > .docs-toc {
 	display: none;
 }
 
@@ -516,7 +516,7 @@ body.docs-page .rv-report__body .rv-keep > * {
 	max-width: var(--docs-measure);
 	margin-inline: 0;
 }
-body.docs-page .rv-report__body > :is(.docs-doors, .docs-featured-grid, .docs-report-grid, .docs-type-grid, .docs-report-preview, .docs-styles) {
+body.docs-page .rv-report__body > :is(.docs-doors, .docs-featured-grid, .docs-report-grid, .docs-report-preview, .docs-styles) {
 	max-width: none;
 }
 /* Text keeps the reading measure; figures, frames and grids use the column. */
@@ -813,6 +813,22 @@ body.docs-page .rv-report__body .docs-code {
 	background: var(--paper-2);
 	box-shadow: none;
 }
+/* A report's code block shown on a docs page sits in the same box as the page's own samples,
+   its head in the place of their caption. */
+body.docs-page .rv-report__body .rv-code {
+	margin: 1.5rem 0 2rem;
+	max-width: var(--docs-measure);
+	overflow: hidden;
+	border-radius: var(--r-panel);
+	background: var(--paper-2);
+}
+body.docs-page .rv-report__body .rv-code__head {
+	margin: 0;
+	padding: 0.55rem 1.25rem 0.45rem;
+	border-bottom: 1px solid color-mix(in oklch, var(--rule) 70%, transparent);
+	font: 500 0.78rem / 1.5 var(--font-ui);
+}
+body.docs-page .rv-report__body .rv-code__title { font-family: var(--font-mono); }
 .docs-code figcaption {
 	display: flex;
 	align-items: center;
@@ -867,8 +883,10 @@ body.docs-page .rv-report__body pre span {
 }
 body.docs-page .docs-code pre:has(> code.language-sh),
 body.docs-page .docs-code pre:has(> code.language-bash),
+body.docs-page .docs-code pre:has(> code.language-powershell),
 body.docs-page .docs-code pre code.language-sh,
 body.docs-page .docs-code pre code.language-bash,
+body.docs-page .docs-code pre code.language-powershell,
 body.docs-page .docs-code.docs-code--prose pre,
 body.docs-page .docs-code.docs-code--prose pre code {
 	white-space: pre-wrap;
@@ -1143,6 +1161,187 @@ body.docs-page .rv-report__body .docs-chart-card p.docs-chart-card__style {
 	object-fit: cover;
 }
 
+/* Where an element is a few lines of type, its card draws them: a still of the element, set in
+   the page's own faces, that the card's link opens to. */
+.docs-thumb-mock {
+	position: absolute;
+	inset: 0;
+	padding: 9% 9% 0;
+	background: var(--panel);
+	font-size: clamp(.78rem, 1.6vw, .95rem);
+	line-height: 1.35;
+	color: var(--ink);
+}
+.docs-thumb-mock p { margin: 0; }
+.docs-thumb-mock--expand .docs-thumb-mock__row {
+	display: flex;
+	align-items: center;
+	gap: .6em;
+	padding: .55em 0;
+	border-top: 1px solid var(--rule);
+	font-weight: 600;
+}
+.docs-thumb-mock--expand .docs-thumb-mock__row::before {
+	content: "";
+	width: .4em;
+	height: .4em;
+	border-right: 1.5px solid currentColor;
+	border-bottom: 1.5px solid currentColor;
+	transform: rotate(-45deg);
+}
+.docs-thumb-mock--expand .docs-thumb-mock__row.is-open::before { transform: translateY(-.12em) rotate(45deg); }
+.docs-thumb-mock--expand .docs-thumb-mock__text { padding: 0 0 .6em; color: var(--soft); }
+
+.docs-thumb-mock--code .docs-thumb-mock__head {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: .5em;
+	color: var(--soft);
+	font-size: .85em;
+}
+.docs-thumb-mock--code .docs-thumb-mock__head span:first-child { font-family: var(--font-mono); color: var(--ink); }
+.docs-thumb-mock--code pre {
+	margin: 0;
+	padding: .8em 0;
+	background: var(--paper-2);
+	border-radius: var(--r-small);
+	font: .85em/1.6 var(--font-mono);
+}
+.docs-thumb-mock--code pre span { display: block; padding: 0 1em; }
+.docs-thumb-mock--code pre b { font-weight: 600; }
+.docs-thumb-mock--code pre .is-marked {
+	background: color-mix(in oklch, var(--blue) 11%, transparent);
+	box-shadow: inset 3px 0 var(--blue);
+}
+
+.docs-thumb-mock--columns {
+	display: grid;
+	grid-template-columns: 3fr 2fr;
+	gap: 8%;
+	align-items: end;
+	padding-bottom: 12%;
+}
+.docs-thumb-mock--columns .docs-thumb-mock__bars {
+	display: flex;
+	align-items: flex-end;
+	gap: 10%;
+	height: 100%;
+	border-bottom: 1px solid var(--rule);
+}
+.docs-thumb-mock--columns .docs-thumb-mock__bars span { flex: 1; background: var(--blue); }
+.docs-thumb-mock--columns .docs-thumb-mock__bars span:nth-child(1) { height: 62%; }
+.docs-thumb-mock--columns .docs-thumb-mock__bars span:nth-child(2) { height: 60%; }
+.docs-thumb-mock--columns .docs-thumb-mock__bars span:nth-child(3) { height: 21%; }
+.docs-thumb-mock--columns .docs-thumb-mock__bars span:nth-child(4) { height: 20%; }
+.docs-thumb-mock--columns .docs-thumb-mock__bars span:nth-child(5) { height: 42%; }
+.docs-thumb-mock--columns .docs-thumb-mock__big { font-family: var(--font-display); font-size: 1.9em; font-weight: 600; line-height: 1.1; font-variant-numeric: lining-nums tabular-nums; }
+.docs-thumb-mock--columns .docs-thumb-mock__text { margin-top: .35em; color: var(--soft); }
+
+/* The elements without a part of their own: a compact card each under the overview, a still
+   of the element beside its name, opening the guide section that shows it live. */
+.docs-more-title {
+	margin: 2.25rem 0 .75rem;
+	font-family: var(--font-display);
+	font-size: 1.05rem;
+	font-weight: 600;
+}
+.docs-more-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+	gap: .75rem;
+}
+.docs-more {
+	display: flex;
+	align-items: center;
+	gap: .85rem;
+	padding: .6rem;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-panel);
+	background: var(--panel);
+	color: var(--ink);
+	text-decoration: none;
+}
+.docs-more:hover { border-color: var(--blue); }
+.docs-more:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.docs-more__text { display: grid; gap: .1rem; font-size: .9rem; line-height: 1.35; }
+.docs-more__text span { color: var(--soft); font-size: .85rem; }
+.docs-mini {
+	position: relative;
+	flex: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: .35rem;
+	width: 5.5rem;
+	height: 3.6rem;
+	overflow: hidden;
+	border-radius: var(--r-small);
+	background: var(--paper-2);
+	font-size: .62rem;
+	line-height: 1.25;
+}
+.docs-mini__number { display: block; font-family: var(--font-display); font-size: 1.35rem; line-height: 1; }
+.docs-mini:has(.docs-mini__number) { flex-direction: column; gap: .2rem; color: var(--soft); }
+.docs-mini:has(.docs-mini__number) b { color: var(--ink); }
+.docs-mini__callout { margin: 0 .45rem; padding-top: .3rem; border-top: 1px solid var(--clay); color: var(--soft); }
+.docs-mini__callout b { color: var(--clay); }
+.docs-mini__play {
+	width: 1.3rem;
+	height: 1.3rem;
+	flex: none;
+	border-radius: 50%;
+	background: var(--ink);
+	clip-path: none;
+	position: relative;
+}
+.docs-mini__play::after {
+	content: "";
+	position: absolute;
+	inset: .36rem .3rem .36rem .5rem;
+	background: var(--paper);
+	clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+.docs-mini__wave { display: flex; align-items: center; gap: 2px; height: 1.4rem; }
+.docs-mini__wave i { width: 2px; background: var(--soft); height: 40%; }
+.docs-mini__wave i:nth-child(3n) { height: 90%; }
+.docs-mini__wave i:nth-child(3n + 1) { height: 60%; }
+.docs-mini__poster {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: url(/docs/gallery/blocks/media/apollo-poster.jpg) center / cover;
+}
+.docs-mini__browser {
+	width: 80%;
+	height: 72%;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-small);
+	background: var(--panel);
+	display: flex;
+	gap: 2px;
+	padding: 3px;
+	align-items: flex-start;
+	box-shadow: inset 0 9px 0 var(--paper-2);
+}
+.docs-mini__browser i { width: 3px; height: 3px; border-radius: 50%; background: var(--faint); }
+.docs-mini__steps { display: grid; gap: 3px; width: 38%; }
+.docs-mini__steps i { height: .55rem; border-radius: 0; background: var(--rule); }
+.docs-mini__steps i.is-on { background: var(--blue); }
+.docs-mini__figure {
+	width: 40%;
+	height: 70%;
+	border-radius: 0;
+	background: linear-gradient(to top, var(--blue) 0 35%, transparent 35%) 15% 100% / 18% 100% no-repeat,
+		linear-gradient(to top, var(--blue) 0 70%, transparent 70%) 50% 100% / 18% 100% no-repeat,
+		linear-gradient(to top, var(--clay) 0 50%, transparent 50%) 85% 100% / 18% 100% no-repeat;
+}
+.docs-mini__tabs { display: flex; gap: .3rem; align-self: flex-start; margin-top: .55rem; color: var(--soft); }
+.docs-mini__tabs b { color: var(--ink); box-shadow: 0 2px 0 var(--blue); }
+.docs-mini__toc { display: grid; gap: .15rem; padding-left: .4rem; border-left: 2px solid var(--rule); color: var(--soft); }
+.docs-mini__toc b { color: var(--ink); margin-left: -.5rem; padding-left: .32rem; border-left: 2px solid var(--blue); font-weight: 600; }
+
 /* ------------------------------------------------------------------ the pager */
 
 .docs-pager {
@@ -1273,6 +1472,15 @@ html:not(.js) .docs-styles,
 .docs-styles__frame[hidden] {
 	display: none;
 }
+/* The elements page's type sample has an address and real links, so it stays without scripts. */
+html:not(.js) .docs-styles--type {
+	display: block;
+}
+.docs-styles__open {
+	display: inline-block;
+	margin-top: 0.75rem;
+	font-size: 0.9rem;
+}
 @keyframes docs-fade {
 	from {
 		opacity: 0;
@@ -1305,46 +1513,6 @@ html:not(.js) .docs-styles,
 .docs-report-preview .docs-actions {
 	margin-top: 1.1rem;
 }
-.docs-type-preview iframe {
-	display: block;
-	width: 100%;
-	height: 34rem;
-	border: 1px solid var(--rule);
-	border-radius: var(--r-panel);
-	background: var(--paper);
-}
-
-/* The five style specimens form one strip that scrolls sideways and snaps. */
-.docs-type-grid {
-	display: grid;
-	grid-auto-flow: column;
-	grid-auto-columns: min(21rem, 84%);
-	gap: 1.25rem;
-	margin: 1.5rem 0 2.5rem;
-	padding-bottom: 1rem;
-	overflow-x: auto;
-	scroll-snap-type: x proximity;
-	scrollbar-width: thin;
-	scrollbar-color: var(--rule) transparent;
-}
-.docs-type-preview {
-	display: flex;
-	flex-direction: column;
-	gap: 0.75rem;
-	min-width: 0;
-	margin: 0;
-	scroll-snap-align: start;
-}
-.docs-type-preview h3,
-body.docs-page .rv-report__body .docs-type-preview h3 {
-	margin: 0;
-	font: 600 1.3rem / 1.2 var(--font-display);
-	letter-spacing: -0.025em;
-}
-.docs-type-preview a {
-	font-size: 0.9rem;
-}
-
 /* ------------------------------------------------------------------ feedback: one quiet line */
 
 .docs-feedback {

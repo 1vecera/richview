@@ -1,0 +1,11 @@
+# Signal: Brutalist on newsprint, signal red and ink blue, heavy bars. An extended preset
+# (STY-73), written in the author syntax.
+preset: brutalist
+colors:
+  brand: "oklch(0.6098 0.2112 31.92)"
+  secondary: "oklch(0.3975 0.1460 263.97)"
+  background: "oklch(0.9467 0.0127 86.83)"
+text-size: large
+lines: xlarge
+corners: xsmall
+motion: small

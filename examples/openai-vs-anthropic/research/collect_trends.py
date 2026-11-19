@@ -26,9 +26,9 @@ TOPIC_LOOKUPS = {
     "Anthropic": "Anthropic",
     "Gemini": "Gemini",
 }
-LONG_WINDOW = "2022-01-01 2026-09-30"
-RECENT_WINDOW = "2025-10-01 2026-09-30"
-BASELINE_WINDOW = "2024-10-01 2025-09-30"
+LONG_WINDOW = "2022-01-01 2026-10-31"
+RECENT_WINDOW = "2025-11-01 2026-10-31"
+BASELINE_WINDOW = "2024-11-01 2025-10-31"
 
 
 def trends_get(client: httpx.Client, path: str, params: dict[str, str]) -> Any:

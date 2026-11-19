@@ -1,0 +1,43 @@
+/* Columns (FEA-RP-68), emitted only by reports that hold them.
+
+   Columns stand side by side or stack, all or nothing, by one rule for screen and paper: each
+   column's basis is hugely negative (so zero, and the columns share the width by their weights)
+   while the row is at least `--rv-columns-at` plus the gaps wide, and hugely positive (so each
+   takes a row of its own) below it. The threshold is where the narrowest column would fall under
+   its floor, written by the renderer from the closed widths. The boxes only place the columns:
+   reading order is source order. */
+.rv-columns {
+  --rv-columns-gap: var(--rv-line);
+  /* A body child with auto margins shrinks to its content; columns fill their width. */
+  width: 100%;
+  display: flex; flex-wrap: wrap; align-items: flex-start;
+  column-gap: var(--rv-columns-gap); row-gap: var(--rv-block-gap);
+  margin: var(--rv-block-gap) 0;
+}
+/* Wide columns take the report's width, in the body and in a folded section (FEA-RP-67). */
+.rv-report__body > .rv-columns--wide, .rv-section > .rv-columns--wide { max-width: 100%; }
+.rv-columns--gap-small { --rv-columns-gap: calc(var(--rv-line) * .5); }
+.rv-columns--gap-large { --rv-columns-gap: calc(var(--rv-line) * 1.5); }
+.rv-columns--center { align-items: center; }
+.rv-columns--bottom { align-items: flex-end; }
+.rv-column {
+  flex: 1 1 calc((var(--rv-columns-at) + (var(--rv-columns-n, 2) - 1) * var(--rv-columns-gap) - 100%) * 999);
+  min-width: 0;
+}
+.rv-column--2 { flex-grow: 2; }
+.rv-column--3 { flex-grow: 3; }
+/* The column is its blocks' measure. */
+.rv-report .rv-column > *, .rv-report .rv-column > .rv-keep > * { max-width: 100%; margin-inline: 0; }
+.rv-column > :first-child, .rv-column > .rv-keep:first-child > :first-child { margin-top: 0; }
+.rv-column > :last-child, .rv-column > .rv-keep:last-child > :last-child { margin-bottom: 0; }
+/* The columns enter as one block; a chart kept with its note inside a column does not enter
+   again inside them. */
+.rv-report .rv-columns .rv-enter { opacity: 1; transform: none; transition: none; }
+@media screen and (max-width: 640px) {
+  .rv-column { flex-basis: 100%; }
+}
+@media print {
+  /* Columns that stand side by side on the page keep each column whole, as a figure is. */
+  .rv-column { break-inside: avoid; }
+  .rv-column .rv-keep { display: block; }
+}

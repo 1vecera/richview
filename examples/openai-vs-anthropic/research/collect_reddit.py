@@ -3,10 +3,12 @@
 Measures: (1) current subscribers and lifetime post counts per subreddit (archive metadata snapshot); (2) posts per
 month in each company's home subreddits, a proxy for the enthusiast community that gathers around a product. The
 archive buckets months in CET/CEST, so month edges shift by one or two hours. Its aggregate endpoint times out on the
-largest subreddits for some months; such cells are recorded as unavailable rather than estimated. Title-keyword counts
+largest subreddits for some months; such a cell keeps the count the previous snapshot committed, with that count's
+date in `counted`, and stays empty only where no snapshot ever counted it. Title-keyword counts
 in neutral subreddits were attempted and dropped: the archive timed out on nearly every such query on 2026-10-02.
 """
 
+import csv
 from datetime import date, timedelta
 
 import httpx
@@ -73,8 +75,37 @@ def series(fetcher: common.CachedFetcher, params: dict[str, str | int]) -> dict[
     return counts
 
 
+def committed_counts() -> dict[tuple[str, str], tuple[str, str]]:
+    """Read the counts the previous snapshot committed, keyed by (subreddit, month), with the day each was counted."""
+    path = common.DERIVED_DIR / "reddit_monthly_posts.csv"
+    if not path.exists():
+        return {}
+    with (common.LEDGER_DIR / "collection-runs.csv").open(newline="") as handle:
+        run_day = next(
+            (row["finished_at"][:10] for row in csv.DictReader(handle) if row["run_id"] == "reddit-arctic-shift"), ""
+        )
+    with path.open(newline="") as handle:
+        return {
+            (row["subreddit"], row["month"]): (row["posts"], row.get("counted") or run_day)
+            for row in csv.DictReader(handle)
+            if row["measure"] == "home_posts" and row["posts"] != ""
+        }
+
+
+def keep_committed(rows: list[dict[str, object]], committed: dict[tuple[str, str], tuple[str, str]]) -> int:
+    """Give each month the archive could not count this time its previously committed count; return how many."""
+    kept = 0
+    for row in rows:
+        previous = committed.get((str(row["subreddit"]), str(row["month"])))
+        if row["posts"] is None and previous is not None:
+            row["posts"], row["counted"] = int(previous[0]), previous[1]
+            kept += 1
+    return kept
+
+
 def main() -> None:
     """Write subreddit metadata, monthly home-subreddit posts and monthly title mentions in neutral subreddits."""
+    committed = committed_counts()
     fetcher = common.CachedFetcher("arctic-shift", min_interval_s=8.0, timeout_s=120.0)
     metadata = []
     for subreddit in HOME_SUBREDDITS:
@@ -102,9 +133,11 @@ def main() -> None:
                     "company": company,
                     "month": month,
                     "posts": count,
+                    "counted": common.utc_now()[:10] if count is not None else "",
                 }
             )
         print(subreddit, flush=True)
+    kept = keep_committed(rows, committed)
     common.write_rows(common.DERIVED_DIR / "reddit_monthly_posts.csv", rows)
     unavailable = sum(row["posts"] is None for row in rows)
     common.upsert_collection_run(
@@ -120,8 +153,9 @@ def main() -> None:
             "requests": fetcher.requests,
             "cache_hits": fetcher.cache_hits,
             "cost_usd": 0,
-            "notes": f"Monthly post counts, CET/CEST month buckets; {unavailable} month-series cells unavailable "
-            "(archive timeouts), left empty rather than estimated.",
+            "notes": f"Monthly post counts, CET/CEST month buckets; {kept} month-series cells the archive timed out on "
+            f"keep the previous snapshot's count (dated in `counted`); {unavailable} never counted, left empty rather "
+            "than estimated.",
         }
     )
     print(f"rows={len(rows)} unavailable={unavailable}")

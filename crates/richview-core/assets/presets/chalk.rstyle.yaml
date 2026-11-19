@@ -1,0 +1,8 @@
+# Chalk: Hand-drawn on a slate board in chalk yellow and blue. An extended preset (STY-73),
+# written in the author syntax.
+preset: hand-drawn
+colors:
+  brand: "oklch(0.8717 0.1418 94.31)"
+  secondary: "oklch(0.8332 0.0826 229.95)"
+  background: "oklch(0.2947 0.0209 170.88)"
+gridlines: small

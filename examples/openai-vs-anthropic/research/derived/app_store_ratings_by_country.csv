@@ -1,249 +1,249 @@
 country,app,company,rating_count,average_rating,snapshot_date
-us,ChatGPT,OpenAI,10883936,4.827,2026-10-02
-us,Claude,Anthropic,271740,4.722,2026-10-02
-us,Google Gemini,Google,2302137,4.723,2026-10-02
-us,Grok,xAI,1468339,4.875,2026-10-02
-us,Perplexity,Perplexity,510945,4.821,2026-10-02
-gb,ChatGPT,OpenAI,1342807,4.804,2026-10-02
-gb,Claude,Anthropic,31247,4.66,2026-10-02
-gb,Google Gemini,Google,234075,4.669,2026-10-02
-gb,Grok,xAI,142172,4.83,2026-10-02
-gb,Perplexity,Perplexity,42594,4.786,2026-10-02
-ca,ChatGPT,OpenAI,1237425,4.807,2026-10-02
-ca,Claude,Anthropic,30939,4.679,2026-10-02
-ca,Google Gemini,Google,226794,4.74,2026-10-02
-ca,Grok,xAI,142715,4.84,2026-10-02
-ca,Perplexity,Perplexity,60855,4.78,2026-10-02
-au,ChatGPT,OpenAI,639866,4.802,2026-10-02
-au,Claude,Anthropic,17080,4.697,2026-10-02
-au,Google Gemini,Google,106478,4.67,2026-10-02
-au,Grok,xAI,71025,4.836,2026-10-02
-au,Perplexity,Perplexity,27663,4.782,2026-10-02
-nz,ChatGPT,OpenAI,94012,4.811,2026-10-02
-nz,Claude,Anthropic,2503,4.693,2026-10-02
-nz,Google Gemini,Google,15115,4.71,2026-10-02
-nz,Grok,xAI,10012,4.831,2026-10-02
-nz,Perplexity,Perplexity,3717,4.805,2026-10-02
-ie,ChatGPT,OpenAI,96780,4.799,2026-10-02
-ie,Claude,Anthropic,2389,4.661,2026-10-02
-ie,Google Gemini,Google,14134,4.692,2026-10-02
-ie,Grok,xAI,9411,4.807,2026-10-02
-ie,Perplexity,Perplexity,4132,4.801,2026-10-02
-de,ChatGPT,OpenAI,1710531,4.731,2026-10-02
-de,Claude,Anthropic,28779,4.573,2026-10-02
-de,Google Gemini,Google,258652,4.639,2026-10-02
-de,Grok,xAI,89012,4.777,2026-10-02
-de,Perplexity,Perplexity,92964,4.716,2026-10-02
-fr,ChatGPT,OpenAI,1572124,4.757,2026-10-02
-fr,Claude,Anthropic,40425,4.643,2026-10-02
-fr,Google Gemini,Google,287428,4.643,2026-10-02
-fr,Grok,xAI,87090,4.777,2026-10-02
-fr,Perplexity,Perplexity,75818,4.736,2026-10-02
-es,ChatGPT,OpenAI,885039,4.784,2026-10-02
-es,Claude,Anthropic,14231,4.666,2026-10-02
-es,Google Gemini,Google,203985,4.682,2026-10-02
-es,Grok,xAI,71247,4.808,2026-10-02
-es,Perplexity,Perplexity,44034,4.751,2026-10-02
-it,ChatGPT,OpenAI,616269,4.747,2026-10-02
-it,Claude,Anthropic,13660,4.603,2026-10-02
-it,Google Gemini,Google,250939,4.685,2026-10-02
-it,Grok,xAI,42933,4.761,2026-10-02
-it,Perplexity,Perplexity,32576,4.737,2026-10-02
-nl,ChatGPT,OpenAI,337012,4.759,2026-10-02
-nl,Claude,Anthropic,6879,4.612,2026-10-02
-nl,Google Gemini,Google,40581,4.632,2026-10-02
-nl,Grok,xAI,23250,4.777,2026-10-02
-nl,Perplexity,Perplexity,12333,4.711,2026-10-02
-be,ChatGPT,OpenAI,233398,4.743,2026-10-02
-be,Claude,Anthropic,4463,4.603,2026-10-02
-be,Google Gemini,Google,33484,4.628,2026-10-02
-be,Grok,xAI,15039,4.747,2026-10-02
-be,Perplexity,Perplexity,8254,4.723,2026-10-02
-at,ChatGPT,OpenAI,174501,4.743,2026-10-02
-at,Claude,Anthropic,3036,4.628,2026-10-02
-at,Google Gemini,Google,25276,4.65,2026-10-02
-at,Grok,xAI,10794,4.791,2026-10-02
-at,Perplexity,Perplexity,8131,4.757,2026-10-02
-ch,ChatGPT,OpenAI,277465,4.748,2026-10-02
-ch,Claude,Anthropic,7163,4.615,2026-10-02
-ch,Google Gemini,Google,33919,4.649,2026-10-02
-ch,Grok,xAI,16021,4.786,2026-10-02
-ch,Perplexity,Perplexity,16465,4.736,2026-10-02
-se,ChatGPT,OpenAI,234153,4.74,2026-10-02
-se,Claude,Anthropic,3756,4.595,2026-10-02
-se,Google Gemini,Google,31211,4.612,2026-10-02
-se,Grok,xAI,20335,4.79,2026-10-02
-se,Perplexity,Perplexity,6567,4.71,2026-10-02
-no,ChatGPT,OpenAI,133980,4.757,2026-10-02
-no,Claude,Anthropic,2305,4.589,2026-10-02
-no,Google Gemini,Google,14048,4.629,2026-10-02
-no,Grok,xAI,12771,4.795,2026-10-02
-no,Perplexity,Perplexity,4345,4.726,2026-10-02
-dk,ChatGPT,OpenAI,120505,4.719,2026-10-02
-dk,Claude,Anthropic,2034,4.565,2026-10-02
-dk,Google Gemini,Google,13579,4.592,2026-10-02
-dk,Grok,xAI,8648,4.753,2026-10-02
-dk,Perplexity,Perplexity,3450,4.683,2026-10-02
-fi,ChatGPT,OpenAI,59294,4.701,2026-10-02
-fi,Claude,Anthropic,1257,4.505,2026-10-02
-fi,Google Gemini,Google,9785,4.584,2026-10-02
-fi,Grok,xAI,5694,4.765,2026-10-02
-fi,Perplexity,Perplexity,2138,4.657,2026-10-02
-pl,ChatGPT,OpenAI,355691,4.796,2026-10-02
-pl,Claude,Anthropic,4382,4.59,2026-10-02
-pl,Google Gemini,Google,62445,4.734,2026-10-02
-pl,Grok,xAI,28008,4.869,2026-10-02
-pl,Perplexity,Perplexity,14819,4.809,2026-10-02
-cz,ChatGPT,OpenAI,187317,4.786,2026-10-02
-cz,Claude,Anthropic,2153,4.67,2026-10-02
-cz,Google Gemini,Google,34932,4.732,2026-10-02
-cz,Grok,xAI,9081,4.841,2026-10-02
-cz,Perplexity,Perplexity,9041,4.784,2026-10-02
-pt,ChatGPT,OpenAI,244196,4.811,2026-10-02
-pt,Claude,Anthropic,4811,4.723,2026-10-02
-pt,Google Gemini,Google,48960,4.697,2026-10-02
-pt,Grok,xAI,14690,4.838,2026-10-02
-pt,Perplexity,Perplexity,10901,4.797,2026-10-02
-gr,ChatGPT,OpenAI,135543,4.774,2026-10-02
-gr,Claude,Anthropic,1834,4.676,2026-10-02
-gr,Google Gemini,Google,23426,4.73,2026-10-02
-gr,Grok,xAI,7840,4.838,2026-10-02
-gr,Perplexity,Perplexity,3969,4.763,2026-10-02
-ro,ChatGPT,OpenAI,251531,4.809,2026-10-02
-ro,Claude,Anthropic,4145,4.717,2026-10-02
-ro,Google Gemini,Google,37939,4.789,2026-10-02
-ro,Grok,xAI,11774,4.895,2026-10-02
-ro,Perplexity,Perplexity,5427,4.869,2026-10-02
-hu,ChatGPT,OpenAI,152006,4.803,2026-10-02
-hu,Claude,Anthropic,1325,4.69,2026-10-02
-hu,Google Gemini,Google,28081,4.755,2026-10-02
-hu,Grok,xAI,6860,4.842,2026-10-02
-hu,Perplexity,Perplexity,7953,4.806,2026-10-02
-ua,ChatGPT,OpenAI,485623,4.826,2026-10-02
-ua,Claude,Anthropic,4883,4.624,2026-10-02
-ua,Google Gemini,Google,84662,4.768,2026-10-02
-ua,Grok,xAI,40744,4.88,2026-10-02
-ua,Perplexity,Perplexity,10000,4.818,2026-10-02
-tr,ChatGPT,OpenAI,1113523,4.661,2026-10-02
-tr,Claude,Anthropic,7768,4.462,2026-10-02
-tr,Google Gemini,Google,433791,4.548,2026-10-02
-tr,Grok,xAI,81999,4.786,2026-10-02
-tr,Perplexity,Perplexity,7273,4.677,2026-10-02
-il,ChatGPT,OpenAI,341534,4.506,2026-10-02
-il,Claude,Anthropic,5858,4.511,2026-10-02
-il,Google Gemini,Google,85122,4.497,2026-10-02
-il,Grok,xAI,20127,4.684,2026-10-02
-il,Perplexity,Perplexity,10326,4.683,2026-10-02
-ae,ChatGPT,OpenAI,358182,4.677,2026-10-02
-ae,Claude,Anthropic,3691,4.471,2026-10-02
-ae,Google Gemini,Google,117430,4.555,2026-10-02
-ae,Grok,xAI,18734,4.765,2026-10-02
-ae,Perplexity,Perplexity,8050,4.737,2026-10-02
-sa,ChatGPT,OpenAI,805498,4.57,2026-10-02
-sa,Claude,Anthropic,4555,4.279,2026-10-02
-sa,Google Gemini,Google,367625,4.489,2026-10-02
-sa,Grok,xAI,36272,4.658,2026-10-02
-sa,Perplexity,Perplexity,9269,4.678,2026-10-02
-eg,ChatGPT,OpenAI,357178,4.661,2026-10-02
-eg,Claude,Anthropic,3248,4.547,2026-10-02
-eg,Google Gemini,Google,192374,4.563,2026-10-02
-eg,Grok,xAI,13898,4.746,2026-10-02
-eg,Perplexity,Perplexity,7415,4.731,2026-10-02
-za,ChatGPT,OpenAI,275108,4.804,2026-10-02
-za,Claude,Anthropic,5108,4.653,2026-10-02
-za,Google Gemini,Google,46252,4.674,2026-10-02
-za,Grok,xAI,24824,4.825,2026-10-02
-za,Perplexity,Perplexity,9795,4.811,2026-10-02
-ng,ChatGPT,OpenAI,395197,4.606,2026-10-02
-ng,Claude,Anthropic,3314,4.392,2026-10-02
-ng,Google Gemini,Google,73237,4.514,2026-10-02
-ng,Grok,xAI,46372,4.575,2026-10-02
-ng,Perplexity,Perplexity,6792,4.613,2026-10-02
-ke,ChatGPT,OpenAI,69138,4.76,2026-10-02
-ke,Claude,Anthropic,906,4.66,2026-10-02
-ke,Google Gemini,Google,17122,4.679,2026-10-02
-ke,Grok,xAI,4549,4.811,2026-10-02
-ke,Perplexity,Perplexity,2239,4.815,2026-10-02
-in,ChatGPT,OpenAI,2028271,4.704,2026-10-02
-in,Claude,Anthropic,24764,4.607,2026-10-02
-in,Google Gemini,Google,849580,4.54,2026-10-02
-in,Grok,xAI,195213,4.753,2026-10-02
-in,Perplexity,Perplexity,273871,4.691,2026-10-02
-pk,ChatGPT,OpenAI,175616,4.598,2026-10-02
-pk,Claude,Anthropic,1758,4.391,2026-10-02
-pk,Google Gemini,Google,82054,4.518,2026-10-02
-pk,Grok,xAI,12877,4.684,2026-10-02
-pk,Perplexity,Perplexity,4257,4.646,2026-10-02
-id,ChatGPT,OpenAI,356263,4.866,2026-10-02
-id,Claude,Anthropic,3959,4.707,2026-10-02
-id,Google Gemini,Google,251339,4.744,2026-10-02
-id,Grok,xAI,26897,4.85,2026-10-02
-id,Perplexity,Perplexity,18315,4.872,2026-10-02
-ph,ChatGPT,OpenAI,381853,4.843,2026-10-02
-ph,Claude,Anthropic,2919,4.701,2026-10-02
-ph,Google Gemini,Google,140766,4.725,2026-10-02
-ph,Grok,xAI,17488,4.838,2026-10-02
-ph,Perplexity,Perplexity,10490,4.821,2026-10-02
-th,ChatGPT,OpenAI,991438,4.849,2026-10-02
-th,Claude,Anthropic,10994,4.754,2026-10-02
-th,Google Gemini,Google,944109,4.795,2026-10-02
-th,Grok,xAI,68322,4.831,2026-10-02
-th,Perplexity,Perplexity,22891,4.849,2026-10-02
-vn,ChatGPT,OpenAI,1138663,4.759,2026-10-02
-vn,Claude,Anthropic,6210,4.682,2026-10-02
-vn,Google Gemini,Google,713657,4.748,2026-10-02
-vn,Grok,xAI,98646,4.855,2026-10-02
-vn,Perplexity,Perplexity,13938,4.841,2026-10-02
-my,ChatGPT,OpenAI,454750,4.823,2026-10-02
-my,Claude,Anthropic,2744,4.636,2026-10-02
-my,Google Gemini,Google,128959,4.751,2026-10-02
-my,Grok,xAI,25759,4.841,2026-10-02
-my,Perplexity,Perplexity,8727,4.833,2026-10-02
-sg,ChatGPT,OpenAI,172158,4.715,2026-10-02
-sg,Claude,Anthropic,2858,4.62,2026-10-02
-sg,Google Gemini,Google,80844,4.574,2026-10-02
-sg,Grok,xAI,17057,4.783,2026-10-02
-sg,Perplexity,Perplexity,10084,4.738,2026-10-02
-jp,ChatGPT,OpenAI,2535181,4.66,2026-10-02
-jp,Claude,Anthropic,41270,4.54,2026-10-02
-jp,Google Gemini,Google,934078,4.568,2026-10-02
-jp,Grok,xAI,175406,4.672,2026-10-02
-jp,Perplexity,Perplexity,84750,4.661,2026-10-02
-kr,ChatGPT,OpenAI,781299,4.776,2026-10-02
-kr,Claude,Anthropic,20018,4.648,2026-10-02
-kr,Google Gemini,Google,416708,4.755,2026-10-02
-kr,Grok,xAI,56529,4.858,2026-10-02
-kr,Perplexity,Perplexity,92425,4.818,2026-10-02
-tw,ChatGPT,OpenAI,767861,4.83,2026-10-02
-tw,Claude,Anthropic,8660,4.725,2026-10-02
-tw,Google Gemini,Google,402358,4.803,2026-10-02
-tw,Grok,xAI,73420,4.879,2026-10-02
-tw,Perplexity,Perplexity,75658,4.825,2026-10-02
-hk,Google Gemini,Google,76086,4.742,2026-10-02
-hk,Grok,xAI,76075,4.847,2026-10-02
-hk,Perplexity,Perplexity,35811,4.755,2026-10-02
-br,ChatGPT,OpenAI,2833666,4.894,2026-10-02
-br,Claude,Anthropic,27253,4.794,2026-10-02
-br,Google Gemini,Google,908964,4.78,2026-10-02
-br,Grok,xAI,101454,4.903,2026-10-02
-br,Perplexity,Perplexity,65860,4.881,2026-10-02
-mx,ChatGPT,OpenAI,1538966,4.873,2026-10-02
-mx,Claude,Anthropic,13963,4.769,2026-10-02
-mx,Google Gemini,Google,627380,4.769,2026-10-02
-mx,Grok,xAI,85437,4.885,2026-10-02
-mx,Perplexity,Perplexity,23924,4.874,2026-10-02
-ar,ChatGPT,OpenAI,578488,4.852,2026-10-02
-ar,Claude,Anthropic,8225,4.727,2026-10-02
-ar,Google Gemini,Google,140101,4.743,2026-10-02
-ar,Grok,xAI,22672,4.872,2026-10-02
-ar,Perplexity,Perplexity,5655,4.843,2026-10-02
-cl,ChatGPT,OpenAI,320734,4.87,2026-10-02
-cl,Claude,Anthropic,5380,4.743,2026-10-02
-cl,Google Gemini,Google,94361,4.772,2026-10-02
-cl,Grok,xAI,13516,4.877,2026-10-02
-cl,Perplexity,Perplexity,10934,4.859,2026-10-02
-co,ChatGPT,OpenAI,720174,4.861,2026-10-02
-co,Claude,Anthropic,9925,4.803,2026-10-02
-co,Google Gemini,Google,238127,4.76,2026-10-02
-co,Grok,xAI,26429,4.886,2026-10-02
-co,Perplexity,Perplexity,21440,4.877,2026-10-02
+us,ChatGPT,OpenAI,12351058,4.824,2026-11-18
+us,Claude,Anthropic,307644,4.725,2026-11-18
+us,Google Gemini,Google,2439074,4.728,2026-11-18
+us,Grok,xAI,1618319,4.874,2026-11-18
+us,Perplexity,Perplexity,527573,4.819,2026-11-18
+gb,ChatGPT,OpenAI,1528070,4.799,2026-11-18
+gb,Claude,Anthropic,36462,4.676,2026-11-18
+gb,Google Gemini,Google,250597,4.678,2026-11-18
+gb,Grok,xAI,155090,4.828,2026-11-18
+gb,Perplexity,Perplexity,43944,4.784,2026-11-18
+ca,ChatGPT,OpenAI,1368640,4.803,2026-11-18
+ca,Claude,Anthropic,35445,4.691,2026-11-18
+ca,Google Gemini,Google,241349,4.746,2026-11-18
+ca,Grok,xAI,154532,4.838,2026-11-18
+ca,Perplexity,Perplexity,62275,4.78,2026-11-18
+au,ChatGPT,OpenAI,722385,4.796,2026-11-18
+au,Claude,Anthropic,20099,4.704,2026-11-18
+au,Google Gemini,Google,113900,4.677,2026-11-18
+au,Grok,xAI,78328,4.835,2026-11-18
+au,Perplexity,Perplexity,28309,4.779,2026-11-18
+nz,ChatGPT,OpenAI,105404,4.804,2026-11-18
+nz,Claude,Anthropic,2915,4.703,2026-11-18
+nz,Google Gemini,Google,16267,4.716,2026-11-18
+nz,Grok,xAI,11050,4.83,2026-11-18
+nz,Perplexity,Perplexity,3805,4.805,2026-11-18
+ie,ChatGPT,OpenAI,109066,4.792,2026-11-18
+ie,Claude,Anthropic,2807,4.673,2026-11-18
+ie,Google Gemini,Google,15195,4.703,2026-11-18
+ie,Grok,xAI,10271,4.81,2026-11-18
+ie,Perplexity,Perplexity,4260,4.796,2026-11-18
+de,ChatGPT,OpenAI,1904244,4.723,2026-11-18
+de,Claude,Anthropic,35790,4.604,2026-11-18
+de,Google Gemini,Google,284835,4.653,2026-11-18
+de,Grok,xAI,98229,4.776,2026-11-18
+de,Perplexity,Perplexity,96032,4.713,2026-11-18
+fr,ChatGPT,OpenAI,1770250,4.748,2026-11-18
+fr,Claude,Anthropic,48230,4.661,2026-11-18
+fr,Google Gemini,Google,309878,4.652,2026-11-18
+fr,Grok,xAI,96213,4.775,2026-11-18
+fr,Perplexity,Perplexity,78104,4.734,2026-11-18
+es,ChatGPT,OpenAI,1010510,4.778,2026-11-18
+es,Claude,Anthropic,17941,4.692,2026-11-18
+es,Google Gemini,Google,221264,4.692,2026-11-18
+es,Grok,xAI,77080,4.807,2026-11-18
+es,Perplexity,Perplexity,45557,4.749,2026-11-18
+it,ChatGPT,OpenAI,687027,4.741,2026-11-18
+it,Claude,Anthropic,16516,4.63,2026-11-18
+it,Google Gemini,Google,280402,4.696,2026-11-18
+it,Grok,xAI,47285,4.76,2026-11-18
+it,Perplexity,Perplexity,33490,4.735,2026-11-18
+nl,ChatGPT,OpenAI,378202,4.752,2026-11-18
+nl,Claude,Anthropic,8122,4.628,2026-11-18
+nl,Google Gemini,Google,44205,4.643,2026-11-18
+nl,Grok,xAI,25487,4.776,2026-11-18
+nl,Perplexity,Perplexity,12633,4.706,2026-11-18
+be,ChatGPT,OpenAI,260249,4.737,2026-11-18
+be,Claude,Anthropic,5415,4.618,2026-11-18
+be,Google Gemini,Google,36525,4.639,2026-11-18
+be,Grok,xAI,16416,4.745,2026-11-18
+be,Perplexity,Perplexity,8494,4.719,2026-11-18
+at,ChatGPT,OpenAI,195324,4.735,2026-11-18
+at,Claude,Anthropic,3855,4.659,2026-11-18
+at,Google Gemini,Google,27884,4.664,2026-11-18
+at,Grok,xAI,11795,4.788,2026-11-18
+at,Perplexity,Perplexity,8354,4.755,2026-11-18
+ch,ChatGPT,OpenAI,307997,4.741,2026-11-18
+ch,Claude,Anthropic,8618,4.635,2026-11-18
+ch,Google Gemini,Google,36775,4.66,2026-11-18
+ch,Grok,xAI,17382,4.783,2026-11-18
+ch,Perplexity,Perplexity,16909,4.737,2026-11-18
+se,ChatGPT,OpenAI,264262,4.735,2026-11-18
+se,Claude,Anthropic,4455,4.622,2026-11-18
+se,Google Gemini,Google,34127,4.625,2026-11-18
+se,Grok,xAI,22148,4.786,2026-11-18
+se,Perplexity,Perplexity,6737,4.709,2026-11-18
+no,ChatGPT,OpenAI,150059,4.75,2026-11-18
+no,Claude,Anthropic,2744,4.611,2026-11-18
+no,Google Gemini,Google,15275,4.64,2026-11-18
+no,Grok,xAI,13894,4.792,2026-11-18
+no,Perplexity,Perplexity,4473,4.728,2026-11-18
+dk,ChatGPT,OpenAI,134506,4.71,2026-11-18
+dk,Claude,Anthropic,2394,4.571,2026-11-18
+dk,Google Gemini,Google,14953,4.606,2026-11-18
+dk,Grok,xAI,9433,4.751,2026-11-18
+dk,Perplexity,Perplexity,3536,4.68,2026-11-18
+fi,ChatGPT,OpenAI,65303,4.694,2026-11-18
+fi,Claude,Anthropic,1496,4.537,2026-11-18
+fi,Google Gemini,Google,10676,4.601,2026-11-18
+fi,Grok,xAI,6335,4.763,2026-11-18
+fi,Perplexity,Perplexity,2200,4.648,2026-11-18
+pl,ChatGPT,OpenAI,397680,4.789,2026-11-18
+pl,Claude,Anthropic,5528,4.631,2026-11-18
+pl,Google Gemini,Google,68991,4.743,2026-11-18
+pl,Grok,xAI,31031,4.866,2026-11-18
+pl,Perplexity,Perplexity,15211,4.807,2026-11-18
+cz,ChatGPT,OpenAI,205825,4.779,2026-11-18
+cz,Claude,Anthropic,2727,4.699,2026-11-18
+cz,Google Gemini,Google,38797,4.738,2026-11-18
+cz,Grok,xAI,10099,4.838,2026-11-18
+cz,Perplexity,Perplexity,9227,4.783,2026-11-18
+pt,ChatGPT,OpenAI,275651,4.804,2026-11-18
+pt,Claude,Anthropic,5925,4.74,2026-11-18
+pt,Google Gemini,Google,53312,4.707,2026-11-18
+pt,Grok,xAI,16151,4.836,2026-11-18
+pt,Perplexity,Perplexity,11277,4.795,2026-11-18
+gr,ChatGPT,OpenAI,149987,4.764,2026-11-18
+gr,Claude,Anthropic,2267,4.701,2026-11-18
+gr,Google Gemini,Google,25643,4.737,2026-11-18
+gr,Grok,xAI,8693,4.837,2026-11-18
+gr,Perplexity,Perplexity,4081,4.761,2026-11-18
+ro,ChatGPT,OpenAI,279621,4.803,2026-11-18
+ro,Claude,Anthropic,4950,4.735,2026-11-18
+ro,Google Gemini,Google,41915,4.798,2026-11-18
+ro,Grok,xAI,13171,4.892,2026-11-18
+ro,Perplexity,Perplexity,5611,4.868,2026-11-18
+hu,ChatGPT,OpenAI,169900,4.797,2026-11-18
+hu,Claude,Anthropic,1691,4.719,2026-11-18
+hu,Google Gemini,Google,30916,4.765,2026-11-18
+hu,Grok,xAI,7705,4.842,2026-11-18
+hu,Perplexity,Perplexity,8144,4.805,2026-11-18
+ua,ChatGPT,OpenAI,537629,4.82,2026-11-18
+ua,Claude,Anthropic,6154,4.658,2026-11-18
+ua,Google Gemini,Google,91373,4.769,2026-11-18
+ua,Grok,xAI,46039,4.877,2026-11-18
+ua,Perplexity,Perplexity,10199,4.816,2026-11-18
+tr,ChatGPT,OpenAI,1267783,4.647,2026-11-18
+tr,Claude,Anthropic,10241,4.499,2026-11-18
+tr,Google Gemini,Google,490373,4.574,2026-11-18
+tr,Grok,xAI,90094,4.781,2026-11-18
+tr,Perplexity,Perplexity,7605,4.677,2026-11-18
+il,ChatGPT,OpenAI,377143,4.49,2026-11-18
+il,Claude,Anthropic,6950,4.534,2026-11-18
+il,Google Gemini,Google,92250,4.518,2026-11-18
+il,Grok,xAI,21915,4.68,2026-11-18
+il,Perplexity,Perplexity,10512,4.677,2026-11-18
+ae,ChatGPT,OpenAI,405996,4.663,2026-11-18
+ae,Claude,Anthropic,4555,4.511,2026-11-18
+ae,Google Gemini,Google,128319,4.571,2026-11-18
+ae,Grok,xAI,20332,4.758,2026-11-18
+ae,Perplexity,Perplexity,8265,4.736,2026-11-18
+sa,ChatGPT,OpenAI,905365,4.548,2026-11-18
+sa,Claude,Anthropic,5872,4.322,2026-11-18
+sa,Google Gemini,Google,402177,4.509,2026-11-18
+sa,Grok,xAI,39723,4.646,2026-11-18
+sa,Perplexity,Perplexity,9496,4.672,2026-11-18
+eg,ChatGPT,OpenAI,405690,4.647,2026-11-18
+eg,Claude,Anthropic,4368,4.603,2026-11-18
+eg,Google Gemini,Google,208716,4.577,2026-11-18
+eg,Grok,xAI,15296,4.741,2026-11-18
+eg,Perplexity,Perplexity,7594,4.728,2026-11-18
+za,ChatGPT,OpenAI,315185,4.797,2026-11-18
+za,Claude,Anthropic,6093,4.672,2026-11-18
+za,Google Gemini,Google,49364,4.681,2026-11-18
+za,Grok,xAI,27173,4.819,2026-11-18
+za,Perplexity,Perplexity,10001,4.81,2026-11-18
+ng,ChatGPT,OpenAI,442923,4.579,2026-11-18
+ng,Claude,Anthropic,3855,4.399,2026-11-18
+ng,Google Gemini,Google,76862,4.518,2026-11-18
+ng,Grok,xAI,49989,4.557,2026-11-18
+ng,Perplexity,Perplexity,6914,4.607,2026-11-18
+ke,ChatGPT,OpenAI,75991,4.746,2026-11-18
+ke,Claude,Anthropic,1090,4.645,2026-11-18
+ke,Google Gemini,Google,18117,4.682,2026-11-18
+ke,Grok,xAI,4877,4.797,2026-11-18
+ke,Perplexity,Perplexity,2282,4.81,2026-11-18
+in,ChatGPT,OpenAI,2338382,4.694,2026-11-18
+in,Claude,Anthropic,29046,4.615,2026-11-18
+in,Google Gemini,Google,916855,4.552,2026-11-18
+in,Grok,xAI,201309,4.752,2026-11-18
+in,Perplexity,Perplexity,276163,4.69,2026-11-18
+pk,ChatGPT,OpenAI,194069,4.576,2026-11-18
+pk,Claude,Anthropic,2100,4.404,2026-11-18
+pk,Google Gemini,Google,86542,4.525,2026-11-18
+pk,Grok,xAI,13522,4.676,2026-11-18
+pk,Perplexity,Perplexity,4299,4.64,2026-11-18
+id,ChatGPT,OpenAI,405940,4.86,2026-11-18
+id,Claude,Anthropic,5107,4.739,2026-11-18
+id,Google Gemini,Google,263638,4.749,2026-11-18
+id,Grok,xAI,28964,4.85,2026-11-18
+id,Perplexity,Perplexity,18601,4.871,2026-11-18
+ph,ChatGPT,OpenAI,431071,4.837,2026-11-18
+ph,Claude,Anthropic,3544,4.714,2026-11-18
+ph,Google Gemini,Google,148458,4.732,2026-11-18
+ph,Grok,xAI,19338,4.837,2026-11-18
+ph,Perplexity,Perplexity,10708,4.819,2026-11-18
+th,ChatGPT,OpenAI,1098246,4.844,2026-11-18
+th,Claude,Anthropic,13029,4.769,2026-11-18
+th,Google Gemini,Google,995124,4.8,2026-11-18
+th,Grok,xAI,74048,4.831,2026-11-18
+th,Perplexity,Perplexity,23328,4.848,2026-11-18
+vn,ChatGPT,OpenAI,1274797,4.751,2026-11-18
+vn,Claude,Anthropic,8915,4.718,2026-11-18
+vn,Google Gemini,Google,758393,4.751,2026-11-18
+vn,Grok,xAI,104758,4.852,2026-11-18
+vn,Perplexity,Perplexity,14138,4.84,2026-11-18
+my,ChatGPT,OpenAI,508828,4.818,2026-11-18
+my,Claude,Anthropic,3529,4.676,2026-11-18
+my,Google Gemini,Google,136447,4.757,2026-11-18
+my,Grok,xAI,27812,4.839,2026-11-18
+my,Perplexity,Perplexity,8850,4.831,2026-11-18
+sg,ChatGPT,OpenAI,198201,4.698,2026-11-18
+sg,Claude,Anthropic,3344,4.638,2026-11-18
+sg,Google Gemini,Google,86542,4.581,2026-11-18
+sg,Grok,xAI,18364,4.783,2026-11-18
+sg,Perplexity,Perplexity,10220,4.738,2026-11-18
+jp,ChatGPT,OpenAI,2809957,4.646,2026-11-18
+jp,Claude,Anthropic,48465,4.556,2026-11-18
+jp,Google Gemini,Google,991493,4.572,2026-11-18
+jp,Grok,xAI,189592,4.668,2026-11-18
+jp,Perplexity,Perplexity,86219,4.657,2026-11-18
+kr,ChatGPT,OpenAI,855906,4.77,2026-11-18
+kr,Claude,Anthropic,24822,4.675,2026-11-18
+kr,Google Gemini,Google,434967,4.757,2026-11-18
+kr,Grok,xAI,59931,4.855,2026-11-18
+kr,Perplexity,Perplexity,93529,4.816,2026-11-18
+tw,ChatGPT,OpenAI,837154,4.824,2026-11-18
+tw,Claude,Anthropic,10972,4.75,2026-11-18
+tw,Google Gemini,Google,418804,4.804,2026-11-18
+tw,Grok,xAI,78799,4.878,2026-11-18
+tw,Perplexity,Perplexity,76572,4.824,2026-11-18
+hk,Google Gemini,Google,81814,4.741,2026-11-18
+hk,Grok,xAI,84647,4.846,2026-11-18
+hk,Perplexity,Perplexity,36898,4.753,2026-11-18
+br,ChatGPT,OpenAI,3223654,4.89,2026-11-18
+br,Claude,Anthropic,34527,4.813,2026-11-18
+br,Google Gemini,Google,957666,4.785,2026-11-18
+br,Grok,xAI,111787,4.901,2026-11-18
+br,Perplexity,Perplexity,66671,4.881,2026-11-18
+mx,ChatGPT,OpenAI,1741959,4.866,2026-11-18
+mx,Claude,Anthropic,16882,4.785,2026-11-18
+mx,Google Gemini,Google,664466,4.776,2026-11-18
+mx,Grok,xAI,94397,4.884,2026-11-18
+mx,Perplexity,Perplexity,24454,4.873,2026-11-18
+ar,ChatGPT,OpenAI,649653,4.847,2026-11-18
+ar,Claude,Anthropic,10044,4.743,2026-11-18
+ar,Google Gemini,Google,151910,4.752,2026-11-18
+ar,Grok,xAI,24660,4.867,2026-11-18
+ar,Perplexity,Perplexity,5773,4.845,2026-11-18
+cl,ChatGPT,OpenAI,356239,4.865,2026-11-18
+cl,Claude,Anthropic,6534,4.756,2026-11-18
+cl,Google Gemini,Google,99990,4.777,2026-11-18
+cl,Grok,xAI,14490,4.873,2026-11-18
+cl,Perplexity,Perplexity,11107,4.858,2026-11-18
+co,ChatGPT,OpenAI,813757,4.853,2026-11-18
+co,Claude,Anthropic,12225,4.814,2026-11-18
+co,Google Gemini,Google,252534,4.766,2026-11-18
+co,Grok,xAI,29088,4.884,2026-11-18
+co,Perplexity,Perplexity,21838,4.877,2026-11-18

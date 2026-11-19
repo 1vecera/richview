@@ -1,6 +1,5 @@
 //! Split the source contract into readable topics and index the staged documentation.
 use super::*;
-use std::collections::BTreeMap;
 
 pub(super) fn slug(text: &str) -> String {
     text.to_ascii_lowercase()
@@ -46,8 +45,8 @@ fn sections(source: &str) -> Vec<(String, String)> {
         .collect()
 }
 
-/// The reference's topics, one page each: the contract's second-level sections, with the
-/// diagnostic codes as a topic of their own.
+/// The reference's topics, the parts of its one page: the contract's second-level sections,
+/// with the diagnostic codes as a topic of their own.
 fn topics(source: &str) -> Vec<(String, String)> {
     let mut topics = sections(source);
     if let Some((_, diagnostics)) = topics
@@ -62,8 +61,8 @@ fn topics(source: &str) -> Vec<(String, String)> {
     topics
 }
 
-/// The topic pages the sidebar lists under the format reference: page name and title, in the
-/// contract's order.
+/// The topics the sidebar lists under the format reference: anchor and title, in the
+/// contract's order. Each is a part of the reference's one page.
 pub(super) fn topic_pages() -> &'static [(String, String)] {
     static PAGES: std::sync::OnceLock<Vec<(String, String)>> = std::sync::OnceLock::new();
     PAGES.get_or_init(|| {
@@ -91,36 +90,14 @@ pub(super) fn stage(
     {
         return Err("docs/RMD-SPEC.md changed its topics: rebuild richview-build".into());
     }
-    let mut anchors = BTreeMap::new();
-    for (title, source) in &topics {
-        for line in source.lines().filter_map(|line| {
-            line.strip_prefix("## ")
-                .or_else(|| line.strip_prefix("### "))
-        }) {
-            anchors.insert(slug(line), slug(title));
-        }
-    }
+    // One long page holds every topic, in the contract's order (Daniel, 16 Nov 2026): the
+    // sidebar's topics move within it. A topic's old address forwards to its part.
     let folder = docs.join("reference");
     fs::create_dir_all(&folder)?;
-    let mut index = "---\ntitle: Format reference\ndescription: Find the fields and rules for the part of your report you are editing.\nstyles: [scientific]\n---\n\nRich Markdown combines ordinary Markdown, YAML frontmatter and rich blocks. Choose a topic below, or search for a field or diagnostic code. The [complete Markdown contract](https://richview.ai/docs/reference.md) remains available for agents.\n".to_owned();
-    for (title, body) in topics {
-        let name = slug(&title);
-        index.push_str(&format!(
-            "\n## {title}\n\n[Read {title}](https://richview.ai/docs/reference/{name}).\n"
-        ));
-        let mut source = format!(
-            "---\ntitle: {}\nstyles: [scientific]\n---\n\n[All reference topics](https://richview.ai/docs/reference)\n\n{body}",
-            serde_json::to_string(&title)?
-        );
-        for (anchor, topic) in &anchors {
-            source = source.replace(
-                &format!("](#{anchor})"),
-                &format!("](https://richview.ai/docs/reference/{topic}#{anchor})"),
-            );
-        }
-        let html = render_page(&source, &name, Place::Topic(&name), charts, flags)?;
-        fs::write(folder.join(format!("{name}.html")), html)?;
-        fs::write(folder.join(format!("{name}.md")), source)?;
+    let mut index = long_page(&topics);
+    for (title, _) in &topics {
+        let name = slug(title);
+        fs::write(folder.join(format!("{name}.html")), forward(title, &name))?;
     }
     let typed = folder.join("charts");
     fs::create_dir_all(&typed)?;
@@ -146,7 +123,7 @@ pub(super) fn stage(
                 }
             ));
         }
-        source.push_str(&format!("\nSet `type: {}`. The [shared chart contract](https://richview.ai/docs/reference/charts) defines data sources, field meanings, axes, controls, annotations and styling. Unsupported encoding channels are rejected.\n", chart.name));
+        source.push_str(&format!("\nSet `type: {}`. The [shared chart contract](https://richview.ai/docs/reference#charts) defines data sources, field meanings, axes, controls, annotations and styling. Unsupported encoding channels are rejected.\n", chart.name));
         fs::write(
             typed.join(format!("{}.html", chart.name)),
             render_page(
@@ -169,6 +146,34 @@ pub(super) fn stage(
     )?;
     fs::write(docs.join("reference.md"), clean)?;
     Ok(())
+}
+
+/// The format reference's one page: its introduction, then every topic in the contract's
+/// order. A topic's body starts with its own heading, which names its part's anchor.
+fn long_page(topics: &[(String, String)]) -> String {
+    let mut page = INTRO.to_owned();
+    for (_, body) in topics {
+        page.push('\n');
+        page.push_str(body);
+        page.push('\n');
+    }
+    page
+}
+
+const INTRO: &str = "---\ntitle: Format reference\ndescription: Every field and rule of Rich Markdown on one page, by the part of the report you are editing.\nstyles: [scientific]\n---\n\nRich Markdown combines ordinary Markdown, YAML frontmatter and rich blocks. Every topic is on this page: jump to one from the contents, or search for a field or diagnostic code. The [complete Markdown contract](https://richview.ai/docs/reference.md) remains available for agents.\n";
+
+/// A topic's old page: it forwards to the topic's part of the format reference, with a link
+/// for a reader whose browser does not follow. It is not a documentation page, so search skips
+/// it and no crawler indexes it.
+fn forward(title: &str, name: &str) -> String {
+    let to = format!("/docs/reference#{name}");
+    let title = title
+        .replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;");
+    format!(
+        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>{title}: Format reference</title><meta name=\"robots\" content=\"noindex\"><link rel=\"canonical\" href=\"{to}\"><meta http-equiv=\"refresh\" content=\"0; url={to}\"></head><body><p>{title} is part of the <a href=\"{to}\">format reference</a>.</p></body></html>"
+    )
 }
 
 pub(super) fn field_anchors(html: &str) -> String {
@@ -247,4 +252,22 @@ pub(super) fn search_index(docs: &Path) -> Result<()> {
     visit(docs, docs, &mut entries)?;
     fs::write(docs.join("search.json"), serde_json::to_vec(&entries)?)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_long_page_heads_each_topic_once_in_the_contracts_order() {
+        let page = long_page(&topics(include_str!("../../../../docs/RMD-SPEC.md")));
+        let mut from = 0;
+        for (_, title) in topic_pages() {
+            let heading = format!("\n## {title}\n");
+            assert_eq!(page.matches(&heading).count(), 1, "{title}");
+            let at = page.find(&heading).unwrap();
+            assert!(at > from, "{title} out of order");
+            from = at;
+        }
+    }
 }

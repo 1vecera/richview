@@ -9,7 +9,7 @@ exports.run = async () => {
   assert.ok(artifact, 'Use the isolated VS Code test runner');
   const extension = vscode.extensions.getExtension('richview.richview-vscode');
   assert.ok(extension);
-  assert.equal(extension.packageJSON.version, '3.0.0-alpha.2');
+  assert.equal(extension.packageJSON.version, '3.0.0-alpha.3');
   assert.ok(extension.extensionPath.startsWith(process.env.RICHVIEW_TEST_EXTENSIONS), 'Tests must exercise the VSIX installation');
   await extension.activate();
   const root = vscode.workspace.workspaceFolders[0].uri.fsPath;
@@ -285,7 +285,8 @@ exports.run = async () => {
   assert.deepEqual(recovered.data,custom.data,'Repairing a render error restores the actual source data');
   const styleFile=vscode.Uri.file(path.join(root,'report.rstyle.yaml'));
   const styleDoc=await vscode.workspace.openTextDocument(styleFile);
-  const nextStyle=styleDoc.getText().replaceAll('oklch(0.4806 0.1597 25.56)','#166534');
+  // The fixture's brand colour reaches the first chart fill unchanged (rgb(165, 42, 42) above); the probe changes it.
+  const nextStyle=styleDoc.getText().replaceAll("brand: '#A52A2A'","brand: '#166534'");
   assert.notEqual(nextStyle,styleDoc.getText(),'The saved-style probe must change the source fixture');
   const styleEdit=new vscode.WorkspaceEdit();styleEdit.replace(styleFile,new vscode.Range(styleDoc.positionAt(0),styleDoc.positionAt(styleDoc.getText().length)),nextStyle);
   assert.ok(await vscode.workspace.applyEdit(styleEdit));await styleDoc.save();

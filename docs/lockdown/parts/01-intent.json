@@ -605,7 +605,7 @@
       "title": "Flagship story",
       "question": "Does the OpenAI-versus-Anthropic report stay the one flagship that proves RichView?",
       "why": "The flagship is the benchmark for craft and sourcing, the main demonstration on richview.ai and a success criterion (INT-68); changing it resets that work.",
-      "proposed": "The flagship stays the OpenAI-versus-Anthropic investigation, a fixed research snapshot dated 2 October 2026: 9 sections, 9 charts (shortened on 15 November 2026) and a 643-row dated source ledger. It also shows how to use the storytelling tools well (INT-77). The rewrite re-renders it without changing data, wording or sources, in every accepted style. Its header graphic is INT-75. No second flagship is added during the rewrite.",
+      "proposed": "The flagship stays the OpenAI-versus-Anthropic investigation, a research snapshot dated 18 November 2026 with data to October 2026, refreshed from its 2 October 2026 snapshot on Daniel's go of 17 November 2026 (\"Yes, all recommendations\"): 9 sections, 9 charts (shortened on 15 November 2026) and a dated source ledger. It also shows how to use the storytelling tools well (INT-77). The rewrite re-renders it in every accepted style; a refresh changes a number only with a new dated source, and keeps the wording rules. Its header graphic is INT-75. No second flagship is added during the rewrite.",
       "confidence": "observed",
       "sources": [
         {
@@ -3141,7 +3141,7 @@
       "title": "Who RichView presents as its maker",
       "question": "How does RichView present who makes it: Daniel’s personal project, a team project or a company product?",
       "why": "Public pages call RichView “a hobby project by Daniel Vecera” and the licence names him, while a second person wrote part of the code (PR #1) and S27-616’s credit applications ask for company details. The answer sets the footer, impressum, licence holder and the voice of launch posts.",
-      "proposed": "RichView presents itself as Daniel’s personal project, as the footer, impressum and licence say today: they name Daniel as its maker and contact. Daniel is its only maker: PR #1, authored as `stevenoliver7`, came from “Steven”, an agent persona, not a second person (OPN-48, OPN-24). Any future contributors are credited in the repository history and, once the source is public, in its contributor list. A team or company identity is decided only together with monetization or a hosted service (INT-30, INT-36). Daniel's INT-36 answer brings both: paid hosted Cowork, Publish servers run for customers and hosting for large data and media are RichView's business model. Open: who sells and operates them, Daniel personally or a company, and so whom their terms, privacy text and impressum name (INT-27, FEA-SF-32). No one else gets repository access (OPN-24).",
+      "proposed": "RichView presents itself as Daniel’s personal project, operated by him as a sole trader registered in the Czech Republic (IČO 00923192): the footer, the About page, the impressum and the licence name Daniel as its maker and contact, and the impressum names him as its operator. Daniel is its only maker: PR #1, authored as `stevenoliver7`, came from “Steven”, an agent persona, not a second person (OPN-48, OPN-24). Any future contributors are credited in the repository history and, once the source is public, in its contributor list. A team or company identity is decided only together with monetization or a hosted service (INT-30, INT-36). Daniel's INT-36 answer brings both: paid hosted Cowork, Publish servers run for customers and hosting for large data and media are RichView's business model. Open: who sells and operates them, Daniel personally or a company, and so whom their terms, privacy text and impressum name (INT-27, FEA-SF-32). No one else gets repository access (OPN-24).",
       "options": [
         {
           "label": "Daniel’s personal project",
@@ -3203,6 +3203,11 @@
           "label": "Credit applications: “identify missing company inputs and the submission owner”",
           "ref": "S27-616",
           "date": "2026-10-10"
+        },
+        {
+          "label": "ARES: Daniel Večeřa, IČO 00923192, legal form 101 (a sole trader under the Trade Licensing Act), registered 2026-08-27 and active; the impressum's hobby line blocked startup-credit applications, which screen the site for its founder and operator",
+          "ref": "https://ares.gov.cz/ekonomicke-subjekty-v-be/rest/ekonomicke-subjekty/00923192",
+          "date": "2026-11-18"
         }
       ],
       "conflicts": "Settled by OPN-48 and OPN-24 for who makes RichView: no second person does; “Steven”, PR #1's author, was an agent persona, and `stevenoliver7` gets no access. Whether a company sells the paid hosted services stays open (INT-36)."

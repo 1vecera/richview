@@ -92,7 +92,7 @@ fn short_name(text: &str, fallback: &str) -> String {
 fn block_name(tag: &str, source: &str) -> String {
     use yaml_rust2::parser::{Event as Yaml, Parser as YamlParser};
     let keys: &[&str] = match tag {
-        "chart" | "callout" => &["title"],
+        "chart" | "callout" | "expand" | "code" => &["title"],
         "metric" => &["label"],
         "image" => &["caption", "alt"],
         "audio" | "video" => &["title", "caption"],
@@ -146,6 +146,8 @@ fn block_name(tag: &str, source: &str) -> String {
         "table" => "Table",
         "metric" => "Metric",
         "callout" => "Callout",
+        "expand" => "Expand",
+        "code" => "Code",
         "image" => "Image",
         "audio" => "Audio",
         "video" => "Video",

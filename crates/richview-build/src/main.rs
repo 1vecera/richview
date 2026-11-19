@@ -167,6 +167,9 @@ fn main() -> Result<()> {
         println!("Native editor packaged at {}", editor.display());
         return Ok(());
     }
+    if assets_only && wasm_from.is_none() {
+        own_wasm(&target, &root)?;
+    }
     let public = root.join("dist/web");
     fs::create_dir_all(&public)?;
     // Old install artifacts must not leak into a disabled or failed build.
@@ -301,9 +304,10 @@ fn main() -> Result<()> {
         root.join("assets/fonts-math.css"),
         public.join("fonts-math.css"),
     )?;
+    // Docs pages, and the install page for its Copy buttons, start the docs module.
     fs::write(
         public.join("bootstrap.js"),
-        "{const docs=document.body?.dataset.richviewPage==='docs';(docs?richview_docs:wasm_bindgen)({module_or_path:docs?'/richview_docs_bg.wasm':'/richview_site_bg.wasm'});}\n",
+        "{const docs=document.body?.dataset.richviewPage==='docs'||document.body?.classList.contains('install-page');(docs?richview_docs:wasm_bindgen)({module_or_path:docs?'/richview_docs_bg.wasm':'/richview_site_bg.wasm'});}\n",
     )?;
     fs::write(
         public.join("worker.js"),
@@ -414,6 +418,43 @@ fn wasm_from_arg(args: &[std::ffi::OsString], editor_only: bool) -> Result<Optio
         return Err("--wasm-from does not apply to --editor-only, which builds no Wasm".into());
     }
     manifest::wasm_from(Path::new(dir)).map(Some)
+}
+
+/// Refuses to bind Wasm that another checkout compiled. `--assets-only` binds the raw Wasm the
+/// target already holds, and in a Cargo target that several checkouts share, that is whichever
+/// checkout built it last: a page would then run another branch's runtime under this one's HTML.
+/// The RichView `RUSTC_WRAPPER` records the checkout of the latest workspace compile in each
+/// output folder as `.rv-fast/last-<triple>--<profile>`; a record that names another checkout
+/// refuses. A target without records, such as a checkout's own, binds as before.
+fn own_wasm(target: &Path, root: &Path) -> Result<()> {
+    for (profile, packages) in [
+        (SITE_PROFILE, "-p richview-site --lib --bin docs"),
+        (RUNTIME_PROFILE, "-p richview-runtime --lib"),
+    ] {
+        let folder = format!("wasm32-unknown-unknown--{profile}");
+        let Ok(owner) = fs::read_to_string(target.join(".rv-fast").join(format!("last-{folder}")))
+        else {
+            continue;
+        };
+        let owner = PathBuf::from(owner.trim());
+        if owner == root || owner.canonicalize().is_ok_and(|owner| owner == root) {
+            continue;
+        }
+        return Err(format!(
+            "--assets-only would bind the Wasm in {}, which {} compiled last, not this checkout \
+             ({}). Build this checkout's Wasm first (cargo build --profile {profile} --locked \
+             --target wasm32-unknown-unknown {packages}, as the full build does), run the full \
+             build, or pass --wasm-from.",
+            target
+                .join("wasm32-unknown-unknown")
+                .join(profile)
+                .display(),
+            owner.display(),
+            root.display(),
+        )
+        .into());
+    }
+    Ok(())
 }
 
 /// The raw Cargo Wasm module `name` to bind: from the `--wasm-from` folder when given, else
@@ -1079,6 +1120,54 @@ fn resolve_document_options(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn assets_only_refuses_wasm_another_checkout_compiled_last() {
+        use std::fs;
+        use std::path::Path;
+        let base = std::env::temp_dir().join(format!("rv-own-wasm-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&base);
+        let (target, spelled, other) = (
+            base.join("target"),
+            base.join("checkout"),
+            base.join("other"),
+        );
+        for dir in [&target.join(".rv-fast"), &spelled, &other] {
+            fs::create_dir_all(dir).unwrap();
+        }
+        let checkout = spelled.canonicalize().unwrap();
+        let record = |profile: &str, owner: &Path| {
+            let name = format!("last-wasm32-unknown-unknown--{profile}");
+            fs::write(
+                target.join(".rv-fast").join(name),
+                format!("{}\n", owner.display()),
+            )
+            .unwrap();
+        };
+        // A target without records, such as a checkout's own, binds as before.
+        super::own_wasm(&target, &checkout).unwrap();
+        // The wrapper writes the shell's spelling of the checkout, which may run through a link.
+        record("wasm-site", &spelled);
+        record("wasm-release", &checkout);
+        super::own_wasm(&target, &checkout).unwrap();
+        for (profile, package) in [
+            ("wasm-site", "-p richview-site --lib --bin docs"),
+            ("wasm-release", "-p richview-runtime --lib"),
+        ] {
+            record(profile, &other);
+            let error = super::own_wasm(&target, &checkout).unwrap_err().to_string();
+            assert!(
+                error.contains(&format!("wasm32-unknown-unknown/{profile}"))
+                    && error.contains(package)
+                    && error.contains(&other.display().to_string())
+                    && error.contains("--wasm-from"),
+                "{error}"
+            );
+            record(profile, &checkout);
+        }
+        super::own_wasm(&target, &checkout).unwrap();
+        fs::remove_dir_all(&base).unwrap();
+    }
+
     #[test]
     fn wasm_from_binds_the_given_folder_and_refuses_a_missing_folder_or_the_editor_build() {
         use std::path::Path;

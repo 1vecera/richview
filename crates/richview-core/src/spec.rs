@@ -5,7 +5,7 @@
 //! between them with [`fragment`]`(NAME)`, so a reference table can only say what the registry
 //! says. Prose around the markers may explain the vocabulary but does not enumerate it.
 
-use crate::registry::{CHART_TYPES, CODES, FRONTMATTER, Field, TAGS, Ty};
+use crate::registry::{CHART_TYPES, CODES, FRONTMATTER, Field, LAYOUTS, TAGS, Ty};
 
 const BEGIN: &str = "<!-- registry:begin ";
 const END: &str = "<!-- registry:end -->";
@@ -21,7 +21,11 @@ pub fn fragment_names() -> Vec<String> {
         "retired".into(),
         "codes".into(),
     ];
-    names.extend(TAGS.iter().map(|tag| format!("fields/{}", tag.name)));
+    names.extend(
+        TAGS.iter()
+            .chain(LAYOUTS)
+            .map(|tag| format!("fields/{}", tag.name)),
+    );
     names
 }
 
@@ -35,18 +39,26 @@ pub fn fragment(name: &str) -> Option<String> {
         )),
         "frontmatter" => Some(fields(FRONTMATTER)),
         "styles" => Some(table(
-            &["Style", "Default"],
-            crate::style::builtin_style_names().iter().map(|name| {
-                vec![
-                    code(name),
-                    if *name == crate::style::DEFAULT_STYLE {
-                        "yes"
-                    } else {
-                        ""
-                    }
-                    .into(),
-                ]
-            }),
+            &["Style", "Default", "Menu"],
+            crate::style::presets::preset_names()
+                .into_iter()
+                .map(|name| {
+                    vec![
+                        code(name),
+                        if name == crate::style::DEFAULT_STYLE {
+                            "yes"
+                        } else {
+                            ""
+                        }
+                        .into(),
+                        if crate::style::builtin_style_names().contains(&name) {
+                            "main"
+                        } else {
+                            "more presets"
+                        }
+                        .into(),
+                    ]
+                }),
         )),
         "retired" => {
             use crate::registry::{
@@ -125,7 +137,7 @@ pub fn fragment(name: &str) -> Option<String> {
         )),
         _ => {
             let tag = name.strip_prefix("fields/")?;
-            let tag = TAGS.iter().find(|t| t.name == tag)?;
+            let tag = TAGS.iter().chain(LAYOUTS).find(|t| t.name == tag)?;
             Some(fields(tag.fields))
         }
     }

@@ -1059,8 +1059,8 @@ async fn mcp_tool_names_resources_and_hard_failure_contract() {
                 .map(|report| (&report["input"], &report["ok"]))
                 .collect::<Vec<_>>(),
             [
-                (&json!(parent.join("a/report.rmd")), &json!(true)),
-                (&json!(parent.join("b/report.rmd")), &json!(false)),
+                (&json!(parent.join("a").join("report.rmd")), &json!(true)),
+                (&json!(parent.join("b").join("report.rmd")), &json!(false)),
             ],
             "{tool}: {result}"
         );

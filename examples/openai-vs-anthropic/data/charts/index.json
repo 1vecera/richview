@@ -51,11 +51,16 @@
 			}
 		],
 		"ratio": "16:9",
-		"sources": ["D-HN", "D-NPM", "D-GT", "D-WIKI"],
+		"sources": [
+			"D-HN",
+			"D-NPM",
+			"D-GT",
+			"D-WIKI"
+		],
 		"population": "Hacker News commenters; npm installs; Google searchers; English Wikipedia readers",
-		"window": "2023-01 to 2026-09",
+		"window": "2023-01 to 2026-10",
 		"notes": "HN: comments matching openai|chatgpt vs anthropic|claude (whole words). npm: median daily downloads of @anthropic-ai/sdk vs openai. Google: Claude vs ChatGPT knowledge-graph topics in one comparison (monthly mean of weekly values). Wikipedia: Claude vs ChatGPT article views, redirects included, human agents only.",
-		"row_count": 175
+		"row_count": 179
 	},
 	{
 		"id": "share-by-population",
@@ -77,16 +82,25 @@
 		},
 		"annotations": [],
 		"ratio": "16:9",
-		"sources": ["C196", "D-GT", "D-HN", "D-ITUNES", "D-NPM", "D-PYPI", "S005", "S065"],
+		"sources": [
+			"C211",
+			"D-GT",
+			"D-HN",
+			"D-ITUNES",
+			"D-NPM",
+			"D-PYPI",
+			"S005",
+			"S097"
+		],
 		"population": "Eight of the sixteen measures in population-shares.csv, from US iPhone owners to professional developers",
-		"window": "Latest available period per measure (2025 to 2026-10-02)",
+		"window": "Latest available period per measure (2025 to 2026-11-18)",
 		"notes": "Share = Anthropic / (Anthropic + OpenAI). Measures use different units; compare shares, not levels.",
 		"row_count": 8
 	},
 	{
 		"id": "pentagon-week",
 		"type": "line",
-		"title": "Claude's US search interest rose 3.5x around the Pentagon split; 44% held",
+		"title": "Claude's US search interest rose about 3x after the Pentagon split; 51% held",
 		"subtitle": "Weekly US Google search interest in the Claude and ChatGPT topics (0-100, same comparison)",
 		"csv": "data/charts/pentagon-week.csv",
 		"encoding": {
@@ -115,16 +129,20 @@
 			}
 		],
 		"ratio": "16:9",
-		"sources": ["D-GT", "E078", "E088"],
+		"sources": [
+			"D-GT",
+			"E078",
+			"E088"
+		],
 		"population": "US Google searchers",
-		"window": "2025-11 to 2026-09",
+		"window": "2025-11 to 2026-10",
 		"notes": "Super Bowl 'no ads' campaign 2026-02-08 (E078); Pentagon supply-chain-risk designation 2026-02-27 (E088).",
-		"row_count": 96
+		"row_count": 104
 	},
 	{
 		"id": "coding-agents",
 		"type": "line",
-		"title": "Codex leads in talk, searches and installs; Claude Code still files more PRs",
+		"title": "Codex leads in searches and installs; Claude Code still files more PRs",
 		"subtitle": "Claude Code's share of Claude Code + OpenAI Codex, by month and signal",
 		"csv": "data/charts/coding-agents.csv",
 		"encoding": {
@@ -150,17 +168,22 @@
 			}
 		],
 		"ratio": "16:9",
-		"sources": ["D-HN", "D-NPM", "D-GT", "D-GH"],
+		"sources": [
+			"D-HN",
+			"D-NPM",
+			"D-GT",
+			"D-GH"
+		],
 		"population": "Hacker News commenters; npm installs; Google searchers; public GitHub repositories",
-		"window": "2025-04 to 2026-09",
+		"window": "2025-04 to 2026-10",
 		"notes": "npm (median daily downloads) understates Claude Code after Anthropic moved users to a native installer. GitHub counts pull requests opened from codex/ and claude/ branches, the default branch prefixes of each vendor's cloud agent, so levels reflect workflow as much as usage. Compare each line's direction.",
-		"row_count": 65
+		"row_count": 68
 	},
 	{
 		"id": "quarterly-revenue",
 		"type": "bar",
-		"title": "In recognised revenue, Anthropic overtook OpenAI in Q2 2026",
-		"subtitle": "Quarterly revenue, $bn, from documents reported by Bloomberg (Anthropic) and the WSJ (OpenAI)",
+		"title": "In recognised revenue, Anthropic overtook OpenAI in Q2 2026 and widened the gap in Q3",
+		"subtitle": "Quarterly revenue, $bn: Anthropic's from its S-1/A filing (quarters unaudited), OpenAI's as reported to investors (press)",
 		"csv": "data/charts/quarterly-revenue.csv",
 		"encoding": {
 			"x": "quarter",
@@ -177,11 +200,15 @@
 		},
 		"annotations": [],
 		"ratio": "16:9",
-		"sources": ["C015", "C110"],
-		"population": "Company documents reported by the press; as of the 2 October snapshot neither company had a public S-1. Anthropic filed one on 26 October 2026 (C208) and amended it on 10 November (C209)",
-		"window": "2026 Q1 to 2026 Q2",
-		"notes": "Anthropic's Q2 figure is preliminary. For FY2025 OpenAI booked $13.07bn (C009) vs Anthropic ~$4.6bn (C093).",
-		"row_count": 4
+		"sources": [
+			"C015",
+			"C212",
+			"C213"
+		],
+		"population": "Anthropic's registration statement, filed 26 October 2026 (C208); figures of the 10 November amendment (C209), repeated unchanged in the latest, of 17 November (C220); OpenAI's figures as reported to investors and relayed by the press",
+		"window": "2026 Q1 to 2026 Q3",
+		"notes": "OpenAI's Q3 2026 figure is about $10bn, as reported to investors. For FY2025 OpenAI booked $13.07bn (C009); Anthropic's four 2025 quarters in its filing sum to $4.585bn (C212).",
+		"row_count": 6
 	},
 	{
 		"id": "ramp-adoption",
@@ -228,12 +255,14 @@
 			"C187",
 			"C190",
 			"C194",
-			"C196"
+			"C196",
+			"C210",
+			"C211"
 		],
 		"population": "US businesses using Ramp's corporate cards and bill pay (skews to tech-forward firms)",
-		"window": "2025-07 to 2026-08",
+		"window": "2025-07 to 2026-10",
 		"notes": "Ramp added bill-pay capture in May 2026 (C187): levels before and after the break are not comparable.",
-		"row_count": 26
+		"row_count": 30
 	},
 	{
 		"id": "capability-frontier",
@@ -256,17 +285,19 @@
 		},
 		"annotations": [],
 		"ratio": "16:9",
-		"sources": ["D-EPOCH"],
+		"sources": [
+			"D-EPOCH"
+		],
 		"population": "Frontier models with enough benchmark coverage for Epoch's index",
-		"window": "2024-01 to 2026-09",
-		"notes": "Epoch's confidence intervals overlap: Claude Opus 5.5 164-172, GPT-6 Astra 163-171.",
-		"row_count": 99
+		"window": "2024-01 to 2026-10",
+		"notes": "Epoch's confidence intervals overlap: Claude Opus 5.5 166-172, GPT-6 Astra 166-172.",
+		"row_count": 101
 	},
 	{
 		"id": "hn-topics",
 		"type": "bar",
 		"title": "Anthropic draws complaints about reliability; OpenAI about money and hype",
-		"subtitle": "Share of negative Hacker News comments about each company that concern each topic, Oct 2025 to Sep 2026, %",
+		"subtitle": "Share of negative Hacker News comments about each company that concern each topic, Nov 2025 to Oct 2026, %",
 		"csv": "data/charts/hn-topics.csv",
 		"encoding": {
 			"x": "topic",
@@ -283,16 +314,19 @@
 		},
 		"annotations": [],
 		"ratio": "16:9",
-		"sources": ["D-HN", "D-LABELS"],
+		"sources": [
+			"D-HN",
+			"D-LABELS"
+		],
 		"population": "Hacker News commenters (negative comments in the labelled sample)",
-		"window": "2025-10 to 2026-09",
+		"window": "2025-11 to 2026-10",
 		"notes": "A comment can carry up to two topics, so shares do not sum to 100.",
 		"row_count": 16
 	},
 	{
 		"id": "reddit-communities",
 		"type": "line",
-		"title": "r/codex now out-posts r/ClaudeCode; r/ClaudeAI is down 48% from its peak",
+		"title": "r/ClaudeCode out-posted r/codex in October; r/ClaudeAI is down 32% from its peak",
 		"subtitle": "Posts per month in each product's home community on Reddit",
 		"csv": "data/charts/reddit-communities.csv",
 		"encoding": {
@@ -310,10 +344,12 @@
 		},
 		"annotations": [],
 		"ratio": "16:9",
-		"sources": ["D-REDDIT"],
+		"sources": [
+			"D-REDDIT"
+		],
 		"population": "Reddit users posting in r/ChatGPT, r/ClaudeAI, r/ClaudeCode and r/codex",
-		"window": "2024-07 to 2026-09",
-		"notes": "Gaps are months the archive could not count (timeouts on the largest subreddit), not zero.",
-		"row_count": 104
+		"window": "2024-07 to 2026-10",
+		"notes": "Counted on 2026-11-18. Where the archive timed out, 17 months keep their count of 2026-10-02. 1 month never counted stays empty.",
+		"row_count": 111
 	}
 ]

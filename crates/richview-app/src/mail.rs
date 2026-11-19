@@ -1495,9 +1495,10 @@ mod smtp_tests {
                 &line
             });
         }
-        // SMTP terminates DATA with a framing CRLF before the dot; it is not part of the message.
+        // The data ends at the line holding only a dot; the CRLF before it ends the message's own
+        // last line (RFC 5321 4.1.1.4), so the message is everything read before that line. Until
+        // lettre 0.11.24 the client added an empty line after a message ending with CRLF.
         assert!(message.ends_with("\r\n"));
-        message.truncate(message.len() - 2);
         socket.get_mut().write_all(b"250 Queued\r\n").await.unwrap();
         let _ = socket.get_mut().shutdown().await;
         message

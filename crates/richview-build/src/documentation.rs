@@ -182,6 +182,9 @@ const ELEMENTS: &[(&str, &str)] = &[
     ("charts", "Charts"),
     ("flow-charts", "Flow charts"),
     ("tables", "Tables"),
+    ("expands", "Expands"),
+    ("code-blocks", "Code blocks"),
+    ("columns", "Columns"),
     ("type-and-fonts", "Type and fonts"),
     ("pictures", "Pictures"),
     ("players-and-blocks", "Players and blocks"),
@@ -247,10 +250,8 @@ enum Place<'a> {
     ChartType(&'a str),
     Example(&'a str),
     Report(&'a str),
-    /// The format reference's index and its chart field pages.
+    /// The format reference, one long page, and its chart field pages.
     Reference,
-    /// One topic page of the format reference.
-    Topic(&'a str),
 }
 
 /// One chart type's page, read from `docs/public/charts/<type>.md`.
@@ -278,6 +279,7 @@ pub fn stage(root: &Path, public: &Path, flags: BuildFlags) -> Result<()> {
         let mut source = fs::read_to_string(root.join(format!("docs/public/{stem}.md")))?;
         source = source
             .replace("{{native-install}}", &native_install(flags))
+            .replace("{{windows-install}}", &windows_install(flags))
             .replace(
                 "{{agent-prompt}}",
                 chrome::agent_prompt(flags.install_enabled),
@@ -360,6 +362,7 @@ pub fn stage(root: &Path, public: &Path, flags: BuildFlags) -> Result<()> {
     stage_report_headers(public)?;
     public::finish(&docs, flags, revision)?;
     reference::search_index(&docs)?;
+    check_runtime_budget(&docs)?;
     Ok(())
 }
 
@@ -415,6 +418,15 @@ fn native_install(flags: BuildFlags) -> String {
         );
     }
     "Install the latest [GitHub release](https://github.com/1vecera/richview/releases/latest):\n\n```sh\ncurl -fsSL https://github.com/1vecera/richview/releases/latest/download/install.sh | sh\nexport PATH=\"$HOME/.richview/bin:$PATH\"\nrichview --help\n```\n\nThe installer verifies the archive checksum and does not change your PATH. The PATH change applies to this shell; add the same line to your shell profile to keep it.".to_string()
+}
+
+/// The PowerShell install command, only once the release it downloads exists; the guide names it
+/// inside its Windows section, which the release's Windows switch keeps or drops (ARC-67).
+fn windows_install(flags: BuildFlags) -> String {
+    if !flags.install_enabled {
+        return "The native release is not available yet.".to_string();
+    }
+    "```powershell\nirm https://github.com/1vecera/richview/releases/latest/download/install.ps1 | iex\n```".to_string()
 }
 
 // Keep the downloadable block tour beside the other runnable examples: documentation
@@ -515,17 +527,15 @@ fn stage_report_gallery(
 /// Every style leaf comes from the same closed grammar the loader validates.
 fn style_reference() -> String {
     let mut out = String::new();
-    for mark in [
-        richview_core::StyleMark::Safe,
-        richview_core::StyleMark::Experimental,
+    for (mark, heading) in [
+        (richview_core::StyleMark::Safe, "Settings"),
+        (
+            richview_core::StyleMark::Legacy,
+            "Legacy leaves: still applied, each with a `style.legacy` warning naming its replacement",
+        ),
     ] {
         out.push_str(&format!(
-            "\n## {} leaves\n\n| Path | Accepted value |\n| --- | --- |\n",
-            if mark == richview_core::StyleMark::Safe {
-                "Safe"
-            } else {
-                "Experimental"
-            }
+            "\n## {heading}\n\n| Path | Accepted value |\n| --- | --- |\n"
         ));
         for leaf in richview_core::style_vocabulary()
             .iter()
@@ -565,6 +575,8 @@ fn grammar_label(grammar: richview_core::StyleGrammar) -> String {
         Grammar::BrandColour => "Opaque colour".into(),
         Grammar::BrandName => "Non-empty company name".into(),
         Grammar::BrandLogo => "Report-relative image file".into(),
+        Grammar::Step => "`xsmall`, `small`, `medium`, `large` or `xlarge`".into(),
+        Grammar::Preset => "Preset name".into(),
     }
 }
 
@@ -619,8 +631,78 @@ fn report_frames(html: &str) -> String {
     html
 }
 
-fn typography_frames() -> String {
-    format!("<div class=\"docs-type-grid\">{}</div>", chrome::site_styles().iter().map(|style| format!("<section class=\"docs-type-preview\"><h3>{}</h3><iframe loading=\"lazy\" title=\"{} typography and elements\" src=\"/docs/gallery/typography/Rendered/typography-{style}.html\" sandbox=\"allow-scripts allow-downloads\"></iframe><a href=\"/docs/gallery/typography/Rendered/typography-{style}.html\">Open the {} sample</a></section>", chrome::style_label(style), chrome::style_label(style), chrome::style_label(style))).collect::<String>())
+/// The elements page's type sample: one live typography report and a row of the builtin styles
+/// that swaps it, as a chart page's style row does. The page so starts one sample's runtime rather
+/// than one per style (`RUNTIME_BUDGET`). Without scripts each style link opens its sample.
+fn typography_switch() -> String {
+    let sample = |style: &str| format!("/docs/gallery/typography/Rendered/typography-{style}.html");
+    let first = "sleek";
+    let links: String = chrome::site_styles()
+        .iter()
+        .map(|style| {
+            let current = if *style == first {
+                " aria-current=\"true\""
+            } else {
+                ""
+            };
+            format!(
+                "<a href=\"{src}\" data-preview-src=\"{src}\" data-style-link=\"{style}\"{current}>{}</a>",
+                chrome::style_label(style),
+                src = sample(style)
+            )
+        })
+        .collect();
+    format!(
+        "<div class=\"docs-styles docs-styles--type\"><p class=\"docs-styles__label\">The same sample in each style</p><nav class=\"docs-styles__links\" aria-label=\"Style\">{links}</nav><iframe class=\"docs-styles__frame\" title=\"Typography and elements in the chosen style\" src=\"{src}\" loading=\"lazy\" sandbox=\"allow-scripts allow-downloads\"></iframe><a class=\"docs-styles__open\" data-style-open href=\"{src}\">Open the sample</a></div>",
+        src = sample(first)
+    )
+}
+
+/// The most RichView runtimes a docs page may start when it loads: its own and one for each live
+/// frame. iOS gives a page's process three fast Wasm memories; each instance past them costs a full
+/// garbage collection, a slower memory and its module compiled again, and on an iPhone the gallery
+/// stopped loading at five.
+const RUNTIME_BUDGET: usize = 3;
+
+/// How many RichView runtimes a page starts when it loads: the report runtime it loads itself, and
+/// one for each frame that opens one of the site's own pages. A frame without an address (a style
+/// row's until a style is picked) starts none, and another site's frame runs no RichView runtime.
+fn runtimes_started(html: &str) -> usize {
+    let own = usize::from(html.contains("src=\"/richview_runtime.js\""));
+    let frames = html
+        .split("<iframe")
+        .skip(1)
+        .filter(|rest| {
+            let tag = &rest[..rest.find('>').unwrap_or(rest.len())];
+            tag.split_once(" src=\"")
+                .is_some_and(|(_, address)| address.starts_with('/'))
+        })
+        .count();
+    own + frames
+}
+
+/// Fails the build when a docs page would start more runtimes than `RUNTIME_BUDGET`.
+fn check_runtime_budget(folder: &Path) -> Result<()> {
+    for entry in fs::read_dir(folder)? {
+        let path = entry?.path();
+        if path.is_dir() {
+            check_runtime_budget(&path)?;
+        } else if path
+            .extension()
+            .is_some_and(|extension| extension == "html")
+        {
+            let html = fs::read_to_string(&path)?;
+            let started = runtimes_started(&html);
+            if html.contains("data-richview-page=\"docs\"") && started > RUNTIME_BUDGET {
+                return Err(format!(
+                    "{} starts {started} RichView runtimes when it loads; a docs page may start at most {RUNTIME_BUDGET}, as many as a phone runs at full speed",
+                    path.display()
+                )
+                .into());
+            }
+        }
+    }
+    Ok(())
 }
 
 fn feedback(place: Place, flags: BuildFlags, name: &str) -> String {
@@ -631,7 +713,7 @@ fn feedback(place: Place, flags: BuildFlags, name: &str) -> String {
         Place::Example(name) => format!("/docs/examples/{name}/"),
         Place::Report(name) => format!("/docs/gallery/{name}/"),
         Place::Reference if name == "reference" => "/docs/reference".into(),
-        Place::Reference | Place::Topic(_) => format!("/docs/reference/{name}"),
+        Place::Reference => format!("/docs/reference/{name}"),
     };
     let issue = if flags.repository_public {
         format!(
@@ -1363,7 +1445,7 @@ fn render_page_with_options(
                 ),
         );
     let decorated = decorated
-        .replace("<p>{{typography}}</p>", &typography_frames())
+        .replace("<p>{{typography}}</p>", &typography_switch())
         .replace("<p>{{elements}}</p>", &previews::elements_grid());
     if place == Place::Guide("elements") {
         for (anchor, label) in ELEMENTS {
@@ -1375,7 +1457,7 @@ fn render_page_with_options(
     let sidebar = sidebar(place, charts, flags);
     let source_link = match place {
         Place::Guide(stem) => format!("/docs/{stem}.md"),
-        Place::Reference | Place::Topic(_) => "/docs/reference.md".into(),
+        Place::Reference => "/docs/reference.md".into(),
         Place::Featured(name) => format!("/docs/charts/{name}.md"),
         Place::ChartType(chart) => format!("/examples/charts/{chart}/report.rmd"),
         Place::Example(name) => format!("/docs/examples/{name}/report.rmd"),
@@ -1633,8 +1715,8 @@ fn sidebar(place: Place, charts: &[ChartPage], flags: BuildFlags) -> String {
     };
     html.push_str("<p class=\"docs-nav__group\">How to use</p>");
     guides(&mut html, HOW_TO);
-    // The references stand above the deeper guides, with the format reference's topic pages
-    // under it: open inside the reference, one click away everywhere else.
+    // The references stand above the deeper guides, with the format reference's topics under
+    // it: parts of its one long page, open inside the reference, one click away elsewhere.
     html.push_str("<p class=\"docs-nav__group\">Reference</p>");
     html.push_str(&link(
         "/docs/reference",
@@ -1643,18 +1725,14 @@ fn sidebar(place: Place, charts: &[ChartPage], flags: BuildFlags) -> String {
     ));
     html.push_str(&format!(
         "<div class=\"docs-nav__sub\"><details class=\"docs-nav__more\" data-nav=\"topics\"{}><summary>Topics</summary><div class=\"docs-nav__sub\">",
-        if matches!(place, Place::Reference | Place::Topic(_)) {
+        if place == Place::Reference {
             " open"
         } else {
             ""
         }
     ));
     for (name, title) in reference::topic_pages() {
-        html.push_str(&link(
-            &format!("/docs/reference/{name}"),
-            title,
-            place == Place::Topic(name),
-        ));
+        html.push_str(&link(&format!("/docs/reference#{name}"), title, false));
     }
     html.push_str(&link(
         "/docs/reference#chart-specific-fields",
@@ -1762,6 +1840,7 @@ fn decorate(source: &str, rendered: &str) -> Result<(String, String)> {
                         + "</code></pre>".len();
                     let label = match language.as_str() {
                         "sh" | "bash" => "Shell",
+                        "powershell" => "PowerShell",
                         "rmd" => "Rich Markdown",
                         "yaml" => "YAML",
                         "json" => "JSON",
@@ -1848,6 +1927,85 @@ fn ensure_clean(name: &str, diagnostics: &[richview_core::document::Diagnostic])
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn the_guide_shows_the_powershell_command_only_when_the_release_ships_it() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let guide = std::fs::read_to_string(root.join("docs/public/install.md")).unwrap();
+        let command = "releases/latest/download/install.ps1 | iex";
+        for (install_enabled, windows_preview) in
+            [(false, false), (false, true), (true, false), (true, true)]
+        {
+            // An enabled release builds only for the public repository.
+            let flags = super::BuildFlags {
+                install_enabled,
+                repository_public: install_enabled,
+                windows_preview,
+                ..Default::default()
+            };
+            let staged = guide.replace("{{windows-install}}", &super::windows_install(flags));
+            let text = super::public::source(&staged, flags).unwrap();
+            assert_eq!(
+                text.contains(command),
+                install_enabled && windows_preview,
+                "install {install_enabled}, windows {windows_preview}"
+            );
+            assert_eq!(
+                text.contains("## Windows"),
+                windows_preview,
+                "the Windows heading follows the switch"
+            );
+        }
+    }
+
+    #[test]
+    fn a_page_starts_its_own_runtime_and_one_for_each_frame_of_the_site() {
+        let page = |body: &str| format!("<script src=\"/richview_runtime.js\"></script>{body}");
+        assert_eq!(runtimes_started("<p>no charts</p>"), 0);
+        assert_eq!(runtimes_started(&page("")), 1);
+        // A style row's frame has no address until a style is picked.
+        assert_eq!(runtimes_started(&page(&style_frame("bar"))), 1);
+        assert_eq!(
+            runtimes_started(&page(
+                "<iframe loading=\"lazy\" src=\"/docs/previews/bar/sleek.html\"></iframe><iframe src=\"https://www.youtube-nocookie.com/embed/x\"></iframe>"
+            )),
+            2
+        );
+        // The five builtin styles' type samples share one frame: the page stays within the budget
+        // with the elements overview's live Type card beside it.
+        let switch = typography_switch();
+        assert_eq!(switch.matches("<iframe").count(), 1);
+        assert_eq!(
+            switch.matches("data-style-link=").count(),
+            chrome::site_styles().len()
+        );
+        assert_eq!(switch.matches("aria-current=\"true\"").count(), 1);
+        assert!(
+            runtimes_started(&page(&format!("{}{switch}", previews::elements_grid())))
+                <= RUNTIME_BUDGET
+        );
+    }
+
+    #[test]
+    fn the_build_refuses_a_docs_page_over_the_runtime_budget() {
+        let folder = tempfile::tempdir().unwrap();
+        let nested = folder.path().join("guides");
+        fs::create_dir_all(&nested).unwrap();
+        let frames =
+            "<iframe src=\"/docs/previews/bar/sleek.html\"></iframe>".repeat(RUNTIME_BUDGET);
+        let page = format!(
+            "<body data-richview-page=\"docs\"><script src=\"/richview_runtime.js\"></script>{frames}"
+        );
+        // A report with that many frames is not a docs page; only docs pages are held to it.
+        fs::write(nested.join("report.html"), &frames).unwrap();
+        check_runtime_budget(folder.path()).unwrap();
+        fs::write(nested.join("many.html"), &page).unwrap();
+        let error = check_runtime_budget(folder.path()).unwrap_err().to_string();
+        assert!(
+            error.contains("many.html starts 4 RichView runtimes"),
+            "{error}"
+        );
+    }
+
     #[test]
     fn docs_pages_turn_the_reports_reading_aids_off() {
         assert_eq!(
@@ -1961,6 +2119,13 @@ mod tests {
             )
             .unwrap();
             let docs = output.join("docs");
+            // A topic's old address only forwards, and a forward is not a page of the site:
+            // nothing the build writes may lead a reader, or the link crawl, to one.
+            assert_eq!(forward_links(&docs), Vec::<String>::new());
+            let fields = fs::read_to_string(docs.join("reference/charts/line.html")).unwrap();
+            assert!(fields.contains("href=\"/docs/reference#charts\""));
+            let reference = fs::read_to_string(docs.join("reference.html")).unwrap();
+            assert!(reference.contains("<h2 id=\"charts\""));
             let first = fs::read_to_string(docs.join("first-report.md")).unwrap();
             let install = fs::read_to_string(docs.join("install.md")).unwrap();
             if !repository_public {
@@ -2094,6 +2259,51 @@ mod tests {
     }
 
     use super::*;
+
+    /// Every place a built documentation file names a reference topic's old address, as
+    /// `file: address`. Each old address must exist as a forward, or the list would prove
+    /// nothing.
+    fn forward_links(docs: &Path) -> Vec<String> {
+        fn visit(root: &Path, dir: &Path, old: &[String], found: &mut Vec<String>) {
+            for entry in fs::read_dir(dir).unwrap() {
+                let path = entry.unwrap().path();
+                if path.is_dir() {
+                    visit(root, &path, old, found);
+                    continue;
+                }
+                // Images, fonts and Wasm hold no links.
+                let Ok(text) = fs::read_to_string(&path) else {
+                    continue;
+                };
+                for address in old {
+                    for (at, _) in text.match_indices(address.as_str()) {
+                        // A longer address is another page, such as a chart type's fields
+                        // under `charts/`.
+                        let next = text[at + address.len()..].chars().next();
+                        if !next.is_some_and(|c| c.is_ascii_alphanumeric() || c == '-' || c == '/')
+                        {
+                            let file = path.strip_prefix(root).unwrap().display();
+                            found.push(format!("{file}: {address}"));
+                        }
+                    }
+                }
+            }
+        }
+        let old: Vec<String> = reference::topic_pages()
+            .iter()
+            .map(|(name, _)| format!("/docs/reference/{name}"))
+            .collect();
+        for address in &old {
+            let forward = docs.join(format!("{}.html", &address["/docs/".len()..]));
+            let html = fs::read_to_string(&forward).unwrap();
+            assert!(html.contains("http-equiv=\"refresh\""), "{address}");
+        }
+        let mut found = Vec::new();
+        visit(docs, docs, &old, &mut found);
+        found.sort();
+        found.dedup();
+        found
+    }
 
     #[test]
     fn table_codes_may_break_after_their_dots_and_nowhere_else() {
@@ -2252,15 +2462,37 @@ mod tests {
     }
 
     #[test]
+    fn every_element_without_a_part_opens_a_section_of_its_guide() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let grid = previews::elements_grid();
+        for (title, _, guide, anchor, _) in previews::MORE_ELEMENTS {
+            let source = fs::read_to_string(root.join(format!("docs/public/{guide}.md"))).unwrap();
+            assert!(
+                source
+                    .lines()
+                    .filter_map(|line| line.strip_prefix("## "))
+                    .any(|heading| reference::slug(heading) == *anchor),
+                "{title}: no section #{anchor} in {guide}"
+            );
+            assert!(
+                grid.contains(&format!("href=\"/docs/{guide}#{anchor}\"")),
+                "{title}"
+            );
+        }
+    }
+
+    #[test]
     fn the_sidebar_sets_the_references_above_the_deeper_guides_with_the_topics_under_them() {
         let closed = sidebar(Place::Guide("index"), &[], BuildFlags::default());
         let at = |text: &str| closed.find(text).unwrap_or_else(|| panic!("no `{text}`"));
         assert!(at(">How to use<") < at(">Reference<") && at(">Reference<") < at(">Nitty-gritty<"));
-        // The format reference, its topic pages, then the two other references.
+        // The format reference, its topics as parts of its one page, then the two other
+        // references.
         let topics = at("<details class=\"docs-nav__more\" data-nav=\"topics\">");
         assert!(at("href=\"/docs/reference\"") < topics);
-        assert!(topics < at("href=\"/docs/reference/charts\""));
-        assert!(at("href=\"/docs/reference/diagnostic-codes\"") < at("href=\"/docs/tools\""));
+        assert!(topics < at("href=\"/docs/reference#charts\""));
+        assert!(!closed.contains("href=\"/docs/reference/charts\""));
+        assert!(at("href=\"/docs/reference#diagnostic-codes\"") < at("href=\"/docs/tools\""));
         assert!(at("href=\"/docs/tools\"") < at("href=\"/docs/style-yaml\""));
         assert!(at("href=\"/docs/style-yaml\"") < at(">Nitty-gritty<"));
         // Every guide has one entry, and the pager walks them in the sidebar's order.
@@ -2272,14 +2504,10 @@ mod tests {
             last = at(&link);
         }
         // Inside the reference the topics are open and the page is marked.
-        let open = sidebar(Place::Topic("charts"), &[], BuildFlags::default());
+        let open = sidebar(Place::Reference, &[], BuildFlags::default());
         assert!(open.contains("data-nav=\"topics\" open>"));
-        assert!(open.contains("href=\"/docs/reference/charts\" aria-current=\"page\""));
+        assert!(open.contains("href=\"/docs/reference\" aria-current=\"page\""));
         assert_eq!(open.matches("aria-current").count(), 1);
-        assert!(
-            sidebar(Place::Reference, &[], BuildFlags::default())
-                .contains("href=\"/docs/reference\" aria-current=\"page\"")
-        );
     }
 
     #[test]

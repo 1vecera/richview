@@ -230,10 +230,6 @@ fn worker_query(
 
 #[test]
 fn hostile_sql_metadata_is_refused_at_the_report_and_worker_boundaries() {
-    use std::{
-        io::Write,
-        process::{Command, Stdio},
-    };
     let (dir, connector) = worker_fixture();
     let ordinary = worker_query(
         &connector,
@@ -279,39 +275,76 @@ fn hostile_sql_metadata_is_refused_at_the_report_and_worker_boundaries() {
             .contains(&dir.path().display().to_string())
     );
 
-    // Raw requests bypass the host preguard: the restricted worker must enforce its own policy.
+    // Requests sent straight to the worker bypass the host preguard: the restricted worker must
+    // enforce its own policy. The host's launcher starts it as every query does, confined on
+    // Windows, so the worker's own refusal is what comes back.
     let corpus: Vec<Value> =
         serde_json::from_str(include_str!("hostile/sql-metadata.json")).unwrap();
     for case in corpus {
-        let mut child = Command::new(env!("CARGO_BIN_EXE_richview-sql-worker"))
-            .env_clear()
-            .env("SLURM_MEM_PER_NODE", "128M")
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .unwrap();
-        let request = serde_json::json!({"version":2,"source":dir.path().join("source.duckdb"),
-            "sql":case["sql"],"params":case["params"],"connector":"local","fingerprint":"hostile"});
-        child
-            .stdin
-            .take()
-            .unwrap()
-            .write_all(serde_json::to_string(&request).unwrap().as_bytes())
-            .unwrap();
-        let output = child.wait_with_output().unwrap();
+        let error = connectors::sql_worker::execute(
+            &dir.path().join("source.duckdb"),
+            Some(std::path::Path::new(env!(
+                "CARGO_BIN_EXE_richview-sql-worker"
+            ))),
+            &connectors::Query {
+                connector: "local",
+                body: connectors::QueryBody::Sql(case["sql"].as_str().unwrap()),
+                params: &serde_json::from_value(case["params"].clone()).unwrap(),
+                cache: None,
+                fingerprint: "hostile",
+            },
+        )
+        .expect_err("the worker refuses host metadata");
         assert!(
-            output.status.success(),
-            "{case}: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-        let reply: Value = serde_json::from_slice(&output.stdout).unwrap();
-        assert_eq!(
-            reply,
-            serde_json::json!({"status":"failed","error":"metadata"}),
-            "{case}"
+            matches!(&error, connectors::ConnectorError::QueryRejected { reason }
+                if reason.contains("host metadata")),
+            "{case}: {error:?}"
         );
     }
+}
+
+#[test]
+fn a_database_with_changes_still_in_its_wal_is_refused_until_they_are_written_into_it() {
+    let (dir, connector) = worker_fixture();
+    let database = dir.path().join("source.duckdb");
+    let wal = dir.path().join("source.duckdb.wal");
+    {
+        // A writer that ends without writing its last change into the database file, as a crash
+        // or a program still running leaves it.
+        let writer = Connection::open(&database).unwrap();
+        writer
+            .execute_batch(
+                "PRAGMA disable_checkpoint_on_shutdown; SET wal_autocheckpoint = '1TB';
+                 INSERT INTO source VALUES (8);",
+            )
+            .unwrap();
+    }
+    assert!(wal.exists(), "the last change is only in the WAL");
+    let refused = worker_query(
+        &connector,
+        "SELECT count(*) AS n FROM source",
+        serde_json::json!({}),
+    )
+    .expect_err("the worker can read only the database file, so it would miss the change");
+    assert!(
+        matches!(&refused, connectors::ConnectorError::QueryRejected { reason }
+            if reason.contains(".wal") && reason.contains("CHECKPOINT")),
+        "{refused:?}"
+    );
+    // Once a writer has written the change into the database, both rows read.
+    Connection::open(&database)
+        .unwrap()
+        .execute_batch("CHECKPOINT")
+        .unwrap();
+    assert!(!wal.exists());
+    let rows = worker_query(
+        &connector,
+        "SELECT count(*) AS n FROM source",
+        serde_json::json!({}),
+    )
+    .unwrap()
+    .rows;
+    assert_eq!(rows, vec![serde_json::json!({"n": 2})]);
 }
 
 #[test]

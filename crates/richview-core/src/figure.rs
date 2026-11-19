@@ -83,7 +83,10 @@ pub fn chart_theme(style: &ResolvedStyle) -> ChartTheme {
         ink_soft: token("ink-soft").unwrap_or(base.ink_soft),
         ink_faint: token("ink-faint").unwrap_or(base.ink_faint),
         rule: token("rule").unwrap_or(base.rule),
-        rule_soft: token("rule-soft").unwrap_or(base.rule_soft),
+        // `gridlines` gives the chart's soft rules their own colour (STY-73).
+        rule_soft: token("grid")
+            .or_else(|| token("rule-soft"))
+            .unwrap_or(base.rule_soft),
         accent: token("accent").unwrap_or(base.accent),
         palette,
         ramp: three("ramp").unwrap_or(base.ramp),
@@ -102,6 +105,7 @@ pub fn chart_theme(style: &ResolvedStyle) -> ChartTheme {
             .get("decals")
             .and_then(Value::as_bool)
             .unwrap_or(base.decals),
+        flat_glow: chart.get("glow").and_then(Value::as_str) == Some("flat"),
         sign_hatch: chart.get("sign-cue").and_then(Value::as_str) == Some("hatch"),
         curve,
         curvature: chart
@@ -383,6 +387,9 @@ pub(crate) struct Context<'a> {
     pub widths: [f64; 2],
     /// PDF output: the printed column's width and the page's text height, in CSS pixels.
     pub pdf: Option<[f64; 2]>,
+    /// A chart in columns (FEA-RP-68): the width it has once its columns stack on a screen wider
+    /// than a phone, for the box the figure reserves there (`--rv-ratio-stacked`).
+    pub stacked: Option<f64>,
 }
 
 pub(crate) struct Figure {
@@ -753,6 +760,7 @@ pub(crate) fn chart(
         };
     }
     let [phone, desktop] = cx.widths.map(|w| at(w, cx.theme));
+    let stacked = cx.stacked.map(|w| at(w, cx.theme));
     diagnostics_of(&desktop, id, line, &mut diagnostics);
     diagnostics_of(&phone, id, line, &mut diagnostics);
     // What each state's layout from the exact rows derived, for the runtime to reuse (TYP-36).
@@ -881,7 +889,7 @@ pub(crate) fn chart(
         }
     }
     let html = format!(
-        "<figure class=\"rv-chart{full}\" id=\"{id}\" data-rv-chart>{}{}{state_line}{above}<div class=\"rv-chart__frame\" role=\"img\" aria-label=\"{}\" style=\"--rv-ratio:{};--rv-ratio-phone:{}\"><p class=\"rv-chart__notice\">{NOTICE}</p></div>{below}{}<script type=\"application/json\" data-rv-payload>{}</script></figure>",
+        "<figure class=\"rv-chart{full}\" id=\"{id}\" data-rv-chart>{}{}{state_line}{above}<div class=\"rv-chart__frame\" role=\"img\" aria-label=\"{}\" style=\"--rv-ratio:{};--rv-ratio-phone:{}{}\"><p class=\"rv-chart__notice\">{NOTICE}</p></div>{below}{}<script type=\"application/json\" data-rv-payload>{}</script></figure>",
         head(
             true,
             richview_chart::interaction::zooms(block.kind.name(), &desktop)
@@ -894,6 +902,10 @@ pub(crate) fn chart(
         label(&desktop),
         ratio(&desktop),
         ratio(&phone),
+        stacked
+            .as_ref()
+            .map(|g| format!(";--rv-ratio-stacked:{}", ratio(g)))
+            .unwrap_or_default(),
         method(&desktop),
         json_script(&payload),
     );
@@ -1077,12 +1089,13 @@ pub(crate) const FIGURE_CSS: &str = concat!(
     ".rv-chart__readout[hidden]{display:none}",
     // Line-end names are buttons laid over the names the canvas draws (FEA-CH-27).
     ".rv-chart__names{position:absolute;inset:0;pointer-events:none;z-index:1}",
-    // The target is at least 24 px square (WCAG 2.5.8): the padding the runtime sets in --rv-px and
-    // --rv-py is hit area only, so the hover tint and the focus ring stay on the drawn name.
-    ".rv-chart__name{position:absolute;pointer-events:auto;box-sizing:border-box;margin:0;padding:var(--rv-py,0) var(--rv-px,0);border:0;border-radius:0;background:none;background-clip:content-box;color:transparent;font-size:1px;cursor:pointer}",
+    // The target is at least 24 px square (WCAG 2.5.8): the padding the runtime sets on each side,
+    // in --rv-pt, --rv-pr, --rv-pb and --rv-pl, is hit area only, so the hover tint and the focus
+    // ring stay on the drawn name. The sides differ where the target keeps off a dot of its line.
+    ".rv-chart__name{position:absolute;pointer-events:auto;box-sizing:border-box;margin:0;padding:var(--rv-pt,0) var(--rv-pr,0) var(--rv-pb,0) var(--rv-pl,0);border:0;border-radius:0;background:none;background-clip:content-box;color:transparent;font-size:1px;cursor:pointer}",
     ".rv-chart__name:hover{background-color:color-mix(in oklch,var(--rv-ink) 7%,transparent)}",
     ".rv-chart__name:focus-visible{outline:none}",
-    ".rv-chart__name:focus-visible::after{content:\"\";position:absolute;left:var(--rv-px,0);right:var(--rv-px,0);top:var(--rv-py,0);bottom:var(--rv-py,0);border-radius:0;outline:2px solid var(--rv-accent);outline-offset:1px}",
+    ".rv-chart__name:focus-visible::after{content:\"\";position:absolute;left:var(--rv-pl,0);right:var(--rv-pr,0);top:var(--rv-pt,0);bottom:var(--rv-pb,0);border-radius:0;outline:2px solid var(--rv-accent);outline-offset:1px}",
     "@media print{.rv-chart__names{display:none}}",
     ".rv-chart__readout p{margin:0;display:flex;gap:.5rem;align-items:baseline}",
     ".rv-chart__readout-head{font-weight:600}",
@@ -1265,6 +1278,7 @@ mod tests {
             colors: &[],
             widths: [358.0, 832.0],
             pdf,
+            stacked: None,
         }
     }
 

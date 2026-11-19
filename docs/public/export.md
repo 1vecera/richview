@@ -27,7 +27,7 @@ richview generate first-report/report.rmd -o review.pdf --page letter
 
 The files are `first-report/Rendered/report.pdf` and `review.pdf`. A4 is the default; the second example selects Letter. A `.pdf` output filename also selects PDF output. The result line names the file, its page and byte counts and the browser that printed it; with `--format json` the result also carries the browser version, settled-state information and diagnostics.
 
-Use `--browser` with an executable path, or set `RICHVIEW_BROWSER`, to choose a browser explicitly. Otherwise RichView checks the usual executable names and macOS application bundles. Chrome 131 or later supplies running titles and page numbers. PDF generation supports Linux and macOS; Windows and hosted PDF generation are not provided.
+Use `--browser` with an executable path, or set `RICHVIEW_BROWSER`, to choose a browser explicitly. Otherwise RichView checks the usual executable names, the macOS application bundles<!-- windows-preview:start --> and the Windows install folders of Chrome, Chromium and Edge<!-- windows-preview:end -->. Chrome 131 or later supplies running titles and page numbers. PDF generation supports Linux<!-- windows-unsupported:start --> and macOS<!-- windows-unsupported:end --><!-- windows-preview:start -->, macOS and Windows, where Microsoft Edge comes with the system<!-- windows-preview:end -->; hosted PDF generation is not provided.
 
 ## What the printed report keeps
 

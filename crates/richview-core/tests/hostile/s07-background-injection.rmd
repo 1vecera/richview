@@ -1,0 +1,6 @@
+---
+title: Background leaves carrying CSS
+styles: [air, s07-background-injection.rstyle.yaml]
+---
+
+Every background leaf below tries to leave its closed words.

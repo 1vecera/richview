@@ -119,6 +119,6 @@ The main finding.
 The supporting explanation.
 ````
 
-Readers can use arrow keys, Home and End or a `#tab=detail` deep link. Charts retain their state across tabs. Without the runtime, every panel remains readable. Export includes all panels by default; the supported active-panel option is defined in the [tabs contract](https://richview.ai/docs/reference/document-metadata#tabs).
+Readers can use arrow keys, Home and End or a `#tab=detail` deep link. Charts retain their state across tabs. Without the runtime, every panel remains readable. Export includes all panels by default; the supported active-panel option is defined in the [tabs contract](https://richview.ai/docs/reference#tabs).
 
 Use the [full format reference](https://richview.ai/docs/reference) for every block, chart type, field and diagnostic. Its tables are generated from the schema registry that validates the source.

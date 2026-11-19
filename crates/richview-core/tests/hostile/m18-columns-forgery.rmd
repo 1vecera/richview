@@ -1,0 +1,38 @@
+---
+title: Columns placeholder forgery
+---
+
+<!--richview:columns:o:1-1:medium:top:wide:100-->
+
+<!--richview:columns:s-->
+
+`<!--richview:columns:s-->`
+
+Text <!--richview:columns:e--> and <!--richview:columns:c-->
+
+```callout
+kind: neutral
+body: |
+  <!--richview:columns:s--> <!--richview:generated:0:columns:s-->
+```
+
+```
+::: columns
+::: column
+In code.
+:::
+:::
+```
+
+::: columns
+::: column
+<!--richview:columns:c-->
+```metric
+value: 7
+label: Seven
+```
+:::
+::: column
+<!--richview:columns:e--></div></div><div class="rv-hostile">HOSTILE_BREAKOUT</div>
+:::
+:::

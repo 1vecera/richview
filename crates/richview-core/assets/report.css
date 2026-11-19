@@ -89,6 +89,23 @@ body {
 .rv-keep > .rv-chart.rv-chart--full,
 .rv-report__body > .rv-embed.rv-embed--full,
 .rv-report__body > figure.rv-image.rv-image--full { max-width: 100%; }
+/* A fold preserves the same text measure and wide-block breakout as the report body. */
+.rv-report__body > .rv-section, .rv-section > .rv-section { max-width: 100%; }
+.rv-section > * { max-width: var(--rv-measure-w); }
+.rv-section > :is(.rv-section, .rv-table--full, table, .rv-table-scroll, .rv-chart--full, .rv-embed--full, .rv-image--full) { max-width: 100%; }
+.rv-report .rv-section > * { margin-inline: auto; }
+.rv-section > summary { cursor: pointer; margin-block: var(--rv-block-gap) calc(var(--rv-line) * .5); list-style: none; }
+.rv-section > summary::-webkit-details-marker { display: none; }
+.rv-section > summary > :is(h1, h2, h3, h4, h5, h6) { display: inline; }
+/* A folded section's heading takes the expand's line chevron, drawn in the heading's own em so it
+   scales with it, and raised to sit centred on the first line's capitals. */
+.rv-section > summary > :is(h1, h2, h3, h4, h5, h6)::before {
+  content: ""; display: inline-block; width: .3em; height: .3em; margin-inline: .06em .34em; vertical-align: .2em;
+  border-right: max(1.5px, .055em) solid currentColor; border-bottom: max(1.5px, .055em) solid currentColor;
+  transform: rotate(-45deg); transition: transform .15s ease-out;
+}
+.rv-section[open] > summary > :is(h1, h2, h3, h4, h5, h6)::before { transform: translateY(-.08em) rotate(45deg); }
+@media (prefers-reduced-motion: reduce) { .rv-section > summary > :is(h1, h2, h3, h4, h5, h6)::before { transition: none; } }
 .rv-report__body h1, .rv-report__body h2, .rv-report__body h3 {
   font-family: var(--rv-font-display, var(--rv-font-text));
   font-weight: 600;
@@ -114,13 +131,15 @@ body {
 .rv-report__body .rv-math-error { color: var(--rv-down); font-family: var(--rv-font-mono); font-size: var(--rv-size-small); }
 .rv-report__body blockquote > :last-child { margin-bottom: 0; }
 .rv-report__body blockquote cite, .rv-report__body blockquote footer { display: block; margin-top: calc(var(--rv-line) * .35); font-size: var(--rv-size-small); font-style: normal; }
+/* Code shows every character as written: a mono face's ligatures would draw `--` and `---` as
+   joined dashes over the cell before them, hiding a space or a line number. */
 .rv-report__body code:not(pre code) {
-  font-family: var(--rv-font-mono);
+  font-family: var(--rv-font-mono); font-variant-ligatures: none;
   background: var(--rv-bg-elev); padding: .1em .3em; border-radius: min(var(--rv-radius-s), .25em);
 }
 .rv-report__body pre {
   background: var(--rv-bg-elev); padding: 1em 1.25em; border-radius: min(var(--rv-radius-m), 6px); overflow-x: auto;
-  font: var(--rv-size-small)/1.5 var(--rv-font-mono);
+  font: var(--rv-size-small)/1.5 var(--rv-font-mono); font-variant-ligatures: none;
 }
 /* The user-agent code rule otherwise overrides the pre's embedded mono face. */
 .rv-report__body pre code { font-family: inherit; }
@@ -129,6 +148,34 @@ body {
 .rv-fn-back { display: inline-block; position: relative; width: 1em; height: .8em; vertical-align: baseline; }
 .rv-fn-back::before { content: ""; position: absolute; left: .1em; bottom: .16em; width: .28em; height: .28em; border-left: .08em solid; border-bottom: .08em solid; transform: rotate(45deg); }
 .rv-fn-back::after { content: ""; position: absolute; left: .12em; bottom: .25em; width: .65em; height: .45em; border-right: .08em solid; border-bottom: .08em solid; border-bottom-right-radius: .2em; }
+/* Code highlighting, in two tones of the style's own text colours and no hue of its own: what
+   frames the code (comments, punctuation, fences) recedes, the names it is made of stand out. */
+.rv-report__body pre :is(.hl-comment, .hl-punc, .hl-fence, .hl-fm) { color: var(--rv-ink-soft); }
+/* Their weight and the comments' italic come from the style, only where its code face embeds them. */
+.rv-report__body pre :is(.hl-key, .hl-cmd, .hl-tag, .hl-heading) { color: var(--rv-ink); }
+/* A code block: a head with its title and language, then the code. Numbers and marks need each
+   line to be a box of the block's whole width; the numbers are generated, so never copied. */
+.rv-code { margin: var(--rv-block-gap) 0; }
+.rv-code__head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 1em;
+  margin-bottom: .35em; font-size: var(--rv-size-small); line-height: 1.4; color: var(--rv-ink-soft);
+}
+.rv-code__title { font-family: var(--rv-font-mono); color: var(--rv-ink); overflow-wrap: anywhere; }
+.rv-code__lang { margin-inline-start: auto; text-transform: uppercase; letter-spacing: .06em; font-size: .85em; }
+.rv-report__body .rv-code pre { margin: 0; }
+.rv-code pre code { display: block; min-width: max-content; counter-reset: rv-code-line; }
+.rv-code .rv-code-line { display: block; position: relative; }
+.rv-code--lines .rv-code-line { counter-increment: rv-code-line; padding-inline-start: 3.2ch; }
+.rv-code--lines .rv-code-line::after {
+  content: counter(rv-code-line); position: absolute; inset-inline-start: 0; top: 0; width: 2.2ch;
+  text-align: end; color: var(--rv-ink-soft); opacity: .8;
+}
+.rv-code .rv-code-line--mark {
+  margin-inline: -1.25em; padding-inline-start: calc(1.25em - 3px); padding-inline-end: 1.25em;
+  background: color-mix(in oklch, var(--rv-link) 11%, transparent); border-inline-start: 3px solid var(--rv-link);
+}
+.rv-code--lines .rv-code-line--mark { padding-inline-start: calc(1.25em - 3px + 3.2ch); }
+.rv-code--lines .rv-code-line--mark::after { inset-inline-start: calc(1.25em - 3px); }
 /* A block the runtime found overflowing (it is then focusable) shows a solid rule on the side
    where more code is hidden: no gradient, no shadow (STY-50). */
 .rv-report__body pre[tabindex] { border-inline-end: 3px solid var(--rv-rule); }
@@ -233,6 +280,27 @@ p.rv-callout__title { margin: 0 0 calc(var(--rv-line) * .25); }
 .rv-callout--down .rv-callout__title { color: var(--rv-down); }
 .rv-callout--hold .rv-callout__title { color: var(--rv-hold); }
 .rv-callout__body > :last-child { margin-bottom: 0; }
+/* Expand: a titled part the reader opens. Its title row spans the measure and is at least 44 px
+   tall for a thumb; a chevron that turns, not colour, says whether it is open. The body keeps
+   the page's measure, with no indent. */
+.rv-expand { margin: var(--rv-block-gap) 0; border-block: 1px solid var(--rv-rule); }
+.rv-expand + .rv-expand { margin-top: calc(var(--rv-block-gap) * -1 - 1px); }
+.rv-expand > summary {
+  display: flex; align-items: center; gap: .55em; min-height: 44px; padding: .4em 0; cursor: pointer; list-style: none;
+  font-family: var(--rv-font-display, var(--rv-font-text)); font-size: var(--rv-size-base); font-weight: 600; line-height: 1.35;
+}
+.rv-expand > summary::-webkit-details-marker { display: none; }
+.rv-expand > summary::before {
+  content: ""; flex: none; width: .42em; height: .42em; margin-inline: .15em .1em;
+  border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg); transition: transform .15s ease-out;
+}
+.rv-expand[open] > summary::before { transform: translateY(-.12em) rotate(45deg); }
+.rv-expand > summary:hover { color: var(--rv-link); }
+.rv-expand__body { padding-bottom: calc(var(--rv-line) * .5); }
+.rv-expand__body > :first-child { margin-top: 0; }
+.rv-expand__body > :last-child { margin-bottom: 0; }
+@media (prefers-reduced-motion: reduce) { .rv-expand > summary::before { transition: none; } }
 /* A run of stats or asides reads as one group: half the block gap between neighbours. */
 .rv-metric:has(+ .rv-metric), .rv-callout:has(+ .rv-callout) { margin-bottom: calc(var(--rv-block-gap) * .5); }
 .rv-metric + .rv-metric, .rv-callout + .rv-callout { margin-top: calc(var(--rv-block-gap) * .5); }

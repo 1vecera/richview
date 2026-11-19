@@ -13,7 +13,7 @@
 //! type reads, field references) stay with each tag's validator.
 
 use crate::Diagnostic;
-use crate::registry::{FRONTMATTER, Field, TAGS, Ty};
+use crate::registry::{FRONTMATTER, Field, LAYOUTS, TAGS, Ty};
 use serde_json::{Map, Value};
 
 /// Where the walk reports: a block's tag (`chart`) or `frontmatter`.
@@ -41,7 +41,7 @@ impl Root<'_> {
 /// diagnostic's path starts with the root's name, so the parser can place it at its field's line.
 pub(crate) fn check(root: Root, value: &mut Value) -> Vec<Diagnostic> {
     let fields: &[Field] = match root {
-        Root::Block(tag) => match TAGS.iter().find(|t| t.name == tag) {
+        Root::Block(tag) => match TAGS.iter().chain(LAYOUTS).find(|t| t.name == tag) {
             Some(tag) => tag.fields,
             None => return vec![],
         },
@@ -519,6 +519,7 @@ fn belongs(
     let fields = match root {
         Root::Block(_) => TAGS
             .iter()
+            .chain(LAYOUTS)
             .find(|tag| tag.name == root.name())
             .map(|tag| tag.fields),
         Root::Frontmatter => None,

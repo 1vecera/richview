@@ -45,7 +45,11 @@ fn styled(
 ) {
     let mut diagnostics = vec![];
     let refs: Vec<String> = refs.iter().map(|r| r.to_string()).collect();
-    (resolve_styles(&refs, &mut diagnostics), diagnostics)
+    let style = resolve_styles(&refs, &mut diagnostics);
+    // These tests pin the old vocabulary, which still applies exactly; its `style.legacy`
+    // warnings, which name what replaces each leaf, are tested in `style_presets.rs` (STY-73).
+    diagnostics.retain(|d| d.code != "style.legacy");
+    (style, diagnostics)
 }
 
 #[test]
@@ -263,14 +267,7 @@ fn the_accent_setting_moves_the_accent_links_and_first_series_together() {
 }
 
 #[test]
-fn experimental_leaves_say_so_and_the_vocabulary_marks_every_leaf() {
-    let (_, diagnostics) = file("tokens:\n  line-base: 1.8\n");
-    let info = diagnostics
-        .iter()
-        .find(|d| d.code == "style.experimental")
-        .unwrap();
-    assert_eq!(info.level, "info");
-    assert_eq!(info.path, "styles[1].tokens.line-base");
+fn the_vocabulary_marks_every_leaf_and_no_taught_setting_is_experimental() {
     let vocabulary = richview_core::style_vocabulary();
     let mark = |path: &str| {
         vocabulary
@@ -279,13 +276,30 @@ fn experimental_leaves_say_so_and_the_vocabulary_marks_every_leaf() {
             .unwrap()
             .mark
     };
-    assert_eq!(mark("tokens.accent"), richview_core::StyleMark::Safe);
+    // Tokens are a preset's internal vocabulary: they still apply, and warn (STY-73).
+    assert_eq!(mark("tokens.accent"), richview_core::StyleMark::Legacy);
+    assert_eq!(mark("tokens.line-base"), richview_core::StyleMark::Legacy);
     assert_eq!(
-        mark("tokens.line-base"),
-        richview_core::StyleMark::Experimental
+        mark("components.metric.style"),
+        richview_core::StyleMark::Legacy
     );
     assert_eq!(mark("tokens.measure"), richview_core::StyleMark::Internal);
-    // A builtin sets every leaf it uses without a diagnostic (builtins load in the tests above).
+    for path in [
+        "preset",
+        "colors.brand",
+        "text-size",
+        "corners",
+        "motion",
+        "palette",
+    ] {
+        assert_eq!(mark(path), richview_core::StyleMark::Safe, "{path}");
+    }
+    // Every combination of the taught settings is tested, so none is experimental.
+    assert!(
+        vocabulary
+            .iter()
+            .all(|leaf| leaf.mark != richview_core::StyleMark::Experimental),
+    );
     assert!(vocabulary.iter().any(|leaf| leaf.path == "colophon"));
 }
 
@@ -376,6 +390,57 @@ fn hand_drawn_marks_the_sign_of_heatmap_cells_with_a_hatch_and_the_other_builtin
     for other in ["sleek", "air", "scientific", "brutalist"] {
         assert!(!hatched(other), "{other}");
     }
+}
+
+#[test]
+fn only_hand_drawn_keeps_the_flat_glow_whatever_its_decals_switch_says() {
+    use richview_core::document::{RenderOptions, ReportFolder, render};
+    let flat = |refs: &[&str]| styled(refs).0.document["chart"]["glow"].as_str() == Some("flat");
+    assert!(flat(&["hand-drawn"]));
+    assert!(
+        flat(&["hand-drawn", "chart:\n  decals: false\n"]),
+        "Hand-drawn without decals stays flat"
+    );
+    assert!(
+        flat(&["sleek", "preset: chalk\n"]),
+        "Chalk is Hand-drawn on slate"
+    );
+    for other in ["sleek", "air", "scientific", "brutalist"] {
+        assert!(!flat(&[other]), "{other}");
+    }
+    assert!(
+        !flat(&["sleek", "chart:\n  decals: true\n"]),
+        "Sleek with decals keeps the glow"
+    );
+    let (style, diagnostics) = file("chart:\n  glow: flat\n");
+    assert!(
+        style.document["chart"]["glow"].is_null(),
+        "only builtins set the glow"
+    );
+    assert!(
+        diagnostics
+            .iter()
+            .any(|d| d.code == "style.internal" && d.path == "styles[1].chart.glow")
+    );
+    // The payload carries the flag only where it is set.
+    let theme = |style: &str| {
+        let report = render(
+            "```chart\ntype: scatter\ntitle: T\nencoding: {x: a, y: b}\ndata:\n  inline:\n    - {a: 1, b: 2}\n```\n",
+            &RenderOptions {
+                styles: vec![style.into()],
+                report_folder: Some(ReportFolder {
+                    root: "fixture".into(),
+                    source: "report.rmd".into(),
+                    files: vec!["report.rmd".into()],
+                }),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        report.charts[0]["theme"].clone()
+    };
+    assert_eq!(theme("hand-drawn")["flatGlow"], true);
+    assert!(theme("sleek").get("flatGlow").is_none());
 }
 
 #[test]

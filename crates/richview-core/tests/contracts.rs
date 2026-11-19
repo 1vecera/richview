@@ -176,7 +176,9 @@ fn long_reports_keep_correct_source_provenance_after_examples_and_invalid_blocks
         report.html.matches("class=\"rv-metric__value\"").count(),
         4096
     );
-    assert_eq!(report.html.matches("value: example").count(), 4096);
+    // The examples stay as text; a Markdown fence is highlighted, so its spans are set aside.
+    let text = without_spans(&report.html);
+    assert_eq!(text.matches("value: example").count(), 4096);
     assert_eq!(report.html.matches("type: unsupported").count(), 8);
     assert!(report.html.contains("rv-metric__value\">4,095"));
     assert!(!report.html.contains("<!--richview:block:"));
@@ -1433,7 +1435,7 @@ fn flagship_report_preserves_every_chart_and_sourced_narrative_across_styles() {
                 .html
                 .contains("https://ramp.com/data/ai-index-sept-2026")
         );
-        assert!(report.html.contains("$11.5bn"));
+        assert!(report.html.contains("$17.0bn"));
         // Each chart carries its source note, and the scorecard's metrics share one.
         assert_eq!(
             report.html.matches("<p class=\"rv-source\">").count(),
@@ -1749,7 +1751,11 @@ fn generated_schema_adapters_keep_required_fields_defaults_and_frontmatter_passt
 fn public_style_helpers_preserve_cascade_and_share_the_css_security_boundary() {
     let mut diagnostics = vec![];
     let resolved=resolve_styles_compat(&json!([{"kind":"builtin","name":"scientific"},{"kind":"source","source":"tokens: {accent: '#abcdef'}\ncomponents: {title: {letter-spacing: '-.02em',weight: 950}}"}]),&mut diagnostics).unwrap();
-    assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    // The leaves still apply; each says what replaces it (STY-73).
+    assert!(
+        diagnostics.iter().all(|d| d.code == "style.legacy"),
+        "{diagnostics:?}"
+    );
     assert_eq!(resolved["doc"]["tokens"]["accent"], "#abcdef");
     assert_eq!(resolved["chart"]["palette"], "scientific");
     assert_eq!(resolved["components"]["title"]["letter-spacing"], "-.02em");
@@ -2938,7 +2944,9 @@ fn style_diagnostics(source: &str) -> Vec<richview_core::document::Diagnostic> {
     .unwrap()
     .diagnostics
     .into_iter()
-    .filter(|d| d.code.starts_with("style."))
+    // Token-level files are the presets' internal vocabulary: they still apply with
+    // `style.legacy` (STY-73), which these grammar and safety tests do not measure.
+    .filter(|d| d.code.starts_with("style.") && d.code != "style.legacy")
     .collect()
 }
 
@@ -3065,7 +3073,7 @@ fn every_colour_a_chart_list_admits_is_one_the_engine_reads() {
 
 #[test]
 fn an_unknown_chart_key_is_reported() {
-    for key in ["glow", "ink", "fontText", "background"] {
+    for key in ["shine", "ink", "fontText", "background"] {
         let found = style_diagnostics(&format!("chart:\n  {key}: red\n"));
         assert!(
             found.iter().any(
@@ -3315,4 +3323,25 @@ fn a_chart_printed_on_paper_draws_with_the_faces_the_file_embeds() {
             );
         }
     }
+}
+
+/// `html` without its `<span …>` and `</span>` tags: the text a reader sees in code.
+fn without_spans(html: &str) -> String {
+    let mut out = String::with_capacity(html.len());
+    let mut rest = html;
+    while let Some(at) = rest
+        .find("<span")
+        .or_else(|| rest.find("</span>"))
+        .map(|_| {
+            let open = rest.find("<span").unwrap_or(usize::MAX);
+            let close = rest.find("</span>").unwrap_or(usize::MAX);
+            open.min(close)
+        })
+    {
+        out.push_str(&rest[..at]);
+        let end = rest[at..].find('>').map_or(rest.len(), |i| at + i + 1);
+        rest = &rest[end..];
+    }
+    out.push_str(rest);
+    out
 }

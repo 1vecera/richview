@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import { announcement, builtinStyles, chartTypes, framePaints, requireTypes, selectableLabels } from '../../../scripts/chart-type-evidence.mjs';
 
-// Captured from `richview learn` in the retained 1bb9397358 release build.
+// Captured from `richview learn`: chart-contract in the retained 1bb9397358 release build, style in 5e18507b75's.
 const chartGuide = readFileSync(new URL('./fixtures/learn-chart-contract.txt', import.meta.url), 'utf8');
 const styleGuide = readFileSync(new URL('./fixtures/learn-style.txt', import.meta.url), 'utf8');
 
@@ -25,8 +25,9 @@ test('builtin coverage follows the compiled guide, including parenthetical descr
   assert.deepEqual(builtinStyles(styleGuide), ['sleek', 'air', 'scientific', 'brutalist', 'hand-drawn']);
   assert.deepEqual(builtinStyles(styleGuide.replaceAll('\n', '\r\n')), ['sleek', 'air', 'scientific', 'brutalist', 'hand-drawn']);
   for (const broken of [
-    '', styleGuide.replace('### The builtin styles', '### Styles'),
+    '', styleGuide.replace('### The presets', '### Styles'),
     styleGuide.slice(0, styleGuide.indexOf('### Choose and compare styles')),
+    styleGuide.replace('Five extended presets', '- Five extended presets'),
     styleGuide.replace('- **air**,', '\n- **air**,'),
     styleGuide.replace('- **air**,', '- **sleek**,'),
     styleGuide.replace('- **air**,', '- air,'),
@@ -135,12 +136,18 @@ test('PDF reference cleanup bounds stalled close and refuses a changed process i
   const roots = ownRoots();
   let child;
   try {
-    child = roots.run(() => spawn(process.execPath, ['-e', 'setInterval(()=>{},1000)'], { detached: true, stdio: 'ignore' }));
+    const renames = 'process.stdin.once("data",()=>{process.title="renamed-by-test";process.stdout.write("ready")});setInterval(()=>{},1000)';
+    child = roots.run(() => spawn(process.execPath, ['-e', renames], { detached: true, stdio: ['pipe', 'pipe', 'ignore'] }));
     await once(child, 'spawn');
     const root = roots.snapshot()[0];
     assert.equal(root.identity.pid, child.pid);
     assert.equal(root.identity.ppid, process.pid);
     assert.equal(root.identity.pgid, child.pid);
+    // A process that renames itself after its spawn was recorded is still that process: Node renames its main
+    // thread on Linux once it has started, which refused the cleanup there and left the child running.
+    child.stdin.write('go');
+    await once(child.stdout, 'data');
+    assert.deepEqual(identity(child.pid), root.identity, 'a renamed child keeps the identity its spawn recorded');
     const birth = root.identity.birth;
     root.identity.birth = 'different process birth';
     assert.throws(() => roots.kill(), /identity changed/);
@@ -152,6 +159,10 @@ test('PDF reference cleanup bounds stalled close and refuses a changed process i
     assert.equal(roots.snapshot()[0].closed, true);
     assert.equal(roots.snapshot()[0].groupAbsent, true);
   } finally {
-    try { roots.kill(); await roots.drained(5000); } finally { roots.stop(); }
+    try { roots.kill(); await roots.drained(5000); } finally {
+      roots.stop();
+      // A refused cleanup fails the test instead of hanging it: the live detached child would keep the runner up.
+      if (child?.pid && child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
+    }
   }
 });

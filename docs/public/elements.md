@@ -1,6 +1,6 @@
 ---
 title: The elements gallery
-description: Charts, flow charts, tables, type, pictures and players, each live on one page with a way in.
+description: Charts, flow charts, tables, expands, code, columns, type, pictures and players, each live on one page with a way in.
 styles: [scientific]
 ---
 
@@ -46,6 +46,93 @@ columns:
 {{example:pivot}}
 
 *Source: [the Pivot table example](https://richview.ai/docs/charts/pivot), illustrative data; the table above shows two of its quarters.*
+
+## Expands
+
+An expand keeps a long part of the report one tap away. The reader sees its title, opens it when they want the detail, and the page stays short for everyone else. On paper and in a PDF every expand prints open, so nothing is lost to a fold.
+
+```expand
+title: How the sample was drawn
+body: |
+  We drew 1,200 orders at random from the quarter's 48,316, by region, so that each region has at least 150. Orders refunded within a day are left out, since their amounts are reversed.
+
+  The margin of error on a regional share is at most 4 points at 95% confidence.
+```
+
+```expand
+title: What the columns mean
+open: true
+body: |
+  - **region**: the sales region of the store that took the order.
+  - **amount**: the order's value in euros, after discounts, before tax.
+  - **channel**: `store`, `web` or `phone`.
+```
+
+A whole section can fold the same way, charts, tables and all: name its heading's anchor under `collapsed_sections` in the frontmatter. The heading becomes the title the reader taps, and the section runs to the next heading of its level.
+
+````rmd
+---
+title: Quarterly orders
+collapsed_sections: [sources-cited]
+---
+
+## Sources cited
+
+Every source, with the table of what each one gave.
+````
+
+## Code blocks
+
+A code block shows code as text: never run, never turned into anything else. It can name its file, number its lines and mark the lines that matter. Rich Markdown, YAML and shell are highlighted in two tones of the style's own text colours; every other language is plain.
+
+```code
+title: orders_by_region.sql
+lang: sql
+lines: true
+mark: [3]
+text: |
+  select region, sum(amount) as amount
+  from orders
+  where refunded_within_a_day = false
+  group by region
+  order by amount desc
+```
+
+An ordinary fence, such as ` ```sql `, stays the short way to write code and is highlighted the same way.
+
+## Columns
+
+Columns put two to four blocks side by side: two charts, a chart beside the sentence that explains it, a row of numbers. Each column holds prose and blocks written as anywhere else, between a `::: column` line and a closing `:::`. On a phone the columns stack in their order, and on paper they stay side by side while each column has room. [The format reference](https://richview.ai/docs/reference#columns) has the options.
+
+::: columns {widths: 2-1, align: center}
+
+::: column
+```chart
+type: bar
+title: Launch week alone outsold March and April together
+data:
+  inline:
+    - {period: January, orders: 1810}
+    - {period: February, orders: 1795}
+    - {period: March, orders: 610}
+    - {period: April, orders: 590}
+    - {period: Launch week, orders: 1240}
+encoding: {x: period, y: orders}
+```
+
+*Source: illustrative data.*
+:::
+
+::: column
+```metric
+value: 1240
+label: Orders in launch week
+```
+
+More than March and April together, most of them on mobile.
+:::
+
+:::
 
 ## Type and fonts
 

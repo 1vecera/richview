@@ -20,6 +20,7 @@ fn media_resource_fields(tag: &str) -> &'static [&'static str] {
         "image" => &["src"],
         "audio" => &["src", "transcript"],
         "video" => &["src", "poster", "captions", "transcript"],
+        "code" => &["src"],
         _ => &[],
     }
 }

@@ -128,7 +128,7 @@ pub fn folder_files(
 }
 
 /// The files a report's styles name, which a host can fetch only once the style files themselves
-/// are in `options.data`: the company logos (STY-72). Like [`folder_files`], only those the folder
+/// are in `options.data`: the company logos (STY-72) and the background picture (STY-74). Like [`folder_files`], only those the folder
 /// holds, and none the host has supplied already. Without this second round a browser or a server
 /// sent the report as text would report a logo the folder holds as missing (ARC-08).
 pub fn style_files(
@@ -144,7 +144,7 @@ pub fn style_files(
     };
     let held: std::collections::BTreeSet<String> = folder.files.iter().map(|f| named(f)).collect();
     let mut files: Vec<richview_core::document::ReportResource> = Vec::new();
-    for path in richview_core::report_company_logo_files(&document.frontmatter, options) {
+    for path in richview_core::report_style_media_files(&document.frontmatter, options) {
         if richview_core::document::report_relative_path(&path)
             && held.contains(&named(&path))
             && !options.data.contains_key(&path)

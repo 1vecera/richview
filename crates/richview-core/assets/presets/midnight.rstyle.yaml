@@ -1,0 +1,9 @@
+# Midnight: Sleek on a deep navy page with a gold brand. An extended preset (STY-73), written in
+# the author syntax, so it passes the same checks any author's file passes.
+preset: sleek
+colors:
+  brand: "oklch(0.8102 0.1435 79.25)"
+  secondary: "oklch(0.7864 0.1203 240.73)"
+  background: "oklch(0.2067 0.0541 264.83)"
+spacing: large
+corners: small

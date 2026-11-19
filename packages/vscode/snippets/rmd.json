@@ -22,6 +22,35 @@
     "description": "Callout",
     "prefix": "rv-callout"
   },
+  "Code": {
+    "body": [
+      "```code",
+      "title: ${1:query.sql}",
+      "lang: ${2:sql}",
+      "text: |",
+      "  ${3:select 1}",
+      "```"
+    ],
+    "description": "Code",
+    "prefix": "rv-code"
+  },
+  "Columns": {
+    "body": [
+      "::: columns {widths: ${1|equal,2-1,1-2,1-1-1|}}",
+      "",
+      "::: column",
+      "${2:The first column: prose or a block.}",
+      ":::",
+      "",
+      "::: column",
+      "${3:The second column.}",
+      ":::",
+      "",
+      ":::"
+    ],
+    "description": "Columns",
+    "prefix": "rv-columns"
+  },
   "Embed": {
     "body": [
       "```embed",
@@ -31,6 +60,17 @@
     ],
     "description": "Embed",
     "prefix": "rv-embed"
+  },
+  "Expand": {
+    "body": [
+      "```expand",
+      "title: ${1:How the sample was drawn}",
+      "body: |",
+      "  ${2:The detail a reader opens when they want it.}",
+      "```"
+    ],
+    "description": "Expand",
+    "prefix": "rv-expand"
   },
   "Frontmatter": {
     "body": [

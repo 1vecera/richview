@@ -348,7 +348,18 @@ fn resolve_inner(
                 }
             }
         }
-        if block.tag == "callout"
+        if block.tag == "code"
+            && let Some(reference) = block.value.get("src").and_then(Value::as_str)
+        {
+            resolve_media(
+                reference,
+                root,
+                allow_network,
+                &mut options.data,
+                &mut budget,
+            )?;
+        }
+        if ["callout", "expand"].contains(&block.tag.as_str())
             && let Some(body) = block.value.get("body").and_then(Value::as_str)
         {
             resolve_markdown_media(body, root, allow_network, &mut options.data, &mut budget)?;
@@ -368,8 +379,28 @@ fn resolve_inner(
     // copy must not be replaced by the bounded prefix used to diagnose an oversized logo.
     for key in ["logo", "logo-dark"] {
         if let Some(file) = cascade.document["company"][key].as_str() {
-            resolve_company_logo(file, root, &mut options.data, &mut budget)?;
+            resolve_company_logo(
+                file,
+                root,
+                richview_core::COMPANY_LOGO_MAX_BYTES,
+                &mut options.data,
+                &mut budget,
+            )?;
         }
+    }
+    // The background picture (STY-74) is bounded the same way, by its own limit.
+    if let Some(file) = cascade
+        .document
+        .pointer("/settings/background/picture")
+        .and_then(Value::as_str)
+    {
+        resolve_company_logo(
+            file,
+            root,
+            richview_core::BACKGROUND_PICTURE_MAX_BYTES,
+            &mut options.data,
+            &mut budget,
+        )?;
     }
     for finding in std::mem::take(&mut budget.findings) {
         if !doc
@@ -446,6 +477,7 @@ fn resolve_media(
 fn resolve_company_logo(
     reference: &str,
     root: &Path,
+    max_bytes: usize,
     data: &mut BTreeMap<String, String>,
     budget: &mut ResourceBudget,
 ) -> Result<(), String> {
@@ -468,7 +500,7 @@ fn resolve_company_logo(
         return Ok(());
     };
     if file
-        .take(richview_core::COMPANY_LOGO_MAX_BYTES as u64 + 1)
+        .take(max_bytes as u64 + 1)
         .read_to_end(&mut bytes)
         .is_err()
     {
@@ -1247,7 +1279,14 @@ mod company_logo_tests {
         fs::write(root.path().join("logo.bin"), source).unwrap();
         let mut data = BTreeMap::new();
         let mut budget = ResourceBudget::default();
-        resolve_company_logo("logo.bin", root.path(), &mut data, &mut budget).unwrap();
+        resolve_company_logo(
+            "logo.bin",
+            root.path(),
+            richview_core::COMPANY_LOGO_MAX_BYTES,
+            &mut data,
+            &mut budget,
+        )
+        .unwrap();
         let encoded = data["logo.bin"].split_once(";base64,").unwrap().1;
         let bytes = STANDARD.decode(encoded).unwrap();
         assert_eq!(bytes.len(), richview_core::COMPANY_LOGO_MAX_BYTES + 1);
@@ -1265,7 +1304,14 @@ mod company_logo_tests {
         let mut data = BTreeMap::new();
         let mut budget = ResourceBudget::default();
         resolve_media("shared.png", root.path(), false, &mut data, &mut budget).unwrap();
-        resolve_company_logo("shared.png", root.path(), &mut data, &mut budget).unwrap();
+        resolve_company_logo(
+            "shared.png",
+            root.path(),
+            richview_core::COMPANY_LOGO_MAX_BYTES,
+            &mut data,
+            &mut budget,
+        )
+        .unwrap();
         let encoded = data["shared.png"].split_once(";base64,").unwrap().1;
         assert_eq!(STANDARD.decode(encoded).unwrap(), source);
     }
@@ -1280,6 +1326,7 @@ mod company_logo_tests {
         resolve_company_logo(
             "logo.png",
             root.path(),
+            richview_core::COMPANY_LOGO_MAX_BYTES,
             &mut data,
             &mut ResourceBudget::default(),
         )

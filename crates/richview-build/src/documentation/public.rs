@@ -236,7 +236,7 @@ mod tests {
                     text.contains("Windows and Intel Mac are not supported yet"),
                     !preview
                 );
-                assert_eq!(text.contains("Windows x64 has a preview"), preview);
+                assert_eq!(text.contains("Windows 10 and 11 on x64"), preview);
                 assert!(!text.contains("windows-preview") && !text.contains("windows-unsupported"));
             }
             // No page shows a PowerShell command before the release that it downloads exists.

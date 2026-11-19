@@ -9,12 +9,16 @@ import csv
 
 import common
 
-ACCESSED = "2026-10-02"
+# The datasets were collected for this snapshot; the discovery rows were read in the 2 October discovery run.
+ACCESSED = "2026-11-18"
+DISCOVERY_ACCESSED = "2026-10-02"
+# Datasets kept from the 2 October 2026 snapshot because the refresh changed nothing the report prints from them.
+KEPT_ACCESSED = {"D-REVIEWS": "2026-10-02"}
 FIELDS = ["id", "kind", "title", "publisher", "published_date", "accessed_date", "url", "quote", "notes"]
 DATASETS = [
     (
         "D-HN",
-        "Hacker News: every story and comment, 2022-01 to 2026-09",
+        "Hacker News: every story and comment, 2022-01 to 2026-10",
         "Y Combinator via ClickHouse public playground",
         "https://sql-clickhouse.clickhouse.com/",
         "Table hackernews.hackernews (live copy of the official HN API). Story "
@@ -67,28 +71,29 @@ DATASETS = [
         "App Store ratings count and average by country (snapshot)",
         "Apple iTunes Lookup API",
         "https://itunes.apple.com/lookup",
-        "Snapshot taken 2026-10-02 for 50 storefronts.",
+        "Snapshot taken 2026-11-18 for 50 storefronts.",
     ),
     (
         "D-REVIEWS",
         "Newest app reviews, US: Google Play (8,000 per app) and App Store (5,000 per app)",
         "Apify actors thewolves/google-play-reviews-scraper and thewolves/appstore-reviews-scraper",
         "https://apify.com/thewolves",
-        "Run ids in ledger/collection-runs.csv; review text kept out of the repository.",
+        "Run ids in ledger/collection-runs.csv; review text kept out of the repository. The 2 October 2026 sample, not "
+        "rerun on 18 November because the report prints none of its figures.",
     ),
     (
         "D-EPOCH",
         "Epoch AI Benchmarking Hub and Epoch Capabilities Index",
         "Epoch AI",
         "https://epoch.ai/benchmarks",
-        "CC BY 4.0; archive contents to 2026-09-29.",
+        "CC BY 4.0; Capabilities Index scores to 2026-11-17, read to 2026-10-31.",
     ),
     (
         "D-ARENA",
         "LMArena leaderboard history (text, text with style control)",
         "LMArena",
         "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset",
-        "CC-BY-4.0; snapshots to 2026-09-30.",
+        "CC-BY-4.0; snapshots to 2026-11-11, read to 2026-10-31.",
     ),
     (
         "D-LABELS",
@@ -96,7 +101,8 @@ DATASETS = [
         "This study (Amazon Bedrock)",
         "",
         "Primary judge Qwen3-235B; validation by Devstral 2, Claude Haiku 4.5 and gpt-oss-120b. "
-        "Prompts in research/classify.py.",
+        "Prompts in research/classify.py. Hacker News labels run to October 2026: those of 2 October 2026 are kept and "
+        "only comments without one were labelled on 18 November 2026. App-review labels are from the 2 October sample.",
     ),
 ]
 DISCOVERY = {
@@ -117,7 +123,7 @@ def main() -> None:
             "title": title,
             "publisher": publisher,
             "published_date": "",
-            "accessed_date": ACCESSED,
+            "accessed_date": KEPT_ACCESSED.get(dataset_id, ACCESSED),
             "url": url,
             "quote": "",
             "notes": notes,
@@ -141,14 +147,14 @@ def main() -> None:
                         "title": title,
                         "publisher": record.get("publisher", ""),
                         "published_date": record.get("published_date", record.get("date", "")),
-                        "accessed_date": ACCESSED,
+                        "accessed_date": DISCOVERY_ACCESSED,
                         "url": record["url"],
                         "quote": record["quote"],
                         "notes": record.get("notes", ""),
                     }
                 )
     discovered = len(rows) - len(DATASETS)
-    # Sources read after the 2 October snapshot keep their own access date and stay out of the discovery run.
+    # Sources read after the discovery run of 2 October keep their own access date and stay out of that run.
     with (common.RESEARCH_DIR / "discovery" / "after_snapshot.csv").open(newline="") as handle:
         rows.extend({field: record[field] for field in FIELDS} for record in csv.DictReader(handle))
     common.LEDGER_DIR.mkdir(parents=True, exist_ok=True)

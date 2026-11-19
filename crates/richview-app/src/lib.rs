@@ -22,6 +22,8 @@ pub mod storage;
 mod test_points;
 pub mod time;
 pub mod unsplash;
+#[cfg(windows)]
+mod win_process;
 
 pub use resolver::{render_file, resolve_document_options, resolve_options};
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

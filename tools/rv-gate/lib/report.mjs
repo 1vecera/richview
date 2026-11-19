@@ -11,6 +11,7 @@ import { loadRetryLine } from "./perf.mjs";
 import { previewReloadLine } from "./preview-reload.mjs";
 import { gateEnv, notRunParts, sh } from "./proc.mjs";
 import { acquireLock, capturePath, evidenceDir, listReceipts, readChanges, readReceipt, receiptNotes, writeReceiptNote } from "./store.mjs";
+import { WINDOWS_NOTE, readWindowsRun, shipsWindows, windowsMergeProblem } from "./windows.mjs";
 
 const esc = (value) =>
 	String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -244,6 +245,21 @@ function validateHotfixReceipt({ cwd, receipt, head, prod }) {
  * receipt, where one exists, is still accepted. A hotfix receipt instead binds one cherry-picked
  * dev patch to the current prod and the checks required by its changed paths.
  */
+/** Record a Windows walk (tools/windows-e2e) on the candidate's receipt, once it checks out (ARC-67). */
+export function recordWindowsWalk({ candidate, run, cwd }) {
+	if (!/^candidate\/\d+$/.test(candidate ?? "") || !run) throw new Error("Usage: rv-gate windows candidate/<n> --run <dir>");
+	sh("git", ["fetch", "-q", "origin"], { cwd });
+	const head = sh("git", ["rev-parse", `origin/${candidate}`], { cwd });
+	const tree = sh("git", ["rev-parse", `${head}^{tree}`], { cwd });
+	const receipt = candidateReceipt(listReceipts(), head, candidate);
+	if (!receipt) throw new Error(`No receipt for ${candidate} at ${head.slice(0, 10)} to record the Windows walk on.`);
+	const walk = readWindowsRun(run, head);
+	if (!walk.ok) throw new Error(`The Windows walk in ${run} does not pass for ${head.slice(0, 10)}: ${walk.problems.join("; ")}.`);
+	const path = writeReceiptNote(receipt.id, `${WINDOWS_NOTE}-${basename(run).replace(/[^A-Za-z0-9-]/g, "-")}`, { commit: head, tree, candidate, result: "pass", run, ...walk.summary });
+	console.log(`Recorded the Windows walk for ${candidate} at ${head.slice(0, 10)}: ${path}.`);
+	return 0;
+}
+
 export function mergeProd({ candidate, go, cwd, notifyBackmergeFailure }) {
 	if (!/^candidate\/\d+$/.test(candidate ?? "")) throw new Error("Usage: rv-gate merge-prod candidate/<n> --go \"<Daniel's words, date>\"");
 	if (typeof go !== "string" || go.trim().length < 8) throw new Error("Record Daniel's go with --go \"<his words, date>\" (DEL-04).");
@@ -256,6 +272,9 @@ export function mergeProd({ candidate, go, cwd, notifyBackmergeFailure }) {
 		if (!receipt) throw new Error(`No full, prod-candidate or hotfix receipt for ${candidate} at ${head.slice(0, 10)}; use a passed full or exact hotfix candidate receipt.`);
 		if (receipt.result !== "pass") throw new Error(`The receipt ${receipt.id} failed; the candidate cannot merge.`);
 		if (receipt.tree !== tree) throw new Error("The candidate's tree differs from its receipt's; cut a new candidate.");
+		const release = sh("git", ["show", `${head}:assets/install/release.json`], { cwd, allowFail: true });
+		const windows = windowsMergeProblem({ windows: shipsWindows(release.status === 0 ? release.stdout : null), notes: receiptNotes(receipt.id), head });
+		if (windows) throw new Error(windows);
 		if (receipt.kind === "affected") {
 			if (!receiptNotes(receipt.id).some(note => note.kind === "promotion" && note.commit === head && note.tree === tree && note.affectedProof)) throw new Error("Affected receipt has not promoted this candidate to pre-prod.");
 			affectedPromotion({cwd, receipt});

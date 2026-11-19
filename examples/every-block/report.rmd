@@ -1897,6 +1897,22 @@ width: 640
 height: 360
 ```
 
+```expand
+title: How this fixture was made
+body: |
+  Every block the registry lists appears here once or more, with generated data and media, so each check reads one source.
+```
+
+```code
+title: fixture.sql
+lang: sql
+lines: true
+text: |
+  select month, sum(value) as value
+  from fixture
+  group by month
+```
+
 ### Scrolly
 
 ```scrolly

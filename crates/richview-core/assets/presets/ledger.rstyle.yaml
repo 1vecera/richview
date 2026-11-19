@@ -1,0 +1,12 @@
+# Ledger: Scientific on warm paper, oxblood and slate, set tight for numbers. An extended preset
+# (STY-73), written in the author syntax.
+preset: scientific
+colors:
+  brand: "oklch(0.4271 0.1364 17.61)"
+  secondary: "oklch(0.5077 0.0749 239.95)"
+  background: "oklch(0.9648 0.0127 86.83)"
+text-size: small
+spacing: small
+padding: small
+corners: xsmall
+gridlines: large

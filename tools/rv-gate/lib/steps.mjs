@@ -6,6 +6,7 @@
 // (DEL-36); `weakening.mjs` compares this registry between base and head.
 
 import { MF_ENV, MF_REASON, MF_TEST } from "./connectors.mjs";
+import { WINDOWS_STANDING } from "./windows.mjs";
 
 export const TIERS = ["fast", "pre-pr", "integration", "full"];
 
@@ -448,6 +449,7 @@ export const STEPS = [
 		entries: ["scripts/verify-vscode.mjs", "scripts/verify-vscode.cjs", "scripts/verify-vscode.sh"],
 	},
 	{ id: "voiceover", tier: "full", cards: ["DEL-58"], title: "VoiceOver pass", unrun: "Standing gap: no agent drives VoiceOver reliably (DELIVERY.md)." },
+	{ id: "windows", tier: "full", cards: ["ARC-67", "DEL-22"], title: "Windows end-to-end walk on a fresh AWS Windows machine", unrun: WINDOWS_STANDING },
 	{
 		id: "fresh-agent",
 		tier: "full",

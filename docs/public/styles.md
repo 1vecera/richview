@@ -1,26 +1,35 @@
 ---
 title: Styles and your brand
-description: Change the presentation while keeping the source observations intact.
+description: Pick a preset, give your hex colours, and set any of eight settings from xsmall to xlarge.
 styles: [scientific]
 ---
 
-Start with a builtin, then add a small local YAML file if you need your own colours or fonts. The [report gallery](https://richview.ai/docs/) shows the different treatments as complete reports.
+**Give us your hex colors; we pick the rest.** You style a report with three things: a preset, your colours, and a few settings that each take `xsmall`, `small`, `medium`, `large` or `xlarge`. RichView derives every other colour and size, and every combination keeps text readable and charts distinguishable. You never set a token.
+
+## Pick a preset
+
+Name a preset in the report's `styles` list. Without one, a report renders in Sleek.
 
 <!-- registry:begin styles -->
-| Style | Default |
-| --- | --- |
-| `sleek` | yes |
-| `air` |  |
-| `scientific` |  |
-| `brutalist` |  |
-| `hand-drawn` |  |
+| Style | Default | Menu |
+| --- | --- | --- |
+| `sleek` | yes | main |
+| `air` |  | main |
+| `scientific` |  | main |
+| `brutalist` |  | main |
+| `hand-drawn` |  | main |
+| `midnight` |  | more presets |
+| `ledger` |  | more presets |
+| `meadow` |  | more presets |
+| `signal` |  | more presets |
+| `chalk` |  | more presets |
 <!-- registry:end -->
 
 {{style-comparison}}
 
-## Compare the same report
+Five more presets show what the system makes from a preset, colours and steps: `midnight` (Sleek on navy with gold), `ledger` (Scientific on warm paper, set tight for numbers), `meadow` (Air in forest green with soft corners), `signal` (Brutalist on newsprint with heavy bars) and `chalk` (Hand-drawn on a slate board). Name them like any other preset.
 
-From the working folder containing the `first-report/` tutorial, run:
+From the working folder containing the `first-report/` tutorial, compare one report in each main preset:
 
 ```sh
 richview generate first-report/report.rmd --style sleek -o sleek.html
@@ -32,20 +41,35 @@ richview generate first-report/report.rmd --style hand-drawn -o hand-drawn.html
 
 Open the files in `first-report/Rendered/`. The observations stay the same; typography, surfaces, palette and chart treatment change. The public tutorial exports also open in [Sleek](https://richview.ai/docs/example/Rendered/sleek.html), [Air](https://richview.ai/docs/example/Rendered/air.html), [Scientific](https://richview.ai/docs/example/Rendered/scientific.html), [Brutalist](https://richview.ai/docs/example/Rendered/brutalist.html) and [Hand-drawn](https://richview.ai/docs/example/Rendered/hand-drawn.html).
 
-## Add your colours
+## Give us your colours
 
 Save this as `report.rstyle.yaml` beside the source:
 
 ```yaml style
-accent: 'oklch(0.48 0.16 26)'
-palette: ['oklch(0.48 0.16 26)', 'oklch(0.54 0.09 211)']
-type-size: large
-motion: off
+preset: scientific
+colors:
+  brand: '#0F62FE'
 ```
 
-The accent setting moves the accent, links and first series together. A palette sets categorical series colours. This example turns motion off for a settled review copy; the builtin's motion remains available when that setting is omitted.
+That is a complete brand style. From your brand colour RichView derives the accent, the links and the first chart series, five more series that stay distinct for every kind of colour vision, the heatmap ramps, and text and rules that carry a trace of your hue. Two more colours are optional:
 
-Keep the starter's existing metadata and add the file to its style list:
+```yaml style
+preset: air
+colors:
+  brand: '#A52A2A'
+  secondary: '#167D8D'
+  background: '#FFF4DC'
+```
+
+| Colour | What it sets | What RichView guarantees |
+| --- | --- | --- |
+| `brand` | accent, links, the first series | text and links at 4.5:1 or more; marks at 3:1; your exact colour wherever it already reaches its floor |
+| `secondary` | the second series | kept exact when it reaches 3:1 and can be told from `brand`; otherwise adjusted, or left out with a note |
+| `background` | the page | your exact page, unless no text could reach 7:1 on it or four series 3:1: then it is lightened or darkened only as far as they need, keeping its hue; a dark colour makes a dark report |
+
+Text reaches 7:1 on every surface, secondary text 4.5:1, and the first four series 3:1. When a colour has to move to reach its floor, `check` says which colour moved and to what. Any CSS colour works; hex is the easiest to copy from a brand guide. Printed pages are always light: a dark page prints as its preset's light counterpart, still in your colours.
+
+Add the file to the report's style list, after the preset or instead of it:
 
 ```yaml frontmatter context=examples/first-report
 title: Direct visits lead our traffic
@@ -55,25 +79,55 @@ slug: hello-world
 styles: [sleek, report.rstyle.yaml]
 ```
 
-Later leaves win; arrays replace arrays. Builtins need no YAML file. Without a named builtin, a file-only list starts from Sleek. A chart's explicit `style.palette` takes priority over the inherited palette.
+A file's own `preset` takes the place of the preset listed before it. Later files win setting by setting. CLI `--style` replaces the source list for that call; repeat it to name a preset and then a file.
 
-## Try a complete override
+## Set the size of things
 
-CLI `--style` replaces the source style list for that call. Include both entries when you want a builtin plus the file:
+Every other setting takes one of five steps. `medium` is the preset's own value, so a setting you leave out changes nothing, and a step means the same change in every preset.
 
-```sh
-richview generate first-report/report.rmd \
-  --style scientific --style report.rstyle.yaml -o branded.html
+| Setting | What it changes | `xsmall` | `small` | `large` | `xlarge` |
+| --- | --- | --- | --- | --- | --- |
+| `text-size` | the whole type scale | ×0.8 | ×0.9 | ×1.1 | ×1.2 |
+| `spacing` | space between blocks and before sections | ×0.5 | ×0.75 | ×1.33 | ×1.67 |
+| `padding` | space inside paragraphs, lists, table cells, callouts, metrics and framed charts | ×0.75 | ×0.875 | ×1.25 | ×1.5 |
+| `corners` | images, embeds, code, the readout and bar ends | square | half | rounder | roundest |
+| `lines` | header bars, callout and metric rules (hairlines stay at least 1 px) | ×0.5 | ×0.75 | ×1.5 | ×2 |
+| `gridlines` | the chart's soft rules: gridlines, and the tracks and empty cells some charts draw | faintest | fainter | stronger | strongest |
+| `tint` | how much of your hue the page, rules and text carry | grey | half | ×2 | ×3.5 |
+| `motion` | how far and how long blocks and charts move | still | quicker | slower | most |
+
+```yaml style
+preset: meadow
+colors:
+  brand: '#1E7B4F'
+text-size: large
+spacing: xlarge
+corners: xsmall
+motion: xsmall
 ```
 
-The source remains unchanged. To make the choice persistent, edit its `styles` list instead. Remove a file reference when you remove the file.
+The steps are built to combine. The type scale moves as one, so headings stay clearly larger than body text. Space between blocks follows the text size. On phones text moves at most a tenth either way and gaps half as far. Colours are derived after the steps, so `tint` and `gridlines` never take text below its contrast floor, and the faintest gridlines stay visible. A colour you set in an older style file's tokens wins over the derived one. Page width and the reading measure stay fixed. Reduced-motion preferences are always honoured.
 
 ## Bring your fonts
 
 Use the `fonts` setting to assign display, text, UI and monospace roles. Bundled stacks travel with the report. For a brand font, a role can use a mapping such as `fonts: {text: {family: My Brand, file: media/brand.woff2}}`; supply that WOFF2 file inside the report folder and ensure you can redistribute it. The native exporter embeds the resolved font. A system font name alone cannot make a font portable.
 
-Use the [style YAML reference](https://richview.ai/docs/style-yaml) for every accepted leaf and value. It separates safe settings from experimental controls. Invalid leaves report diagnostics and are skipped. Raw CSS, HTML and JavaScript are not customization interfaces.
+## Moving from tokens
+
+Earlier style files set tokens, components and chart keys directly, and older settings used their own words. They still apply exactly as before, and `check` gives each a `style.legacy` warning naming what replaces it:
+
+| Earlier | Now |
+| --- | --- |
+| `type-size: small`, `large`, `bigger` | `text-size: small`, `medium`, `large` |
+| `density: comfortable`, `loose`, `airmax` | `padding: medium`, `large`, `xlarge` |
+| `block-gap: tight`, `regular`, `wide` | `spacing`, at the nearest step |
+| `motion: on`, `off` | `motion: medium`, `xsmall` |
+| `accent` or `company.color` | `colors.brand` |
+| `company.secondary`, `company.base` | `colors.secondary`, `preset` |
+| `tokens`, `components`, `chart`, `motion` and `layout` keys | the setting the warning names, or the preset that has the look |
+
+A `palette` list of series colours still overrides the derived palette; the palette rule measures it. The [style YAML reference](https://richview.ai/docs/style-yaml) lists every setting and every legacy leaf. Raw CSS, HTML and JavaScript are not customization interfaces.
 
 ## Review the result
 
-Inspect narrow and desktop layouts. Check that the colours distinguish the series and the text stays legible. Use OKLCH for authored colours; RichView maps output to sRGB. Reduced-motion preferences are always honoured. Sleek prints as Air; [PDF export](https://richview.ai/docs/export) keeps the report readable on paper.
+Inspect narrow and desktop layouts, and run `check`: it reports any colour it moved and any legacy leaf. Sleek prints as Air; [PDF export](https://richview.ai/docs/export) keeps the report readable on paper.

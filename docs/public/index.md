@@ -12,7 +12,7 @@ Markdown in. Interactive report out. Every preview below is a working RichView r
 
 ## The Most Expensive Race Ever Run
 
-**The flagship · OpenAI against Anthropic, population by population.** A sourced research report on how the two labs stand with developers, businesses, consumers and investors, January 2023 to September 2026. Every number links to a dated source, and the report page switches between the styles.
+**The flagship · OpenAI against Anthropic, population by population.** A sourced research report on how the two labs stand with developers, businesses, consumers and investors, January 2023 to October 2026. Every number links to a dated source, and the report page switches between the styles.
 
 {{report:openai-vs-anthropic}}
 

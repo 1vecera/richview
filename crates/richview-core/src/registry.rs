@@ -1586,6 +1586,81 @@ pub const TAGS: &[Tag] = &[
         ],
     },
     Tag {
+        name: "expand",
+        summary: "A titled part of the report that the reader opens; open on paper.",
+        fields: &[
+            field!(
+                "title",
+                Ty::Text,
+                true,
+                NO,
+                "The line the reader sees while it is closed, and taps to open it."
+            ),
+            field!(
+                "open",
+                Ty::Bool,
+                false,
+                Some("false"),
+                "Whether it starts open on screen; on paper it is always open."
+            ),
+            field!(
+                "body",
+                Ty::Markdown,
+                true,
+                NO,
+                "What opens: Markdown text, lists, tables and code."
+            ),
+        ],
+    },
+    Tag {
+        name: "code",
+        summary: "Code with a title, line numbers and marked lines; shown as text, never run.",
+        fields: &[
+            field!(
+                "text",
+                Ty::Text,
+                false,
+                NO,
+                "The code; give it or `src`, not both."
+            ),
+            field!(
+                "src",
+                Ty::File,
+                false,
+                NO,
+                "A UTF-8 text file of the report folder to show instead of `text`; 400 lines at most."
+            ),
+            field!(
+                "lang",
+                Ty::Text,
+                false,
+                NO,
+                "The language, shown as the block's label; rmd, yaml and shell are highlighted."
+            ),
+            field!(
+                "title",
+                Ty::Text,
+                false,
+                NO,
+                "A file name or caption in the block's head."
+            ),
+            field!(
+                "lines",
+                Ty::Bool,
+                false,
+                Some("false"),
+                "Whether the lines are numbered; the numbers are never copied with the code."
+            ),
+            field!(
+                "mark",
+                Ty::List(&Ty::Any),
+                false,
+                NO,
+                "Lines to mark: line numbers and ranges such as `5-6`."
+            ),
+        ],
+    },
+    Tag {
         name: "image",
         summary: "An image from the report folder or a credited Unsplash photo.",
         fields: &[
@@ -2002,6 +2077,55 @@ pub const TAGS: &[Tag] = &[
     },
 ];
 
+/// The column shares `widths` accepts: equal columns, or one ratio per two- or three-column
+/// layout (FEA-RP-68). A closed list, so no author writes a CSS length.
+pub const COLUMN_WIDTHS: &[&str] = &[
+    "equal", "2-1", "1-2", "3-2", "2-3", "3-1", "1-3", "2-1-1", "1-2-1", "1-1-2",
+];
+
+/// The layouts that hold other blocks. They are not fences: `::: columns` opens one, each
+/// `::: column` holds the Markdown and rich fences of one column, and `:::` closes either. The
+/// options on the opener are a YAML flow mapping that the walker checks against these fields.
+pub const LAYOUTS: &[Tag] = &[Tag {
+    name: "columns",
+    summary: "Two to four columns side by side, each holding prose and rich blocks.",
+    fields: &[
+        field!(
+            "widths",
+            Ty::OneOf(COLUMN_WIDTHS),
+            false,
+            Some("equal"),
+            "The columns' shares of the width, left to right; a ratio needs as many parts as there are columns."
+        ),
+        field!(
+            "gap",
+            Ty::OneOf(&["small", "medium", "large"]),
+            false,
+            Some("medium"),
+            "The space between the columns: half, one or one and a half lines of body text."
+        ),
+        field!(
+            "align",
+            Ty::OneOf(&["top", "center", "bottom"]),
+            false,
+            Some("top"),
+            "Where shorter columns sit beside the tallest one."
+        ),
+        field!(
+            "wide",
+            Ty::Bool,
+            false,
+            Some("true"),
+            "Whether the columns take the report's full width; false keeps them within the text measure."
+        ),
+    ],
+}];
+
+/// The layout named `name`.
+pub fn layout(name: &str) -> Option<&'static Tag> {
+    LAYOUTS.iter().find(|layout| layout.name == name)
+}
+
 pub static FRONTMATTER: &[Field] = &[
     field!(
         "title",
@@ -2066,6 +2190,13 @@ pub static FRONTMATTER: &[Field] = &[
         false,
         NO,
         "Style names or report-relative style files; the first is the base and later ones override it. One string is one entry."
+    ),
+    field!(
+        "collapsed_sections",
+        Ty::List(&Ty::Text),
+        false,
+        NO,
+        "Heading anchors for sections initially closed on screen; their content remains available in print."
     ),
     field!(
         "title_image",
@@ -3358,6 +3489,54 @@ pub static CODES: &[Code] = &[
         false
     ),
     code!(
+        "style.background-path",
+        Error,
+        "A background picture path is not report-relative.",
+        false
+    ),
+    code!(
+        "style.background-missing",
+        Error,
+        "A background picture is not available.",
+        false
+    ),
+    code!(
+        "style.background-format",
+        Error,
+        "A background picture is not a valid raster image.",
+        false
+    ),
+    code!(
+        "style.background-size",
+        Error,
+        "A background picture exceeds the file size limit.",
+        false
+    ),
+    code!(
+        "style.background-dimensions",
+        Error,
+        "A background picture exceeds the image dimension limit.",
+        false
+    ),
+    code!(
+        "style.background-animated",
+        Error,
+        "A background picture is animated.",
+        false
+    ),
+    code!(
+        "style.background-conflict",
+        Warning,
+        "A background picture is set with a texture or gradient; the picture stands alone.",
+        false
+    ),
+    code!(
+        "style.background-adjusted",
+        Info,
+        "The background was made fainter so that text keeps its contrast over it.",
+        false
+    ),
+    code!(
         "style.properties",
         Error,
         "Custom style properties are invalid.",
@@ -3379,6 +3558,12 @@ pub static CODES: &[Code] = &[
         "style.experimental",
         Warning,
         "A style leaf is experimental: it can break the layout in ways nobody expects.",
+        false
+    ),
+    code!(
+        "style.legacy",
+        Warning,
+        "A style leaf of the presets' internal vocabulary still applies; a preset, colours or a five-step setting replaces it.",
         false
     ),
     code!(
@@ -3483,6 +3668,12 @@ pub static CODES: &[Code] = &[
         Error,
         "A rich block sits inside a list, quote or note.",
         true
+    ),
+    code!(
+        "code.mark",
+        Warning,
+        "A code block marks a line past its last line.",
+        false
     ),
     code!(
         "block.unknown-tag",
@@ -3599,10 +3790,76 @@ pub static CODES: &[Code] = &[
         false
     ),
     code!(
+        "section.anchor-missing",
+        Warning,
+        "A collapsed section names no top-level heading, so it stays unfolded.",
+        false
+    ),
+    code!(
+        "section.heading-interactive",
+        Warning,
+        "A collapsed section heading contains a link, so the section stays unfolded.",
+        false
+    ),
+    code!(
         "tabs.order",
         Warning,
         "Tab anchors are not distinct and in document order, so the body renders without tabs.",
         false
+    ),
+    code!(
+        "columns.count",
+        Warning,
+        "Columns hold two to four columns, so these markers stay text and their content renders in one column.",
+        true
+    ),
+    code!(
+        "columns.empty",
+        Warning,
+        "A column holds nothing, so these markers stay text and the content renders in one column.",
+        true
+    ),
+    code!(
+        "columns.nested",
+        Warning,
+        "Columns cannot sit inside a column, so these markers stay text and the content renders in one column.",
+        true
+    ),
+    code!(
+        "columns.heading",
+        Warning,
+        "A column holds a section heading or a tab's start, so these markers stay text and the content renders in one column.",
+        true
+    ),
+    code!(
+        "columns.block",
+        Warning,
+        "A column holds a block that needs the page's width, so these markers stay text and the content renders in one column.",
+        true
+    ),
+    code!(
+        "columns.unclosed",
+        Warning,
+        "A columns or column marker has no closing `:::`, so the markers stay text and the content renders in one column.",
+        true
+    ),
+    code!(
+        "columns.stray",
+        Warning,
+        "A column marker or text sits outside a column, so the markers stay text and the content renders in one column.",
+        true
+    ),
+    code!(
+        "columns.widths",
+        Warning,
+        "The widths name a different number of columns than there are, so the columns are equal.",
+        true
+    ),
+    code!(
+        "columns.options",
+        Warning,
+        "The options after `::: columns` are not a YAML mapping, so the columns take their defaults.",
+        true
     ),
     // Charts.
     code!(
@@ -4261,6 +4518,10 @@ pub const FIXES: &[(&str, &str)] = &[
         "Move the rich block out of the list, quote or note to the top level.",
     ),
     (
+        "code.mark",
+        "Mark only lines the code has, or add the lines you meant.",
+    ),
+    (
         "chart.invalid",
         "Fix the chart block's fields to match the chart schema.",
     ),
@@ -4547,6 +4808,38 @@ pub const FIXES: &[(&str, &str)] = &[
         "Set company.name to the company name, or leave the mark decorative.",
     ),
     (
+        "style.background-path",
+        "Use a file path inside the report folder.",
+    ),
+    (
+        "style.background-missing",
+        "Put the background picture file inside the report folder.",
+    ),
+    (
+        "style.background-format",
+        "Use a valid still PNG, JPEG or WebP image.",
+    ),
+    (
+        "style.background-size",
+        "Use a file no larger than 400 KiB.",
+    ),
+    (
+        "style.background-dimensions",
+        "Use an image no larger than 2400 pixels on either side.",
+    ),
+    (
+        "style.background-animated",
+        "Use a still PNG, JPEG or WebP image.",
+    ),
+    (
+        "style.background-conflict",
+        "Keep the picture, or remove it to use the texture and gradient.",
+    ),
+    (
+        "style.background-adjusted",
+        "Keep it, or choose a lower strength or a lighter page colour.",
+    ),
+    (
         "style.fonts-unavailable",
         "Generate the report with the CLI, which embeds the bundled fonts.",
     ),
@@ -4557,6 +4850,10 @@ pub const FIXES: &[(&str, &str)] = &[
     (
         "style.experimental",
         "Remove the leaf, or keep it only after checking the report at phone and desktop widths.",
+    ),
+    (
+        "style.legacy",
+        "Use the replacement the message names: a preset, `colors` or a five-step setting.",
     ),
     (
         "style.internal",
@@ -4660,8 +4957,52 @@ pub const FIXES: &[(&str, &str)] = &[
         "Give the body a heading with the panel's anchor, such as `## Costs {#costs}`, or correct the panel's `from`.",
     ),
     (
+        "section.anchor-missing",
+        "Use the generated anchor of a top-level heading in collapsed_sections, or remove the entry.",
+    ),
+    (
+        "section.heading-interactive",
+        "Move links out of the section heading, or remove its entry from collapsed_sections.",
+    ),
+    (
         "tabs.order",
         "List the panels in the order their headings appear, each starting from a different anchor.",
+    ),
+    (
+        "columns.count",
+        "Write two to four `::: column` sections between `::: columns` and its closing `:::`.",
+    ),
+    (
+        "columns.empty",
+        "Put prose or a block in every column, or remove the empty `::: column` and its `:::`.",
+    ),
+    (
+        "columns.nested",
+        "Close the outer columns before opening the next, or put the blocks in the outer columns.",
+    ),
+    (
+        "columns.heading",
+        "Move the level 1 or 2 heading, or the heading a tab starts at, above the `::: columns` line.",
+    ),
+    (
+        "columns.block",
+        "Move the scrolly block out of the columns.",
+    ),
+    (
+        "columns.unclosed",
+        "Close each `::: column` and the `::: columns` itself with a line of `:::`.",
+    ),
+    (
+        "columns.stray",
+        "Put every line between `::: columns` and its closing `:::` inside a `::: column`, and open columns before a `::: column`.",
+    ),
+    (
+        "columns.widths",
+        "Give `widths` one part per column, such as `2-1` for two columns, or remove it.",
+    ),
+    (
+        "columns.options",
+        "Write the options as a mapping, such as `::: columns {widths: 2-1, gap: large}`.",
     ),
     (
         "chart.states-unchecked",

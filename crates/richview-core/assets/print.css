@@ -53,6 +53,15 @@
     content: ""; position: absolute; inset-inline-start: calc(var(--rv-code-indent, 0ch) + .8ch); top: 1lh; bottom: 0;
     border-inline-start: 1px solid var(--rv-rule);
   }
+  /* A numbered code block keeps its numbers in a gutter left of the hanging lines. */
+  .rv-report__body .rv-code--lines .rv-code-line { padding-inline-start: calc(var(--rv-code-hang) + 3.2ch); }
+  .rv-report__body .rv-code--lines .rv-code-line::before { inset-inline-start: calc(var(--rv-code-indent, 0ch) + 4ch); }
+  /* A marked line keeps the screen's place: its rule and tint reach into the block's padding, and
+     its number and text stand where the other lines' do. */
+  .rv-report__body .rv-code .rv-code-line--mark { padding-inline-start: calc(1.25em - 3px + var(--rv-code-hang)); }
+  .rv-report__body .rv-code--lines .rv-code-line--mark { padding-inline-start: calc(1.25em - 3px + var(--rv-code-hang) + 3.2ch); }
+  .rv-report__body .rv-code .rv-code-line--mark::before { inset-inline-start: calc(1.25em - 3px + var(--rv-code-indent, 0ch) + .8ch); }
+  .rv-report__body .rv-code--lines .rv-code-line--mark::before { inset-inline-start: calc(1.25em - 3px + var(--rv-code-indent, 0ch) + 4ch); }
   /* A line's continuations hang from its own indent: the renderer names the line's leading
      whitespace in columns, up to 24, so an indented line never seems to continue as a dedent. */
   .rv-code-line--i1 { --rv-code-indent: 1ch; } .rv-code-line--i2 { --rv-code-indent: 2ch; }
@@ -80,6 +89,20 @@
   /* Every disclosure prints open (the runtime also opens them for the print), so no text is lost
      to a fold; a table's own toggle has nothing left to say. */
   .rv-report details::details-content { content-visibility: visible; display: block; }
+  /* An expand prints open under its title, set as a small heading without its chevron. */
+  .rv-expand > summary { min-height: 0; padding: .3em 0 .2em; break-after: avoid; }
+  .rv-expand > summary::before { display: none; }
+  /* A folded section prints open as its plain heading: the mark goes. */
+  .rv-section > summary > :is(h1, h2, h3, h4, h5, h6)::before { display: none; }
+  /* A folded section's heading and a code block's head stay with what follows them, as any
+     heading does; code keeps at least three lines on either side of a page break, as a
+     paragraph does. */
+  .rv-section > summary, .rv-code__head { break-after: avoid; }
+  .rv-report__body pre .rv-code-line:nth-child(-n + 2) { break-after: avoid; }
+  .rv-report__body pre .rv-code-line:nth-last-child(-n + 2) { break-before: avoid; }
+  /* Code of twelve lines or fewer never splits: the line rules above are preferences, and the
+     PDF's fit pass, which closes up the space above a block, could still leave one line alone. */
+  .rv-report__body :is(.rv-code, pre):not(:has(.rv-code-line:nth-child(13))) { break-inside: avoid; }
   .rv-report__body td:is(.link, .address) { overflow-wrap: anywhere; }
   .rv-report__body td.link a::after { content: "\A" attr(href); white-space: pre-wrap; font-size: .85em; color: var(--rv-ink-soft); }
   .rv-report__body td.address { font-size: .85em; }

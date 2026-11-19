@@ -20,7 +20,7 @@ LEDGER_DIR = REPORT_DIR / "ledger"
 CHART_DIR = REPORT_DIR / "data" / "charts"
 
 WINDOW_START = date(2023, 1, 1)
-WINDOW_END = date(2026, 9, 30)
+WINDOW_END = date(2026, 10, 31)
 USER_AGENT = "richview-research/0.1 (OpenAI-vs-Anthropic public-data study; github.com/1vecera)"
 
 COLLECTION_RUN_FIELDS = [

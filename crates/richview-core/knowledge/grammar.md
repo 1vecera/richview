@@ -148,6 +148,29 @@ Every block but the chart, with each key it reads (* required). The chart has it
 
 Callout kinds: `up` for good news, `down` for bad news, `hold` for a caveat or something to wait for, and `neutral` for a plain note.
 
+### Columns
+
+Two to four blocks side by side: two charts, a chart beside the sentence that explains it, a row of metrics, an image beside text. `::: columns` opens them, each `::: column` holds one column's prose and rich fences written as at the top level, and a line of `:::` closes each column and then the columns:
+
+```
+::: columns {widths: 2-1}
+::: column
+(a chart fence and its *Source:* note)
+:::
+::: column
+The sentence that explains it.
+:::
+:::
+```
+
+Options after `::: columns`, as a YAML flow mapping:
+
+@COLUMNFIELDS@
+
+- A column holds prose, headings of level 3 and below and rich blocks; not other columns, scrolly, a level 1 or 2 heading or a tab's start.
+- Columns stack on a phone, and wherever a column would be narrower than a phone column for a chart, table, embed, video or code (11rem otherwise). Put a chart in the wider share (`2-1`) and its explanation in the narrower one; three or four metrics fit side by side, two charts fit only at full width.
+- Malformed columns (one column or more than four, an empty column, text between columns, a missing `:::`) warn with a `columns.*` code and render in one column.
+
 ### Markdown
 
 - Markdown supports tables, strikethrough, tasks, footnotes, definition lists and native MathML from $inline$ / $$display$$ LaTeX.

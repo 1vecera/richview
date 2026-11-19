@@ -614,50 +614,15 @@ pub(crate) fn render_block(
                     .at(block.line, "callout"),
                 );
             }
-            // A rich fence inside the body cannot render here; it shows a notice (FEA-RP-53).
-            let source = c.get("body").and_then(Value::as_str).unwrap_or("");
-            let (fences, _) = crate::fences::scan(source, crate::RICH_TAGS);
-            let mut text = String::with_capacity(source.len());
-            let mut notices = vec![];
-            let mut cursor = 0;
-            for fence in &fences {
-                text.push_str(&source[cursor..fence.start]);
-                text.push_str(&format!("\n{failed_prefix}{}-->\n", notices.len()));
-                let message =
-                    "a rich block cannot sit inside a callout; move it out to the top level";
-                diagnostics.push(
-                    Diagnostic::new("error", "block.nested", message, "callout.body")
-                        .fix("Move the block out of the callout body")
-                        .at(block.line, "callout"),
-                );
-                notices.push(crate::render::notice(
-                    &format!("{} not rendered: {message}", tag_title(&fence.tag)),
-                    Some(block.line),
-                    Some(source[fence.start..fence.end].trim_end()),
-                ));
-                cursor = fence.end;
-            }
-            text.push_str(&source[cursor..]);
-            let block_prefix = failed_prefix.replacen("failed:", "block:", 1);
-            let body = markdown_html(
-                &text,
+            let body = nested_markdown(
+                c.get("body").and_then(Value::as_str).unwrap_or(""),
+                "callout",
+                block.line,
                 options,
-                &Context {
-                    heading_ids: &[],
-                    first_line: Some(block.line),
-                    columns: false,
-                    path: "callout.body",
-                    scope: &format!("c{}-", block.line),
-                    placeholder: &block_prefix,
-                    lang,
-                },
+                lang,
+                failed_prefix,
                 diagnostics,
             );
-            let body = if notices.is_empty() {
-                body
-            } else {
-                crate::render::expand_blocks(&body, failed_prefix, &notices, &[]).unwrap_or(body)
-            };
             // The title runs into the first paragraph; a body that opens with another block
             // keeps the title as its own line.
             let body = match c.get("title").and_then(Value::as_str).map(escape) {
@@ -672,6 +637,26 @@ pub(crate) fn render_block(
                 escape(c.get("kind").and_then(Value::as_str).unwrap_or("neutral")),
             )
         }
+        "expand" => {
+            let e = &block.value;
+            let body = nested_markdown(
+                e.get("body").and_then(Value::as_str).unwrap_or(""),
+                "expand",
+                block.line,
+                options,
+                lang,
+                failed_prefix,
+                diagnostics,
+            );
+            // A PDF is paper: every expand is open there, as print opens it (FEA-RP-39).
+            let open = e.get("open").and_then(Value::as_bool) == Some(true)
+                || options.output == Output::Pdf;
+            format!(
+                "<details class=\"rv-expand\"{}><summary class=\"rv-expand__title\">{}</summary><div class=\"rv-expand__body\">{body}</div></details>",
+                if open { " open" } else { "" },
+                escape(e.get("title").and_then(Value::as_str).unwrap_or("").trim()),
+            )
+        }
         "image" | "audio" | "video" => render_media(
             &block.tag,
             &block.value,
@@ -680,6 +665,7 @@ pub(crate) fn render_block(
             diagnostics,
             block.line,
         ),
+        "code" => render_code(&block.value, options, diagnostics, block.line),
         "embed" => render_embed(&block.value, options, diagnostics, block.line),
         "scrolly" => crate::scrolly::render(
             &block.value,
@@ -692,6 +678,207 @@ pub(crate) fn render_block(
         ),
         _ => String::new(),
     }
+}
+
+/// The Markdown `source` of a `tag` block's `body`, as HTML. A rich fence inside it cannot render
+/// there: it shows a notice in its place, and an error says to move it out (FEA-RP-53).
+fn nested_markdown(
+    source: &str,
+    tag: &str,
+    line: usize,
+    options: &RenderOptions,
+    lang: &str,
+    failed_prefix: &str,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> String {
+    let (fences, _) = crate::fences::scan(source, crate::RICH_TAGS);
+    let mut text = String::with_capacity(source.len());
+    let mut notices = vec![];
+    let mut cursor = 0;
+    let path = format!("{tag}.body");
+    let article = if tag.starts_with(['a', 'e', 'i', 'o', 'u']) {
+        "an"
+    } else {
+        "a"
+    };
+    for fence in &fences {
+        text.push_str(&source[cursor..fence.start]);
+        text.push_str(&format!("\n{failed_prefix}{}-->\n", notices.len()));
+        let message =
+            format!("a rich block cannot sit inside {article} {tag}; move it out to the top level");
+        diagnostics.push(
+            Diagnostic::new("error", "block.nested", message.clone(), path.clone())
+                .fix(format!("Move the block out of the {tag} body"))
+                .at(line, tag),
+        );
+        notices.push(crate::render::notice(
+            &format!("{} not rendered: {message}", tag_title(&fence.tag)),
+            Some(line),
+            Some(source[fence.start..fence.end].trim_end()),
+        ));
+        cursor = fence.end;
+    }
+    text.push_str(&source[cursor..]);
+    let block_prefix = failed_prefix.replacen("failed:", "block:", 1);
+    let body = markdown_html(
+        &text,
+        options,
+        &Context {
+            heading_ids: &[],
+            section_markers: false,
+            first_line: Some(line),
+            columns: false,
+            path: &path,
+            scope: &format!("{}{line}-", &tag[..1]),
+            placeholder: &block_prefix,
+            lang,
+        },
+        diagnostics,
+    );
+    if notices.is_empty() {
+        body
+    } else {
+        crate::render::expand_blocks(&body, failed_prefix, &notices, &[]).unwrap_or(body)
+    }
+}
+
+/// The most lines a `code` block shows from a file: past it the author excerpts.
+const CODE_MAX_LINES: usize = 400;
+
+/// The line numbers a `code` block's `mark` names: whole numbers from 1 and ranges such as
+/// `5-6`, in any order. None when an item is neither.
+pub(crate) fn code_marks(value: &Value) -> Option<Vec<usize>> {
+    let items = value.as_array()?;
+    let mut lines = vec![];
+    for item in items {
+        match item {
+            Value::Number(n) => lines.push(usize::try_from(n.as_u64().filter(|n| *n >= 1)?).ok()?),
+            Value::String(range) => {
+                let (from, to) = range.split_once('-')?;
+                let (from, to): (usize, usize) =
+                    (from.trim().parse().ok()?, to.trim().parse().ok()?);
+                if from == 0 || to < from || to - from > CODE_MAX_LINES {
+                    return None;
+                }
+                lines.extend(from..=to);
+            }
+            _ => return None,
+        }
+    }
+    Some(lines)
+}
+
+/// A `code` block (FEA-RP-17): a figure with a head that names its title and language, and its
+/// text in the style's mono face, numbered and marked as the author asks. The code is escaped
+/// text, highlighted for the languages the highlighter knows; it is never run.
+fn render_code(
+    value: &Value,
+    options: &RenderOptions,
+    diagnostics: &mut Vec<Diagnostic>,
+    line: usize,
+) -> String {
+    let text = match (
+        value.get("text").and_then(Value::as_str),
+        value.get("src").and_then(Value::as_str),
+    ) {
+        (Some(text), _) => text.to_owned(),
+        (None, Some(src)) => {
+            let read = resolved_text(options, src).filter(|text| !text.contains('\0'));
+            match read {
+                Some(text) if text.lines().count() <= CODE_MAX_LINES => text,
+                Some(text) => {
+                    diagnostics.push(
+                        Diagnostic::new(
+                            "error",
+                            "block.schema",
+                            format!(
+                                "code.src: '{src}' has {} lines; a code block shows {CODE_MAX_LINES} at most",
+                                text.lines().count()
+                            ),
+                            "code.src",
+                        )
+                        .fix("Excerpt the lines that matter into `text`")
+                        .at(line, "code"),
+                    );
+                    return String::new();
+                }
+                None => {
+                    diagnostics.push(
+                        Diagnostic::new(
+                            "error",
+                            "report.asset.missing",
+                            format!(
+                                "Code file '{src}' could not be read as text, so it is not shown"
+                            ),
+                            "code.src",
+                        )
+                        .at(line, "code"),
+                    );
+                    return String::new();
+                }
+            }
+        }
+        (None, None) => return String::new(),
+    };
+    let text = text.strip_suffix('\n').unwrap_or(&text);
+    let count = text.split('\n').count();
+    let marks = value.get("mark").and_then(code_marks).unwrap_or_default();
+    if let Some(past) = marks.iter().find(|n| **n > count) {
+        diagnostics.push(
+            Diagnostic::new(
+                "warning",
+                "code.mark",
+                format!("code.mark: line {past} is past the last line, {count}"),
+                "code.mark",
+            )
+            .at(line, "code"),
+        );
+    }
+    let lang = value
+        .get("lang")
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|l| !l.is_empty());
+    let title = value
+        .get("title")
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|t| !t.is_empty());
+    let mut head = String::new();
+    if title.is_some() || lang.is_some() {
+        head.push_str("<figcaption class=\"rv-code__head\">");
+        if let Some(title) = title {
+            head.push_str(&format!(
+                "<span class=\"rv-code__title\">{}</span>",
+                escape(title)
+            ));
+        }
+        if let Some(lang) = lang {
+            head.push_str(&format!(
+                "<span class=\"rv-code__lang\">{}</span>",
+                escape(lang)
+            ));
+        }
+        head.push_str("</figcaption>");
+    }
+    let numbered = value.get("lines").and_then(Value::as_bool) == Some(true);
+    let code = crate::markdown::code_lines_in(&format!("{text}\n"), lang, &marks);
+    format!(
+        "<figure class=\"rv-code{}\">{head}<pre><code{}>{code}</code></pre></figure>",
+        if numbered { " rv-code--lines" } else { "" },
+        lang.and_then(language_class)
+            .map(|class| format!(" class=\"{class}\""))
+            .unwrap_or_default(),
+    )
+}
+
+/// The `language-` class of a code block's `lang`, lowercased, only when `lang` is one plain
+/// token (letters, digits and `_+#.-`). Anything else, a space included, gets no class, so
+/// source text never names a class of the renderer's own; the label still shows it as written.
+fn language_class(lang: &str) -> Option<String> {
+    lang.bytes()
+        .all(|b| b.is_ascii_alphanumeric() || b"_+#.-".contains(&b))
+        .then(|| format!("language-{}", lang.to_ascii_lowercase()))
 }
 
 /// How one number prints (TYP-23): a `format` name, a `unit`, significant `digits` and the
@@ -1499,6 +1686,7 @@ fn transcript(
         options,
         &Context {
             heading_ids: &[],
+            section_markers: false,
             first_line: None,
             columns: false,
             path: "transcript",

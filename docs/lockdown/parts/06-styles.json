@@ -871,7 +871,7 @@
       "title": "The settings and their choices",
       "question": "Are these the named settings, their choices and their defaults, as the safe shortcuts of a rich style file?",
       "why": "Daniel's brief named density (\"Default std (comfrotable), then loose (currently named airy) and airmax\"), block gap (\"4 rem default, offer one lower option and one higher - name it well\") and font size (\"Airy as default, named large, then offer small and bigger\"); it kept line spacing out (\"do not offer as option - but the default one needs to slap af - so we need a deep research\"), allowed full font replacement, gave the accent three blues, one per template, and said \"the style.yaml should only offer these 3 things\". Nothing implements settings today, and what density changes is not recorded.",
-      "proposed": "| Setting | Choices, default first | What it changes |\n| --- | --- | --- |\n| `density` | `comfortable`, `loose`, `airmax` | space inside blocks (paragraphs, lists, table cells, chart padding): ×1, ×1.25, ×1.5 (proposed; no source) |\n| `block-gap` | `regular` 4 rem, `tight` 3 rem, `wide` 5 rem; on phones 2.5, 2 and 3 rem (proposed) | space between blocks and before sections |\n| `type-size` | `large`, `small`, `bigger` | the whole type scale ×1, ×0.9, ×1.1; steps keep their ratios |\n| `accent` | the style's own blue, one of the other two (`#195BFF`, `#124A8C`, `#1A6DAC`), or any colour (STY-53) | accent, first series and links; links keep the style's link colour where the accent is below 4.5:1 |\n| `fonts` | `display`, `text`, `ui`, `mono`: a bundled family or a brand font (STY-16) | that role only |\n| `palette` | a builtin palette name, or a list of colours (STY-53; beyond the brief) | chart series |\n| `motion` | `on`, `off` (beyond the brief) | `off` renders every chart and block settled (TYP-49) |\n| `colophon` | `show`, `hide` (beyond the brief) | STY-04 |\n\nSettings are top-level keys of a style file; part 05 types them. Under Daniel's STY-14 answer they are the safe shortcuts, not the whole surface: a style file may also set the tokens, component and chart keys behind them and everything else the builtins differ by, except mechanics such as the page width (OPN-59). Line spacing has no named setting; a style file may set `line-base`, marked experimental (OPN-59).",
+      "proposed": "Replaced by STY-73's settings: `text-size`, `spacing`, `padding`, `corners`, `lines`, `gridlines`, `tint` and `motion`, each `xsmall`, `small`, `medium`, `large` or `xlarge`, with `medium` the preset's own value; `fonts` and `colophon` stay as they are. The earlier settings (`density`, `block-gap`, `type-size`, `accent`, `motion: on/off`) keep applying exactly, with a `style.legacy` warning naming the replacement (STY-73's migration).",
       "confidence": "inferred",
       "sources": [
         {
@@ -895,7 +895,7 @@
           "date": "2026-10-16"
         }
       ],
-      "conflicts": "The 4 rem default is about 1.7 to 1.9 times today's space between rich blocks (1.25 body lines: 37 px in Sleek, 34 px in Scientific), and the brief gives no phone value. No dedicated line-spacing research is recorded; the June font research only says line height \"should not be user-facing\". `airy` and `airmax` were the June studio's control names; the brief renames `airy` to `loose`. Cross-part contradiction: answer OPN-59 and OPN-60 first; they decide this card's conflict."
+      "conflicts": "The 4 rem default is about 1.7 to 1.9 times today's space between rich blocks (1.25 body lines: 37 px in Sleek, 34 px in Scientific), and the brief gives no phone value. No dedicated line-spacing research is recorded; the June font research only says line height \"should not be user-facing\". `airy` and `airmax` were the June studio's control names; the brief renames `airy` to `loose`. Cross-part contradiction: answer OPN-59 and OPN-60 first; they decide this card's conflict. Amended by STY-73's proposal (18 Nov 2026)."
     },
     {
       "id": "STY-53",
@@ -906,7 +906,7 @@
       "title": "Colours authors bring",
       "question": "May an author set an accent or chart palette outside the named choices, such as a brand's own colours?",
       "why": "Daniel's 2026-06-21 brief offered one of three blue accents and no palette setting; INT-28 and TYP-44 cite its three options per setting, and TYP-46 its three blue accents. Brands often need their own colours. Today any token or palette colour is accepted, and only the builtin palettes are tested; with free colours, the contrast floors (STY-25) and the palette rule (STY-22) must run at render on author input.",
-      "proposed": "Yes. Under Daniel's STY-14 answer a style file may set the accent, page and ink colours and the chart palette to any colour the closed grammar accepts (TYP-46), a brand's own included. `check` measures them at render: contrast floors (STY-25) and the palette rule (STY-22) report as `style.*` and `chart.*` warnings (STY-52, FEA-CH-62), and decals switch on where colour fails (FEA-CH-57). The three blues and the builtin palettes stay as the named choices of STY-15.",
+      "proposed": "Authors bring colours through `colors.brand`, `colors.secondary` and `colors.background` (STY-73); RichView derives every other colour and guarantees STY-25's floors and STY-22's palette rule. A `palette` list stays as an override, measured at render. Colour tokens set directly still apply, with `style.legacy`.",
       "options": [
         {
           "label": "Named choices only",
@@ -941,7 +941,7 @@
           "date": "2026-10-16"
         }
       ],
-      "conflicts": "FEA-CH-62 checks authored palettes at render, which this card relies on; TYP-50 types a palette as a builtin name or one to eight colours. Daniel's 2026-06-21 brief offered only three blue accents; his STY-14 answer supersedes it. Cross-part contradiction: answer OPN-59 first; it decides this card's conflict."
+      "conflicts": "FEA-CH-62 checks authored palettes at render, which this card relies on; TYP-50 types a palette as a builtin name or one to eight colours. Daniel's 2026-06-21 brief offered only three blue accents; his STY-14 answer supersedes it. Cross-part contradiction: answer OPN-59 first; it decides this card's conflict. Amended by STY-73's proposal (18 Nov 2026)."
     },
     {
       "id": "STY-16",
@@ -3282,7 +3282,7 @@
       "title": "RichView's design rules",
       "question": "Are these the design rules RichView holds itself to, as the one set that replaces the old rule file, the learn text and the skill reference?",
       "why": "OPN-32 makes the accepted cards of this part the one source, rendered into `docs/guide`. Four texts overlap and drift today: the rule file points to chrome-only tokens and dormant landing stages, the learn text forbids glass that the homepage and readout use, the skill names three styles, and the July `CLAUDE.md` still describes the retired house identity.",
-      "proposed": "- Craft is the bar: charts withstand side-by-side comparison with Highcharts and ECharts, and type and layout with FT-grade and Wall Street Journal editorial design, on desktop, phone and print; these are benchmarks, never code or styling to copy, and restraint is part of craft (INT-12).\n- Tools for the story, no judgment of it: every chart can show its source, and content, data and wording are identical in every style; RichView makes no judgment of a story's quality (INT-77, INT-11).\n- Each style is a complete voice, distinct in structure as well as faces and colours (outlines or shading, legend and chart-title position); nothing keeps another style's look.\n- Colour is designed in the LCH colour space (OKLCH, STY-19) and every surface follows the cleanliness principles below.\n- Type, rules and space make structure: no gradients, glass, card grids, eyebrows, ornamental icons or badges.\n- One accent per style; status colours back up words; colour never identifies a series alone.\n- Shadows only on floating elements unless a style's structure shades its blocks, corners per style, hover changes colour and never position.\n- Motion is delightful and smooth, with the whimsical quality of Studio Ghibli and the polish of Apple's website animations; it explains structure or change or gives pleasure, never ticks or jumps, and reduced motion shows the settled state (INT-12, INT-61).\n- Judge real output after fonts load, at 390 and 1440 px, in every style.",
+      "proposed": "- Craft is the bar: charts withstand side-by-side comparison with Highcharts and ECharts, and type and layout with FT-grade and Wall Street Journal editorial design, on desktop, phone and print; these are benchmarks, never code or styling to copy, and restraint is part of craft (INT-12).\n- Tools for the story, no judgment of it: every chart can show its source, and content, data and wording are identical in every style; RichView makes no judgment of a story's quality (INT-77, INT-11).\n- Each style is a complete voice, distinct in structure as well as faces and colours (outlines or shading, legend and chart-title position); nothing keeps another style's look.\n- Colour is designed in the LCH colour space (OKLCH, STY-19) and every surface follows the cleanliness principles below.\n- Type, rules and space make structure: no decorative gradients, glass, card grids, eyebrows, ornamental icons or badges in RichView's chrome; an author's `background` may use the derived gradients and textures of STY-74.\n- One accent per style; status colours back up words; colour never identifies a series alone.\n- Shadows only on floating elements unless a style's structure shades its blocks, corners per style, hover changes colour and never position.\n- Motion is delightful and smooth, with the whimsical quality of Studio Ghibli and the polish of Apple's website animations; it explains structure or change or gives pleasure, never ticks or jumps, and reduced motion shows the settled state (INT-12, INT-61).\n- Judge real output after fonts load, at 390 and 1440 px, in every style.",
       "confidence": "stated",
       "sources": [
         {
@@ -3321,7 +3321,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "Daniel's INT-12 and INT-77 answers (2026-10-27) replace the earlier first and motion rules, “evidence first” and “nothing else moves”: the bar is craft against named benchmarks, the story is the author's, and motion may give pleasure."
+      "conflicts": "Daniel's INT-12 and INT-77 answers (2026-10-27) replace the earlier first and motion rules, “evidence first” and “nothing else moves”: the bar is craft against named benchmarks, the story is the author's, and motion may give pleasure. Amended by STY-74's proposal (18 Nov 2026): authors' backgrounds may carry derived gradients and textures."
     },
     {
       "id": "STY-51",
@@ -3622,7 +3622,7 @@
       "title": "A company colour derives a complete style",
       "question": "How can an author turn a company colour into a complete checked RichView style?",
       "why": "A brand style should be practical to make from a company guide without hand-tuning every token and chart colour. Existing style files allow individual colours and fonts, but the resulting palette can fail contrast or colour-vision checks. The shortcut extends STY-15 and STY-53 and the print counterpart follows STY-21.",
-      "proposed": "A style file may name `company.color`, optional `company.secondary` and an optional builtin `company.base`. When the base is omitted, a builtin already named in the cascade remains; otherwise use Air. RichView derives subtly tinted surfaces, inks, accent, link and a six-slot series palette from the company colour and the chosen base. It does not change `tokens.brand`, the RichView wordmark colour (STY-01, STY-04). Achromatic inputs leave the base neutrals untinted. An accent or link that cannot meet its contrast floor moves toward a legible shade, and an info diagnostic names the input and result; the first series keeps the exact company colour when it reaches 3:1. A secondary colour that is insufficiently distinct is adjusted or omitted with an info diagnostic. An explicit token or palette in the file wins, and the normal checks measure the final cascade (STY-22, STY-25, STY-53, FEA-CH-62). A dark base derives its printed style over its light counterpart. The site Wasm exposes the same derivation to the live demo. `richview learn style` and a worked example teach the one-colour route.",
+      "proposed": "STY-73's colours take over from the company keys: `colors.brand` (was `company.color`), `colors.secondary` (was `company.secondary`) and `preset` (was `company.base`), plus `colors.background`. A file with colours and no preset starts from Air. The `company` mapping keeps `name`, `logo` and `logo-dark` (STY-72). The old company keys still apply with `style.legacy`, through this card's derivation exactly as it was. RichView derives tinted surfaces, inks, accent, link, a six-slot series palette and ramps; a colour that cannot meet its floor moves toward a legible shade and an info diagnostic names the input and the result; the first series keeps the exact brand colour when it reaches 3:1. A dark background prints over the preset's light counterpart with the same brand. It does not change `tokens.brand`, the RichView wordmark colour (STY-01, STY-04).",
       "options": [
         {
           "label": "Derive and check a company style",
@@ -3641,7 +3641,8 @@
           "ref": "S27-989",
           "date": "2026-11-09"
         }
-      ]
+      ],
+      "conflicts": "Amended by STY-73's proposal (18 Nov 2026)."
     },
     {
       "id": "STY-72",
@@ -3672,6 +3673,86 @@
           "date": "2026-11-09"
         }
       ]
+    },
+    {
+      "id": "STY-73",
+      "kind": "feature",
+      "importance": "key",
+      "refId": "S-PRESETS-COLOURS-STEPS",
+      "group": "Customization",
+      "title": "Presets, your colours, five steps",
+      "question": "How do authors style a report: by a preset, their own hex colours and five-step settings, with every token internal?",
+      "why": "Daniel, 17 Nov: \"rework the way to style, by default people will wanna use hex colors, explain we autopic rest of the colors. People should not be styling some abstract tokens but instead we have a smart set of xsmall, small, medium, large, xlarge things for each settings and stuff and all nicely works out of conjunction of those.\" Today a style file reaches 90 leaves (16 colour tokens, 12 type sizes, component and chart keys) under his STY-14 answer, and STY-15's settings use a different word set per setting (`comfortable/loose/airmax`, `tight/regular/wide`, `large/small/bigger`). A token-level file can break contrast, the palette rule and the type scale; checks then warn after the fact. STY-71 already derives a checked style from one company colour; this card makes that the front door.",
+      "proposed": "An author styles a report with three things, and nothing else is taught:\n\n1. **A preset.** `styles: [air]` in the frontmatter, or `preset: air` in a style file; a file's preset takes the place of everything before it, and a file with colours and no preset starts from Air (STY-71). The five main presets are today's styles, unchanged: Sleek (default), Air, Scientific, Brutalist, Hand-drawn. Five more ship as extended presets, listed only under \"More presets\" (Daniel's STY-05 answer): Midnight, Ledger, Meadow, Signal and Chalk. Each extended preset is an ordinary style file in the author syntax below (a main preset, colours and steps), so it passes the same checks any author's file passes.\n\n2. **Your colours.** \"Give us your hex colors; we pick the rest.\"\n\n   ```yaml\n   # report.rstyle.yaml\n   preset: scientific\n   colors:\n     brand: \"#8E2C3A\"       # accent, links and the first series\n     secondary: \"#2F6B8F\"   # optional: the second series\n     background: \"#FAF6EE\"  # optional: the page; a dark colour makes a dark report\n   ```\n\n   From these RichView derives every colour, in OKLCH, inside sRGB:\n\n   | Derived | How | Guarantee |\n   | --- | --- | --- |\n   | Scheme | Dark when white text contrasts more with `background` than black does; without `background`, the preset's | — |\n   | Page, raised and chart surfaces | `background` exactly, or the preset's page; raised and chart surfaces keep the preset's lightness steps, turned toward the middle. A page that no text colour can reach 7:1 on, or that leaves no room for four series at 3:1, moves only as far as they need, keeping its hue (info) | text can always reach 7:1 |\n   | Text, secondary text, axis text, ticks | the preset's neutrals, carrying a trace of the brand hue (the `tint` step), moved in lightness until they reach their floor on every surface | 7:1, 4.5:1, 7:1, 3:1 (STY-25) |\n   | Rules and gridlines | the preset's own contrast over the page, reproduced on the new page | — |\n   | Accent and link | `brand`, moved in lightness only as far as its floor needs | 3:1 and 4.5:1 |\n   | Series 1 and 2 | `brand` and `secondary`, kept exact when they reach 3:1; `secondary` adjusted or dropped (info) when it cannot be told from `brand` | palette rule (STY-22) |\n   | Series 3 to 6 | the preset's own hues where they pass, else hues a golden angle apart in the scheme's lightness band | palette rule, normal and three colour-vision simulations |\n   | Heatmap ramps | low stop near the surface, high stop at the brand hue; the negative arm keeps the preset's hue unless it is within 40° of the brand | ramp rules (STY-22, STY-56) |\n   | Up, down, hold | the preset's hues, moved to their floor | 4.5:1 |\n   | Text on the accent (Brutalist's knockout metric), once your colours chose the accent | white or black, whichever stands out more on the accent | 4.5:1, always reachable |\n   | RichView's wordmark | unchanged (STY-01) | — |\n\n   A derivation that cannot meet a floor moves the colour, never ships it, and says so (info, `style.company-adjusted`). Any colour TYP-46 accepts works; the docs teach hex.\n\n3. **Five-step settings.** Every other setting takes `xsmall`, `small`, `medium`, `large` or `xlarge`. `medium` is always the preset's own value, so a step means the same change in every preset and leaving a setting out changes nothing.\n\n   | Setting | Changes | xsmall | small | large | xlarge |\n   | --- | --- | --- | --- | --- | --- |\n   | `text-size` | the whole type scale | ×0.8 | ×0.9 | ×1.1 | ×1.2 |\n   | `spacing` | space between blocks and before sections | ×0.5 | ×0.75 | ×1.33 | ×1.67 |\n   | `padding` | space inside blocks: paragraphs, lists, table cells, callouts, metrics and framed charts | ×0.75 | ×0.875 | ×1.25 | ×1.5 |\n   | `corners` | images, embeds, code, the readout, bar ends (STY-36's places only) | square | half | ×1.5, at least +4 px | ×2, at least +10 px |\n   | `lines` | the weight of structural rules: header bars, callout and metric rules | ×0.5 | ×0.75 | ×1.5 | ×2 |\n   | `gridlines` | how strongly the chart's soft rules show: gridlines, and the tracks and empty cells some charts draw; their own colour, so the page's separators keep theirs | faintest, never invisible | fainter | ×1.8 | ×2.6 |\n   | `tint` | how much of the brand hue the page, rules and text carry | grey | half | ×2 | ×3.5 |\n   | `motion` | how far and how long blocks and charts move | still | quicker, shorter | slower, further | most |\n\n   They combine by construction:\n   - steps multiply the preset's values and never add, so the type scale keeps its ratios (STY-26) and rhythm stays proportional;\n   - `spacing` follows `text-size`: bigger type gets proportionally bigger gaps;\n   - on phones `text-size` stays between ×0.9 and ×1.1 and `spacing` moves half as far, so phone body text stays at 14.8 px or more (Scientific's 16.5 px at ×0.9);\n   - colours are derived after the steps, so `tint` and `gridlines` can never push text below its floor;\n   - caps: corners at most 24 px on images and 10 px on code and the readout, bar ends at most 6 px (a preset already above a cap keeps its own value), motion at most 1 s; reduced motion always wins;\n   - page width, measure and phone width stay fixed (OPN-59).\n\n   Fonts (`fonts`: a bundled family or a brand WOFF2, STY-16), `colophon` and `company.name` and `company.logo` (STY-72) stay as they are; they name things, not tokens.\n\n**Migration.** A report that names only presets renders byte for byte as today. Old keys keep working exactly as before, with a `style.legacy` warning that names the replacement:\n\n| Old | New |\n| --- | --- |\n| `type-size: small / large / bigger` | `text-size: small / medium / large` (same factors) |\n| `density: comfortable / loose / airmax` | `padding: medium / large / xlarge` (same factors in presets at density 1) |\n| `block-gap: tight / regular / wide` | `spacing` (the nearest step; the old absolute gaps still apply) |\n| `motion: on / off` | `motion: medium / xsmall` |\n| `accent: <colour>` | `colors.brand` (which also tints the neutrals; `tint: xsmall` keeps them grey) |\n| `company.color`, `company.secondary`, `company.base` | `colors.brand`, `colors.secondary`, `preset` (the old keys keep STY-71's derivation exactly; `colors` adds the wordmark, status-colour and ramp guarantees above) |\n| `tokens.*`, `components.*`, `chart.*`, `motion.*`, `layout.*` | applied as before; the warning names the setting that covers it, or says none does |\n\n`palette` (a builtin palette name or a list of series colours) stays as it is: it overrides the derived palette and is measured by the palette rule. No taught setting is experimental, because every combination is tested. `richview learn style`, the docs and editor completions teach only presets, `colors` and the steps.\n\n**Checks.** The fast gate's unit tests render every preset with every setting at `xsmall` and at `xlarge` (one at a time and all together), across brand colours spanning hue and lightness, with and without light and dark backgrounds, and assert no contrast, palette-rule or type-scale finding; a property test runs a thousand random hex colours over every preset. The five-step scale is the whole settings registry, so STY-69's pairwise run covers 8 settings × 5 steps.",
+      "options": [
+        {
+          "label": "Presets, colours, five steps; tokens internal, legacy keys warn",
+          "detail": "Daniel's 17 Nov rule; a closed surface every combination of which is tested; existing files keep working."
+        },
+        {
+          "label": "Add the steps beside today's rich files",
+          "detail": "No migration, but agents keep learning tokens and the surface stays untestable."
+        },
+        {
+          "label": "Steps only, refuse tokens",
+          "detail": "The smallest surface; breaks every existing style file and the showcase themes."
+        }
+      ],
+      "recommendation": "Presets, colours, five steps; tokens internal, legacy keys warn.",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "\"rework the way to style, by default people will wanna use hex colors, explain we autopic rest of the colors. People should not be styling some abstract tokens but instead we have a smart set of xsmall, small, medium, large, xlarge things for each settings and stuff and all nicely works out of conjunction of those\"; relayed by the chief of staff",
+          "ref": "S27-986",
+          "date": "2026-11-17"
+        },
+        {
+          "label": "The company derivation this card generalises",
+          "ref": "crates/richview-core/src/style/brand.rs",
+          "date": "2026-11-18"
+        }
+      ],
+      "conflicts": "Reverses part of Daniel's STY-14 answer and OPN-59 (\"style files are rich\"): tokens, components and chart keys stop being taught and warn, though they still apply. Replaces STY-15's table. Amends STY-53 (authors bring colours through `colors`, derived and checked; any colour still works in `palette`) and STY-71 (`company.color`, `company.secondary` and `company.base` become `colors.brand`, `colors.secondary` and `preset`; `company` keeps the name and logo). Adds five extended presets under STY-05's \"extended themes\"; the main menus still show five. TYP-44 to TYP-50 type the settings as the author-facing file and the sections as internal. TYP-55's catalogue gains `style.legacy`."
+    },
+    {
+      "id": "STY-74",
+      "kind": "feature",
+      "importance": "important",
+      "refId": "S-BACKGROUNDS",
+      "group": "Customization",
+      "title": "Backgrounds behind a report",
+      "question": "How may an author make the page behind a report their own: textures, gradients from their colours, or their own picture, without losing readability?",
+      "why": "Daniel, 18 Nov 2026 ~14:05: \"actual background styles are also priority to make it much more personal.\" Since STY-73 an author can set the page colour with `colors.background`; everything else about the page behind a report is the preset's flat surface. A background drawn behind text can break STY-25's floors at its darkest pixel, a picture can carry any pixel, and STY-50 rules out decorative gradients.",
+      "proposed": "A style file may set `background`, in closed words and one report-relative path:\n\n| Leaf | Values | Default |\n| --- | --- | --- |\n| `texture` | `grain`, `dots`, `grid`, `lines`, `none` | `none` |\n| `gradient` | `soft`, `glow`, `none`: from `colors.brand` (a glow from `secondary` when given), else the preset's accent | `none` |\n| `picture` | a still PNG, JPEG or WebP in the report folder, at most 400 KiB and 2400 px a side | none |\n| `place` | `page`, `margins` (the report sits on a solid sheet), `header` (a picture puts the title on a solid panel) | `page`; `header` for a picture |\n| `strength` | the five steps of STY-73; `medium` the designed default | `medium` |\n\nThe background yields to the text: every ink (text 7:1; secondary text, links and the up, down and hold colours 4.5:1; accent and ticks 3:1) keeps its floor over the background's worst pixel. Textures are drawn in one colour derived from the page, so the worst pixel is exact; gradients are checked along their interpolation. Inks the author did not set move in lightness first; only when they cannot does the background weaken (info `style.background-adjusted`). Inks are the report's own, so a header background that moves an ink moves it in the body too. A picture under text is washed by the least page-coloured layer that holds over a black or a white pixel. Charts, tables, code and embeds keep solid surfaces. A texture and a gradient combine; a picture stands alone (`style.background-conflict`). A later file's `background` replaces an earlier one whole, a preset named after it clears it, and `background: none` clears it. Phones show a margins background as a band above the report and a header picture as a strip above the title; nothing moves; paper, high contrast and forced colours show the flat page. A picture outside the folder is `style.schema`; one missing, too large, too wide or not a still raster is `style.background-missing`, `-size`, `-dimensions`, `-format` or `-animated`, and the report renders without it. A report without `background` renders byte for byte as before.",
+      "options": [
+        {
+          "label": "Closed words, the background yields",
+          "detail": "What Daniel asked for, in the STY-73 grammar: every combination tested against every floor, and no author CSS."
+        },
+        {
+          "label": "Page colour only",
+          "detail": "Today's `colors.background`; nothing to test, but no texture, gradient or picture."
+        },
+        {
+          "label": "Pictures only above the title",
+          "detail": "STY-62's header image already does this; it adds nothing behind the text."
+        }
+      ],
+      "recommendation": "Closed words, the background yields: it gives authors the personal page Daniel asked for and keeps every floor by construction.",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "\"actual background styles are also priority to make it much more personal\"",
+          "ref": "Daniel, relayed by the RichView lead (S27-986)",
+          "date": "2026-11-18"
+        },
+        {
+          "label": "The look sheet: 12 backgrounds over the five presets, put to Daniel as Q33",
+          "ref": "tmp/team/launch/d16/launch/elements/backgrounds-proposal.md",
+          "date": "2026-11-18"
+        }
+      ],
+      "conflicts": "STY-50 says \"no gradients\"; it has no accepted answer, so this card proposes amending it to \"no decorative gradients in RichView's chrome; an author's `background` may use the derived gradients of STY-74\". STY-62's \"styles do not tint images\" stays true for image blocks: a background picture is not an image block and is washed only where text sits on it. STY-65 (grain on the site's landing only) concerns the site, not reports."
     }
   ]
 }

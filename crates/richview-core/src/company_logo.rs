@@ -6,6 +6,10 @@ use std::fmt;
 pub const COMPANY_LOGO_MAX_BYTES: usize = 512 * 1024;
 /// Largest permitted company logo width or height, in pixels.
 pub const COMPANY_LOGO_MAX_DIMENSION: u32 = 1024;
+/// Largest permitted background picture file, in bytes (STY-74).
+pub const BACKGROUND_PICTURE_MAX_BYTES: usize = 400 * 1024;
+/// Largest permitted background picture width or height, in pixels (STY-74).
+pub const BACKGROUND_PICTURE_MAX_DIMENSION: u32 = 2400;
 
 /// The media type and dimensions verified from a company logo's bytes.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -54,7 +58,17 @@ impl std::error::Error for CompanyLogoError {}
 /// embeds the original bytes. Container checks include PNG checksums and terminal chunks, JPEG
 /// marker and scan boundaries, and WebP's RIFF lengths; compressed pixels are not decoded here.
 pub fn validate_company_logo(bytes: &[u8]) -> Result<ValidatedCompanyLogo, CompanyLogoError> {
-    if bytes.len() > COMPANY_LOGO_MAX_BYTES {
+    validate_raster(bytes, COMPANY_LOGO_MAX_BYTES, COMPANY_LOGO_MAX_DIMENSION)
+}
+
+/// Validate a still raster as [`validate_company_logo`] does, within the given file size and
+/// side length; a background picture (STY-74) has its own, larger bounds.
+pub fn validate_raster(
+    bytes: &[u8],
+    max_bytes: usize,
+    max_dimension: u32,
+) -> Result<ValidatedCompanyLogo, CompanyLogoError> {
+    if bytes.len() > max_bytes {
         return Err(CompanyLogoError::TooLarge);
     }
     let (mime, (width, height)) = if bytes.starts_with(b"\x89PNG") {
@@ -66,11 +80,7 @@ pub fn validate_company_logo(bytes: &[u8]) -> Result<ValidatedCompanyLogo, Compa
     } else {
         return Err(CompanyLogoError::UnsupportedFormat);
     };
-    if width == 0
-        || height == 0
-        || width > COMPANY_LOGO_MAX_DIMENSION
-        || height > COMPANY_LOGO_MAX_DIMENSION
-    {
+    if width == 0 || height == 0 || width > max_dimension || height > max_dimension {
         return Err(CompanyLogoError::InvalidDimensions);
     }
     Ok(ValidatedCompanyLogo {

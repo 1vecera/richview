@@ -39,7 +39,7 @@
 
 ### PDF
 
-Local PDF export uses richview generate --to pdf (or MCP richview_render with output: pdf), an installed Chromium-family browser on Linux/macOS, A4 or Letter, settled charts and embedded local assets. Sleek prints as air; all table rows remain present and media prints as posters or link cards. Browser requests outside the staged report, embedded data and the credited images.unsplash.com photos the report names are blocked.
+Local PDF export uses richview generate --to pdf (or MCP richview_render with output: pdf), an installed Chromium, Google Chrome or Microsoft Edge on Linux, macOS or Windows (Edge comes with Windows), A4 or Letter, settled charts and embedded local assets. Sleek prints as air; all table rows remain present and media prints as posters or link cards. Browser requests outside the staged report, embedded data and the credited images.unsplash.com photos the report names are blocked.
 
 ### Publishing
 

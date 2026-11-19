@@ -175,6 +175,83 @@ pub(super) fn report_grid() -> String {
     html
 }
 
+/// The elements that have no part of their own on the elements page: name, what it is for,
+/// the guide and section that show it, and a still of it in the page's own type.
+pub(super) const MORE_ELEMENTS: &[(&str, &str, &str, &str, &str)] = &[
+    (
+        "Metrics",
+        "One large number, with its change.",
+        "blocks",
+        "evidence-in-charts-tables-and-metrics",
+        "<b class=\"docs-mini__number\">450</b><span>Total orders, up 12%</span>",
+    ),
+    (
+        "Callouts",
+        "A finding or caveat beside its evidence.",
+        "blocks",
+        "keep-the-caveat-near-the-claim",
+        "<span class=\"docs-mini__callout\"><b>A small sample.</b> The observations are fictional.</span>",
+    ),
+    (
+        "Audio",
+        "A player with its transcript.",
+        "blocks",
+        "audio-video-and-transcripts",
+        "<span class=\"docs-mini__play\"></span><span class=\"docs-mini__wave\"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>",
+    ),
+    (
+        "Video",
+        "Video with a poster and captions.",
+        "blocks",
+        "audio-video-and-transcripts",
+        "<span class=\"docs-mini__poster\"><span class=\"docs-mini__play\"></span></span>",
+    ),
+    (
+        "External embeds",
+        "A page of an allowed host, sandboxed.",
+        "blocks",
+        "embed-an-external-page",
+        "<span class=\"docs-mini__browser\"><i></i><i></i><i></i></span>",
+    ),
+    (
+        "Scrollytelling",
+        "A figure that changes as the reader scrolls.",
+        "blocks",
+        "explain-a-figure-as-the-reader-scrolls",
+        "<span class=\"docs-mini__steps\"><i></i><i class=\"is-on\"></i><i></i></span><span class=\"docs-mini__figure\"></span>",
+    ),
+    (
+        "Tabs",
+        "Panels the reader switches between.",
+        "authoring",
+        "split-a-long-report-into-tabs",
+        "<span class=\"docs-mini__tabs\"><b>Overview</b><span>Detail</span><span>Method</span></span>",
+    ),
+    (
+        "Contents",
+        "The report's sections, and how far the reader is.",
+        "authoring",
+        "contents-and-reading-progress",
+        "<span class=\"docs-mini__toc\"><b>The verdict</b><span>Money and risk</span><span>Method</span></span>",
+    ),
+];
+
+/// The elements without a part of their own, listed under the overview: each shows a still of
+/// itself and opens the guide section that shows it live.
+fn more_elements() -> String {
+    let mut html =
+        "<p class=\"docs-more-title\">More elements</p><div class=\"docs-more-grid\">".to_owned();
+    for (title, note, guide, anchor, still) in MORE_ELEMENTS {
+        html.push_str(&format!(
+            "<a class=\"docs-more\" href=\"/docs/{guide}#{anchor}\"><span class=\"docs-mini\" aria-hidden=\"true\">{still}</span><span class=\"docs-more__text\"><b>{}</b><span>{}</span></span></a>",
+            escape(title),
+            escape(note)
+        ));
+    }
+    html.push_str("</div>");
+    html
+}
+
 /// The elements overview: one card per element, each a way in. Charts and flow charts open
 /// their own pages; the others move to their part of the elements gallery. A live frame is
 /// laid out half as wide as a gallery card's and shown twice as large (the box around it is
@@ -212,6 +289,21 @@ pub(super) fn elements_grid() -> String {
                 format!("#{anchor}"),
                 preview("pivot", title),
             ),
+            "expands" => (
+                "Long detail one tap away, printed open.",
+                format!("#{anchor}"),
+                "<div class=\"docs-thumb-mock docs-thumb-mock--expand\" aria-hidden=\"true\"><p class=\"docs-thumb-mock__row is-open\">How the sample was drawn</p><p class=\"docs-thumb-mock__text\">1,200 orders drawn at random, at least 150 in each region.</p><p class=\"docs-thumb-mock__row\">What the columns mean</p><p class=\"docs-thumb-mock__row\">Known gaps in the data</p></div>".to_owned(),
+            ),
+            "code-blocks" => (
+                "Code with its title, numbers and marked lines.",
+                format!("#{anchor}"),
+                "<div class=\"docs-thumb-mock docs-thumb-mock--code\" aria-hidden=\"true\"><p class=\"docs-thumb-mock__head\"><span>chart.yaml</span><span>YAML</span></p><pre><span><b>type</b>: bar</span><span class=\"is-marked\"><b>title</b>: Orders by region</span><span><b>x</b>: region</span><span><b>y</b>: amount</span></pre></div>".to_owned(),
+            ),
+            "columns" => (
+                "Two to four blocks side by side, stacked on a phone.",
+                format!("#{anchor}"),
+                "<div class=\"docs-thumb-mock docs-thumb-mock--columns\" aria-hidden=\"true\"><div class=\"docs-thumb-mock__bars\"><span></span><span></span><span></span><span></span><span></span></div><div><p class=\"docs-thumb-mock__big\">1,240</p><p class=\"docs-thumb-mock__text\">orders in launch week, more than March and April together.</p></div></div>".to_owned(),
+            ),
             "type-and-fonts" => (
                 "Five builtin styles, each with its own type.",
                 format!("#{anchor}"),
@@ -238,6 +330,7 @@ pub(super) fn elements_grid() -> String {
         ));
     }
     html.push_str("</div>");
+    html.push_str(&more_elements());
     html
 }
 

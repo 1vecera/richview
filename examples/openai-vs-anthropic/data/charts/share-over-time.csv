@@ -50,7 +50,7 @@ month,measure,anthropic_share_pct
 2024-02,Hacker News comments,4.4
 2024-02,Wikipedia article views,0.4
 2024-02,npm SDK downloads,17.1
-2024-03,Google searches,0.0
+2024-03,Google searches,0.7
 2024-03,Hacker News comments,20.1
 2024-03,Wikipedia article views,2.8
 2024-03,npm SDK downloads,19.3
@@ -66,11 +66,11 @@ month,measure,anthropic_share_pct
 2024-06,Hacker News comments,16.0
 2024-06,Wikipedia article views,2.2
 2024-06,npm SDK downloads,20.4
-2024-07,Google searches,1.9
+2024-07,Google searches,2.0
 2024-07,Hacker News comments,21.2
 2024-07,Wikipedia article views,6.0
 2024-07,npm SDK downloads,20.2
-2024-08,Google searches,1.7
+2024-08,Google searches,0.8
 2024-08,Hacker News comments,28.4
 2024-08,Wikipedia article views,5.1
 2024-08,npm SDK downloads,19.3
@@ -82,7 +82,7 @@ month,measure,anthropic_share_pct
 2024-10,Hacker News comments,29.3
 2024-10,Wikipedia article views,3.0
 2024-10,npm SDK downloads,20.6
-2024-11,Google searches,1.9
+2024-11,Google searches,1.8
 2024-11,Hacker News comments,29.4
 2024-11,Wikipedia article views,3.1
 2024-11,npm SDK downloads,20.4
@@ -98,11 +98,11 @@ month,measure,anthropic_share_pct
 2025-02,Hacker News comments,31.4
 2025-02,Wikipedia article views,2.6
 2025-02,npm SDK downloads,23.4
-2025-03,Google searches,1.5
+2025-03,Google searches,1.4
 2025-03,Hacker News comments,38.7
 2025-03,Wikipedia article views,2.5
 2025-03,npm SDK downloads,23.3
-2025-04,Google searches,1.4
+2025-04,Google searches,1.3
 2025-04,Hacker News comments,32.0
 2025-04,Wikipedia article views,1.2
 2025-04,npm SDK downloads,23.9
@@ -118,11 +118,11 @@ month,measure,anthropic_share_pct
 2025-07,Hacker News comments,50.7
 2025-07,Wikipedia article views,2.0
 2025-07,npm SDK downloads,26.2
-2025-08,Google searches,2.5
+2025-08,Google searches,2.4
 2025-08,Hacker News comments,50.9
-2025-08,Wikipedia article views,1.8
+2025-08,Wikipedia article views,1.7
 2025-08,npm SDK downloads,25.8
-2025-09,Google searches,2.1
+2025-09,Google searches,2.0
 2025-09,Hacker News comments,48.7
 2025-09,Wikipedia article views,1.5
 2025-09,npm SDK downloads,25.2
@@ -138,39 +138,43 @@ month,measure,anthropic_share_pct
 2025-12,Hacker News comments,52.3
 2025-12,Wikipedia article views,2.5
 2025-12,npm SDK downloads,28.2
-2026-01,Google searches,3.7
+2026-01,Google searches,3.6
 2026-01,Hacker News comments,66.2
 2026-01,Wikipedia article views,3.7
 2026-01,npm SDK downloads,27.7
-2026-02,Google searches,5.8
+2026-02,Google searches,6.0
 2026-02,Hacker News comments,67.9
 2026-02,Wikipedia article views,11.1
 2026-02,npm SDK downloads,32.1
-2026-03,Google searches,11.0
+2026-03,Google searches,11.4
 2026-03,Hacker News comments,73.0
 2026-03,Wikipedia article views,12.9
 2026-03,npm SDK downloads,34.1
-2026-04,Google searches,13.2
+2026-04,Google searches,13.1
 2026-04,Hacker News comments,73.3
 2026-04,Wikipedia article views,10.9
 2026-04,npm SDK downloads,43.5
-2026-05,Google searches,13.1
+2026-05,Google searches,13.0
 2026-05,Hacker News comments,71.6
 2026-05,Wikipedia article views,9.6
-2026-05,npm SDK downloads,45.3
-2026-06,Google searches,14.2
+2026-05,npm SDK downloads,45.4
+2026-06,Google searches,14.1
 2026-06,Hacker News comments,72.9
-2026-06,Wikipedia article views,7.9
-2026-06,npm SDK downloads,47.7
-2026-07,Google searches,12.3
+2026-06,Wikipedia article views,7.7
+2026-06,npm SDK downloads,47.5
+2026-07,Google searches,12.6
 2026-07,Hacker News comments,67.0
-2026-07,Wikipedia article views,5.9
-2026-07,npm SDK downloads,46.7
+2026-07,Wikipedia article views,5.4
+2026-07,npm SDK downloads,46.5
 2026-08,Google searches,11.1
 2026-08,Hacker News comments,67.1
-2026-08,Wikipedia article views,8.8
+2026-08,Wikipedia article views,8.1
 2026-08,npm SDK downloads,48.7
-2026-09,Google searches,11.9
+2026-09,Google searches,12.0
 2026-09,Hacker News comments,56.5
-2026-09,Wikipedia article views,9.7
-2026-09,npm SDK downloads,49.8
+2026-09,Wikipedia article views,8.9
+2026-09,npm SDK downloads,50.0
+2026-10,Google searches,14.0
+2026-10,Hacker News comments,64.8
+2026-10,Wikipedia article views,8.0
+2026-10,npm SDK downloads,52.1

@@ -36,6 +36,48 @@ fn report_folder_resolves_the_company_logo_into_the_exported_header() {
     );
 }
 
+#[test]
+fn a_code_block_shows_a_text_file_of_its_folder_and_nothing_outside_it() {
+    // `src` reads a file of the report folder; a path out of it and a file over 400 lines are
+    // errors, and the outside file's text never reaches the page.
+    let f = Folder::new();
+    let report = f.0.join("report");
+    fs::create_dir_all(&report).unwrap();
+    fs::write(f.0.join("secret.sql"), "select 'not-in-the-folder'\n").unwrap();
+    fs::write(
+        report.join("query.sql"),
+        "select region\nfrom orders_in_the_folder\n",
+    )
+    .unwrap();
+    fs::write(report.join("long.sql"), "select 1;\n".repeat(401)).unwrap();
+    let source = "---\ntitle: Code\n---\n\n## Code\n\n```code\nsrc: query.sql\nlang: sql\n```\n\n```code\nsrc: ../secret.sql\n```\n\n```code\nsrc: long.sql\n```\n";
+    let path = report.join("report.rmd");
+    fs::write(&path, source).unwrap();
+    let (document, options) =
+        resolver::resolve_document_options_policy(source, &path, &[], false, false).unwrap();
+    let out = richview_core::document::render_document(document, &options).unwrap();
+    assert!(out.html.contains("orders_in_the_folder"));
+    assert!(!out.html.contains("not-in-the-folder"));
+    let errors: Vec<(&str, &str)> = out
+        .diagnostics
+        .iter()
+        .filter(|d| d.level == "error")
+        .map(|d| (d.code.as_str(), d.message.as_str()))
+        .collect();
+    assert!(
+        errors
+            .iter()
+            .any(|(_, message)| message.contains("../secret.sql")),
+        "{errors:?}"
+    );
+    assert!(
+        errors
+            .iter()
+            .any(|(code, message)| *code == "block.schema" && message.contains("401 lines")),
+        "{errors:?}"
+    );
+}
+
 impl Folder {
     fn new() -> Self {
         static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);

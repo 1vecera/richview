@@ -8,6 +8,7 @@ mod feedback;
 mod focus;
 mod hint_place;
 mod lazy;
+mod name_target;
 mod overview;
 mod readout_place;
 mod title;
@@ -2304,16 +2305,24 @@ fn redraw_all(relayout: bool) {
     }
 }
 
-/// The hover dot in its two-pixel surface ring, inside a soft halo of its own colour that
-/// reaches four pixels past the ring (FEA-CH-53).
-fn hover_dot(items: &mut Vec<Item>, at: [f64; 2], grown: f64, color: Rgba, surface: Rgba) {
-    // The dot, its ring and its halo grow in together.
+/// The hover dot in its two-pixel surface ring, inside the selection glow of its own colour
+/// (FEA-CH-53).
+fn hover_dot(
+    items: &mut Vec<Item>,
+    at: [f64; 2],
+    grown: f64,
+    color: Rgba,
+    surface: Rgba,
+    glow: contour::Glow,
+) {
+    // The dot, its ring and its glow grow in together.
     let scale = 0.4 + 0.6 * grown;
-    for (radius, fill) in [
-        (
-            (8.0 + contour::HALO_REACH) * scale,
-            contour::halo(color, grown),
-        ),
+    let mut discs: Vec<(f64, Rgba)> = glow
+        .discs(8.0, color, grown)
+        .into_iter()
+        .map(|(radius, fill)| (radius * scale, fill))
+        .collect();
+    discs.extend([
         (
             8.0 * scale,
             surface.with_alpha(surface.0[3] as f64 * grown.min(1.0)),
@@ -2322,7 +2331,8 @@ fn hover_dot(items: &mut Vec<Item>, at: [f64; 2], grown: f64, color: Rgba, surfa
             6.0 * scale,
             color.with_alpha(color.0[3] as f64 * grown.min(1.0)),
         ),
-    ] {
+    ]);
+    for (radius, fill) in discs {
         items.push(Item::Point {
             center: at,
             radius,
@@ -2712,6 +2722,10 @@ fn overlay_for(v: &View, t: Target, grown: f64, items: &mut Vec<Item>) {
     let contour_ink = richview_chart::color::parse(&theme.ink)
         .map(|c| Rgba::from_oklch(c, 1.0))
         .unwrap_or(ink);
+    // Hand-drawn keeps one flat band (`chart.glow: flat`); the other styles glow (FEA-CH-53).
+    let dot_glow = contour::Glow::style(theme.flat_glow);
+    let kind = v.chart.block.kind.name();
+    let glow = contour::Glow::of(kind, theme.flat_glow, v.chart.block.encoding.size.is_some());
     if let Some(contour) = contour::items(
         v.chart.block.kind.name(),
         panel,
@@ -2724,6 +2738,7 @@ fn overlay_for(v: &View, t: Target, grown: f64, items: &mut Vec<Item>) {
         },
         surface,
         grown,
+        glow,
     ) {
         items.extend(contour);
         return;
@@ -2734,14 +2749,14 @@ fn overlay_for(v: &View, t: Target, grown: f64, items: &mut Vec<Item>) {
         Targeting::NearestX => {
             for d in &o.dots {
                 let color = v.geometry.series.get(d.series).map_or(ink, |s| s.color);
-                hover_dot(items, d.at, grown, color, surface);
+                hover_dot(items, d.at, grown, color, surface, dot_glow);
             }
             if o.dots.is_empty() {
                 let color = o
                     .series
                     .and_then(|s| v.geometry.series.get(s))
                     .map_or(ink, |s| s.color);
-                hover_dot(items, o.at, grown, color, surface);
+                hover_dot(items, o.at, grown, color, surface, dot_glow);
             }
         }
         Targeting::Radius => {
@@ -2795,7 +2810,8 @@ fn overlay_for(v: &View, t: Target, grown: f64, items: &mut Vec<Item>) {
             }
             // A grid node has no series: it answers in ink, as the contours of other marks do.
             if v.chart.block.kind.name() == "contour" {
-                if let Some(dot) = contour::node(panel, t.observation, grown, contour_ink, surface)
+                if let Some(dot) =
+                    contour::node(panel, t.observation, grown, contour_ink, surface, dot_glow)
                 {
                     items.extend(dot);
                 }
@@ -4407,17 +4423,19 @@ fn toggle_series(view: &Rc<RefCell<View>>, key: &str) {
 fn build_names(view: &Rc<RefCell<View>>, focused: &Option<String>) {
     let (frame, names) = {
         let v = view.borrow();
-        let names: Vec<(usize, String, String, bool, Rect)> = if v.geometry.legend.is_some() {
+        // Each name with the dots of its own line, which its button keeps off.
+        type Name = (usize, String, String, bool, Rect, Vec<[f64; 2]>);
+        let names: Vec<Name> = if v.geometry.legend.is_some() {
             Vec::new()
         } else {
             v.geometry
                 .panels
                 .iter()
-                .flat_map(|p| p.items.iter())
+                .flat_map(|p| p.items.iter().map(move |i| (p, i)))
                 // A series' name stands beside the plot or inside it beside its own line
                 // (FEA-CH-27), set in the data face. A value label is set in figures, also when
                 // its number spells a series' name ("18" on a series named 18).
-                .filter_map(|i| match i {
+                .filter_map(|(p, i)| match i {
                     Item::Text(t)
                         if t.role == Role::Label
                             && t.face == Face::Data
@@ -4425,8 +4443,16 @@ fn build_names(view: &Rc<RefCell<View>>, focused: &Option<String>) {
                     {
                         let i = t.series?;
                         let s = v.geometry.series.get(i)?;
+                        let dots = || {
+                            p.observations
+                                .iter()
+                                .flat_map(|o| &o.dots)
+                                .filter(|dot| dot.series == i)
+                                .map(|dot| dot.at)
+                                .collect()
+                        };
                         (s.name == t.text)
-                            .then(|| (i, s.key.clone(), s.name.clone(), s.hidden, t.bounds))
+                            .then(|| (i, s.key.clone(), s.name.clone(), s.hidden, t.bounds, dots()))
                     }
                     _ => None,
                 })
@@ -4442,20 +4468,23 @@ fn build_names(view: &Rc<RefCell<View>>, focused: &Option<String>) {
     {
         let buttons = old.children();
         let same = buttons.length() as usize == names.len()
-            && names.iter().enumerate().all(|(n, (_, key, _, hidden, _))| {
-                buttons.item(n as u32).is_some_and(|b| {
-                    b.get_attribute("data-rv-series").as_deref() == Some(key.as_str())
-                        && b.get_attribute("aria-pressed").as_deref()
-                            == Some(if *hidden { "false" } else { "true" })
-                })
-            });
+            && names
+                .iter()
+                .enumerate()
+                .all(|(n, (_, key, _, hidden, ..))| {
+                    buttons.item(n as u32).is_some_and(|b| {
+                        b.get_attribute("data-rv-series").as_deref() == Some(key.as_str())
+                            && b.get_attribute("aria-pressed").as_deref()
+                                == Some(if *hidden { "false" } else { "true" })
+                    })
+                });
         if same {
-            for (n, (.., r)) in names.iter().enumerate() {
+            for (n, (.., r, dots)) in names.iter().enumerate() {
                 if let Some(b) = buttons
                     .item(n as u32)
                     .and_then(|b| b.dyn_into::<HtmlElement>().ok())
                 {
-                    place_name(&b, *r);
+                    place_name(&b, *r, dots);
                 }
             }
             return;
@@ -4470,13 +4499,13 @@ fn build_names(view: &Rc<RefCell<View>>, focused: &Option<String>) {
     let group = el("div", "rv-chart__names");
     let _ = group.set_attribute("role", "group");
     let _ = group.set_attribute("aria-label", "Series");
-    for (i, key, name, hidden, r) in names {
+    for (i, key, name, hidden, r, dots) in names {
         let b = el("button", "rv-chart__name");
         let _ = b.set_attribute("type", "button");
         let _ = b.set_attribute("data-rv-series", &key);
         let _ = b.set_attribute("aria-pressed", if hidden { "false" } else { "true" });
         b.set_text_content(Some(&name));
-        place_name(&b, r);
+        place_name(&b, r, &dots);
         let w = Rc::downgrade(view);
         on(&b.clone().into(), "click", move |_| {
             if let Some(view) = w.upgrade() {
@@ -4503,20 +4532,24 @@ fn build_names(view: &Rc<RefCell<View>>, focused: &Option<String>) {
 }
 
 /// Lay a name button over the canvas text it stands for, with a small margin.
-fn place_name(b: &HtmlElement, r: Rect) {
-    // A target is at least 24 by 24 CSS pixels (WCAG 2.5.8), centred on the name it covers; the
-    // padding is hit area only, and the stylesheet keeps the tint and ring on the name itself.
-    const MIN_TARGET: f64 = 24.0;
-    let (name_w, name_h) = (r.w + 4.0, r.h + 4.0);
-    let w = name_w.max(MIN_TARGET);
-    let h = name_h.max(MIN_TARGET);
+fn place_name(b: &HtmlElement, r: Rect, dots: &[[f64; 2]]) {
+    let target = name_target::of(r, dots);
+    // The name with its margin; the rest of the target is hit area only, and the stylesheet
+    // keeps the tint and ring on the name itself.
+    let name = r.inflate(name_target::MARGIN);
     let style = b.style();
-    let _ = style.set_property("left", &format!("{}px", r.x + r.w / 2.0 - w / 2.0));
-    let _ = style.set_property("top", &format!("{}px", r.y + r.h / 2.0 - h / 2.0));
-    let _ = style.set_property("width", &format!("{w}px"));
-    let _ = style.set_property("height", &format!("{h}px"));
-    let _ = style.set_property("--rv-px", &format!("{}px", (w - name_w) / 2.0));
-    let _ = style.set_property("--rv-py", &format!("{}px", (h - name_h) / 2.0));
+    let _ = style.set_property("left", &format!("{}px", target.x));
+    let _ = style.set_property("top", &format!("{}px", target.y));
+    let _ = style.set_property("width", &format!("{}px", target.w));
+    let _ = style.set_property("height", &format!("{}px", target.h));
+    for (side, pad) in [
+        ("--rv-pt", name.y - target.y),
+        ("--rv-pr", target.right() - name.right()),
+        ("--rv-pb", target.bottom() - name.bottom()),
+        ("--rv-pl", name.x - target.x),
+    ] {
+        let _ = style.set_property(side, &format!("{}px", pad.max(0.0)));
+    }
 }
 
 /// A labelled button: chart actions from the shared markup with their icon (FEA-CH-43), other
@@ -5384,7 +5417,7 @@ mod hover_cue_tests {
                 .map_or(observation.at, |dot| dot.at);
             let ink = Rgba([0.2, 0.3, 0.4, 1.0]);
             let mut dots = Vec::new();
-            hover_dot(&mut dots, at, 1.0, ink, ink);
+            hover_dot(&mut dots, at, 1.0, ink, ink, contour::Glow::MEDIUM);
             assert!(
                 dots.iter()
                     .all(|item| matches!(item, Item::Point { center, .. } if *center == at))
@@ -5394,7 +5427,7 @@ mod hover_cue_tests {
                 crosshair_line(Rect::new(10.0, 20.0, 0.5, 80.0), observation.x, 1.5, ink).is_none()
             );
             let mut dots_after = Vec::new();
-            hover_dot(&mut dots_after, at, 1.0, ink, ink);
+            hover_dot(&mut dots_after, at, 1.0, ink, ink, contour::Glow::MEDIUM);
             assert_eq!(dots, dots_after, "the dot keeps its original coordinates");
             assert_eq!(
                 geometry, original,
@@ -5510,11 +5543,60 @@ mod hover_cue_tests {
     }
 
     #[test]
+    fn selected_dot_glows_medium_and_fades_evenly_outwards() {
+        let mut items = Vec::new();
+        let ink = Rgba([0.1, 0.4, 0.8, 1.0]);
+        let surface = Rgba([0.05, 0.06, 0.08, 1.0]);
+        hover_dot(
+            &mut items,
+            [20.0, 30.0],
+            1.0,
+            ink,
+            surface,
+            contour::Glow::MEDIUM,
+        );
+        // Ten bands out to ten pixels past the ring, outermost first, then the ring and the dot.
+        assert_eq!(items.len(), 12);
+        let radii: Vec<f64> = items
+            .iter()
+            .map(|item| match item {
+                Item::Point { radius, .. } => *radius,
+                _ => panic!("expected a filled circle"),
+            })
+            .collect();
+        assert_eq!(radii[0], 18.0);
+        assert_eq!(radii[9], 9.0);
+        assert_eq!(radii[10..], [8.0, 6.0]);
+        // Every band carries the same strength, and together they give a third of the colour
+        // at the ring.
+        let alphas: Vec<f64> = items[..10]
+            .iter()
+            .map(|item| match item {
+                Item::Point {
+                    fill: Some(fill), ..
+                } => fill.color.0[3] as f64,
+                _ => panic!("expected a filled circle"),
+            })
+            .collect();
+        assert!(alphas.windows(2).all(|w| (w[0] - w[1]).abs() < 1e-6));
+        let at_ring = 1.0 - alphas.iter().map(|a| 1.0 - a).product::<f64>();
+        assert!((at_ring - 0.34).abs() < 1e-4, "{at_ring}");
+    }
+
+    #[test]
     fn selected_dot_has_six_pixel_fill_and_surface_coloured_two_pixel_halo() {
         let mut items = Vec::new();
         let ink = Rgba([0.1, 0.4, 0.8, 1.0]);
         let dark_surface = Rgba([0.05, 0.06, 0.08, 1.0]);
-        hover_dot(&mut items, [20.0, 30.0], 1.0, ink, dark_surface);
+        // A pen-drawn style keeps one flat band.
+        hover_dot(
+            &mut items,
+            [20.0, 30.0],
+            1.0,
+            ink,
+            dark_surface,
+            contour::Glow::FLAT,
+        );
         assert_eq!(items.len(), 3);
         // A quarter of the dot's own colour, four pixels past the ring, under both.
         let halo = Rgba([0.1, 0.4, 0.8, 0.25]);

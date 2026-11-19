@@ -37,14 +37,14 @@ STOPS = [
         "Developer net stance: Anthropic {hn_net_anthropic_latest}, OpenAI {hn_net_openai_latest} in Q3 2026",
         3.0,
     ),
-    ("The next fight is over coding agents", "Codex now leads Claude Code in developer talk and searches", 3.0),
+    ("The next fight is over coding agents", "Codex led developer talk in August and September; Claude Code was back ahead in October", 3.0),
     (
         "Consumers: OpenAI's moat holds",
         "Probability samples: ChatGPT reaches {survey_reach_ratio_min} to "
         "{survey_reach_ratio_max} times as many people",
         2.5,
     ),
-    ("Money: Anthropic's crossover", "Q2 2026 revenue: {q2_2026_revenue_anthropic} vs {q2_2026_revenue_openai}", 2.5),
+    ("Money: Anthropic's crossover", "Q3 2026 revenue: {revenue_latest_anthropic} vs {revenue_latest_openai}", 2.5),
     (
         "Capability: a tie, with specialties",
         "Composite capability: {eci_anthropic_latest} vs {eci_openai_latest}, inside the error",

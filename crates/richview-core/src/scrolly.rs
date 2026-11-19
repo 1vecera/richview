@@ -229,6 +229,7 @@ pub(crate) fn render(
             options,
             &Context {
                 heading_ids: &[],
+                section_markers: false,
                 first_line: Some(line),
                 columns: false,
                 path: &path,

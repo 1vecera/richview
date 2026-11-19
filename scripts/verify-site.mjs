@@ -438,7 +438,7 @@ try {
       const page = await h.browser.newPage({ viewport: { width, height: 900 } });
       for (const [route, selector] of [
         ['/install', 'pre.shell'],
-        ['/docs/install', 'pre:has(> code.language-sh), pre:has(> code.language-bash)'],
+        ['/docs/install', 'pre:has(> code.language-sh), pre:has(> code.language-bash), pre:has(> code.language-powershell)'],
         ['/docs/publishing', 'pre:has(> code.language-sh), pre:has(> code.language-bash)'],
       ]) {
         await page.goto(h.base + route);

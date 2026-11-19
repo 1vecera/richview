@@ -1,0 +1,3 @@
+background:
+  picture: "data:image/svg+xml,<svg onload=HOSTILE_SVG()>"
+  place: header

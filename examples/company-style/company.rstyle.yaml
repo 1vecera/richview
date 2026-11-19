@@ -1,7 +1,8 @@
 # Fictional company. Change this one colour to make another company style.
+preset: air
+colors:
+  brand: "#0B6E69"
 company:
   name: Your Company Name Inc.
-  color: "#0B6E69"
-  base: air
   logo: logo.png
   logo-dark: logo-dark.png

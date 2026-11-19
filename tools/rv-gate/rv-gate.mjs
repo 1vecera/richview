@@ -14,6 +14,7 @@
 //   rv-gate candidate            cut candidate/<n> from origin/pre-prod (DEL-63, DEL-81)
 //   rv-gate hotfix <dev-commit>  check one dev commit on top of prod and cut a hotfix candidate
 //   rv-gate prod <candidate>     full tier on a frozen candidate; writes the go card and report
+//   rv-gate windows <candidate> --run <dir>   record a passing Windows walk on the candidate (ARC-67)
 //   rv-gate merge-prod <candidate> --go "<Daniel's words and time>"   merge into prod on his go
 //   rv-gate report [--from <ref>] [--to <ref>]   the before-and-after report (DEL-69)
 //   rv-gate audit                every dev commit since prod has a receipt (DEL-38)
@@ -1122,7 +1123,7 @@ function cutCandidate() {
  * local copy while the gate is not on dev yet.
  */
 function fromDevCopy(command, args) {
-	if (!["dev", "release", "full", "affected", "prod", "candidate", "hotfix", "merge-prod", "report"].includes(command)) return undefined;
+	if (!["dev", "release", "full", "affected", "prod", "candidate", "hotfix", "windows", "merge-prod", "report"].includes(command)) return undefined;
 	if (args.bootstrap || process.env.RV_GATE_REEXEC === "1") return undefined;
 	const gate = workCheckout("gate");
 	gitIn(gate, "fetch", "-q", "origin", "dev", "pre-prod");
@@ -1195,6 +1196,10 @@ async function main() {
 			const card = writeGoCard({ receipt, cwd: workCheckout("work") });
 			console.log(`Go card: ${card}`);
 			return receipt.result === "pass" ? 0 : 1;
+		}
+		case "windows": {
+			const { recordWindowsWalk } = await import("./lib/report.mjs");
+			return recordWindowsWalk({ candidate: args._[0], run: args.run && resolve(args.run), cwd: workCheckout("work") });
 		}
 		case "merge-prod": {
 			const { mergeProd } = await import("./lib/report.mjs");

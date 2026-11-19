@@ -1,5 +1,7 @@
 quarter,company,revenue_usd_bn,status,source_id
-Q1 2026,Anthropic,4.73,documents viewed by Bloomberg,C110
+Q1 2026,Anthropic,4.731,"filed (S-1/A), quarter unaudited",C212
 Q1 2026,OpenAI,5.7,reported to investors,C015
-Q2 2026,Anthropic,11.5,"preliminary, documents viewed by Bloomberg",C110
+Q2 2026,Anthropic,11.555,"filed (S-1/A), quarter unaudited",C212
 Q2 2026,OpenAI,6.7,reported to investors,C015
+Q3 2026,Anthropic,16.956,"filed (S-1/A), quarter unaudited",C212
+Q3 2026,OpenAI,10.0,"about, reported to investors",C213

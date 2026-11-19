@@ -106,6 +106,10 @@ pub struct ChartTheme {
     pub size: f64,
     pub bar_radius: f64,
     pub decals: bool,
+    /// A highlighted mark keeps one flat band instead of the glow: the style's `chart.glow: flat`,
+    /// which only Hand-drawn sets (FEA-CH-53). Absent from the payload when false.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub flat_glow: bool,
     /// Heatmap cells below zero carry a diagonal hatch, for styles whose arms share one hue.
     pub sign_hatch: bool,
     pub curve: String,
@@ -153,6 +157,7 @@ impl Default for ChartTheme {
             size: 12.0,
             bar_radius: 3.0,
             decals: false,
+            flat_glow: false,
             sign_hatch: false,
             curve: "monotone".into(),
             curvature: 1.0,

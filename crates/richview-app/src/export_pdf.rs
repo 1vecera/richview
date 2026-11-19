@@ -300,7 +300,7 @@ fn request_allowed(
 }
 
 /// Print `request.html` to PDF bytes.
-#[cfg(unix)]
+#[cfg(any(unix, windows))]
 pub fn print_pdf(request: &PdfRequest) -> Result<PdfExport, Vec<Diagnostic>> {
     let browser = find_browser(request.browser.as_deref())?;
     let mut session = cdp::Session::launch(&browser)?;
@@ -323,12 +323,12 @@ pub fn print_pdf(request: &PdfRequest) -> Result<PdfExport, Vec<Diagnostic>> {
     })
 }
 
-#[cfg(not(unix))]
+#[cfg(not(any(unix, windows)))]
 pub fn print_pdf(_request: &PdfRequest) -> Result<PdfExport, Vec<Diagnostic>> {
     Err(vec![diagnostic(
         "error",
         "export.platform",
-        "PDF output is not available on Windows yet; it runs on Linux and macOS.",
+        "PDF output is not available on this platform; it runs on Linux, macOS and Windows.",
     )])
 }
 
@@ -616,22 +616,49 @@ const LOCAL_LINKS: &str = r#"(() => {
 const FONT_SAMPLE: &str = "h1,h2,h3,h4,p,li,td,th,dt,dd,figcaption span,a,em,strong,b,code,time,.rv-metric__value,.rv-metric__label,.rv-chart__legend-name,svg text,math,mi,mn,mo,mtext,ms";
 const FONT_SAMPLE_LIMIT: usize = 800;
 
-#[cfg(unix)]
+/// The browser's switches on every platform; the profile folder and `about:blank` follow.
+const BROWSER_SWITCHES: [&str; 12] = [
+    "--headless",
+    "--remote-debugging-pipe",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-extensions",
+    "--disable-background-networking",
+    "--disable-component-update",
+    "--disable-default-apps",
+    "--disable-sync",
+    "--mute-audio",
+    "--hide-scrollbars",
+    "--force-color-profile=srgb",
+];
+
+#[cfg(any(unix, windows))]
 mod cdp {
     use super::*;
     use std::{
         fs::File,
         io::{Read, Write},
+        sync::{Arc, Mutex, mpsc},
+    };
+    #[cfg(unix)]
+    use std::{
         os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd},
         os::unix::process::CommandExt,
         process::{Child, Command, Stdio},
-        sync::{Arc, Mutex, mpsc},
     };
 
     pub struct Session {
+        #[cfg(unix)]
         child: Child,
         /// Set before Chrome executes, so its startup forks belong to this launch alone.
+        #[cfg(unix)]
         group: Option<libc::pid_t>,
+        #[cfg(windows)]
+        child: crate::win_process::Process,
+        /// Holds the browser before it runs, so every process it starts belongs to this
+        /// launch alone; closing it ends them all.
+        #[cfg(windows)]
+        group: Option<crate::win_process::Job>,
         dir: PathBuf,
         writer: File,
         messages: mpsc::Receiver<Value>,
@@ -668,6 +695,7 @@ mod cdp {
         }
     }
 
+    #[cfg(unix)]
     fn pipe() -> std::io::Result<(OwnedFd, OwnedFd)> {
         let mut fds = [0 as RawFd; 2];
         #[cfg(target_os = "linux")]
@@ -691,6 +719,31 @@ mod cdp {
         Ok(ends)
     }
 
+    /// A new folder only this user may open, as the Unix folder's mode 0700: its DACL grants
+    /// the user alone and inherits nothing from the temporary folder.
+    #[cfg(windows)]
+    fn private_dir() -> std::io::Result<PathBuf> {
+        use crate::win_process::{self, Grant};
+        use windows_sys::Win32::Security::{CONTAINER_INHERIT_ACE, OBJECT_INHERIT_ACE};
+        use windows_sys::Win32::Storage::FileSystem::FILE_ALL_ACCESS;
+        let dir = std::env::temp_dir().join(format!(
+            "richview-pdf-{}-{:08x}",
+            std::process::id(),
+            fastrand::u32(..)
+        ));
+        let user = win_process::current_user()?;
+        win_process::create_private_dir(
+            &dir,
+            &[Grant {
+                sid: &user,
+                mask: FILE_ALL_ACCESS,
+                inherit: OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE,
+            }],
+        )?;
+        Ok(dir)
+    }
+
+    #[cfg(unix)]
     fn private_dir() -> std::io::Result<PathBuf> {
         use std::os::unix::fs::DirBuilderExt;
         let nanos = std::time::SystemTime::now()
@@ -720,17 +773,18 @@ mod cdp {
         });
         let line = format!("{event}\n");
         if let Some(path) = std::env::var_os("RICHVIEW_BROWSER_EVENT_LOG") {
-            use std::os::unix::fs::OpenOptionsExt;
             let path = PathBuf::from(path);
             if !path.is_absolute() {
                 return Err(vec![failed(
                     "Cannot record browser startup relaunch: RICHVIEW_BROWSER_EVENT_LOG must be an absolute path",
                 )]);
             }
-            std::fs::OpenOptions::new()
+            let mut options = std::fs::OpenOptions::new();
+            #[cfg(unix)]
+            std::os::unix::fs::OpenOptionsExt::mode(&mut options, 0o600);
+            options
                 .create(true)
                 .append(true)
-                .mode(0o600)
                 .open(path)
                 .and_then(|mut file| file.write_all(line.as_bytes()))
                 .map_err(|e| {
@@ -795,6 +849,104 @@ mod cdp {
             }
         }
 
+        /// Chrome reads commands from descriptor 3 and writes replies to descriptor 4. On
+        /// Windows those are C runtime descriptors, which the launch passes in the table the
+        /// runtime reads at startup; the browser starts inside a job that ends its whole tree.
+        #[cfg(windows)]
+        fn spawn(browser: &Path, dir: &Path) -> Result<Session, Vec<Diagnostic>> {
+            use crate::win_process::{self, Job, Launch};
+            use std::{ffi::OsStr, os::windows::io::AsRawHandle};
+            let pipe_error = |e: std::io::Error| vec![failed(format!("Cannot open a pipe: {e}"))];
+            let (browser_reads, commands) = win_process::pipe().map_err(pipe_error)?;
+            let (replies, browser_writes) = win_process::pipe().map_err(pipe_error)?;
+            let (errors, browser_errors) = win_process::pipe().map_err(pipe_error)?;
+            let null = win_process::null_device().map_err(pipe_error)?;
+            let job = Job::kill_on_close()
+                .map_err(|e| vec![failed(format!("Cannot create a job for the browser: {e}"))])?;
+            let profile = format!("--user-data-dir={}", dir.join("profile").display());
+            let mut args: Vec<&OsStr> = BROWSER_SWITCHES.iter().map(OsStr::new).collect();
+            args.extend([OsStr::new(&profile), OsStr::new("about:blank")]);
+            let child = win_process::launch(&Launch {
+                program: browser,
+                args: &args,
+                env: None,
+                cwd: None,
+                descriptors: &[
+                    null.as_raw_handle(),
+                    null.as_raw_handle(),
+                    browser_errors.as_raw_handle(),
+                    browser_reads.as_raw_handle(),
+                    browser_writes.as_raw_handle(),
+                ],
+                job: &job,
+                tokens: None,
+                no_child_processes: false,
+            })
+            .map_err(|e| vec![failed(format!("Cannot start {}: {e}", browser.display()))])?;
+            drop((browser_reads, browser_writes, browser_errors, null));
+            let (stderr, messages) = Self::read_browser(File::from(errors), File::from(replies));
+            Ok(Session {
+                group: Some(job),
+                child,
+                dir: dir.to_path_buf(),
+                writer: File::from(commands),
+                messages,
+                stderr,
+                next_id: 0,
+                session: None,
+                page_url: String::new(),
+                photos: BTreeSet::new(),
+                blocked: Vec::new(),
+                events: Vec::new(),
+                version: Value::Null,
+                // Chrome keeps its own sandbox on Windows: RichView never runs it as root there.
+                sandbox: true,
+            })
+        }
+
+        /// Threads that keep the tail of the browser's error output and turn its replies,
+        /// NUL-terminated JSON, into messages.
+        fn read_browser(
+            mut errors: impl Read + Send + 'static,
+            mut reader: impl Read + Send + 'static,
+        ) -> (Arc<Mutex<Vec<u8>>>, mpsc::Receiver<Value>) {
+            let stderr = Arc::new(Mutex::new(Vec::new()));
+            let tail = stderr.clone();
+            std::thread::spawn(move || {
+                let mut buffer = [0u8; 4096];
+                while let Ok(n) = errors.read(&mut buffer) {
+                    if n == 0 {
+                        break;
+                    }
+                    let mut tail = tail.lock().unwrap_or_else(|e| e.into_inner());
+                    tail.extend_from_slice(&buffer[..n]);
+                    let excess = tail.len().saturating_sub(4096);
+                    tail.drain(..excess);
+                }
+            });
+            let (sender, messages) = mpsc::channel();
+            std::thread::spawn(move || {
+                let mut pending = Vec::new();
+                let mut buffer = vec![0u8; 1 << 16];
+                while let Ok(n) = reader.read(&mut buffer) {
+                    if n == 0 {
+                        break;
+                    }
+                    pending.extend_from_slice(&buffer[..n]);
+                    while let Some(end) = pending.iter().position(|b| *b == 0) {
+                        let message: Vec<u8> = pending.drain(..=end).collect();
+                        if let Ok(value) = serde_json::from_slice(&message[..end])
+                            && sender.send(value).is_err()
+                        {
+                            return;
+                        }
+                    }
+                }
+            });
+            (stderr, messages)
+        }
+
+        #[cfg(unix)]
         fn spawn(browser: &Path, dir: &Path) -> Result<Session, Vec<Diagnostic>> {
             let pipe_error = |e: std::io::Error| vec![failed(format!("Cannot open a pipe: {e}"))];
             let (browser_reads, commands) = pipe().map_err(pipe_error)?;
@@ -804,20 +956,7 @@ mod cdp {
             let mut command = Command::new(browser);
             command
                 .process_group(0)
-                .args([
-                    "--headless",
-                    "--remote-debugging-pipe",
-                    "--no-first-run",
-                    "--no-default-browser-check",
-                    "--disable-extensions",
-                    "--disable-background-networking",
-                    "--disable-component-update",
-                    "--disable-default-apps",
-                    "--disable-sync",
-                    "--mute-audio",
-                    "--hide-scrollbars",
-                    "--force-color-profile=srgb",
-                ])
+                .args(BROWSER_SWITCHES)
                 .arg(format!("--user-data-dir={}", dir.join("profile").display()));
             // Chrome refuses to run its sandbox as root, for example in a container.
             if root {
@@ -849,42 +988,11 @@ mod cdp {
                 .spawn()
                 .map_err(|e| vec![failed(format!("Cannot start {}: {e}", browser.display()))])?;
             drop((browser_reads, browser_writes));
-            let stderr = Arc::new(Mutex::new(Vec::new()));
-            if let Some(mut pipe) = child.stderr.take() {
-                let tail = stderr.clone();
-                std::thread::spawn(move || {
-                    let mut buffer = [0u8; 4096];
-                    while let Ok(n) = pipe.read(&mut buffer) {
-                        if n == 0 {
-                            break;
-                        }
-                        let mut tail = tail.lock().unwrap_or_else(|e| e.into_inner());
-                        tail.extend_from_slice(&buffer[..n]);
-                        let excess = tail.len().saturating_sub(4096);
-                        tail.drain(..excess);
-                    }
-                });
-            }
-            let (sender, messages) = mpsc::channel();
-            let mut reader = File::from(replies);
-            std::thread::spawn(move || {
-                let mut pending = Vec::new();
-                let mut buffer = vec![0u8; 1 << 16];
-                while let Ok(n) = reader.read(&mut buffer) {
-                    if n == 0 {
-                        break;
-                    }
-                    pending.extend_from_slice(&buffer[..n]);
-                    while let Some(end) = pending.iter().position(|b| *b == 0) {
-                        let message: Vec<u8> = pending.drain(..=end).collect();
-                        if let Ok(value) = serde_json::from_slice(&message[..end])
-                            && sender.send(value).is_err()
-                        {
-                            return;
-                        }
-                    }
-                }
-            });
+            let errors: Box<dyn Read + Send> = match child.stderr.take() {
+                Some(pipe) => Box::new(pipe),
+                None => Box::new(std::io::empty()),
+            };
+            let (stderr, messages) = Self::read_browser(errors, File::from(replies));
             Ok(Session {
                 group: Some(child.id() as libc::pid_t),
                 child,
@@ -1265,6 +1373,38 @@ mod cdp {
             json!({"path": path, "product": self.version["product"], "revision": self.version["revision"], "protocol": self.version["protocolVersion"], "sandbox": self.sandbox})
         }
 
+        /// End every process of the launch's job and wait until none is left.
+        #[cfg(windows)]
+        fn terminate(&mut self) -> Result<(), String> {
+            let Some(job) = &self.group else {
+                return Ok(());
+            };
+            let deadline = Instant::now() + Duration::from_secs(5);
+            job.terminate()
+                .map_err(|e| format!("Cannot stop the browser's processes: {e}"))?;
+            while job
+                .active_processes()
+                .map_err(|e| format!("Cannot check the browser's processes: {e}"))?
+                > 0
+            {
+                if Instant::now() >= deadline {
+                    return Err("The browser's processes did not stop".into());
+                }
+                std::thread::sleep(Duration::from_millis(10));
+            }
+            let _ = self.child.try_wait();
+            self.group = None;
+            // Windows releases an ended process's files a moment later.
+            while self.dir.exists()
+                && std::fs::remove_dir_all(&self.dir).is_err()
+                && Instant::now() < deadline
+            {
+                std::thread::sleep(Duration::from_millis(50));
+            }
+            Ok(())
+        }
+
+        #[cfg(unix)]
         fn terminate(&mut self) -> Result<(), String> {
             let Some(group) = self.group else {
                 return Ok(());
@@ -1347,7 +1487,35 @@ mod cdp {
         }
     }
 
-    #[cfg(test)]
+    #[cfg(all(test, windows))]
+    mod windows_tests {
+        use super::*;
+
+        #[test]
+        fn the_installed_browser_answers_on_the_pipe_and_its_whole_tree_ends_on_close() {
+            let browser = find_browser(None).expect("Windows ships Microsoft Edge");
+            let mut session = Session::launch(&browser).unwrap();
+            assert!(
+                session.version["product"]
+                    .as_str()
+                    .is_some_and(|product| product.contains('/')),
+                "{}",
+                session.version
+            );
+            let job = session.group.as_ref().unwrap();
+            assert!(
+                job.active_processes().unwrap() >= 2,
+                "a Chromium browser runs as several processes"
+            );
+            let dir = session.dir.clone();
+            assert!(dir.exists());
+            session.close().unwrap();
+            assert!(session.group.is_none());
+            assert!(!dir.exists());
+        }
+    }
+
+    #[cfg(all(test, unix))]
     mod tests {
         use super::*;
         use std::os::unix::fs::PermissionsExt;

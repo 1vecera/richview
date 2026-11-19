@@ -1,0 +1,43 @@
+---
+title: Columns options
+---
+
+Every option of a columns opener is closed vocabulary; nothing an author writes reaches a class
+or a style.
+
+::: columns {widths: "1fr; background:url(javascript:HOSTILE_WIDTHS)", gap: "<script>HOSTILE_GAP</script>"}
+
+::: column
+First.
+:::
+
+::: column
+Second.
+:::
+
+:::
+
+::: columns {class: rv-hostile-columns, style: "color:HOSTILE_STYLE", id: rv-chart-0, align: center}
+
+::: column
+<script>HOSTILE_SCRIPT</script> First, with raw HTML.
+:::
+
+::: column
+<div class="rv-hostile-inner" onclick="HOSTILE_HANDLER">Second.</div>
+
+:::
+
+:::
+
+::: columns <img src=x onerror=HOSTILE_ONERROR>
+
+::: column
+Third.
+:::
+
+::: column
+Fourth.
+:::
+
+:::

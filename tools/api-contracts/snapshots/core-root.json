@@ -21,6 +21,16 @@
         "declaration": "pub use asset : : AssetUse ;"
       },
       {
+        "name": "BACKGROUND_PICTURE_MAX_BYTES",
+        "kind": "use",
+        "declaration": "pub use company_logo : : BACKGROUND_PICTURE_MAX_BYTES ;"
+      },
+      {
+        "name": "BACKGROUND_PICTURE_MAX_DIMENSION",
+        "kind": "use",
+        "declaration": "pub use company_logo : : BACKGROUND_PICTURE_MAX_DIMENSION ;"
+      },
+      {
         "name": "CHART_TYPES",
         "kind": "use",
         "declaration": "pub use authoring : : CHART_TYPES ;"
@@ -51,6 +61,11 @@
         "declaration": "pub use company_logo : : CompanyLogoError ;"
       },
       {
+        "name": "EXTENDED_PRESETS",
+        "kind": "use",
+        "declaration": "pub use style : : presets : : EXTENDED_PRESETS ;"
+      },
+      {
         "name": "HighlightLanguage",
         "kind": "use",
         "declaration": "pub use highlight : : HighlightLanguage ;"
@@ -74,6 +89,21 @@
         "name": "SLUG_GRAMMAR",
         "kind": "use",
         "declaration": "pub use identity : : SLUG_GRAMMAR ;"
+      },
+      {
+        "name": "STEPS",
+        "kind": "use",
+        "declaration": "pub use style : : settings : : STEPS ;"
+      },
+      {
+        "name": "STEP_SETTINGS",
+        "kind": "use",
+        "declaration": "pub use style : : settings : : SETTINGS as STEP_SETTINGS ;"
+      },
+      {
+        "name": "StepSetting",
+        "kind": "use",
+        "declaration": "pub use style : : settings : : StepSetting ;"
       },
       {
         "name": "StyleGrammar",
@@ -167,6 +197,11 @@
         "declaration": "pub use asset : : is_loopback ;"
       },
       {
+        "name": "is_preset",
+        "kind": "use",
+        "declaration": "pub use style : : presets : : is_preset ;"
+      },
+      {
         "name": "is_retired_style_name",
         "kind": "use",
         "declaration": "pub use style : : is_retired_style_name ;"
@@ -185,6 +220,16 @@
         "name": "parse_schema",
         "kind": "use",
         "declaration": "pub use compat : : parse_schema ;"
+      },
+      {
+        "name": "preset_names",
+        "kind": "use",
+        "declaration": "pub use style : : presets : : preset_names ;"
+      },
+      {
+        "name": "preset_recipe",
+        "kind": "use",
+        "declaration": "pub use style : : presets : : recipe as preset_recipe ;"
       },
       {
         "name": "primary_style",
@@ -221,6 +266,11 @@
         "name": "report_company_logo_files",
         "kind": "use",
         "declaration": "pub use company_brand : : report_company_logo_files ;"
+      },
+      {
+        "name": "report_style_media_files",
+        "kind": "use",
+        "declaration": "pub use company_brand : : report_style_media_files ;"
       },
       {
         "name": "resolve_company_brand",
@@ -841,7 +891,9 @@
               "Builtin",
               "BrandColour",
               "BrandName",
-              "BrandLogo"
+              "BrandLogo",
+              "Step",
+              "Preset"
             ]
           },
           {
@@ -863,7 +915,8 @@
             "variants": [
               "Safe",
               "Experimental",
-              "Internal"
+              "Internal",
+              "Legacy"
             ]
           },
           {

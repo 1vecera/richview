@@ -4,7 +4,7 @@ description: Run a local report server, publish once and keep the source with th
 styles: [scientific]
 ---
 
-A RichView server stores rendered reports, their source and their resources. Each published version has a permanent address; the report's shorter address follows its highest release version unless the owner pins another. RichView operates a report server at `https://app.richview.ai`, with reports served from `https://reports.richview.ai`. You can also run your own server.
+RichView Cowork, the report server, stores rendered reports, their source and their resources. Each published version has a permanent address; the report's shorter address follows its highest release version unless the owner pins another. RichView runs Cowork at `https://app.richview.ai`, with reports served from `https://reports.richview.ai`, and you can run your own with `richview server`.
 
 ## Prepare the report
 
@@ -104,6 +104,6 @@ Use a versioned address in a decision record or citation. Use the short address 
 
 ## Use a server beyond your machine
 
-With no server chosen, the interactive CLI offers RichView-operated Cowork at `https://app.richview.ai`, a self-hosted server, or cancel. It remembers your explicit choice without storing your token. To change that choice, unset `RICHVIEW_SERVER` and run `richview publish <report> --choose-server`. An explicit `--server` takes precedence over `RICHVIEW_SERVER`, which takes precedence over the saved choice. A noninteractive command with no choice fails without uploading. A saved choice is per user account on that machine.
+With no server chosen, the interactive CLI offers RichView Cowork at `https://app.richview.ai`, a self-hosted server, or cancel. It remembers your explicit choice without storing your token. To change that choice, unset `RICHVIEW_SERVER` and run `richview publish <report> --choose-server`. An explicit `--server` takes precedence over `RICHVIEW_SERVER`, which takes precedence over the saved choice. A noninteractive command with no choice fails without uploading. A saved choice is per user account on that machine.
 
 Keep tokens out of source and shared command history. Remote bearer-token requests require HTTPS; HTTP is allowed only on loopback. A self-hosted production service needs HTTPS origins, persistent storage, backups and an operating process. The CLI does not deploy that infrastructure for you.

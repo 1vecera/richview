@@ -9,11 +9,9 @@ A report can place the observations beside their interpretation, an original doc
 
 ## Make the evidence inspectable
 
-```metric
-value: 8.4
-label: Annualized deaths per 1,000, April 1854
-```
+::: columns {widths: 2-1}
 
+::: column
 ```chart
 type: bar
 title: Mortality varied through the first three recorded months
@@ -27,6 +25,22 @@ axes: { y: { label: 'Annualized deaths per 1,000' } }
 ```
 
 *Source: Nightingale's mortality record, April–June 1854; each displayed annualized rate sums the causes for that month.*
+:::
+
+::: column
+```metric
+value: 8.4
+label: Annualized deaths per 1,000, April 1854
+```
+
+```callout
+kind: hold
+title: Keep the unit with the number
+body: An annualized rate cannot be read as the number of people who died that month. Inspect the full observations before comparing periods.
+```
+:::
+
+:::
 
 ```table
 title: The rates behind the chart, 1854
@@ -42,23 +56,25 @@ columns:
 
 *Source: Florence Nightingale's Crimean War mortality record, via [HistData](https://vincentarelbundock.github.io/Rdatasets/doc/HistData/Nightingale.html). The displayed rates sum preventable disease, wounds and other causes in each of the first three months. They are annualized rates, not monthly death counts. The April metric is authored from the same observations.*
 
-```callout
-kind: hold
-title: Keep the unit with the number
-body: An annualized rate cannot be read as the number of people who died that month. Inspect the full observations before comparing periods.
-```
-
 ## The original document
 
+::: columns {align: center}
+
+::: column
 ```image
 src: media/nightingale.jpg
 alt: Florence Nightingale's 1858 diagram, with two circles of monthly mortality wedges and an explanatory legend.
 caption: Florence Nightingale, Diagram of the causes of mortality in the army in the East, 1858. Public domain; David Rumsey Map Collection, via Wikimedia Commons.
 ```
+:::
 
+::: column
 > The Areas of the blue, red, & black wedges are each measured from the centre as the common vertex.
 >
 > — Florence Nightingale, the diagram's legend (1858), [original image and credits](https://commons.wikimedia.org/wiki/File:Nightingale-mortality.jpg).
+:::
+
+:::
 
 ## A recording gives a primary source a voice
 

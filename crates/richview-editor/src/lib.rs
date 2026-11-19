@@ -86,6 +86,16 @@ pub fn snippets() -> Value {
             "```callout\nkind: ${1|up,down,neutral,hold|}\ntitle: ${2:Title}\nbody: |\n  ${3:Body}\n```\n",
         ),
         (
+            "expand",
+            "Expand",
+            "```expand\ntitle: ${1:How the sample was drawn}\nbody: |\n  ${2:The detail a reader opens when they want it.}\n```\n",
+        ),
+        (
+            "code",
+            "Code",
+            "```code\ntitle: ${1:query.sql}\nlang: ${2:sql}\ntext: |\n  ${3:select 1}\n```\n",
+        ),
+        (
             "image",
             "Image",
             "```image\nsrc: ${1:media/photo.png}\nalt: ${2:What the picture shows}\ncaption: ${3:Caption}\n```\n",
@@ -104,6 +114,11 @@ pub fn snippets() -> Value {
             "embed",
             "Embed",
             "```embed\nurl: ${1:https://www.youtube.com/embed/dQw4w9WgXcQ}\ncaption: ${2:Caption}\n```\n",
+        ),
+        (
+            "columns",
+            "Columns",
+            "::: columns {widths: ${1|equal,2-1,1-2,1-1-1|}}\n\n::: column\n${2:The first column: prose or a block.}\n:::\n\n::: column\n${3:The second column.}\n:::\n\n:::\n",
         ),
         (
             "scrolly",

@@ -516,7 +516,26 @@ pub fn path_of(uri: &str) -> Option<PathBuf> {
             i += 1;
         }
     }
-    Some(PathBuf::from(String::from_utf8(decoded).ok()?))
+    Some(PathBuf::from(drive_path(
+        String::from_utf8(decoded).ok()?,
+        cfg!(windows),
+    )))
+}
+
+/// On Windows a file URI's path starts with a slash before the drive, as VS Code writes
+/// `file:///c%3A/Users/…`; the drive path starts at the letter.
+fn drive_path(path: String, windows: bool) -> String {
+    let bytes = path.as_bytes();
+    if windows
+        && bytes.len() >= 3
+        && bytes[0] == b'/'
+        && bytes[1].is_ascii_alphabetic()
+        && bytes[2] == b':'
+    {
+        path[1..].to_owned()
+    } else {
+        path
+    }
 }
 
 /// Byte offset of an LSP position (line, UTF-16 code units).
@@ -869,6 +888,18 @@ mod tests {
             Some(PathBuf::from("/tmp/my report/report.rmd"))
         );
         assert_eq!(path_of("untitled:Untitled-1"), None);
+        assert_eq!(
+            drive_path("/c:/Users/a b/report.rmd".into(), true),
+            "c:/Users/a b/report.rmd"
+        );
+        assert_eq!(
+            drive_path("/c:/Users/report.rmd".into(), false),
+            "/c:/Users/report.rmd"
+        );
+        assert_eq!(
+            drive_path("/tmp/report.rmd".into(), true),
+            "/tmp/report.rmd"
+        );
     }
 
     #[test]

@@ -119,7 +119,7 @@ export function fullPromotionProblems(receipt, steps = stepsForTier("full", "ful
 			if (!hasCommandGap && (!browserPolicy || !requiredInner.length || innerBrowserGaps.length !== requiredInner.length
 				|| requiredInner.some(name => !innerBrowserGaps.some(input => input.what === name)))) problems.push(`${step.id}: invalid internal prelaunch browser gaps`);
 		}
-		const standingGap = ["voiceover", "hosted-smoke"].includes(step.id) && result.status === "unrun" && result.reason?.trim();
+		const standingGap = ["voiceover", "hosted-smoke", "windows"].includes(step.id) && result.status === "unrun" && result.reason?.trim();
 		const scheduledGap = step.id === "fresh-agent" && receipt.kind === "full" && result.status === "unrun" && result.reason === FRESH_AGENT_SCHEDULE;
 		const prelaunchGap = rotated.has(step.id) && result.status === "unrun" && result.reason === "prelaunch rotation" && result.rotation?.ordinal === receipt.rotation.ordinal && result.rotation?.cycle === 3;
 		const exception = prelaunchException(policy, {mode: receipt.kind, id: step.id, now});

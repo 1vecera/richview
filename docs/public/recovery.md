@@ -78,4 +78,4 @@ In the JSON result, `status: clean` means no errors or warnings. `ok: true` mean
 
 ## Find a code
 
-Search documentation for an exact code, or open the [diagnostic code reference](https://richview.ai/docs/reference/diagnostic-codes). Its table comes from the schema registry.
+Search documentation for an exact code, or open the [diagnostic code reference](https://richview.ai/docs/reference#diagnostic-codes). Its table comes from the schema registry.

@@ -318,6 +318,8 @@ pub fn parse(source: &str) -> Result<Document, Vec<Diagnostic>> {
         cursor = end;
     }
     doc.body.push_str(&content[cursor..]);
+    // Column markers are read after the fences, so a marker inside a fence is never one.
+    crate::columns::mark(&mut doc);
     Ok(doc)
 }
 
@@ -442,7 +444,10 @@ pub(crate) fn failed_prefix(block_prefix: &str) -> String {
 }
 
 fn unique_placeholder_prefix(source: &str) -> Option<String> {
-    if !source.contains(BLOCK_PLACEHOLDER_PREFIX) {
+    // The column markers share the namespace (`<!--richview:columns:`), so typing one of
+    // either in source moves both to a generated prefix the source does not hold.
+    let columns = crate::columns::prefix(BLOCK_PLACEHOLDER_PREFIX);
+    if !source.contains(BLOCK_PLACEHOLDER_PREFIX) && !source.contains(&columns) {
         return None;
     }
     const GENERATED_PREFIX: &str = "<!--richview:generated:";
@@ -451,7 +456,9 @@ fn unique_placeholder_prefix(source: &str) -> Option<String> {
     while let Some(start) = remaining.find(GENERATED_PREFIX) {
         remaining = &remaining[start + GENERATED_PREFIX.len()..];
         let digits = remaining.bytes().take_while(u8::is_ascii_digit).count();
-        if remaining[digits..].starts_with(":block:")
+        if (remaining[digits..].starts_with(":block:")
+            || remaining[digits..].starts_with(":columns:")
+            || remaining[digits..].starts_with(":failed:"))
             && let Ok(index) = remaining[..digits].parse::<usize>()
         {
             used.insert(index);
@@ -836,6 +843,8 @@ pub(crate) fn validate_block(tag: &str, value: &Value, line: usize) -> Vec<Diagn
         "chart" => &["title", "subtitle"],
         "metric" => &["label", "unit", "format", "delta_label"],
         "callout" => &["title"],
+        "expand" => &["title", "body"],
+        "code" => &["text", "lang", "title"],
         "image" => &["alt", "caption"],
         "audio" | "video" => &["alt", "title", "caption", "poster"],
         "embed" => &["caption"],
@@ -1270,6 +1279,33 @@ pub(crate) fn validate_block(tag: &str, value: &Value, line: usize) -> Vec<Diagn
                             }
                         }
                     }
+                }
+            }
+        }
+        "code" => {
+            if map.contains_key("text") == map.contains_key("src") {
+                issue(
+                    "text",
+                    "give the code as `text` or a report file as `src`, not both",
+                );
+            }
+            if let Some(marks) = map.get("mark")
+                && crate::blocks::code_marks(marks).is_none()
+            {
+                issue(
+                    "mark",
+                    "expected line numbers and ranges such as 5-6, each from 1",
+                );
+            }
+        }
+        "expand" => {
+            for key in ["title", "body"] {
+                if map
+                    .get(key)
+                    .and_then(Value::as_str)
+                    .is_some_and(|text| text.trim().is_empty())
+                {
+                    issue(key, "expected text; an empty expand has nothing to open");
                 }
             }
         }

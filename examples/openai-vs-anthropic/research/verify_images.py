@@ -30,7 +30,7 @@ def main() -> None:
     retired = {"I-AUDIENCES", "I-RATINGS"}
     assert len(rows) == len(expected) and {row["id"] for row in rows} == expected
     report = (ROOT / "report.rmd").read_text()
-    assert "date: '2026-10-02'" in report or "date: 2026-10-02" in report
+    assert "date: '2026-11-18'" in report or "date: 2026-11-18" in report
     charts = json.loads((ROOT / "data/charts/index.json").read_text())
     assert report.count("```chart\n") == len(charts) == 9
     assert "media/" not in report, "The active report still references a replaced stock photograph"
@@ -41,7 +41,7 @@ def main() -> None:
             assert row["asset"] in report and row["id"] in report, row["id"]
         assert digest(row["asset"]) == row["sha256"], row["id"]
         assert row["creator"] and row["license"] and row["source_date"] and row["source_url"]
-        assert row["collected_at"][:10] in {"2026-10-15", "2026-10-23", "2026-11-09"}, row["id"]
+        assert row["collected_at"][:10] in {"2026-10-15", "2026-10-23", "2026-11-09", "2026-11-18"}, row["id"]
         for notice in row["local_notices"].split(";"):
             assert len((ROOT / notice).read_text()) > 100, notice
     assert report.count("reproduced unchanged") == 2
@@ -74,14 +74,16 @@ def main() -> None:
     ):
         assert item["share"] == populations[measure]["anthropic_share_pct"]
         assert item["source"] == populations[measure]["source_id"]
-    counts = populations["US iOS ratings"]
+    # The retired images keep the 2 October shares they were drawn from; the report quotes the current snapshot.
+    counts = {row["measure"]: row for row in csv_rows("data/charts/population-shares.csv")}["US iOS ratings"]
     # The shortened report (15 November) quotes the exact counts in the cover's text alternative; its
     # scorecard gives their ratio.
     for count in (counts["openai_value"], counts["anthropic_value"]):
         assert f"{int(count):,}" in report, "The report lost an exact rating count"
+    frozen = populations["US iOS ratings"]
     assert ratings["chart"]["data"]["inline"] == [
-        {"product": "ChatGPT", "ratings": counts["openai_value"]},
-        {"product": "Claude", "ratings": counts["anthropic_value"]},
+        {"product": "ChatGPT", "ratings": frozen["openai_value"]},
+        {"product": "Claude", "ratings": frozen["anthropic_value"]},
     ]
     for asset in manifest["assets"]:
         relative = "assets/" + asset["file"]

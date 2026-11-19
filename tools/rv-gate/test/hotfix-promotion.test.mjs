@@ -40,6 +40,8 @@ function fixture(t, path = "tools/fix.mjs") {
 	git("remote", "add", "origin", remote);
 	const edit = (name, value) => { mkdirSync(dirname(join(cwd, name)), { recursive: true }); writeFileSync(join(cwd, name), value); };
 	const commit = (message) => { git("add", "."); git("commit", "-qm", message); return git("rev-parse", "HEAD"); };
+	// merge-prod reads whether the candidate ships Windows from this file and refuses without it.
+	edit("assets/install/release.json", '{"enabled": false, "windows": false}\n');
 	edit(path, "broken\n");
 	const prod = commit("production");
 	edit("dev-only.txt", "unreleased work\n");

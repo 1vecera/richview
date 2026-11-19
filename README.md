@@ -40,7 +40,8 @@ The installer verifies the archive checksum and creates `~/.richview`. It doesn'
 | --- | --- |
 | macOS on Apple Silicon | Supported |
 | Linux x64, glibc 2.35 or newer | Supported. Reports with SQL data sources also need kernel 6.2 or newer with Landlock ABI 3. |
-| Windows, Intel Mac | Not yet. Use the playground. |
+| Windows x64 | Supported, with the same features. Tested on Windows Server 2025; Windows 10 and 11 should behave the same but are untested. The programs are not signed yet. |
+| Intel Mac | Not yet. Use the playground. |
 
 ## What your agent writes
 
@@ -110,7 +111,7 @@ A small `report.rstyle.yaml` beside the report adjusts colours, type and chart t
 
 A file is often enough. The generated HTML is self-contained, and `richview generate first-report/report.rmd --to pdf` prints a PDF with a local Chromium, Chrome or Edge.
 
-For a link, publish to a RichView server. Each published version keeps a permanent address, and the server stores the source with the result.
+For a link, publish to RichView Cowork, the report server: RichView hosts it at [app.richview.ai](https://app.richview.ai), or you run your own with `richview server`. Each published version keeps a permanent address, and the server stores the source with the result.
 
 ```sh
 richview publish first-report/report.rmd --slug first-report --new
@@ -119,7 +120,7 @@ richview publish first-report/report.rmd --slug first-report --new
 With no server chosen, the command asks where to publish:
 
 - **Hosted by RichView.** Create an account with your email at [app.richview.ai](https://app.richview.ai) and create an author token on that page. Set `RICHVIEW_SERVER=https://app.richview.ai` and `RICHVIEW_TOKEN` to the token, then publish. Publishing uploads the report's source and linked files, and new reports are private to you until you share them. Each publish request is limited to 32 MiB, including the encoded source and files; an organization can store up to 50 MiB in total.
-- **Your own server.** `richview server` runs the same report server on your infrastructure.
+- **Your own server.** `richview server` runs the same Cowork server on your infrastructure.
 
 The [publishing walkthrough](https://richview.ai/docs/publishing) tries the whole path on your own machine first, and [publishing and access](https://richview.ai/docs/access) covers permissions, pinning and deletion.
 

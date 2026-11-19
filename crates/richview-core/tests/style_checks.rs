@@ -207,10 +207,11 @@ fn the_showcase_studio_themes_load_clean_over_a_builtin_and_pass_the_style_check
             "air"
         };
         let style = resolve_styles(&[base.to_owned(), source], &mut diagnostics);
-        // The experimental leaves (line-base, size-base) are how these themes set their layout.
+        // The studio themes are written in the presets' internal vocabulary (tokens and
+        // components), which still applies with `style.legacy` (STY-05's extended themes, STY-73).
         for d in diagnostics
             .into_iter()
-            .filter(|d| d.code != "style.experimental")
+            .filter(|d| d.code != "style.experimental" && d.code != "style.legacy")
         {
             failures.push(format!("{name}: {} {} ({})", d.code, d.message, d.path));
         }

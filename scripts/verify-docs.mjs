@@ -40,6 +40,8 @@ const snippet = readFileSync(join(root, 'docs/public/authoring.md'), 'utf8').mat
 const release = JSON.parse(readFileSync(join(root, 'assets/install/release.json'), 'utf8'));
 const installEnabled = release.enabled && process.env.RICHVIEW_DEV_PREVIEW !== '1';
 const repositoryPublic = installEnabled || process.argv.includes('--repository-public');
+// The release's Windows switch keeps or drops the Windows spans, as the build does (ARC-67).
+const windowsShips = release.windows === true;
 const h = await harness('docs');
 const env = { ...process.env };
 for (const key of ['RICHVIEW_TOKEN', 'RICHVIEW_SERVER', 'RICHVIEW_PUBLIC_URL']) delete env[key];
@@ -65,23 +67,43 @@ function docsSource(source) {
   // The build expands this placeholder into a copyable shell block only for an enabled install.
   const nativeInstall = installEnabled ? '```sh\ncurl -fsSL https://github.com/1vecera/richview/releases/latest/download/install.sh | sh\nexport PATH=\"$HOME/.richview/bin:$PATH\"\nrichview --help\n```' : '';
   source = source.replaceAll('{{native-install}}', nativeInstall);
+  const windowsInstall = installEnabled ? '```powershell\nirm https://github.com/1vecera/richview/releases/latest/download/install.ps1 | iex\n```' : '';
+  source = source.replaceAll('{{windows-install}}', windowsInstall);
+  source = source.replace(/<!-- windows-preview:start -->([\s\S]*?)<!-- windows-preview:end -->/g, (_, body) => windowsShips ? body : '');
+  source = source.replace(/<!-- windows-unsupported:start -->([\s\S]*?)<!-- windows-unsupported:end -->/g, (_, body) => windowsShips ? '' : body);
   source = source.replaceAll('{{agent-prompt}}', siteModeExpectations(installEnabled, repositoryPublic).prompt);
   return source;
 }
 
-// Rich-block fences are drawn as live blocks, not as code (richview-core's RICH_TAGS).
-const richTags = ['chart', 'table', 'big', 'metric', 'callout', 'image', 'embed', 'audio', 'video', 'scrolly'];
+// Rich-block fences are drawn as live blocks, not as code (richview-core's RICH_TAGS). A `code`
+// block is drawn as code: what a reader copies from it is its `text`.
+const richTags = ['chart', 'table', 'big', 'metric', 'callout', 'expand', 'code', 'image', 'embed', 'audio', 'video', 'scrolly'];
+
+// The `text: |` of a `code` block's YAML, as the block shows it.
+function codeText(lines) {
+  const at = lines.findIndex(line => /^text:\s*\|-?\s*$/.test(line));
+  if (at < 0) return undefined;
+  const body = [];
+  for (const line of lines.slice(at + 1)) {
+    if (line && !line.startsWith('  ')) break;
+    body.push(line.slice(2));
+  }
+  while (body.length && !body.at(-1)) body.pop();
+  return body.join('\n') + '\n';
+}
 
 function codeExamples(source) {
   const examples = [];
   let fence;
+  let tag;
   let rich = false;
   let lines = [];
   for (const line of source.split('\n')) {
     const match = line.match(/^(`{3,})([^`]*)$/);
-    if (!fence && match) { fence = match[1]; rich = richTags.includes(match[2].trim().split(/\s+/)[0]); lines = []; }
+    if (!fence && match) { fence = match[1]; tag = match[2].trim().split(/\s+/)[0]; rich = richTags.includes(tag); lines = []; }
     else if (fence && match && match[1].length >= fence.length && !match[2].trim()) {
       if (!rich) examples.push(lines.join('\n') + '\n');
+      else if (tag === 'code' && codeText(lines)) examples.push(codeText(lines));
       fence = undefined;
     } else if (fence) lines.push(line);
   }

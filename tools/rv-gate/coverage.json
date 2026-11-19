@@ -1041,7 +1041,9 @@
     "STY-15": {
       "checks": [
         "rust-tests:richview-core tests/styles.rs::settings_expand_into_the_sections_behind_them",
-        "rust-tests:richview-core tests/styles.rs::type_size_scales_the_whole_scale_and_keeps_its_steps"
+        "rust-tests:richview-core tests/styles.rs::type_size_scales_the_whole_scale_and_keeps_its_steps",
+        "rust-tests:richview-core tests/style_presets.rs::each_step_moves_its_setting_one_way_and_keeps_the_type_scale_ratios",
+        "rust-tests:richview-core tests/style_presets.rs::medium_is_the_presets_own_value_so_leaving_a_setting_out_changes_nothing"
       ]
     },
     "STY-16": {
@@ -1196,7 +1198,9 @@
     },
     "STY-53": {
       "checks": [
-        "rust-tests:richview-core tests/style_checks.rs::an_authors_cascade_is_measured_with_the_same_floors"
+        "rust-tests:richview-core tests/style_checks.rs::an_authors_cascade_is_measured_with_the_same_floors",
+        "rust-tests:richview-core tests/style_presets.rs::every_preset_holds_every_check_at_the_extremes_with_any_colours",
+        "rust-tests:richview-core tests/style_presets.rs::a_thousand_random_colours_hold_the_floors_on_every_main_preset"
       ]
     },
     "STY-54": {
@@ -1237,7 +1241,7 @@
     "STY-69": {
       "checks": [
         "rust-tests:richview-core tests/style_checks.rs::the_vocabulary_lists_each_leaf_once_with_its_mark",
-        "rust-tests:richview-core tests/styles.rs::experimental_leaves_say_so_and_the_vocabulary_marks_every_leaf"
+        "rust-tests:richview-core tests/styles.rs::the_vocabulary_marks_every_leaf_and_no_taught_setting_is_experimental"
       ]
     },
     "STY-70": {
@@ -1252,7 +1256,9 @@
         "rust-tests:richview-core tests/styles.rs::company_finds_a_checked_palette_for_rare_hues",
         "rust-tests:richview-core tests/styles.rs::teal_company_palette_is_a_sibling_of_airs_designed_palette",
         "rust-tests:richview-core src/style.rs::a_dark_company_rederives_its_palette_for_print",
-        "rust-tests:richview-site src/lib.rs::company_demo_returns_the_report_cascade_and_rejects_bad_input"
+        "rust-tests:richview-site src/lib.rs::company_demo_returns_the_report_cascade_and_rejects_bad_input",
+        "rust-tests:richview-core tests/style_presets.rs::the_old_company_syntax_warns_and_the_new_colours_derive_the_same_palette",
+        "rust-tests:richview-core tests/style_presets.rs::preset_only_and_legacy_files_resolve_byte_for_byte_as_before"
       ],
       "partial": "Proposed company derivation and the site API are checked; visual design remains under review."
     },
@@ -1261,6 +1267,45 @@
         "rust-tests:richview-core tests/styles.rs::brand_logo_paths_stay_inside_the_report_and_name_is_plain_text"
       ],
       "partial": "The company logo fields are validated and marked experimental; logo byte validation, rendering, export and share-card placement are being implemented separately."
+    },
+    "STY-73": {
+      "checks": [
+        "rust-tests:richview-core tests/style_presets.rs::there_are_ten_presets_and_each_resolves_cleanly_and_passes_every_check",
+        "rust-tests:richview-core tests/style_presets.rs::an_extended_preset_is_its_style_file_and_a_file_can_start_from_it",
+        "rust-tests:richview-core tests/style_presets.rs::medium_is_the_presets_own_value_so_leaving_a_setting_out_changes_nothing",
+        "rust-tests:richview-core tests/style_presets.rs::the_old_company_syntax_warns_and_the_new_colours_derive_the_same_palette",
+        "rust-tests:richview-core tests/style_presets.rs::old_settings_and_tokens_keep_applying_and_warn_with_their_replacement",
+        "rust-tests:richview-core tests/style_presets.rs::each_step_moves_its_setting_one_way_and_keeps_the_type_scale_ratios",
+        "rust-tests:richview-core tests/style_presets.rs::gridlines_and_tint_move_only_colour_and_never_below_a_floor",
+        "rust-tests:richview-core tests/style_presets.rs::every_preset_holds_every_check_at_the_extremes_with_any_colours",
+        "rust-tests:richview-core tests/style_presets.rs::a_thousand_random_colours_hold_the_floors_on_every_main_preset",
+        "rust-tests:richview-core tests/style_presets.rs::a_dark_page_colour_makes_a_dark_report",
+        "rust-tests:richview-core tests/style_presets.rs::a_bad_step_or_preset_is_skipped_with_a_finding",
+        "rust-tests:richview-core tests/style_presets.rs::a_knockout_metric_keeps_its_text_readable_with_any_colours",
+        "rust-tests:richview-core tests/style_presets.rs::preset_only_and_legacy_files_resolve_byte_for_byte_as_before",
+        "rust-tests:richview-core tests/style_presets.rs::a_page_colour_moves_only_when_text_or_series_need_it",
+        "rust-tests:richview-core tests/style_presets.rs::steps_act_on_explicit_leaves_alike_and_explicit_colours_win_with_or_without_colors",
+        "rust-tests:richview-core tests/style_presets.rs::padding_reaches_a_framed_chart_and_lines_reach_the_metric_rules",
+        "rust-tests:richview-core tests/style_presets.rs::a_brand_colour_that_meets_its_floors_is_kept_to_the_last_bit",
+        "rust-tests:richview-core tests/style_presets.rs::a_brand_colour_with_an_alpha_is_refused",
+        "rust-tests:richview-core src/style.rs::a_dark_page_and_an_inline_extended_preset_print_light_and_keep_their_brand"
+      ]
+    },
+    "STY-74": {
+      "checks": [
+        "rust-tests:richview-core tests/style_backgrounds.rs::every_texture_and_gradient_keeps_every_ink_floor_over_its_worst_pixel",
+        "rust-tests:richview-core tests/style_backgrounds.rs::grain_and_dots_are_present_at_medium_in_every_main_preset",
+        "rust-tests:richview-core tests/style_backgrounds.rs::a_picture_under_text_is_washed_just_enough_for_any_pixel",
+        "rust-tests:richview-core tests/style_backgrounds.rs::a_cascade_without_a_background_is_byte_for_byte_as_before",
+        "rust-tests:richview-core tests/style_backgrounds.rs::a_later_file_replaces_a_background_whole_and_a_later_preset_clears_it",
+        "rust-tests:richview-core tests/style_backgrounds.rs::bad_background_leaves_are_findings_and_leave_the_rest",
+        "rust-tests:richview-core tests/style_backgrounds.rs::a_picture_is_embedded_once_validated_and_left_off_paper",
+        "rust-tests:richview-core tests/style_backgrounds.rs::a_missing_huge_wide_or_foreign_picture_is_an_error_and_renders_without_it",
+        "rust-tests:richview-core tests/style_backgrounds.rs::textures_are_screen_only_and_never_reach_paper",
+        "rust-tests:richview-core tests/style_backgrounds.rs::a_picture_under_text_is_washed_over_the_whole_page_however_tall_it_renders",
+        "rust-tests:richview-core tests/style_backgrounds.rs::table_blocks_keep_a_solid_surface_over_a_page_background",
+        "rust-tests:richview-core tests/style_backgrounds.rs::hostile_background_files_last_over_every_preset_emit_only_generated_layers"
+      ]
     },
     "TYP-02": {
       "checks": [
@@ -3478,6 +3523,29 @@
       ],
       "partial": "Chart design judges the rail, the fold and the bar from 1440, 1280 and 390 captures in every builtin; no browser step asserts the current-section mark or the bar's fill yet."
     },
+    "FEA-RP-66": {
+      "checks": [
+        "rust-tests:richview-core tests/expand_and_code.rs",
+        "hostile",
+        "docs-match:richview-core tests/spec_docs.rs"
+      ],
+      "partial": "Proposed card (assumed). The core tests cover the native disclosure, closed on screen and open on paper, one that starts open, the title and body rules, a missing title or body, and a rich block inside it; no browser step asserts find-in-page opening it yet."
+    },
+    "FEA-RP-67": {
+      "checks": [
+        "rust-tests:richview-core tests/collapsible_sections.rs",
+        "docs-match:richview-core tests/spec_docs.rs"
+      ],
+      "partial": "Proposed card (assumed). The core tests cover sections that start closed and end at the next peer with their rich blocks, the notes kept in view, folds inside tab bounds, nesting in heading order, linked and repeated headings, and unknown or malformed configuration keeping everything readable; no browser step asserts a fold yet."
+    },
+    "FEA-RP-68": {
+      "checks": [
+        "rust-tests:richview-core tests/columns.rs",
+        "hostile",
+        "docs-match:richview-core tests/spec_docs.rs"
+      ],
+      "partial": "Proposed card (assumed). The core tests cover columns in source order, their options and widths, a chart laid out at its column's width and its stacked box, malformed and stray markers, folds holding whole columns, and expands and code in columns; the hostile cases m17 to m19 cover options, forgery and unbalanced markers. The look is judged from the owner's sheet."
+    },
     "INT-10": {
       "checks": [
         "rust-tests:richview-core tests/contracts.rs::flagship_report_preserves_every_chart_and_sourced_narrative_across_styles",
@@ -3485,7 +3553,13 @@
       ]
     },
     "INT-41": {
-      "judged": "review: Cargo.toml, Cargo.lock, package.json, package-lock.json and the VS Code extension carry 3.0.0-alpha.2, and `richview --version` prints the workspace version of its build"
+      "judged": "review: Cargo.toml, Cargo.lock, package.json, package-lock.json and the VS Code extension carry 3.0.0-alpha.3, and `richview --version` prints the workspace version of its build"
+    },
+    "FEA-SF-32": {
+      "judged": "review: legal and identity text on the site's root pages is design-class copy that reaches Daniel in the release packet before prod, and his go names it"
+    },
+    "INT-73": {
+      "judged": "review: how RichView presents its maker (footer, About, impressum, licence) is public copy Daniel approves in the release packet; the impressum's identifiers are read from the public register"
     }
   }
 }

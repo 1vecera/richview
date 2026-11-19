@@ -95,6 +95,13 @@ fn from_registry(text: &str) -> String {
         .replace("@CHARTS@", &chart_types())
         .replace("@POINTLIMITS@", &point_limits())
         .replace("@CHARTFIELDS@", &field_lines(chart, |_| false))
+        .replace(
+            "@COLUMNFIELDS@",
+            &field_lines(
+                crate::registry::layout("columns").map_or(&[], |layout| layout.fields),
+                |_| false,
+            ),
+        )
 }
 
 // The guide's prose, one file per section; `@NAME@` placeholders take the registry's lists.

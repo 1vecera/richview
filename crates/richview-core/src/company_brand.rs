@@ -3,10 +3,7 @@ use std::collections::BTreeMap;
 
 use base64::{Engine, engine::general_purpose::STANDARD};
 
-use crate::{
-    COMPANY_LOGO_MAX_BYTES, CompanyLogoError, Diagnostic, RenderOptions, ResolvedStyle,
-    report_relative_path, validate_company_logo,
-};
+use crate::{CompanyLogoError, Diagnostic, RenderOptions, ResolvedStyle, report_relative_path};
 
 /// A static, bounded raster suitable for embedding in a report or its share card.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -135,10 +132,20 @@ pub fn resolve_company_brand(
             .fix("Set company.name to the company name, or leave the mark decorative"),
         );
     }
+    // The new syntax names the preset and the brand colour outside `company` (STY-73).
+    let branded = company.is_object() || style.document.pointer("/settings/colors/brand").is_some();
     CompanyBrand {
         name,
-        base: company["base"].as_str().map(str::to_owned),
-        accent: company.as_object().and_then(|_| {
+        base: company["base"]
+            .as_str()
+            .or_else(|| {
+                style
+                    .document
+                    .pointer("/settings/preset")
+                    .and_then(|p| p.as_str())
+            })
+            .map(str::to_owned),
+        accent: branded.then_some(()).and_then(|_| {
             style.document["tokens"]["accent"]
                 .as_str()
                 .and_then(richview_chart::color::parse)
@@ -197,7 +204,8 @@ pub fn report_company_brand(
     let mut company = resolve_company_brand(&style, &options.data, &mut Vec::new());
     // A colour-only company file takes Air when the author did not select a builtin (STY-71).
     if company.base.is_none()
-        && style.document["company"]["color"].is_string()
+        && (style.document["company"]["color"].is_string()
+            || style.document.pointer("/settings/colors/brand").is_some())
         && !sources
             .iter()
             .any(|source| crate::builtin_style_names().contains(&source.as_str()))
@@ -207,75 +215,160 @@ pub fn report_company_brand(
     company
 }
 
+/// What a raster read from the report folder is for: its name in messages, its diagnostic codes
+/// and its bounds.
+struct Raster {
+    what: &'static str,
+    code: &'static str,
+    max_bytes: usize,
+    max_dimension: u32,
+}
+
+const LOGO: Raster = Raster {
+    what: "Company logo",
+    code: "style.logo",
+    max_bytes: crate::COMPANY_LOGO_MAX_BYTES,
+    max_dimension: crate::COMPANY_LOGO_MAX_DIMENSION,
+};
+
+const PICTURE: Raster = Raster {
+    what: "Background picture",
+    code: "style.background",
+    max_bytes: crate::BACKGROUND_PICTURE_MAX_BYTES,
+    max_dimension: crate::BACKGROUND_PICTURE_MAX_DIMENSION,
+};
+
 fn read_logo(
     reference: Option<&str>,
     key: &str,
     data: &BTreeMap<String, String>,
     diagnostics: &mut Vec<Diagnostic>,
 ) -> Option<CompanyLogo> {
-    let reference = reference?;
-    let path = format!("company.{key}");
-    let failure = |diagnostics: &mut Vec<Diagnostic>, code: &str, message: String| {
-        let fix = match code {
-            "style.logo-path" => "Use a file path inside the report folder",
-            "style.logo-missing" => "Put the logo file inside the report folder",
-            "style.logo-size" => "Use a logo no larger than 512 KiB",
-            "style.logo-dimensions" => "Use a logo no larger than 1024 pixels on either side",
-            "style.logo-animated" => "Use a still PNG, JPEG or WebP logo",
-            _ => "Use a valid still PNG, JPEG or WebP logo",
+    read_raster(
+        reference?,
+        &format!("company.{key}"),
+        &LOGO,
+        data,
+        diagnostics,
+    )
+}
+
+/// The report's background picture (STY-74), validated from the bytes a host supplied, with a
+/// finding when it is outside the folder, missing, too large or not a still raster.
+pub(crate) fn read_background_picture(
+    style: &ResolvedStyle,
+    data: &BTreeMap<String, String>,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Option<CompanyLogo> {
+    let reference = style
+        .document
+        .pointer("/settings/background/picture")
+        .and_then(serde_json::Value::as_str)
+        .filter(|path| *path != "none")?;
+    read_raster(reference, "background.picture", &PICTURE, data, diagnostics)
+}
+
+/// The media files a report's styles name, for a host to read into `RenderOptions::data`: the
+/// company logos (STY-72) and the background picture (STY-74).
+pub fn report_style_media_files(
+    frontmatter: &serde_json::Value,
+    options: &RenderOptions,
+) -> Vec<String> {
+    let (_, style) = report_style(frontmatter, options);
+    let mut files: Vec<String> = ["logo", "logo-dark"]
+        .into_iter()
+        .filter_map(|key| style.document["company"][key].as_str().map(str::to_owned))
+        .collect();
+    if let Some(picture) = style
+        .document
+        .pointer("/settings/background/picture")
+        .and_then(serde_json::Value::as_str)
+        .filter(|path| *path != "none")
+    {
+        files.push(picture.to_owned());
+    }
+    files
+}
+
+fn read_raster(
+    reference: &str,
+    path: &str,
+    kind: &Raster,
+    data: &BTreeMap<String, String>,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Option<CompanyLogo> {
+    let what = kind.what;
+    let kib = kind.max_bytes / 1024;
+    let max = kind.max_dimension;
+    let failure = |diagnostics: &mut Vec<Diagnostic>, suffix: &str, message: String| {
+        let logo = kind.code == LOGO.code;
+        let fix = match suffix {
+            "path" => "Use a file path inside the report folder".to_owned(),
+            "missing" if logo => "Put the logo file inside the report folder".to_owned(),
+            "size" if logo => "Use a logo no larger than 512 KiB".to_owned(),
+            "dimensions" if logo => {
+                "Use a logo no larger than 1024 pixels on either side".to_owned()
+            }
+            "animated" if logo => "Use a still PNG, JPEG or WebP logo".to_owned(),
+            "format" if logo => "Use a valid still PNG, JPEG or WebP logo".to_owned(),
+            "missing" => format!(
+                "Put the {} file inside the report folder",
+                what.to_lowercase()
+            ),
+            "size" => format!("Use a file no larger than {kib} KiB"),
+            "dimensions" => format!("Use an image no larger than {max} pixels on either side"),
+            "animated" => "Use a still PNG, JPEG or WebP image".to_owned(),
+            _ => "Use a valid still PNG, JPEG or WebP image".to_owned(),
         };
-        diagnostics.push(Diagnostic::new("error", code, message, path.clone()).fix(fix));
+        let code = format!("{}-{suffix}", kind.code);
+        diagnostics.push(Diagnostic::new("error", &code, message, path).fix(fix));
     };
     if !report_relative_path(reference) {
         failure(
             diagnostics,
-            "style.logo-path",
-            "The company logo must be a report-relative file".into(),
+            "path",
+            format!("The {} must be a report-relative file", what.to_lowercase()),
         );
         return None;
     }
     let Some(uri) = data.get(reference) else {
         failure(
             diagnostics,
-            "style.logo-missing",
-            format!("Company logo '{reference}' is not available in the report folder"),
+            "missing",
+            format!("{what} '{reference}' is not available in the report folder"),
         );
         return None;
     };
-    let Some((prefix, encoded)) = uri.split_once(";base64,") else {
+    let Some((prefix, encoded)) = uri
+        .split_once(";base64,")
+        .filter(|(prefix, _)| prefix.starts_with("data:"))
+    else {
         failure(
             diagnostics,
-            "style.logo-format",
-            format!("Company logo '{reference}' is not a supplied raster file"),
+            "format",
+            format!("{what} '{reference}' is not a supplied raster file"),
         );
         return None;
     };
-    if !prefix.starts_with("data:") {
-        failure(
-            diagnostics,
-            "style.logo-format",
-            format!("Company logo '{reference}' is not a supplied raster file"),
-        );
-        return None;
-    }
+    let _ = prefix;
     // The host retains at most one byte beyond the limit. Direct callers get the same bound.
-    if encoded.len() > (COMPANY_LOGO_MAX_BYTES + 1).div_ceil(3) * 4 {
+    if encoded.len() > (kind.max_bytes + 1).div_ceil(3) * 4 {
         failure(
             diagnostics,
-            "style.logo-size",
-            format!("Company logo '{reference}' exceeds 512 KiB"),
+            "size",
+            format!("{what} '{reference}' exceeds {kib} KiB"),
         );
         return None;
     }
     let Ok(bytes) = STANDARD.decode(encoded) else {
         failure(
             diagnostics,
-            "style.logo-format",
-            format!("Company logo '{reference}' has invalid encoded bytes"),
+            "format",
+            format!("{what} '{reference}' has invalid encoded bytes"),
         );
         return None;
     };
-    match validate_company_logo(&bytes) {
+    match crate::company_logo::validate_raster(&bytes, kind.max_bytes, kind.max_dimension) {
         Ok(image) => Some(CompanyLogo {
             bytes,
             mime: image.mime,
@@ -283,19 +376,28 @@ fn read_logo(
             height: image.height,
         }),
         Err(error) => {
-            let code = match error {
-                CompanyLogoError::TooLarge => "style.logo-size",
-                CompanyLogoError::InvalidDimensions => "style.logo-dimensions",
-                CompanyLogoError::Animated => "style.logo-animated",
-                CompanyLogoError::UnsupportedFormat | CompanyLogoError::Malformed => {
-                    "style.logo-format"
+            let (suffix, reason) = match error {
+                CompanyLogoError::TooLarge => ("size", format!("it must be at most {kib} KiB")),
+                CompanyLogoError::InvalidDimensions => (
+                    "dimensions",
+                    format!("its dimensions must be between 1 and {max} pixels"),
+                ),
+                CompanyLogoError::Animated => ("animated", "it must be a still image".to_owned()),
+                CompanyLogoError::UnsupportedFormat => (
+                    "format",
+                    "it must contain PNG, JPEG or WebP image bytes".to_owned(),
+                ),
+                CompanyLogoError::Malformed => {
+                    ("format", "the image is malformed or truncated".to_owned())
                 }
             };
-            failure(
-                diagnostics,
-                code,
-                format!("Company logo '{reference}': {error}"),
-            );
+            // The logo keeps its established messages.
+            let message = if kind.code == LOGO.code {
+                format!("{what} '{reference}': {error}")
+            } else {
+                format!("{what} '{reference}': {reason}")
+            };
+            failure(diagnostics, suffix, message);
             None
         }
     }
@@ -484,7 +586,7 @@ mod tests {
                 "large.png",
                 Some(format!(
                     "data:image/png;base64,{}",
-                    STANDARD.encode(vec![0; COMPANY_LOGO_MAX_BYTES + 1])
+                    STANDARD.encode(vec![0; crate::COMPANY_LOGO_MAX_BYTES + 1])
                 )),
                 "style.logo-size",
             ),

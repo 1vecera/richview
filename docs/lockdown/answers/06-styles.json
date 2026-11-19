@@ -29,12 +29,36 @@
       "proposedHash": "87d8fc086c4297ab",
       "updatedAt": "2026-10-26T18:04:06.613Z"
     },
+    "STY-15": {
+      "decision": "accept",
+      "note": "Accepted as amended by STY-73. Daniel answered Q27, STY-73 with its amendments of STY-15, STY-53 and STY-71, on the status board on 18 Nov 2026 at 08:09:45Z (09:09 CET): \"Yes, as proposed\". The lead passed his answer on and asked for it to be recorded.",
+      "proposedHash": "fa821277c14b8912",
+      "updatedAt": "2026-11-18T08:33:22.274Z"
+    },
+    "STY-53": {
+      "decision": "accept",
+      "note": "Accepted as amended by STY-73. Daniel answered Q27, STY-73 with its amendments of STY-15, STY-53 and STY-71, on the status board on 18 Nov 2026 at 08:09:45Z (09:09 CET): \"Yes, as proposed\". The lead passed his answer on and asked for it to be recorded.",
+      "proposedHash": "1a7be2b3cf38a5f3",
+      "updatedAt": "2026-11-18T08:33:22.658Z"
+    },
     "STY-68": {
       "decision": "edit",
       "text": "Option 1, less strict. Each style gets one review sheet generated from the candidate. Show what makes sense rather than every variation:\n\n- the typography specimen, the every-block fixture, a representative majority of chart types (not necessarily all), the map, flow, a normal table and the pivot table, and the flagship, at phone and desktop widths and as PDF;\n- the same content in the other four styles beside it, so structural differences show: outlines and shading, legend and title positions, Scientific's captions below charts in boxes;\n- the style's declared structure (where legends and titles sit, outlines or none) verified against the geometry model, and STY-52's measured checks;\n- entrance clips in that style;\n- STY-51's three answers.\n\nThe agents choose the selection. Daniel reviews a sheet when a style is created and when its tokens or structure change. A review agent on the model he uses at the time judges the sheet first, including distinctiveness beyond the mechanical check, and its verdict sits on the sheet (DEL-68). A mechanical check flags two styles whose structural declarations are identical. Once a style is accepted, later changes reach Daniel one by one through the before-and-after report (DEL-69).",
       "note": "Dictated by Daniel in the review chat on 2026-10-26: \"Daniel: 'I also want to have a normal table, not just the pivot table… you don't need every chart type. Majority of those. Whatever makes sense… this makes kind of sense, what you've wrote there, but… I would not be so strict… that I need to see every single variation' (2026-10-26, live)\". Recorded by the lockdown agent at his request.",
       "proposedHash": "6aa8225e27b55027",
       "updatedAt": "2026-10-26T19:18:29.140Z"
+    },
+    "STY-71": {
+      "decision": "accept",
+      "note": "Accepted as amended by STY-73. Daniel answered Q27, STY-73 with its amendments of STY-15, STY-53 and STY-71, on the status board on 18 Nov 2026 at 08:09:45Z (09:09 CET): \"Yes, as proposed\". The card text was corrected on 18 Nov at 10:00, before this record, after the lead's review of the build: a page colour moves only as far as text and four series need; gridlines take the chart's own colour and stay visible; padding reaches framed charts; the old company keys keep STY-71's derivation exactly; text on the accent applies once colours chose it. The lead asked for the corrections and for the answer to be recorded.",
+      "proposedHash": "45923048b9454171",
+      "updatedAt": "2026-11-18T09:03:46.025Z"
+    },
+    "STY-73": {
+      "decision": "accept",
+      "note": "Daniel answered Q27 on the status board on 18 Nov 2026 at 08:09:45Z (09:09 CET): \"Yes, as proposed\". The card text was corrected on 18 Nov at 10:00, before this record, after the lead's review of the build: a page colour moves only as far as text and four series need; gridlines take the chart's own colour and stay visible; padding reaches framed charts; the old company keys keep STY-71's derivation exactly; text on the accent applies once colours chose it. The lead asked for the corrections and for the answer to be recorded.",
+      "proposedHash": "43ae760831105bb8",
+      "updatedAt": "2026-11-18T09:03:45.635Z"
     }
   }
 }

@@ -1,5 +1,5 @@
 {
-  "notice_sha256": "befb544da94134f54608d073c08325cf81da870e2fd2af7eb909b5879bec8ee0",
+  "notice_sha256": "180d107326d8599e97563f1a0da51c4e53e02e8955ea821d959f2db66028b1fd",
   "crates": [
     {
       "name": "adler2",
@@ -1395,7 +1395,7 @@
     },
     {
       "name": "lettre",
-      "version": "0.11.23",
+      "version": "0.11.24",
       "licence": "MIT",
       "texts": [
         "9a51230200e4e3eacdf1dc5d09a90ca17c798fd15b4c70919135a3eebb0389b0"

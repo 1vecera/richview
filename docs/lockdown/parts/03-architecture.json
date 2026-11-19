@@ -636,9 +636,13 @@
       "group": "Principles and boundaries",
       "title": "Supported platforms",
       "question": "Which operating systems and architectures do the CLI, report server, editor service and extension support?",
-      "why": "No card said, yet several depend on it: the extension ships a native `richview-editor` per platform (FEA-SF-21 proposes `darwin-arm64` and `linux-x64`), PDF export runs only on macOS and Linux, the gate runs only on Claw Mini, a macOS arm64 host (DEL-22), hosted CI would run on Linux x64 (DEL-39), the container is Debian Linux, and the only prerelease shipped a Linux x64 CLI. INT-71 installs RichView through an install script, builds from `prod`, the extension listings and a source build.",
-      "proposed": "RichView supports macOS on arm64 and Linux on x64. The gate proves macOS on Claw Mini (DEL-22); Linux x64 is proven by the container build and by hosted CI when it runs (DEL-39). Other targets may build from source (INT-71) but carry no promise, and Windows stays unsupported, as PDF export already says. A platform is added only together with a gate that runs on it.",
+      "why": "No card said, yet several depend on it: the extension ships a native `richview-editor` per platform (FEA-SF-21 proposes `darwin-arm64` and `linux-x64`), PDF export runs only on macOS and Linux, the gate runs only on Claw Mini, a macOS arm64 host (DEL-22), hosted CI would run on Linux x64 (DEL-39), the container is Debian Linux, and the only prerelease shipped a Linux x64 CLI. INT-71 installs RichView through an install script, builds from `prod`, the extension listings and a source build. Since 18 Nov 2026 Windows x64 ships: 3.0.0-alpha.2 carried it as a preview without PDF or SQL, and Daniel asked the same day for Windows to work end to end.",
+      "proposed": "RichView supports macOS on arm64, Linux on x64, and Windows 10 and 11 on x64 (`x86_64-pc-windows-msvc`), with the same features on each: the CLI with its local preview, the MCP server, the editor service for the extension, PDF output through a local Chromium-family browser (Microsoft Edge comes with Windows) and SQL data sources. On Windows the SQL worker is confined as on Linux: a restricted token whose only restricting SID is new for each launch, Untrusted integrity, no privileges, and a one-process job. As on Linux and macOS, DuckDB opens the declared source only inside that confinement. Once per render the host copies the source's bytes, unparsed, into a new folder in the temporary folder that only the running launch's SID may read. It refuses a source over 4 GiB, one that would leave less than 1 GiB free there, and a temporary folder on a network share or named by volume GUID, and the next render sweeps the copies a killed render left. On every platform the worker may read the database file alone, so a database whose last changes are still in its `.wal` file is refused until a writer has written them into it. The restricted token can open nothing by path, so before it restricts itself the worker takes a handle to that folder, and its opens of files in that folder, and only those, go through the handle; every other path reaches Windows unchanged and is refused, and the restricted token decides every open. Its probe shows no file, network (socket creation through the network driver included) or process reach beyond the Linux sandbox's. The gate proves macOS on Claw Mini (DEL-22); Linux x64 is proven by the container build and by hosted CI when it runs (DEL-39). Windows is proven for each candidate by the recorded end-to-end walk on a fresh AWS Windows Server 2025 machine (`tools/windows-e2e`); Windows 10 and 11 share its kernel and are expected to behave the same, but stay untested because AWS offers no Windows 11 image. The walk covers: install with the PowerShell one-liner, `init`, edit, `check` and `generate`, the local preview, the editor service, PDF, SQL with a hostile query, the MCP server, publish to a RichView server and open it, upgrade from the previous release, and uninstall. `merge-prod` refuses a candidate that ships Windows without that walk passing on its exact commit. The Windows programs are not signed until Daniel buys a certificate. Other targets may build from source (INT-71) but carry no promise. A platform is added only together with a gate that runs on it.",
       "options": [
+        {
+          "label": "macOS arm64, Linux x64 and Windows x64 at parity",
+          "detail": "Windows users get everything; proven per candidate by the AWS walk, at about 0.08 USD a run, and the SQL sandbox by its Windows probe."
+        },
         {
           "label": "macOS arm64 and Linux x64",
           "detail": "Covers the machines in use, the container and CI; anything else is best effort."
@@ -648,11 +652,11 @@
           "detail": "Only what the gate proves on Claw Mini; the container and Linux builds lose support."
         },
         {
-          "label": "Add Windows",
-          "detail": "Wider reach; PDF export, the editor binary and the gate all need Windows work."
+          "label": "macOS arm64 and Linux x64, Windows x64 as a preview",
+          "detail": "As shipped in 3.0.0-alpha.2: no PDF output or SQL data sources on Windows, proven by a smoke run."
         }
       ],
-      "recommendation": "macOS arm64 and Linux x64.",
+      "recommendation": "macOS arm64, Linux x64 and Windows x64 at parity.",
       "confidence": "inferred",
       "sources": [
         {
@@ -689,6 +693,16 @@
           "label": "FEA-SF-21 (D-VSCODE, draft) and INT-71 (D-DISTRIBUTION): VSIX per platform; source builds",
           "ref": "docs/lockdown/parts/04c-features-surfaces.json",
           "date": "2026-10-21"
+        },
+        {
+          "label": "Daniel, 18 Nov 2026 ~09:40: \"yes, i wanna windows to work e2e, it can be tested on some aws machine, make sure it will be done e2e\"",
+          "ref": "Lead brief tmp/team/launch/d16/launch/windows-e2e/brief.md",
+          "date": "2026-11-18"
+        },
+        {
+          "label": "Windows preview smoke 15/15 on Windows Server 2025 (aws-run-20261118T0724), shipped in 3.0.0-alpha.2",
+          "ref": "tmp/team/launch/d16/windows/HANDOVER-command-line.md",
+          "date": "2026-11-18"
         }
       ]
     },
@@ -2176,7 +2190,7 @@
       "title": "PDF printer and browser host service",
       "question": "Keep printing through a local Chromium as one optional browser host service, shared by PDF export and `check`'s browser pass?",
       "why": "Decides where the product drives a browser. PDF export prints through a local Chromium-family browser over a CDP pipe (a one-page probe printed through Chrome 155 on 2026-10-22; FEA-RP-43's fixture gave nine A4 pages), and FEA-CH-59 proposes that `check` measure glyphs in the same browser. Whether PDF stays and the bar it must pass are FEA-RP-43's; its flags are FEA-SF-06.",
-      "proposed": "**Keep, change.** Responsibility: launch a local Chromium-family browser (version 131 or later) over a CDP pipe with a temporary profile and blocked network, wait for `window.__richview.settled()` (TYP-97), then print to A4 or Letter PDF the report rendered for PDF, whose charts are the engine's vector output (Daniel's INT-31 answer, FEA-RP-43), so printing needs no WebGL; or read browser-measured chart diagnostics if FEA-CH-59 keeps a browser pass. Path: `crates/richview-app/src/export_pdf.rs`. Changes: one browser host service behind one Cargo feature, used by PDF export (FEA-RP-43, FEA-SF-06) and, if FEA-CH-59 is accepted, by `check`'s browser pass; without a browser it fails with one sentence naming `--browser`. It runs on macOS and Linux only (ARC-67).",
+      "proposed": "**Keep, change.** Responsibility: launch a local Chromium-family browser (version 131 or later) over a CDP pipe with a temporary profile and blocked network, wait for `window.__richview.settled()` (TYP-97), then print to A4 or Letter PDF the report rendered for PDF, whose charts are the engine's vector output (Daniel's INT-31 answer, FEA-RP-43), so printing needs no WebGL; or read browser-measured chart diagnostics if FEA-CH-59 keeps a browser pass. Path: `crates/richview-app/src/export_pdf.rs`. Changes: one browser host service behind one Cargo feature, used by PDF export (FEA-RP-43, FEA-SF-06) and, if FEA-CH-59 is accepted, by `check`'s browser pass; without a browser it fails with one sentence naming `--browser`. It runs on macOS, Linux and Windows (ARC-67); on Windows the browser's pipe ends travel as C runtime descriptors 3 and 4, a kill-on-close job ends its whole process tree, and its temporary profile folder has a DACL for the user alone, as mode 0700 gives it on Unix.",
       "confidence": "observed",
       "sources": [
         {
