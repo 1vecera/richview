@@ -1,0 +1,44 @@
+/* The filter box of a table (FEA-RP-70), in a report that has one. The runtime puts the line
+   above the table's rows, under its title; the static page has none, so no control is dead
+   before the runtime runs. A page that runs scripts keeps the line's room from the first paint,
+   under the title where the box will stand, so neither the title nor the rows move when the box
+   arrives. The label and its field are one item of the line, and the field shrinks beside its
+   label before anything wraps, so the empty box keeps to one line in a narrow table too; only
+   the status line, which a reader's typing brings, may take a second one. */
+.rv-table[data-rv-filter] { --rv-filter-room: calc(var(--rv-line) * 1.25); --rv-filter-gap: calc(var(--rv-line) * .25); }
+.rv-report__body .rv-table__filter {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0 1em; box-sizing: border-box;
+  min-height: var(--rv-filter-room); margin: 0 0 var(--rv-filter-gap); max-width: none;
+  font-family: var(--rv-font-ui, var(--rv-font-text)); font-size: var(--rv-size-small); line-height: 1.45; color: var(--rv-ink-soft);
+}
+.rv-table__field { display: flex; align-items: center; gap: 0 .6em; flex: 0 1 auto; min-width: 0; max-width: 100%; }
+.rv-table__filter label { flex: none; white-space: nowrap; }
+.rv-table__filter input {
+  font: inherit; color: var(--rv-ink); background: transparent; flex: 0 1 13em; width: 13em; min-width: 3em; box-sizing: border-box;
+  border: 0; border-bottom: 1px solid var(--rv-ink-faint); border-radius: 0; padding: .1em .25em; margin: 0;
+}
+.rv-table__filter input:focus-visible { outline: 2px solid var(--rv-link); outline-offset: 2px; }
+.rv-table__status { font-variant-numeric: lining-nums tabular-nums; }
+/* The title of a table with a filter stands above the box, set as the caption it was. */
+.rv-report__body p.rv-table__title { margin: 0; max-width: none; font-size: var(--rv-size-small); line-height: 1.45; }
+.rv-table tr[hidden] { display: none; }
+/* The edge cues of a box that scrolls sideways span the title and the box too. */
+.rv-table[data-rv-filter][data-rv-cues]::before, .rv-table[data-rv-filter][data-rv-cues]::after { grid-row: 1 / span 6; }
+@media screen and (scripting: enabled) {
+  .rv-table[data-rv-filter]:not([data-rv-filter="ready"]) { padding-top: calc(var(--rv-filter-room) + var(--rv-filter-gap)); }
+  .rv-table[data-rv-filter]:not([data-rv-filter="ready"]):has(caption) { padding-top: 0; }
+  .rv-table[data-rv-filter]:not([data-rv-filter="ready"]) caption { padding-block-end: calc(.5em + var(--rv-filter-room) + var(--rv-filter-gap)); }
+  /* A page whose runtime has not started after 10 s, when its charts say so too, gives the room
+     back, so it never stays as a hole. The step is a wait, not motion, so it also runs for a
+     reader who asked for less motion (the report's reduced-motion rule stops every other
+     animation). */
+  html:not([data-rv-runtime]) .rv-table[data-rv-filter] { animation: rv-filter-room-out 1ms 10s forwards !important; }
+  html:not([data-rv-runtime]) .rv-table[data-rv-filter] caption { animation: rv-filter-title-out 1ms 10s forwards !important; }
+}
+@keyframes rv-filter-room-out { to { padding-top: 0; } }
+@keyframes rv-filter-title-out { to { padding-block-end: .5em; } }
+/* Paper shows the filter only while it holds text, so a printed subset says what it is. */
+@media print {
+  .rv-report__body .rv-table__filter:not([data-rv-on]) { display: none; }
+  .rv-table__filter input { border-bottom: 0; }
+}

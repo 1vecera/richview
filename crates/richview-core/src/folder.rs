@@ -53,7 +53,7 @@ pub fn report_resources(document: &crate::Document) -> Vec<ReportResource> {
         }
     }
     for block in &document.blocks {
-        for key in ["csv", "json"] {
+        for key in crate::document::DATA_FILE_KEYS {
             if let Some(path) = block.value["data"][key].as_str() {
                 add(path, "data");
             }
@@ -136,6 +136,17 @@ pub fn report_relative_path(path: &str) -> bool {
         && path.split('/').all(|part| !part.is_empty() && part != "..")
 }
 
+/// Whether `path` names an AppleDouble sidecar, `._<name>`: macOS writes one beside `<name>` to
+/// keep the file's attributes wherever the volume or archive cannot (tar, zip, exFAT, an SMB
+/// share). It is another file's metadata, never a file of the report (TYP-39): no host counts it
+/// as a source, lists it in an inventory, reads it for a reference or publishes it. The rule is
+/// this one name; any other hidden file is a file of the folder like every other.
+pub fn apple_double_sidecar(path: &str) -> bool {
+    path.rsplit('/')
+        .next()
+        .is_some_and(|name| name.starts_with("._"))
+}
+
 /// The last part of a report root, which a host may give as an absolute path: findings name the
 /// folder by it, never by its place on the host (TYP-53).
 fn folder_name(root: &str) -> &str {
@@ -172,6 +183,16 @@ pub fn validate_report_folder(folder: Option<&ReportFolder>) -> Result<(), Vec<D
             ),
         );
     }
+    if apple_double_sidecar(&folder.source) {
+        return fail(
+            "report.root.invalid",
+            Some(&folder.source),
+            format!(
+                "'{}' is a macOS sidecar file: it holds another file's attributes and is not a report. Use the .rmd it stands beside.",
+                folder.source
+            ),
+        );
+    }
     let mut files = std::collections::BTreeSet::new();
     for path in &folder.files {
         if !report_relative_path(path) {
@@ -183,6 +204,10 @@ pub fn validate_report_folder(folder: Option<&ReportFolder>) -> Result<(), Vec<D
                     folder_name(&folder.root)
                 ),
             );
+        }
+        // A sidecar that a host's inventory still lists is no source and no file of the report.
+        if apple_double_sidecar(path) {
+            continue;
         }
         let canonical = path
             .split('/')
@@ -306,7 +331,7 @@ pub(crate) fn asset_problem(
         ));
     }
     let wanted = canonical(path);
-    (!folder.files.iter().any(|f| canonical(f) == wanted))
+    (apple_double_sidecar(path) || !folder.files.iter().any(|f| canonical(f) == wanted))
         .then(|| ("report.asset.missing", missing_message(path)))
 }
 
@@ -351,7 +376,12 @@ pub fn validate_report_document(
         .cloned()
         .collect();
     issues.extend(unreported_header_data(document, &issues));
-    let files: std::collections::BTreeSet<_> = folder.files.iter().map(|p| canonical(p)).collect();
+    let files: std::collections::BTreeSet<_> = folder
+        .files
+        .iter()
+        .filter(|p| !apple_double_sidecar(p))
+        .map(|p| canonical(p))
+        .collect();
     // Each file the report names is one finding, where it is written (TYP-56). `media` marks a
     // field a remote address cannot fill, as the renderer reports it.
     let problem = |path: &str, media: bool, location: String| -> Option<Diagnostic> {
@@ -444,7 +474,7 @@ pub fn validate_report_document(
     }
     for block in &document.blocks {
         let mut in_block = vec![];
-        for key in ["csv", "json"] {
+        for key in crate::document::DATA_FILE_KEYS {
             if let Some(path) = block.value["data"][key].as_str() {
                 in_block.extend(problem(path, false, format!("{}.data.{key}", block.tag)));
             }
@@ -566,6 +596,11 @@ fn missing_message(path: &str) -> String {
             .collect();
         return format!(
             "'{head}…' is text, not a file name: this key takes the path of a file in the report folder. Save the text as a file there and name it, or write the rows under data.inline."
+        );
+    }
+    if apple_double_sidecar(path) {
+        return format!(
+            "'{path}' is a macOS sidecar file, which holds another file's attributes: a report never reads it. Name the file it stands beside."
         );
     }
     format!(

@@ -261,6 +261,8 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)]) -> 
         }
     };
 
+    let drawn_rows: Vec<(usize, usize)> = parsed.drawn().map(|o| (o.row, o.series)).collect();
+    ctx.resolve_emphasis(&drawn_rows);
     let multi = color_field.is_some() && !self_colour;
     let calendar = matches!(parsed.x, XModel::Calendar { .. });
     let ratio = block.style.ratio.unwrap_or_else(|| kind.default_ratio(calendar));
@@ -275,7 +277,11 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)]) -> 
     // Names at line ends when they fit; otherwise a legend (FEA-CH-27, FEA-CH-33).
     let line_like = matches!(kind, ChartType::Line | ChartType::Area);
     // Budget for every series, including hidden ones, so its restore control still has room.
-    let visible_names: Vec<String> = ctx.series.iter().map(|s| s.name.clone()).collect();
+    // A shown series the author's highlight mutes is never named, so it takes no room (TYP-78).
+    let visible_names: Vec<String> = (0..ctx.series.len())
+        .filter(|&s| !ctx.mutes_series(s) || ctx.is_hidden(s))
+        .map(|s| ctx.series[s].name.clone())
+        .collect();
     let end_width = visible_names.iter().map(|n| ctx.text_width(n)).fold(0.0, f64::max) + 10.0;
     // Lines may be named in a column at their right ends. Areas are named inside the plot or in
     // the legend: their names once stood in the value axis' margin, where they read as stray
@@ -416,7 +422,8 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)]) -> 
                 ChartType::Scatter => Swatch::Dot,
                 _ => Swatch::Square,
             },
-            entries: (0..ctx.series.len()).collect(),
+            // A muted series has no entry: the legend names what the chart is about (TYP-78).
+            entries: (0..ctx.series.len()).filter(|&s| !ctx.mutes_series(s)).collect(),
             bottom: ctx.style.legend_bottom,
         });
         let marks = (
@@ -1178,7 +1185,7 @@ impl AtX {
                 let (value, label) = match self.rows.iter().find(|r| r.0 == s) {
                     Some((_, Some(v), _)) => (
                         numbers::value(*v, readout),
-                        numbers::printed(*v, readout, ctx.block.label_digits(&ctx.block.y)),
+                        ctx.value_label(*v, readout, ctx.block.label_digits(&ctx.block.y)),
                     ),
                     Some((_, None, _)) => ("No observation".into(), None),
                     None if n_series > 1 => ("No observation".into(), None),
@@ -1667,6 +1674,8 @@ fn panel_layout(
                 value_room
             },
         );
+        // On a slide's stage the plot carries two to four gridlines (FEA-RP-65).
+        let y = if ctx.style.few_gridlines { y.thinned(3) } else { y };
         let left = frame.x + (y.widest(&ctx.style.figures, size) + LABEL_GAP).max(inset[0]);
         // A series marker on the last x keeps its whole disk inside the chart.
         let edge = if ctx.series.iter().any(|s| s.shape.is_some()) {
@@ -1936,6 +1945,8 @@ fn paint_panel(
         .iter()
         .filter_map(|i| if let Item::Text(t) = i { Some(t.bounds) } else { None })
         .collect();
+    // An annotated scatter's points to name, which wait until the author's annotations stand.
+    let mut named_points = None;
     match kind {
         ChartType::Line | ChartType::Area => {
             if kind == ChartType::Line
@@ -1963,18 +1974,20 @@ fn paint_panel(
             );
         }
         ChartType::Bar => paint_bars(ctx, p, &obs, plot, &xl, &ymap, &fr.y, &mut items, &mut observations),
-        ChartType::Scatter => paint_points(
-            ctx,
-            read,
-            p,
-            members,
-            plot,
-            &xl,
-            &ymap,
-            &mut items,
-            &mut observations,
-            &mut labels_taken,
-        ),
+        ChartType::Scatter => {
+            named_points = paint_points(
+                ctx,
+                read,
+                p,
+                members,
+                plot,
+                &xl,
+                &ymap,
+                &mut items,
+                &mut observations,
+                &mut labels_taken,
+            )
+        }
         _ => {}
     }
     // Zero line on top of fills, under labels (STY-40).
@@ -1990,8 +2003,10 @@ fn paint_panel(
     }
     // An unannotated zoom needs only its visible observations. Mapping the whole source
     // for collision avoidance would do work proportional to the data on every frame.
-    if !ctx.block.annotations.is_empty() {
-        super::place::annotations(
+    let drawn = if ctx.block.annotations.is_empty() {
+        place::Drawn::default()
+    } else {
+        place::annotations(
             ctx,
             plot,
             &xl_map(&xl, &p.x),
@@ -1999,7 +2014,12 @@ fn paint_panel(
             &mut items,
             &mut labels_taken,
             &obs_points(p, &obs, &xl, &ymap),
-        );
+        )
+    };
+    // The author's annotations come before every other optional label (FEA-CH-29): the point
+    // names here, then the values and the names inside the plot below.
+    if let Some(anchors) = named_points {
+        place::point_labels(ctx, plot, &anchors, &mut items, &mut labels_taken, &drawn);
     }
     let targeting = match kind {
         ChartType::Line | ChartType::Area => Targeting::NearestX,
@@ -2137,12 +2157,14 @@ fn bar_value_room(
     };
     let readout = block.readout_format(&block.y, ctx.locale);
     // The room is the printed value's, at the label's digits (FEA-CH-37).
-    let printed = numbers::label(value, &readout, block.label_digits(&block.y));
+    let printed = ctx
+        .value_label(value, &readout, block.label_digits(&block.y))
+        .unwrap_or_else(|| numbers::value(value, &readout));
     let [w, above, clear] = place::bar_value_above(ctx, &printed);
     let visible: Vec<usize> = (0..ctx.series.len()).filter(|s| !ctx.is_hidden(*s)).collect();
     let groups = if p.self_colour { 1 } else { visible.len().max(1) };
     let inner = xl.band * 0.72;
-    let thickness = (inner / groups as f64).min(64.0);
+    let thickness = (inner / groups as f64).min(ctx.style.bar_cap(super::BAR_CAP));
     let bar_top = y.map(hi, plot.bottom(), plot.y);
     if w + 8.0 <= (thickness - 1.0).max(1.0) && above + 5.0 <= plot.bottom() - bar_top {
         return None;
@@ -2156,7 +2178,7 @@ fn bar_value_room(
                 centre - thickness / 2.0
             } else {
                 let slot = visible.iter().position(|s| *s == tallest.series).unwrap_or(0);
-                centre - inner / 2.0 + slot as f64 * thickness
+                centre - groups as f64 * thickness / 2.0 + slot as f64 * thickness
             } + thickness / 2.0
                 - w / 2.0;
             let left = left.clamp(plot.x, (plot.right() - w).max(plot.x));
@@ -2285,6 +2307,8 @@ fn series_lines(
                 series: s,
                 points,
                 hidden,
+                // Hover dots are drawn only where the chart is not stacked (`observations`).
+                dots: !ctx.block.stack,
             }
         })
         .collect()
@@ -2633,7 +2657,10 @@ fn paint_lines(
                     obs: None,
                 });
             }
-            if let Some(shape) = ctx.series[s].shape {
+            // Markers tell one line from another where colour alone cannot; a single line has
+            // none to be told from, and its markers would read as marked observations (chart
+            // design, 16 Nov 2026: Wheat and wages in Hand-drawn).
+            if let Some(shape) = ctx.series[s].shape.filter(|_| ctx.series.len() > 1) {
                 let step = (reduced.len() / 10).max(1);
                 for pt in reduced.iter().step_by(step) {
                     items.push(Item::Point {
@@ -2671,8 +2698,12 @@ fn paint_lines(
         }
     }
     // Every translucent fill goes under every line, so a later series never veils an earlier
-    // series' line and overlaps blend in the series' own hues.
-    items[painted_from..].sort_by_key(|i| !matches!(i, Item::Area { role: Role::Mark, .. }));
+    // series' line and overlaps blend in the series' own hues. Within each, muted series paint
+    // first, so no quiet line crosses over a highlighted one (TYP-78).
+    items[painted_from..].sort_by_key(|i| {
+        let muted = i.series().is_some_and(|s| ctx.mutes_series(s));
+        (!matches!(i, Item::Area { role: Role::Mark, .. }), !muted)
+    });
     if let Some(d) = dense_note {
         ctx.note.push(format!(
             "≈{d} observations per pixel: lines show the mean, bands the range"
@@ -2693,6 +2724,8 @@ fn paint_lines(
             .map(|(s, value, shown)| (s, ymap(value.clamp(y.lo, y.hi)), shown))
             .collect();
     }
+    // A shown series the author's highlight mutes is not named at its end (TYP-78).
+    ends.retain(|(s, _, _)| !ctx.mutes_series(*s) || ctx.is_hidden(*s));
     // Data records do not depend on whether the style has room for direct names.
     let end_order = place::end_name_order(ctx, panel_of(obs), &ends);
     if end_names && !inside_names {
@@ -2823,7 +2856,7 @@ fn paint_bars(
     };
     let visible: Vec<usize> = (0..ctx.series.len()).filter(|s| !ctx.is_hidden(*s)).collect();
     let inner = xl.band * 0.72;
-    let thickness = (inner / groups as f64).min(64.0);
+    let thickness = (inner / groups as f64).min(ctx.style.bar_cap(super::BAR_CAP));
     let zero_y = ymap(0.0f64.clamp(y.lo, y.hi));
     let clearance = BASELINE_WIDTH;
     let radius_cap = |t: f64| ctx.style.bar_radius.min(t * 0.15);
@@ -2842,20 +2875,23 @@ fn paint_bars(
             let o = obs
                 .iter()
                 .find(|o| o.x as usize == cat && (p.self_colour || o.series == s));
+            // The group stands centred on its category, also when the bars' cap leaves part of
+            // the band empty: a group starting at the band's inner edge sat beside its label.
             let left = if groups == 1 {
                 center - thickness / 2.0
             } else {
-                center - inner / 2.0 + slot as f64 * thickness
+                center - groups as f64 * thickness / 2.0 + slot as f64 * thickness
             };
             let Some(o) = o else {
                 // Impossible combinations reserve no slot when bars colour themselves.
                 continue;
             };
-            let color = Style::rgba(if p.self_colour {
+            let own = if p.self_colour {
                 ctx.style.palette[ctx.series.get(cat).map_or(cat, |s| s.slot) % ctx.style.palette.len()]
             } else {
                 ctx.series_color(s)
-            });
+            };
+            let color = Style::rgba(ctx.mark_color(o.row, series_index, own));
             match o.y {
                 None => {
                     let t = ctx.text(
@@ -3001,7 +3037,7 @@ fn bar_observation(
     f: &Format,
 ) -> Observation {
     let value = v.map_or_else(|| "No observation".to_owned(), |v| numbers::value(v, f));
-    let label = v.and_then(|v| numbers::printed(v, f, ctx.block.label_digits(&ctx.block.y)));
+    let label = v.and_then(|v| ctx.value_label(v, f, ctx.block.label_digits(&ctx.block.y)));
     let name = if p.self_colour || ctx.block.encoding.color.is_none() {
         ctx.block
             .y
@@ -3181,7 +3217,7 @@ fn paint_horizontal_bars(
         0.0
     };
     let inner = (band - name_room) * 0.72;
-    let thickness = (inner / groups as f64).min(40.0);
+    let thickness = (inner / groups as f64).min(ctx.style.bar_cap(super::BAR_CAP_ACROSS));
     let zero_x = xmap(0.0f64.clamp(x_axis.lo, x_axis.hi));
     let readout = block.readout_format(&block.y, ctx.locale);
     let mut observations = Vec::new();
@@ -3245,13 +3281,14 @@ fn paint_horizontal_bars(
             let top_y = if groups == 1 {
                 center - thickness / 2.0
             } else {
-                center - inner / 2.0 + slot as f64 * thickness
+                center - groups as f64 * thickness / 2.0 + slot as f64 * thickness
             };
-            let color = Style::rgba(if p.self_colour {
+            let own = if p.self_colour {
                 ctx.style.palette[ctx.series.get(cat).map_or(cat, |s| s.slot) % ctx.style.palette.len()]
             } else {
                 ctx.series_color(s)
-            });
+            };
+            let color = Style::rgba(ctx.mark_color(o.row, series_index, own));
             match o.y {
                 None => {
                     items.push(Item::Text(ctx.text_mid(
@@ -3461,7 +3498,7 @@ fn paint_points(
     items: &mut Vec<Item>,
     observations: &mut Vec<Observation>,
     taken: &mut Vec<Rect>,
-) {
+) -> Option<Vec<(usize, [f64; 2], f64)>> {
     let block = ctx.block;
     let x_readout = block.readout_format(&block.x, ctx.locale);
     let y_readout = block.readout_format(&block.y, ctx.locale);
@@ -3476,6 +3513,8 @@ fn paint_points(
     let colors: Vec<_> = (0..ctx.series.len())
         .map(|s| Style::rgba(ctx.series_color(s)))
         .collect();
+    let quiet = Style::rgba(ctx.style.ink_faint);
+    let painted_from = items.len();
     let window = xl.scale.as_ref().map(|s| s.domain);
     let labelled = block.encoding.label.is_some() || block.highlight.is_some();
     let mut anchors: Vec<(usize, [f64; 2], f64)> = Vec::new();
@@ -3521,7 +3560,11 @@ fn paint_points(
                     r,
                     o.series,
                     observations.len(),
-                    colors[o.series],
+                    if ctx.mutes_mark(o.row, o.series) {
+                        quiet
+                    } else {
+                        colors[o.series]
+                    },
                     ctx.series[o.series].shape,
                 ));
             }
@@ -3603,12 +3646,13 @@ fn paint_points(
             if keep {
                 let point = &observations[observation];
                 let s = point.series.expect("point series");
+                let muted = point.row.is_some_and(|row| ctx.mutes_mark(row, s));
                 items.push(point_item(
                     point.at,
                     radius,
                     s,
                     observation,
-                    colors[s],
+                    if muted { quiet } else { colors[s] },
                     ctx.series[s].shape,
                 ));
             }
@@ -3621,9 +3665,28 @@ fn paint_points(
                 "automatic": true, "method": "pixel-cell", "ceiling": crate::limits::max(block.kind.name(), "all-points observations")}),
         );
     }
-    if labelled {
-        place::point_labels(ctx, plot, &anchors, items, taken);
+    // Muted points paint first, so none covers a highlighted one (TYP-78).
+    if ctx.emphasis.is_some() {
+        let muted = |i: &Item| match i {
+            Item::Point {
+                obs: Some(k),
+                series: Some(s),
+                ..
+            } => observations[*k].row.is_some_and(|row| ctx.mutes_mark(row, *s)),
+            _ => false,
+        };
+        items[painted_from..].sort_by_key(|i| !muted(i));
     }
+    if !labelled {
+        return None;
+    }
+    // On an annotated chart the points to name are returned: the caller places the author's
+    // annotations first, then the names.
+    if !block.annotations.is_empty() {
+        return Some(anchors);
+    }
+    place::point_labels(ctx, plot, &anchors, items, taken, &place::Drawn::default());
+    None
 }
 
 /// Build a scatter mark at its actual radius, retaining its complete-source observation index.
@@ -4422,6 +4485,199 @@ mod tests {
         assert!(both > 0, "a wide plot holds both");
     }
 
+    /// NASA's annual temperature index ends on its second-highest year after its highest (1.28 in
+    /// 2024, 1.18 in 2025). The two values stand at the line's end on leaders: the higher stands
+    /// above, the leaders never cross, and the last value shows at every width (chart design,
+    /// 16 Nov 2026, A warmer world at 1440).
+    #[test]
+    fn values_at_a_lines_end_keep_their_order_and_their_leaders_never_cross() {
+        use crate::layout::place::segments_cross;
+        let block = ChartBlock::from_value(
+            &json!({"type": "line", "title": "T", "encoding": {"x": "year", "y": "anomaly_c"},
+            "axes": {"x": {"format": "year"}, "y": {"label": "Temperature anomaly", "unit": "°C"}}}),
+        )
+        .unwrap();
+        let rows: Vec<serde_json::Value> = include_str!("../../tests/fixtures/global-temperature.csv")
+            .lines()
+            .skip(1)
+            .filter_map(|l| l.split_once(','))
+            .map(|(y, v)| json!({"year": y.parse::<i64>().unwrap(), "anomaly_c": v.parse::<f64>().unwrap()}))
+            .collect();
+        let number = |t: &str| -> f64 {
+            t.trim_end_matches("°C")
+                .replace('\u{a0}', "")
+                .replace('\u{2212}', "-")
+                .trim()
+                .parse()
+                .unwrap()
+        };
+        for width in (240..=1440).step_by(8) {
+            let g = layout(&block, &rows, &ChartTheme::default(), &opts(f64::from(width)));
+            assert!(g.failure.is_none());
+            let values: Vec<_> = g
+                .items()
+                .filter_map(|i| match i {
+                    Item::Text(t) if t.role == Role::Label && t.mark.is_some() => Some((number(&t.text), t.bounds)),
+                    _ => None,
+                })
+                .collect();
+            assert!(
+                values.iter().any(|(v, _)| (*v - 1.18).abs() < 1e-9),
+                "{width}: the last value shows: {values:?}"
+            );
+            for (i, (a, ra)) in values.iter().enumerate() {
+                for (b, rb) in &values[i + 1..] {
+                    let stacked = ra.x < rb.right() && rb.x < ra.right();
+                    if stacked && a != b {
+                        assert_eq!(
+                            a > b,
+                            ra.center()[1] < rb.center()[1],
+                            "{width}: of {a} and {b}, one above the other, the higher stands above: {ra:?} {rb:?}"
+                        );
+                    }
+                }
+            }
+            let leaders: Vec<_> = g
+                .items()
+                .filter_map(|i| match i {
+                    Item::Line {
+                        path,
+                        role: Role::Leader,
+                        ..
+                    } => path.flatten(0.5).into_iter().next().map(|p| (p[0], p[p.len() - 1])),
+                    _ => None,
+                })
+                .collect();
+            for (i, (a, b)) in leaders.iter().enumerate() {
+                for (c, d) in &leaders[i + 1..] {
+                    assert!(
+                        !segments_cross(*a, *b, *c, *d),
+                        "{width}: two leaders cross: {leaders:?}"
+                    );
+                }
+            }
+        }
+    }
+
+    /// An area over categories runs edge to edge, so its end values have no room beside the
+    /// plot. Each stands above its own line, on the page or on the tint of an area above it, at
+    /// 4.5:1 there (chart design, 16 Nov 2026: the docs' "Daily active users by tier").
+    #[test]
+    fn an_areas_end_values_stand_above_its_own_line() {
+        let block = ChartBlock::from_value(&json!({"type": "area", "title": "Daily active users by tier",
+            "encoding": {"x": "day", "y": "users", "color": "tier"}}))
+        .unwrap();
+        let rows: Vec<_> = ["Mon", "Tue", "Wed", "Thu"]
+            .iter()
+            .enumerate()
+            .flat_map(|(i, d)| {
+                [
+                    json!({"day": d, "tier": "free", "users": ([820, 910, 870, 940][i])}),
+                    json!({"day": d, "tier": "paid", "users": ([240, 265, 290, 305][i])}),
+                ]
+            })
+            .collect();
+        for width in [318.0, 632.0] {
+            let g = layout(&block, &rows, &ChartTheme::default(), &opts(width));
+            assert!(g.failure.is_none());
+            let panel = &g.panels[0];
+            let values: Vec<_> = panel
+                .items
+                .iter()
+                .filter_map(|i| match i {
+                    Item::Text(t) if t.role == Role::Label && t.face == crate::geometry::Face::Figures => Some(t),
+                    _ => None,
+                })
+                .collect();
+            let texts: Vec<_> = values.iter().map(|t| t.text.as_str()).collect();
+            // At 318 px the 940 lies 9 px under the plot's top: no room above its line, so the
+            // last values are left out and recorded. At 632 px they stand.
+            for wanted in ["940", "305"] {
+                assert!(
+                    texts.contains(&wanted)
+                        || (width < 400.0
+                            && g.dropped
+                                .iter()
+                                .any(|d| d.text == wanted && d.kind.as_deref() == Some("value"))),
+                    "{width}: the last value {wanted} shows or is recorded: {texts:?} {:?}",
+                    g.dropped
+                );
+            }
+            // A value standing across a gridline breaks it.
+            for item in &panel.items {
+                if let Item::Line {
+                    path, role: Role::Grid, ..
+                } = item
+                {
+                    for t in &values {
+                        assert!(
+                            !path
+                                .flatten(0.5)
+                                .iter()
+                                .flat_map(|ring| ring.windows(2))
+                                .any(|e| crate::layout::place::segment_touches_rect(e[0], e[1], &t.bounds)),
+                            "{width}: a gridline runs through the value {}",
+                            t.text
+                        );
+                    }
+                }
+            }
+            for t in &values {
+                // The value's own point: its series' observation nearest across.
+                let x = t.bounds.center()[0];
+                let point = panel
+                    .observations
+                    .iter()
+                    .flat_map(|o| &o.dots)
+                    .filter(|d| Some(d.series) == t.series)
+                    .map(|d| d.at)
+                    .min_by(|a, b| (a[0] - x).abs().total_cmp(&(b[0] - x).abs()))
+                    .expect("a value has its series' points");
+                assert!(
+                    t.bounds.bottom() <= point[1],
+                    "{width}: {} stands above its own line: {:?} over {point:?}",
+                    t.text,
+                    t.bounds
+                );
+            }
+        }
+    }
+
+    /// A style with decals (Hand-drawn) marks lines with shapes so two lines can be told apart;
+    /// a single line has nothing to be told from and draws none, since its markers would read as
+    /// marked observations. Two lines keep their markers.
+    #[test]
+    fn a_single_line_draws_no_decal_markers() {
+        let theme = ChartTheme {
+            decals: true,
+            ..ChartTheme::default()
+        };
+        let markers = |g: &crate::geometry::Geometry| {
+            g.items()
+                .filter(|i| matches!(i, Item::Point { role: Role::Mark, .. }))
+                .count()
+        };
+        let one =
+            ChartBlock::from_value(&json!({"type": "line", "title": "T", "encoding": {"x": "x", "y": "y"}})).unwrap();
+        let rows: Vec<_> = (0..53).map(|x| json!({"x": x, "y": 40 + (x * 7) % 23})).collect();
+        let g = layout(&one, &rows, &theme, &opts(640.0));
+        assert_eq!(markers(&g), 0, "one line, no markers");
+        let two = ChartBlock::from_value(
+            &json!({"type": "line", "title": "T", "encoding": {"x": "x", "y": "y", "color": "s"}}),
+        )
+        .unwrap();
+        let rows: Vec<_> = (0..53)
+            .flat_map(|x| {
+                [
+                    json!({"x": x, "y": 40 + (x * 7) % 23, "s": "a"}),
+                    json!({"x": x, "y": 90 + (x * 5) % 17, "s": "b"}),
+                ]
+            })
+            .collect();
+        let g = layout(&two, &rows, &theme, &opts(640.0));
+        assert!(markers(&g) > 0, "two lines keep their markers");
+    }
+
     #[test]
     fn a_value_leader_never_crosses_another_value_and_values_keep_apart() {
         use crate::geometry::Rect;
@@ -4570,6 +4826,137 @@ mod tests {
         assert!(bars[0].1[2] == 0.0 && bars[0].1[0] > 0.0);
         assert!(bars[1].1[0] == 0.0 && bars[1].1[2] > 0.0);
         assert_eq!(g.panels[0].observations.len(), 3, "the zero stays inspectable");
+    }
+
+    #[test]
+    fn a_group_of_bars_stands_centred_on_its_category_when_their_width_is_capped() {
+        // Two categories across a wide plot: each band could hold far wider bars than the cap.
+        for horizontal in [false, true] {
+            let mut raw = json!({"type": "bar", "title": "T", "encoding": {"x": "c", "y": "v", "color": "s"}});
+            if horizontal {
+                raw["style"] = json!({"orientation": "horizontal"});
+            }
+            let block = ChartBlock::from_value(&raw).unwrap();
+            let rows = vec![
+                json!({"c": "Aug", "s": "One", "v": 60}),
+                json!({"c": "Aug", "s": "Two", "v": 50}),
+                json!({"c": "Sep", "s": "One", "v": 80}),
+                json!({"c": "Sep", "s": "Two", "v": 50}),
+            ];
+            let g = layout(&block, &rows, &ChartTheme::default(), &opts(1100.0));
+            let panel = &g.panels[0];
+            let bars: Vec<Rect> = panel
+                .items
+                .iter()
+                .filter_map(|i| match i {
+                    Item::Rect {
+                        rect, role: Role::Mark, ..
+                    } => Some(*rect),
+                    _ => None,
+                })
+                .collect();
+            assert_eq!(bars.len(), 4, "{horizontal}");
+            let across = |r: &Rect| if horizontal { (r.y, r.y + r.h) } else { (r.x, r.right()) };
+            let (plot_from, plot_span) = if horizontal {
+                (panel.plot.y, panel.plot.h)
+            } else {
+                (panel.plot.x, panel.plot.w)
+            };
+            let band = plot_span / 2.0;
+            assert!(
+                across(&bars[0]).1 - across(&bars[0]).0 < band * 0.36 - 1.0,
+                "the cap applies"
+            );
+            for category in 0..2 {
+                let start = plot_from + category as f64 * band;
+                let mine: Vec<(f64, f64)> = bars
+                    .iter()
+                    .map(across)
+                    .filter(|(a, b)| (a + b) / 2.0 >= start && (a + b) / 2.0 < start + band)
+                    .collect();
+                assert_eq!(mine.len(), 2, "{horizontal}: two bars in category {category}");
+                let from = mine.iter().map(|m| m.0).fold(f64::INFINITY, f64::min);
+                let to = mine.iter().map(|m| m.1).fold(f64::NEG_INFINITY, f64::max);
+                let centre = start + band / 2.0;
+                assert!(
+                    ((from + to) / 2.0 - centre).abs() <= 1.0,
+                    "{horizontal}: category {category}'s bars span {from:.1}..{to:.1}, its centre is {centre:.1}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn on_a_slides_stage_bars_take_their_bands_share_without_the_cap() {
+        let block = ChartBlock::from_value(
+            &json!({"type": "bar", "title": "T", "stack": true, "encoding": {"x": "c", "y": "v", "color": "s"}}),
+        )
+        .unwrap();
+        let rows: Vec<_> = ["Jul", "Aug", "Sep"]
+            .iter()
+            .flat_map(|c| [json!({"c": c, "s": "One", "v": 3}), json!({"c": c, "s": "Two", "v": 1})])
+            .collect();
+        let widest = |theme: &ChartTheme| {
+            let g = layout(&block, &rows, theme, &opts(1600.0));
+            let panel = &g.panels[0];
+            let bars = panel.items.iter().filter_map(|i| match i {
+                Item::Rect {
+                    rect, role: Role::Mark, ..
+                } => Some(rect.w),
+                _ => None,
+            });
+            (bars.fold(0.0, f64::max), panel.plot.w / 3.0)
+        };
+        let (report, _) = widest(&ChartTheme::default());
+        assert!(
+            report <= crate::layout::BAR_CAP,
+            "a report caps a column at 64 px: {report}"
+        );
+        let (stage, band) = widest(&ChartTheme {
+            wide_bars: true,
+            ..ChartTheme::default()
+        });
+        // 72 % of the band, less the pixel between neighbours.
+        assert!(
+            (stage - band * 0.72).abs() <= 1.5,
+            "a slide's column takes its band's share: {stage} of {band}"
+        );
+    }
+
+    #[test]
+    fn on_a_slides_stage_values_are_set_larger_in_the_axis_compact_form() {
+        let block = ChartBlock::from_value(&json!({
+            "type": "bar", "title": "T", "encoding": {"x": "c", "y": "v"},
+            "axes": {"y": {"format": "number_compact", "unit": "$"}}
+        }))
+        .unwrap();
+        let rows = vec![json!({"c": "Aug", "v": 340_000}), json!({"c": "Sep", "v": 420_000})];
+        let values = |theme: &ChartTheme| {
+            let g = layout(&block, &rows, theme, &opts(1200.0));
+            g.panels[0]
+                .items
+                .iter()
+                .filter_map(|i| match i {
+                    Item::Text(t) if t.role == Role::Label => Some((t.text.clone(), t.size)),
+                    _ => None,
+                })
+                .collect::<Vec<_>>()
+        };
+        let report = values(&ChartTheme::default());
+        let stage = values(&ChartTheme {
+            wide_bars: true,
+            stage_values: true,
+            ..ChartTheme::default()
+        });
+        let texts = |values: &[(String, f64)]| values.iter().map(|(t, _)| t.clone()).collect::<Vec<_>>();
+        assert_eq!(texts(&report), ["$340 thousand", "$420 thousand"]);
+        assert_eq!(texts(&stage), ["$340K", "$420K"], "the axis's form at the same digits");
+        for ((_, size), (_, base)) in stage.iter().zip(&report) {
+            assert!(
+                (size - base * crate::layout::STAGE_VALUE_SCALE).abs() < 1e-9,
+                "a stage's value is set larger: {size} against {base}"
+            );
+        }
     }
 
     #[test]

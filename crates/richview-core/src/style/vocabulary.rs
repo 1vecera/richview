@@ -1,12 +1,8 @@
 //! The closed vocabulary of a style file (TYP-44..TYP-50, STY-14, STY-15, STY-67).
 //!
-//! Every leaf an author may set is listed once, with its value grammar and whether it is safe
-//! or experimental. Loading a style file checks each leaf against this table and skips only the
-//! leaf that fails: an unknown leaf is `style.unknown-key`, a value outside its grammar is
-//! `style.schema`, and a key that fixes the page's mechanics is `style.internal` unless a
-//! builtin sets it. The settings of STY-15 (`density`, `block-gap`, `type-size`, `accent`,
-//! `fonts`, `palette`, `motion`, `colophon`) are leaves too; loading expands them into the
-//! sections behind them, so the cascade only ever merges sections.
+//! The catalogue validates author settings and the internal definitions of builtins. Retired
+//! author leaves produce a located warning and never enter the cascade. The supported settings
+//! expand into the sections shared with presets.
 
 use super::{
     PALETTE_NAMES, builtin_style_names, chart_color, color_list, valid_color, valid_dim,
@@ -18,8 +14,7 @@ use std::{collections::BTreeMap, sync::OnceLock};
 
 /// Whether an agent may play with a leaf freely (`Safe`), may break the layout with it
 /// (`Experimental`), may not set it at all (`Internal`: it fixes the page's mechanics), or sets
-/// a preset's internal vocabulary that still applies but is no longer taught (`Legacy`: presets,
-/// `colors` and the five-step settings replace it, STY-73).
+/// a retired author key that a builtin may still use internally (`Legacy`, STY-73).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum Mark {
     Safe,
@@ -165,6 +160,12 @@ fn build() -> Vec<Leaf> {
         Grammar::Dimension,
         Mark::Internal,
         "The reading measure",
+    );
+    add(
+        "tokens.print-measure",
+        Grammar::Dimension,
+        Mark::Internal,
+        "The builtin reading measure on paper, before the print type scale",
     );
     add(
         "tokens.radius-s",
@@ -358,6 +359,19 @@ fn build() -> Vec<Leaf> {
         "Where the chart description sits: above the plot, below it, or below it in a box",
     );
     add(
+        "components.slides.stage",
+        Grammar::Enum(&[
+            "plain",
+            "keynote",
+            "gallery",
+            "poster",
+            "sketchbook",
+            "paper",
+        ]),
+        Mark::Safe,
+        "How a slides source stands on its stage: the layout alone, or the world of a builtin style",
+    );
+    add(
         "chart.palette",
         Grammar::Palette,
         Mark::Safe,
@@ -500,9 +514,9 @@ fn build() -> Vec<Leaf> {
     );
     add(
         "motion",
-        Grammar::Enum(&MOTION_WORDS),
+        Grammar::Step,
         Mark::Safe,
-        "How far and how long blocks and charts move: `xsmall` is still; `on` and `off` are the old words",
+        "How far and how long blocks and charts move: `xsmall` is still",
     );
     add(
         "colophon",
@@ -553,9 +567,9 @@ fn build() -> Vec<Leaf> {
     // STY-74: the background behind the report, in closed words and a picture path.
     add(
         "background",
-        Grammar::Enum(&["none"]),
+        Grammar::Enum(&super::background::WORDS),
         Mark::Safe,
-        "The background behind the report: a mapping, or `none` to clear an earlier file's",
+        "The background behind the report: one word (a texture, a gradient or a picture file), a mapping, or `none` for a flat page against a preset's or an earlier file's",
     );
     add(
         "background.texture",
@@ -588,8 +602,7 @@ fn build() -> Vec<Leaf> {
         "How visible it is: xsmall to xlarge, medium the designed default; never past what text needs",
     );
 
-    // Everything a preset sets inside its sections is internal vocabulary now: it still applies
-    // from an author's file, with a `style.legacy` warning naming what replaces it (STY-73).
+    // Presets own their internal leaves. Author files receive migration advice (STY-73).
     for leaf in &mut leaves {
         let section = SECTIONS
             .iter()
@@ -611,12 +624,8 @@ fn build() -> Vec<Leaf> {
     leaves
 }
 
-/// The words `motion` takes: the five steps, and the old `on` and `off`.
-const MOTION_WORDS: [&str; 7] = ["xsmall", "small", "medium", "large", "xlarge", "on", "off"];
-
-/// What replaces a legacy leaf, for its `style.legacy` warning; `None` when no setting covers it
-/// and the preset decides.
-pub(super) fn legacy_replacement(path: &str) -> Option<&'static str> {
+/// The supported setting nearest to a retired leaf, when one exists.
+fn retired_replacement(path: &str) -> Option<&'static str> {
     let leaf = path
         .split_once('.')
         .map_or(path, |(_, rest)| rest)
@@ -629,7 +638,8 @@ pub(super) fn legacy_replacement(path: &str) -> Option<&'static str> {
         "company.secondary" => "colors.secondary",
         "company.base" => "preset",
         "chart.bar-radius" => "corners",
-        "chart.palette" | "chart.ramp" | "chart.negative-ramp" => "colors",
+        "chart.palette" => "palette",
+        "chart.ramp" | "chart.negative-ramp" => "colors.brand",
         "components.callout.border-width"
         | "components.header.border-top"
         | "components.header.border-bottom" => "lines",
@@ -637,12 +647,15 @@ pub(super) fn legacy_replacement(path: &str) -> Option<&'static str> {
         _ if path.starts_with("tokens.") => match leaf {
             "bg" | "bg-elev" | "bg-chart" | "scheme" => "colors.background",
             "accent" | "accent-soft" | "link" => "colors.brand",
-            "ink" | "ink-soft" | "ink-faint" | "chart-ink" | "rule" => "colors and tint",
+            "ink" | "ink-soft" | "ink-faint" | "chart-ink" | "rule" => "tint",
             "rule-soft" => "gridlines",
             "radius-s" | "radius-m" => "corners",
             "block-gap" => "spacing",
             _ if leaf.starts_with("size-") => "text-size",
-            _ if leaf.starts_with("font-") => "fonts",
+            "font-display" => "fonts.display",
+            "font-text" => "fonts.text",
+            "font-ui" => "fonts.ui",
+            "font-mono" => "fonts.mono",
             _ => return None,
         },
         _ => return None,
@@ -854,7 +867,17 @@ impl Walk<'_> {
                 self.branch(&full, value);
                 return;
             }
-            if leaf.mark == Mark::Internal && !self.builtin {
+            // One word stands for its mapping: `background: grain` is `{texture: grain}`.
+            if full == "background"
+                && let Some(map) = value.as_str().and_then(super::background::one_word)
+            {
+                self.branch(&full, &map);
+                return;
+            }
+            let old_motion = full == "motion" && matches!(value.as_str(), Some("on" | "off"));
+            if !self.builtin && (leaf.mark == Mark::Legacy || old_motion) {
+                self.report_retired(&full, value);
+            } else if leaf.mark == Mark::Internal && !self.builtin {
                 self.report(
                     "warning",
                     "style.internal",
@@ -862,18 +885,6 @@ impl Walk<'_> {
                     &full,
                 );
             } else if !accepts(leaf.grammar, value) {
-                if matches!(full.as_str(), "company.color" | "company.secondary")
-                    && value.as_str().is_some_and(valid_color)
-                {
-                    self.report(
-                        "warning",
-                        "style.company-color",
-                        "A company colour must be an opaque, concrete colour; the leaf is skipped"
-                            .into(),
-                        &full,
-                    );
-                    return;
-                }
                 self.report(
                     "warning",
                     "style.schema",
@@ -889,10 +900,6 @@ impl Walk<'_> {
                         "'{full}' is experimental: it can break the layout in ways nobody expects"
                     );
                     self.report("info", "style.experimental", message, &full);
-                }
-                let old_motion = full == "motion" && matches!(value.as_str(), Some("on" | "off"));
-                if (leaf.mark == Mark::Legacy || old_motion) && !self.builtin {
-                    self.legacy(&full, value);
                 }
                 self.keep(&full, value);
             }
@@ -916,8 +923,9 @@ impl Walk<'_> {
             }
         } else {
             let siblings: Vec<_> = index()
-                .keys()
-                .copied()
+                .values()
+                .filter(|leaf| leaf.mark == Mark::Safe)
+                .map(|leaf| leaf.path.as_str())
                 .filter(|known| {
                     known.rsplit_once('.').map(|(parent, _)| parent)
                         == full.rsplit_once('.').map(|(parent, _)| parent)
@@ -944,41 +952,25 @@ impl Walk<'_> {
         }
     }
 
-    /// Warn that a leaf of the old vocabulary still applies, and name what replaces it.
-    fn legacy(&mut self, full: &str, value: &Value) {
-        let (message, fix) = if full == "motion" {
-            let step = if value.as_str() == Some("off") {
-                "xsmall"
-            } else {
-                "medium"
-            };
-            (
-                format!(
-                    "'motion: {}' still applies; write `motion: {step}`",
-                    crate::text(value)
-                ),
-                format!("Write `motion: {step}`."),
-            )
-        } else {
-            match legacy_replacement(full) {
-                Some(replacement) => (
-                    format!(
-                        "'{full}' is a preset's internal setting; it still applies, but `{replacement}` replaces it"
-                    ),
-                    format!(
-                        "Use `{replacement}` (`richview learn style` shows presets, colors and the five-step settings)."
-                    ),
-                ),
-                None => (
-                    format!(
-                        "'{full}' is a preset's internal setting; it still applies, but no setting covers it: the preset decides"
-                    ),
-                    "Remove it, or choose the preset whose look you want.".to_owned(),
-                ),
-            }
+    fn report_retired(&mut self, path: &str, value: &Value) {
+        let replacement = match (path, value.as_str()) {
+            ("motion", Some("off")) => Some("motion: xsmall"),
+            ("motion", Some("on")) => Some("motion: medium"),
+            _ => retired_replacement(path),
         };
-        self.diagnostics
-            .push(Diagnostic::new("warning", "style.legacy", message, self.at(full)).fix(fix));
+        let advice = replacement.map_or_else(
+            || "Remove it. The preset controls this value.".to_owned(),
+            |setting| format!("Use `{setting}` instead."),
+        );
+        self.diagnostics.push(
+            Diagnostic::new(
+                "warning",
+                "style.retired",
+                format!("Retired style leaf '{path}' is ignored. {advice}"),
+                self.at(path),
+            )
+            .fix(advice),
+        );
     }
 
     fn branch(&mut self, path: &str, value: &Value) {
@@ -1022,55 +1014,11 @@ fn expand(doc: Value) -> Value {
             .as_object_mut()
             .expect("sections are mappings")
     }
-    if let Some(Value::String(density)) = doc.remove("density") {
-        let factor = match density.as_str() {
-            "loose" => 1.25,
-            "airmax" => 1.5,
-            _ => 1.0,
-        };
-        section(&mut doc, "tokens").insert("density".into(), json!(factor));
-    }
-    if let Some(Value::String(gap)) = doc.remove("block-gap") {
-        let (wide, phone) = match gap.as_str() {
-            "tight" => ("3rem", "2rem"),
-            "wide" => ("5rem", "3rem"),
-            _ => ("4rem", "2.5rem"),
-        };
-        let tokens = section(&mut doc, "tokens");
-        tokens.insert("block-gap".into(), json!(wide));
-        tokens.insert("block-gap-phone".into(), json!(phone));
-    }
-    if let Some(Value::String(size)) = doc.remove("type-size") {
-        let factor = match size.as_str() {
-            "small" => 0.9,
-            "bigger" => 1.1,
-            _ => 1.0,
-        };
-        section(&mut doc, "settings").insert("type-scale".into(), json!(factor));
-    }
-    if let Some(accent) = doc.remove("accent") {
-        section(&mut doc, "settings").insert("accent".into(), accent);
-    }
     if let Some(palette) = doc.remove("palette") {
         section(&mut doc, "chart").insert("palette".into(), palette);
     }
-    if let Some(motion) = doc.get("motion").cloned()
-        && let Some(word) = motion.as_str()
-    {
-        doc.remove("motion");
-        if let Some(step) = super::settings::step_index(word) {
-            section(&mut doc, "settings")
-                .entry("steps")
-                .or_insert_with(|| json!({}))
-                .as_object_mut()
-                .expect("steps are a mapping")
-                .insert("motion".into(), json!(step));
-        } else {
-            section(&mut doc, "motion").insert("enabled".into(), json!(word == "on"));
-        }
-    }
     for setting in super::settings::SETTINGS {
-        if setting.name == "motion" {
+        if setting.name == "motion" && doc.get("motion").is_some_and(Value::is_object) {
             continue;
         }
         if let Some(Value::String(word)) = doc.remove(setting.name)

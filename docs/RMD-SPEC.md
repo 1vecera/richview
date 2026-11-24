@@ -2,7 +2,7 @@
 
 The reference tables in this spec (tags, frontmatter fields, each block's fields, chart types and diagnostic codes) are generated from the schema registry in `crates/richview-core/src/registry.rs` and checked by the gate; edit the registry, then run `RICHVIEW_BLESS=1 cargo test -p richview-core --test spec_docs` to refresh them. The prose explains the rules but does not list the vocabulary.
 
-This document describes the Rust implementation in RichView v3 alpha. Rich Markdown (`.rmd`) is CommonMark with YAML frontmatter and tagged YAML fences. An ordinary Markdown renderer displays the rich fences as code. RichView decodes supported fences into report elements; unknown fences remain ordinary code, and invalid rich fences remain visible with source diagnostics.
+This document describes the Rust implementation in RichView 3.0.0. Rich Markdown (`.rmd`) is CommonMark with YAML frontmatter and tagged YAML fences. An ordinary Markdown renderer displays the rich fences as code. RichView decodes supported fences into report elements; unknown fences remain ordinary code, and invalid rich fences remain visible with source diagnostics.
 
 The content source, resolved data and ordered `.rstyle.yaml` sources remain editable and are retained for report regeneration. The core performs no filesystem or network I/O; native/browser hosts resolve resources before calling it.
 
@@ -45,6 +45,23 @@ date: 2026-10-04
 styles: [scientific]
 ---
 
+## The evidence
+
+```chart
+type: bar
+title: Revenue increased across both months
+data:
+  inline:
+    - month: Jul
+      revenue: 100
+    - month: Aug
+      revenue: 140
+encoding: {x: month, y: revenue}
+```
+
+*Source: fictional monthly revenue.*
+````
+
 <!-- registry:begin frontmatter -->
 | Field | Type | Required | Default | Meaning |
 | --- | --- | --- | --- | --- |
@@ -58,6 +75,7 @@ styles: [scientific]
 | `format` | text |  | `rmd/1` | The format version the report was written for; a newer major version is refused. |
 | `tags` | text or list of text |  |  | Labels for the report; one string is one tag. |
 | `styles` | text or list of text |  |  | Style names or report-relative style files; the first is the base and later ones override it. One string is one entry. |
+| `background` | text or mapping |  |  | The background behind the report, over every style: one word (grain, dots, grid, lines, soft, glow or a picture file in the folder), `none` for a flat page, or a mapping with texture, gradient, picture, place and strength. |
 | `collapsed_sections` | list of text |  |  | Heading anchors for sections initially closed on screen; their content remains available in print. |
 | `title_image` | text or mapping |  |  | The header image; a bare source string stands for `{src}`. |
 | `title_image.src` | text | yes |  | The image: a report-relative path, a data address or a credited Unsplash photo address. |
@@ -82,22 +100,8 @@ styles: [scientific]
 | `tabs.panels[n].from` | text | yes |  | The explicit heading anchor where the panel starts. |
 | `toc` | `true` or `false` |  | `true` | Lists the report's sections beside the body, following the scroll, or under the header on a narrow screen; a report with fewer than three sections, or with tabs, has none. |
 | `progress` | `true` or `false` |  | `true` | Shows how far the reader has scrolled as a thin bar in the report's colours along the bottom of the window. |
+| `slides` | `true` or `false` |  | `false` | `true` turns the source into slides: the title slide, then one slide for each top-level heading or `---` of the body; the style's stage sets the look. |
 <!-- registry:end -->
-
-## The evidence
-
-```chart
-type: bar
-title: Revenue increased across both months
-data:
-  inline:
-    - month: Jul
-      revenue: 100
-    - month: Aug
-      revenue: 140
-encoding: {x: month, y: revenue}
-```
-````
 
 | Field | Accepted value | Behavior |
 | --- | --- | --- |
@@ -171,6 +175,63 @@ The sources and any rich blocks in this section.
 ````
 
 The heading is the disclosure control. A section includes its lower-level headings and ends at the next heading of the same or a higher level, at a tab boundary, before the report's notes, or at the end of the report. In a PDF nothing folds: the report is laid out as if no section were listed. An anchor that does not name a top-level heading warns and leaves the content visible. A heading with a link also warns and stays unfolded, so its link does not become an interactive control inside another control. Move the link into the section to fold it. The generated frontmatter reference defines the field.
+### Slides
+
+`slides: true` in the frontmatter turns the source into slides. Each top-level heading or `---` starts a slide. The style's stage sets the look. The title slide comes first, from the frontmatter. Nothing else is new. The prose, the rich fences, the styles and the checks are the report's, and removing the line gives the report back.
+
+````rmd
+---
+title: September business review
+slides: true
+---
+
+```metric
+value: 630000
+label: Monthly recurring revenue
+format: number_compact
+unit: $
+delta: 0.26
+delta_label: vs August
+```
+
+# September at a glance
+
+```chart
+type: bar
+title: MRR rose $110K in August and $130K in September
+data:
+  inline:
+    - { month: Jul, mrr: 280000, segment: Enterprise }
+    - { month: Jul, mrr: 110000, segment: Mid-market }
+    - { month: Aug, mrr: 340000, segment: Enterprise }
+    - { month: Aug, mrr: 160000, segment: Mid-market }
+    - { month: Sep, mrr: 420000, segment: Enterprise }
+    - { month: Sep, mrr: 210000, segment: Mid-market }
+encoding: { x: month, y: mrr, color: segment }
+axes:
+  y: { label: MRR, format: number_compact, unit: $ }
+```
+
+*Source: billing export, 1 October.*
+
+---
+
+One closing line.
+````
+
+**Where a slide starts.** The title, description, author and date make the title slide. Each top-level heading of the body starts a slide and is its title: the level a report's contents list, `#` when the body uses it and `##` otherwise. A thematic break (`---`) starts a slide without a title, for a screen that is only a number or a chart. Content before the first heading is a slide of its own, and a heading with nothing under it is a section slide. A heading inside a quote, a list or the notes starts nothing.
+
+**Layout is automatic.** The author chooses what is on a slide, never where it sits. A slide shows its title, then its `metric` blocks as a row of big numbers, then its figures (charts, tables, images and players), then its text. A slide whose only content is one metric shows it as large as the format goes. One figure takes the room left and two stand side by side. A chart on a slide prints none of the values it would add by itself unless its author sets `auto_annotations: true`, and shows no action buttons: the table, downloads and the expanded view belong to the report. Its bars take their category's share of the plot, without the width a report's column caps them at, and two charts side by side share one card height. A table is set as large as its rows and its columns' widest cells allow; a table that is its slide's only figure keeps the slide's width, with its text under it, and is set larger. On a phone a table's cells wrap between words before the table scrolls. Text beside one figure is a column a third of the slide wide; alone it is set larger. A source note stays under its figure. A big number is fitted to its column by its character count, so a long value never leaves its box.
+
+**Density.** A slide that holds more than one screen shows well warns `slides.density`, naming the slide and its line: more than four numbers beside a figure or more than eight in all, more than two figures, more than 50 words beside a figure or a number (80 alone), or a table of more than ten rows. Nothing is dropped, and the fix is always a new slide.
+
+**Fit.** On a landscape window at least 900 px wide a slide is a 16:9 stage, as large as the window allows. Every text size and gap is a share of the stage, so a laptop and a meeting-room screen show the same composition, and a chart is laid out by the chart engine for the box it gets, its lettering sized to the stage. On a narrower or portrait window a slide is the window's width and at least its height: numbers stand two to a row, and figures and text one under another, at the style's own sizes. Nothing is clipped and no text shrinks to fit: a slide that needs more than a screen grows and scrolls.
+
+**Moving through them.** The slides are one vertical sequence that snaps to each slide, so the wheel, a trackpad and a swipe work as on any page. The interactive report adds the presenter's keys: Space, Page Down, `→` and `↓` go on; Shift+Space, Page Up, `←` and `↑` go back; Home and End go to the ends; `F` toggles full screen. Arrow keys and Space stay with a chart, table or control while it has focus. A counter shows the slide and the total, the report's progress bar fills as the slides pass, and the address carries the slide as `#slide=4`, counted from 1, without adding history entries. Without JavaScript the sequence and the snapping remain. Reduced motion jumps instead of gliding.
+
+**Paper.** Printing from the browser and `richview generate --to pdf` give one slide a page on a 16:9 landscape page (13.33 × 7.5 in), without the counter; a PDF's `--page` size does not apply.
+
+`tabs` has no effect in slides and warns `slides.tabs`; the contents list is not shown, since every top-level heading is a slide. `collapsed_sections` has no effect in slides either: a slide shows everything it holds. Columns lay out nothing in slides: their markers drop out, and what the columns hold takes its place in the slide's numbers, figures and text.
 
 ## Rich fences
 
@@ -289,14 +350,16 @@ Charts require a supported `type`, a `title` that states the claim (a missing on
 | `auto_annotations` | `true` or `false` |  | `true` | Prints the values and point names a chart adds by itself, such as bar and line values, heatmap cell values, pie shares and a scatter's point names; `false` prints none of them and leaves the authored `annotations`, the `highlight` names and the series and category names. |
 | `digits` | whole number of significant digits from 2 to 6 |  |  | Significant digits of the chart's printed numbers, not decimal places. Omit to use the default. |
 | `readout_digits` | whole number of significant digits from 2 to 6 |  |  | Significant digits of the hover readout, not decimal places; never fewer than `digits`. Omit to use the chart precision. |
-| `highlight` | mapping |  |  | Names the scatter points that always get a label. |
+| `highlight` | mapping |  |  | Makes some series, categories or points the subject of a chart: they keep their colours, names and values, and with `mute` the rest draw in the style's quiet ink without the names and values the chart adds by itself. |
 | `highlight.by` | column name | yes |  | The column whose values `include` matches. |
 | `highlight.include` | list of text, number or `true`/`false` | yes |  | The values to label; at least one. |
 | `highlight.priority` | list of text, number or `true`/`false` |  |  | Values that win a label slot first. |
+| `highlight.mute` | `true` or `false` |  | `true; false on scatter` | Whether the marks `include` does not match recede into the quiet ink: on a line or area chart the series without a matching row, on a bar or lollipop chart the bars whose row does not match, on a scatter the points. `false` keeps every mark's colour and only names the highlighted. |
 | `data` | data source | yes |  | The chart's data; exactly one local source is allowed. |
 | `data.inline` | list of mapping |  |  | Rows written in the block, each a mapping of column to value. |
 | `data.csv` | report-folder file |  |  | A CSV file inside the report folder. |
 | `data.json` | report-folder file |  |  | A JSON file of row mappings inside the report folder. |
+| `data.parquet` | report-folder file |  |  | A Parquet file inside the report folder; the native host reads only the columns the report uses. |
 | `data.url` | `http` or `https` address |  |  | An https data source; current native and browser hosts do not load this field. |
 | `data.sql` | mapping |  |  | A SQL query run through a named connector on a host that has a registry. |
 | `data.sql.connector` | text | yes |  | The name of the connector that runs the query. |
@@ -362,7 +425,7 @@ Charts require a supported `type`, a `title` that states the claim (a missing on
 | `controls[n].initial` | text, number or `true`/`false` |  |  | The choice shown first. |
 | `controls[n].all` | text |  |  | The label of a filter's choice that shows every row. |
 | `controls[n].speed` | number |  | `800` | Milliseconds per frame of a playback control. |
-| `controls[n].loop` | `true` or `false` |  | `true` | Whether playback starts over; false plays once. |
+| `controls[n].loop` | `true` or `false` |  |  | Accepted for older reports. Playback always stops on the last frame. |
 | `controls[n].as` | one of `buttons` or `dropdown` |  |  | How the choices are drawn. |
 | `binning` | mapping |  |  | Histogram bin options; other chart types refuse it. |
 | `binning.count` | whole number |  | `Sturges' rule` | The number of equal-width bins, 1 to 256. |
@@ -444,7 +507,7 @@ Field notes:
 - `encoding.color`: Series/group channel; heatmaps use it for cell value.
 - `encoding.size`: Bubble-size field for scatter.
 - `encoding.label`: Optional scatter point-name field. Authored annotations take priority, then explicit `highlight` names, then sparse points; dense names are selected only when collision-free. Every observation remains in readouts and tables.
-- `highlight`: Top-level, scatter only: `{by: <field>, include: [values], priority: [values]}`. Rows whose `by` value matches an `include` entry are labelled first and always attempted; see the label rules below. `by` must name a column (checked against inline rows), `include` is a non-empty array of strings or numbers, and `priority` is an optional array that orders entries already in `include`. Other keys, a non-mapping value or a non-scatter chart are schema errors.
+- `highlight`: Top-level, on line, area, bar, lollipop and scatter charts: `{by: <field>, include: [values], priority: [values], mute: true|false}`. Rows whose `by` value matches an `include` entry, case-insensitively, are the chart's subject. `mute` (default `true`, `false` on a scatter) draws every other mark in the style's quiet ink, `ink_faint`, and gives it none of the names and values the chart adds by itself; quiet marks paint first, and readouts, Table and CSV keep every value. A line or area recedes by series (one without a matching row), a bar, lollipop or scatter point by row. On a scatter the highlights are also named first and always attempted; see the label rules below. `by` must name a column (checked against inline rows), `include` is a non-empty array of strings or numbers, `priority` is an optional array that orders entries already in `include`, and `mute` is `true` or `false`. Other keys, a non-mapping value or another chart type are schema errors; an `include` value that matches no row warns `chart.unresolved-highlight`, and a highlight that matches no row mutes nothing.
 - `encoding.facet`: Source field defining separate panels.
 - `encoding.detail`: Extra columns listed for readouts, Table views and downloads, on every type.
 - `axes.x`, `axes.y`: Optional `label`, `format` and `unit` strings and `digits`; `suffix` is retired for `unit`. `axes.x.locale` selects UTC calendar labels: `en-US` (default), `en-GB`, `cs-CZ`, `de-DE`, `ja-JP`. Day/week ticks use one compact date entry. `axes.y.min` and `axes.y.max` are optional numbers that fix the ends of the value axis (`min` below `max`).
@@ -457,7 +520,7 @@ Field notes:
 
 Scatter point names follow one order. Authored annotations are placed first. Explicit highlights come next and are always attempted: matching is case-insensitive, the `priority` entries go first in their listed order (so the earlier entry wins a contested position), then the remaining `include` entries in listed order. A repeated value is placed once. A highlight sits beside its point when it can; only a highlight that cannot sit next to its point is joined to it by a leader line. When no position clears every mark, a highlight may sit over other marks on its halo but never over another label; one that cannot be placed even then is reported in `droppedLabels`, as is an `include` value that matches no plotted point (`highlight matched no plotted point`). Ordinary `encoding.label` names are sparse by default: points are ranked by isolation (fewest neighbours within 24 px first, then source order), at most 16 are attempted, and a name that collides with a placed label or would need a leader line is hidden, never drawn with a leader. Each hidden name is listed in `droppedLabels` with its reason (`would require a leader; drop by default`, `no collision-free position` or `label density limit`). A highlighted point is never labelled a second time by the ordinary pass, and highlights do not count toward its 16-name cap. Marks, readouts, Table and CSV values are unchanged by labelling. [The scatter-highlights example](../examples/scatter-highlights/report.rmd) shows a dense chart with sparse defaults and a highlighted one.
 
-Ordinary bars use a flat baseline and optional rounding at the value end, including negative and horizontal bars. The theme's `chart.bar-radius` supplies `--rv-chart-bar-radius`; an absent or zero token gives square corners. The radius is capped at 15% of bar thickness and the painted length. Bars leave one zero-line stroke-width of clearance (1.5 SVG units); very small nonzero values retain one pixel of ink beyond that gap, while true zeros remain empty. Source targets and readouts retain their original values. Histogram bins keep square, area-faithful rectangles.
+Ordinary bars use a flat baseline and optional rounding at the value end, including negative and horizontal bars. The preset and the `corners` step supply `--rv-chart-bar-radius`; an absent or zero token gives square corners. The radius is capped at 15% of bar thickness and the painted length. Bars leave one zero-line stroke-width of clearance (1.5 SVG units); very small nonzero values retain one pixel of ink beyond that gap, while true zeros remain empty. Source targets and readouts retain their original values. Histogram bins keep square, area-faithful rectangles.
 
 Chart titles stay on the caption's left edge, including when initial observations are zero or missing. The first x label uses the renderer's left paint edge as its optical anchor, including visible marker outlines and exact clipping boundaries. Native HTML uses bundled font-outline estimates; settled browser charts measure the loaded first glyph's ink separately and retain that correction in PNG downloads. Tick values, tick marks, later labels and data coordinates stay fixed. A first label keeps its original position if alignment would overlap its neighbor. Numeric/date labels and line/point category labels also stay at their original position if shifting would detach the label from its own scale coordinate, as with a leading data gap; categorical bar labels can align to their band's leading edge but never move toward a later nonzero bar. Empty charts keep the normal caption inset.
 
@@ -551,7 +614,7 @@ Numeric axes and the heatmap key use scientific notation when the existing numer
 | `band` | `from`, `to` coordinate mappings | Optional. |
 | `text` | `at` coordinate mapping; optional numeric `rotate` | Required. |
 
-Anchor coordinates are strings or numbers. Cartesian annotations use axis/source fields; pie points identify a named slice, and heatmap points identify a cell. Unsupported coordinates remain diagnosable rather than inventing observations. Labels search around their exact anchors with clearance from marks and already-placed glyph boxes; placement never moves an observation. If no clear position exists, optional text is omitted with a dropped-label reason. Browser checks measure actual glyph rectangles after fonts settle.
+Anchor coordinates are strings or numbers. Cartesian annotations use axis/source fields; pie points identify a named slice, and heatmap points identify a cell. Unsupported coordinates remain diagnosable rather than inventing observations. Labels search around their exact anchors with clearance from marks and already-placed glyph boxes; placement never moves an observation. Annotation text is placed first, before highlight names, automatic point names, automatic values and the series names inside the plot, so those move or are left out and an annotation is not. A note takes a place clear of the drawn lines when one exists, and a horizontal rule's label sits above its rule at the plot's right edge, or below it or at the left edge when that place is taken, and otherwise at the nearest clear place round the rule's right end, never on the rule. A highlight's leader may cross a rule but never an annotation's text. If no clear position exists, optional text is omitted with a dropped-label reason. Browser checks measure actual glyph rectangles after fonts settle.
 
 Numeric text below the representable nonzero range reports a source error instead of silently becoming zero. This applies to numeric coordinates, measures and scatter sizes, including CSV sources; category labels and unused metadata retain their text. The affected facet explains the error and retains its source Table/CSV while other panels remain usable. True zero and representable subnormal values remain valid. Explicit table number formats retain unrepresentable text verbatim. JSON/YAML numeric literals already converted by their parser cannot recover lost decimal spelling; use quoted numeric text when exact source representation matters.
 
@@ -561,7 +624,7 @@ Bar, scatter, pie and non-temporal line/area readouts honor numeric axis unit an
 
 ## Report folders, local data and output
 
-Each rendered report requires its own named folder with exactly one `.rmd` directly inside it. Missing sources/roots, multiple `.rmd` files (including nested ones), unreadable inventories, escaped paths and external symlinks are hard failures. CLI commands exit nonzero; editor/service/browser hosts expose actionable structured diagnostics. Parsing, formatting and static suggestions stay available to repair invalid source. No host infers a report from its process working directory.
+Each rendered report requires its own named folder with exactly one `.rmd` directly inside it. Missing sources/roots, multiple `.rmd` files (including nested ones), unreadable inventories, escaped paths and external symlinks are hard failures. CLI commands exit nonzero; editor/service/browser hosts expose actionable structured diagnostics. Parsing, formatting and static suggestions stay available to repair invalid source. No host infers a report from its process working directory. A macOS sidecar, the `._<name>` file that tar, zip, exFAT or an SMB copy from a Mac leaves beside `<name>`, is not a file of the report: no host counts it as a source, reads it for a reference or publishes it.
 
 ```text
 quarterly-sales/
@@ -595,16 +658,17 @@ data:
 
 Header `data` and block `data.id` are retired and fail with replacement guidance. For portable report bundles, each block chooses exactly one of `inline`, `csv` or `json`; file references are relative, bounded paths inside the same report root. Native hosts check canonical paths including symlinks; browser/source-only hosts must supply a matching explicit `report_folder: {root, source, files}` inventory before resolving or rendering. Static browser bundles use a sibling `report-folder.json`, generated by the builder. In-memory playground drafts have one explicit isolated virtual folder and support inline/embedded resources only.
 
-Configured native hosts also resolve `data.sql`, `data.metricflow` and `data.cache` through named connectors declared in `report.connectors.yaml` beside the report. The host must supply the connector's runtime and configuration; a missing connector declaration is a resource-resolution failure. See `examples/sql-report` for a local DuckDB report. Credentials stay in trusted host configuration.
+Configured native hosts also resolve `data.sql`, `data.metricflow` and `data.cache` through named connectors declared in `report.connectors.yaml` beside the report. The host must supply the connector's runtime and configuration; a missing connector declaration is a resource-resolution failure. See `examples/sql-report` for a local DuckDB report. A connector of kind `parquet` names a Parquet file in the report folder with `file`, and report SQL reads that file as the table named after the connector; `examples/parquet-report` aggregates one large file for every chart this way. Credentials stay in trusted host configuration.
 
 The accepted `data.url` field is not implemented by current native or browser loaders. Save remote input as a report-local CSV or JSON file for validation, rendering and portable exports.
 
-Pure core performs no I/O. Hosts provide resolved CSV/JSON bytes in `RenderOptions.data` keyed by the exact local reference, with style sources/media supplied by their adapters. The source key decides the parser, never the content: `csv:` content is CSV and `json:` content is JSON, and content that does not parse as the declared format is `data.csv` or `data.json` (error) at the block's line.
+Pure core performs no I/O. Hosts provide resolved CSV/JSON bytes, or the rows a native host read from a Parquet file, in `RenderOptions.data` keyed by the exact local reference, with style sources/media supplied by their adapters. The source key decides the parser, never the content: `csv:` content is CSV and `json:` content is JSON, and content that does not parse as the declared format is `data.csv` or `data.json` (error) at the block's line.
 
 Data typing is one contract for inline, CSV and JSON rows in every block:
 
 - **CSV** is UTF-8 with a dropped BOM, RFC 4180 quoting and a comma delimiter only; there is no `delimiter` option, and a semicolon file fails as ragged rows. A CSV or JSON file in another encoding, such as an Excel export in Windows-1250, is a `data.csv` or `data.json` error at its first byte that is not UTF-8, and only the blocks that read it fail. Every header and value is trimmed. The header is the first row; names must be non-empty and unique, else `data.csv.header`. A row with a different number of fields is `data.csv` and names the file line. An empty cell is null; `true` and `false` are booleans; a number whose decimal value survives binary64 is a number (`10.50` becomes 10.5); a token with a leading zero (`00123`; not `0` or `0.5`) is a string identifier that sorts as text and is never totalled; an integer beyond 2^53 or a decimal that does not round-trip is numeric text that keeps its digits; anything else is a string.
 - **JSON** is an array of flat row objects whose values are strings, finite numbers, booleans or null. Any other top-level shape, including the former `{"inline": [...]}` wrapper, or a nested object or array value is `data.json` (error) naming the row and key.
+- **Parquet** is read by native hosts only, the `richview` command and RichView servers, in the confined worker that runs report SQL; core receives the rows and never the file's bytes, and a browser host reports `data.unresolved`. The worker reads only the columns the report's blocks name in that file, once per render, and every row of them, never a sample. Parquet's own types decide each value: integers and floats are numbers; a decimal is a number read from its own digits and not through a nearest float, or numeric text when binary64 cannot hold them, as an integer beyond 2^53 is; a number's trailing zeros are not kept; text stays text, so `00123` and `123` stored as text never become numbers; dates, times and timestamps become ISO 8601 text; NaN and the infinities are missing, with one `data.parquet.non-finite` warning per column. A list, struct, map, union, interval or binary column that a block reads is `data.parquet` (error) naming the column; one no block reads is never read. A file that is not Parquet, or is truncated, damaged or encrypted, is `data.parquet` at each block that names it. A file gives a report at most 1,000,000 rows, and the columns read count against the dataset limit below (`data.limit`); a larger file is aggregated with SQL through a `parquet` connector. On Linux the worker needs kernel 6.2 or newer, as SQL sources do.
 - **Inline** rows follow the JSON value rule: a row that is not a mapping, or a nested value, is one `data.inline` error at that row (`table.data.inline[1]`), naming the row and key.
 - **Missing values** are null, an empty CSV cell, or `.`, `NA`, `N/A`, `NaN`, `null` and `none` in any case after trimming. Charts draw a gap and count the rows in a `chart.missing-observations` info check. Tables print the cell as written, sort it after every value in both directions and leave it out of totals. Any other text in a numeric chart channel, including comma-grouped numbers such as `1,234`, is `chart.non-numeric` (error) naming the row and value; in a table it stays text.
 - **Dates and times** are strings only (a quoted year is temporal, an unquoted year a number). `YYYY` is year precision, `YYYY-MM` month, `YYYY-MM-DD` day; a date followed by `T`, `t` or a space and `HH:MM` is minute precision, with `:SS` second precision and a fraction of 1 to 9 digits after `.` or `,` millisecond precision (digits beyond three are dropped). A date-time may end in `Z` or `z`, `±HH`, `±HHMM` or `±HH:MM`; without an offset it is UTC. Surrounding spaces are ignored. Out-of-range fields (month 13, 30 February, 25:00, an offset of 24 hours) make the value a non-date. An axis is calendar only when every `x` value qualifies.
@@ -631,16 +695,12 @@ The former `--allow-network` flag is removed. Keep data inside the report folder
 No styling file is required. A report without `styles` uses the builtin marked as the default in the [style reference](#styles-and-motion); builtin-only `styles: [scientific]` or `[sleek]` also needs no local YAML. To customize the existing grammar, place any named `.yaml`/`.yml` file beside the source and reference it explicitly, for example `styles: [scientific, report.rstyle.yaml]`. The `.rstyle.yaml` suffix is the convention, not auto-discovery. Omit/remove the reference if you remove the file; a declared missing file is an actionable resource error.
 
 ```yaml style
-# report.rstyle.yaml — ordered after the scientific builtin
-tokens:
-  bg: 'oklch(0.9695 0.0336 86.31)'
-  accent: 'oklch(0.4806 0.1597 25.56)'
-chart:
-  palette: ['oklch(0.4806 0.1597 25.56)', 'oklch(0.5429 0.0892 211.21)']
-  bar-radius: 8
+preset: scientific
+colors:
+  brand: '#0F62FE'
 ```
 
-Use the established `tokens`, `layout`, `components`, `motion` and `chart` sections and their safe values; see the style section below. Native `--style` overrides follow source styles and remain report-local. An unspecified chart palette inherits the report style, including a ratio-only `style`; an explicit `style.palette` overrides it. Save a local YAML edit to refresh the VS Code/native live preview. In the browser authoring selector, **Source / default** uses source styling YAML; choosing a canonical style applies an explicit later override. Switching back to **Source / default** restores local styling without changing source/data. Canonical switches rerender the same report, including its chart payload.
+The file sets the preset and brand colour. See [styles and motion](#styles-and-motion) for more settings. Native `--style` replaces the source list for that run. Repeat it to name a preset and then a report-local file. An unspecified chart palette inherits the report style, including a ratio-only `style`; an explicit `style.palette` overrides it. Save a local YAML edit to refresh the VS Code/native live preview. In the browser authoring selector, **Source / default** uses source styling YAML; choosing a canonical style applies an explicit later override. Switching back to **Source / default** restores local styling without changing source/data. Canonical switches rerender the same report, including its chart payload.
 
 ## Renamed and removed names
 
@@ -707,12 +767,18 @@ columns:
     format: number
     unit: $
     align: right
+    heat: true
 sort: {key: revenue, dir: desc}
 max_rows: 20
 total: true
+filter: true
 ```
 
 Use a tagged `table` YAML fence for structured table authoring. Its fields are generated below. See [the readability comparison](TABLE-AUTHORING-CHOICE.md) for the pending series proposal; it is not part of this contract. Tables require `data`; `columns` is optional and otherwise derives from the first row. Columns accept string `key`, `label`, `format` and `align: left|center|right`. Source sorting accepts `asc|desc`, defaulting to `asc`. `max_rows` defaults to 20 and must be a positive integer; `total` defaults to false. Native `details` exposes remaining rows; header-click sorting uses the Rust browser runtime and the same core table operation.
+
+A reader sorts the rows by any column heading; `sortable: false` keeps the headings plain for a table whose order is its point. A table gets a filter box above its rows, a search field that keeps the rows whose shown text holds every typed word in any column, whatever the case or accents, and says how many it kept; `filter: auto`, the default, shows it for a table of more than 10 rows, and `true` or `false` decides. The runtime adds the box and the sort buttons, so without scripts and on paper the table is the plain table with every row; slides show a table without the box. A `total` row stays the total of every row while a filter is on, and the status line says so.
+
+`heat` on a column shades its cells by value: `true` or `sequential` from the column's lowest value, which stays unshaded, to its highest; `diverging` on both sides of zero, which stays unshaded, with equal distances equally strong. The shade is the style's own heat colour, mixed into the page only as far as the text keeps its 7:1 contrast, so every cell prints its number in the page's ink and the shade is never the only carrier; paper keeps it. A style whose two heat colours are one, as Hand-drawn's graphite is, hatches the cells below zero, as its charts do. A cell's shade comes from the value the cell shows, in whole percent of the column's shown range, so cells that show the same number share a shade and the page holds no finer value. `heat_scale: table` puts the heat columns of one kind on one scale, so the table reads as a matrix. The total row, empty cells and text cells are not shaded; `heat` on a column that is not all numbers warns `table.heat` and the column stays plain.
 
 <!-- registry:begin fields/table -->
 | Field | Type | Required | Default | Meaning |
@@ -722,6 +788,7 @@ Use a tagged `table` YAML fence for structured table authoring. Its fields are g
 | `data.inline` | list of mapping |  |  | Rows written in the block, each a mapping of column to value. |
 | `data.csv` | report-folder file |  |  | A CSV file inside the report folder. |
 | `data.json` | report-folder file |  |  | A JSON file of row mappings inside the report folder. |
+| `data.parquet` | report-folder file |  |  | A Parquet file inside the report folder; the native host reads only the columns the report uses. |
 | `data.url` | `http` or `https` address |  |  | An https data source; current native and browser hosts do not load this field. |
 | `data.sql` | mapping |  |  | A SQL query run through a named connector on a host that has a registry. |
 | `data.sql.connector` | text | yes |  | The name of the connector that runs the query. |
@@ -755,10 +822,14 @@ Use a tagged `table` YAML fence for structured table authoring. Its fields are g
 | `columns[n].unit` | text |  |  | A unit printed with each value, by the unit rule. |
 | `columns[n].digits` | whole number of significant digits from 2 to 6 |  |  | Significant digits of the column's numbers, not decimal places. |
 | `columns[n].align` | one of `left`, `center` or `right` |  |  | The alignment of the column's cells. |
+| `columns[n].heat` | `true` or `false` or one of `sequential` or `diverging` |  | `false` | Shade a numeric column's cells by value in the style's colours: true or sequential from lowest to highest, diverging around zero. |
+| `heat_scale` | one of `column` or `table` |  | `column` | One scale for each heat column, or one for the table. |
 | `sort` | mapping |  |  | The row order. |
 | `sort.key` | column name | yes |  | The column to sort by. |
 | `sort.dir` | one of `asc` or `desc` |  | `asc` | The sort direction. |
 | `max_rows` | whole number |  | `20` | The most rows shown; a positive whole number. |
+| `sortable` | `true` or `false` |  | `true` | Whether a reader can sort the rows by a heading. |
+| `filter` | `true` or `false` or one of `auto` |  | `auto` | A box that keeps the rows holding the typed text; auto shows it above 10 rows. |
 | `total` | `true` or `false` or list of column name |  | `false` | A total row: true sums the numeric columns that are not percentages or years, a list of columns sums those. |
 | `wide` | `true` or `false` |  | `false` | Whether the table takes the report's full width instead of the text measure. |
 <!-- registry:end -->
@@ -941,7 +1012,7 @@ body: |
 | `body` | inline Markdown | yes |  | What opens: Markdown text, lists, tables and code. |
 <!-- registry:end -->
 
-A `code` block shows code as text, never run: give it as `text`, or name a UTF-8 text file of the report folder as `src` (400 lines at most; a longer file is a `block.schema` error that says to excerpt it). `lang` is shown as the block's label, `title` (a file name or caption) beside it, `lines: true` numbers the lines, and `mark` marks lines and ranges such as `5-6`; a mark past the last line is a warning. The numbers are generated, so a reader who copies the code gets the code alone. Code in Rich Markdown (`rmd`), YAML or shell (`sh`, `bash`) is highlighted when the report is built, in two tones of the style's own text colours; any other language is plain. An ordinary fenced code block is highlighted the same way by its info string. Diagram languages such as `mermaid` are code like any other.
+A `code` block shows code as text, never run: give it as `text`, or name a UTF-8 text file of the report folder as `src` (400 lines at most; a longer file is a `block.schema` error that says to excerpt it). `lang` is shown as the block's label, `title` (a file name or caption) beside it, `lines: true` numbers the lines, and `mark` marks lines and ranges such as `5-6`; a mark past the last line is a warning. The numbers are generated, so a reader who copies the code gets the code alone. SQL, Rich Markdown (`rmd`), YAML and shell (`sh`, `bash`) use the style's own inks to distinguish values from the surrounding code, on screen and in print. Other languages are plain. An ordinary fenced code block is highlighted the same way by its info string. Diagram languages such as `mermaid` are code like any other.
 
 ```yaml code
 # code
@@ -1036,7 +1107,7 @@ A paragraph that directly follows a rich block (chart, table, metric, callout or
 
 ## Styles and motion
 
-A `.rstyle.yaml` file names a `preset`, the author's `colors` (`brand`, an optional `secondary` and an optional `background`, from which every other colour is derived with its contrast floor met) and five-step settings, each `xsmall`, `small`, `medium`, `large` or `xlarge`, where `medium` is the preset's own value (STY-73). A `background` mapping adds a `texture` (`grain`, `dots`, `grid`, `lines`), a `gradient` (`soft`, `glow`) or a report-relative `picture`, at a `place` (`page`, `margins`, `header`) and a five-step `strength`; every ink keeps its contrast floor over it, figures keep solid surfaces, and paper drops it (STY-74). The sections `tokens`, `layout`, `chart`, `motion` and `components` are the presets' internal vocabulary: from an author's file they still apply, with a `style.legacy` warning naming the replacement. Every value passes a closed grammar. A colour is `#` with 3, 4, 6 or 8 hex digits, `rgb()`, `rgba()`, `hsl()`, `hsla()`, `lab()`, `lch()`, `oklab()` or `oklch()`, or one of the CSS Color 4 named colours (148 keywords) plus `transparent` and `currentcolor`, in any case; any other word is refused. A chart `palette` or `ramp` entry must also be a colour the chart can draw, so `transparent` and `currentcolor` are valid only for page tokens. A refused leaf is skipped and reported; the rest of the file still applies. The preset names, the default and which presets the menus show below come from the same definitions as the style loader. Removed names fail with `style.renamed`; see [renamed and removed names](#renamed-and-removed-names).
+A `.rstyle.yaml` file names a `preset`, the author's `colors` (`brand`, an optional `secondary` and an optional `background`, from which every other colour is derived with its contrast floor met) and five-step settings, each `xsmall`, `small`, `medium`, `large` or `xlarge`, where `medium` is the preset's own value (STY-73). A `background` mapping adds a `texture` (`grain`, `dots`, `grid`, `lines`), a `gradient` (`soft`, `glow`) or a report-relative `picture`, at a `place` (`page`, `margins`, `header`) and a five-step `strength`; every ink keeps its contrast floor over it, figures keep solid surfaces, and paper drops it (STY-74). Every value passes a closed grammar. A colour is `#` with 3, 4, 6 or 8 hex digits, `rgb()`, `rgba()`, `hsl()`, `hsla()`, `lab()`, `lch()`, `oklab()` or `oklch()`, or one of the CSS Color 4 named colours (148 keywords) plus `transparent` and `currentcolor`, in any case; any other word is refused. A chart palette entry must also be an opaque colour the chart can draw. A refused leaf is skipped and reported; the rest of the file still applies. The preset names, the default and which presets the menus show below come from the same definitions as the style loader. Removed names fail with `style.renamed`; see [renamed and removed names](#renamed-and-removed-names).
 
 <!-- registry:begin styles -->
 | Style | Default | Menu |
@@ -1055,21 +1126,13 @@ A `.rstyle.yaml` file names a `preset`, the author's `colors` (`brand`, an optio
 
 The separate flagship showcase has its own presentation selector.
 
-Style references are applied in order, shallow last-wins by section leaf; arrays replace rather than concatenate. Explicit styles do not implicitly inherit another builtin's component overrides. Unknown top-level sections are ignored. Unknown/invalid token/layout/motion/component leaves diagnose and skip that style; CSS-bound strings use closed color/font/dimension grammars. Retired leaves (`motion.delay` and `components.callout.left-bar-width`) report a `style.retired` warning and are ignored, and the rest of that style still applies. The chart section is supplier-owned, with guards on CSS-bound colors/fonts.
-
-| Section | Vocabulary |
-| --- | --- |
-| `tokens` | `bg`, `bg-elev`, `bg-chart`, `ink`, `ink-soft`, `ink-faint`, `rule`, `rule-soft`, `accent`, `accent-soft`, `accent-2`, `link`, `up`, `down`, `hold`, `neutral`, `font-text`, `font-display`, `font-ui`, `font-mono`, `size-small`, `size-base`, `size-h3`, `size-h2`, `size-h1`, `size-display`, `line-base`, `measure`, `radius-s`, `radius-m`. Each size token accepts a `-phone` variant (for example `size-display-phone`) that applies at 640 px and narrower. `link` defaults to the accent. |
-| `layout` | `report-max-width`, boolean `measure-wide-blocks` (header, prose, headings, tables and charts share one centred `measure` column; blocks with `wide: true` still break out). |
-| `chart` | Closed chart styling for palettes, ramps, lettering, bar rounding, interpolation, decals and sign cues. Use canonical hyphenated keys such as `bar-radius`; unsupported leaves produce `style.unknown-key`. The examples above exercise the authoring grammar. |
-| `components` | `metric.style`: `rule` (one rule above the stat), `bracket` (rules above and below), `knockout` (accent numerals under a 4 px ink rule) or `underline` (one pencil stroke in the accent under the value); none fills a panel. `callout.border-width`: the rule above callouts; `callout.style`: `rule` (default) or `bracket` (a pencil bracket down the left side instead). `rules.style`: `hairline` (default) or `pencil`, which draws the header, section, footer and table-head rules as pencil strokes. `deck.style`: `italic` or `normal` (default) for the deck, honoured only when the text family embeds a true italic face. `header.border-top`/`border-bottom` rules. `title`, `heading` (h1–h3 and callout titles), `table-head` and `source-label` (the Source/Note label of a source note): `transform`, `weight`, `letter-spacing` and `font` (`display`, `text`, `ui` or `mono`). |
-| `motion` | `enabled`: `false` renders charts in their settled state. |
+Style files apply in order. Later values replace earlier ones, including whole lists. A file can select its own preset. Each retired author setting produces a `style.retired` warning at its source location and is ignored. The warning names a supported replacement where one exists. Other valid settings in the file still apply. The [style YAML reference](public/style-yaml.md) describes the supported settings.
 
 Canonical font faces are embedded from the existing licensed assets; mixed font cascades select the required faces. Native builds compile the font catalogs in; WebAssembly hosts load the staged `richview-fonts.css` and provide it to the core before rendering, and a render without it falls back to system fonts with a `style.fonts-unavailable` warning. Bold is requested only from a family that embeds it: when the display family has no face of weight 600 or more (the `hand-drawn` lettering face), headings, figure titles and stats are set at its own weight rather than in a synthesized bold. Embedded faces use `font-display: block`: they arrive with the report, so text is drawn once its face is decoded instead of first in a fallback face that then reflows. Each generated report carries all canonical font copyright/OFL notices in the inert `richview-font-notices` JSON element, preserving original text on decoding so offline exports retain their notices. Styles retain their distinct serif/sans/mono families and color choices. Report grid children can shrink to the viewport; wide Markdown tables scroll within their own boxes while retaining every column.
 
-The type scale comes from the size tokens: body text uses `size-base`; the title `size-display`, the largest size; h1–h3 `size-h1`, `size-h2` and `size-h3` in the display face, and metric values `size-h1`; source notes, tables, captions and the byline `size-small`. The deck (frontmatter `description` or `subtitle`) is body size in `ink-soft`; it and block quotes are italic only when the text family embeds a true italic face, and the canonical styles set the deck upright in sleek and italic in scientific and brutalist. Reading text, metrics, callouts, the deck, source notes, lists, quotes, figures and tables stay within `measure`; a table, chart, image, frame or player takes the report's full width only with `wide: true`. Interactive charts place their actions, Table, Download PNG, CSV and Expand, as icons at the right end of the title row; each is named by its accessible name and by a tooltip on hover and keyboard focus, and on a figure too narrow for both the icons sit under the title. On desktop, Expand/Contract switches the entire figure between the text measure and report width. On phones, Expand opens the same live chart in a modal; Contract or Escape restores the report and focus. On a phone held upright, a chart whose x scale shows more of the data with more width (time, ordered categories or values) is laid out in landscape and turned a quarter wherever that draws it larger, without requiring orientation-lock support; flows, hierarchies, radial and area-filling charts, maps, networks, word clouds, funnels and 3D scenes stay upright. The modal follows physical rotation. Chart and table state survive without replaying the entrance; facets expand and export together. `strong`, `b` and table headers are set at weight 600.
+Use `text-size` to adjust the entire type scale. The preset sets the relationships between the title, headings, body, metrics and notes, and supplies the deck’s type treatment. Reading text, metrics, callouts, the deck, source notes, lists, quotes, figures and tables stay within `measure`; a table, chart, image, frame or player takes the report's full width only with `wide: true`. Interactive charts place their actions, Table, Download PNG, CSV and Expand, as icons at the right end of the title row; each is named by its accessible name and by a tooltip on hover and keyboard focus, and on a figure too narrow for both the icons sit under the title. On desktop, Expand/Contract switches the entire figure between the text measure and report width. On phones, Expand opens the same live chart in a modal; Contract or Escape restores the report and focus. On a phone held upright, a chart whose x scale shows more of the data with more width (time, ordered categories or values) is laid out in landscape and turned a quarter wherever that draws it larger, without requiring orientation-lock support; flows, hierarchies, radial and area-filling charts, maps, networks, word clouds, funnels and 3D scenes stay upright. The modal follows physical rotation. Chart and table state survive without replaying the entrance; facets expand and export together. `strong`, `b` and table headers are set at weight 600.
 
-Report blocks are at rest on first paint; a block that starts below the first screen fades up once, softly, as it comes into view (the style's `motion` block-entrance, duration, stagger and distance set it; `enabled: false`, reduced motion and print leave every block at rest). Interactive chart transitions run in Rust/WebAssembly with the timings in [MOTION.md](MOTION.md). Reduced motion is an unconditional floor. Published/native reports embed runtime assets when available; static SVG remains usable without them, with `_richview.interactive` recording runtime presence. Live browser previews can use a trusted cached runtime URL; downloaded exports embed their runtime. Source frontmatter cannot supply initializer code.
+Report blocks are at rest on first paint; a block that starts below the first screen fades up once, softly, as it comes into view (the preset supplies the motion profile, and `motion: xsmall`, reduced motion or print leaves every block at rest). Interactive chart transitions run in Rust/WebAssembly with the timings in [MOTION.md](MOTION.md). Reduced motion is an unconditional floor. Published/native reports embed runtime assets when available; static SVG remains usable without them, with `_richview.interactive` recording runtime presence. Live browser previews can use a trusted cached runtime URL; downloaded exports embed their runtime. Source frontmatter cannot supply initializer code.
 
 ## Diagnostics and public interfaces
 
@@ -1126,10 +1189,12 @@ Every code keeps its level; renaming or removing one is a format change (TYP-55)
 | `block.renamed` | error | yes | A block key, tag or value the format retired; the fix names its replacement. | Replace the retired key, tag or value with the replacement the message names. |
 | `block.unknown-key` | warning | yes | A block key the registry does not know; it is dropped before rendering. | Remove the key, or rename it to the known key the message names. |
 | `schema.invalid` | error |  | A value fails the public schema parse. | Fix the value so it matches the public schema for that field. |
-| `data.local` | error | yes | A block does not define exactly one local data source, or uses a header id or remote address. | Keep exactly one `data` source (`inline`, `csv`, `json`, `url`, `sql`, `metricflow` or `cache`) and remove the others. |
+| `data.local` | error | yes | A block does not define exactly one local data source, or uses a header id or remote address. | Keep exactly one `data` source (`inline`, `csv`, `json`, `parquet`, `url`, `sql`, `metricflow` or `cache`) and remove the others. |
 | `data.unresolved` | error | yes | A block's data file was not resolved before rendering. | Resolve the data file before rendering, or render through the CLI or host. |
-| `data.limit` | error | yes | A resolved dataset exceeds 16 MiB. | Reduce the dataset below 16 MiB by filtering rows or dropping columns. |
+| `data.limit` | error | yes | A resolved dataset exceeds 16 MiB, or a Parquet file one million rows. | Reduce the dataset below 16 MiB by filtering rows or dropping columns; aggregate a large Parquet file with SQL through a `parquet` connector. |
 | `data.csv` | error | yes | A CSV dataset cannot be read. | Repair the CSV so it parses: consistent columns, valid quoting, UTF-8. |
+| `data.parquet` | error | yes | A Parquet dataset cannot be read. | Export the file again as unencrypted Parquet with scalar columns, or save the data as CSV and use `data.csv`. |
+| `data.parquet.non-finite` | warning | yes | A Parquet column holds NaN or infinite values, read as missing. | Write those values as nulls when exporting the file, or check the calculation that produced them. |
 | `data.csv.header` | error | yes | A CSV dataset's headers are empty or repeat. | Give every CSV column a non-empty, unique header. |
 | `data.inline` | error | yes | Inline rows are not flat row mappings. | Write inline data as a list of flat row mappings, one value per key. |
 | `frontmatter.slug` | warning | yes | The slug is not valid, so publishing fails until it is fixed. | Write `slug` as 1 to 80 characters of a-z, 0-9 and single hyphens, with no hyphen at either end, such as `q3-sales`. |
@@ -1137,7 +1202,7 @@ Every code keeps its level; renaming or removing one is a format change (TYP-55)
 | `publish.version-exists` | error |  | This version is already published with different content. | Bump the version, or publish content identical to the existing one. |
 | `publish.version-deleted` | error |  | This version was deleted and its number cannot be published again. | Publish under a new, higher version number. |
 | `publish.version-missing` | error |  | The pinned version is not published for this report. | Pin a version that is published for this report, or drop the pin. |
-| `publish.new-slug` | error |  | This report address is new and needs --new to be created. | Pass --new to create this report address, or correct the slug. |
+| `publish.new-slug` | error |  | This publish expected an existing report address. | Check the slug or pass --new to create a separate report. |
 | `publish.slug-derived` | warning |  | The slug was derived from the title because the frontmatter has none. | Add a `slug` to the frontmatter so the report keeps its address when its title changes. |
 | `publish.quota` | error |  | Publishing would exceed the storage quota. | Delete old versions or shrink the report to fit the storage quota. |
 | `data.json` | error | yes | A JSON dataset is not an array of row mappings. | Make the JSON file an array of flat row mappings. |
@@ -1177,12 +1242,11 @@ Every code keeps its level; renaming or removing one is a format change (TYP-55)
 | `style.print-dark` | warning |  | The style is still dark after the print swap, so the page prints with Air's surfaces and inks. | Give the style light surfaces and dark inks to print in its own colours; otherwise paper uses Air's. |
 | `style.unknown` | error |  | A styles entry names no built-in style. | Use a built-in style name, or a styles file in the report folder. |
 | `style.type` | warning |  | A style file is not a YAML mapping. | Write the style file as a YAML mapping of style keys to values. |
-| `style.retired` | warning |  | A style leaf is retired and ignored. | Remove the retired leaf; the message says why it no longer applies. |
+| `style.retired` | warning |  | A retired author style key or motion value is ignored. | Remove the retired setting or use the replacement named in the message. |
 | `style.schema` | warning |  | A style leaf is invalid. | Give the leaf a value of the type the message names, or remove it. |
 | `style.company-adjusted` | info |  | The brand colour was adjusted to meet the contrast floor. | Keep the adjusted colour for legibility or choose a brand colour with enough contrast. |
 | `style.company-secondary` | info |  | The secondary brand colour was too similar for the chart palette. | Choose a second colour that is distinguishable from the first, or keep the derived palette. |
 | `style.company-palette` | warning |  | A distinct brand palette could not be derived. | Choose another brand colour or supply a checked explicit palette. |
-| `style.company-color` | warning |  | A company colour is translucent or unresolved. | Use an opaque concrete colour such as #0B6E69. |
 | `style.logo-path` | error |  | A company logo path is not report-relative. | Use a file path inside the report folder. |
 | `style.logo-missing` | error |  | A company logo is not available. | Put the logo file inside the report folder. |
 | `style.logo-format` | error |  | A company logo is not a valid raster image. | Use a valid still PNG, JPEG or WebP logo. |
@@ -1202,7 +1266,6 @@ Every code keeps its level; renaming or removing one is a format change (TYP-55)
 | `style.fonts-unavailable` | warning |  | The host has no bundled fonts, so text falls back to system fonts. | Generate the report with the CLI, which embeds the bundled fonts. |
 | `style.unknown-key` | warning |  | A style leaf is not in the style vocabulary and is skipped. | Remove the leaf, or rename it to the style key the message names. |
 | `style.experimental` | warning |  | A style leaf is experimental: it can break the layout in ways nobody expects. | Remove the leaf, or keep it only after checking the report at phone and desktop widths. |
-| `style.legacy` | warning |  | A style leaf of the presets' internal vocabulary still applies; a preset, colours or a five-step setting replaces it. | Use the replacement the message names: a preset, `colors` or a five-step setting. |
 | `style.internal` | warning |  | A style leaf fixes the page's mechanics and is ignored. | Remove the leaf; the page sets it itself. |
 | `style.contrast` | warning |  | A style colour is below its contrast floor on a surface. | Darken or lighten the colour until it reaches the floor the message names on that surface. |
 | `style.type-scale` | warning |  | Two neighbouring type sizes are closer than the minimum ratio. | Move the two sizes apart until each step is at least the ratio the message names. |
@@ -1238,6 +1301,7 @@ Every code keeps its level; renaming or removing one is a format change (TYP-55)
 | `render.failed` | error |  | The report could not be rendered. | Fix the errors reported with this one and render again. |
 | `style.sink` | error |  | A style value holds characters the CSS output refuses. | Remove quotes, braces, semicolons and other CSS-breaking characters from the style value. |
 | `table.total` | warning | yes | A table total skips columns it cannot sum. | List the columns to sum, such as `total: [accounts, revenue]`. |
+| `table.heat` | warning | yes | A table column asks for heat but is not all numbers. | Set `heat` only on a column whose cells are all numbers, or remove it. |
 | `security.runtime-url` | warning |  | The chart runtime address is not allowed. | Use the embedded runtime, or a root-relative path or an https base without credentials, query or fragment. |
 | `tabs.anchor-missing` | warning |  | A tab panel's anchor is not in the body, so the body renders without tabs. | Give the body a heading with the panel's anchor, such as `## Costs {#costs}`, or correct the panel's `from`. |
 | `section.anchor-missing` | warning |  | A collapsed section names no top-level heading, so it stays unfolded. | Use the generated anchor of a top-level heading in collapsed_sections, or remove the entry. |
@@ -1252,6 +1316,8 @@ Every code keeps its level; renaming or removing one is a format change (TYP-55)
 | `columns.stray` | warning | yes | A column marker or text sits outside a column, so the markers stay text and the content renders in one column. | Put every line between `::: columns` and its closing `:::` inside a `::: column`, and open columns before a `::: column`. |
 | `columns.widths` | warning | yes | The widths name a different number of columns than there are, so the columns are equal. | Give `widths` one part per column, such as `2-1` for two columns, or remove it. |
 | `columns.options` | warning | yes | The options after `::: columns` are not a YAML mapping, so the columns take their defaults. | Write the options as a mapping, such as `::: columns {widths: 2-1, gap: large}`. |
+| `slides.tabs` | warning | yes | A slides source has no tabs, so the tabs setting has no effect. | Remove `tabs`, or remove `slides: true` to render the report with its tabs. |
+| `slides.density` | warning | yes | A slide holds more than one screen shows well: too many numbers, figures, words or table rows. | Start a new slide: put a top-level heading, or a `---` line, before the content that does not fit. |
 | `chart.invalid` | error | yes | A chart block could not be read. | Fix the chart block's fields to match the chart schema. |
 | `chart.failed` | error | yes | A chart failed to draw. | Check the chart's data and encodings, then fix the errors reported with it. |
 | `chart.states-unchecked` | warning | yes | Only the first reader states of a chart were checked. | Nothing to change if the checked states are typical; fewer control values let every state be checked. |

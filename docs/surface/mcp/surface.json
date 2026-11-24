@@ -4,7 +4,7 @@
     "resources": {},
     "tools": {}
   },
-  "instructions": "Call richview_learn before drafting. Read data and save or edit the report's .rmd with your host's file tools, in its own report folder. Run richview_validate and richview_check after edits, including the final edit. Inspect structuredContent.status and diagnostics: status clean means no errors or warnings; ok true means no errors, and isError describes whether the call could execute. Repair warnings and errors, check again, then richview_render and inspect the output against the brief. Publish only when asked. The user chooses RichView-hosted Cowork at https://app.richview.ai or their own server, and configures RICHVIEW_SERVER and its RICHVIEW_TOKEN in the MCP host before publishing.",
+  "instructions": "Call richview_learn before drafting. Read data and save or edit the report's .rmd with your host's file tools, in its own report folder. Run richview_validate and richview_check after edits, including the final edit. Inspect structuredContent.status and diagnostics: status clean means no errors or warnings; ok true means no errors, and isError describes whether the call could execute. Repair warnings and errors, check again, then richview_render and inspect the output against the brief. Publish only when asked. The user chooses RichView Cowork, the report server, hosted by RichView at https://app.richview.ai, or their own server, and signs in once with `richview login` in a terminal before publishing; RICHVIEW_SERVER and its RICHVIEW_TOKEN in the MCP host do the same for an unattended host.",
   "tools": [
     {
       "annotations": {
@@ -199,7 +199,8 @@
               "chart-contract",
               "style",
               "workflow",
-              "anti-slop"
+              "anti-slop",
+              "slides"
             ],
             "type": "string"
           }
@@ -216,7 +217,7 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
-      "description": "Publishes a version of the report to the named RichView server. The token comes from the host environment (RICHVIEW_TOKEN), never from arguments. Its result has slug, version, url, permalink and, from a hosted server, share: the report's page in the app, where people are named and who can open it is chosen. Same result as `richview publish`.",
+      "description": "Creates a report on the user's RichView server or publishes another version at its address. The server and its token come from the host environment (RICHVIEW_SERVER, RICHVIEW_TOKEN) or, when it names none, from the sign-in the user kept with `richview login`; never from arguments. Its result has slug, version, url, permalink and, from a hosted server, share: the report's page in the app, where people are named and who can open it is chosen. Same result as `richview publish`.",
       "inputSchema": {
         "additionalProperties": false,
         "properties": {
@@ -225,11 +226,11 @@
             "type": "string"
           },
           "new": {
-            "description": "Create a report address the server has not stored before",
+            "description": "Allow this file to create another address on the same server",
             "type": "boolean"
           },
           "server": {
-            "description": "Server URL; defaults to RICHVIEW_SERVER and must equal it when that is set, so the token only goes to the configured server",
+            "description": "Server URL; defaults to RICHVIEW_SERVER, else the server the user signed in to, and must equal that one, so the token only goes to the server it belongs to",
             "type": "string"
           },
           "slug": {

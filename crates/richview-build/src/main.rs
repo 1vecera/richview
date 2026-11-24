@@ -784,7 +784,12 @@ fn stage_assets(root: &Path, public: &Path, install_enabled: bool) -> Result<()>
             .replace("<!-- richview-demo-source -->", &demo_source)
             .replace("<!-- richview-demo-style -->", &demo_style)
             .replace("<!-- rv-demo-check -->", &demo_check_json(root, public)?)
-            .replace("<!-- rv-source-count -->", &flagship_source_count(root)?),
+            .replace("<!-- rv-source-count -->", &flagship_source_count(root)?)
+            // The registry's number of chart types; the page never types one (DEL-18).
+            .replace(
+                "<!-- rv-chart-count -->",
+                &documentation::chart_count(root)?.to_string(),
+            ),
     )))
     .replace(chrome::AGENT_PROMPT, chrome::agent_prompt(install_enabled));
     // The landing ships static and complete until Daniel accepts its scroll story (STY-44): without

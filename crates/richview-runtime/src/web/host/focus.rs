@@ -19,8 +19,8 @@ const CONTOUR_REACH: f64 = 0.75;
 /// The mark ring's distance from the contour, and its width, in CSS pixels (STY-38).
 const RING_GAP: f64 = 2.0;
 const RING_WIDTH: f64 = 2.0;
-/// Where a hover dot's surface ring ends.
-const DOT_REACH: f64 = 8.0;
+/// The mark's filled radius at full size.
+const DOT_REACH: f64 = 6.0;
 /// A streamgraph layer has no hover dot: the ring marks the selected point on it.
 const LAYER_POINT_REACH: f64 = 4.0;
 /// The frame ring's width, the room it keeps from text, and where it sits by default: its
@@ -29,12 +29,10 @@ const FRAME_RING: f64 = 2.0;
 const TEXT_ROOM: f64 = 3.0;
 const FRAME_RING_INSET: f64 = -6.0;
 
-/// The keyboard's ring around the selected mark, drawn over its contour, and the frame ring's
-/// placement (STY-38). A pointer never draws the mark ring; while the mark ring shows, the frame
-/// drops its own (`data-rv-selected`), and Escape, which clears the selection, brings it back.
-/// Also returns how far the ring reaches past its mark, which the overlay's clip allows.
+/// Place the frame ring on keyboard arrival. A selected mark takes over, using the
+/// clipped pointer ring where available and a focus outline for other targets.
 #[cfg(target_arch = "wasm32")]
-pub(super) fn ring(v: &View) -> (Vec<Item>, f64) {
+pub(super) fn ring(v: &View) -> Vec<Item> {
     place_frame_ring(v);
     let target = v.target.filter(|_| v.keyed);
     if v.frame.has_attribute("data-rv-selected") != target.is_some() {
@@ -45,28 +43,21 @@ pub(super) fn ring(v: &View) -> (Vec<Item>, f64) {
         };
     }
     let Some(t) = target else {
-        return (Vec::new(), 0.0);
+        return Vec::new();
+    };
+    let Some(panel) = v.geometry.panels.get(t.panel) else {
+        return Vec::new();
     };
     let kind = v.chart.block.kind.name();
+    if super::contour::crisp_target(kind, panel, t.observation) {
+        return Vec::new();
+    }
     // A family the contour already draws, or traces tile by tile, asks for nothing at level 0.
-    let contoured = v.geometry.panels.get(t.panel).is_some_and(|panel| {
-        panel.observations.get(t.observation).is_some_and(|o| {
-            let clear = Rgba([0.0; 4]);
-            super::contour::items(
-                kind,
-                panel,
-                t.observation,
-                o.wedge,
-                clear,
-                clear,
-                0.0,
-                super::contour::Glow::MEDIUM,
-            )
-            .is_some()
-                || (panel.targeting == Targeting::Contain
-                    && super::contour::tiles(kind, panel, t.observation, clear, 0.0).is_some())
-        })
-    });
+    let clear = Rgba([0.0; 4]);
+    let contoured = super::contour::items(kind, panel, t.observation, clear, 0.0, false, false)
+        .is_some()
+        || (panel.targeting == Targeting::Contain
+            && super::contour::tiles(kind, panel, t.observation, 0.0).is_some());
     let link = web_sys::window()
         .and_then(|w| w.get_computed_style(&v.frame).ok().flatten())
         .and_then(|s| s.get_property_value("--rv-link").ok())
@@ -78,25 +69,19 @@ pub(super) fn ring(v: &View) -> (Vec<Item>, f64) {
         static TRACED: std::cell::RefCell<(Vec<Outline>, Vec<Vec<Lines>>)> =
             const { std::cell::RefCell::new((Vec::new(), Vec::new())) };
     }
-    let outlines = match v.geometry.panels.get(t.panel) {
-        // A gauge's contour is the band its value falls in, not every mark its reading owns.
-        Some(panel) if kind == "gauge" => {
-            let clear = Rgba([0.0; 4]);
-            let drawn = super::contour::items(
-                kind,
-                panel,
-                t.observation,
-                None,
-                clear,
-                clear,
-                1.0,
-                super::contour::Glow::MEDIUM,
-            );
-            drawn_outlines(&drawn.unwrap_or_default())
-        }
-        _ => outlines(kind, &v.geometry, t, v.pointer, contoured),
+    // A gauge's ring traces the band its needle falls in.
+    let mut outlines = if kind == "gauge" {
+        let drawn = super::contour::items(kind, panel, t.observation, clear, 1.0, false, false);
+        drawn_outlines(&drawn.unwrap_or_default())
+    } else {
+        outlines(kind, &v.geometry, t, v.pointer, contoured)
     };
-    let reach = ring_reach(&outlines);
+    let growth = super::contour::point_growth(kind, v.chart.block.encoding.size.is_some());
+    for outline in &mut outlines {
+        if let Outline::Circle { radius, .. } = outline {
+            *radius *= 1.0 + growth;
+        }
+    }
     let lines = TRACED.with(|cache| {
         let mut cache = cache.borrow_mut();
         if cache.0 != outlines {
@@ -105,13 +90,7 @@ pub(super) fn ring(v: &View) -> (Vec<Item>, f64) {
         }
         cache.1.clone()
     });
-    let ring = mark_ring(
-        &lines,
-        link,
-        v.geometry.background,
-        super::feedback::grown(v),
-    );
-    (ring, reach)
+    mark_ring(&lines, link, super::feedback::grown(v))
 }
 
 /// Set the frame ring's four insets, once per layout: the geometry's text and the size are the
@@ -321,29 +300,6 @@ impl Outline {
             }
             Outline::Parts(parts) => traced(parts, ds),
         }
-    }
-}
-
-/// How far the ring's outer edge reaches past the mark it surrounds: past a circle's centre, or
-/// past a shape's own edge. A ring on a mark at the plot's edge needs this much room beyond it.
-fn ring_reach(outlines: &[Outline]) -> f64 {
-    let contour = |o: &Outline| match o {
-        Outline::Circle { radius, .. } => *radius,
-        Outline::Polygon { reach, .. } => *reach,
-        Outline::Parts(parts) => parts
-            .iter()
-            .map(|part| match part {
-                Part::Disc { radius, .. } => *radius,
-                Part::Segment { reach, .. }
-                | Part::Bar { reach, .. }
-                | Part::Shape { reach, .. } => *reach,
-                Part::Front { .. } => 0.0,
-            })
-            .fold(0.0, f64::max),
-    };
-    match outlines.iter().map(contour).reduce(f64::max) {
-        Some(edge) => edge + RING_GAP + RING_WIDTH,
-        None => 0.0,
     }
 }
 
@@ -833,8 +789,8 @@ fn outlines(
             Targeting::NearestX => {
                 return o.dots.iter().map(|d| circle(d.at, DOT_REACH)).collect();
             }
-            // The point grows by a quarter inside a 1.5 px ring 2 px beyond it.
-            Targeting::Radius => return vec![circle(o.at, o.radius.max(4.0) * 1.25 + 2.75)],
+            // The keyboard ring surrounds the grown marker.
+            Targeting::Radius => return vec![circle(o.at, o.radius.max(4.0) * 1.25)],
             // A contour chart's grid node answers with a dot like a hover dot's.
             Targeting::Contain if kind == "contour" => return vec![circle(o.at, DOT_REACH)],
             Targeting::Contain => {
@@ -918,7 +874,7 @@ fn drawn_outlines(drawn: &[Item]) -> Vec<Outline> {
         .collect()
 }
 
-/// A point mark's centre and the radius its contour's ink line ends at, 4 px past the marker.
+/// A point mark's centre and the radius of its outer edge.
 fn point_reach(mark: &Item) -> Option<([f64; 2], f64)> {
     let Item::Point {
         center,
@@ -936,7 +892,7 @@ fn point_reach(mark: &Item) -> Option<([f64; 2], f64)> {
     };
     Some((
         *center,
-        reach + stroke.as_ref().map_or(0.0, |s| s.width / 2.0) + 4.0,
+        reach + stroke.as_ref().map_or(0.0, |s| s.width / 2.0),
     ))
 }
 
@@ -951,9 +907,8 @@ fn ring_lines(outlines: &[Outline]) -> Vec<Vec<Lines>> {
         .collect()
 }
 
-/// The surface gap and the ring around each outline's `ring_lines`, both fading in with `level`.
-/// Every gap is painted before any ring, so a neighbour's gap never cuts a ring.
-fn mark_ring(lines: &[Vec<Lines>], link: Rgba, surface: Rgba, level: f64) -> Vec<Item> {
+/// Paint one keyboard-focus band around each outline.
+fn mark_ring(lines: &[Vec<Lines>], link: Rgba, level: f64) -> Vec<Item> {
     let level = level.clamp(0.0, 1.0);
     if level <= 0.0 {
         return Vec::new();
@@ -978,9 +933,7 @@ fn mark_ring(lines: &[Vec<Lines>], link: Rgba, surface: Rgba, level: f64) -> Vec
             obs: None,
         }
     };
-    let gaps = lines.iter().map(|l| band(&l[0], &l[1], surface));
-    let rings = lines.iter().map(|l| band(&l[1], &l[2], link));
-    gaps.chain(rings).collect()
+    lines.iter().map(|l| band(&l[1], &l[2], link)).collect()
 }
 
 /// The one closed outline of `path` that holds every other, as points; `None` for an open
@@ -1072,7 +1025,7 @@ fn rect_points(rect: Rect, radius: [f64; 4]) -> Vec<[f64; 2]> {
 }
 
 /// A circle as a closed polygon fine enough to read as round at its size.
-fn circle_points(center: [f64; 2], radius: f64) -> Vec<[f64; 2]> {
+pub(super) fn circle_points(center: [f64; 2], radius: f64) -> Vec<[f64; 2]> {
     let steps = ((radius * 2.0).ceil() as usize).clamp(24, 96);
     (0..steps)
         .map(|k| {
@@ -1084,7 +1037,7 @@ fn circle_points(center: [f64; 2], radius: f64) -> Vec<[f64; 2]> {
 
 /// The outline `d` pixels outside the closed polygon `points`: rounded where the polygon turns
 /// outward, mitred where it turns in.
-fn offset(points: &[[f64; 2]], d: f64) -> Vec<[f64; 2]> {
+pub(super) fn offset(points: &[[f64; 2]], d: f64) -> Vec<[f64; 2]> {
     let mut p: Vec<[f64; 2]> = Vec::with_capacity(points.len());
     for &q in points {
         if p.last().is_none_or(|&last| dist(last, q) > 1e-6) {
@@ -1183,6 +1136,22 @@ fn select(
             },
             FLOW_DIM_FLOOR,
         )),
+        "flow"
+            if !panel.items.iter().any(|item| {
+                matches!(item,
+                    Item::Area { role: Role::Mark, obs: Some(i), .. }
+                        | Item::Rect { role: Role::Mark, obs: Some(i), .. } if *i == t.observation
+                )
+            }) =>
+        {
+            Some((
+                Focus::Marks {
+                    panel: t.panel,
+                    keep: vec![t.observation],
+                },
+                FLOW_DIM_FLOOR,
+            ))
+        }
         // Keep the selected parallel-coordinate line while its neighbours step back.
         "parallel" => Some((
             Focus::Marks {
@@ -1218,22 +1187,25 @@ fn select(
         }
         // A 3-D bar's row is its series: the rows in front turn translucent and the selected
         // bar shows through them.
-        kind @ ("scatter" | "bar" | "bar3d" | "ribbon" | "chord" | "lollipop" | "waffle"
-        | "packed-bubble") => {
+        kind @ ("scatter" | "bar3d" | "ribbon" | "chord" | "lollipop" | "waffle") => {
             let series = o.series?;
-            let floor = if matches!(kind, "scatter" | "packed-bubble") {
+            let floor = if kind == "scatter" {
                 POINT_DIM_FLOOR
             } else {
                 DIM_FLOOR
             };
-            (geometry.series.len() > 1).then_some((
-                Focus::SeriesOf {
-                    series,
-                    panel: t.panel,
-                    observation: t.observation,
-                },
-                floor,
-            ))
+            if geometry.series.len() > 1 {
+                Some((
+                    Focus::SeriesOf {
+                        series,
+                        panel: t.panel,
+                        observation: t.observation,
+                    },
+                    floor,
+                ))
+            } else {
+                None
+            }
         }
         // The layer under the pointer or keyboard's selected dot among the others.
         "streamgraph" => {
@@ -1559,13 +1531,9 @@ mod tests {
         );
         assert_eq!(outlines.len(), expect, "{kind}: {outlines:?}");
         let link = Rgba([0.1, 0.2, 0.9, 1.0]);
-        let items = mark_ring(&ring_lines(&outlines), link, g.background, 1.0);
-        assert_eq!(
-            items.len(),
-            2 * outlines.len(),
-            "{kind}: a gap and a ring per outline"
-        );
-        for (outline, ring) in outlines.iter().zip(&items[outlines.len()..]) {
+        let items = mark_ring(&ring_lines(&outlines), link, 1.0);
+        assert_eq!(items.len(), outlines.len(), "{kind}: one ring per outline");
+        for (outline, ring) in outlines.iter().zip(&items) {
             let Item::Area { path, fill, .. } = ring else {
                 panic!("{kind}: the ring is a filled band")
             };
@@ -1594,7 +1562,7 @@ mod tests {
                 );
             }
         }
-        assert!(mark_ring(&ring_lines(&outlines), link, g.background, 0.0).is_empty());
+        assert!(mark_ring(&ring_lines(&outlines), link, 0.0).is_empty());
     }
 
     /// How far `p` lies past the nearest part's contour, or, with faces in front, past the
@@ -1927,17 +1895,8 @@ mod tests {
         let g = chart(&fixture);
         let panel = &g.panels[0];
         let clear = Rgba([0.0; 4]);
-        let drawn = crate::test_contour::items(
-            "gauge",
-            panel,
-            0,
-            None,
-            clear,
-            clear,
-            1.0,
-            crate::test_contour::Glow::MEDIUM,
-        )
-        .expect("the contour draws a gauge's band");
+        let drawn = crate::test_contour::items("gauge", panel, 0, clear, 1.0, false, false)
+            .expect("the contour draws a gauge's band");
         let outlines = drawn_outlines(&drawn);
         let [
             Outline::Polygon {
@@ -1949,7 +1908,7 @@ mod tests {
             panic!("one band: {outlines:?}")
         };
         let link = Rgba([0.1, 0.2, 0.9, 1.0]);
-        let items = mark_ring(&ring_lines(&outlines), link, g.background, 1.0);
+        let items = mark_ring(&ring_lines(&outlines), link, 1.0);
         let Some(Item::Area { path, .. }) = items.last() else {
             panic!("the ring is a filled band")
         };
@@ -1979,7 +1938,34 @@ mod tests {
     }
 
     #[test]
-    fn a_ring_on_the_first_mark_fits_in_its_reach_past_the_plot() {
+    fn a_point_ring_is_whole_and_concentric_across_the_axis() {
+        let plot = Rect::new(10.0, 0.0, 40.0, 40.0);
+        let center = [plot.x, 20.0];
+        let outlines = [Outline::Circle {
+            center,
+            radius: 6.0,
+        }];
+        let lines = ring_lines(&outlines);
+        for (index, radius) in [(1, 6.0 + RING_GAP), (2, 6.0 + RING_GAP + RING_WIDTH)] {
+            let points = &lines[0][index][0];
+            assert!(
+                points
+                    .iter()
+                    .all(|p| (dist(*p, center) - radius).abs() < 1e-8)
+            );
+            let edges = points.iter().map(|p| p[0]);
+            assert_eq!(edges.clone().fold(f64::MAX, f64::min), plot.x - radius);
+            assert_eq!(edges.fold(f64::MIN, f64::max), plot.x + radius);
+        }
+        let rings = mark_ring(&lines, Rgba([0.1, 0.2, 0.9, 1.0]), 1.0);
+        let [Item::Area { path, .. }] = rings.as_slice() else {
+            panic!("one ring around the point");
+        };
+        assert_eq!(path.cmds.iter().filter(|c| matches!(c, Cmd::Z)).count(), 2);
+    }
+
+    #[test]
+    fn a_ring_on_the_first_mark_remains_closed_at_an_axis() {
         let fixture = |name: &str| {
             std::fs::read_to_string(format!(
                 "{}/../../richview-chart/tests/fixtures/types/{name}.json",
@@ -1988,7 +1974,6 @@ mod tests {
             .unwrap()
         };
         let link = Rgba([0.1, 0.2, 0.9, 1.0]);
-        let mut cut_at_eight = Vec::new();
         for (kind, contoured) in [
             ("band", false),
             ("ecdf", false),
@@ -2005,32 +1990,18 @@ mod tests {
             };
             let pointer = panel.observations[0].dots.first().map(|d| d.at);
             let outlines = outlines(kind, &g, t, pointer, contoured);
-            let reach = ring_reach(&outlines);
-            let points: Vec<[f64; 2]> = mark_ring(&ring_lines(&outlines), link, g.background, 1.0)
-                .iter()
-                .flat_map(|item| match item {
-                    Item::Area { path, .. } => path.cmds.clone(),
-                    _ => Vec::new(),
-                })
-                .filter_map(|c| match c {
-                    Cmd::M { p } | Cmd::L { p } => Some(p),
-                    _ => None,
-                })
-                .collect();
-            assert!(!points.is_empty(), "{kind}: the first mark has a ring");
-            let clip = panel.plot.inflate(reach);
-            for p in &points {
+            let rings = mark_ring(&ring_lines(&outlines), link, 1.0);
+            assert!(!rings.is_empty(), "{kind}: the first mark has a ring");
+            for ring in rings {
+                let Item::Area { path, .. } = ring else {
+                    panic!("{kind}: a ring has filled paths");
+                };
                 assert!(
-                    clip.contains(*p),
-                    "{kind}: a ring point {p:?} lies outside the plot inflated by {reach}"
+                    matches!(path.cmds.last(), Some(Cmd::Z)),
+                    "{kind}: a ring is open"
                 );
             }
-            if points.iter().any(|p| !panel.plot.inflate(8.0).contains(*p)) {
-                cut_at_eight.push(kind);
-            }
         }
-        // The hover feedback's 8 px would cut the ring on a line's first hover dot.
-        assert!(cut_at_eight.contains(&"band"), "{cut_at_eight:?}");
     }
 
     #[test]
@@ -2044,7 +2015,6 @@ mod tests {
         };
         ring_clears("combo", &fixture("combo"), true, 1);
         ring_clears("rose", &fixture("rose"), true, 1);
-        ring_clears("packed-bubble", &fixture("packed-bubble"), true, 1);
         ring_clears("dumbbell", &fixture("dumbbell"), true, 2);
         ring_clears("ohlc", &fixture("ohlc"), true, 1);
         ring_clears("candlestick", &fixture("candlestick"), true, 1);
@@ -2056,7 +2026,6 @@ mod tests {
         ring_clears("waffle", &fixture("waffle"), true, 1);
         ring_clears("network", &fixture("network"), true, 1);
         ring_clears("parallel", &fixture("parallel"), true, 1);
-        ring_clears("flow", &fixture("flow"), true, 1);
         ring_clears("map", &fixture("map"), true, 1);
         ring_clears("sankey", &fixture("sankey"), true, 1);
         ring_clears("alluvial", &fixture("alluvial"), true, 1);

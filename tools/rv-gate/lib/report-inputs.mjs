@@ -2,7 +2,7 @@
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
-const NEEDS_CONNECTOR = new Set(["sql-report", "metricflow-report"]);
+const NEEDS_CONNECTOR = new Set(["sql-report", "parquet-report", "metricflow-report"]);
 
 /** Eligible examples in their existing order, followed by explicitly named extra fixtures. */
 export function reportCohort(root, { only, extra = ["forms"] } = {}) {

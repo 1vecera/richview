@@ -7,6 +7,23 @@
 // first rows in view. Quoted inline numbers sort as text, and formatted numbers (percent) by the
 // value they show. CSV typing and readout precision are checked in core and the engine
 // (csv_decimal_source.rs, numbers.rs).
+//
+// The filter box (FEA-RP-70): a table of more than 10 rows gets a labelled search field and a
+// shorter one none. Typing keeps the rows that hold the typed words, whatever the case or accents,
+// hides the others and says how many it kept and that the total still sums every row; the fold
+// keeps the first matching rows in view; a sort keeps the filter; an empty box restores the table.
+//
+// Short labels (FEA-RP-19): labels of several words stand on one line where the table then fits
+// its box, wrap at their words on a phone where that is what makes it fit, so it never scrolls
+// sideways for them, and stand on one line again in a table that scrolls either way (twelve
+// columns of nine-digit numbers, wider than both widths). Whole labels never make a table
+// taller: where they would squeeze another column onto more lines than they save, they stay
+// wrapped. The runtime measures again when a filter puts other rows in the same box and when
+// more fonts finish loading, once per frame however many resize events ask, and with a few
+// layouts however many tables the page holds.
+//
+// The empty filter box keeps to the one line its room holds in a narrow table with a longer
+// label (German, 300 px), so the headings stand where they stood before the box arrived.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -25,9 +42,43 @@ const inline = (rows, extra = '') => '\n```table\ndata: {inline: ' + JSON.string
 writeFileSync(join(folder, 'report.rmd'), '---\ntitle: Decimals\nversion: "1"\n---\n\nSortable tables.\n'
   + table('big.csv') + table('ties.csv') + table('mixed.csv', 'max_rows: 3\n')
   + inline([{ id: 'ten', value: '10' }, { id: 'two', value: '2' }, { id: 'nine', value: '9' }])
-  + inline([{ id: 'most', value: 1.2 }, { id: 'least', value: 0.09 }, { id: 'middle', value: 0.45 }], ', format: percent'));
-execFileSync(cli, ['generate', join(folder, 'report.rmd'), '--format', 'json'], { cwd: root, stdio: 'pipe' });
-const server = await serveStatic({ '/decimals/': join(folder, 'Rendered') });
+  + inline([{ id: 'most', value: 1.2 }, { id: 'least', value: 0.09 }, { id: 'middle', value: 0.45 }], ', format: percent')
+  + '\n```table\ntitle: Places\ndata: {inline: ' + JSON.stringify(['Ålesund', 'Brno', 'Café Central', 'Dresden', 'Eger', 'Faro', 'Graz', 'Havana', 'Brno-venkov', 'Jena', 'Kiel', 'Linz'].map((id, i) => ({ id, value: i + 1 }))) + '}\ncolumns: [{key: id}, {key: value}]\nmax_rows: 4\ntotal: [value]\n```\n'
+  + '\n```table\ndata: {inline: ' + JSON.stringify([
+    { area: 'North West', shift: 'Night Shift', team: 'Green Team', risk: 'Lower Risk' },
+    { area: 'South East', shift: 'Early Shift', team: 'Amber Team', risk: 'Upper Risk' },
+    { area: 'Mid West', shift: 'Late Shift', team: 'Blue Team', risk: 'Some Risk' },
+  ]) + '}\n```\n'
+  + '\n```table\ndata: {inline: ' + JSON.stringify(['Store 40', 'Store 19', 'Store 28'].map((store, i) => ({
+    store, ...Object.fromEntries(['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'].map((month, k) => [month, 104200300 + 1000 * k + i])),
+  }))) + '}\n```\n'
+  // Labels beside a column of longer text: on a phone, whole labels would squeeze the note onto
+  // more lines than they save.
+  + '\n```table\nfilter: true\ndata: {inline: ' + JSON.stringify([['broad', 'South West'], ['narrow', 'Mid Bay']].map(([key, label]) => ({
+    key, a: label, b: label, c: label, note: 'short short short short short',
+  }))) + '}\n```\n'
+  // Two rows that fit the same box differently: wide labels wrap on a phone, short ones do not.
+  + '\n```table\nfilter: true\ndata: {inline: ' + JSON.stringify([['broad', 'South West'], ['narrow', 'Lo 1']].map(([key, label]) => ({
+    key, a: label, b: label, c: label, d: label,
+  }))) + '}\n```\n');
+const words = [
+  { area: 'North West', shift: 'Night Shift', team: 'Green Team', risk: 'Lower Risk' },
+  { area: 'South East', shift: 'Early Shift', team: 'Amber Team', risk: 'Upper Risk' },
+  { area: 'Mid West', shift: 'Late Shift', team: 'Blue Team', risk: 'Some Risk' },
+];
+// Many label tables on one page, for what a resize costs.
+const one = name => { mkdirSync(join(h.dir, name), { recursive: true }); return join(h.dir, name, 'report.rmd'); };
+writeFileSync(one('many'), '---\ntitle: Many label tables\nversion: "1"\n---\n\nThirty-two tables.\n'
+  + Array.from({ length: 32 }, () => '\n```table\ndata: {inline: ' + JSON.stringify(words) + '}\n```\n').join(''));
+// A narrow table with a title and a filter box whose label is longer than the English one.
+writeFileSync(one('narrow'), '---\ntitle: Schmale Tabelle\nversion: "1"\nlang: de\n---\n\nEine Tabelle.\n'
+  + '\n```table\ntitle: Orte\nfilter: true\ndata: {inline: ' + JSON.stringify(['Brno', 'Graz', 'Linz'].map((ort, i) => ({ ort, a: i + 1, b: i + 2, c: i + 3 }))) + '}\n```\n');
+// One source to a report folder.
+for (const name of ['decimals', 'many', 'narrow']) {
+  execFileSync(cli, ['generate', join(h.dir, name, 'report.rmd'), '--format', 'json'], { cwd: root, stdio: 'pipe' });
+}
+const server = await serveStatic(Object.fromEntries(['decimals', 'many', 'narrow'].map(name => [`/${name}/`, join(h.dir, name, 'Rendered')])));
+const frames = (page, n = 2) => page.evaluate(n => new Promise(done => { const step = k => (k ? requestAnimationFrame(() => step(k - 1)) : done()); step(n); }), n);
 
 const errors = [];
 const failures = [];
@@ -100,8 +151,226 @@ for (const width of [1100, 390]) {
     assert.deepEqual(await ids(4), ['most', 'middle', 'least']);
     await sortBy(4);
   });
+
+  await check(`${width}: the filter box keeps the matching rows, says how many, and works with sorting and the fold`, async () => {
+    const table = tables.nth(5);
+    const input = table.locator('.rv-table__filter input');
+    const shown = () => table.locator(':scope > table:not(.rv-table__total) tbody tr:not([hidden]) td:first-child, .rv-table__overflow tbody tr:not([hidden]) td:first-child').allTextContents();
+    const inView = () => table.locator(':scope > table:not(.rv-table__total) tbody tr:not([hidden]) td:first-child').allTextContents();
+    const status = () => table.locator('.rv-table__status').textContent();
+    const summary = table.locator('.rv-table__overflow summary');
+    assert.equal(await page.locator('.rv-table__filter').count(), 3, 'only the table of more than 10 rows and the two that ask have a box');
+    assert.equal(await input.evaluate(i => i.labels[0]?.textContent), 'Filter rows');
+    assert.equal(await table.locator(':scope > table').first().evaluate(t => document.getElementById(t.getAttribute('aria-labelledby'))?.textContent), 'Places', 'the title still names the table');
+    assert.equal(await status(), '');
+    await input.focus();
+    await page.keyboard.type('CAFE');
+    assert.deepEqual(await shown(), ['Café Central'], 'case and accents do not matter');
+    assert.equal(await status(), '1 of 12 rows · the total is of all 12');
+    assert.equal(await table.locator('tbody tr[hidden]').count(), 11);
+    assert.equal(await input.evaluate(i => document.activeElement === i), true, 'focus stays in the box');
+    assert.equal(await table.locator('.rv-table__overflow').evaluate(d => d.hidden), true, 'the fold leaves when every match is in view');
+    assert.equal(await table.locator('.rv-table__total td').nth(1).textContent(), '78', 'the total is of every row');
+    await input.fill('brno');
+    assert.deepEqual(await shown(), ['Brno', 'Brno-venkov']);
+    assert.equal(await sortBy(5), 'ascending');
+    assert.equal(await sortBy(5), 'descending');
+    assert.deepEqual(await shown(), ['Brno-venkov', 'Brno'], 'a sort orders the matching rows');
+    assert.equal(await status(), '2 of 12 rows · the total is of all 12', 'the sort keeps the filter');
+    await input.fill('r');
+    assert.equal((await shown()).length, 7);
+    assert.deepEqual(await inView(), ['Brno-venkov', 'Graz', 'Faro', 'Eger'], 'the first matching rows stay in view');
+    assert.equal(await summary.textContent(), 'Showing 4 of 7 matching rows');
+    await input.fill('zzz');
+    assert.deepEqual(await shown(), []);
+    assert.equal(await status(), 'No rows match · the total is of all 12', 'the total row still stands, of every row');
+    await input.fill('');
+    assert.equal(await status(), '');
+    assert.equal(await table.locator('tbody tr[hidden]').count(), 0);
+    assert.deepEqual(await inView(), ['Linz', 'Kiel', 'Jena', 'Brno-venkov'], 'the sort stays when the box empties');
+    assert.equal(await summary.textContent(), 'Showing 4 of 12 rows');
+    assert.equal(await sortBy(5), 'none');
+    assert.deepEqual(await inView(), ['Ålesund', 'Brno', 'Café Central', 'Dresden']);
+  });
+
+  // Whole words only: no word of a label lies on two lines.
+  const brokenWords = cells => cells.evaluateAll(all => all.filter(td => {
+    const node = td.firstChild;
+    const text = node.textContent;
+    let at = 0;
+    return text.split(/\s+/).some(word => {
+      const start = text.indexOf(word, at);
+      at = start + word.length;
+      const range = document.createRange();
+      range.setStart(node, start);
+      range.setEnd(node, at);
+      return range.getClientRects().length > 1;
+    });
+  }).length);
+  const lines = cells => cells.evaluateAll(all => all.map(td => {
+    const range = document.createRange();
+    range.selectNodeContents(td);
+    return new Set([...range.getClientRects()].map(r => Math.round(r.top))).size;
+  }));
+  const scrolls = table => table.evaluate(t => t.scrollWidth > t.clientWidth + 1);
+  await check(`${width}: short labels stand on one line where the table fits and wrap at their words where that makes it fit`, async () => {
+    const table = tables.nth(6);
+    const labels = table.locator('td.label');
+    assert.equal(await labels.count(), 12);
+    // The runtime measures again a frame after a table changes size.
+    await page.evaluate(() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))));
+    assert.equal(await scrolls(table), false, 'the table does not scroll sideways');
+    assert.equal(await brokenWords(labels), 0, 'no word is broken');
+    const state = await table.getAttribute('data-rv-labels');
+    if (width > 640) {
+      assert.equal(state, 'line');
+      assert.deepEqual([...new Set(await lines(labels))], [1], 'every label is on one line');
+    } else {
+      assert.equal(state, 'wrap', 'on one line this table would not fit a phone');
+      assert.ok((await lines(labels)).some(n => n > 1), 'labels wrap');
+      await table.evaluate(t => t.setAttribute('data-rv-labels', 'line'));
+      assert.equal(await scrolls(table), true, 'on one line it would scroll, so the case tests the choice');
+      await table.evaluate(t => t.setAttribute('data-rv-labels', 'wrap'));
+    }
+  });
+
+  await check(`${width}: short labels stay on one line in a table that scrolls either way`, async () => {
+    const table = tables.nth(7);
+    const labels = table.locator('td.label');
+    assert.equal(await labels.count(), 3);
+    assert.equal(await table.getAttribute('data-rv-labels'), 'line');
+    assert.deepEqual([...new Set(await lines(labels))], [1], 'every label is on one line');
+    assert.equal(await scrolls(table), true, 'twelve wide columns fit neither width');
+  });
+
+  const height = table => table.evaluate(t => t.getBoundingClientRect().height);
+  // Whole labels must not make a table taller: beside a column of longer text they stay wrapped.
+  await check(`${width}: labels stay wrapped where whole labels would make the table taller`, async () => {
+    const table = tables.nth(8);
+    const input = table.locator('.rv-table__filter input');
+    const shownLabels = table.locator('tbody tr:not([hidden]) td.label');
+    await input.fill('narrow');
+    await frames(page);
+    assert.deepEqual(await shownLabels.allTextContents(), ['Mid Bay', 'Mid Bay', 'Mid Bay']);
+    assert.equal(await scrolls(table), false);
+    const state = await table.getAttribute('data-rv-labels');
+    const stands = await height(table);
+    // The other way, set by hand and read at once, before the runtime measures again.
+    const other = await table.evaluate((t, state) => {
+      t.setAttribute('data-rv-labels', state === 'line' ? 'wrap' : 'line');
+      const tall = t.getBoundingClientRect().height;
+      const scrolls = t.scrollWidth > t.clientWidth + 1;
+      t.setAttribute('data-rv-labels', state);
+      return { tall, scrolls };
+    }, state);
+    if (width <= 640) {
+      assert.equal(state, 'wrap', 'on a phone whole labels squeeze the note onto more lines');
+      assert.equal(other.scrolls, false, 'whole labels would fit the box, so only the height decides');
+      assert.ok(other.tall > stands + 0.5, `whole labels would make the table ${other.tall} px tall, not ${stands}`);
+    } else {
+      assert.equal(state, 'line');
+      assert.ok(stands <= other.tall + 0.5, 'whole labels make the table no taller');
+    }
+    await input.fill('zzz');
+    assert.equal(await table.locator('.rv-table__status').textContent(), 'No rows match', 'a table without a total says no more');
+    await input.fill('');
+    await frames(page);
+  });
+
+  // Other rows in the same box: the runtime measures the labels again without a resize.
+  await check(`${width}: a filter that changes the rows measures the labels again`, async () => {
+    const table = tables.nth(9);
+    const input = table.locator('.rv-table__filter input');
+    const shownLabels = table.locator('tbody tr:not([hidden]) td.label');
+    await input.fill('broad');
+    await frames(page);
+    assert.equal(await shownLabels.count(), 4);
+    if (width <= 640) assert.equal(await table.getAttribute('data-rv-labels'), 'wrap', 'four wide labels fit a phone only wrapped');
+    await input.fill('narrow');
+    await frames(page);
+    assert.deepEqual(await shownLabels.allTextContents(), ['Lo 1', 'Lo 1', 'Lo 1', 'Lo 1']);
+    assert.equal(await table.getAttribute('data-rv-labels'), 'line', 'short labels fit on one line');
+    assert.deepEqual([...new Set(await lines(shownLabels))], [1], 'every label is on one line');
+    assert.equal(await scrolls(table), false);
+    await input.fill('');
+    await frames(page);
+  });
+
+  await check(`${width}: a burst of resize events and a late font each cost one measurement`, async () => {
+    const state = () => page.locator('.rv-table[data-rv-labels]').evaluateAll(all => all.map(t => t.getAttribute('data-rv-labels')));
+    const before = await state();
+    await page.evaluate(() => {
+      window.__labelWrites = 0;
+      const seen = new MutationObserver(notes => { window.__labelWrites += notes.length; });
+      for (const t of document.querySelectorAll('.rv-table[data-rv-labels]')) seen.observe(t, { attributes: true, attributeFilter: ['data-rv-labels'] });
+      for (let i = 0; i < 10; i++) window.dispatchEvent(new Event('resize'));
+    });
+    await frames(page, 4);
+    // One pass sets each table the other way once and, where its verdict stands, back.
+    const writes = await page.evaluate(() => window.__labelWrites);
+    assert.ok(writes >= 2 && writes <= 2 * before.length, `${writes} label writes for ten resize events`);
+    assert.deepEqual(await state(), before, 'the verdicts stand');
+    // A face that finishes loading later changes no box, so the fonts tell the runtime.
+    await page.evaluate(() => { window.__labelWrites = 0; document.fonts.dispatchEvent(new Event('loadingdone')); });
+    await frames(page, 4);
+    const late = await page.evaluate(() => window.__labelWrites);
+    assert.ok(late >= 2 && late <= 2 * before.length, `${late} label writes after a late font`);
+    assert.deepEqual(await state(), before);
+  });
   await page.close();
 }
+
+// What a resize costs with many label tables: a few layouts, not some for each table.
+if (h.browser.browserType().name() === 'chromium') {
+  await check('390: a resize lays out a page of 32 label tables a few times, not per table', async () => {
+    const page = await h.browser.newPage({ viewport: { width: 390, height: 900 } });
+    watchErrors(page, errors, 'many: ');
+    await page.goto(`${server.base}/many/report.html`);
+    await page.locator('html[data-rv-runtime="started"]').waitFor();
+    await frames(page, 4);
+    assert.deepEqual([...new Set(await page.locator('.rv-table').evaluateAll(all => all.map(t => t.getAttribute('data-rv-labels'))))], ['wrap']);
+    const session = await page.context().newCDPSession(page);
+    await session.send('Performance.enable');
+    const layouts = async () => (await session.send('Performance.getMetrics')).metrics.find(m => m.name === 'LayoutCount').value;
+    const before = await layouts();
+    await page.setViewportSize({ width: 391, height: 900 });
+    await page.waitForTimeout(250);
+    await frames(page, 4);
+    const cost = (await layouts()) - before;
+    assert.ok(cost <= 16, `${cost} layouts for one resize of 32 label tables`);
+    assert.deepEqual([...new Set(await page.locator('.rv-table').evaluateAll(all => all.map(t => t.getAttribute('data-rv-labels'))))], ['wrap']);
+    assert.equal(await page.locator('.rv-table').evaluateAll(all => all.filter(t => t.scrollWidth > t.clientWidth + 1).length), 0, 'no table scrolls sideways');
+    await page.close();
+  });
+}
+
+// The empty box keeps to its room in a narrow table: the headings stand where they stood.
+await check('300: the filter box of a narrow table with a longer label keeps to one line', async () => {
+  const viewport = { width: 300, height: 900 };
+  const headTop = page => page.locator('.rv-table').first().evaluate(t => t.querySelector('thead').getBoundingClientRect().top + scrollY);
+  // A page that runs scripts whose runtime has not started: the first paint, with the box's room.
+  const stalled = await h.browser.newContext({ viewport });
+  await stalled.addInitScript(() => { Object.defineProperty(window, 'WebAssembly', { value: undefined, configurable: true }); });
+  const waiting = await stalled.newPage();
+  await waiting.goto(`${server.base}/narrow/report.html`);
+  await waiting.evaluate(() => document.fonts.ready);
+  assert.equal(await waiting.evaluate(() => document.documentElement.hasAttribute('data-rv-runtime')), false, 'the runtime has not started');
+  const kept = await headTop(waiting);
+  await stalled.close();
+  const page = await h.browser.newPage({ viewport });
+  watchErrors(page, errors, 'narrow: ');
+  await page.goto(`${server.base}/narrow/report.html`);
+  await page.locator('.rv-table[data-rv-filter="ready"]').waitFor();
+  await page.evaluate(() => document.fonts.ready);
+  await frames(page, 4);
+  const line = page.locator('.rv-table__filter');
+  assert.notEqual(await line.locator('label').textContent(), 'Filter rows', 'the label is in the page\'s language');
+  const [label, input] = await Promise.all([line.locator('label'), line.locator('input')].map(l => l.evaluate(e => { const r = e.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, width: r.width }; })));
+  assert.ok(input.top < label.bottom && label.top < input.bottom, 'the field stands beside its label');
+  assert.ok(input.width >= 40, `the field keeps ${input.width} px to type in`);
+  assert.ok(Math.abs((await headTop(page)) - kept) <= 0.6, `the headings moved ${((await headTop(page)) - kept).toFixed(1)} px when the box arrived`);
+  await page.close();
+});
 
 await server.close();
 h.save('csv-decimals.json', { cases, errors, failures });
@@ -111,4 +380,4 @@ if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
-console.log(`PASS ${cases.length} table sorting cases at desktop and phone widths`);
+console.log(`PASS ${cases.length} table sorting, filtering and label cases at desktop, phone and narrow widths`);

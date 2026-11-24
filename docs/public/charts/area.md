@@ -51,7 +51,7 @@ encoding: { x: day, y: users, color: tier }
 - `axes.y.label`, `format` and `unit` describe the value axis
 - `axes.y.min` and `axes.y.max` fix the ends of the value axis
 
-Unstacked areas use automatic primary values in complete groups across the shown series: last values first, then first values, then extremes. The total is at most five, or three below 480 px of plot width; if all last values cannot fit, none are drawn. Stacked areas keep their part values in readouts and do not add numeric labels. `auto_annotations: false` turns the values off.
+Unstacked areas use automatic primary values in complete groups across the shown series: last values first, then first values, then extremes. The total is at most five, or three below 480 px of plot width; if all last values cannot fit, none are drawn. A value stands on the far side of its own line from its fill, on the page or on another band's tint, and never inside its own fill; with no room there it is left out and recorded. Stacked areas keep their part values in readouts and do not add numeric labels. `auto_annotations: false` turns the values off.
 
 ## Interactions
 

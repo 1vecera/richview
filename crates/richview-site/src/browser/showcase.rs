@@ -33,7 +33,16 @@ struct Anchor {
 struct Showcase {
     /// The frame tokens of every style, keyed by id: the five builtins and the extended themes.
     tokens: Value,
+    /// The source ledger's rows by id, fetched when the first citation card opens.
     sources: BTreeMap<String, BTreeMap<String, String>>,
+    ledger_requested: bool,
+    /// The citation the reader is on, and whether it is in the compare frame: the card the ledger
+    /// opens when it arrives, if the reader has not left the link meanwhile.
+    cite_link: Option<(Element, bool)>,
+    /// The ledger ids of each source link, by `citation_key`, one list per occurrence in reading
+    /// order, as `build_report.py` recorded them: the page marks every citation with the entry its
+    /// own sentence cites, without fetching the ledger (`flagship.rs`).
+    citations: BTreeMap<String, Vec<Vec<String>>>,
     /// The five builtin styles, in the order of the pills.
     pills: Vec<String>,
     theme: String,
@@ -555,7 +564,10 @@ fn keyboard(state: &State, event: Event) {
             key.prevent_default();
             toggle_compare(state);
         }
-        "Escape" => shown("#citation-card", false),
+        "Escape" => {
+            state.borrow_mut().cite_link = None;
+            shown("#citation-card", false)
+        }
         _ => {}
     }
 }
@@ -635,13 +647,41 @@ fn hide_cite_later(state: &State) {
     };
     state.borrow_mut().cite_timer = id;
 }
+/// Fetch the source ledger once, on the first citation card. When it arrives, open the card of
+/// the citation the reader is still on, which may be another than the first; none if they left.
+fn load_ledger(state: &State) {
+    if std::mem::replace(&mut state.borrow_mut().ledger_requested, true) {
+        return;
+    }
+    let st = state.clone();
+    spawn_local(async move {
+        match fetch_text("ledger/sources.csv").await {
+            Ok(ledger) => {
+                st.borrow_mut().sources = source_rows(&ledger);
+                let target = st.borrow().cite_link.clone().or_else(focused_citation);
+                if let Some((link, b)) = target {
+                    show_citation(&st, &link, b);
+                }
+            }
+            Err(e) => {
+                st.borrow_mut().ledger_requested = false;
+                error(&e);
+            }
+        }
+    });
+}
+
 fn show_citation(state: &State, link: &Element, b: bool) {
     clear_cite_timer(state);
     let Some(id) = link.get_attribute("data-source-id") else {
         return;
     };
+    state.borrow_mut().cite_link = Some((link.clone(), b));
     let source = state.borrow().sources.get(&id).cloned();
-    let Some(source) = source else { return };
+    let Some(source) = source else {
+        load_ledger(state);
+        return;
+    };
     state.borrow_mut().citation_b = Some(b);
     let Some(card) = query("#citation-card") else {
         return;
@@ -685,7 +725,8 @@ fn show_citation(state: &State, link: &Element, b: bool) {
     card.set_inner_html(&format!(
         "<p class=\"citation-kind\">{} · {}</p><p class=\"citation-title\">{}</p><p>{} · {}</p>{quote}{notes}{open}",
         escape(&id),
-        escape(value("type")),
+        // The ledger writes a kind as one token, such as `press_or_primary`; readers get its words.
+        escape(&value("kind").replace('_', " ")),
         escape(value("title")),
         escape(value("publisher")),
         escape(date),
@@ -723,25 +764,52 @@ fn show_citation(state: &State, link: &Element, b: bool) {
 /// Wire a freshly loaded report frame: source links open citation cards (and nothing outside the
 /// flagship does), external links leave in a new tab, scrolling keeps a comparison in step and
 /// the page's keys work from inside the frame.
+/// A source link's key in the citation list: its URL and its text's letters and digits, which
+/// survive the renderer's typographic quotes, dashes and entities.
+fn citation_key(href: &str, text: &str) -> String {
+    let letters: String = text
+        .chars()
+        .filter(|c| c.is_alphanumeric())
+        .flat_map(char::to_lowercase)
+        .collect();
+    format!("{href}\n{letters}")
+}
+
 fn bind_frame(state: &State, b: bool) {
     state.borrow_mut().listeners[slot(b)].clear();
     let Some(doc) = frame_document(b) else { return };
+    let mut seen: BTreeMap<String, usize> = BTreeMap::new();
     if let Ok(links) = doc.query_selector_all("a[href]") {
         for i in 0..links.length() {
             let Some(link) = links.item(i).map(|n| n.unchecked_into::<Element>()) else {
                 continue;
             };
-            let id = link.text_content().unwrap_or_default().trim().to_owned();
-            if !id.is_empty()
-                && id.len() < 16
-                && (id.starts_with("D-")
-                    || id.chars().next().is_some_and(|c| c.is_ascii_uppercase())
-                        && id.chars().any(|c| c.is_ascii_digit()))
-            {
-                let _ = link.set_attribute("data-source-id", &id);
+            // A citation is a link the report's citation list records; the reader sees its name.
+            // A table's link cell shows a host, so it is keyed by its URL alone.
+            let href = link.get_attribute("href").unwrap_or_default();
+            let name = link.text_content().unwrap_or_default().trim().to_owned();
+            let in_cell = link.closest("td.link").ok().flatten().is_some();
+            let key = citation_key(&href, if in_cell { "" } else { &name });
+            let cited = state.borrow().citations.get(&key).and_then(|occurrences| {
+                let n = seen.entry(key.clone()).or_insert(0);
+                *n += 1;
+                // One more occurrence than recorded can only take the ids all of them share.
+                occurrences.get(*n - 1).cloned().or_else(|| {
+                    occurrences
+                        .iter()
+                        .all(|ids| ids == &occurrences[0])
+                        .then(|| occurrences[0].clone())
+                })
+            });
+            if let Some(ids) = cited.filter(|ids| !ids.is_empty()) {
+                let _ = link.set_attribute("data-source-id", &ids[0]);
+                // A link that cites several entries, such as a survey wave's questions, keeps them all.
+                if ids.len() > 1 {
+                    let _ = link.set_attribute("data-source-ids", &ids.join(" "));
+                }
                 let _ = link.set_attribute(
                     "aria-label",
-                    &format!("Source {id}; focus for its dated citation details"),
+                    &format!("Source: {name}; focus for its dated citation details"),
                 );
             }
             if link
@@ -803,6 +871,7 @@ fn bind_frame(state: &State, b: bool) {
                 .and_then(|e| e.closest("[data-source-id]").ok().flatten())
                 .is_some()
             {
+                st.borrow_mut().cite_link = None;
                 hide_cite_later(&st);
             }
         });
@@ -859,6 +928,16 @@ pub(super) fn start() {
             let tokens: Value = query("#showcase-tokens")
                 .and_then(|e| serde_json::from_str(&e.text_content().unwrap_or_default()).ok())
                 .unwrap_or_else(|| serde_json::json!({}));
+            let listed: Vec<(String, String, Vec<String>)> = query("#showcase-citations")
+                .and_then(|e| serde_json::from_str(&e.text_content().unwrap_or_default()).ok())
+                .unwrap_or_default();
+            let mut citations: BTreeMap<String, Vec<Vec<String>>> = BTreeMap::new();
+            for (url, text, ids) in listed {
+                citations
+                    .entry(citation_key(&url, &text))
+                    .or_default()
+                    .push(ids);
+            }
             let pills: Vec<String> = document()
                 .query_selector_all("#style-pills [role=radio]")
                 .map(|buttons| {
@@ -873,6 +952,9 @@ pub(super) fn start() {
             let state = Rc::new(RefCell::new(Showcase {
                 tokens,
                 sources: BTreeMap::new(),
+                ledger_requested: false,
+                cite_link: None,
+                citations,
                 pills,
                 theme: first.clone(),
                 compare: None,
@@ -907,13 +989,8 @@ pub(super) fn start() {
                     bind_frame(&state, false);
                 }
             }
+            // The ledger's count is printed by the build; its rows load with the first card.
             apply(&state);
-            let ledger = fetch_text("ledger/sources.csv").await?;
-            state.borrow_mut().sources = source_rows(&ledger);
-            text(
-                "#source-count",
-                &format!("{} dated ledger entries", state.borrow().sources.len()),
-            );
             Ok::<(), JsValue>(())
         }
         .await;

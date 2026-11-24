@@ -40,7 +40,8 @@ fastrand = "2"
 futures-util = "0.3"
 md-5 = "0.11"
 rusty-s3 = { version = "0.10.2", default-features = false, features = ["rustcrypto", "xml"] }
-duckdb = { version = "1", features = ["bundled"] }
+# `parquet` compiles DuckDB's own Parquet reader into the confined worker, for `data.parquet`.
+duckdb = { version = "1", features = ["bundled", "parquet"] }
 csv = "1"
 argon2 = "0.5"
 richview-share = { path = "../richview-share" }

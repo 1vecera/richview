@@ -9,7 +9,7 @@ exports.run = async () => {
   assert.ok(artifact, 'Use the isolated VS Code test runner');
   const extension = vscode.extensions.getExtension('richview.richview-vscode');
   assert.ok(extension);
-  assert.equal(extension.packageJSON.version, '3.0.0-alpha.3');
+  assert.equal(extension.packageJSON.version, '3.0.0');
   assert.ok(extension.extensionPath.startsWith(process.env.RICHVIEW_TEST_EXTENSIONS), 'Tests must exercise the VSIX installation');
   await extension.activate();
   const root = vscode.workspace.workspaceFolders[0].uri.fsPath;
@@ -51,8 +51,14 @@ exports.run = async () => {
     choices=await vscode.commands.executeCommand('vscode.executeCompletionItemProvider',file,new vscode.Position(4,9));
     assert.ok(choices.items.some(item=>item.label==='low')&&choices.items.some(item=>item.label==='high'),'Interval bound fields come from the actual data');
   }
-  await replace('');
-  await vscode.commands.executeCommand('editor.action.insertSnippet',{langId:document.languageId,name:'interval'});
+  // insertSnippet writes into the active editor: VS Code 1.136's agent host can open its chat view
+  // and take focus, so show this document first and retry until the snippet has landed in it.
+  await wait(async()=>{
+    await replace('');
+    await vscode.window.showTextDocument(document,{preview:false,preserveFocus:false});
+    await vscode.commands.executeCommand('editor.action.insertSnippet',{langId:document.languageId,name:'interval'});
+    return /type: interval/.test(document.getText());
+  });
   assert.match(document.getText(),/type: interval/);
   assert.match(document.getText(),/lower: lower, upper: upper, y: estimate/);
   // Problems follows validate (FEA-SF-24); geometry errors belong to check and the preview banner.
@@ -208,8 +214,9 @@ exports.run = async () => {
     const fill='rgb('+r+', '+g+', '+b+')';
     const report=body.querySelector('.rv-report').cloneNode(true);
     report.querySelectorAll('.rv-chart, script, footer, .rv-report-card').forEach(n=>n.remove());
+    // The page colour, read from the style: a page background (STY-74) leaves the body transparent.
     return {font:getComputedStyle(body.querySelector('.rv-report__body')).fontFamily,
-      bg:getComputedStyle(body).backgroundColor,fill,
+      bg:getComputedStyle(document.documentElement).getPropertyValue('--rv-bg').trim(),fill,
       content:report.textContent.replace(/\\s+/g,' ').trim(),
       data:[...body.querySelectorAll('figure[data-rv-chart]')].map(node=>rowsOf(payloadOf(node)))};
   })()`;

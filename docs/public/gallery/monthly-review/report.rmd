@@ -1,0 +1,155 @@
+---
+title: September business review
+description: Monthly recurring revenue reached $630K. The rows are synthetic; they show the slides format, not a company's results.
+date: 2026-10-05
+styles: [sleek]
+slides: true
+---
+
+```metric
+value: "$630K"
+label: Monthly recurring revenue at the end of September
+delta: 0.26
+delta_label: vs August
+```
+
+# September at a glance
+
+```metric
+value: "$630K"
+label: MRR
+delta: 0.26
+delta_label: vs August
+```
+
+```metric
+value: "$130K"
+label: Net new MRR
+delta: 0.1818
+delta_label: vs August
+```
+
+```metric
+value: "$420K"
+label: Enterprise MRR
+delta: 0.2353
+delta_label: vs August
+```
+
+```metric
+value: "$210K"
+label: Mid-market MRR
+delta: 0.3125
+delta_label: vs August
+```
+
+```chart
+type: bar
+title: MRR rose $110K in August and $130K in September
+stack: true
+data:
+  inline:
+    - { month: Jul, mrr: 280000, segment: Enterprise }
+    - { month: Jul, mrr: 110000, segment: Mid-market }
+    - { month: Aug, mrr: 340000, segment: Enterprise }
+    - { month: Aug, mrr: 160000, segment: Mid-market }
+    - { month: Sep, mrr: 420000, segment: Enterprise }
+    - { month: Sep, mrr: 210000, segment: Mid-market }
+encoding:
+  x: month
+  y: mrr
+  color: segment
+axes:
+  y: { label: MRR, format: number_compact, unit: $ }
+```
+
+*Source: synthetic monthly rows from RichView's sales-report example.*
+
+# Where the growth came from
+
+```chart
+type: bar
+title: Enterprise added $80K in September, mid-market $50K for the second month
+data:
+  inline:
+    - { month: Aug, added: 60000, segment: Enterprise }
+    - { month: Aug, added: 50000, segment: Mid-market }
+    - { month: Sep, added: 80000, segment: Enterprise }
+    - { month: Sep, added: 50000, segment: Mid-market }
+encoding:
+  x: month
+  y: added
+  color: segment
+axes:
+  y: { label: Net new MRR, format: number_compact, unit: $ }
+```
+
+*Source: synthetic monthly rows from RichView's sales-report example.*
+
+- **Enterprise** added $80K, up from $60K in August.
+- **Mid-market** added $50K, the same as in August.
+- Enterprise now holds two thirds of MRR.
+
+# Two segments, two speeds
+
+```chart
+type: line
+title: Enterprise is twice the size of mid-market
+data:
+  inline:
+    - { month: Jul, mrr: 280000, segment: Enterprise }
+    - { month: Jul, mrr: 110000, segment: Mid-market }
+    - { month: Aug, mrr: 340000, segment: Enterprise }
+    - { month: Aug, mrr: 160000, segment: Mid-market }
+    - { month: Sep, mrr: 420000, segment: Enterprise }
+    - { month: Sep, mrr: 210000, segment: Mid-market }
+encoding:
+  x: month
+  y: mrr
+  color: segment
+axes:
+  y: { label: MRR, format: number_compact, unit: $ }
+```
+
+*Source: synthetic monthly rows from RichView's sales-report example.*
+
+```chart
+type: bar
+title: Mid-market grew almost twice as fast since July
+data:
+  inline:
+    - { segment: Enterprise, growth: 0.5 }
+    - { segment: Mid-market, growth: 0.909 }
+encoding:
+  x: segment
+  y: growth
+axes:
+  y: { label: Growth since July, format: percent }
+```
+
+*Source: synthetic monthly rows from RichView's sales-report example.*
+
+# The quarter in one table
+
+| Segment | July | August | September | Since July |
+|---|---:|---:|---:|---:|
+| Enterprise | $280K | $340K | $420K | +50% |
+| Mid-market | $110K | $160K | $210K | +90.9% |
+| Total | $390K | $500K | $630K | +61.5% |
+
+MRR rose $240K from July to September. Enterprise supplied $140K of it and mid-market $100K.
+
+# Before October's review
+
+# What these rows cannot tell us
+
+- Whether new MRR came from new customers or from expansion.
+- How much MRR churned: the rows hold only the net.
+- Why enterprise sped up in September.
+
+```callout
+kind: hold
+title: Synthetic rows
+body: |
+  Six made-up monthly rows stand behind every number here. Check real billing data before a review like this one leaves the team.
+```

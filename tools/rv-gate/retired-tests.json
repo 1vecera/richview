@@ -1900,6 +1900,61 @@
 			"test": "richview-chart/src/layout/cartesian.rs::a_two_series_line_is_named_at_its_ends",
 			"reason": "Names stand inside the plot now; replaced by lines_with_room_are_named_inside_the_plot_which_takes_the_width and the unit tests beside it.",
 			"commit": "21ab66f7"
+		},
+		{
+			"test": "crates/richview-app/tests/native_contract.rs::a_new_report_address_needs_confirmation_and_later_versions_do_not",
+			"reason": "First publish creates the address by default. The replacement retains the explicit revision-only conflict and verifies both immutable versions. See first_publish_creates_and_later_versions_keep_the_address.",
+			"commit": "2096d0ce"
+		},
+		{
+			"test": "crates/richview-core/tests/contracts.rs::valid_chart_palettes_and_leaves_still_apply",
+			"reason": "Author chart leaves are retired. The replacement checks that their presence preserves the supported palette. See retired_chart_leaves_leave_the_supported_palette_in_place.",
+			"commit": "9ecb8879"
+		},
+		{
+			"test": "crates/richview-core/tests/contracts.rs::a_motion_character_alone_sets_its_timing",
+			"reason": "The preset supplies timing. The replacement exercises retired motion character and duration inputs. See retired_motion_character_and_duration_keep_the_preset_timing.",
+			"commit": "9ecb8879"
+		},
+		{
+			"test": "crates/richview-core/tests/contracts.rs::quoted_motion_numbers_apply_a_fade_stays_put_and_a_font_quote_must_close",
+			"reason": "Quoted motion overrides are retired. The replacement keeps the font quote validation. See quoted_motion_overrides_are_retired_and_font_quotes_must_close.",
+			"commit": "9ecb8879"
+		},
+		{
+			"test": "crates/richview-core/tests/style_checks.rs::a_pale_link_that_reads_on_the_dark_screen_fails_the_printed_paper",
+			"reason": "The retired link setting cannot change print contrast. The replacement checks the resulting print style. See a_retired_pale_link_cannot_change_print_contrast.",
+			"commit": "9ecb8879"
+		},
+		{
+			"test": "crates/richview-core/tests/style_presets.rs::the_old_company_syntax_warns_and_the_new_colours_derive_the_same_palette",
+			"reason": "The retired company syntax no longer selects Air or derives a palette. The replacement checks both effects are absent. See retired_company_colours_cannot_select_air_or_change_the_palette.",
+			"commit": "9ecb8879"
+		},
+		{
+			"test": "crates/richview-core/tests/style_presets.rs::old_settings_and_tokens_keep_applying_and_warn_with_their_replacement",
+			"reason": "Retired author leaves are ignored. The replacement checks the resolved document, warning count and source location across the registry. See every_retired_leaf_is_skipped_with_one_located_warning.",
+			"commit": "9ecb8879"
+		},
+		{
+			"test": "crates/richview-core/tests/style_presets.rs::steps_act_on_explicit_leaves_alike_and_explicit_colours_win_with_or_without_colors",
+			"reason": "Retired token overrides have no effect. The replacement checks supported steps with and without brand colours. See retired_leaves_do_not_override_supported_steps_or_colours.",
+			"commit": "9ecb8879"
+		},
+		{
+			"test": "crates/richview-core/tests/style_presets.rs::preset_only_and_legacy_files_resolve_byte_for_byte_as_before",
+			"reason": "Legacy snapshots encoded the removed overrides. The replacement retains byte-for-byte coverage of every built-in preset. See presets_resolve_byte_for_byte_as_before.",
+			"commit": "9ecb8879"
+		},
+		{
+			"test": "crates/richview-core/tests/styles.rs::the_accent_setting_moves_the_accent_links_and_first_series_together",
+			"reason": "The author accent is retired. The replacement checks that links and the first series retain each preset’s colours. See retired_accent_keeps_each_presets_links_and_first_series.",
+			"commit": "9ecb8879"
+		},
+		{
+			"test": "crates/richview-core/tests/styles.rs::a_motion_character_preset_matches_the_builtin_that_names_it",
+			"reason": "Author motion characters are retired. The replacement checks timing against the named preset. See motion_character_in_an_author_file_keeps_the_named_presets_timing.",
+			"commit": "9ecb8879"
 		}
 	]
 }

@@ -127,7 +127,8 @@ fn authoring_knowledge_is_available_without_a_host() {
             "chart-contract",
             "style",
             "workflow",
-            "anti-slop"
+            "anti-slop",
+            "slides"
         ]
     );
     assert!(grammar.body.starts_with("Start a first report:"));
@@ -172,6 +173,39 @@ fn authoring_knowledge_is_available_without_a_host() {
             !findings.iter().any(|d| d.level == "error"),
             "{example}: {findings:?}"
         );
+    }
+}
+
+#[test]
+fn slides_have_a_learn_section_of_their_own_that_the_grammar_points_to() {
+    // The grammar names the field and where its guide is, so it stays within one tool output.
+    let grammar = api::learn_section("grammar").unwrap().body;
+    assert!(grammar.contains("`richview learn slides`"));
+    assert!(!grammar.contains("slides.density"));
+    let slides = api::learn_section("slides").unwrap();
+    assert_eq!(slides.title, "Slides");
+    assert!(slides.body.starts_with("`slides: true`"));
+    assert!(!slides.body.to_lowercase().contains("experimental"));
+    for named in ["slides.density", "slides.tabs"] {
+        assert!(slides.body.contains(named), "{named}");
+    }
+}
+
+#[test]
+fn connector_queries_are_taught_in_the_workflow_section_that_the_grammar_points_to() {
+    // The grammar names the source and where its guide is, so it stays within one tool output.
+    let grammar = api::learn_section("grammar").unwrap().body;
+    assert!(grammar.contains("`report.connectors.yaml`"));
+    assert!(grammar.contains("`richview learn workflow`"));
+    assert!(!grammar.contains("RICHVIEW_CONNECTORS"));
+    let workflow = api::learn_section("workflow").unwrap().body;
+    for named in [
+        "### SQL and other connector queries",
+        "kind: duckdb",
+        "cache: { ttl: 1h }",
+        "RICHVIEW_CONNECTORS",
+    ] {
+        assert!(workflow.contains(named), "{named}");
     }
 }
 

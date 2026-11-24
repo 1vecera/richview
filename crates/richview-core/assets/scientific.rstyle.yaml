@@ -2,6 +2,11 @@
 # Light warm-paper (70°) academic working-paper. RichView Serif (display + body) +
 # RichView Sans (ui) + RichView Code (mono). Steel-blue accent, calm and credible.
 colophon: show
+# Graph paper behind the text, kept small so the serif reads first (STY-74). Inks keep their
+# floors over the grid's lines; paper prints the flat page. `background: none` turns it off.
+background:
+  texture: grid
+  strength: small
 tokens:
   scheme: light
   bg: "oklch(0.99 0.004 70)"
@@ -39,7 +44,8 @@ tokens:
   size-h1-phone: "32px"
   size-display-phone: "36px"
   line-base: "1.65"
-  measure: "78ch"
+  measure: "42rem"
+  print-measure: "78ch"
   radius-s: "2px"
   radius-m: "2px"
   shadow-float: "0 2px 8px oklch(0 0 0 / 0.12)"
@@ -71,6 +77,9 @@ components:
     border-width: "2px"
   deck:
     style: italic
+  # A slides source stands on this stage (FEA-RP-65): the talk of a good paper: a title page, headings over a rule, numbered figures and tables, booktabs rules.
+  slides:
+    stage: paper
 chart:
   legend: top
   palette: scientific

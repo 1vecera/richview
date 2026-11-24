@@ -1,27 +1,11 @@
 # Studio exploration "Original Palette, Sans" (v02-original-sans), Original-faithful.
 # Converted from richview-universe/richview-design-system studio/variants.js @ 8c6a8e0.
-# Tokens and layout live here; the variant's signature rules ship as CSS beside it.
-tokens:
-  scheme: light
-  size-base: "17px"
-  line-base: "1.7"
-  bg: "oklch(1 0 0)"
-  bg-elev: "oklch(0.982 0.0041 91.45)"
-  bg-chart: "oklch(0.982 0.0041 91.45)"
-  ink: "oklch(0 0 0)"
-  ink-soft: "oklch(0.4055 0.0084 53.26)"
-  ink-faint: "oklch(0.6521 0.0186 64.88)"
-  rule: "oklch(0.7567 0.0252 63.38)"
-  rule-soft: "oklch(0.8171 0.0186 64.88)"
-  accent: "oklch(0.5196 0.1248 247.06)"
-  accent-soft: "oklch(0.5196 0.1248 247.06 / 0.102)"
-  link: "oklch(0.5196 0.1248 247.06)"
-  up: "oklch(0.5330 0.1901 137.01)"
-  down: "oklch(0.5702 0.1539 13.31)"
-  hold: "oklch(0.5702 0.1539 13.31)"
-  font-text: '"Inter", system-ui, sans-serif'
-  font-display: '"Inter", sans-serif'
-  font-ui: '"Inter", system-ui, sans-serif'
-  font-mono: '"JetBrains Mono", ui-monospace, monospace'
-  radius-s: "4px"
-  radius-m: "4px"
+preset: scientific
+colors:
+  background: "oklch(1 0 0)"
+  brand: "oklch(0.5196 0.1248 247.06)"
+fonts:
+  display: '"Inter", sans-serif'
+  text: '"Inter", system-ui, sans-serif'
+  ui: '"Inter", system-ui, sans-serif'
+  mono: '"JetBrains Mono", ui-monospace, monospace'

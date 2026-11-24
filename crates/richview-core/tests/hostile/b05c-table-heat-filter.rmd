@@ -1,0 +1,27 @@
+---
+title: Table heat and filter
+---
+
+```table
+data:
+  inline:
+    - { a: 1, b: '"><script>HOSTILE_CELL()</script>' }
+    - { a: 2, b: 'x" style="background:url(javascript:HOSTILE_STYLE())' }
+columns:
+  - { key: a, label: A, heat: '100%;background:url(javascript:HOSTILE_HEAT())' }
+  - { key: b, label: B, heat: '"><script>HOSTILE_HEAT_TEXT()</script>' }
+heat_scale: '"><script>HOSTILE_SCALE()</script>'
+filter: '"><input onfocus=HOSTILE_FILTER() autofocus>'
+sortable: '"><script>HOSTILE_SORTABLE()</script>'
+```
+
+```table
+data:
+  inline:
+    - { a: 1, b: 'x" style="--rv-heat:100%' }
+    - { a: 2, b: '<td class="rv-heat" style="--rv-heat:100%">' }
+columns:
+  - { key: a, heat: true }
+  - { key: b, heat: diverging }
+filter: true
+```

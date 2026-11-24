@@ -1,7 +1,7 @@
 // Interaction feedback, zoom, the overview strip and entrances in the WebGL report runtime
 // (FEA-CH-42, FEA-CH-49 to FEA-CH-53). Reads drawn pixels and the geometry model frame by
-// frame: emphasis fades in about 150 ms and out in about 250 ms, the hover dot grows and a
-// scatter contour fades in about 120 ms, a hovered pie slice keeps its place and is outlined, drag-zoom and reset glide
+// frame: emphasis fades in about 150 ms and out in about 250 ms, hover dots and scatter points
+// grow in about 120 ms, the hovered pie slice keeps its place, drag-zoom and reset glide
 // for about 600 ms with the plot's left edge fixed and no readout, wheel zoom lands at once, the
 // readout holds about 250 ms after the pointer leaves, the overview strip follows the zoom and
 // drives it, and touch pinches and pans only in the expanded view. Reduced motion lands every
@@ -9,6 +9,7 @@
 import assert from 'node:assert/strict';
 import { harness, installWasmClock, watchErrors } from './browser-harness.mjs';
 import { reports } from './report-runtime.mjs';
+import { bubbleReport, paletteReports, reducedCsv, reducedReport, ringStyles, verifyOmitted, verifyPalette, verifySizedMarker } from './chart-ring-checks.mjs';
 
 const fence = value => `\n\`\`\`chart\n${JSON.stringify(value)}\n\`\`\`\n`;
 const months = Array.from({ length: 24 }, (_, i) => `${2023 + Math.floor(i / 12)}-${String(i % 12 + 1).padStart(2, '0')}-01`);
@@ -21,13 +22,17 @@ const FIXTURE = '---\ntitle: Feedback\nversion: "1"\n---\n\nInteraction feedback
   + fence({ type: 'scatter', title: 'Points', encoding: { x: 'x', y: 'y', size: 'weight', color: 'group' }, data: { inline: points } })
   + fence({ type: 'pie', title: 'Shares', encoding: { x: 'region', y: 'sales' }, data: { inline: bars.filter(b => b.year === '2024') } })
   + fence({ type: 'rose', title: 'Rain', encoding: { x: 'month', y: 'mm' }, data: { inline: Array.from({ length: 12 }, (_, i) => ({ month: `M${String(i + 1).padStart(2, '0')}`, mm: 30 + i * 8 })) } });
-const DECAL_FIXTURE = '---\ntitle: Marker decals\nversion: "1"\nstyles: [scientific, decals.rstyle.yaml]\n---\n'
+const DECAL_FIXTURE = '---\ntitle: Marker decals\nversion: "1"\nstyles: [hand-drawn]\n---\n'
   + fence({ type: 'scatter', title: 'Small marker shapes', encoding: { x: 'x', y: 'y', size: 'weight', color: 'group' }, data: { inline: Array.from({ length: 6 }, (_, i) => ({ x: i * 10, y: i * 2 + 1, weight: i + 1, group: `Group ${i}` })) } });
 const LINE = 0, BAR = 1, SCATTER = 2, PIE = 3, ROSE = 4;
 const FRAME_MS = 1000 / 60;
 
 const h = await harness('chart-feedback');
-const inputs = await reports(h.dir, { only: ['calendar', 'combo', 'dumbbell', 'gauge', 'lollipop', 'sankey', 'waffle', 'streamgraph'], extra: { feedback: FIXTURE, decals: DECAL_FIXTURE }, files: { decals: { 'decals.rstyle.yaml': 'chart:\n  decals: true\n' } } });
+const inputs = await reports(h.dir, {
+  only: ['calendar', 'combo', 'dumbbell', 'gauge', 'lollipop', 'sankey', 'waffle', 'streamgraph'],
+  extra: { feedback: FIXTURE, decals: DECAL_FIXTURE, ...paletteReports, 'reduced-scatter': reducedReport, 'omitted-bubble': bubbleReport },
+  files: { 'reduced-scatter': { 'points.csv': reducedCsv } },
+});
 const errors = [];
 const failures = [];
 const evidence = {};
@@ -237,6 +242,32 @@ for (const reduce of [false, true]) {
     return timing;
   });
 
+  if (reduce) await check('pointer returns to the keyboard-selected bar with the other bars at full strength', async () => {
+    const m = await model(page, BAR);
+    const panel = m.geometry.panels[0];
+    const bars = panel.items.filter(item => item.kind === 'rect' && item.role === 'mark');
+    const frame = page.locator('figure[data-rv-chart]').nth(BAR).locator('.rv-chart__frame');
+    const box = await canvasBox(page, BAR);
+    await page.mouse.move(1, 1);
+    await settled(page);
+    const other = bars.find(bar => bar.obs !== 0 && bar.series !== bars[0].series);
+    await page.evaluate(at => { window.__probe = at; }, [other.rect.x + other.rect.w / 4, other.rect.y + other.rect.h / 4]);
+    const full = await sampleFrame(page, BAR, PIXEL);
+    await frame.press('Home');
+    await settled(page);
+    const key = (await model(page, BAR)).target;
+    const bar = bars.find(item => item.obs === key.observation);
+    assert.ok(await frame.evaluate(el => el.hasAttribute('data-rv-selected')), 'keyboard ring shows');
+    assert.deepEqual(await sampleFrame(page, BAR, PIXEL), full, 'keyboard selection keeps the other bar at full strength');
+    await page.mouse.move(box.x + bar.rect.x + bar.rect.w / 2, box.y + bar.rect.y + bar.rect.h / 2);
+    await settled(page);
+    assert.deepEqual((await model(page, BAR)).target, key);
+    assert.equal(await frame.evaluate(el => el.hasAttribute('data-rv-selected')), false, 'pointer takes over the same observation');
+    assert.deepEqual(await sampleFrame(page, BAR, PIXEL), full, 'the other bar keeps its full colour');
+    await page.mouse.move(1, 1);
+    await settled(page);
+  });
+
   // Reduced motion draws the final frame at once, so one sample decides.
   if (reduce) await check(`${tag}: hiding a series under the pointer leaves the shown ones in full ink`, async () => {
     const entry = page.locator('figure[data-rv-chart]').nth(BAR).locator('button.rv-chart__legend-entry').first();
@@ -264,7 +295,7 @@ for (const reduce of [false, true]) {
     const m = await model(page, LINE);
     const o = m.geometry.panels[0].observations[10];
     const box = await canvasBox(page, LINE);
-    // The probe covers the dot, its ring and its halo, which grow in together.
+    // The probe covers the filled dot as it grows.
     await page.evaluate(([x, y]) => { window.__probe = [x, y, 13]; }, o.dots[0].at);
     await sampleFrame(page, LINE, BEFORE);
     await freeze(page);
@@ -287,7 +318,7 @@ for (const reduce of [false, true]) {
     return { first, last };
   });
 
-  await check(`${tag}: a scatter contour fades in without repainting its value-sized fill`, async () => {
+  await check(`${tag}: a scatter point grows while keeping its fill colour`, async () => {
     await page.mouse.move(5, 5);
     await settled(page);
     const m = await model(page, SCATTER);
@@ -322,18 +353,18 @@ for (const reduce of [false, true]) {
     const core = await sampleFrame(page, SCATTER, PIXEL);
     await page.mouse.move(5, 5);
     await settled(page);
-    assert.deepEqual(core, original, 'the original bubble fill is not repainted or enlarged');
+    assert.deepEqual(core, original, 'the centre keeps the point’s fill colour');
     const lastColors = fade.at(-1).value;
     const delta = colors => colors.reduce((sum, v, i) => sum + Math.abs(v - before[i]), 0);
     const first = delta(fade[0].value), last = delta(lastColors);
     const full = fade.find(f => f.value.every((v, i) => v === lastColors[i]))?.t;
     evidence[`${tag}: scatter frame diagnostics`] = { first, last, settled: delta(settledColors), full, original, core };
     assert.deepEqual(lastColors, settledColors, 'the final animation frame agrees with the settled render');
-    assert.ok(last > 0, 'the selected edge receives feedback');
-    if (reduce) assert.deepEqual(fade[0].value, lastColors, 'reduced motion shows the full contour at once');
+    assert.ok(last > 0, 'the selected point changes pixels as it grows');
+    if (reduce) assert.deepEqual(fade[0].value, lastColors, 'reduced motion shows the grown point at once');
     else {
-      assert.ok(first < last, `the contour fades in: ${first} → ${last}`);
-      assert.ok(full > 50 && full < 220, `the contour is full in about 120 ms: ${full}`);
+      assert.ok(first < last, `the point grows: ${first} → ${last}`);
+      assert.ok(full > 50 && full < 220, `the point grows in about 120 ms: ${full}`);
     }
     return { first, last, full, original, core };
   });
@@ -775,8 +806,9 @@ for (const shape of ['circle', 'square', 'triangle', 'diamond', 'plus', 'cross']
       await page.waitForFunction(() => window.__richview);
       await settled(page);
       const panel = (await model(page, 0)).geometry.panels[0];
-      const point = panel.items.find(i => i.kind === 'point' && i.role === 'mark' && i.shape === shape && i.obs != null);
-      assert.ok(point, `the fixture includes a ${shape} point`);
+      const marks = panel.items.filter(i => i.kind === 'point' && i.role === 'mark' && i.obs != null);
+      const point = marks.find(mark => mark.shape === shape);
+      assert.ok(point, `missing marker shape ${shape}; rendered shapes: ${[...new Set(marks.map(mark => mark.shape))].join(', ') || 'none'}`);
       const box = await canvasBox(page, 0), observation = panel.observations[point.obs];
       await page.evaluate(at => { window.__probe = at; }, point.center);
       const before = await sampleFrame(page, 0, PIXEL);
@@ -788,6 +820,18 @@ for (const shape of ['circle', 'square', 'triangle', 'diamond', 'plus', 'cross']
       return { radius: point.radius, before, after };
     } finally { await context.close(); }
   });
+}
+
+// Exact device-pixel probes for the ring are separate from the one-frame timing checks.
+{
+  const context = await h.browser.newContext({ viewport: { width: 1280, height: 960 }, deviceScaleFactor: 2, reducedMotion: 'reduce' });
+  try {
+    const page = await context.newPage();
+    watchErrors(page, errors, 'selection ring');
+    for (const style of ringStyles) await check(style + ' ring colours', () => verifyPalette(page, inputs.base, style));
+    for (const kind of ['reduced-scatter', 'omitted-bubble']) await check(kind + ' selection', () => verifyOmitted(page, inputs.base, kind));
+    for (const shape of ['plus', 'diamond']) await check('sized ' + shape + ' ring', () => verifySizedMarker(page, inputs.base, shape));
+  } finally { await context.close(); }
 }
 
 // Each contained observation receives feedback on every owned mark, never its hit rectangle.
@@ -870,7 +914,7 @@ for (const [name, index] of [['feedback', 0], ['dumbbell', 0], ['combo', 2], ['w
   });
 }
 
-await check('sankey: node and ribbon contours follow their painted edges', async () => {
+await check('sankey: hovered nodes and ribbons keep their colour while other marks recede', async () => {
   const context = await h.browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
   try {
     const page = await context.newPage();
@@ -886,28 +930,25 @@ await check('sankey: node and ribbon contours follow their painted edges', async
       const observation = panel.observations[index];
       const mark = panel.items.find(item => item.role === 'mark' && item.obs === index);
       assert.ok(mark, `observation ${index} owns a shape`);
-      let point;
-      if (mark.kind === 'area') {
-        const [a, b] = mark.path.cmds;
-        assert.equal(b.c, 'c', 'ribbon edge starts with a cubic curve');
-        point = [0, 1].map(axis => (a.p[axis] + 3 * b.c1[axis] + 3 * b.c2[axis] + b.p[axis]) / 8);
-      } else {
-        assert.equal(mark.kind, 'rect');
-        point = [mark.rect.x - 3, mark.rect.y + mark.rect.h / 2];
-      }
+      assert.ok(['area', 'rect'].includes(mark.kind), `observation ${index} owns a ribbon or node`);
       const box = await canvasBox(page, 0);
-      const pixels = () => page.evaluate(point => {
+      const pixels = () => page.evaluate(at => {
         const canvas = document.querySelector('figure[data-rv-chart] canvas');
         const scale = canvas.width / canvas.clientWidth;
-        return [...canvas.getContext('2d').getImageData(Math.round((point[0] - 1) * scale), Math.round((point[1] - 4) * scale), Math.round(2 * scale), Math.round(8 * scale)).data];
-      }, point);
+        const ctx = canvas.getContext('2d');
+        return {
+          mark: [...ctx.getImageData(Math.round(at[0] * scale), Math.round(at[1] * scale), 1, 1).data],
+          chart: [...ctx.getImageData(0, 0, canvas.width, canvas.height).data],
+        };
+      }, observation.at);
       const before = await pixels();
       await page.mouse.move(box.x + observation.at[0], box.y + observation.at[1]);
       await settled(page);
       assert.equal((await model(page, 0)).target?.observation, index, 'the intended mark is selected');
       const after = await pixels();
-      const difference = after.reduce((sum, value, i) => sum + Math.abs(value - before[i]), 0);
-      assert.ok(difference > 0, `observation ${index} changes pixels on its actual shape, not just its hit box`);
+      assert.deepEqual(after.mark, before.mark, `observation ${index} keeps its colour`);
+      const difference = after.chart.reduce((sum, value, i) => sum + Math.abs(value - before.chart[i]), 0);
+      assert.ok(difference > 0, `other marks recede for observation ${index}`);
       results.push({ index, difference });
     }
     return results;
@@ -1048,12 +1089,177 @@ for (const reduce of [false, true]) {
   });
 }
 
+// The stored chart mesh is uploaded before the framebuffer is cleared. Feedback
+// meshes are uploaded after the clear. Inspect their actual WebGL scissors so
+// changes to the base marks' opacity do not count as new paint.
+function observeFeedbackPaint() {
+  const prototype = WebGL2RenderingContext.prototype;
+  const states = new WeakMap();
+  let mesh = 0;
+  const clear = prototype.clear;
+  const create = prototype.createVertexArray;
+  const bind = prototype.bindVertexArray;
+  const draw = prototype.drawArrays;
+  window.__feedbackPaint = [];
+  prototype.clear = function (mask) {
+    if (mask & this.COLOR_BUFFER_BIT) states.set(this, { born: new Map(), bound: null });
+    return clear.call(this, mask);
+  };
+  prototype.createVertexArray = function () {
+    const array = create.call(this);
+    states.get(this)?.born.set(array, ++mesh);
+    return array;
+  };
+  prototype.bindVertexArray = function (array) {
+    const state = states.get(this);
+    if (state) state.bound = array;
+    return bind.call(this, array);
+  };
+  prototype.drawArrays = function (...args) {
+    const state = states.get(this);
+    const id = state?.born.get(state.bound);
+    if (id) {
+      const clip = this.isEnabled(this.SCISSOR_TEST) ? [...this.getParameter(this.SCISSOR_BOX)] : null;
+      window.__feedbackPaint.push({ id, first: args[1], count: args[2], clip });
+    }
+    return draw.apply(this, args);
+  };
+}
+
+await check('gallery: mark feedback follows the mark’s clip', async () => {
+  const gallery = await fetch(h.base + '/docs/charts').then(response => response.text());
+  const kinds = [...new Set([...gallery.matchAll(/<h3 id="[^"]+"><a href="\/docs\/charts\/([^"]+)"/g)].map(match => match[1]))];
+  assert.ok(kinds.length >= 40, `expected the chart gallery, got ${kinds.length} kinds`);
+  const styles = ['sleek', 'air', 'scientific', 'brutalist', 'hand-drawn'];
+  const context = await h.browser.newContext({
+    viewport: { width: 390, height: 844 }, deviceScaleFactor: 1.5, reducedMotion: 'reduce',
+  });
+  await context.addInitScript(observeFeedbackPaint);
+  const cases = [];
+  const failures = [];
+  const take = page => page.evaluate(() => {
+    const model = window.__richview.charts()[0];
+    const canvas = document.querySelector('figure[data-rv-chart] canvas.rv-chart__canvas');
+    const paint = [...new Map(window.__feedbackPaint.splice(0).map(entry => [JSON.stringify(entry), entry])).values()];
+    return { model, dpr: devicePixelRatio, height: canvas.height, paint };
+  });
+  const inspect = (kind, style, key, input, data) => {
+    const {model, height, dpr, paint} = data;
+    const {plot, targeting, observations} = model.geometry.panels[model.target.panel];
+    const scissor = margin => {
+      const x = plot.x - margin, y = plot.y - margin;
+      const w = plot.w + 2 * margin, h = plot.h + 2 * margin;
+      return [
+        Math.ceil(x * dpr), Math.ceil(height - (y + h) * dpr),
+        Math.floor((x + w) * dpr), Math.floor(height - y * dpr),
+      ];
+    };
+    const bounds = scissor(0);
+    const [pointX, pointY] = observations[model.target.observation].at;
+    const rounding = 1e-9;
+    const onPlot = pointX >= plot.x - rounding && pointX <= plot.x + plot.w + rounding
+      && pointY >= plot.y - rounding && pointY <= plot.y + plot.h + rounding;
+    const scatterOnPlot = kind === 'scatter' && onPlot;
+    const glyphBounds = scatterOnPlot ? scissor(8) : null;
+    const clipped = paint.filter(entry => entry.clip);
+    const whole = paint.length - clipped.length;
+    // The scatter backing, grown glyph and ring use exactly the same expanded scissor.
+    let scatterDraws = 0;
+    const escapes = clipped.filter(({clip: [x, y, w, h]}) => {
+      const edges = [x, y, x + w, y + h];
+      if (x >= bounds[0] && y >= bounds[1] && edges[2] <= bounds[2] && edges[3] <= bounds[3]) return false;
+      if (glyphBounds?.every((value, edge) => value === edges[edge])) {
+        scatterDraws++;
+        return false;
+      }
+      return true;
+    });
+    const panel = model.geometry.panels[model.target.panel];
+    const owns = type => panel.items.some(item => item.role === 'mark' && item.obs === model.target.observation && item.kind === type);
+    const shared = ['line', 'bar', 'packed-bubble', 'scatter'].includes(kind) || (kind === 'flow' && (owns('area') || owns('rect')));
+    const expectsRing = shared && (kind === 'line' || kind === 'flow' || onPlot || (kind === 'bar' && owns('rect')) || (kind === 'packed-bubble' && owns('point')));
+    const strict = clipped.filter(({ clip: [x, y, w, h] }) =>
+      x >= bounds[0] && y >= bounds[1] && x + w <= bounds[2] && y + h <= bounds[3]);
+    // A crosshair, a single scatter backing or a filled dot cannot on its own satisfy a ring.
+    const ringDraws = kind === 'line' ? whole : kind === 'scatter' ? scatterDraws : strict.length;
+    if (expectsRing && ringDraws < 2) failures.push({ kind, style, key, input, ringDraws, missingRing: true });
+    const hasLineDots = targeting.toLowerCase().replaceAll('_', '').replaceAll('-', '') === 'nearestx' && kind !== 'streamgraph';
+    if (escapes.length || ((input === 'pointer' || shared) && whole && !hasLineDots) || (input === 'keyboard' && !shared && !whole)) {
+      failures.push({kind, style, key, input, bounds, escapes, targeting, whole});
+    }
+    cases.push({kind, style, key, input, clipped: clipped.length, scatterDraws, whole});
+  };
+  try {
+    const page = await context.newPage();
+    watchErrors(page, errors, 'gallery borders');
+    for (const kind of [...new Set([...kinds, 'flow', 'pivot'])]) {
+      for (const style of styles) {
+        const path = `/docs/previews/${kind}/${style}.html`;
+        const response = await page.goto(h.base + path);
+        assert.ok(response?.ok(), path);
+        const frame = page.locator('figure[data-rv-chart] .rv-chart__frame').first();
+        const canvas = frame.locator('canvas.rv-chart__canvas');
+        await frame.scrollIntoViewIfNeeded();
+        await page.waitForFunction(() => window.__richview?.charts()[0]?.geometry?.panels?.length);
+        await settled(page);
+        await take(page);
+        for (const key of ['Home', 'End']) {
+          await frame.press(key);
+          await settled(page);
+          const selected = await take(page);
+          assert.ok(selected.model.target, `${path} ${key}: no selected observation`);
+          inspect(kind, style, key, 'keyboard', selected);
+          const {panel, observation} = selected.model.target;
+          const layout = selected.model.geometry;
+          const { plot, observations } = layout.panels[panel];
+          const { at, area, dots } = observations[observation];
+          await frame.press('Escape');
+          await frame.evaluate(element => element.blur());
+          await page.mouse.move(1, 1);
+          await settled(page);
+          await take(page);
+          const box = await canvas.boundingBox();
+          const aims = [at, ...(dots ?? []).map(dot => dot.at)];
+          if (area) aims.push([area.x + area.w / 2, area.y + area.h / 2]);
+          const inside = (value, origin, size) => Math.max(origin + 0.5, Math.min(origin + size - 0.5, value));
+          let pointed;
+          for (const [x, y] of aims) {
+            await page.mouse.move(
+              box.x + inside(x, plot.x, plot.w) * box.width / layout.width,
+              box.y + inside(y, plot.y, plot.h) * box.height / layout.height,
+            );
+            await settled(page);
+            pointed = await take(page);
+            if (pointed.model.target) break;
+          }
+          if (pointed?.model.target) inspect(kind, style, key, 'pointer', pointed);
+          await page.mouse.move(1, 1);
+          await settled(page);
+          await take(page);
+        }
+      }
+    }
+  } finally {
+    await context.close();
+  }
+  h.save('plot-borders.json', { cases, failures });
+  for (const input of ['keyboard', 'pointer']) {
+    assert.ok(cases.some(row => row.kind === 'scatter' && row.input === input && row.scatterDraws),
+      `${input} exercised the scatter glyph's bounded scissor`);
+  }
+  assert.equal(failures.length, 0, `feedback paint escaped its plot or lost its keyboard ring: ${JSON.stringify(failures.slice(0, 3))}`);
+  assert.equal(new Set(cases.filter(row => row.input === 'pointer').map(row => row.kind)).size, new Set(kinds.concat('flow', 'pivot')).size,
+    'each chart kind received at least one real hover');
+  return { kinds: [...new Set(cases.map(row => row.kind))], styles, samples: cases.length };
+});
+
 await inputs.close();
-h.save('chart-feedback.json', { evidence, errors, failures });
+const evidencePath = h.save('chart-feedback.json', { evidence, errors, failures });
 await h.close();
 if (errors.length) failures.push(...errors.map(e => `page error: ${e}`));
 if (failures.length) {
-  console.error(failures.join('\n'));
-  process.exit(1);
+  console.error(`FAIL chart feedback (${failures.length} failures; ${evidencePath})\n${failures.join('\n')}`);
+  process.exitCode = 1;
+} else {
+  console.log('PASS chart feedback: gallery plot borders, entrances, emphasis, hover marks, zoom glides, readout hold, overview strip and expanded touch, with motion and reduced');
 }
-console.log(`PASS chart feedback: entrances, emphasis, hover dot, scatter and pie contours, zoom glides, readout hold, overview strip and expanded touch, with motion and reduced`);

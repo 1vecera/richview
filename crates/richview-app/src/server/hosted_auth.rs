@@ -25,6 +25,14 @@ pub struct LinkForm {
     password: String,
     #[serde(default)]
     password_confirm: String,
+    // The reset page's checkboxes: a provider that is ticked stays connected; one that is not is
+    // disconnected by the reset.
+    #[serde(default)]
+    keep_github: String,
+    #[serde(default)]
+    keep_microsoft: String,
+    #[serde(default)]
+    keep_google: String,
 }
 
 static CHECKS: std::sync::OnceLock<std::sync::Arc<tokio::sync::Semaphore>> =
@@ -39,7 +47,7 @@ async fn signup_open(state: &AppState) -> bool {
 }
 
 // Already delivered links need capacity, but do not spend another mail slot.
-async fn signup_completion_open(state: &AppState) -> bool {
+pub(super) async fn signup_completion_open(state: &AppState) -> bool {
     if !state.access.signup_account_capacity() {
         return false;
     }
@@ -78,7 +86,7 @@ pub(super) fn manual(state: &AppState) -> bool {
 
 pub async fn signup_page(State(state): State<AppState>) -> Response {
     if signup_open(&state).await {
-        ui::sign_up_page().await
+        ui::sign_up_page(&state).await
     } else {
         ui::signups_paused_page()
     }
@@ -250,6 +258,9 @@ fn safe_link_error(message: &str) -> &str {
         "Check the name and password." => message,
         // The rule a too-short password broke, in the server's own words.
         _ if message == crate::access::short_password() => message,
+        // What stops a provider's account from being joined, in the server's own words.
+        _ if message.contains(" account is already connected") => message,
+        _ if message == crate::access::PROVIDER_ON_EXISTING => message,
         _ => "That password can't be used. Choose another of at least 12 characters.",
     }
 }
@@ -282,13 +293,33 @@ pub async fn complete(
         drop(publication);
         return ui::link_error_page(&state, &token, purpose, &form.name, PASSWORD_MISMATCH);
     }
+    let keep: Vec<String> = [
+        ("github", &form.keep_github),
+        ("microsoft", &form.keep_microsoft),
+        ("google", &form.keep_google),
+    ]
+    .into_iter()
+    .filter(|(_, ticked)| !ticked.is_empty())
+    .map(|(slug, _)| slug.to_owned())
+    .collect();
     match state
         .access
-        .complete_hosted_link_and_sign_in(&token, &form.name, &form.password, publication)
+        .complete_hosted_link_keeping(&token, &form.name, &form.password, publication, keep)
         .await
     {
-        Ok((_user, cookie, _csrf)) => {
-            let mut response = (StatusCode::SEE_OTHER, [(header::LOCATION, "/")]).into_response();
+        Ok((user, cookie, _csrf, removed)) => {
+            // Each provider the reset disconnected is audited, and the person is told which.
+            for identity in &removed {
+                let _ = state.access.audit(
+                    &crate::access::Principal::User(user.clone()),
+                    "identity.disconnect",
+                    &format!("{}/{}", user.id, identity.provider),
+                    true,
+                );
+            }
+            let target = ui::reset_landing(&removed);
+            let mut response =
+                (StatusCode::SEE_OTHER, [(header::LOCATION, target)]).into_response();
             if let Ok(cookie) = auth::session_cookie(&state, &cookie, 12 * 3600).parse() {
                 response.headers_mut().insert(header::SET_COOKIE, cookie);
             }
@@ -310,10 +341,30 @@ pub async fn complete(
 /// Accept an invitation from its mail link. An address without an account creates one here and
 /// is signed in; an existing account receives what was offered and signs in as usual.
 async fn accept_invitation(state: &AppState, token: &str, form: &LinkForm) -> Response {
+    accept_invitation_as(
+        state,
+        token,
+        &form.name,
+        Some((&form.password, &form.password_confirm)),
+        None,
+    )
+    .await
+}
+
+/// Accept an invitation with a password, or with a provider's account when `identity` is given:
+/// then the account made has no password, and the identity joins the invited account.
+pub(super) async fn accept_invitation_as(
+    state: &AppState,
+    token: &str,
+    name: &str,
+    passwords: Option<(&str, &str)>,
+    identity: Option<crate::access::Identity>,
+) -> Response {
     use crate::access::Landing;
     let Some(view) = state.access.inspect_invite(token) else {
         return ui::expired_link_page();
     };
+    let (password, confirm) = passwords.unwrap_or_default();
     // A new account is ordered with report writes and the storage threshold, like sign-up.
     let publication = if view.account_exists {
         None
@@ -322,15 +373,15 @@ async fn accept_invitation(state: &AppState, token: &str, form: &LinkForm) -> Re
         if !signup_completion_open(state).await {
             return ui::signups_paused_page();
         }
-        if form.password != form.password_confirm {
+        if identity.is_none() && password != confirm {
             drop(publication);
-            return ui::invitation_error_page(state, token, &form.name, PASSWORD_MISMATCH).await;
+            return ui::invitation_error_page(state, token, name, PASSWORD_MISMATCH).await;
         }
         Some(publication)
     };
     match state
         .access
-        .accept_invitation_link(token, &form.name, &form.password, publication)
+        .accept_invitation_link(token, name, password, identity, publication)
         .await
     {
         Ok(accepted) => {
@@ -367,7 +418,7 @@ async fn accept_invitation(state: &AppState, token: &str, form: &LinkForm) -> Re
         }
         Err(AccessError::Throttled) => ui::signups_paused_page(),
         Err(AccessError::Invalid(message)) => {
-            ui::invitation_error_page(state, token, &form.name, safe_link_error(&message)).await
+            ui::invitation_error_page(state, token, name, safe_link_error(&message)).await
         }
         Err(AccessError::Credentials | AccessError::NotFound) => ui::expired_link_page(),
         Err(_) => ui::hosted_error_page(StatusCode::SERVICE_UNAVAILABLE),

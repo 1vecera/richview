@@ -356,3 +356,114 @@ fn a_row_check_on_file_data_sits_at_that_row_in_the_file() {
         .unwrap_or_else(|| panic!("{found:?}"));
     assert_eq!((e.file.as_deref(), e.line), (None, Some(8)));
 }
+
+/// A Parquet file as a native host hands it to core (TYP-102): the file's column names, the
+/// names of the columns it read, and one list of scalars per row.
+fn parquet_table(columns: &[&str], fields: &[&str], rows: Value) -> String {
+    json!({"columns": columns, "fields": fields, "rows": rows}).to_string()
+}
+
+#[test]
+fn a_parquet_file_arrives_as_typed_rows_of_the_columns_read() {
+    let content = parquet_table(
+        &["id", "day", "amount", "secret_note"],
+        &["id", "day", "amount"],
+        json!([["00123", "2026-03-02", 10.5], ["123", null, 7]]),
+    );
+    let out = table("parquet", "data/orders.parquet", &content).unwrap();
+    let rows = rows(&out);
+    assert_eq!(
+        rows,
+        vec![
+            json!({"id": "00123", "day": "2026-03-02", "amount": 10.5}),
+            json!({"id": "123", "day": null, "amount": 7}),
+        ],
+        "Parquet's types decide: text that looks like a number stays text"
+    );
+    // The recorded columns are the file's, read or not, in file order (TYP-25).
+    assert_eq!(
+        out["parsed"]["blocks"][0]["value"]["data"]["columns"],
+        json!(["id", "day", "amount", "secret_note"])
+    );
+}
+
+#[test]
+fn a_misspelt_field_of_a_parquet_file_is_answered_with_every_column_of_the_file() {
+    let content = parquet_table(
+        &["region", "revenue", "units"],
+        &["region"],
+        json!([["North"]]),
+    );
+    let found = checked(
+        "```chart\ntype: bar\ntitle: T\ndata: {parquet: orders.parquet}\nencoding: {x: region, y: revenu}\n```\n",
+        &[("orders.parquet", content)],
+    );
+    let field: Vec<&Diagnostic> = found.iter().filter(|d| d.code == "block.field").collect();
+    assert_eq!(field.len(), 1, "{found:?}");
+    assert_eq!(
+        field[0].message,
+        "chart.encoding.y names 'revenu', which is not a column of the data; did you mean 'revenue'? Columns: region, revenue, units."
+    );
+}
+
+#[test]
+fn a_parquet_table_that_is_not_one_is_a_data_parquet_error() {
+    for content in [
+        "PAR1 raw bytes are never core's to read".to_owned(),
+        "[{\"a\": 1}]".to_owned(),
+        // A field the file does not have, a row of the wrong width, a nested cell, an extra key.
+        parquet_table(&["a"], &["b"], json!([[1]])),
+        parquet_table(&["a", "b"], &["a", "b"], json!([[1]])),
+        parquet_table(&["a"], &["a"], json!([[{"x": 1}]])),
+        parquet_table(&["a"], &["a"], json!([[[1, 2]]])),
+        "{\"columns\":[\"a\"],\"fields\":[\"a\"],\"rows\":[[1]],\"html\":\"<script>\"}".to_owned(),
+    ] {
+        let e = only_error(table("parquet", "data/x.parquet", &content));
+        assert_eq!(e.code, "data.parquet", "{content}");
+        assert_eq!(e.path, "table.data.parquet");
+        assert!(e.message.contains("'data/x.parquet'"), "{}", e.message);
+    }
+}
+
+#[test]
+fn a_parquet_file_no_host_read_says_which_hosts_read_parquet() {
+    // The folder holds the file, and the host, a browser one, passed no rows for it.
+    let e = only_error(render_compat(
+        "```table\ndata: {parquet: data/orders.parquet}\n```\n",
+        &json!({
+            "report_folder": {
+                "root": "data-typing",
+                "source": "report.rmd",
+                "files": ["report.rmd", "data/orders.parquet"],
+            },
+        }),
+    ));
+    assert_eq!(e.code, "data.unresolved");
+    assert_eq!(e.path, "table.data.parquet");
+    assert_eq!(
+        e.message,
+        "Parquet file 'data/orders.parquet' was not read by this host."
+    );
+    assert!(
+        e.fix
+            .as_deref()
+            .unwrap_or("")
+            .starts_with("Render with the `richview` command or a RichView server"),
+        "{:?}",
+        e.fix
+    );
+}
+
+#[test]
+fn parquet_is_one_source_like_any_other() {
+    let e = only_error(render(
+        "```table\ndata: {parquet: data/a.parquet, csv: data/a.csv}\n```\n",
+        &[("data/a.csv", "a\n1\n".to_owned())],
+    ));
+    assert_eq!(e.code, "data.local");
+    let e = only_error(render(
+        "```table\ndata: {parquet: ../a.parquet}\n```\n",
+        &[],
+    ));
+    assert_eq!(e.code, "report.asset.escape");
+}

@@ -8,9 +8,9 @@ mod feedback;
 mod focus;
 mod hint_place;
 mod lazy;
-mod name_target;
 mod overview;
 mod readout_place;
+mod slide;
 mod title;
 mod wedge_readout;
 
@@ -21,9 +21,7 @@ use crate::data;
 use crate::mesh::{self, Focus, Mesh, State};
 use crate::payload::Chart;
 use richview_chart::block::Wider;
-use richview_chart::geometry::{
-    Face, Fill, Geometry, Item, Rect, Rgba, Role, Shape, Stroke, Targeting,
-};
+use richview_chart::geometry::{Face, Fill, Geometry, Item, Rect, Rgba, Role, Stroke, Targeting};
 use richview_chart::hit::{self, Step, Target};
 use std::cell::{Cell, RefCell};
 use std::collections::BTreeSet;
@@ -84,6 +82,7 @@ pub struct View {
     width: f64,
     dpr: f64,
     geometry: Geometry,
+    ring_inks: contour::RingInks,
     /// One replaced layout, released after the input task; a new layout drains it first.
     retired: Option<Geometry>,
     retirement: Option<i32>,
@@ -198,6 +197,12 @@ pub struct View {
     fonts_due: bool,
     /// The selection was made by key: only a pointer that moves takes it over (FEA-CH-39).
     keyed: bool,
+    /// The box a slide gave this chart at its last layout: the width and the height its slot
+    /// leaves for the plot (FEA-RP-65). `None` anywhere else, where a chart has a width only.
+    boxed: Option<[f64; 2]>,
+    /// The most room a slide's chart is laid out for in this layout: set when its box kept moving
+    /// between two sizes, to the smaller (FEA-RP-65).
+    room_cap: Option<f64>,
     /// Far from the screen: no canvas pixels, mesh or GPU buffers until it comes near (`lazy`).
     asleep: bool,
     /// The frame holds a drawn chart; until then it shows the loading state.
@@ -646,6 +651,8 @@ fn mount_as(figure: &Element, asleep: bool) -> Result<Option<Rc<RefCell<View>>>,
     let label = label.trim().trim_end_matches('.');
     frame.set_attribute("aria-label", &format!("{label}{KEYS_HINT}"))?;
     let actions = el("div", "rv-chart__actions");
+    let geometry = chart.geometry(640.0, &[], None);
+    let ring_inks = contour::RingInks::new(&chart.payload.theme, &geometry);
     let view = View {
         figure: figure.clone(),
         frame: frame.clone(),
@@ -657,7 +664,8 @@ fn mount_as(figure: &Element, asleep: bool) -> Result<Option<Rc<RefCell<View>>>,
         actions,
         table: None,
         reset: None,
-        geometry: chart.geometry(640.0, &[], None),
+        geometry,
+        ring_inks,
         retired: None,
         retirement: None,
         chart,
@@ -709,6 +717,8 @@ fn mount_as(figure: &Element, asleep: bool) -> Result<Option<Rc<RefCell<View>>>,
         gesture_y: None,
         fill: None,
         narrowed: None,
+        boxed: None,
+        room_cap: None,
         turned: false,
         short_wide: false,
         turn_for: None,
@@ -755,7 +765,7 @@ fn mount_as(figure: &Element, asleep: bool) -> Result<Option<Rc<RefCell<View>>>,
             let Some(v) = w.upgrade() else { return };
             v.borrow_mut().relayout = false;
             let width = v.borrow().frame.client_width() as f64;
-            if (width - v.borrow().width).abs() >= 0.5 {
+            if (width - v.borrow().width).abs() >= 0.5 || slide::moved(&v.borrow()) {
                 layout(&v, false);
             }
             check_settled();
@@ -764,6 +774,10 @@ fn mount_as(figure: &Element, asleep: bool) -> Result<Option<Rc<RefCell<View>>>,
     });
     let ro = web_sys::ResizeObserver::new(observer.as_ref().unchecked_ref())?;
     ro.observe(&frame);
+    // A slide's chart follows its slot, whose height a window can change alone (FEA-RP-65).
+    if let Some(slot) = slide::slot(&view.borrow().figure) {
+        ro.observe(&slot);
+    }
     observer.forget();
     VIEWS.with(|v| v.borrow_mut().push(view.clone()));
     check_settled();
@@ -786,6 +800,36 @@ fn layout(view: &Rc<RefCell<View>>, fresh: bool) {
 }
 
 fn layout_inner(view: &Rc<RefCell<View>>, fresh: bool, instant: bool) {
+    view.borrow_mut().room_cap = None;
+    layout_pass(view, fresh, instant);
+    // A legend rebuilt or a note set by that layout changes the room a slide leaves its chart;
+    // the chart is laid out for the room as it now is, and once more if that moved it again.
+    let least = |v: &View, so_far: Option<f64>| {
+        [so_far, v.boxed.map(|b| b[1]), slide::room(v).map(|b| b[1])]
+            .into_iter()
+            .flatten()
+            .reduce(f64::min)
+    };
+    let mut smallest = least(&view.borrow(), None);
+    for _ in 0..2 {
+        if !slide::moved(&view.borrow()) {
+            return;
+        }
+        layout_pass(view, false, instant);
+        smallest = least(&view.borrow(), smallest);
+    }
+    // A box that still moves swings between two layouts, such as series named inside the plot
+    // at one size and in a legend above it at the other. The chart is laid out once more for
+    // the smaller room, where either fits its slot, and rests there.
+    if slide::moved(&view.borrow()) {
+        view.borrow_mut().room_cap = smallest;
+        layout_pass(view, false, instant);
+        let mut v = view.borrow_mut();
+        v.boxed = slide::room(&v);
+    }
+}
+
+fn layout_pass(view: &Rc<RefCell<View>>, fresh: bool, instant: bool) {
     // The series control that has focus keeps it when its legend entry or name is rebuilt or
     // moved, including when the legend folds into line-end names at a new width.
     let focused = focused_series();
@@ -797,7 +841,23 @@ fn layout_inner(view: &Rc<RefCell<View>>, fresh: bool, instant: bool) {
             v.fill = None;
             v.narrowed = None;
         }
-        let mut width = (v.frame.client_width() as f64).max(240.0);
+        // On a slide's stage the chart has a box (FEA-RP-65): its figure's width and the height
+        // its slot leaves, and lettering that follows the stage. A frame narrowed for an earlier
+        // box takes the figure's width again before it is measured.
+        let boxed = slide::room(&v)
+            .map(|[full, room]| [full, v.room_cap.map_or(room, |cap| room.min(cap))]);
+        if boxed.is_none() && v.boxed.take().is_some() {
+            slide::leave(&v);
+        }
+        let lettering = slide::lettering(&v.figure);
+        if v.chart.set_text_size(lettering) {
+            v.fill = None;
+            v.narrowed = None;
+        }
+        let mut width = match boxed {
+            Some([full, _]) => full.max(LEAST_WIDTH),
+            None => (v.frame.client_width() as f64).max(240.0),
+        };
         // Paper gets at least twice the pixels, also when print styles change the width
         // (FEA-CH-67).
         let printing = PRINTING.with(Cell::get)
@@ -860,6 +920,14 @@ fn layout_inner(view: &Rc<RefCell<View>>, fresh: bool, instant: bool) {
             v.chart.geometry(width, &hidden, zoom)
         };
         let mut applied_ratio = None;
+        if let Some([full, room]) = boxed {
+            let sized = slide::fit(&mut v, full, room, g, &hidden, zoom);
+            width = sized.width;
+            g = sized.geometry;
+            applied_ratio = sized.ratio;
+            slide::place(&v, full, room, width, g.height);
+            v.boxed = Some([full, room]);
+        }
         // The expanded chart redraws at the modal's size (FEA-CH-44): as wide as the window
         // allows, and narrower when that would make it taller than the dialog has room for.
         if v.owner.is_some() {
@@ -930,6 +998,8 @@ fn layout_inner(view: &Rc<RefCell<View>>, fresh: bool, instant: bool) {
         let keep = v
             .target
             .filter(|t| previous_heading.is_some() && heading(&g, *t) == previous_heading);
+        let view = &mut *v;
+        view.ring_inks.refresh(&view.chart.payload.theme, &g);
         if instant
             && v.glide.is_none()
             && v.geometry.panels.iter().any(|p| !p.observations.is_empty())
@@ -1871,8 +1941,7 @@ fn draw(view: &Rc<RefCell<View>>) {
     let size = [v.width, v.geometry.height];
     let clock = clock_of(v);
     let overlay = overlay_items(v);
-    // The keyboard's mark ring goes over the target's contour (STY-38).
-    let (ring, ring_reach) = focus::ring(v);
+    let ring = focus::ring(v);
     let crosshair = crosshair(v);
     // Between two states the chart draws the glide's frame, built afresh (FEA-CH-52).
     let gliding = v.glide.as_ref().map(|(from, start, length, steady)| {
@@ -1919,7 +1988,7 @@ fn draw(view: &Rc<RefCell<View>>) {
             let line_mesh = mesh::overlay(&[line], Some(plot), v.dpr);
             if let Ok(line_up) = r.upload(&line_mesh, &[], Vec::new(), None) {
                 r.draw_range(&v.mesh, up, size, v.dpr, clock, 0..split);
-                r.draw(&line_mesh, &line_up, size, v.dpr, Clock::settled());
+                r.draw_overlay(&line_mesh, &line_up, size, v.dpr);
                 r.draw_range(&v.mesh, up, size, v.dpr, clock, split..v.mesh.ops.len());
                 r.release(line_up);
             } else {
@@ -1929,35 +1998,20 @@ fn draw(view: &Rc<RefCell<View>>) {
             r.draw(&v.mesh, up, size, v.dpr, clock);
         }
         if !overlay.is_empty() {
-            let plot = v
-                .target
-                .or(v.released.last().map(|r| r.target))
-                .and_then(|t| v.geometry.panels.get(t.panel))
-                .map(|p| {
-                    // Nearest-x halo clipping gets one device pixel for fractional scissor
-                    // rounding; other feedback keeps its existing clip.
-                    let margin = if p.targeting == Targeting::NearestX {
-                        8.0 + 1.0 / v.dpr
-                    } else {
-                        8.0
-                    };
-                    p.plot.inflate(margin)
-                });
-            let extra = mesh::overlay(&overlay, plot, v.dpr);
+            let layers = overlay
+                .iter()
+                .map(|(plot, items)| (items.as_slice(), *plot));
+            let extra = mesh::overlay_layers(layers, v.dpr);
             if let Ok(up2) = r.upload(&extra, &[], Vec::new(), None) {
-                r.draw(&extra, &up2, size, v.dpr, Clock::settled());
+                r.draw_overlay(&extra, &up2, size, v.dpr);
                 r.release(up2);
             }
         }
-        // The ring stays whole on a mark at the plot's edge: it may reach over the axis labels
-        // as far as it reaches past its mark, where the hover feedback stops 8 px out.
-        if !ring.is_empty()
-            && let Some(p) = v.target.and_then(|t| v.geometry.panels.get(t.panel))
-        {
-            let clip = p.plot.inflate(ring_reach.max(8.0) + 1.0 / v.dpr);
-            let ring_mesh = mesh::overlay(&ring, Some(clip), v.dpr);
+        // The keyboard affordance stays whole at an axis.
+        if !ring.is_empty() {
+            let ring_mesh = mesh::overlay(&ring, None, v.dpr);
             if let Ok(ring_up) = r.upload(&ring_mesh, &[], Vec::new(), None) {
-                r.draw(&ring_mesh, &ring_up, size, v.dpr, Clock::settled());
+                r.draw_overlay(&ring_mesh, &ring_up, size, v.dpr);
                 r.release(ring_up);
             }
         }
@@ -2305,47 +2359,6 @@ fn redraw_all(relayout: bool) {
     }
 }
 
-/// The hover dot in its two-pixel surface ring, inside the selection glow of its own colour
-/// (FEA-CH-53).
-fn hover_dot(
-    items: &mut Vec<Item>,
-    at: [f64; 2],
-    grown: f64,
-    color: Rgba,
-    surface: Rgba,
-    glow: contour::Glow,
-) {
-    // The dot, its ring and its glow grow in together.
-    let scale = 0.4 + 0.6 * grown;
-    let mut discs: Vec<(f64, Rgba)> = glow
-        .discs(8.0, color, grown)
-        .into_iter()
-        .map(|(radius, fill)| (radius * scale, fill))
-        .collect();
-    discs.extend([
-        (
-            8.0 * scale,
-            surface.with_alpha(surface.0[3] as f64 * grown.min(1.0)),
-        ),
-        (
-            6.0 * scale,
-            color.with_alpha(color.0[3] as f64 * grown.min(1.0)),
-        ),
-    ]);
-    for (radius, fill) in discs {
-        items.push(Item::Point {
-            center: at,
-            radius,
-            shape: Shape::Circle,
-            fill: Some(Fill::solid(fill)),
-            stroke: None,
-            role: Role::Annotation,
-            series: None,
-            obs: None,
-        });
-    }
-}
-
 /// Keep the full one-CSS-pixel stroke inside both the plot and its GL scissor.
 fn crosshair_x(plot: Rect, x: f64, dpr: f64) -> Option<f64> {
     if !plot.x.is_finite()
@@ -2356,14 +2369,9 @@ fn crosshair_x(plot: Rect, x: f64, dpr: f64) -> Option<f64> {
     {
         return None;
     }
-    // Match Renderer::scissor: its origin is floored and its width is ceiled separately.
-    let left = plot.x * dpr;
-    let right = plot.right() * dpr;
-    let scissor_left = left.floor() as i32 as f64;
-    let scissor_width = (plot.w * dpr).ceil().max(0.0) as i32 as f64;
-    let scissor_right = scissor_left + scissor_width;
-    let first = left.max(scissor_left).ceil();
-    let last = (right.min(scissor_right) - dpr).floor();
+    // The overlay scissor rounds both outer edges inward.
+    let first = (plot.x * dpr).ceil();
+    let last = ((plot.right() * dpr).floor() - dpr).floor();
     if !first.is_finite() || !last.is_finite() || first > last {
         return None;
     }
@@ -2433,27 +2441,50 @@ pub(super) fn glide_frame(
     crate::tween::between(from, to, eased)
 }
 
-/// Hover feedback from the model's own positions: crosshair, hover dots and target outline,
-/// with the drag-zoom selection under them.
-fn overlay_items(v: &View) -> Vec<Item> {
-    let mut items = Vec::new();
+type OverlayLayer = (Option<Rect>, Vec<Item>);
+
+/// Paint the overlays in order, with a separate clip for scatter growth and line dots.
+fn overlay_items(v: &View) -> Vec<OverlayLayer> {
+    let mut layers = Vec::new();
     if let Some((x0, x1)) = v.drag
         && let Some(panel) = v.geometry.panels.first()
     {
         let accent = &v.chart.payload.theme.accent;
-        items.extend(match v.drag_y {
+        let items = match v.drag_y {
             Some((y0, y1)) => drag_box(accent, panel.plot, [x0, y0], [x1, y1]),
             None => drag_band(accent, panel.plot, x0, x1),
-        });
+        };
+        layers.push((Some(panel.plot), items));
     }
+    let mut add = |target: Target, level| {
+        if let Some(panel) = v.geometry.panels.get(target.panel) {
+            let mut items = Vec::new();
+            let mut whole_marks = Vec::new();
+            overlay_for(v, target, level, &mut items, &mut whole_marks);
+            // Draw the grown glyph first. Its paper backing cannot cover the
+            // sharp ring on the sides of a diamond or between the arms of a plus.
+            let kind = v.geometry.kind.as_str();
+            let point_clip = (kind == "scatter").then(|| panel.plot.inflate(8.0));
+            if !whole_marks.is_empty() {
+                layers.push((point_clip, whole_marks));
+            }
+            if !items.is_empty() {
+                let clip = match kind {
+                    "line" | "scatter" => point_clip,
+                    _ => Some(panel.plot),
+                };
+                layers.push((clip, items));
+            }
+        }
+    };
     // What the pointer left lets go underneath what it reached.
     for r in &v.released {
-        overlay_for(v, r.target, r.level(), &mut items);
+        add(r.target, r.level());
     }
     if let Some(t) = v.target {
-        overlay_for(v, t, feedback::grown(v), &mut items);
+        add(t, feedback::grown(v));
     }
-    items
+    layers
 }
 
 /// How far a pointer moves along x before a press becomes a drag-zoom, in CSS pixels.
@@ -2704,7 +2735,13 @@ fn one_line_width(element: &Element) -> Option<f64> {
 }
 
 /// The feedback of one target at `grown`, 0 to 1.
-fn overlay_for(v: &View, t: Target, grown: f64, items: &mut Vec<Item>) {
+fn overlay_for(
+    v: &View,
+    t: Target,
+    grown: f64,
+    items: &mut Vec<Item>,
+    whole_marks: &mut Vec<Item>,
+) {
     if grown <= 0.0 {
         return;
     }
@@ -2715,52 +2752,91 @@ fn overlay_for(v: &View, t: Target, grown: f64, items: &mut Vec<Item>) {
         return;
     };
     let theme = &v.chart.payload.theme;
-    let ink = richview_chart::color::parse(&theme.ink_faint)
-        .map(|c| Rgba::from_oklch(c, 1.0))
-        .unwrap_or(Rgba([0.5, 0.5, 0.5, 1.0]));
     let surface = v.geometry.background;
-    let contour_ink = richview_chart::color::parse(&theme.ink)
-        .map(|c| Rgba::from_oklch(c, 1.0))
-        .unwrap_or(ink);
-    // Hand-drawn keeps one flat band (`chart.glow: flat`); the other styles glow (FEA-CH-53).
-    let dot_glow = contour::Glow::style(theme.flat_glow);
+    let ink = v.ring_inks.ink;
     let kind = v.chart.block.kind.name();
-    let glow = contour::Glow::of(kind, theme.flat_glow, v.chart.block.encoding.size.is_some());
+    let scatter = kind == "scatter";
+    // Mapping the top endpoint can put its centre just outside the plot by round-off.
+    if scatter && !panel.plot.inflate(1e-9).contains(o.at) {
+        return;
+    }
     if let Some(contour) = contour::items(
-        v.chart.block.kind.name(),
+        kind,
         panel,
         t.observation,
-        o.wedge,
-        if matches!(v.chart.block.kind.name(), "hexbin" | "venn") {
-            ink
-        } else {
-            contour_ink
-        },
         surface,
         grown,
-        glow,
+        v.chart.block.encoding.size.is_some(),
+        v.keyed,
     ) {
-        items.extend(contour);
+        match kind {
+            "bar" | "packed-bubble" => {
+                for mark in panel.items.iter().filter(|item| {
+                    matches!(item,
+                        Item::Rect { role: Role::Mark, obs: Some(i), .. } |
+                        Item::Point { role: Role::Mark, obs: Some(i), .. } if *i == t.observation)
+                }) {
+                    contour::selection_ring(mark, &v.ring_inks, grown, theme.flat_glow, items);
+                }
+            }
+            // The last item is the resized scatter mark above its backing,
+            // or the strengthened flow border. A flow edge has no contour.
+            "scatter" | "flow" => {
+                if let Some(mark) = contour.last() {
+                    contour::selection_ring(mark, &v.ring_inks, grown, theme.flat_glow, items);
+                }
+            }
+            _ => {}
+        }
+        // Reduction can keep a selectable observation and its readout without
+        // a painted mark. Both inputs locate it with the same clipped ring.
+        if items.is_empty()
+            && matches!(kind, "bar" | "scatter" | "packed-bubble")
+            && panel.plot.inflate(1e-9).contains(o.at)
+        {
+            let color = o
+                .series
+                .and_then(|s| v.geometry.series.get(s))
+                .map_or(ink, |s| s.color);
+            let mut marker = contour::dot(o.at, grown, color);
+            if let Item::Point { radius, .. } = &mut marker {
+                *radius = o.radius.max(4.0);
+            }
+            contour::selection_ring(&marker, &v.ring_inks, grown, theme.flat_glow, items);
+        }
+        if scatter {
+            // Scatter's grown glyph and paper backing are the mark itself.
+            whole_marks.extend(contour);
+        } else {
+            items.extend(contour);
+        }
         return;
     }
     match panel.targeting {
         // Filled stream layers keep their crosshair and readout without point markers.
-        Targeting::NearestX if v.chart.block.kind.name() == "streamgraph" => {}
+        Targeting::NearestX if kind == "streamgraph" => {}
         Targeting::NearestX => {
+            let mut add_dot = |at, color| {
+                let dot = contour::dot(at, grown, color);
+                if kind == "line" {
+                    contour::selection_ring(&dot, &v.ring_inks, grown, theme.flat_glow, items);
+                }
+                whole_marks.push(dot);
+            };
             for d in &o.dots {
                 let color = v.geometry.series.get(d.series).map_or(ink, |s| s.color);
-                hover_dot(items, d.at, grown, color, surface, dot_glow);
+                add_dot(d.at, color);
             }
             if o.dots.is_empty() {
                 let color = o
                     .series
                     .and_then(|s| v.geometry.series.get(s))
                     .map_or(ink, |s| s.color);
-                hover_dot(items, o.at, grown, color, surface, dot_glow);
+                add_dot(o.at, color);
             }
         }
         Targeting::Radius => {
-            // The hovered point grows by 25% (FEA-CH-53) inside its ring.
+            // The hovered point grows by 25% (FEA-CH-53).
             let scale = 1.0 + 0.25 * grown;
             let mark = panel.items.iter().find(|i| {
                 matches!(i, Item::Point { obs: Some(k), role: Role::Mark, .. } if *k == t.observation)
@@ -2784,51 +2860,22 @@ fn overlay_for(v: &View, t: Target, grown: f64, items: &mut Vec<Item>) {
                     obs: None,
                 });
             }
-            items.push(Item::Point {
-                center: o.at,
-                radius: o.radius.max(4.0) * scale + 2.0,
-                shape: Shape::Circle,
-                fill: None,
-                stroke: Some(Stroke::solid(ink.with_alpha(grown), 1.5)),
-                role: Role::Annotation,
-                series: None,
-                obs: None,
-            });
         }
         // A wedge outside the contoured families keeps its place: nothing moves on hover.
         Targeting::Contain if o.wedge.is_some() => {}
         Targeting::Contain => {
             if let Some(contours) = contour::tiles(
-                v.chart.block.kind.name(),
+                kind,
                 panel,
                 t.observation,
-                contour_ink,
-                grown,
+                if v.keyed { 0.0 } else { grown },
             ) {
                 items.extend(contours);
                 return;
             }
             // A grid node has no series: it answers in ink, as the contours of other marks do.
-            if v.chart.block.kind.name() == "contour" {
-                if let Some(dot) =
-                    contour::node(panel, t.observation, grown, contour_ink, surface, dot_glow)
-                {
-                    items.extend(dot);
-                }
-                return;
-            }
-            if panel.observations.len() > 1
-                && let Some(a) = o.area
-            {
-                items.push(Item::Rect {
-                    rect: a,
-                    fill: Fill::solid(Rgba([0.0, 0.0, 0.0, 0.0])),
-                    stroke: Some(Stroke::solid(ink.with_alpha(grown), 1.5)),
-                    radius: [0.0; 4],
-                    role: Role::Annotation,
-                    series: None,
-                    obs: None,
-                });
+            if kind == "contour" {
+                items.push(contour::dot(o.at, grown, ink));
             }
         }
     }
@@ -2965,6 +3012,54 @@ fn figure_rects(v: &View, selector: &str) -> Vec<Rect> {
         .collect()
 }
 
+/// Each line of the note as the reader sees it, from the browser's own line boxes: the parts
+/// of one line join into one box. A phone's dock covers a line of the note wholly or not at all
+/// (P1c).
+fn note_lines(v: &View) -> Vec<Rect> {
+    let Ok(notes) = v.figure.query_selector_all(".rv-chart__method") else {
+        return Vec::new();
+    };
+    let Ok(range) = document().create_range() else {
+        return Vec::new();
+    };
+    let mut lines: Vec<[f64; 4]> = Vec::new();
+    for note in (0..notes.length()).filter_map(|i| notes.item(i)) {
+        if range.select_node_contents(&note).is_err() {
+            continue;
+        }
+        let boxes = range.get_client_rects();
+        for i in 0..boxes.as_ref().map_or(0, |b| b.length()) {
+            let Some(b) = boxes.as_ref().and_then(|b| b.item(i)) else {
+                continue;
+            };
+            if b.width() <= 0.0 || b.height() <= 0.0 {
+                continue;
+            }
+            let part = [b.left(), b.top(), b.right(), b.bottom()];
+            // Parts of one line share most of its height.
+            let same = |line: &[f64; 4]| {
+                (line[3].min(part[3]) - line[1].max(part[1]))
+                    > 0.5 * (part[3] - part[1]).min(line[3] - line[1])
+            };
+            match lines.iter_mut().find(|line| same(line)) {
+                Some(line) => {
+                    *line = [
+                        line[0].min(part[0]),
+                        line[1].min(part[1]),
+                        line[2].max(part[2]),
+                        line[3].max(part[3]),
+                    ]
+                }
+                None => lines.push(part),
+            }
+        }
+    }
+    lines
+        .into_iter()
+        .map(|[left, top, right, bottom]| readout_chart_rect(v, left, top, right, bottom))
+        .collect()
+}
+
 /// Show the readout for the current target (FEA-CH-40, FEA-CH-42) and announce it.
 /// While the chart emphasises one series, the readout's rows for the other series step back to
 /// soft ink and the emphasised series' row stays in ink, as the layers behind them do (FEA-CH-52).
@@ -3029,6 +3124,11 @@ fn show_readout(v: &mut View, announce: bool) {
     let nearest_x = v.geometry.panels[t.panel].targeting == Targeting::NearestX;
     let _ = r.style().remove_property("max-width");
     let _ = r.style().remove_property("width");
+    // A surface widened over a legend goes back to its rows' own size before it is measured.
+    if r.has_attribute("data-rv-surface") {
+        let _ = r.style().remove_property("padding");
+        let _ = r.remove_attribute("data-rv-surface");
+    }
     // Measure at natural width, wrapping only at the width of its room.
     let room = readout_room(v);
     let _ = r.style().set_property("width", "max-content");
@@ -3152,16 +3252,80 @@ fn show_readout(v: &mut View, announce: bool) {
     }
     let subtitle = figure_rects(v, ".rv-chart__subtitle");
     let note = figure_rects(v, ".rv-chart__method");
+    let note_lines = if narrow { note_lines(v) } else { Vec::new() };
+    // Every text with a digit, which a readout leaves clear or covers wholly but never cuts (P1c).
+    let digit = |text: &str| text.chars().any(|c| c.is_ascii_digit());
+    let mut numbers: Vec<_> = panel
+        .items
+        .iter()
+        .chain(&v.geometry.figure_items)
+        .filter_map(|item| match item {
+            Item::Text(text) if digit(&text.text) => Some(text.bounds),
+            _ => None,
+        })
+        .collect();
+    if let Ok(elements) = v
+        .figure
+        .query_selector_all(".rv-chart__title, .rv-chart__subtitle, .rv-chart__method")
+    {
+        numbers.extend(
+            (0..elements.length())
+                .filter_map(|i| elements.item(i)?.dyn_into::<Element>().ok())
+                .filter(|element| element.text_content().is_some_and(|text| digit(&text)))
+                .map(|element| element.get_bounding_client_rect())
+                .filter(|rect| rect.width() > 0.0 && rect.height() > 0.0)
+                .map(|rect| {
+                    readout_chart_rect(v, rect.left(), rect.top(), rect.right(), rect.bottom())
+                }),
+        );
+    }
     let mut legend = figure_rects(v, ".rv-chart__legend");
+    let mut entries = Vec::new();
     if !stands_in {
         fixed.append(&mut legend);
     } else if narrow {
-        // Either dock may cover the legend the readout stands in for.
+        // Either dock may cover the legend the readout stands in for, entry by entry: each one
+        // whole or not at all (P1c).
         legend.clear();
+        entries = figure_rects(v, ".rv-chart__legend-entry");
     }
     // A gauge's bands, needle and hub all belong to its one observation.
     let gauge = v.geometry.kind == "gauge";
+    // A mark whose readout sits past its value end: a bar of some kind.
+    let value_end = matches!(
+        v.geometry.kind.as_str(),
+        "bar"
+            | "combo"
+            | "pareto"
+            | "waterfall"
+            | "histogram"
+            | "lollipop"
+            | "dumbbell"
+            | "bullet"
+            | "gantt"
+            | "interval"
+            | "funnel"
+            | "bar3d"
+    );
+    // Protect a plain bar's own series when placing its readout.
+    let bar = value_end && !nearest_x && o.wedge.is_none() && o.area.is_some();
+    let focus = if !bar {
+        None
+    } else if v.geometry.kind == "bar" {
+        o.series
+            .filter(|_| v.geometry.series.len() > 1)
+            .map(|series| Focus::SeriesOf {
+                series,
+                panel: t.panel,
+                observation: t.observation,
+            })
+    } else {
+        focus::of(v, Some(t)).map(|(focus, _)| focus)
+    };
     let mut others = Vec::new();
+    let mut strong = Vec::new();
+    // The bars read under the same heading as this one: its group (P1c).
+    let mut group = Vec::new();
     let mut other_lines = Vec::new();
     for item in panel
         .items
@@ -3175,7 +3339,19 @@ fn show_readout(v: &mut View, announce: bool) {
             Item::Rect { obs, .. } | Item::Point { obs, .. } | Item::Area { obs, .. }
                 if *obs != Some(t.observation) =>
             {
-                others.extend(item.bounds());
+                let kept = bar
+                    && focus
+                        .as_ref()
+                        .is_none_or(|focus| focus.keeps(t.panel, item));
+                if kept {
+                    strong.extend(item.bounds());
+                } else {
+                    others.extend(item.bounds());
+                }
+                let heading = |i: usize| panel.observations.get(i).map(|o| &o.readout.heading);
+                if bar && obs.is_some_and(|i| heading(i) == Some(&o.readout.heading)) {
+                    group.extend(item.bounds());
+                }
             }
             _ => {}
         }
@@ -3209,25 +3385,7 @@ fn show_readout(v: &mut View, announce: bool) {
         .iter()
         .filter_map(|item| item.bounds())
         .collect();
-    let curved_paths: Vec<_> = if matches!(v.geometry.kind.as_str(), "alluvial" | "gauge") {
-        panel
-            .items
-            .iter()
-            .filter_map(|item| match item {
-                Item::Area {
-                    path, obs, role, ..
-                } if *role == Role::Mark
-                    && (v.geometry.kind == "gauge" || *obs == Some(t.observation)) =>
-                {
-                    Some(path.flatten(0.05))
-                }
-                _ => None,
-            })
-            .flatten()
-            .collect()
-    } else {
-        Vec::new()
-    };
+    let curved_paths = readout_place::painted_paths(&v.geometry.kind, panel, t.observation);
     // The gauge needle has a filled path and outline, and its hub is a separate point. The value
     // and its name in the middle read the same observation, so the readout keeps them clear as it
     // keeps its mark (P1b).
@@ -3325,21 +3483,6 @@ fn show_readout(v: &mut View, announce: bool) {
         }
     } else {
         let area = pareto_bar.unwrap_or_else(|| o.area.unwrap_or_default());
-        let value_end = matches!(
-            v.geometry.kind.as_str(),
-            "bar"
-                | "combo"
-                | "pareto"
-                | "waterfall"
-                | "histogram"
-                | "lollipop"
-                | "dumbbell"
-                | "bullet"
-                | "gantt"
-                | "interval"
-                | "funnel"
-                | "bar3d"
-        );
         let end = value_end.then(|| {
             let candidates = [
                 ((o.at[1] - area.y).abs(), Side::Up),
@@ -3373,13 +3516,57 @@ fn show_readout(v: &mut View, announce: bool) {
         note: &note,
         text: &labels,
         others: &others,
+        strong: &strong,
         lines: &other_lines,
+        numbers: &numbers,
+        entries: &entries,
+        group: &group,
+        note_lines: &note_lines,
+        across: false,
+        tiled: matches!(
+            v.geometry.kind.as_str(),
+            "pivot" | "heatmap" | "calendar" | "treemap" | "bin2d" | "hexbin" | "waffle" | "icicle"
+        ),
     };
-    let (position, side) = readout_place::place(
+    let placed = readout_place::place_whole(
         mark, size, chart, panel.plot, visible, &keep, narrow, previous,
     );
+    let (position, side) = (placed.surface, placed.side);
     let [x, y] = [position.x, position.y];
-    if narrow {
+    if placed.surface != placed.rows {
+        // The surface is larger than its rows: padding takes up the difference, so the rows
+        // keep their natural width and place.
+        let style = window().get_computed_style(r).ok().flatten();
+        let padding = |side: &str| {
+            style
+                .as_ref()
+                .and_then(|s| s.get_property_value(&format!("padding-{side}")).ok())
+                .and_then(|s| s.trim().strip_suffix("px")?.parse::<f64>().ok())
+                .unwrap_or(8.0)
+        };
+        let (rows, surface) = (placed.rows, placed.surface);
+        let _ = r.style().set_property(
+            "padding",
+            &format!(
+                "{}px {}px {}px {}px",
+                padding("top") + rows.y - surface.y,
+                padding("right") + surface.right() - rows.right(),
+                padding("bottom") + surface.bottom() - rows.bottom(),
+                padding("left") + rows.x - surface.x,
+            ),
+        );
+        let _ = r.style().set_property("width", &format!("{}px", surface.w));
+        let _ = r
+            .style()
+            .set_property("max-width", &format!("{}px", surface.w));
+        let _ = r
+            .style()
+            .set_property("max-height", &format!("{}px", room[1].max(surface.h)));
+        let _ = r.set_attribute("data-rv-surface", "");
+    }
+    // A gauge's hollow is named at every width: there the readout stands flush beside the
+    // value in the middle, which a check must tell from a place that owes a label its gap.
+    if narrow || side == readout_place::Side::Hollow {
         let _ = r.set_attribute("data-rv-placement", side.narrow_placement());
     } else {
         let _ = r.remove_attribute("data-rv-placement");
@@ -3436,6 +3623,15 @@ pub(super) fn along(v: &View, e: &web_sys::MouseEvent, rect: &web_sys::DomRect) 
 }
 
 fn set_target(view: &Rc<RefCell<View>>, target: Option<Target>, announce: bool) {
+    update_target(view, target, announce, false);
+}
+
+fn update_target(
+    view: &Rc<RefCell<View>>,
+    target: Option<Target>,
+    announce: bool,
+    input_changed: bool,
+) {
     let (old, trail, focus) = {
         let mut v = view.borrow_mut();
         // Explicit inspection takes ownership even when it selects the already-hovered mark.
@@ -3443,7 +3639,7 @@ fn set_target(view: &Rc<RefCell<View>>, target: Option<Target>, announce: bool) 
         if announce && let Some(timer) = v.leaving.take() {
             window().clear_timeout_with_handle(timer);
         }
-        if v.target == target && !announce {
+        if v.target == target && !announce && !input_changed {
             return;
         }
         let old = v.target;
@@ -3908,14 +4104,14 @@ fn bind(view: &Rc<RefCell<View>>) {
         if view.borrow().keyed && POINTER_AT.with(Cell::get) == Some(client_point(&e)) {
             return;
         }
-        view.borrow_mut().keyed = false;
+        let was_keyed = std::mem::take(&mut view.borrow_mut().keyed);
         view.borrow_mut().pointer = Some(p);
         let t = if e.pointer_type() == "touch" {
             hit::at_touch(&view.borrow().geometry, p)
         } else {
             hit::at(&view.borrow().geometry, p)
         };
-        set_target(&view, t, false);
+        update_target(&view, t, false, was_keyed);
         // Within one observation of stacked layers the pointer still moves between layers.
         if t.is_some() && view.borrow().chart.block.kind.name() == "streamgraph" {
             let focus = focus::of(&view.borrow(), t);
@@ -4443,8 +4639,15 @@ fn build_names(view: &Rc<RefCell<View>>, focused: &Option<String>) {
                     {
                         let i = t.series?;
                         let s = v.geometry.series.get(i)?;
+                        // Only the observations level with the name, found by bisection: a
+                        // line of a hundred thousand points is not walked on every frame.
                         let dots = || {
-                            p.observations
+                            let near = richview_chart::interaction::name_stretch(
+                                &p.observations,
+                                |o| o.x,
+                                t.bounds,
+                            );
+                            p.observations[near]
                                 .iter()
                                 .flat_map(|o| &o.dots)
                                 .filter(|dot| dot.series == i)
@@ -4533,10 +4736,10 @@ fn build_names(view: &Rc<RefCell<View>>, focused: &Option<String>) {
 
 /// Lay a name button over the canvas text it stands for, with a small margin.
 fn place_name(b: &HtmlElement, r: Rect, dots: &[[f64; 2]]) {
-    let target = name_target::of(r, dots);
+    let target = richview_chart::interaction::name_target(r, dots);
     // The name with its margin; the rest of the target is hit area only, and the stylesheet
     // keeps the tint and ring on the name itself.
-    let name = r.inflate(name_target::MARGIN);
+    let name = r.inflate(richview_chart::interaction::NAME_MARGIN);
     let style = b.style();
     let _ = style.set_property("left", &format!("{}px", target.x));
     let _ = style.set_property("top", &format!("{}px", target.y));
@@ -5416,8 +5619,7 @@ mod hover_cue_tests {
                 .first()
                 .map_or(observation.at, |dot| dot.at);
             let ink = Rgba([0.2, 0.3, 0.4, 1.0]);
-            let mut dots = Vec::new();
-            hover_dot(&mut dots, at, 1.0, ink, ink, contour::Glow::MEDIUM);
+            let dots = [contour::dot(at, 1.0, ink)];
             assert!(
                 dots.iter()
                     .all(|item| matches!(item, Item::Point { center, .. } if *center == at))
@@ -5426,8 +5628,7 @@ mod hover_cue_tests {
             assert!(
                 crosshair_line(Rect::new(10.0, 20.0, 0.5, 80.0), observation.x, 1.5, ink).is_none()
             );
-            let mut dots_after = Vec::new();
-            hover_dot(&mut dots_after, at, 1.0, ink, ink, contour::Glow::MEDIUM);
+            let dots_after = [contour::dot(at, 1.0, ink)];
             assert_eq!(dots, dots_after, "the dot keeps its original coordinates");
             assert_eq!(
                 geometry, original,
@@ -5543,83 +5744,12 @@ mod hover_cue_tests {
     }
 
     #[test]
-    fn selected_dot_glows_medium_and_fades_evenly_outwards() {
-        let mut items = Vec::new();
-        let ink = Rgba([0.1, 0.4, 0.8, 1.0]);
-        let surface = Rgba([0.05, 0.06, 0.08, 1.0]);
-        hover_dot(
-            &mut items,
-            [20.0, 30.0],
-            1.0,
-            ink,
-            surface,
-            contour::Glow::MEDIUM,
+    fn line_hover_dot_has_only_the_filled_mark() {
+        let color = Rgba([0.1, 0.3, 0.7, 1.0]);
+        let dot = contour::dot([20.0, 30.0], 1.0, color);
+        assert!(
+            matches!(dot, Item::Point { center: [20.0, 30.0], radius: 6.0, fill: Some(fill), stroke: None, .. }
+            if fill.color == color)
         );
-        // Ten bands out to ten pixels past the ring, outermost first, then the ring and the dot.
-        assert_eq!(items.len(), 12);
-        let radii: Vec<f64> = items
-            .iter()
-            .map(|item| match item {
-                Item::Point { radius, .. } => *radius,
-                _ => panic!("expected a filled circle"),
-            })
-            .collect();
-        assert_eq!(radii[0], 18.0);
-        assert_eq!(radii[9], 9.0);
-        assert_eq!(radii[10..], [8.0, 6.0]);
-        // Every band carries the same strength, and together they give a third of the colour
-        // at the ring.
-        let alphas: Vec<f64> = items[..10]
-            .iter()
-            .map(|item| match item {
-                Item::Point {
-                    fill: Some(fill), ..
-                } => fill.color.0[3] as f64,
-                _ => panic!("expected a filled circle"),
-            })
-            .collect();
-        assert!(alphas.windows(2).all(|w| (w[0] - w[1]).abs() < 1e-6));
-        let at_ring = 1.0 - alphas.iter().map(|a| 1.0 - a).product::<f64>();
-        assert!((at_ring - 0.34).abs() < 1e-4, "{at_ring}");
-    }
-
-    #[test]
-    fn selected_dot_has_six_pixel_fill_and_surface_coloured_two_pixel_halo() {
-        let mut items = Vec::new();
-        let ink = Rgba([0.1, 0.4, 0.8, 1.0]);
-        let dark_surface = Rgba([0.05, 0.06, 0.08, 1.0]);
-        // A pen-drawn style keeps one flat band.
-        hover_dot(
-            &mut items,
-            [20.0, 30.0],
-            1.0,
-            ink,
-            dark_surface,
-            contour::Glow::FLAT,
-        );
-        assert_eq!(items.len(), 3);
-        // A quarter of the dot's own colour, four pixels past the ring, under both.
-        let halo = Rgba([0.1, 0.4, 0.8, 0.25]);
-        for (item, expected_radius, expected_color) in [
-            (&items[0], 12.0, halo),
-            (&items[1], 8.0, dark_surface),
-            (&items[2], 6.0, ink),
-        ] {
-            match item {
-                Item::Point {
-                    center,
-                    radius,
-                    fill: Some(fill),
-                    stroke,
-                    ..
-                } => {
-                    assert_eq!(*center, [20.0, 30.0]);
-                    assert_eq!(*radius, expected_radius);
-                    assert_eq!(fill.color, expected_color);
-                    assert!(stroke.is_none());
-                }
-                _ => panic!("expected a filled circle"),
-            }
-        }
     }
 }

@@ -823,7 +823,7 @@ fn axes_markup(
         plot.y + plot.h + 50.0,
         &format!("{font} st-note"),
         &format!(
-            "* {} months of {} · Source: D-HN, Hacker News comments",
+            "* {} months of {} · Source: Hacker News comments",
             years.last().unwrap().months,
             years.last().unwrap().year
         ),
@@ -872,7 +872,7 @@ fn build_layers(
         x + 14.0,
         y + 22.0,
         "f-mono st-diag-title",
-        "richview check --format json",
+        "richview check",
         "",
     );
     for (i, body) in [
@@ -1997,7 +1997,7 @@ fn data_notes() -> Result<(), JsValue> {
     for (selector, body) in [
         (
             "[data-source]",
-            "Background data: Hacker News comments mentioning OpenAI/ChatGPT vs Anthropic/Claude (source D-HN, from the flagship report). One tech community’s comments: this measures what Hacker News commenters talk about, not public opinion.",
+            "Background data: Hacker News comments mentioning OpenAI/ChatGPT vs Anthropic/Claude (from the flagship report). One tech community’s comments: this measures what Hacker News commenters talk about, not public opinion.",
         ),
         (
             "[data-source-method]",

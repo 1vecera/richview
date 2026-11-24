@@ -44,7 +44,9 @@ struct ValueLabel<'a> {
 enum ValueInk {
     Box(Rect),
     Stroke([f64; 2], [f64; 2], f64),
-    Area(Vec<Vec<[f64; 2]>>),
+    /// A fill: its outline, the series it belongs to and its colour, which a value standing on
+    /// it reads against.
+    Area(Vec<Vec<[f64; 2]>>, Option<usize>, Rgba),
 }
 
 /// Spatial buckets keep a bounded label search from scanning the entire dense plot per try.
@@ -61,6 +63,16 @@ fn value_cells(r: Rect) -> impl Iterator<Item = (i32, i32)> {
     let (x0, x1) = ((r.x / 64.0).floor() as i32, (r.right() / 64.0).floor() as i32);
     let (y0, y1) = ((r.y / 64.0).floor() as i32, (r.bottom() / 64.0).floor() as i32);
     (x0..=x1).flat_map(move |x| (y0..=y1).map(move |y| (x, y)))
+}
+
+/// Whether the box `r` meets a fill: a corner inside it, or its outline through the box.
+fn area_meets(rings: &[Vec<[f64; 2]>], r: Rect) -> bool {
+    rings.iter().any(|ring| {
+        [[r.x, r.y], [r.right(), r.y], [r.right(), r.bottom()], [r.x, r.bottom()]]
+            .into_iter()
+            .any(|p| polygon_contains(ring, p))
+            || ring.windows(2).any(|e| segment_touches_rect(e[0], e[1], &r))
+    })
 }
 
 fn polygon_contains(points: &[[f64; 2]], p: [f64; 2]) -> bool {
@@ -123,6 +135,11 @@ impl ValueField {
     /// Whether the area `r` touches no ink, besides the mark of observation `own` and, with
     /// `over_grid`, the gridlines.
     fn free(&self, r: Rect, own: Option<usize>, over_grid: bool) -> bool {
+        self.free_with(r, own, over_grid, None)
+    }
+
+    /// [`ValueField::free`], where a fill of a series other than `tint` does not count as ink.
+    fn free_with(&self, r: Rect, own: Option<usize>, over_grid: bool, tint: Option<usize>) -> bool {
         let mut indices = Vec::new();
         for cell in value_cells(r) {
             if let Some(bucket) = self.cells.get(&cell) {
@@ -140,14 +157,33 @@ impl ValueField {
             match ink {
                 ValueInk::Box(b) => !r.overlaps(b, 0.0),
                 ValueInk::Stroke(a, b, half) => !segment_touches_rect(*a, *b, &r.inflate(*half)),
-                ValueInk::Area(rings) => !rings.iter().any(|ring| {
-                    [[r.x, r.y], [r.right(), r.y], [r.right(), r.bottom()], [r.x, r.bottom()]]
-                        .into_iter()
-                        .any(|p| polygon_contains(ring, p))
-                        || ring.windows(2).any(|e| segment_touches_rect(e[0], e[1], &r))
-                }),
+                ValueInk::Area(rings, series, _) => {
+                    tint.is_some_and(|s| series.is_some_and(|of| of != s)) || !area_meets(rings, r)
+                }
             }
         })
+    }
+
+    /// Whether `r` keeps clear of the ink as [`ValueField::clear`] does, except that it may stand
+    /// on another series' fill, never on series `own`'s, and across soft gridlines, which then
+    /// break round it as round a bar's value; the colour it stands on is that fill's over the
+    /// surface, or the surface, and is returned for its contrast.
+    fn clear_over_tints(&self, r: Rect, own: usize, surface: Rgba) -> Option<Rgba> {
+        let inflated = r.inflate(CLEAR + 0.25);
+        if !self.free_with(inflated, None, true, Some(own)) {
+            return None;
+        }
+        let centre = r.center();
+        let mut background = surface;
+        for (ink, _, _) in &self.ink {
+            if let ValueInk::Area(rings, Some(series), color) = ink
+                && *series != own
+                && rings.iter().any(|ring| polygon_contains(ring, centre))
+            {
+                background = composite(*color, background);
+            }
+        }
+        Some(background)
     }
 
     fn from_panel(ctx: &Ctx, panel: &Panel) -> Self {
@@ -228,9 +264,14 @@ impl ValueField {
                         }
                     }
                 }
-                Item::Area { path, .. } => {
+                Item::Area { path, fill, series, .. } => {
                     if let Some(bounds) = path.bounds() {
-                        field.insert(ValueInk::Area(path.flatten(0.25)), bounds, None, false);
+                        field.insert(
+                            ValueInk::Area(path.flatten(0.25), *series, fill.color),
+                            bounds,
+                            None,
+                            false,
+                        );
                     }
                 }
             }
@@ -254,7 +295,13 @@ fn composite(foreground: Rgba, background: Rgba) -> Rgba {
 /// 3 px gap and the text), and the clearance it keeps from other text.
 pub(super) fn bar_value_above(ctx: &Ctx, text: &str) -> [f64; 3] {
     let probe = ctx.text(text, 0.0, 0.0, Anchor::Start, Face::Figures, Role::Label, ctx.style.ink);
-    [probe.bounds.w, 3.0 + probe.bounds.h, CLEAR + 0.25]
+    // At the size `value_labels` sets it: larger on a slide's stage.
+    let scale = if ctx.style.stage_values {
+        super::STAGE_VALUE_SCALE
+    } else {
+        1.0
+    };
+    [probe.bounds.w * scale, 3.0 + probe.bounds.h * scale, CLEAR + 0.25]
 }
 
 /// A value's text in the box `r`, attached by `anchor`: the runtime replaces a number laid out
@@ -410,14 +457,28 @@ fn value_positions(
     }
     let mut available: Vec<(Text, Option<Rect>)> = Vec::new();
     let distance = |r: Rect| (at[0] - at[0].clamp(r.x, r.right())).hypot(at[1] - at[1].clamp(r.y, r.bottom()));
+    // An area's value stands on the far side of its own line from its fill (above it, or below a
+    // fill under zero), on the page or on another series' tint, at 4.5:1 against what it stands
+    // on; never inside its own fill, where its name stands, so with no room there it is left
+    // out and recorded (chart design, 16 Nov 2026). Any other value keeps clear of every mark
+    // and reads on the surface.
+    let surface = Style::rgba(ctx.style.surface);
+    let area = matches!(policy, ValueLabels::Series) && ctx.block.kind == crate::block::ChartType::Area;
+    let stands = |r: Rect| -> Option<Rgba> {
+        if area {
+            field.clear_over_tints(r, c.series, surface)
+        } else {
+            field.clear(r, None, false).then_some(surface)
+        }
+    };
     for r in positions {
         if !r.inside(&bounds, 0.0) {
             continue;
         }
         inside_any = true;
-        if field.clear(r, None, false)
-            && !blocked(r)
-            && let Some(t) = value_text(ctx, c, r, side(r, at[0]), Style::rgba(ctx.style.surface))
+        if !blocked(r)
+            && let Some(background) = stands(r)
+            && let Some(t) = value_text(ctx, c, r, side(r, at[0]), background)
         {
             if !available.iter().any(|(other, _)| other.bounds == r) {
                 // Insert after equal distances to preserve the original stable candidate order.
@@ -457,10 +518,10 @@ fn value_positions(
                 continue;
             }
             inside_any = true;
-            if field.clear(r, None, false)
-                && !blocked(r)
+            if !blocked(r)
                 && !available.iter().any(|(other, _)| other.bounds == r)
-                && let Some(t) = value_text(ctx, c, r, side(r, at[0]), Style::rgba(ctx.style.surface))
+                && let Some(background) = stands(r)
+                && let Some(t) = value_text(ctx, c, r, side(r, at[0]), background)
             {
                 let d = distance(r);
                 let index = available.partition_point(|(other, _)| distance(other.bounds).total_cmp(&d).is_le());
@@ -875,6 +936,148 @@ pub(super) fn sparse_values_in(
     }
 }
 
+/// A price chart's last close as a tag: its value, its box, the last period's colour, which
+/// draws the hairline from that period's mark to the box, and the box's fill: that colour, or
+/// the surface under an outline in that colour where the number would not read on it.
+pub(super) struct PriceTag {
+    pub value: SparseValue,
+    pub chip: Rect,
+    pub colour: Rgba,
+    pub fill: Rgba,
+    pub hairline: [[f64; 2]; 2],
+}
+
+/// A price chart's period high or low: its number, the word before it that says which, and the
+/// readout line the number repeats.
+pub(super) struct PriceExtreme {
+    pub value: SparseValue,
+    pub word: Text,
+    pub line: usize,
+}
+
+/// The automatic values of a candlestick or OHLC panel (chart design, 17 Nov 2026): the last
+/// close as a tag, which always stays where the layout set it inside `bounds`, then the period
+/// high and low, printed as a pair where each keeps clear of the marks, the tag and the other.
+/// Where either has no such place both are recorded as dropped; a tag outside `bounds` is too.
+/// The author's `auto_annotations: false` prints and records nothing.
+pub(super) fn price_values(
+    ctx: &mut Ctx,
+    index: usize,
+    panel: &mut Panel,
+    tag: Option<PriceTag>,
+    extremes: Vec<PriceExtreme>,
+    bounds: Rect,
+) {
+    if !ctx.block.auto_annotations {
+        return;
+    }
+    let mut field = ValueField::from_items(ctx, panel, &|_| true);
+    let mut boxes = Vec::new();
+    let mut items = Vec::new();
+    // A record says which value it is: the close by its bare number, as the tag prints it, a
+    // high or low with its word before the number, as it would have been printed.
+    let record = |ctx: &mut Ctx, value: &SparseValue, word: &str, reason: DropReason, at: Rect, line: Option<usize>| {
+        let text = if word.is_empty() {
+            value.text.clone()
+        } else {
+            format!("{word} {}", value.text)
+        };
+        ctx.drop_label(&text, reason, "value", Some(at));
+        if let Some(dropped) = ctx.dropped.last_mut() {
+            dropped.observation = Some([index, value.observation]);
+            dropped.series = Some(value.series);
+            dropped.line = line;
+        }
+    };
+    if let Some(tag) = tag
+        && let Some(mut t) = tag.value.places.first().cloned()
+    {
+        if tag.chip.inside(&bounds, 0.5) {
+            field.insert_value(tag.chip, tag.chip);
+            boxes.push(tag.chip);
+            items.push(Item::Line {
+                path: Path::polyline(&tag.hairline),
+                stroke: Stroke::solid(tag.colour, 1.0),
+                role: Role::Leader,
+                series: Some(tag.value.series),
+                obs: Some(tag.value.observation),
+            });
+            items.push(Item::Rect {
+                rect: tag.chip,
+                fill: Fill::solid(tag.fill),
+                stroke: (tag.fill != tag.colour).then(|| Stroke::solid(tag.colour, 1.0)),
+                radius: [2.0; 4],
+                role: Role::Annotation,
+                series: None,
+                obs: None,
+            });
+            t.series = Some(tag.value.series);
+            t.mark = Some(sparse_mark(panel, index, &tag.value));
+            items.push(Item::Text(t));
+        } else {
+            record(ctx, &tag.value, "", DropReason::OutOfBounds, tag.chip, None);
+        }
+    }
+    // The high and the low come as a pair (lead, 19 Nov 2026): a reader shown one extreme
+    // expects the other, so where either has no place neither is printed and both are recorded,
+    // the one that had a place with the other's reason.
+    let mut pair = Vec::with_capacity(extremes.len());
+    let mut failure = None;
+    for e in extremes {
+        let Some(number) = e.value.places.first().cloned() else {
+            continue;
+        };
+        let whole = number.bounds.union(&e.word.bounds);
+        let reason = if !whole.inside(&bounds, 0.5) {
+            Some(DropReason::OutOfBounds)
+        } else if !field.clear(whole, Some(e.value.observation), true) {
+            Some(DropReason::Collision)
+        } else {
+            field.insert_value(whole, whole);
+            None
+        };
+        failure = failure.or(reason);
+        pair.push((e, number, whole, reason));
+    }
+    for (e, mut number, whole, reason) in pair {
+        if let Some(shared) = failure {
+            record(
+                ctx,
+                &e.value,
+                &e.word.text,
+                reason.unwrap_or(shared),
+                whole,
+                Some(e.line),
+            );
+        } else {
+            boxes.push(whole);
+            let mut word = e.word;
+            word.series = Some(e.value.series);
+            items.push(Item::Text(word));
+            number.series = Some(e.value.series);
+            number.mark = Some(sparse_mark(panel, index, &e.value));
+            items.push(Item::Text(number));
+        }
+    }
+    break_grid_at(panel, &boxes);
+    panel.items.extend(items);
+}
+
+/// The mark id of a sparse value's observation.
+fn sparse_mark(panel: &Panel, index: usize, value: &SparseValue) -> String {
+    let at = panel.observations[value.observation].at;
+    value_mark(
+        panel,
+        index,
+        &ValueLabel {
+            text: &value.text,
+            series: value.series,
+            observation: value.observation,
+            at,
+        },
+    )
+}
+
 /// A combo's bar values, all in one place (chart design, 16 Nov 2026): past the ends of their
 /// bars when every one of those places is clear, of the line above all; otherwise inside the
 /// foot of their bars, on one line. There a value that does not fit its bar, or that the line
@@ -1096,11 +1299,25 @@ pub(super) fn value_labels(ctx: &mut Ctx, index: usize, panel: &mut Panel, polic
     if !ctx.block.auto_annotations {
         return;
     }
+    // On a slide's stage the values are set larger than the chart's other text, and are placed
+    // and measured at that size (FEA-RP-65).
+    let size = ctx.style.size;
+    if ctx.style.stage_values {
+        ctx.style.size = size * super::STAGE_VALUE_SCALE;
+    }
+    place_values(ctx, index, panel, policy);
+    ctx.style.size = size;
+}
+
+fn place_values(ctx: &mut Ctx, index: usize, panel: &mut Panel, policy: ValueLabels) {
     let mut groups: Vec<Vec<ValueLabel<'_>>> = Vec::new();
     match policy {
         ValueLabels::Bars { .. } => {
             for (observation, o) in panel.observations.iter().enumerate() {
+                // A bar the author's highlight mutes carries no value: the author's choice, not
+                // a drop (TYP-78).
                 if let Some(series) = o.series
+                    && !o.row.is_some_and(|row| ctx.mutes_mark(row, series))
                     && let Some(line) = o.readout.lines.iter().find(|l| l.series == Some(series) && !l.derived)
                     && line.value != "No observation"
                 {
@@ -1127,6 +1344,10 @@ pub(super) fn value_labels(ctx: &mut Ctx, index: usize, panel: &mut Panel, polic
                 }
             }
             for (s, kinds) in ctx.value_kinds.iter().enumerate().take(series.len()) {
+                // A series the author's highlight mutes carries no values (TYP-78).
+                if ctx.mutes_series(s) {
+                    continue;
+                }
                 for (k, observation) in kinds.iter().enumerate() {
                     let Some(observation) = *observation else { continue };
                     let o = &panel.observations[observation];
@@ -1163,7 +1384,7 @@ pub(super) fn value_labels(ctx: &mut Ctx, index: usize, panel: &mut Panel, polic
             // Keep four candidates per series, not another copy of every dense observation.
             let mut series: Vec<[Option<ValueLabel<'_>>; 4]> = vec![[None, None, None, None]; ctx.series.len()];
             for (observation, o) in panel.observations.iter().enumerate() {
-                for dot in &o.dots {
+                for dot in o.dots.iter().filter(|d| !ctx.mutes_series(d.series)) {
                     if let Some(line) =
                         o.readout.lines.iter().find(|l| {
                             l.series == Some(dot.series) && l.derived == matches!(policy, ValueLabels::Density)
@@ -1229,21 +1450,10 @@ pub(super) fn value_labels(ctx: &mut Ctx, index: usize, panel: &mut Panel, polic
     // and its own leader keeps off the values already placed.
     let lead = matches!(policy, ValueLabels::Series) && every_kind_tried(ctx);
     let mut leaders: Vec<[[f64; 2]; 2]> = Vec::new();
-    // Where a single line's lowest or highest point lies so close to its last point that the two
-    // values, each set over its own point, would run into each other, they want the same room at
-    // the line's end. The last value is the one a reader looks for there, so it may then stand
-    // off on a leader as an extreme may, and it is placed first: when both cannot stand, the last
-    // value stays (chart design, 16 Nov 2026). An extreme further off leaves the rule as it was.
-    let contested = lead
-        && groups.first().and_then(|g| g.first()).is_some_and(|last| {
-            let reach = 2.0 * ctx.line_height();
-            groups.iter().skip(2).flatten().any(|c| {
-                c.observation != last.observation
-                    && (c.at[0] - last.at[0]).abs()
-                        <= (ctx.text_width(c.text) + ctx.text_width(last.text)) / 2.0 + VALUE_GAP
-                    && (c.at[1] - last.at[1]).abs() <= reach
-            })
-        });
+    // On a single line the last value is the one a reader looks for, and it is placed first, so
+    // when it and an extreme cannot both stand the last value stays (chart design, 16 Nov 2026).
+    // With no clear place right by its point it may stand off on a leader, as an extreme may;
+    // the first value keeps to its point.
     let mut failed = false;
     let mut seen = if matches!(policy, ValueLabels::Series) {
         vec![[None; 4]; ctx.series.len()]
@@ -1270,15 +1480,26 @@ pub(super) fn value_labels(ctx: &mut Ctx, index: usize, panel: &mut Panel, polic
             continue;
         }
         // Groups come in point-kind order: last, first, lowest, highest.
-        let far = lead && (kind >= 2 || (kind == 0 && contested));
+        let far = lead && kind != 1;
         let mut options = Vec::with_capacity(group.len());
         let mut failure = None;
         for c in &group {
             // A leader struck through another value reads as that value crossed out, and two
             // values side by side with less than a character between them read as one number.
             let beside = |r: Rect| Rect::new(r.x - VALUE_GAP, r.y, r.w + 2.0 * VALUE_GAP, r.h);
+            // Two values one above the other keep the order of their points, the higher value
+            // above, and two leaders never cross: crossed, each reads as the other's value
+            // (chart design, 16 Nov 2026: A warmer world's 1.18 over its peak 1.28).
+            let out_of_order = |r: Rect| {
+                planned.iter().any(|(p, t, _)| {
+                    let stacked = r.x < t.bounds.right() && t.bounds.x < r.right();
+                    let apart = (c.at[1] - p.at[1]).abs() > 0.5;
+                    stacked && apart && (c.at[1] < p.at[1]) != (r.center()[1] < t.bounds.center()[1])
+                })
+            };
             let blocked = |r: Rect| {
                 lead && (planned.iter().any(|(_, t, _)| beside(r).overlaps(&t.bounds, 0.0))
+                    || out_of_order(r)
                     || leaders
                         .iter()
                         .any(|[a, b]| segment_touches_rect(*a, *b, &r.inflate(1.0)))
@@ -1286,6 +1507,7 @@ pub(super) fn value_labels(ctx: &mut Ctx, index: usize, panel: &mut Panel, polic
                         planned
                             .iter()
                             .any(|(_, t, _)| segment_touches_rect(c.at, end, &t.bounds.inflate(1.0)))
+                            || leaders.iter().any(|[a, b]| segments_cross(c.at, end, *a, *b))
                     }))
             };
             match value_positions(ctx, panel, &field, c, policy, far, &blocked) {
@@ -1327,6 +1549,13 @@ pub(super) fn value_labels(ctx: &mut Ctx, index: usize, panel: &mut Panel, polic
             }
         }
     }
+    // An area's values may stand across soft gridlines, which stop short of them.
+    let across: Vec<Rect> = if matches!(policy, ValueLabels::Series) && ctx.block.kind == crate::block::ChartType::Area
+    {
+        planned.iter().map(|(_, t, _)| t.bounds).collect()
+    } else {
+        Vec::new()
+    };
     // The common finish pass paints the single hatch backing. Only its footprint is reserved here.
     for (c, mut t, _) in planned {
         // A value not right beside its own point gets the leader a playback's kept name uses,
@@ -1343,6 +1572,7 @@ pub(super) fn value_labels(ctx: &mut Ctx, index: usize, panel: &mut Panel, polic
         t.mark = Some(value_mark(panel, index, &c));
         panel.items.push(Item::Text(t));
     }
+    break_grid_at(panel, &across);
 }
 
 /// Where a leader from `at` meets the label `r`: the middle of the side facing the point, 2 px
@@ -1364,7 +1594,16 @@ pub(super) fn leader_end(at: [f64; 2], r: Rect) -> Option<[f64; 2]> {
 }
 
 /// Least distance between the centres of two names at the line ends (WCAG 2.5.8 target size).
-pub(super) const END_NAME_PITCH: f64 = 24.0;
+pub(super) const END_NAME_PITCH: f64 = crate::interaction::NAME_TARGET;
+
+/// Whether the segments `a`–`b` and `c`–`d` cross at a point inside both. Segments that only
+/// share an end, as two leaders from one point do, do not cross.
+pub(super) fn segments_cross(a: [f64; 2], b: [f64; 2], c: [f64; 2], d: [f64; 2]) -> bool {
+    let side = |p: [f64; 2], q: [f64; 2], r: [f64; 2]| (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
+    let (d1, d2) = (side(c, d, a), side(c, d, b));
+    let (d3, d4) = (side(a, b, c), side(a, b, d));
+    d1 * d2 < 0.0 && d3 * d4 < 0.0
+}
 
 /// Test closed segment/rectangle contact by clipping its parameter interval on both axes.
 pub(super) fn segment_touches_rect(a: [f64; 2], b: [f64; 2], rect: &Rect) -> bool {
@@ -1525,6 +1764,9 @@ pub(super) struct NameLine {
     pub series: usize,
     pub points: Vec<[f64; 2]>,
     pub hidden: bool,
+    /// Whether the chart draws a hover dot at each of the line's points. A stacked chart draws
+    /// none, so there the runtime centres every name's button and the clearance must too.
+    pub dots: bool,
 }
 
 /// Room between a name inside the plot and its own line.
@@ -1559,10 +1801,26 @@ fn line_reach(points: &[[f64; 2]], from: f64, to: f64) -> Option<[f64; 2]> {
     Some([top, bottom])
 }
 
-/// The box a name's button covers: at least 24 px each way, centred on the name (WCAG 2.5.8).
-fn name_target(text: Rect) -> Rect {
-    let (w, h) = ((text.w + 4.0).max(END_NAME_PITCH), (text.h + 4.0).max(END_NAME_PITCH));
-    Rect::new(text.x + text.w / 2.0 - w / 2.0, text.y + text.h / 2.0 - h / 2.0, w, h)
+/// A name's target beside its own line: only the line's points level with the name are read.
+fn name_target_beside(points: &[[f64; 2]], text: Rect) -> Rect {
+    let stretch = crate::interaction::name_stretch(points, |p| p[0], text);
+    crate::interaction::name_target(text, &points[stretch])
+}
+
+/// The first of a name's places whose button's target overlaps no target of the names chosen so
+/// far. A target is the box the runtime lays the button over ([`crate::interaction::name_target`]):
+/// beside a dot of its own line it stands off centre, so two stacked names whose centred boxes
+/// only touch could overlap, and one would keep less than 24 px of free height.
+fn first_clear_name(lines: &[NameLine], chosen: &[(usize, Rect)], line: usize, places: &[Rect]) -> Option<Rect> {
+    let target = |line: usize, text: Rect| {
+        let dots: &[[f64; 2]] = if lines[line].dots { &lines[line].points } else { &[] };
+        name_target_beside(dots, text)
+    };
+    places.iter().copied().find(|text| {
+        chosen
+            .iter()
+            .all(|(other, at)| !target(line, *text).overlaps(&target(*other, *at), 0.0))
+    })
 }
 
 /// Where every series' name stands inside the plot, as the centre of its text: right beside its
@@ -1626,6 +1884,11 @@ pub(super) fn inside_name_places(
     };
     let mut options: Vec<(usize, Vec<Rect>)> = Vec::with_capacity(lines.len());
     for (i, line) in lines.iter().enumerate() {
+        // A shown series the author's highlight mutes has no name; its line still keeps the
+        // others' names off it (TYP-78).
+        if !line.hidden && ctx.mutes_series(line.series) {
+            continue;
+        }
         let w = ctx.text_width(&ctx.series[line.series].name);
         let (from, to) = (plot.x + w / 2.0 + 6.0, plot.right() - w / 2.0 - 6.0);
         // Free places on the preferred side of the line, right to left, then on the other side;
@@ -1677,11 +1940,7 @@ pub(super) fn inside_name_places(
     sort_labels(&mut options, |a, b| a.1.len().cmp(&b.1.len()).then(a.0.cmp(&b.0)));
     let mut chosen: Vec<(usize, Rect)> = Vec::with_capacity(lines.len());
     for (i, found) in &options {
-        let text = found.iter().copied().find(|text| {
-            chosen
-                .iter()
-                .all(|(_, c)| !name_target(*text).overlaps(&name_target(*c), 0.0))
-        })?;
+        let text = first_clear_name(lines, &chosen, *i, found)?;
         chosen.push((*i, text));
     }
     sort_labels(&mut chosen, |a, b| a.0.cmp(&b.0));
@@ -1799,11 +2058,28 @@ fn search(
     size: [f64; 2],
     bounds: Rect,
     taken: &[Rect],
+    marks: (Marks, usize),
+    blocked: &dyn Fn(Rect) -> bool,
+) -> Result<Rect, DropReason> {
+    search_among(
+        &candidates(anchor, radius, size[0], size[1]),
+        bounds,
+        taken,
+        marks,
+        blocked,
+    )
+}
+
+/// The first clear place of `places` inside `bounds`, or why there is none.
+fn search_among(
+    places: &[Rect],
+    bounds: Rect,
+    taken: &[Rect],
     (marks, own): (Marks, usize),
     blocked: &dyn Fn(Rect) -> bool,
 ) -> Result<Rect, DropReason> {
     let mut inside_any = false;
-    for c in candidates(anchor, radius, size[0], size[1]) {
+    for &c in places {
         if !c.inside(&bounds, 0.0) {
             continue;
         }
@@ -1848,13 +2124,17 @@ fn mark_between(anchor: [f64; 2], r: Rect, marks: &[(usize, [f64; 2], f64)], own
 
 /// Point names: author highlights first in priority order, then at most five points (three on
 /// plots under 480 px), extremes first, then the most isolated (FEA-CH-28, TYP-78).
-/// `auto_annotations: false` names the highlights only.
+/// `auto_annotations: false` and a muting highlight name the highlights only. On an annotated chart the caller runs
+/// this after [`annotations`], so no name takes an author's note's place (FEA-CH-29), and
+/// passes what those drew: a name's box keeps off every ring and rule, and a name's leader may
+/// cross a rule but no ring other than its own point's.
 pub(super) fn point_labels(
     ctx: &mut Ctx,
     plot: Rect,
     anchors: &[(usize, [f64; 2], f64)],
     items: &mut Vec<Item>,
     taken: &mut Vec<Rect>,
+    drawn: &Drawn,
 ) {
     let block = ctx.block;
     let label_field = block.encoding.label.clone();
@@ -1903,7 +2183,10 @@ pub(super) fn point_labels(
     let kept = ctx.opts.fit.as_ref().map_or(&[][..], |f| &f.names[..]);
     // A kept name shows in every frame, with a leader when it has no room beside its point.
     let mut leading = highlighted.clone();
-    if block.auto_annotations && label_field.is_some() && !anchors.is_empty() && !kept.is_empty() {
+    // With mute on, the highlights are the chart's only names: muted points get no automatic
+    // pick (TYP-78).
+    let automatic = block.auto_annotations && ctx.emphasis.is_none();
+    if automatic && label_field.is_some() && !anchors.is_empty() && !kept.is_empty() {
         // A playback names the points its opening frame named, in every frame (FEA-BR-31).
         let limit = if plot.w < 480.0 { 3 } else { 5 };
         for name in kept {
@@ -1916,7 +2199,7 @@ pub(super) fn point_labels(
                 leading.push(i);
             }
         }
-    } else if block.auto_annotations && label_field.is_some() && !anchors.is_empty() {
+    } else if automatic && label_field.is_some() && !anchors.is_empty() {
         let limit = if plot.w < 480.0 { 3 } else { 5 };
         let mut default: Vec<usize> = Vec::new();
         let by = |f: &dyn Fn(&[f64; 2]) -> f64, max: bool| {
@@ -1986,7 +2269,21 @@ pub(super) fn point_labels(
                 .iter()
                 .any(|[a, b]| segment_touches_rect(*a, *b, &c.inflate(CLEAR)))
         };
-        let behind = |c: Rect| mark_between(at, c, &marks, row) || on_leader(c);
+        let on_drawn = |c: Rect| {
+            let near = c.inflate(CLEAR);
+            drawn.rings.iter().chain(&drawn.rules).any(|d| near.overlaps(d, 0.0))
+        };
+        // The point's own ring is where its leader starts; any other ring stops a leader.
+        let through_ring = |c: Rect| {
+            leader_end(at, c).is_some_and(|end| {
+                drawn
+                    .rings
+                    .iter()
+                    .any(|ring| !ring.contains(at) && segment_touches_rect(at, end, &ring.inflate(CLEAR)))
+            })
+        };
+        let behind = |c: Rect| mark_between(at, c, &marks, row) || on_leader(c) || on_drawn(c);
+        let off_leader = |c: Rect| on_leader(c) || on_drawn(c) || through_ring(c);
         match search(at, r, [w, h], plot, taken, (&marks, row), &behind) {
             Ok(rect) => {
                 // The names a playback keeps in its other frames (FEA-BR-31).
@@ -2008,7 +2305,7 @@ pub(super) fn point_labels(
             Err(reason) if leading.contains(&i) => {
                 // Highlights and a playback's kept names may use a leader to the nearest free
                 // spot.
-                if let Some(rect) = leader_spot(at, r, [w, h], plot, taken, (&marks, row), &on_leader) {
+                if let Some(rect) = leader_spot(at, r, [w, h], plot, taken, (&marks, row), &off_leader) {
                     let t = ctx.text_mid(
                         &label,
                         rect.x,
@@ -2205,10 +2502,29 @@ fn choose_band_places(options: &[&[Rect]]) -> Vec<Option<usize>> {
     best.1
 }
 
+/// How far a horizontal rule's label stands above or below its rule.
+const RULE_GAP: f64 = 3.0;
+
+/// The marks the author's annotations drew besides their text, for the names placed after them:
+/// each point annotation's ring and each rule, as boxes.
+#[derive(Default)]
+pub(super) struct Drawn {
+    rings: Vec<Rect>,
+    rules: Vec<Rect>,
+}
+
 /// Annotations anchored to data coordinates (FEA-CH-32): rules, shaded ranges, marked points
 /// and notes, with text through the shared search, clear of the data points, the drawn bars
-/// and a point annotation's own ring. A range or band's label stays over its band
-/// ([`band_places`]), and those labels are chosen together after the others.
+/// and a point annotation's own ring, and of the drawn lines wherever a place clear of them
+/// exists, and of every other rule and ring the author drew, whichever is written first;
+/// where the other rules leave no place it stands across one, never across a ring or text. A
+/// horizontal rule's label sits above its rule at the plot's right edge, else below it or at
+/// the left edge, else at the nearest place round its right end that is off the rule, never
+/// on it. A range or band's label stays over its band ([`band_places`]), and those labels
+/// are chosen together after the others.
+///
+/// The caller runs this before any point name or automatic value (FEA-CH-29). `taken` gains the
+/// text placed, and the rings and rules drawn are returned for [`point_labels`].
 pub(super) fn annotations(
     ctx: &mut Ctx,
     plot: Rect,
@@ -2217,7 +2533,7 @@ pub(super) fn annotations(
     items: &mut Vec<Item>,
     taken: &mut Vec<Rect>,
     points: &[[f64; 2]],
-) {
+) -> Drawn {
     let block = ctx.block;
     // Drawn bars are marks the text keeps clear of, like the data points.
     let bars: Vec<Rect> = items
@@ -2234,31 +2550,74 @@ pub(super) fn annotations(
     let ink = ctx.style.ink;
     let soft = Style::rgba(ctx.style.ink_soft);
     let marks: Vec<(usize, [f64; 2], f64)> = points.iter().map(|p| (usize::MAX - 1, *p, 2.0)).collect();
+    // A drawn line is a mark between its data points too: each line flattened, with half its
+    // width.
+    let strokes: Vec<(Vec<[f64; 2]>, f64)> = if block.annotations.iter().any(|a| a.text.is_some()) {
+        items
+            .iter()
+            .filter_map(|i| match i {
+                Item::Line {
+                    path,
+                    stroke,
+                    role: Role::Mark,
+                    ..
+                } => Some((path, stroke.width / 2.0)),
+                _ => None,
+            })
+            .flat_map(|(path, half)| path.flatten(0.5).into_iter().map(move |line| (line, half)))
+            .collect()
+    } else {
+        Vec::new()
+    };
+    // The rings and rules drawn here, which the names placed afterwards keep off.
+    let mut drawn = Drawn::default();
     let mut band_texts: Vec<(&str, Rect)> = Vec::new();
+    let find = |anchor: &[(String, Value)], axis: char| -> Option<Value> {
+        anchor
+            .iter()
+            .find(|(k, _)| {
+                if axis == 'x' {
+                    k == "x" || *k == x_field
+                } else {
+                    k == "y" || *k == y_field
+                }
+            })
+            .map(|(_, v)| v.clone())
+    };
+    let y_of = |v: &Value| -> Option<f64> {
+        match v {
+            Value::Number(n) => n.as_f64().map(ymap),
+            Value::String(s) => rows::parse_decimal(s).and_then(Result::ok).map(ymap),
+            _ => None,
+        }
+    };
+    // A position outside the plot matches nothing on this chart.
+    let inside_x = |x: f64| (plot.x - 0.5..=plot.right() + 0.5).contains(&x);
+    let inside_y = |y: f64| (plot.y - 0.5..=plot.bottom() + 0.5).contains(&y);
+    // Where every rule and ring will stand, found before any text is placed: a note keeps off
+    // each rule and ring the author drew, also one written after it. A text's own rule or ring
+    // is left to its own places. Each mark comes with whether it is a rule.
+    let ring_reach = RING + RING_STROKE / 2.0;
+    let author: Vec<(usize, Rect, bool)> = block
+        .annotations
+        .iter()
+        .enumerate()
+        .filter_map(|(index, a)| {
+            let x = find(&a.at, 'x').as_ref().and_then(xmap).filter(|x| inside_x(*x));
+            let y = find(&a.at, 'y').as_ref().and_then(y_of).filter(|y| inside_y(*y));
+            let mark = match (a.kind, x, y) {
+                (AnnotationKind::Line, Some(x), _) => Rect::new(x - 0.5, plot.y, 1.0, plot.h),
+                (AnnotationKind::Line, None, Some(y)) => Rect::new(plot.x, y - 0.5, plot.w, 1.0),
+                (AnnotationKind::Point, Some(x), Some(y)) => {
+                    Rect::new(x - ring_reach, y - ring_reach, 2.0 * ring_reach, 2.0 * ring_reach)
+                }
+                _ => return None,
+            };
+            Some((index, mark, a.kind == AnnotationKind::Line))
+        })
+        .collect();
     for (index, a) in block.annotations.iter().enumerate() {
         let path = format!("chart.annotations[{index}]");
-        let find = |anchor: &[(String, Value)], axis: char| -> Option<Value> {
-            anchor
-                .iter()
-                .find(|(k, _)| {
-                    if axis == 'x' {
-                        k == "x" || *k == x_field
-                    } else {
-                        k == "y" || *k == y_field
-                    }
-                })
-                .map(|(_, v)| v.clone())
-        };
-        let y_of = |v: &Value| -> Option<f64> {
-            match v {
-                Value::Number(n) => n.as_f64().map(ymap),
-                Value::String(s) => rows::parse_decimal(s).and_then(Result::ok).map(ymap),
-                _ => None,
-            }
-        };
-        // A position outside the plot matches nothing on this chart.
-        let inside_x = |x: f64| (plot.x - 0.5..=plot.right() + 0.5).contains(&x);
-        let inside_y = |y: f64| (plot.y - 0.5..=plot.bottom() + 0.5).contains(&y);
         let unresolved = |ctx: &mut Ctx| {
             ctx.check(
                 "unresolved-annotation",
@@ -2272,11 +2631,14 @@ pub(super) fn annotations(
                 Value::Null,
             );
         };
+        // `rule` is the height of a horizontal rule, whose label takes one of four places
+        // beside it; any other text searches round `at`.
         let place_text = |ctx: &mut Ctx,
                           text: &str,
                           at: [f64; 2],
                           radius: f64,
                           rotate: f64,
+                          rule: Option<f64>,
                           items: &mut Vec<Item>,
                           taken: &mut Vec<Rect>| {
             let w = ctx.text_width(text);
@@ -2287,8 +2649,53 @@ pub(super) fn annotations(
                 items.push(Item::Text(t));
                 return;
             }
-            let avoid: Vec<Rect> = taken.iter().chain(&bars).copied().collect();
-            match search(at, radius, [w, h], plot, &avoid, (&marks, usize::MAX), &|_| false) {
+            let places = match rule {
+                Some(y) => {
+                    let (right, left) = (plot.right() - BAND_INSET - w, plot.x + BAND_INSET);
+                    let (above, below) = (y - RULE_GAP - h, y + RULE_GAP);
+                    let mut places = vec![
+                        Rect::new(right, above, w, h),
+                        Rect::new(right, below, w, h),
+                        Rect::new(left, above, w, h),
+                        Rect::new(left, below, w, h),
+                    ];
+                    // Where bars or lines take all four, the places round the rule's right end
+                    // follow, less those that would lie on the rule.
+                    places.extend(
+                        candidates(at, radius, w, h)
+                            .into_iter()
+                            .filter(|c| c.bottom() <= y - RULE_GAP || c.y >= y + RULE_GAP),
+                    );
+                    places
+                }
+                None => candidates(at, radius, w, h),
+            };
+            // The text, the bars and the author's other rings are never crossed; the author's
+            // other rules only where no place clear of them exists.
+            let others = |rules: bool| {
+                author
+                    .iter()
+                    .filter(move |(of, _, rule)| *of != index && *rule == rules)
+                    .map(|(_, mark, _)| *mark)
+            };
+            let solid: Vec<Rect> = taken.iter().chain(&bars).copied().chain(others(false)).collect();
+            let avoid: Vec<Rect> = solid.iter().copied().chain(others(true)).collect();
+            let on_line = |c: Rect| {
+                let near = c.inflate(CLEAR);
+                strokes.iter().any(|(line, half)| {
+                    let reach = near.inflate(*half);
+                    line.windows(2).any(|s| segment_touches_rect(s[0], s[1], &reach))
+                })
+            };
+            // A place clear of the drawn lines comes first. Where the lines leave none, the note
+            // still stands, clear of the points, the bars and the other text. Where the author's
+            // other rules leave none either, it stands across a rule: a note struck by a thin
+            // rule reads, and a note left out does not (the lead, 19 Nov 2026).
+            let marks = (&marks[..], usize::MAX);
+            let place = search_among(&places, plot, &avoid, marks, &on_line)
+                .or_else(|_| search_among(&places, plot, &avoid, marks, &|_| false))
+                .or_else(|_| search_among(&places, plot, &solid, marks, &|_| false));
+            match place {
                 Ok(rect) => {
                     let t = ctx.text_mid(
                         text,
@@ -2323,8 +2730,9 @@ pub(super) fn annotations(
                         series: None,
                         obs: None,
                     });
+                    drawn.rules.push(Rect::new(x - 0.5, plot.y, 1.0, plot.h));
                     if let Some(t) = &a.text {
-                        place_text(ctx, t, [x, plot.y + 8.0], 2.0, 0.0, items, taken);
+                        place_text(ctx, t, [x, plot.y + 8.0], 2.0, 0.0, None, items, taken);
                     }
                 } else if let Some(y) = find(&a.at, 'y').as_ref().and_then(y_of).filter(|y| inside_y(*y)) {
                     items.push(Item::Line {
@@ -2337,8 +2745,18 @@ pub(super) fn annotations(
                         series: None,
                         obs: None,
                     });
+                    drawn.rules.push(Rect::new(plot.x, y - 0.5, plot.w, 1.0));
                     if let Some(t) = &a.text {
-                        place_text(ctx, t, [plot.right() - ctx.text_width(t), y], 2.0, 0.0, items, taken);
+                        place_text(
+                            ctx,
+                            t,
+                            [plot.right() - ctx.text_width(t), y],
+                            2.0,
+                            0.0,
+                            Some(y),
+                            items,
+                            taken,
+                        );
                     }
                 } else {
                     unresolved(ctx);
@@ -2405,9 +2823,12 @@ pub(super) fn annotations(
                                 series: None,
                                 obs: None,
                             });
+                            drawn
+                                .rings
+                                .push(Rect::new(x - radius, y - radius, 2.0 * radius, 2.0 * radius));
                         }
                         if let Some(t) = &a.text {
-                            place_text(ctx, t, [x, y], radius, a.rotate, items, taken);
+                            place_text(ctx, t, [x, y], radius, a.rotate, None, items, taken);
                         }
                     }
                     _ => unresolved(ctx),
@@ -2425,25 +2846,7 @@ pub(super) fn annotations(
         .iter()
         .map(|(text, band)| (*text, *band, ctx.text_width(text)))
         .collect();
-    // A drawn line is a mark between its data points too, so these labels keep clear of its
-    // stroke; the notes above move away from the points only.
-    let strokes: Vec<(Vec<[f64; 2]>, f64)> = if sized.is_empty() {
-        Vec::new()
-    } else {
-        items
-            .iter()
-            .filter_map(|i| match i {
-                Item::Line {
-                    path,
-                    stroke,
-                    role: Role::Mark,
-                    ..
-                } => Some((path, stroke.width / 2.0)),
-                _ => None,
-            })
-            .flat_map(|(path, half)| path.flatten(0.5).into_iter().map(move |line| (line, half)))
-            .collect()
-    };
+    // These labels have no other place to move to, so a drawn line's stroke rules a place out.
     let side = |ends: bool| {
         let options: Vec<(Vec<Rect>, bool)> = sized
             .iter()
@@ -2486,6 +2889,88 @@ pub(super) fn annotations(
                 Some(Rect::new(band.x + BAND_INSET, band.y, *w, h)),
             );
         }
+    }
+    drawn
+}
+
+#[cfg(test)]
+mod name_clearance_tests {
+    use super::{NameLine, Rect, first_clear_name, name_target_beside};
+
+    /// A flat line at `y` with a point every 20 px.
+    fn flat(series: usize, y: f64) -> NameLine {
+        NameLine {
+            series,
+            points: (0..12).map(|i| [20.0 * i as f64, y]).collect(),
+            hidden: false,
+            dots: true,
+        }
+    }
+
+    /// Reading only the stretch of a line beside a name gives the target a walk of every point
+    /// gives: a jagged line of 5,000 points, names of every width at every place along it.
+    #[test]
+    fn a_names_target_from_its_own_stretch_equals_the_one_from_every_point() {
+        let points: Vec<[f64; 2]> = (0..5000)
+            .map(|i| [0.2 * i as f64, 100.0 + ((i * 37) % 23) as f64 - 11.0])
+            .collect();
+        let mut moved = 0;
+        for width in [2.0, 6.0, 20.0, 64.8, 180.0] {
+            for step in 0..400 {
+                let x = -40.0 + 2.7 * step as f64;
+                for y in [70.0, 78.0, 84.4, 92.0, 100.0, 108.5, 116.0] {
+                    let text = Rect::new(x, y, width, 15.6);
+                    let whole = crate::interaction::name_target(text, &points);
+                    assert_eq!(name_target_beside(&points, text), whole, "{text:?}");
+                    moved += usize::from(whole != crate::interaction::name_target(text, &[]));
+                }
+            }
+        }
+        assert!(moved > 1000, "the line moves many of these targets: {moved}");
+        // Two dots far apart hold the reach: the near one moves the target of a 2 px name to
+        // x 98, and only then the far one, 22.5 px past the text's right edge, moves it back.
+        let (text, sparse) = (Rect::new(100.0, 100.0, 2.0, 15.6), [[95.0, 108.0], [124.5, 108.0]]);
+        let whole = crate::interaction::name_target(text, &sparse);
+        assert_eq!(name_target_beside(&sparse, text), whole);
+        assert_ne!(whole, crate::interaction::name_target(text, &sparse[..1]));
+        assert_eq!(whole.x, 97.5);
+        // A line in no rising order is read whole.
+        let falling: Vec<[f64; 2]> = points.iter().rev().copied().collect();
+        let text = Rect::new(300.0, 108.5, 20.0, 15.6);
+        assert_eq!(
+            name_target_beside(&falling, text),
+            crate::interaction::name_target(text, &falling)
+        );
+    }
+
+    /// Two names stacked half a pixel apart as centred targets: the upper one stands under its
+    /// line and the lower one over its line, so each target moves toward the other, 2.2 px each.
+    #[test]
+    fn two_stacked_names_keep_their_moved_targets_apart() {
+        let (upper, lower) = (Rect::new(100.0, 55.0, 60.0, 15.6), Rect::new(100.0, 79.5, 60.0, 15.6));
+        let beside = Rect::new(200.0, 79.5, 60.0, 15.6);
+        let lines = [flat(0, 50.0), flat(1, 100.1)];
+        let targets = [
+            crate::interaction::name_target(upper, &lines[0].points),
+            crate::interaction::name_target(lower, &lines[1].points),
+        ];
+        assert!(targets[0].overlaps(&targets[1], 0.0), "{targets:?}");
+        assert!(targets.iter().all(|target| target.h == 24.0), "{targets:?}");
+        assert_eq!(
+            first_clear_name(&lines, &[(0, upper)], 1, &[lower, beside]),
+            Some(beside)
+        );
+        assert_eq!(first_clear_name(&lines, &[(0, upper)], 1, &[lower]), None);
+        // With their lines far off, the same two targets stay centred and half a pixel apart.
+        let far = [flat(0, 10.0), flat(1, 140.0)];
+        assert_eq!(first_clear_name(&far, &[(0, upper)], 1, &[lower, beside]), Some(lower));
+        // A stacked chart draws no hover dots, so the runtime centres both buttons: the layout
+        // keeps the same two places, as it did before a target could move.
+        let stacked = lines.map(|line| NameLine { dots: false, ..line });
+        assert_eq!(
+            first_clear_name(&stacked, &[(0, upper)], 1, &[lower, beside]),
+            Some(lower)
+        );
     }
 }
 

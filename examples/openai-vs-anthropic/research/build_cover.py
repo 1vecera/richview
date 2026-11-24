@@ -18,6 +18,8 @@ SHARES = "data/charts/population-shares.csv"
 FACTS = "data/facts.json"
 FONT_CSS = "crates/richview-core/assets/fonts-scientific.css"
 WIDTH, HEIGHT = 1200, 630
+# The report draws the cover at most 832 px wide, where one unit here is 0.69 px. Lane names and
+# shares are 23 units, so they read there at the size of the report's captions (15 px).
 
 # A deep card with light type (S27-997), so the cover reads on Sleek's dark page as well as on the
 # light styles: one image serves every style, since an SVG image cannot follow the page's scheme in
@@ -102,10 +104,10 @@ def track(rows, *, left: float, right: float, top: float, bottom: float, radius:
             f"<title>{escape(name)}</title></circle>"
         )
         if labels:
-            out.append(text(left - 14, cy + 5, escape(row["measure"]), cls="lane", anchor="end"))
-            beyond = x + radius + 8 if share < 88 else x - radius - 8
+            out.append(text(left - 14, cy + 8, escape(row["measure"]), cls="lane", anchor="end"))
+            beyond = x + radius + 10 if share < 88 else x - radius - 10
             out.append(
-                text(beyond, cy + 5, f"{share:.1f}%", cls="share", anchor="start" if share < 88 else "end", fill=colour)
+                text(beyond, cy + 8, f"{share:.1f}%", cls="share", anchor="start" if share < 88 else "end", fill=colour)
             )
     return out
 
@@ -123,25 +125,35 @@ def build() -> str:
     lo, hi = rows[0], rows[-1]
     day = snapshot_day(ratings)
 
-    left, right = 262.0, WIDTH - 72.0
+    left, right = 774.0, WIDTH - 72.0
     wide = [
-        # The two headline numbers as one line, so the card still speaks at thumbnail size.
-        text(72, 96, escape(ratio), cls="top", fill=OPENAI),
-        text(196, 76, "as many US App Store ratings", cls="top-lede"),
-        text(196, 102, "for ChatGPT as for Claude", cls="top-lede"),
-        text(612, 96, f"{claude_code}%", cls="top", fill=ANTHROPIC),
-        text(736, 76, "of professional developers used Claude Code", cls="top-lede"),
-        text(736, 102, f'at work; <tspan style="fill:{OPENAI}" class="top-num">{codex}%</tspan> used OpenAI’s Codex', cls="top-lede"),
-        text(72, 132, f"{openai_ratings:,} vs {anthropic_ratings:,} ratings · {ratings['source_id']}, {day}", cls="src"),
-        text(612, 132, f"JetBrains Developer Ecosystem survey, 2026 · {agents['source_id']}", cls="src"),
-        f'<line x1="72" y1="156" x2="{WIDTH - 72}" y2="156" stroke="{RULE}" stroke-width="1.5"/>',
-        # The race: one lane per measure.
-        text(72, 190, f"ONE RACE, {len(rows)} LANES · {day.upper()}", cls="kicker", fill=SOFT),
-        text(WIDTH - 72, 190, "Anthropic’s share of each OpenAI + Anthropic pair · populations overlap", cls="note", anchor="end"),
-        text((left + right) / 2, 214, "EVEN", cls="tick", anchor="middle"),
-        *track(rows, left=left, right=right, top=226, bottom=566, radius=7, labels=True),
-        text(left, 600, "← OpenAI’s publics", cls="pole", fill=OPENAI_LABEL),
-        text(right, 600, "Anthropic’s publics →", cls="pole", fill=ANTHROPIC_LABEL, anchor="end"),
+        # Left: the two headline numbers at display size, each with its caption and source.
+        text(72, 88, "EVERYONE ELSE", cls="kicker", fill=OPENAI_LABEL),
+        text(67, 194, escape(ratio), cls="hero", fill=OPENAI),
+        text(72, 234, "as many US App Store ratings", cls="lede"),
+        text(72, 264, "for ChatGPT as for Claude", cls="lede"),
+        text(72, 296, f"{openai_ratings:,} vs {anthropic_ratings:,} · App Store, {day}", cls="src"),
+        f'<line x1="72" y1="326" x2="500" y2="326" stroke="{RULE}" stroke-width="1.5"/>',
+        text(72, 368, "PEOPLE WHO BUILD WITH AI", cls="kicker", fill=ANTHROPIC_LABEL),
+        text(
+            67,
+            474,
+            f'{claude_code}%<tspan class="hero-vs" style="fill:{SOFT}"> vs </tspan>'
+            f'<tspan class="hero-vs" style="fill:{OPENAI}">{codex}%</tspan>',
+            cls="hero",
+            fill=ANTHROPIC,
+        ),
+        text(72, 514, "of professional developers used", cls="lede"),
+        text(72, 544, f"Claude Code at work; {codex}% used Codex", cls="lede"),
+        text(72, 576, "JetBrains Developer Ecosystem survey, 2026", cls="src"),
+        f'<line x1="540" y1="60" x2="540" y2="584" stroke="{RULE}" stroke-width="1.5"/>',
+        # Right: the race, one lane per measure, named and valued at the report's caption size.
+        text(580, 88, f"ONE RACE, {len(rows)} LANES · {day.upper()}", cls="kicker", fill=SOFT),
+        text(580, 118, "Anthropic’s share of each OpenAI + Anthropic pair", cls="note"),
+        text((left + right) / 2, 150, "EVEN", cls="tick", anchor="middle"),
+        *track(rows, left=left, right=right, top=160, bottom=576, radius=7.5, labels=True),
+        text(left, 608, "← OpenAI", cls="pole", fill=OPENAI_LABEL),
+        text(right, 608, "Anthropic →", cls="pole", fill=ANTHROPIC_LABEL, anchor="end"),
     ]
     compact = [
         text(60, 96, "EVERYONE ELSE", cls="kicker-l", fill=OPENAI_LABEL),
@@ -168,19 +180,19 @@ def build() -> str:
     style = f"""
 {fonts()}
 text {{ fill: {INK}; font-kerning: normal; }}
-.kicker, .kicker-l, .tick, .src, .note, .pole, .pole-l {{ font-family: "RichView Sans", system-ui, sans-serif; }}
-.top, .hero-l, .lede-l {{ font-family: "RichView Serif", Georgia, serif; }}
-.top-lede, .lane, .share {{ font-family: "RichView Sans", system-ui, sans-serif; }}
-.kicker {{ font-size: 17px; font-weight: 600; letter-spacing: 3px; }}
-.top {{ font-size: 54px; font-weight: 600; letter-spacing: -1px; font-variant-numeric: lining-nums; }}
-.top-num {{ font-weight: 600; font-variant-numeric: tabular-nums; }}
-.top-lede {{ font-size: 19px; fill: {SOFT}; }}
-.lane {{ font-size: 15px; fill: {SOFT}; }}
-.share {{ font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }}
-.src {{ font-size: 16px; fill: {FAINT}; }}
-.note {{ font-size: 16px; fill: {SOFT}; }}
-.tick {{ font-size: 13px; letter-spacing: 2px; fill: {SOFT}; }}
-.pole {{ font-size: 19px; font-weight: 600; }}
+.kicker, .kicker-l, .tick, .src, .note, .pole, .pole-l, .lane, .share {{ font-family: "RichView Sans", system-ui, sans-serif; }}
+.hero, .hero-l, .lede, .lede-l {{ font-family: "RichView Serif", Georgia, serif; }}
+.kicker {{ font-size: 19px; font-weight: 600; letter-spacing: 3px; }}
+.hero {{ font-size: 112px; font-weight: 600; letter-spacing: -3px; font-variant-numeric: lining-nums; }}
+.hero-vs {{ font-size: 58px; font-weight: 400; letter-spacing: 0; }}
+.lede {{ font-size: 24px; }}
+.src {{ font-size: 20px; fill: {FAINT}; }}
+.note {{ font-size: 20px; fill: {SOFT}; }}
+.lane {{ font-size: 23px; fill: {SOFT}; }}
+/* A share that stands on the even line keeps the line from striking through its digits. */
+.share {{ font-size: 23px; font-weight: 600; font-variant-numeric: tabular-nums; paint-order: stroke; stroke: {PAPER}; stroke-width: 5px; stroke-linejoin: round; }}
+.tick {{ font-size: 20px; letter-spacing: 2px; fill: {SOFT}; }}
+.pole {{ font-size: 22px; font-weight: 600; }}
 .kicker-l {{ font-size: 40px; font-weight: 600; letter-spacing: 4px; }}
 .hero-l {{ font-size: 150px; font-weight: 600; letter-spacing: -4px; }}
 .lede-l {{ font-size: 44px; }}
@@ -189,7 +201,8 @@ text {{ fill: {INK}; font-kerning: normal; }}
 @media (max-width: 620px) {{ .wide {{ display: none; }} .compact {{ display: inline; }} }}
 """
     metadata = (
-        "RichView report cover, revision 2026-11-18 (the race as a track). Original artwork by Daniel Vecera, MIT "
+        "RichView report cover, revision 2026-11-19 (the two numbers at display size beside the track). Original artwork "
+        "by Daniel Vecera, MIT "
         "(assets/licenses/richview-MIT.txt). Embedded fonts: Source Serif 4 and Source Sans 3 as "
         "RichView Serif/Sans, SIL Open Font License 1.1 (assets/licenses/source-serif-4-OFL.txt, "
         f"assets/licenses/source-sans-3-OFL.txt). Data: {SHARES} content sha256 {source_hash}; {FACTS} content sha256 "

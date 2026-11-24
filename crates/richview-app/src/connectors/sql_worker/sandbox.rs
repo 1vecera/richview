@@ -543,8 +543,8 @@ mod platform {
                 FILE_FLAG_DELETE_ON_CLOSE, FILE_FLAG_NO_BUFFERING, FILE_FLAG_OVERLAPPED,
                 FILE_FLAG_RANDOM_ACCESS, FILE_FLAG_SEQUENTIAL_SCAN, FILE_FLAG_WRITE_THROUGH,
                 FILE_READ_ATTRIBUTES, FILE_SHARE_DELETE, FILE_SHARE_READ, FILE_SHARE_WRITE,
-                GetFileInformationByHandle, INVALID_FILE_ATTRIBUTES, OPEN_EXISTING,
-                WIN32_FILE_ATTRIBUTE_DATA,
+                GetFileAttributesExW, GetFileAttributesW, GetFileInformationByHandle,
+                INVALID_FILE_ATTRIBUTES, OPEN_EXISTING, WIN32_FILE_ATTRIBUTE_DATA,
             },
             System::{
                 LibraryLoader::GetModuleHandleW,
@@ -622,6 +622,19 @@ mod platform {
                 unsafe { CloseHandle(handle) };
                 return Err(io::Error::other("SQL copy folder is already set"));
             }
+            // Naming the three functions makes every build of the worker import each of them,
+            // whichever C runtime it links. With the runtime in a DLL, as test builds have it,
+            // nothing else in the executable names `GetFileAttributesExW`: that runtime calls
+            // it from its own DLL, past these slots, and meets the token's refusal. So the
+            // check below proves this reference was kept, not that every caller uses the
+            // slot. The release worker links the runtime statically, and there its calls do.
+            // `black_box` keeps a reference only by best effort; a lost one fails closed, at
+            // the check below.
+            std::hint::black_box([
+                CreateFileW as CreateFile as usize,
+                GetFileAttributesW as Attributes as usize,
+                GetFileAttributesExW as AttributesEx as usize,
+            ]);
             // Every redirected import must be patched: one left to the loader would refuse its
             // opens of the copy later, as a missing database rather than as this failure.
             let hooks: [(&str, usize, &AtomicUsize); 3] = [
@@ -1400,7 +1413,7 @@ mod platform {
             &self,
             program: &Path,
             args: &[&OsStr],
-            env: &[(&str, &OsStr)],
+            env: &[(&OsStr, &OsStr)],
             descriptors: &[RawHandle],
             job: &Job,
         ) -> io::Result<Process> {
@@ -1464,7 +1477,7 @@ mod platform {
     pub(in super::super) fn spawn(
         worker: &Path,
         copy: &std::sync::Arc<SourceCopy>,
-        env: &[(&str, &OsStr)],
+        env: &[(&OsStr, &OsStr)],
     ) -> io::Result<Sandboxed> {
         let lockdown = Lockdown::new()?;
         let admitted = lockdown.admit(copy)?;
@@ -2128,6 +2141,7 @@ mod windows_tests {
         let folder = staged.parent().unwrap().to_path_buf();
         super::super::close_inherited_descriptors().expect("inherited handles");
         super::super::resource_limits().expect("the worker's job");
+        let staged_bytes = fs::metadata(&staged).expect("the copy is readable").len();
         // As the worker does: take the copy's folder, restrict, and only then open the copy.
         open_through(&folder).expect("the startup token takes the copy's folder");
         super::super::start_duckdb().expect("DuckDB starts before the restriction");
@@ -2147,6 +2161,54 @@ mod windows_tests {
         println!(
             "allowed  DuckDB opened the run's copy inside the sandbox, through its folder: SELECT n FROM allowed = 7"
         );
+        // This executable's own calls of the two attribute functions pass the import slots
+        // `open_through` patched, in every build: the copy answers through its folder and a
+        // file outside it meets the token's refusal. With the C runtime in a DLL, DuckDB's
+        // attribute calls do not pass these slots, so here is where a test build runs them.
+        {
+            use std::os::windows::ffi::OsStrExt;
+            use windows_sys::Win32::Storage::FileSystem::{
+                GetFileAttributesExW, GetFileAttributesW, GetFileExInfoStandard,
+                INVALID_FILE_ATTRIBUTES, WIN32_FILE_ATTRIBUTE_DATA,
+            };
+            let wide =
+                |path: &Path| -> Vec<u16> { path.as_os_str().encode_wide().chain([0]).collect() };
+            let (copy, secret) = (wide(&staged), wide(&root.join("secret.csv")));
+            // SAFETY: an all-zero record is a valid value to fill.
+            let mut data: WIN32_FILE_ATTRIBUTE_DATA = unsafe { std::mem::zeroed() };
+            let mut unused = data;
+            let record = |data: &mut WIN32_FILE_ATTRIBUTE_DATA| -> *mut core::ffi::c_void {
+                (data as *mut WIN32_FILE_ATTRIBUTE_DATA).cast()
+            };
+            // SAFETY: the names are NUL-terminated and each record is the standard level's.
+            let (plain, extended, outside, outside_extended) = unsafe {
+                (
+                    GetFileAttributesW(copy.as_ptr()),
+                    GetFileAttributesExW(copy.as_ptr(), GetFileExInfoStandard, record(&mut data)),
+                    GetFileAttributesW(secret.as_ptr()),
+                    GetFileAttributesExW(
+                        secret.as_ptr(),
+                        GetFileExInfoStandard,
+                        record(&mut unused),
+                    ),
+                )
+            };
+            assert_ne!(plain, INVALID_FILE_ATTRIBUTES, "the copy's attributes");
+            assert_ne!(extended, 0, "the copy's extended attributes");
+            assert_eq!(
+                (u64::from(data.nFileSizeHigh) << 32) | u64::from(data.nFileSizeLow),
+                staged_bytes,
+                "the copy's size, read through its folder"
+            );
+            assert_eq!(
+                outside, INVALID_FILE_ATTRIBUTES,
+                "a file outside the copy's folder"
+            );
+            assert_eq!(outside_extended, 0, "a file outside the copy's folder");
+            println!(
+                "allowed  GetFileAttributesW and GetFileAttributesExW answer for the copy through the patched imports ({staged_bytes} bytes); both are refused for the secret file"
+            );
+        }
         let mut opened = Vec::new();
         for (what, attempt) in routes(&probe) {
             match attempt() {
@@ -2586,9 +2648,9 @@ mod windows_tests {
                     OsStr::new("--nocapture"),
                 ],
                 &[
-                    ("SLURM_MEM_PER_NODE", OsStr::new("128M")),
-                    ("SystemRoot", windows.as_os_str()),
-                    (PROBE, OsStr::new(&input)),
+                    (OsStr::new("SLURM_MEM_PER_NODE"), OsStr::new("128M")),
+                    (OsStr::new("SystemRoot"), windows.as_os_str()),
+                    (OsStr::new(PROBE), OsStr::new(&input)),
                 ],
                 &[
                     child_in.as_raw_handle(),

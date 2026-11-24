@@ -9,6 +9,7 @@ mod host;
 mod preview;
 mod reading;
 mod scrolly;
+mod slides;
 mod tables;
 mod tabs;
 
@@ -165,6 +166,7 @@ pub fn start() -> Result<(), JsValue> {
     tables::start();
     embeds::start();
     tabs::start()?;
+    slides::start();
     scrolly::start();
     reading::start();
     entrance::start();

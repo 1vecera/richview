@@ -157,6 +157,8 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         .filter(|(_, f)| f.is_none())
         .flat_map(|(p, _)| p)
         .collect();
+    let drawn: Vec<(usize, usize)> = all.iter().map(|p| (p.row, p.group)).collect();
+    ctx.resolve_emphasis(&drawn);
     // The selected author state's exact rows set the axis even when a group is hidden (TYP-36).
     let shared = ctx.derive_extent(0, "lollipop.shared", || extent(&all));
     let plan = kit::plan(
@@ -209,7 +211,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             let r = RADIUS.min(t / 2.0).max(2.5);
             let base = frame.at(0.0);
             let end = frame.at(p.value);
-            let color = Style::rgba(ctx.series_color(p.group));
+            let color = Style::rgba(ctx.mark_color(p.row, p.group, ctx.series_color(p.group)));
             marks.push(Item::Line {
                 path: Path::polyline(&[frame.pt(cm, 0.0), frame.pt(cm, p.value)]),
                 stroke: Stroke::solid(color, stem_width),
@@ -245,7 +247,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             // The value beyond the dot when one lollipop owns its band; at the plot's edge it
             // moves beside the dot, and it is dropped when neither place fits. The author's
             // `auto_annotations: false` draws none and records no drop.
-            if !multi && ctx.block.auto_annotations {
+            if !multi && ctx.block.auto_annotations && !ctx.mutes_mark(p.row, p.group) {
                 let text = numbers::value(p.value, &label_format);
                 let gap = r + 4.0;
                 let beyond = if frame.horizontal {
@@ -270,7 +272,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                         ctx.text(&text, x, y, anchor, Face::Figures, Role::Label, ctx.style.ink)
                     }
                 } else {
-                    ctx.text_mid(
+                    let mut t = ctx.text_mid(
                         &text,
                         cm + gap,
                         end,
@@ -278,7 +280,21 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
                         Face::Figures,
                         Role::Label,
                         ctx.style.ink,
-                    )
+                    );
+                    // A dot a few pixels from the axis' end would push the value centred on it
+                    // past the plot: hold it inside, as long as it still stands level with the dot.
+                    let shift = if t.bounds.bottom() > frame.plot.bottom() {
+                        frame.plot.bottom() - t.bounds.bottom()
+                    } else if t.bounds.y < frame.plot.y {
+                        frame.plot.y - t.bounds.y
+                    } else {
+                        0.0
+                    };
+                    if shift.abs() <= t.bounds.h / 2.0 + r {
+                        t.y += shift;
+                        t.bounds.y += shift;
+                    }
+                    t
                 };
                 let fits = |t: &crate::geometry::Text| {
                     let in_band = if frame.horizontal {

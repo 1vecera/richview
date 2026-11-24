@@ -1275,3 +1275,738 @@ fn hiding_a_series_keeps_the_naming_and_names_stay_legible() {
         }
     }
 }
+
+/// The text of the authored note `text`, the ring of the chart's first point annotation, and
+/// the texts a chart adds by itself: automatic point names and values.
+fn note<'a>(g: &'a Geometry, text: &str) -> Option<&'a richview_chart::geometry::Text> {
+    g.panels[0].items.iter().find_map(|i| match i {
+        Item::Text(t) if t.role == Role::Annotation && t.text == text => Some(t),
+        _ => None,
+    })
+}
+
+fn ring(g: &Geometry) -> [f64; 2] {
+    g.panels[0]
+        .items
+        .iter()
+        .find_map(|i| match i {
+            Item::Point {
+                center,
+                role: Role::Annotation,
+                ..
+            } => Some(*center),
+            _ => None,
+        })
+        .expect("the point annotation's ring")
+}
+
+fn automatic_texts(g: &Geometry) -> Vec<&richview_chart::geometry::Text> {
+    g.panels[0]
+        .items
+        .iter()
+        .filter_map(|i| match i {
+            Item::Text(t) if t.role == Role::Label => Some(t),
+            _ => None,
+        })
+        .collect()
+}
+
+/// Whether any drawn line of the panel comes within `gap` of `r`, its stroke width included.
+fn touches_a_drawn_line(g: &Geometry, r: richview_chart::geometry::Rect, gap: f64) -> bool {
+    g.panels[0].items.iter().any(|i| match i {
+        Item::Line {
+            path,
+            stroke,
+            role: Role::Mark,
+            ..
+        } => {
+            let reach = r.inflate(gap + stroke.width / 2.0);
+            path.flatten(0.25).iter().any(|line| {
+                line.windows(2).any(|s| {
+                    let steps = ((s[1][0] - s[0][0]).hypot(s[1][1] - s[0][1]) * 4.0).ceil().max(1.0) as usize;
+                    (0..=steps).any(|k| {
+                        let t = k as f64 / steps as f64;
+                        let (x, y) = (s[0][0] + t * (s[1][0] - s[0][0]), s[0][1] + t * (s[1][1] - s[0][1]));
+                        x >= reach.x && x <= reach.right() && y >= reach.y && y <= reach.bottom()
+                    })
+                })
+            })
+        }
+        _ => false,
+    })
+}
+
+/// An author's note is placed before a scatter's point names and keeps the place it has on a
+/// chart that names no point at all; a name whose place the note took moves or is dropped and
+/// recorded, and the author's highlight is still named (FEA-CH-29).
+#[test]
+fn an_authors_note_takes_its_place_before_the_point_names() {
+    let rows = vec![
+        json!({"clinic":"Northgate","wait":12,"score":71}),
+        json!({"clinic":"Riverside","wait":18,"score":64}),
+        json!({"clinic":"Hillcrest","wait":22,"score":69}),
+        json!({"clinic":"Old Town","wait":27,"score":58}),
+        json!({"clinic":"Harbour","wait":31,"score":62}),
+        json!({"clinic":"Eastfield","wait":36,"score":55}),
+        json!({"clinic":"Marsh Lane","wait":41,"score":49}),
+        json!({"clinic":"Southbank","wait":44,"score":88}),
+    ];
+    let named = json!({"type":"scatter","title":"T",
+        "encoding":{"x":"wait","y":"score","label":"clinic"},
+        "highlight":{"by":"clinic","include":["Old Town"]}});
+    let notes = json!([
+        {"kind":"point","at":{"x":44,"y":88},"text":"New triage desk"},
+        {"kind":"point","at":{"x":12,"y":71},"text":"Shortest wait"}
+    ]);
+    for width in [358.0, 681.0] {
+        let opts = Options {
+            width,
+            ..Options::default()
+        };
+        let mut annotated = named.clone();
+        annotated["annotations"] = notes.clone();
+        let mut alone = json!({"type":"scatter","title":"T","encoding":{"x":"wait","y":"score"}});
+        alone["annotations"] = notes.clone();
+        let (control, g, alone) = (
+            draw(named.clone(), &rows, opts.clone()),
+            draw(annotated, &rows, opts.clone()),
+            draw(alone, &rows, opts),
+        );
+        for text in ["New triage desk", "Shortest wait"] {
+            let placed = note(&g, text).unwrap_or_else(|| panic!("{width}: '{text}' is drawn"));
+            assert_eq!(
+                Some(placed.bounds),
+                note(&alone, text).map(|t| t.bounds),
+                "{width}: '{text}' stands where it does on a chart that names no point"
+            );
+            for name in automatic_texts(&g) {
+                assert!(
+                    !name.bounds.inflate(2.0).overlaps(&placed.bounds, 0.0),
+                    "{width}: the name '{}' keeps off the note '{text}'",
+                    name.text
+                );
+            }
+        }
+        let name = |g: &Geometry, text: &str| {
+            automatic_texts(g)
+                .into_iter()
+                .find(|t| t.text == text)
+                .map(|t| t.bounds)
+        };
+        assert!(name(&control, "Old Town").is_some(), "{width}: the highlight is named");
+        assert!(
+            name(&g, "Old Town").is_some(),
+            "{width}: the author's highlight is still named beside the notes"
+        );
+        // Each name the chart chose is drawn clear of the author's rings, or recorded.
+        let rings: Vec<_> = g.panels[0]
+            .items
+            .iter()
+            .filter_map(|i| match i {
+                Item::Point {
+                    center,
+                    radius,
+                    stroke,
+                    role: Role::Annotation,
+                    ..
+                } => {
+                    let r = radius + stroke.as_ref().map_or(0.0, |s| s.width / 2.0);
+                    Some(richview_chart::geometry::Rect::new(
+                        center[0] - r,
+                        center[1] - r,
+                        2.0 * r,
+                        2.0 * r,
+                    ))
+                }
+                _ => None,
+            })
+            .collect();
+        assert_eq!(rings.len(), 2);
+        for chosen in automatic_texts(&control) {
+            match name(&g, &chosen.text) {
+                Some(bounds) => assert!(
+                    rings.iter().all(|ring| !bounds.overlaps(ring, 0.0)),
+                    "{width}: '{}' keeps off the author's rings",
+                    chosen.text
+                ),
+                None => assert!(
+                    g.dropped
+                        .iter()
+                        .any(|d| d.kind.as_deref() == Some("point") && d.text == chosen.text),
+                    "{width}: the name '{}' that lost its place is recorded",
+                    chosen.text
+                ),
+            }
+        }
+        // Placement moves no observation (FEA-CH-29).
+        assert_eq!(g.panels[0].observations, control.panels[0].observations);
+        let marks = |g: &Geometry| -> Vec<Item> {
+            g.panels[0]
+                .items
+                .iter()
+                .filter(|i| i.role() == Role::Mark)
+                .cloned()
+                .collect()
+        };
+        assert_eq!(marks(&g), marks(&control));
+    }
+}
+
+/// The 40 synthetic stations of `examples/scatter-highlights`: 34 in one crowd, Jarrow in its
+/// middle, where no name has room beside its point.
+fn stations() -> Vec<Value> {
+    [
+        ("Aldmoor", 50.8, 58.6),
+        ("Brightwell", 53.1, 58.0),
+        ("Carrow", 52.3, 60.1),
+        ("Dunmere", 48.9, 61.1),
+        ("Eastvale", 48.8, 60.5),
+        ("Farnley", 49.0, 58.1),
+        ("Gresham", 51.5, 63.3),
+        ("Hollin", 49.4, 59.1),
+        ("Ivesley", 52.9, 64.1),
+        ("Jarrow", 52.5, 60.3),
+        ("Kelby", 55.3, 57.8),
+        ("Lowick", 54.5, 59.5),
+        ("Marden", 49.5, 58.3),
+        ("Norbury", 50.7, 63.2),
+        ("Oakham", 49.8, 61.6),
+        ("Pendle", 53.0, 60.1),
+        ("Quorn", 52.3, 57.9),
+        ("Redmere", 48.9, 58.9),
+        ("Saltby", 53.3, 60.5),
+        ("Tarvin", 50.7, 61.6),
+        ("Ulverby", 51.7, 59.6),
+        ("Vexford", 54.1, 62.4),
+        ("Wickham", 50.2, 61.5),
+        ("Yarrow", 52.2, 63.6),
+        ("Ashgrove", 53.6, 59.5),
+        ("Bramley", 55.4, 58.3),
+        ("Corbridge", 51.4, 62.8),
+        ("Denholm", 49.6, 60.9),
+        ("Elmstead", 48.8, 62.2),
+        ("Fenwick", 53.9, 61.5),
+        ("Gransden", 54.6, 59.7),
+        ("Hartley", 53.4, 61.7),
+        ("Inkpen", 52.6, 60.7),
+        ("Kirkby", 54.4, 64.1),
+        ("Langdon", 14.2, 22.5),
+        ("Melbury", 88.4, 83.1),
+        ("Nunton", 21.7, 81.9),
+        ("Ormsby", 79.3, 18.6),
+        ("Poulton", 33.0, 40.2),
+        ("Radley", 67.5, 70.4),
+    ]
+    .iter()
+    .map(|(station, rain, sun)| json!({"station": station, "rainfall_mm": rain, "sunshine_h": sun}))
+    .collect()
+}
+
+/// The leader of the panel's one name on a leader: where it starts and ends.
+fn leader(g: &Geometry) -> Option<[[f64; 2]; 2]> {
+    g.panels[0].items.iter().find_map(|i| match i {
+        Item::Line {
+            path,
+            role: Role::Leader,
+            ..
+        } => {
+            let line = path.flatten(0.25).into_iter().next()?;
+            Some([*line.first()?, *line.last()?])
+        }
+        _ => None,
+    })
+}
+
+/// Whether the straight line from `a` to `b` passes through `r`.
+fn crosses([a, b]: [[f64; 2]; 2], r: richview_chart::geometry::Rect) -> bool {
+    let steps = ((b[0] - a[0]).hypot(b[1] - a[1]) * 4.0).ceil().max(1.0) as usize;
+    (0..=steps).any(|k| {
+        let t = k as f64 / steps as f64;
+        r.contains([a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])])
+    })
+}
+
+/// A highlighted point the author also rings keeps its name: in a crowd the name stands off on
+/// a leader, which starts inside the point's own ring. The leader may cross an author's rule
+/// but never the rule's label, and the name's box keeps off every ring and rule (FEA-CH-29).
+#[test]
+fn a_ringed_highlight_keeps_its_name_on_a_leader_that_may_cross_a_rule() {
+    let rows = stations();
+    let named = json!({"type":"scatter","title":"T",
+        "encoding":{"x":"rainfall_mm","y":"sunshine_h"},
+        "highlight":{"by":"station","include":["Jarrow"]}});
+    let ringed = json!([{"kind":"point","at":{"x":52.5,"y":60.3},"text":"Moved in March"}]);
+    // Four rules close round the crowd, so every place for a name on a leader lies past one.
+    let fenced = json!([
+        {"kind":"point","at":{"x":52.5,"y":60.3},"text":"Moved in March"},
+        {"kind":"line","at":{"y":66},"text":"Target"},
+        {"kind":"line","at":{"y":56}},
+        {"kind":"line","at":{"x":47}},
+        {"kind":"line","at":{"x":57}}
+    ]);
+    let opts = Options {
+        width: 632.0,
+        ..Options::default()
+    };
+    let name = |g: &Geometry| {
+        automatic_texts(g)
+            .into_iter()
+            .find(|t| t.text == "Jarrow")
+            .map(|t| t.bounds)
+    };
+    let control = draw(named.clone(), &rows, opts.clone());
+    assert!(name(&control).is_some(), "the highlight is named");
+    assert!(
+        leader(&control).is_some(),
+        "the crowd leaves the name a place only on a leader"
+    );
+    for (case, annotations) in [("ringed", ringed), ("fenced", fenced)] {
+        let mut spec = named.clone();
+        spec["annotations"] = annotations;
+        let g = draw(spec, &rows, opts.clone());
+        let at = ring(&g);
+        let bounds = name(&g).unwrap_or_else(|| panic!("{case}: the ringed highlight keeps its name: {:?}", g.dropped));
+        let line = leader(&g).unwrap_or_else(|| panic!("{case}: the name stands on a leader"));
+        assert!(
+            (line[0][0] - at[0]).abs() < 0.01 && (line[0][1] - at[1]).abs() < 0.01,
+            "{case}: the leader starts at the ringed point: {line:?}, ring at {at:?}"
+        );
+        let mut crossed = 0;
+        for item in &g.panels[0].items {
+            match item {
+                Item::Point {
+                    center,
+                    radius,
+                    role: Role::Annotation,
+                    ..
+                } => assert!(
+                    !bounds.overlaps(
+                        &richview_chart::geometry::Rect::new(
+                            center[0] - radius,
+                            center[1] - radius,
+                            2.0 * radius,
+                            2.0 * radius
+                        ),
+                        0.0
+                    ),
+                    "{case}: the name keeps off the ring"
+                ),
+                Item::Line {
+                    path,
+                    role: Role::Annotation,
+                    ..
+                } => {
+                    let rule = path.bounds().expect("the rule's bounds");
+                    assert!(
+                        !bounds.inflate(1.0).overlaps(&rule, 0.0),
+                        "{case}: the name keeps off the author's rule: {bounds:?}, rule {rule:?}"
+                    );
+                    crossed += usize::from(crosses(line, rule.inflate(0.5)));
+                }
+                Item::Text(t) if t.role == Role::Annotation => {
+                    assert!(
+                        !bounds.overlaps(&t.bounds, 0.0),
+                        "{case}: the name keeps off '{}'",
+                        t.text
+                    );
+                    assert!(
+                        !crosses(line, t.bounds),
+                        "{case}: the leader never crosses the author's text '{}'",
+                        t.text
+                    );
+                }
+                _ => {}
+            }
+        }
+        if case == "fenced" {
+            assert!(crossed > 0, "the leader crosses a rule to reach the name's place");
+        }
+    }
+}
+
+/// A note keeps off every rule and ring the author drew, whichever is written first: a rule or
+/// a second ring that stands where the note would go moves the note, and never strikes through
+/// it (FEA-CH-32).
+#[test]
+fn a_note_keeps_off_the_authors_other_rules_and_rings_in_either_order() {
+    let rows = vec![json!({"x": 0, "y": 0}), json!({"x": 100, "y": 100})];
+    let note = json!({"kind":"point","at":{"x":50,"y":50},"text":"Checked twice"});
+    // Each stands 4 units right of the note's point, inside the place the note takes alone.
+    let rule = json!({"kind":"line","at":{"x":54}});
+    let second = json!({"kind":"point","at":{"x":54,"y":50},"text":"Second"});
+    let draw_with = |annotations: Value| {
+        draw(
+            json!({"type":"scatter","title":"T","encoding":{"x":"x","y":"y"},"annotations":annotations}),
+            &rows,
+            Options {
+                width: 632.0,
+                ..Options::default()
+            },
+        )
+    };
+    let alone = draw_with(json!([note.clone()]));
+    // The note's own ring is the one its text stands beside; every other mark it keeps off.
+    let (own, alone) = (ring(&alone), note_bounds(&alone, "Checked twice"));
+    for (case, annotations) in [
+        ("the rule after the note", json!([note.clone(), rule.clone()])),
+        ("the rule before the note", json!([rule, note.clone()])),
+        ("a second ring after the note", json!([note.clone(), second.clone()])),
+        ("a second ring before the note", json!([second, note])),
+    ] {
+        let g = draw_with(annotations);
+        let placed = note_bounds(&g, "Checked twice");
+        let mut others = 0;
+        for item in &g.panels[0].items {
+            let other = match item {
+                Item::Line {
+                    path,
+                    role: Role::Annotation,
+                    ..
+                } => path.bounds().expect("the rule's bounds"),
+                Item::Point {
+                    center,
+                    radius,
+                    role: Role::Annotation,
+                    ..
+                } if (center[0] - own[0]).abs() > 1.0 => richview_chart::geometry::Rect::new(
+                    center[0] - radius,
+                    center[1] - radius,
+                    2.0 * radius,
+                    2.0 * radius,
+                ),
+                _ => continue,
+            };
+            if other.overlaps(&alone.inflate(1.0), 0.0) {
+                others += 1;
+                assert!(
+                    !placed.inflate(1.0).overlaps(&other, 0.0),
+                    "{case}: the note keeps off it: note {placed:?}, mark {other:?}"
+                );
+            }
+        }
+        assert!(
+            others > 0,
+            "{case}: the other mark stands where the note would go alone"
+        );
+    }
+}
+
+/// Keeping off the author's rules is a preference, not a ban: three labelled rules standing
+/// close together leave the middle label no place clear of its neighbours, and it is drawn
+/// across one of them, never left out and never over another label (FEA-CH-32).
+#[test]
+fn a_label_with_no_place_clear_of_the_other_rules_stands_across_one() {
+    let rows = vec![json!({"x": 0, "y": 0}), json!({"x": 100, "y": 100})];
+    let g = draw(
+        json!({"type":"scatter","title":"T","encoding":{"x":"x","y":"y"},"annotations":[
+            {"kind":"line","at":{"x":46},"text":"Alpha"},
+            {"kind":"line","at":{"x":53},"text":"Bravo"},
+            {"kind":"line","at":{"x":60},"text":"Charlie"}
+        ]}),
+        &rows,
+        Options {
+            width: 358.0,
+            ..Options::default()
+        },
+    );
+    let labels: Vec<_> = ["Alpha", "Bravo", "Charlie"]
+        .iter()
+        .map(|text| note_bounds(&g, text))
+        .collect();
+    for (i, a) in labels.iter().enumerate() {
+        for b in &labels[i + 1..] {
+            assert!(!a.inflate(1.0).overlaps(b, 0.0), "no label covers another: {a:?} {b:?}");
+        }
+    }
+    let rules: Vec<_> = g.panels[0]
+        .items
+        .iter()
+        .filter_map(|i| match i {
+            Item::Line {
+                path,
+                role: Role::Annotation,
+                ..
+            } => path.bounds(),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(rules.len(), 3);
+    let crossed = |label: &richview_chart::geometry::Rect| {
+        rules
+            .iter()
+            .filter(|rule| rule.x > label.x && rule.x < label.right())
+            .count()
+    };
+    assert_eq!(
+        crossed(&labels[0]),
+        0,
+        "the first label has a clear place: {:?}",
+        labels[0]
+    );
+    assert!(
+        crossed(&labels[1]) > 0,
+        "the middle label has none, which is why it stands across a rule: {:?}, rules {rules:?}",
+        labels[1]
+    );
+}
+
+fn note_bounds(g: &Geometry, text: &str) -> richview_chart::geometry::Rect {
+    note(g, text)
+        .unwrap_or_else(|| panic!("'{text}' is drawn: {:?}", g.dropped))
+        .bounds
+}
+
+/// The note takes the nearest place beside its ring, which the point's own name had before:
+/// the name moves to another side (FEA-CH-29).
+#[test]
+fn the_automatic_name_gives_its_place_beside_the_point_to_the_note() {
+    let rows = vec![
+        json!({"name":"Alpha","x":2,"y":5}),
+        json!({"name":"Bravo","x":5,"y":2}),
+        json!({"name":"Charlie","x":8,"y":8}),
+    ];
+    let spec = json!({"type":"scatter","title":"T","encoding":{"x":"x","y":"y","label":"name"},
+        "axes":{"x":{"min":0,"max":10},"y":{"min":0,"max":10}}});
+    let opts = Options {
+        width: 640.0,
+        ..Options::default()
+    };
+    let control = draw(spec.clone(), &rows, opts.clone());
+    let before = automatic_texts(&control)
+        .into_iter()
+        .find(|t| t.text == "Alpha")
+        .expect("the name without a note")
+        .bounds;
+    let mut annotated = spec;
+    annotated["annotations"] = json!([{"kind":"point","at":{"x":2,"y":5},"text":"The author's note"}]);
+    let g = draw(annotated, &rows, opts);
+    let placed = note(&g, "The author's note").expect("the note").bounds;
+    let at = ring(&g);
+    assert!(
+        placed.x > at[0] && (placed.center()[1] - at[1]).abs() < 0.5,
+        "the note stands right of its ring, on its level: {placed:?} at {at:?}"
+    );
+    assert!(placed.overlaps(&before, 0.0), "the note takes the place the name had");
+    let after = automatic_texts(&g)
+        .into_iter()
+        .find(|t| t.text == "Alpha")
+        .expect("the name moves, it is not dropped")
+        .bounds;
+    assert!(!after.inflate(2.0).overlaps(&placed, 0.0));
+}
+
+/// A note keeps clear of the drawn lines wherever a place clear of them exists, and the
+/// automatic values and series names placed after it keep off it; where the lines leave no
+/// clear place the note still stands (FEA-CH-29, FEA-CH-32).
+#[test]
+fn a_note_keeps_clear_of_the_drawn_lines_and_automatic_labels_keep_off_it() {
+    let retained = [
+        ("New", [0.72, 0.74, 0.69, 0.78, 0.81, 0.83]),
+        ("Existing", [0.82, 0.84, 0.80, 0.86, 0.87, 0.89]),
+    ];
+    let rows: Vec<Value> = retained
+        .iter()
+        .flat_map(|(cohort, values)| {
+            values
+                .iter()
+                .enumerate()
+                .map(move |(i, v)| json!({"month": format!("2025-{:02}", i + 1), "retained": v, "cohort": cohort}))
+        })
+        .collect();
+    let spec = json!({"type":"line","title":"T","encoding":{"x":"month","y":"retained","color":"cohort"},
+        "axes":{"y":{"format":"percent"}},
+        "annotations":[{"kind":"point","at":{"x":"2025-06","y":0.89},"text":"Best month yet"}]});
+    for width in [358.0, 681.0] {
+        let opts = Options {
+            width,
+            ..Options::default()
+        };
+        let g = draw(spec.clone(), &rows, opts.clone());
+        let Some(placed) = note(&g, "Best month yet") else {
+            // The phone plot has no place for the note at all: it is recorded, as before.
+            assert!(width < 480.0, "{width}: the note is drawn");
+            assert!(
+                g.dropped
+                    .iter()
+                    .any(|d| d.kind.as_deref() == Some("annotation") && d.text == "Best month yet")
+            );
+            continue;
+        };
+        assert!(
+            !touches_a_drawn_line(&g, placed.bounds, 1.5),
+            "{width}: the note stands clear of both lines: {:?}",
+            placed.bounds
+        );
+        let mut alone = spec.clone();
+        alone["auto_annotations"] = json!(false);
+        let alone = draw(alone, &rows, opts);
+        assert_eq!(
+            Some(placed.bounds),
+            note(&alone, "Best month yet").map(|t| t.bounds),
+            "{width}: the note stands where it does with no automatic value"
+        );
+        for label in automatic_texts(&g) {
+            assert!(
+                !label.bounds.overlaps(&placed.bounds, 1.0),
+                "{width}: '{}' keeps off the note",
+                label.text
+            );
+        }
+    }
+    // A line that crosses every place round the note: the note stays, clear of the points.
+    let zigzag: Vec<Value> = (0..=200)
+        .map(|i| json!({"x": i, "y": if i % 2 == 0 { 0 } else { 100 }}))
+        .collect();
+    let dense = json!({"type":"line","title":"T","encoding":{"x":"x","y":"y"},"style":{"curve":"linear"},
+        "annotations":[{"kind":"text","at":{"x":100,"y":50},"text":"Still said"}]});
+    let g = draw(
+        dense,
+        &zigzag,
+        Options {
+            width: 640.0,
+            ..Options::default()
+        },
+    );
+    assert!(
+        note(&g, "Still said").is_some(),
+        "no clear place among the lines never costs the author the note: {:?}",
+        g.dropped
+    );
+}
+
+/// A horizontal rule's label never sits on its rule: it stands above it at the plot's right
+/// edge, and where a bar is in the way there it moves along the rule before it is dropped
+/// (FEA-CH-32).
+#[test]
+fn a_horizontal_rules_label_stands_beside_its_rule_never_on_it() {
+    let rule = |g: &Geometry| -> f64 {
+        g.panels[0]
+            .items
+            .iter()
+            .find_map(|i| match i {
+                Item::Line {
+                    path,
+                    role: Role::Annotation,
+                    ..
+                } => path.bounds().map(|b| b.center()[1]),
+                _ => None,
+            })
+            .expect("the rule")
+    };
+    let weeks: Vec<Value> = [120, 135, 128, 190, 162, 150, 141, 158]
+        .iter()
+        .enumerate()
+        .map(|(i, v)| json!({"week": i + 1, "signups": v}))
+        .collect();
+    let line = json!({"type":"line","title":"T","encoding":{"x":"week","y":"signups"},
+        "annotations":[{"kind":"line","at":{"y":175},"text":"Target"}]});
+    let quarters: Vec<Value> = [("Q1", 42), ("Q2", 58), ("Q3", 61), ("Q4", 73)]
+        .iter()
+        .map(|(q, v)| json!({"quarter": q, "units": v}))
+        .collect();
+    let bars = json!({"type":"bar","title":"T","encoding":{"x":"quarter","y":"units"},
+        "annotations":[{"kind":"line","at":{"y":60},"text":"Target 60"}]});
+    for width in [358.0, 681.0] {
+        let opts = Options {
+            width,
+            ..Options::default()
+        };
+        let g = draw(line.clone(), &weeks, opts.clone());
+        let (y, plot) = (rule(&g), g.panels[0].plot);
+        let label = note(&g, "Target")
+            .unwrap_or_else(|| panic!("{width}: the label is drawn"))
+            .bounds;
+        assert!(
+            label.bottom() < y,
+            "{width}: the label stands above its rule: {label:?}, rule at {y}"
+        );
+        assert!(y - label.bottom() <= 4.0, "{width}: and reads as that rule's label");
+        assert!(
+            (plot.right() - label.right() - 4.0).abs() < 0.01,
+            "{width}: at the plot's right edge: {label:?} in {plot:?}"
+        );
+
+        let g = draw(bars.clone(), &quarters, opts);
+        let (y, plot) = (rule(&g), g.panels[0].plot);
+        let label = note(&g, "Target 60")
+            .unwrap_or_else(|| panic!("{width}: a bar under the right end moves the label: {:?}", g.dropped))
+            .bounds;
+        assert!(
+            label.bottom() < y || label.y > y,
+            "{width}: the label is not struck through by its rule: {label:?}, rule at {y}"
+        );
+        assert!(label.inside(&plot, 0.0));
+        for item in &g.panels[0].items {
+            match item {
+                Item::Rect {
+                    rect, role: Role::Mark, ..
+                } => assert!(!label.overlaps(rect, 0.0), "{width}: the label keeps off the bars"),
+                Item::Text(t) if t.role == Role::Label => {
+                    assert!(
+                        !t.bounds.overlaps(&label, 1.0),
+                        "{width}: the value '{}' keeps off the label",
+                        t.text
+                    )
+                }
+                _ => {}
+            }
+        }
+    }
+}
+
+/// Where bars pass the rule at both ends of the plot, so that no place beside the rule at
+/// either edge is free, the label still stands near the rule's right end, off the rule and the
+/// bars, as it did before the label got its places beside the rule (FEA-CH-32).
+#[test]
+fn a_rules_label_with_both_ends_taken_stands_near_its_right_end() {
+    let quarters: Vec<Value> = [("Q1", 62), ("Q2", 30), ("Q3", 30), ("Q4", 62)]
+        .iter()
+        .map(|(q, v)| json!({"quarter": q, "units": v}))
+        .collect();
+    let bars = json!({"type":"bar","title":"T","encoding":{"x":"quarter","y":"units"},
+        "annotations":[{"kind":"line","at":{"y":60},"text":"Target 60"}]});
+    let g = draw(
+        bars,
+        &quarters,
+        Options {
+            width: 632.0,
+            ..Options::default()
+        },
+    );
+    let plot = g.panels[0].plot;
+    let y = g.panels[0]
+        .items
+        .iter()
+        .find_map(|i| match i {
+            Item::Line {
+                path,
+                role: Role::Annotation,
+                ..
+            } => path.bounds().map(|b| b.center()[1]),
+            _ => None,
+        })
+        .expect("the rule");
+    let label = note(&g, "Target 60")
+        .unwrap_or_else(|| panic!("the goal line keeps its label: {:?}", g.dropped))
+        .bounds;
+    assert!(
+        label.bottom() <= y - 3.0 || label.y >= y + 3.0,
+        "the label is off its rule: {label:?}, rule at {y}"
+    );
+    assert!(label.inside(&plot, 0.0));
+    for item in &g.panels[0].items {
+        match item {
+            Item::Rect {
+                rect, role: Role::Mark, ..
+            } => assert!(!label.overlaps(rect, 0.0), "the label keeps off the bars"),
+            Item::Text(t) if t.role == Role::Label => {
+                assert!(
+                    !t.bounds.overlaps(&label, 1.0),
+                    "the value '{}' keeps off the label",
+                    t.text
+                )
+            }
+            _ => {}
+        }
+    }
+}

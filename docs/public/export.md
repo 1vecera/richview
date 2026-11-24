@@ -4,6 +4,8 @@ description: Share an interactive report, or print a settled document locally.
 styles: [scientific]
 ---
 
+A RichView report is one HTML file. Mail it, put it on a shared drive or attach it to a ticket: it opens in a browser with its charts live, its tables and its downloads. For print and archives, the same report becomes a PDF.
+
 Continue from [your first report](https://richview.ai/docs/first-report). HTML and PDF are local exports. Neither starts a publishing server.
 
 ## Share interactive HTML

@@ -42,7 +42,7 @@ DATASETS = [
         "D-NPM",
         "npm package downloads, daily",
         "npm, Inc.",
-        "https://api.npmjs.org/downloads/",
+        "https://github.com/npm/registry/blob/main/docs/download-counts.md",
         "Counts installs including CI; monthly medians of daily downloads used for shares.",
     ),
     (

@@ -8,7 +8,7 @@ Open the [live block tour](https://richview.ai/docs/gallery/blocks/) to try ever
 
 ## Evidence in charts, tables and metrics
 
-A chart maps source columns to marks; choose a form in the [chart gallery](https://richview.ai/docs/charts). A table shows the observations and supports sorting, row limits and a total. A metric states one authored value: it does not calculate itself from a chart. Keep that value and its evidence consistent.
+A chart maps source columns to marks; choose a form in the [chart gallery](https://richview.ai/docs/charts). A table shows the observations and supports sorting, row limits and a total. `heat: true` on a numeric column shades its cells by value in the style's colours, `heat: diverging` on both sides of zero, and every cell still prints its number. A table of more than 10 rows gets a filter box that keeps the rows holding the typed text; `filter: true` or `false` decides, and `sortable: false` keeps the headings plain. A metric states one authored value: it does not calculate itself from a chart. Keep that value and its evidence consistent.
 
 ````rmd
 ```metric
@@ -57,6 +57,14 @@ alt: Nightingale's original area diagrams of mortality in the Army in the East
 caption: Florence Nightingale, Diagram of the Causes of Mortality in the Army in the East, 1858. David Rumsey Map Collection; public domain.
 ```
 ````
+
+### Use a local picture
+
+Save a PNG, JPEG, SVG, WebP or GIF inside your report folder and give `src` its relative path. The local picture appears in preview, exported HTML, PDF and a published report. This example shows a JPEG saved next to the report's CSV. [Publish the example in one command](https://richview.ai/docs/publishing#publish-a-folder-with-data-and-pictures).
+
+{{report:geyser-waits}}
+
+### Use a credited Unsplash photo
 
 Credited Unsplash photos are the supported remote-image path for image blocks and header pictures. They remain hotlinks with visible credit. The reader needs the network for the photo; its box, alt text and credit remain offline. Other remote images must be saved inside the report folder. A Markdown image remains a local resource even when its URL points to Unsplash.
 

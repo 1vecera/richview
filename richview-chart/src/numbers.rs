@@ -386,6 +386,31 @@ pub fn value(value: f64, format: &Format) -> String {
     }
 }
 
+/// One value as a slide's stage prints it on its chart (FEA-RP-65): as [`value`] does, at the
+/// same digits, but a large one takes the axis's K, M and B or its scaled unit (`$420K`,
+/// `1.2 MBD`) rather than a scale word, so it reads as the stage's headlines do.
+pub fn compact(value: f64, format: &Format) -> String {
+    let large = match format.kind {
+        Kind::Auto => value.abs() >= 10_000.0,
+        Kind::NumberCompact => value.abs() >= 1000.0,
+        _ => false,
+    };
+    if !value.is_finite() || !large {
+        return self::value(value, format);
+    }
+    let shown = shown(value, format);
+    let (k, mantissa) = scale_of(shown, format.digits);
+    if k >= axis_suffixes(format.locale).len() {
+        return self::value(value, format);
+    }
+    let (unit, suffix) = scaled_unit(format.unit.as_deref(), k, format.locale);
+    let number = format!(
+        "{}{suffix}",
+        grouped(mantissa, decimals_of(mantissa), format.locale, true)
+    );
+    with_unit(&number, unit.as_deref())
+}
+
 fn plain_or_scientific(v: f64, format: &Format) -> String {
     let unit = format.unit.as_deref();
     if v != 0.0 && (v.abs() < 1e-8 || v.abs() >= 1e15) {
@@ -600,6 +625,23 @@ mod tests {
             "1 million",
             "a mantissa that rounds to 1000 moves up"
         );
+    }
+
+    #[test]
+    fn a_stage_prints_the_axis_compact_form_at_the_same_digits() {
+        let dollars = fmt(Kind::NumberCompact, Some("$"), 3);
+        assert_eq!(compact(420_000.0, &dollars), "$420K");
+        assert_eq!(value(420_000.0, &dollars), "$420 thousand");
+        assert_eq!(compact(1_234_567.0, &Format::default()), "1.23M");
+        assert_eq!(compact(167_500.0, &fmt(Kind::Auto, None, 4)), "167.5K");
+        assert_eq!(compact(999_999.0, &Format::default()), "1M");
+        // What the scale words never touched stays as it was.
+        assert_eq!(compact(9_876.0, &Format::default()), "9,876");
+        assert_eq!(compact(0.909, &fmt(Kind::Percent, None, 3)), "90.9%");
+        assert_eq!(compact(-1500.0, &Format::default()), "\u{2212}1,500");
+        // The same form the axis gives a tick of that magnitude.
+        assert_eq!(axis_labels(&[0.0, 400_000.0], 400_000.0, &dollars)[1], "$400K");
+        assert_eq!(compact(400_000.0, &dollars), "$400K");
     }
 
     #[test]

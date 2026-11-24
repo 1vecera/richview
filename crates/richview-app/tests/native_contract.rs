@@ -12,6 +12,22 @@ use serde_json::{Value, json};
 use std::{fs, path::PathBuf, sync::Arc};
 use tower::ServiceExt;
 
+#[test]
+fn cli_reports_its_package_version_and_build_identity() {
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_richview"))
+        .arg("--version")
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let printed = String::from_utf8(output.stdout).unwrap();
+    assert_eq!(
+        printed.trim_end(),
+        format!("richview {}", richview_app::runtime::version_text())
+    );
+    let version = printed.split_whitespace().nth(1).unwrap();
+    assert_eq!(version, env!("CARGO_PKG_VERSION"));
+}
+
 struct Fixture {
     root: PathBuf,
     storage: FsStorage,
@@ -73,10 +89,6 @@ async fn request(
             .collect::<Vec<_>>();
         body["reportFolder"] =
             json!({"root":"request-fixture","source":"report.rmd","files":files});
-    }
-    // Tests publish new addresses unless a test says otherwise.
-    if body.get("slug").is_some() && body.get("new").is_none() {
-        body["new"] = json!(true);
     }
     let mut req = Request::builder()
         .method(method)
@@ -452,20 +464,20 @@ async fn linked_files_are_published_and_served_read_only() {
 
 #[tokio::test]
 #[ignore = "release: needs the real embedded report runtime staged by richview-build (ARC-07)"]
-async fn a_new_report_address_needs_confirmation_and_later_versions_do_not() {
+async fn first_publish_creates_and_later_versions_keep_the_address() {
     let f = Fixture::new();
     let app = f.app(Some("token"));
-    let body = json!({"slug":"fresh","source":source("0.0.1","Fresh"),"new":false});
-    let (status, text) = request(&app, "POST", "/api/reports", body.clone(), Some("token")).await;
+    let body = json!({"slug":"fresh","source":source("0.0.1","Fresh")});
+    let mut revision_only = body.clone();
+    revision_only["new"] = json!(false);
+    let (status, text) = request(&app, "POST", "/api/reports", revision_only, Some("token")).await;
     assert_eq!(status, StatusCode::CONFLICT, "{text}");
     assert!(text.contains("publish.new-slug") && text.contains("--new"));
     assert!(
         f.storage.get("fresh", None).unwrap().is_none(),
         "nothing stored"
     );
-    let mut confirmed = body.clone();
-    confirmed["new"] = json!(true);
-    let (status, text) = request(&app, "POST", "/api/reports", confirmed, Some("token")).await;
+    let (status, text) = request(&app, "POST", "/api/reports", body, Some("token")).await;
     assert_eq!(status, StatusCode::OK, "{text}");
     // A publish result is the same object as every other operation's (TYP-54).
     let published: Value = serde_json::from_str(&text).unwrap();
@@ -483,6 +495,16 @@ async fn a_new_report_address_needs_confirmation_and_later_versions_do_not() {
         StatusCode::OK,
         "a stored address needs no confirmation"
     );
+    for version in ["0.0.1", "0.0.2"] {
+        assert_eq!(
+            f.storage
+                .get("fresh", Some(version))
+                .unwrap()
+                .unwrap()
+                .version,
+            version
+        );
+    }
 }
 
 #[tokio::test]
@@ -491,7 +513,7 @@ async fn styles_and_external_data_are_retained_for_regeneration() {
     let f = Fixture::new();
     let app = f.app(Some("token"));
     let src = "---\ntitle: External data\ndescription: D\nversion: 0.0.1\nstyles: [./custom.rstyle.yaml]\n---\n\n```chart\ntype: bar\ntitle: T\ndata: {csv: data.csv}\nencoding: {x: label,y: value}\n```";
-    let style = "tokens:\n  accent: '#176430'\n";
+    let style = "colors:\n  brand: '#176430'\n";
     let (status,body)=request(&app,"POST","/api/reports",json!({"slug":"external","source":src,"styles":[style],"data":{"data.csv":"label,value\nA,12\nB,19","./custom.rstyle.yaml":style},"reportFolder":{"root":"external","source":"report.rmd","files":["report.rmd","data.csv","custom.rstyle.yaml"]}}),Some("token")).await;
     assert_eq!(status, StatusCode::OK, "{body}");
     let stored = f.storage.get("external", None).unwrap().unwrap();
@@ -756,7 +778,7 @@ fn combined_resource_budget_includes_styles_and_unique_data() {
         resolver::resolve_document_options_policy(source, &path, &[], false, false).unwrap();
     assert_eq!(options.data.len(), 3);
     drop(options);
-    let mut style = String::from("tokens:\n  accent: '#123456'\n# ");
+    let mut style = String::from("colors:\n  brand: '#123456'\n# ");
     style.extend(std::iter::repeat_n(' ', 8 * mib - style.len()));
     fs::write(f.root.join("large.rstyle.yaml"), style).unwrap();
     let error = resolver::resolve_document_options_policy(
@@ -1207,7 +1229,7 @@ fn unsaved_buffers_media_embedding_and_preview_dependency_changes() {
     fs::write(f.root.join("data.csv"), "x,y\nA,1").unwrap();
     fs::write(
         f.root.join("custom.rstyle.yaml"),
-        "tokens:\n  accent: '#176430'\n",
+        "colors:\n  brand: '#176430'\n",
     )
     .unwrap();
     let source = "---\ntitle_image: image.png\nstyles: [custom.rstyle.yaml]\n---\n\n![Inline](image.png)\n\n```chart\ntype: bar\ntitle: T\ndata: {csv: data.csv}\nencoding: {x: x,y: y}\n```";
@@ -1232,7 +1254,7 @@ fn unsaved_buffers_media_embedding_and_preview_dependency_changes() {
     assert_ne!(a, c);
     fs::write(
         f.root.join("custom.rstyle.yaml"),
-        "tokens:\n  accent: '#123456'\n  bg: white\n",
+        "colors:\n  brand: '#123456'\n  background: white\n",
     )
     .unwrap();
     let d = richview_app::server::preview_source_revision(&preview).unwrap();

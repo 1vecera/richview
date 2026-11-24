@@ -1089,11 +1089,18 @@ impl Access {
     /// Spend an invitation link. An address without an account gets one, with the name and
     /// password given, and is signed in; an existing account just receives what was offered and
     /// signs in as usual, so a mail link never opens a session on an existing account.
+    ///
+    /// With `identity`, the person accepts with a provider's account instead of a password: the
+    /// new account has no password, and the identity joins it whatever address the provider
+    /// reports, because the link proved the address. An existing account is refused: a mail link
+    /// must not give it a lasting new way in, so its owner signs in and connects the provider on
+    /// the Account page.
     pub(crate) async fn accept_invitation_link(
         &self,
         token: &str,
         name: &str,
         password: &str,
+        identity: Option<Identity>,
         publication: Option<tokio::sync::OwnedMutexGuard<()>>,
     ) -> Result<Accepted, AccessError> {
         let permit = self
@@ -1109,12 +1116,17 @@ impl Access {
             .filter(|link| link.purpose == LinkPurpose::Invite)
             .ok_or(AccessError::Credentials)?;
         let known = self.hosted_email_exists(&link.email);
+        if known && identity.is_some() {
+            return Err(AccessError::Invalid(
+                super::identities::PROVIDER_ON_EXISTING.into(),
+            ));
+        }
         let name = clean_name(name);
         if !known {
-            if name.is_none() || password.len() > MAX_PASSWORD_BYTES {
+            if name.is_none() || (identity.is_none() && password.len() > MAX_PASSWORD_BYTES) {
                 return Err(AccessError::Invalid("Check the name and password.".into()));
             }
-            if password.chars().count() < MIN_PASSWORD {
+            if identity.is_none() && password.chars().count() < MIN_PASSWORD {
                 return Err(AccessError::Invalid(short_password()));
             }
             if !self.signup_account_capacity() {
@@ -1127,7 +1139,7 @@ impl Access {
         let session = (random_text(32)?, random_text(24)?);
         tokio::task::spawn_blocking(move || {
             let _held = (permit, privacy, publication);
-            let password_hash = if known {
+            let password_hash = if known || identity.is_some() {
                 None
             } else {
                 let started = std::time::Instant::now();
@@ -1173,11 +1185,21 @@ impl Access {
                     .map(|r| r.user.clone());
                 let (user, created) = match existing {
                     Some(user) if user.disabled => return Err(AccessError::Credentials),
+                    // The account may have been made since the check above.
+                    Some(_) if identity.is_some() => {
+                        return Err(AccessError::Invalid(
+                            super::identities::PROVIDER_ON_EXISTING.into(),
+                        ));
+                    }
                     Some(user) => (user, false),
                     None => {
-                        let (Some(password_hash), Some(name)) = (password_hash, name) else {
+                        let Some(name) = name else {
                             return Err(AccessError::Credentials);
                         };
+                        // A person without a provider's account chose a password.
+                        if password_hash.is_none() && identity.is_none() {
+                            return Err(AccessError::Credentials);
+                        }
                         if state.signups_paused
                             || state.users.len()
                                 >= access
@@ -1210,12 +1232,25 @@ impl Access {
                         state.org_creations.insert(user.id.clone(), 0);
                         state.users.push(UserRecord {
                             user: user.clone(),
-                            password: Some(password_hash),
+                            password: password_hash,
                             tokens: vec![],
+                            identities: vec![],
+                            removed_identities: vec![],
+                            unsent_notices: vec![],
                         });
                         (user, true)
                     }
                 };
+                if let Some(identity) = identity {
+                    super::identities::attach(
+                        state,
+                        &user.id,
+                        Identity {
+                            connected: stamp(),
+                            ..identity
+                        },
+                    )?;
+                }
                 let landing = apply(state, &invitation, &user.id)?;
                 let session = if created {
                     state.sessions.retain(|s| s.expires > at);
@@ -1524,7 +1559,7 @@ mod invite_budget_tests {
             let id = "00000000000000000000000000000010";
             fs::write(journal.join(format!("{id}.request.json")), serde_json::to_vec(&serde_json::json!({"id":id,"to":"person@example.test","kind":"signup","created":at,"expires":at+3600,"status":"pending","subject":"Test","body":"link","token":token})).unwrap()).unwrap();
         }
-        let access = Access::open_hosted(dir.path()).unwrap();
+        let access = Access::reopen_hosted(dir.path()).await;
         let sender = Arc::new(Provider(AtomicUsize::new(0)));
         access.configure_mail(sender.clone(), 10, false).unwrap();
         tokio::time::timeout(std::time::Duration::from_secs(2), async {
@@ -1624,7 +1659,7 @@ mod invite_budget_tests {
                 .finish_shutdown(tokio::time::Instant::now() + std::time::Duration::from_secs(1))
                 .await;
         }
-        let access = Access::open_hosted(dir.path()).unwrap();
+        let access = Access::reopen_hosted(dir.path()).await;
         access
             .configure_mail(Arc::new(Provider(AtomicUsize::new(0))), 1000, false)
             .unwrap();

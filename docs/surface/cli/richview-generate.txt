@@ -1,5 +1,7 @@
 Write the self-contained report, or a PDF, into the report folder's Rendered/
 
+A source with `slides: true` in its frontmatter is written as slides: one screen for the title and one for each top-level heading or `---`, and a PDF of one 16:9 page a slide.
+
 Usage: richview generate [OPTIONS] <INPUT>
 
 Arguments:
@@ -26,7 +28,7 @@ Options:
           - pdf:    A PDF printed by a local Chromium-family browser
 
       --page <PAGE>
-          Paper size of a PDF
+          Paper size of a PDF; slides print on 16:9 pages of their own
           
           [default: a4]
           [possible values: a4, letter]

@@ -260,7 +260,6 @@ async fn concurrent_authors_cannot_both_create_the_same_report() {
         let body = |version: &str| {
             json!({
                 "slug": slug,
-                "new": true,
                 "source": format!("---\ntitle: Race\ndescription: D\nversion: {version}\n---\n\n# Race\n"),
                 "reportFolder": {"root": "t", "source": "report.rmd", "files": ["report.rmd"]},
             })
@@ -912,15 +911,15 @@ async fn company_logo_share_card_visibility_and_style() {
     for (slug, style) in [
         (
             "plain",
-            "company: {name: Example Co, color: '#0B6E69', base: air}\n",
+            "preset: air\ncolors: {brand: '#0B6E69'}\ncompany: {name: Example Co}\n",
         ),
         (
             "company",
-            "company: {name: Example Co, color: '#0B6E69', logo: logo.png, base: air}\n",
+            "preset: air\ncolors: {brand: '#0B6E69'}\ncompany: {name: Example Co, logo: logo.png}\n",
         ),
         (
             "company-sleek",
-            "company: {name: Example Co, color: '#0B6E69', logo: logo.png, base: sleek}\n",
+            "preset: sleek\ncolors: {brand: '#0B6E69'}\ncompany: {name: Example Co, logo: logo.png}\n",
         ),
     ] {
         let (status, body) = host.call(
@@ -1356,6 +1355,52 @@ async fn http_validate_and_check_report_missing_and_escaping_files_once() {
                 .count();
             assert_eq!(hits, 1, "{path} {data}: {body}");
         }
+    }
+}
+
+#[tokio::test]
+async fn a_folder_copied_from_a_mac_is_one_report_over_http_and_its_sidecars_are_no_files() {
+    // An inventory some other client built still lists what a Mac leaves behind: an AppleDouble
+    // sidecar `._<name>` beside each file, and a `__MACOSX` folder of them.
+    let host = Host::new();
+    let folder = json!({"root": "q3", "source": "report.rmd", "files": [
+        "report.rmd", "._report.rmd", "data/sales.csv", "data/._sales.csv", "__MACOSX/._report.rmd"
+    ]});
+    let good = "---\ntitle: Good\ndescription: D\nversion: 1.0.0\n---\n\n# Good\n";
+    let naming = "---\ntitle: Good\ndescription: D\nversion: 1.0.0\n---\n\n```table\ndata: {csv: data/._sales.csv}\n```\n";
+    for path in ["/api/validate", "/api/check"] {
+        let (status, body) = host
+            .call(
+                "POST",
+                path,
+                Some(&host.author),
+                json!({"source": good, "reportFolder": folder}),
+            )
+            .await;
+        assert_eq!(status, StatusCode::OK, "{path}: {body}");
+        let value: Value = serde_json::from_str(&body).unwrap();
+        assert_eq!(value["ok"], true, "{path}: {value}");
+        // A report that names a sidecar finds no file there, whatever the inventory lists.
+        let (status, body) = host
+            .call(
+                "POST",
+                path,
+                Some(&host.author),
+                json!({"source": naming, "reportFolder": folder}),
+            )
+            .await;
+        assert_eq!(status, StatusCode::OK, "{path}: {body}");
+        let value: Value = serde_json::from_str(&body).unwrap();
+        let hits = value["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|d| {
+                d["code"] == "report.asset.missing"
+                    && d["message"].as_str().is_some_and(|m| m.contains("sidecar"))
+            })
+            .count();
+        assert_eq!(hits, 1, "{path}: {body}");
     }
 }
 

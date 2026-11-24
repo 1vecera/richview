@@ -2,6 +2,12 @@
 # Dark, cool-hued (260°) Material-grey surfaces + a single poppy-ultramarine accent.
 # Space Grotesk display + Geist sans body + Geist Mono labels.
 colophon: show
+# A glow from the accent in the top corner of the dark page (STY-74), at the designed medium.
+# Inks keep their floors over its brightest pixel; paper prints the light page.
+# `background: none` turns it off.
+background:
+  gradient: glow
+  strength: medium
 tokens:
   scheme: dark
   print-as: air
@@ -10,7 +16,9 @@ tokens:
   bg-chart: "oklch(0.19 0.016 260)"
   ink: "oklch(0.95 0.005 260)"
   ink-soft: "oklch(0.72 0.012 260)"
-  ink-faint: "oklch(0.51 0.014 260)"
+  # 0.535, not 0.51: the faint ink is the one that limits the glow; at 0.535 it keeps 3:1 over
+  # the glow at medium (STY-73, STY-74).
+  ink-faint: "oklch(0.535 0.014 260)"
   rule: "oklch(0.30 0.016 260)"
   rule-soft: "oklch(0.29 0.016 260)"
   accent: "oklch(0.5464 0.2508 263.51)"
@@ -73,6 +81,9 @@ components:
     border-width: "1px"
   title:
     letter-spacing: "-0.02em"
+  # A slides source stands on this stage (FEA-RP-65): a stage at night: oversized grotesk, charts straight on the dark, the lone number and the section slides on a full field of the accent.
+  slides:
+    stage: keynote
 chart:
   legend: top
   palette: sleek

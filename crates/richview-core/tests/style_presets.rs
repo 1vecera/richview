@@ -1,6 +1,6 @@
 //! Presets, the author's colours and the five-step settings (STY-73): every combination holds
 //! the contrast floors (STY-25), the palette rule (STY-22) and the type scale (STY-26), old
-//! vocabulary keeps applying with a `style.legacy` warning, and `medium` changes nothing.
+//! vocabulary is ignored with a retirement warning, and `medium` changes nothing.
 
 use richview_core::{
     EXTENDED_PRESETS, ResolvedStyle, STEP_SETTINGS, STEPS, builtin_style_names, preset_names,
@@ -117,26 +117,17 @@ fn medium_is_the_presets_own_value_so_leaving_a_setting_out_changes_nothing() {
 }
 
 #[test]
-fn the_old_company_syntax_warns_and_the_new_colours_derive_the_same_palette() {
+fn retired_company_colours_cannot_select_air_or_change_the_palette() {
     let old = "company:\n  color: '#0B6E69'\n  secondary: '#C2650F'\n  base: air\n";
     let new = "preset: air\ncolors:\n  brand: '#0B6E69'\n  secondary: '#C2650F'\n";
     let (old_style, old_diagnostics) = styled(&[old]);
     let (new_style, new_diagnostics) = styled(&[new]);
     assert!(new_diagnostics.is_empty(), "{new_diagnostics:?}");
-    // The old keys keep STY-71's derivation exactly (the dev fixtures pin it); the new colours
-    // derive the same series and the same accent for a brand that needs no move.
-    assert_eq!(old_style.chart["palette"], new_style.chart["palette"]);
-    // The new colours keep the brand to the last bit; STY-71's three-decimal output, kept as it
-    // was, lands one 8-bit step away.
+    assert_eq!(old_style.document, styled(&["sleek"]).0.document);
     assert_eq!(hex(&new_style.custom_properties["--rv-accent"]), "#0b6e69");
-    let (old_accent, new_accent) = (
-        richview_chart::color::parse(&old_style.custom_properties["--rv-accent"]).unwrap(),
-        richview_chart::color::parse(&new_style.custom_properties["--rv-accent"]).unwrap(),
-    );
-    assert!(richview_chart::color::delta_e(old_accent, new_accent) < 0.005);
     let legacy: Vec<_> = old_diagnostics
         .iter()
-        .filter(|d| d.code == "style.legacy")
+        .filter(|d| d.code == "style.retired")
         .map(|d| (d.path.as_str(), d.level.as_str()))
         .collect();
     assert_eq!(
@@ -185,102 +176,110 @@ fn a_brand_colour_with_an_alpha_is_refused() {
 }
 
 #[test]
-fn old_settings_and_tokens_keep_applying_and_warn_with_their_replacement() {
-    for (source, path, replacement) in [
-        ("type-size: small\n", "type-size", "`text-size`"),
-        ("density: loose\n", "density", "`padding`"),
-        ("block-gap: wide\n", "block-gap", "`spacing`"),
-        ("accent: '#0F62FE'\n", "accent", "`colors.brand`"),
-        ("motion: off\n", "motion", "`motion: xsmall`"),
-        (
-            "tokens:\n  bg: '#FAFAFA'\n",
-            "tokens.bg",
-            "`colors.background`",
-        ),
-        ("tokens:\n  radius-m: 4px\n", "tokens.radius-m", "`corners`"),
-        (
-            "tokens:\n  size-h2-phone: 26px\n",
-            "tokens.size-h2-phone",
-            "`text-size`",
-        ),
-        ("chart:\n  bar-radius: 0\n", "chart.bar-radius", "`corners`"),
-        (
-            "components:\n  figure:\n    frame: outline\n",
-            "components.figure.frame",
-            "the preset decides",
-        ),
-    ] {
-        let (_, diagnostics) = styled(&["sleek", source]);
-        let legacy = diagnostics
-            .iter()
-            .find(|d| d.code == "style.legacy")
-            .unwrap_or_else(|| panic!("{source}: {diagnostics:?}"));
-        assert_eq!(legacy.level, "warning");
-        assert_eq!(legacy.path, format!("styles[1].{path}"));
-        assert!(legacy.message.contains(replacement), "{}", legacy.message);
+fn every_retired_leaf_is_skipped_with_one_located_warning() {
+    use richview_core::{StyleMark, style_vocabulary};
+    let baseline = styled(&["air", "spacing: large\n"]).0;
+    for leaf in style_vocabulary()
+        .iter()
+        .filter(|leaf| leaf.mark == StyleMark::Legacy)
+    {
+        let parts: Vec<_> = leaf.path.split('.').collect();
+        // Presets supply real values for their internal leaves. The former shortcuts are
+        // author-only and have no entry in a resolved preset.
+        let example = match leaf.path.as_str() {
+            "density" => serde_json::json!("airmax"),
+            "block-gap" => serde_json::json!("wide"),
+            "type-size" => serde_json::json!("small"),
+            "accent" | "company.color" | "company.secondary" => serde_json::json!("#001122"),
+            "company.base" => serde_json::json!("brutalist"),
+            _ => builtin_style_names()
+                .iter()
+                .find_map(|name| {
+                    styled(&[name])
+                        .0
+                        .document
+                        .pointer(&format!("/{}", leaf.path.replace('.', "/")))
+                        .cloned()
+                })
+                .unwrap_or(serde_json::json!(42)),
+        };
+        for value in [example, serde_json::Value::Null] {
+            let mut source = String::from("spacing: large\n");
+            for (depth, key) in parts.iter().enumerate() {
+                source.push_str(&"  ".repeat(depth));
+                source.push_str(key);
+                source.push(':');
+                if depth + 1 == parts.len() {
+                    source.push(' ');
+                    source.push_str(&value.to_string());
+                }
+                source.push('\n');
+            }
+            let (style, warnings) = styled(&["air", &source]);
+            assert_eq!(style.document, baseline.document, "{}", leaf.path);
+            assert_eq!(warnings.len(), 1, "{source}: {warnings:?}");
+            let d = &warnings[0];
+            assert_eq!(
+                (d.level.as_str(), d.code.as_str()),
+                ("warning", "style.retired")
+            );
+            assert_eq!(d.path, format!("styles[1].{}", leaf.path));
+            assert_eq!(d.line, Some(parts.len() + 1));
+            assert_eq!(d.column, Some(1 + (parts.len() - 1) * 2));
+            assert!(d.fix.is_some());
+        }
     }
-    // Each old leaf still applies its value, as before.
-    let sleek = styled(&["sleek"]).0;
-    let props = |source: &str| styled(&["sleek", source]).0.custom_properties;
-    let (old, _) = styled(&["sleek", "type-size: small\n"]);
-    let (new, _) = styled(&["sleek", "text-size: small\n"]);
-    for step in ["small", "base", "h3", "h2", "h1", "display"] {
-        let key = format!("--rv-size-{step}");
-        assert_eq!(
-            old.custom_properties[&key], new.custom_properties[&key],
-            "{step}"
-        );
-        assert_ne!(
-            old.custom_properties[&key], sleek.custom_properties[&key],
-            "{step}"
+    for (word, replacement) in [("on", "medium"), ("off", "xsmall")] {
+        let (style, warnings) = styled(&["air", &format!("spacing: large\nmotion: {word}\n")]);
+        assert_eq!(style.document, baseline.document);
+        assert_eq!(warnings.len(), 1);
+        assert_eq!(warnings[0].code, "style.retired");
+        assert_eq!(warnings[0].line, Some(2));
+        assert!(
+            warnings[0]
+                .message
+                .contains(&format!("motion: {replacement}"))
         );
     }
-    assert_eq!(props("density: loose\n")["--rv-density"], "1.25");
-    let wide = props("block-gap: wide\n");
-    assert_eq!(
-        (
-            wide["--rv-block-gap"].as_str(),
-            wide["--rv-block-gap-phone"].as_str()
-        ),
-        ("5rem", "3rem")
-    );
-    let accent = props("accent: '#0F62FE'\n");
-    assert_eq!(accent["--rv-accent"], "#0F62FE");
-    assert_eq!(
-        styled(&["sleek", "motion: off\n"]).0.document["motion"]["enabled"],
-        false
-    );
-    assert_eq!(props("tokens:\n  bg: '#FAFAFA'\n")["--rv-bg"], "#FAFAFA");
-    assert_eq!(props("tokens:\n  radius-m: 4px\n")["--rv-radius-m"], "4px");
-    let phone = styled(&["sleek", "tokens:\n  size-h2-phone: 26px\n"]).0;
-    assert!(phone.css.contains("--rv-size-h2: 26px;"), "{}", phone.css);
-    assert_eq!(
-        styled(&["sleek", "chart:\n  bar-radius: 0\n"]).0.chart["bar-radius"],
-        0
-    );
-    let outline = styled(&["sleek", "components:\n  figure:\n    frame: outline\n"]).0;
-    assert_eq!(outline.document["components"]["figure"]["frame"], "outline");
-    assert!(
-        outline
-            .css
-            .contains(".rv-chart{border:2px solid var(--rv-ink)")
-    );
 }
 
 #[test]
-fn steps_act_on_explicit_leaves_alike_and_explicit_colours_win_with_or_without_colors() {
-    let with = "preset: air\ncolors:\n  brand: '#0F62FE'\ntokens:\n  radius-m: 4px\n  bg: '#FAFAFA'\ncorners: xlarge\ntint: xlarge\n";
-    let without =
-        "preset: air\ntokens:\n  radius-m: 4px\n  bg: '#FAFAFA'\ncorners: xlarge\ntint: xlarge\n";
-    let (a, _) = styled(&[with]);
-    let (b, _) = styled(&[without]);
-    assert_eq!(
-        a.custom_properties["--rv-radius-m"],
-        b.custom_properties["--rv-radius-m"]
-    );
-    assert_eq!(a.custom_properties["--rv-radius-m"], "14px");
-    assert_eq!(a.custom_properties["--rv-bg"], "#FAFAFA");
-    assert_eq!(b.custom_properties["--rv-bg"], "#FAFAFA");
+fn retired_warnings_give_the_supported_spelling_or_leave_the_choice_to_the_preset() {
+    for (source, expected) in [
+        (
+            "chart: {palette: air}",
+            "Retired style leaf 'chart.palette' is ignored. Use `palette` instead.",
+        ),
+        (
+            "motion: off",
+            "Retired style leaf 'motion' is ignored. Use `motion: xsmall` instead.",
+        ),
+        (
+            "tokens: {line-base: 1.65}",
+            "Retired style leaf 'tokens.line-base' is ignored. Remove it. The preset controls this value.",
+        ),
+    ] {
+        let (_, warnings) = styled(&["air", source]);
+        assert_eq!(warnings.len(), 1);
+        assert_eq!(warnings[0].message, expected);
+    }
+}
+
+#[test]
+fn retired_leaves_do_not_override_supported_steps_or_colours() {
+    for colors in ["", "colors: {brand: '#0F62FE'}\n"] {
+        let baseline = format!("preset: air\n{colors}corners: xlarge\ntint: large\n");
+        let mixed = format!("{baseline}tokens: {{radius-m: 4px, bg: '#FAFAFA'}}\n");
+        let (style, warnings) = styled(&[&mixed]);
+        assert_eq!(style.document, styled(&[&baseline]).0.document);
+        assert_eq!(
+            warnings
+                .iter()
+                .filter(|d| d.code == "style.retired")
+                .count(),
+            2
+        );
+    }
 }
 
 #[test]
@@ -619,10 +618,30 @@ fn a_knockout_metric_keeps_its_text_readable_with_any_colours() {
     assert!(failures.is_empty(), "{}", failures.join("\n"));
 }
 
-/// A report that names only presets, and a style file in the old vocabulary, resolve exactly as
-/// on `dev` before STY-73: the fixtures are `dev`'s output at 8f287f9d for the same inputs.
+/// The CSS without STY-74's generated background block.
+fn without_background(css: &str) -> String {
+    // The screen block, then the rule that drops it for high contrast and forced colours.
+    let mut out = css.to_owned();
+    for (start, end) in [
+        ("@media screen{html{background:", "}}\n"),
+        (
+            "@media (prefers-contrast:more),(forced-colors:active){html{background:var(--rv-bg)!important}",
+            "\n",
+        ),
+    ] {
+        if let Some(at) = out.find(start) {
+            let stop = out[at..]
+                .find(end)
+                .map_or(out.len(), |e| at + e + end.len());
+            out.replace_range(at..stop, "");
+        }
+    }
+    out
+}
+
+/// The builtin styles keep their pre-STY-73 output, apart from the shipped backgrounds.
 #[test]
-fn preset_only_and_legacy_files_resolve_byte_for_byte_as_before() {
+fn presets_resolve_byte_for_byte_as_before() {
     let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/style-dev");
     let mut names: Vec<_> = std::fs::read_dir(&dir)
         .unwrap()
@@ -630,7 +649,7 @@ fn preset_only_and_legacy_files_resolve_byte_for_byte_as_before() {
         .map(|entry| entry.path())
         .collect();
     names.sort();
-    assert!(names.len() >= 13, "{names:?}");
+    assert_eq!(names.len(), builtin_style_names().len(), "{names:?}");
     let mut failures = vec![];
     for path in names {
         let fixture: serde_json::Value =
@@ -643,7 +662,9 @@ fn preset_only_and_legacy_files_resolve_byte_for_byte_as_before() {
             .collect();
         let (style, _) = styled(&refs);
         let name = path.file_name().unwrap().to_string_lossy().into_owned();
-        if style.css != fixture["css"].as_str().unwrap() {
+        // Three presets now ship a background (STY-74): its generated block is the one addition;
+        // everything else, the custom properties included, is as before.
+        if without_background(&style.css) != fixture["css"].as_str().unwrap() {
             failures.push(format!("{name}: css differs"));
         }
         if serde_json::to_value(&style.custom_properties).unwrap() != fixture["custom_properties"] {

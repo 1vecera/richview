@@ -207,6 +207,53 @@ fn drawn_marks_css(c: &Value, props: &BTreeMap<String, String>) -> String {
     css
 }
 
+/// The marks a style's slide stage draws (FEA-RP-65), added only to a slides rendition, so a
+/// report carries none of them. The sketchbook stage's: a ring round a change, a smaller one round
+/// a table's change, an arrow that points a note at what it names, the rule over a total and the
+/// swash under the title, in the style's accent and ink. `slides.css` places them.
+pub(super) fn slides_css(components: Option<&Value>, props: &BTreeMap<String, String>) -> String {
+    use richview_chart::pencil;
+    let mut css = String::new();
+    if components
+        .and_then(|c| c.pointer("/slides/stage"))
+        .and_then(Value::as_str)
+        == Some("sketchbook")
+    {
+        let token = |name: &str| props.get(&format!("--rv-{name}")).map(String::as_str);
+        let ink = token("ink").unwrap_or("oklch(0.22 0.015 40)");
+        let accent = token("accent").unwrap_or("oklch(0.55 0.18 277)");
+        let ring = stroke_image(
+            &pencil::circle("slides.ring", 240.0, 64.0, 2.4),
+            (0.0, 0.0, 240.0, 64.0),
+            accent,
+        );
+        let small = stroke_image(
+            &pencil::circle("slides.ring.small", 120.0, 56.0, 2.2),
+            (0.0, 0.0, 120.0, 56.0),
+            accent,
+        );
+        let arrow = stroke_image(
+            &pencil::arrow("slides.arrow", (102.0, 12.0), (16.0, 50.0), 3.6),
+            (0.0, 0.0, 120.0, 64.0),
+            accent,
+        );
+        let total = stroke_image(
+            &pencil::rule("slides.total", 640.0, 8.0, 1.8),
+            (0.0, 0.0, 640.0, 8.0),
+            ink,
+        );
+        let swash = stroke_image(
+            &pencil::underline("slides.swash", 240.0, 12.0, 3.6),
+            (0.0, 0.0, 240.0, 12.0),
+            accent,
+        );
+        css.push_str(&format!(
+            ".rv-report--slides{{--rv-pencil-ring:{ring};--rv-pencil-ring-small:{small};--rv-pencil-arrow:{arrow};--rv-pencil-total:{total};--rv-pencil-swash:{swash}}}\n"
+        ));
+    }
+    css
+}
+
 /// An SVG path as a CSS image. The `view` box stretches to whatever size the background is
 /// given, so a stroke drawn once follows its element's width (or height).
 fn stroke_image(d: &str, view: (f64, f64, f64, f64), fill: &str) -> String {
@@ -230,16 +277,23 @@ fn stroke_image(d: &str, view: (f64, f64, f64, f64), fill: &str) -> String {
     url
 }
 
-/// The width a chart's frame takes from the figure on each side pair, in CSS pixels: the shaded
-/// and outlined frames pad the figure by 1.25rem a side (and the outline adds its 2px border), so
-/// the plot is narrower than the column. Core lays the chart out at the width it will have.
-pub(crate) fn frame_inset_px(document: &Value) -> f64 {
+/// The total inline space kept inside a chart's frame, in CSS pixels.
+pub(crate) fn frame_inset_px(document: &Value, print: bool) -> f64 {
+    let padding = 40.0 * super::settings::frame_padding(document);
     match document
         .pointer("/components/figure/frame")
         .and_then(Value::as_str)
     {
-        Some("shaded") => 40.0 * super::settings::frame_padding(document),
-        Some("outline") => 4.0 + 40.0 * super::settings::frame_padding(document),
+        Some("shaded") => padding,
+        Some("outline") => padding + if print { 4.0 } else { 0.0 },
+        // The lettering style uses the page's paper texture as its frame on screen.
+        Some("none")
+            if !print
+                && super::background::Spec::read(document)
+                    .is_some_and(|spec| spec.texture.as_deref() == Some("grain")) =>
+        {
+            padding
+        }
         _ => 0.0,
     }
 }
@@ -282,11 +336,10 @@ fn figure_css(c: &Value) -> String {
         ));
         if title.unwrap_or("above") != "above" {
             css.push_str(".rv-chart .rv-chart__titlerow{display:contents}.rv-chart .rv-chart__titlerow>.rv-chart__title{order:7;flex:none}.rv-chart .rv-chart__titlerow>.rv-chart__actions{order:3;align-self:flex-end;margin:0}\n");
-            // On a phone too the icons keep their own line over the chart, unlike every other
-            // style's (Daniel, 17 Nov: "no empty line for icons"). That line is the only place a
-            // phone's readout clears its mark on chord and venn, whose plot fills the width. The
-            // phone row returns when chord and venn are judged by painted mark (Readout fit,
-            // train 4).
+            // A phone gives the icons no line of their own (Daniel, 17 Nov): up to 600 px the row
+            // is whole again, under the chart, with the icons at the right end of the title's
+            // first line as in every other style.
+            css.push_str("@media (max-width:600px){.rv-chart .rv-chart__titlerow{display:flex}.rv-chart .rv-chart__titlerow>.rv-chart__title{order:0;flex:1 1 0}.rv-chart .rv-chart__titlerow>.rv-chart__actions{order:0;align-self:auto;margin:calc(.5625 * var(--rv-size-base,1.125rem) - 16px) 0 0 auto}}\n");
         }
     }
     if description == Some("below-boxed") {

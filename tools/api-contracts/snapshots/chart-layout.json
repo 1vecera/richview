@@ -36,7 +36,10 @@
           "pub motion : bool",
           "pub motion_profile : crate : : motion : : Profile",
           "pub legend : String",
-          "pub down : String"
+          "pub down : String",
+          "# [ serde ( skip_serializing_if = \"std::ops::Not::not\" ) ] pub wide_bars : bool",
+          "# [ serde ( skip_serializing_if = \"std::ops::Not::not\" ) ] pub few_gridlines : bool",
+          "# [ serde ( skip_serializing_if = \"std::ops::Not::not\" ) ] pub stage_values : bool"
         ],
         "privateFields": false
       },

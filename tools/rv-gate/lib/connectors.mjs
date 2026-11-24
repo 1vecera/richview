@@ -3,9 +3,11 @@
 //
 // An example folder with `report.connectors.yaml` names connectors; the gate decides per example
 // whether it can render them:
-//   seed         every connector is DuckDB and the folder ships `data/seed.sql`: the gate seeds a
-//                fresh database in a temporary copy with the dev-only `seed_duckdb` example and renders
-//                the copy. No product feature, no network, no committed binary.
+//   seed         every connector is DuckDB or a Parquet file and the folder ships `data/seed.sql`:
+//                the gate seeds a temporary copy with the dev-only `seed_duckdb` example and
+//                renders the copy. For DuckDB the script fills a fresh database; for Parquet it
+//                writes the files itself (`copy ... to 'data/<name>.parquet'`, relative to the
+//                report folder). No product feature, no network, no committed binary.
 //   runtime      a MetricFlow connector: it needs the runtime from the server's configuration, so it
 //                runs for real only when the gate's environment names one (MF_ENV); otherwise it is
 //                validated only and reported `unrun`, never as a pass.
@@ -29,6 +31,8 @@ export const MF_TEST = "okurka_metricflow_runtime_returns_real_rows_through_the_
  * connector cache, whose rows are keyed by connector and SQL rather than by the database, so a
  * cache a test left in the checkout would stand in for the fresh seed (review 1i note 9).
  */
+/** The connector kinds the gate seeds, and the key that names each one's report-relative source. */
+const SOURCE_KEY = { duckdb: "database", parquet: "file" };
 export const SKIP_COPY = new Set(["research", "Rendered", "node_modules", ".git", ".richview-cache"]);
 
 /** The names in `vars` that `env` leaves unset or empty. */
@@ -79,12 +83,12 @@ export function classifyConnectors(dir) {
 	const entries = Object.entries(connectors);
 	const unsupported = (reason) => ({ kind: "unsupported", connectors, reason });
 	if (!entries.length) return unsupported(`${CONNECTORS_YAML} declares no connector`);
-	const other = entries.find(([, c]) => c.kind !== "duckdb" && c.kind !== "metricflow");
+	const other = entries.find(([, c]) => !SOURCE_KEY[c.kind] && c.kind !== "metricflow");
 	if (other) return unsupported(`connector '${other[0]}' has kind '${other[1].kind}', which the gate cannot prepare`);
 	if (entries.some(([, c]) => c.kind === "metricflow")) return { kind: "runtime", connectors, reason: MF_REASON };
-	if (!existsSync(join(dir, SEED_SQL))) return unsupported(`a duckdb connector needs ${SEED_SQL} for the gate to seed it`);
-	const bare = entries.find(([, c]) => !c.database);
-	if (bare) return unsupported(`duckdb connector '${bare[0]}' names no database`);
+	if (!existsSync(join(dir, SEED_SQL))) return unsupported(`a ${entries[0][1].kind} connector needs ${SEED_SQL} for the gate to seed it`);
+	const bare = entries.find(([, c]) => !c[SOURCE_KEY[c.kind]]);
+	if (bare) return unsupported(`${bare[1].kind} connector '${bare[0]}' names no ${SOURCE_KEY[bare[1].kind]}`);
 	return { kind: "seed", connectors };
 }
 
@@ -97,7 +101,8 @@ export const FIXTURE_CONNECTORS = `# Written by rv-gate for a seeded example. Du
 /**
  * Copy a seed example to `dest`, seed each of its DuckDB databases from `data/seed.sql` with the
  * dev-only `seed_duckdb <seed.sql> <database>` (it creates a fresh file and refuses to overwrite),
- * and write the trusted connectors file beside the copy. Returns what a render needs:
+ * let the script write the Parquet files its `parquet` connectors name (run once, in the copy,
+ * against an in-memory database), and write the trusted connectors file beside the copy. Returns what a render needs:
  * `{ folder, connectorsFile, args, env }`. Throws when seeding fails.
  */
 export function prepareSeedExample({ source, dest, seedBin, run = spawnSync }) {
@@ -108,15 +113,27 @@ export function prepareSeedExample({ source, dest, seedBin, run = spawnSync }) {
 	rmSync(join(dest, ".richview-cache"), { recursive: true, force: true });
 	cpSync(source, dest, { recursive: true, filter: (src) => !SKIP_COPY.has(basename(src)) });
 	const root = resolve(dest);
-	for (const [name, connector] of Object.entries(classified.connectors)) {
-		const database = resolve(root, connector.database);
-		const inside = relative(root, database);
-		if (inside === "" || inside.startsWith("..")) throw new Error(`connector '${name}' database '${connector.database}' escapes the report folder`);
-		mkdirSync(dirname(database), { recursive: true });
-		// A database the checkout already holds (a test seeded it there) is not the seed: start fresh (review 1h should-fix 6).
-		rmSync(database, { force: true });
-		const seeded = run(seedBin, [join(root, SEED_SQL), database], { encoding: "utf8" });
+	const seed = (name, database) => {
+		// The script names the Parquet files it writes relative to the report folder.
+		const seeded = run(seedBin, [join(root, SEED_SQL), database], { encoding: "utf8", cwd: root });
 		if (seeded.error || seeded.status !== 0) throw new Error(`seeding '${name}' failed: ${(seeded.error?.message ?? (seeded.stderr || seeded.stdout || `exit ${seeded.status}`)).trim().slice(0, 300)}`);
+	};
+	const written = [];
+	for (const [name, connector] of Object.entries(classified.connectors)) {
+		const key = SOURCE_KEY[connector.kind];
+		const source = resolve(root, connector[key]);
+		const inside = relative(root, source);
+		if (inside === "" || inside.startsWith("..")) throw new Error(`connector '${name}' ${key} '${connector[key]}' escapes the report folder`);
+		mkdirSync(dirname(source), { recursive: true });
+		// A source the checkout already holds (a test seeded it there) is not the seed: start fresh (review 1h should-fix 6).
+		rmSync(source, { force: true });
+		if (connector.kind === "parquet") written.push([name, source, inside]);
+		else seed(name, source);
+	}
+	if (written.length) {
+		seed(written[0][0], ":memory:");
+		const missing = written.find(([, source]) => !existsSync(source));
+		if (missing) throw new Error(`seeding '${missing[0]}' failed: ${SEED_SQL} did not write '${missing[2]}'`);
 	}
 	const connectorsFile = `${root}.connectors.toml`;
 	writeFileSync(connectorsFile, FIXTURE_CONNECTORS);

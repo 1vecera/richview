@@ -139,11 +139,19 @@ try {
   if (Test-Path -LiteralPath $work) { Remove-Item -LiteralPath $work -Recurse -Force }
 }
 $cli = Quote (Join-Path (Join-Path $Prefix 'bin') 'richview.exe')
-"Installed RichView build $release_commit in $Prefix"
+# The version is the one the installed CLI reports, so it matches `richview --version`.
+$printed = ''
+try { $printed = "$(& (Join-Path (Join-Path $Prefix 'bin') 'richview.exe') --version 2>$null | Select-Object -First 1)" } catch { $printed = '' }
+if ($printed -cmatch '^richview ([0-9A-Za-z.+-]+) ') {
+  "Installed RichView $($Matches[1]) (commit $($release_commit.Substring(0, 10))) in $Prefix"
+} else {
+  [Console]::Error.WriteLine("richview install: the installed CLI did not report its version; run & $cli --version to see why.")
+  "Installed RichView build $release_commit in $Prefix"
+}
 "Add $(Join-Path $Prefix 'bin') to PATH, or invoke the CLI by its full path."
 "Start a report: & $cli init my-report"
 "Agent MCP command: & $cli mcp"
-"Optional Cowork server: & $cli server --help"
-'When you publish, choose RichView-hosted Cowork or your own server; no hosted service was started.'
+"Run your own report server, RichView Cowork: & $cli server --help"
+'When you publish, choose RichView Cowork hosted by RichView at app.richview.ai, or your own server; no hosted service was started.'
 "Uninstall: powershell -ExecutionPolicy Bypass -File $(Quote (Join-Path $Prefix 'uninstall.ps1')) -Uninstall -Prefix $(Quote $Prefix)"
 }

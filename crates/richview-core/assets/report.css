@@ -148,11 +148,17 @@ body {
 .rv-fn-back { display: inline-block; position: relative; width: 1em; height: .8em; vertical-align: baseline; }
 .rv-fn-back::before { content: ""; position: absolute; left: .1em; bottom: .16em; width: .28em; height: .28em; border-left: .08em solid; border-bottom: .08em solid; transform: rotate(45deg); }
 .rv-fn-back::after { content: ""; position: absolute; left: .12em; bottom: .25em; width: .65em; height: .45em; border-right: .08em solid; border-bottom: .08em solid; border-bottom-right-radius: .2em; }
-/* Code highlighting, in two tones of the style's own text colours and no hue of its own: what
-   frames the code (comments, punctuation, fences) recedes, the names it is made of stand out. */
-.rv-report__body pre :is(.hl-comment, .hl-punc, .hl-fence, .hl-fm) { color: var(--rv-ink-soft); }
+/* Report code uses its style's syntax inks. The graphite fallback also serves Hand-drawn. */
+.rv-report__body pre :is(.hl-comment, .hl-punc, .hl-fence, .hl-fm) { color: var(--rv-code-soft, var(--rv-ink-soft)); }
 /* Their weight and the comments' italic come from the style, only where its code face embeds them. */
-.rv-report__body pre :is(.hl-key, .hl-cmd, .hl-tag, .hl-heading) { color: var(--rv-ink); }
+.rv-report__body pre :is(.hl-cmd, .hl-tag, .hl-heading) { color: var(--rv-ink); }
+.rv-report__body pre .hl-key { color: var(--rv-code-key, var(--rv-ink)); }
+.rv-report__body pre :is(.hl-str, .hl-val) {
+  color: var(--rv-code-string, color-mix(in oklch, var(--rv-ink) 70%, var(--rv-ink-soft)));
+}
+.rv-report__body pre :is(.hl-num, .hl-bool, .hl-null, .hl-date) {
+  color: var(--rv-code-literal, color-mix(in oklch, var(--rv-ink) 38%, var(--rv-ink-soft)));
+}
 /* A code block: a head with its title and language, then the code. Numbers and marks need each
    line to be a box of the block's whole width; the numbers are generated, so never copied. */
 .rv-code { margin: var(--rv-block-gap) 0; }

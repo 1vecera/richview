@@ -256,6 +256,12 @@
         "pr-fields"
       ]
     },
+    "DEL-45": {
+      "checks": [
+        "tool-tests:tools/lockdown-app/test/server.test.mjs",
+        "tool-tests:tools/lockdown-app/test/ui-review.test.mjs"
+      ]
+    },
     "DEL-46": {
       "judged": "review: instruction files and removed agent docs checked by the adversarial review"
     },
@@ -515,7 +521,8 @@
         "rust-tests:richview-chart tests/value_labels.rs",
         "rust-tests:richview-chart tests/derived_replay.rs",
         "geometry",
-        "engines-smoke"
+        "engines-smoke",
+        "rust-tests:richview-chart tests/highlight_mute.rs"
       ],
       "partial": "Automatic values cover the ruled core families. Bullet, hierarchy and circle values are deferred, and label craft needs visual review."
     },
@@ -524,6 +531,7 @@
         "rust-tests:richview-chart labels",
         "rust-tests:richview-chart layout::place",
         "rust-tests:richview-chart tests/value_labels.rs",
+        "rust-tests:richview-chart tests/geometry_rules.rs",
         "geometry"
       ]
     },
@@ -604,6 +612,12 @@
         "chromium:funnel-readouts",
         "chromium:chart-feedback"
       ]
+    },
+    "PRF-25": {
+      "checks": [
+        "chromium:readout-placement"
+      ],
+      "partial": "The placement check times every hover it makes, per chart, style and width, in Chromium: a median of at most 16.7 ms, a 95th percentile of at most 50 ms and a maximum of at most 250 ms from move to the next frame, and the first frame showing the new observation in at least 95% of moves. A chart that misses a limit while the 1-minute load is over 8 is re-timed once and the re-time decides. The limits catch a freeze, not a slow frame on every device or engine."
     },
     "FEA-CH-43": {
       "checks": [
@@ -811,13 +825,45 @@
     "FEA-SF-09": {
       "checks": [
         "journeys:agent",
-        "journeys-full"
+        "journeys-full",
+        "rust-tests:crates/richview-app/tests/sign_in.rs::the_mcp_publish_tool_uses_the_kept_sign_in_and_cannot_send_it_elsewhere"
       ]
     },
     "FEA-SF-12": {
       "checks": [
-        "rust-tests:richview-app tests/native_contract.rs"
+        "rust-tests:richview-app tests/native_contract.rs",
+        "rust-tests:crates/richview-app/tests/sign_in.rs::a_kept_sign_in_publishes_without_a_token_and_goes_to_its_own_server_only",
+        "rust-tests:crates/richview-app/tests/sign_in.rs::a_token_given_by_flag_or_environment_wins_over_the_kept_one",
+        "rust-tests:crates/richview-app/tests/sign_in.rs::without_a_terminal_nobody_is_asked_and_both_ways_are_named",
+        "rust-tests:crates/richview-app/tests/sign_in.rs::the_mcp_publish_tool_uses_the_kept_sign_in_and_cannot_send_it_elsewhere",
+        "rust-tests:crates/richview-app/tests/sign_in_browser.rs::the_command_line_signs_in_through_the_browser_and_signs_out_again",
+        "rust-tests:crates/richview-app/tests/sign_in_browser.rs::the_secret_collects_once_and_never_reaches_an_address_or_the_servers_files",
+        "rust-tests:crates/richview-app/tests/sign_in_browser.rs::the_routes_anyone_may_call_are_bounded_and_open_nothing_else",
+        "rust-tests:crates/richview-app/src/access/cli_sign_in.rs::a_confirmed_sign_in_hands_over_one_token_once",
+        "rust-tests:crates/richview-app/src/access/cli_sign_in.rs::a_sign_in_expires_and_a_refused_one_gives_no_token",
+        "rust-tests:crates/richview-app/src/access/cli_sign_in.rs::starting_collecting_and_guessing_are_bounded"
       ]
+    },
+    "FEA-SF-13": {
+      "checks": [
+        "rust-tests:richview-app src/ops.rs::a_title_derived_slug_gets_a_warning_and_an_authored_one_does_not",
+        "rust-tests:richview-app tests/sign_in.rs::publishing_the_same_file_to_a_changed_address_requires_intent_to_create_again"
+      ]
+    },
+    "FEA-SF-51": {
+      "checks": [
+        "rust-tests:richview-app tests/native_contract.rs::first_publish_creates_and_later_versions_keep_the_address",
+        "rust-tests:richview-app tests/sign_in.rs::publishing_the_same_file_to_a_changed_address_requires_intent_to_create_again",
+        "host:scripts/verify-native.mjs"
+      ]
+    },
+    "FEA-SF-62": {
+      "checks": [
+        "host:scripts/verify-native.mjs",
+        "chromium:scripts/verify-docs.mjs nativePhase",
+        "site:scripts/verify-site.mjs"
+      ],
+      "partial": "The publication journey checks first publish, an unintended address change, an unchanged republish and a conflicting revision. The site suite checks routes, links and page layout."
     },
     "FEA-SF-21": {
       "checks": [
@@ -828,6 +874,19 @@
       "checks": [
         "chromium:flagship"
       ]
+    },
+    "FEA-SF-38": {
+      "checks": [
+        "chromium:flagship",
+        "rust-tests:richview-build src/flagship.rs::citations_keep_each_links_own_ids_and_refuse_a_wrong_one"
+      ],
+      "partial": "Checked: every source link carries the ledger id its own sentence cites, in reading order against content/citations.json; every card in the text opens on focus with that entry's id and title, one opens on hover, a card stays on screen at 1440 px and hides on Escape (verify-flagship); the build refuses a citation the report does not show and an id whose ledger row records another URL (the build test). Hiding shortly after the pointer or focus leaves, the card's place on a phone and the plain link without JavaScript are not asserted."
+    },
+    "INT-75": {
+      "checks": [
+        "exports:scripts/verify-exports.mjs imageFonts"
+      ],
+      "partial": "Checked: the cover's bytes match the digest its image ledger row records, and it declares its embedded fonts (verify-exports). That its two numbers and its lanes read at the report's width, on a phone and in every style is judged on real-page sheets at 1280 and 390 px, and that it follows the active style or prints well is not asserted."
     },
     "FEA-SF-36": {
       "checks": [
@@ -1035,7 +1094,7 @@
     "STY-14": {
       "checks": [
         "rust-tests:richview-core tests/styles.rs::settings_expand_into_the_sections_behind_them",
-        "rust-tests:richview-core tests/styles.rs::the_accent_setting_moves_the_accent_links_and_first_series_together"
+        "rust-tests:richview-core tests/styles.rs::retired_accent_keeps_each_presets_links_and_first_series"
       ]
     },
     "STY-15": {
@@ -1100,7 +1159,8 @@
     "STY-25": {
       "checks": [
         "rust-tests:richview-core tests/style_checks.rs::every_builtin_passes_every_measured_style_check",
-        "rust-tests:richview-core tests/style_checks.rs::an_authors_cascade_is_measured_with_the_same_floors"
+        "rust-tests:richview-core tests/style_checks.rs::an_authors_cascade_is_measured_with_the_same_floors",
+        "rust-tests:richview-chart tests/highlight_mute.rs::a_line_chart_mutes_the_series_the_highlight_leaves_out"
       ]
     },
     "STY-26": {
@@ -1257,8 +1317,8 @@
         "rust-tests:richview-core tests/styles.rs::teal_company_palette_is_a_sibling_of_airs_designed_palette",
         "rust-tests:richview-core src/style.rs::a_dark_company_rederives_its_palette_for_print",
         "rust-tests:richview-site src/lib.rs::company_demo_returns_the_report_cascade_and_rejects_bad_input",
-        "rust-tests:richview-core tests/style_presets.rs::the_old_company_syntax_warns_and_the_new_colours_derive_the_same_palette",
-        "rust-tests:richview-core tests/style_presets.rs::preset_only_and_legacy_files_resolve_byte_for_byte_as_before"
+        "rust-tests:richview-core tests/style_presets.rs::retired_company_colours_cannot_select_air_or_change_the_palette",
+        "rust-tests:richview-core tests/style_presets.rs::presets_resolve_byte_for_byte_as_before"
       ],
       "partial": "Proposed company derivation and the site API are checked; visual design remains under review."
     },
@@ -1273,8 +1333,8 @@
         "rust-tests:richview-core tests/style_presets.rs::there_are_ten_presets_and_each_resolves_cleanly_and_passes_every_check",
         "rust-tests:richview-core tests/style_presets.rs::an_extended_preset_is_its_style_file_and_a_file_can_start_from_it",
         "rust-tests:richview-core tests/style_presets.rs::medium_is_the_presets_own_value_so_leaving_a_setting_out_changes_nothing",
-        "rust-tests:richview-core tests/style_presets.rs::the_old_company_syntax_warns_and_the_new_colours_derive_the_same_palette",
-        "rust-tests:richview-core tests/style_presets.rs::old_settings_and_tokens_keep_applying_and_warn_with_their_replacement",
+        "rust-tests:richview-core tests/style_presets.rs::retired_company_colours_cannot_select_air_or_change_the_palette",
+        "rust-tests:richview-core tests/style_presets.rs::every_retired_leaf_is_skipped_with_one_located_warning",
         "rust-tests:richview-core tests/style_presets.rs::each_step_moves_its_setting_one_way_and_keeps_the_type_scale_ratios",
         "rust-tests:richview-core tests/style_presets.rs::gridlines_and_tint_move_only_colour_and_never_below_a_floor",
         "rust-tests:richview-core tests/style_presets.rs::every_preset_holds_every_check_at_the_extremes_with_any_colours",
@@ -1282,9 +1342,9 @@
         "rust-tests:richview-core tests/style_presets.rs::a_dark_page_colour_makes_a_dark_report",
         "rust-tests:richview-core tests/style_presets.rs::a_bad_step_or_preset_is_skipped_with_a_finding",
         "rust-tests:richview-core tests/style_presets.rs::a_knockout_metric_keeps_its_text_readable_with_any_colours",
-        "rust-tests:richview-core tests/style_presets.rs::preset_only_and_legacy_files_resolve_byte_for_byte_as_before",
+        "rust-tests:richview-core tests/style_presets.rs::presets_resolve_byte_for_byte_as_before",
         "rust-tests:richview-core tests/style_presets.rs::a_page_colour_moves_only_when_text_or_series_need_it",
-        "rust-tests:richview-core tests/style_presets.rs::steps_act_on_explicit_leaves_alike_and_explicit_colours_win_with_or_without_colors",
+        "rust-tests:richview-core tests/style_presets.rs::retired_leaves_do_not_override_supported_steps_or_colours",
         "rust-tests:richview-core tests/style_presets.rs::padding_reaches_a_framed_chart_and_lines_reach_the_metric_rules",
         "rust-tests:richview-core tests/style_presets.rs::a_brand_colour_that_meets_its_floors_is_kept_to_the_last_bit",
         "rust-tests:richview-core tests/style_presets.rs::a_brand_colour_with_an_alpha_is_refused",
@@ -1304,7 +1364,10 @@
         "rust-tests:richview-core tests/style_backgrounds.rs::textures_are_screen_only_and_never_reach_paper",
         "rust-tests:richview-core tests/style_backgrounds.rs::a_picture_under_text_is_washed_over_the_whole_page_however_tall_it_renders",
         "rust-tests:richview-core tests/style_backgrounds.rs::table_blocks_keep_a_solid_surface_over_a_page_background",
-        "rust-tests:richview-core tests/style_backgrounds.rs::hostile_background_files_last_over_every_preset_emit_only_generated_layers"
+        "rust-tests:richview-core tests/style_backgrounds.rs::hostile_background_files_last_over_every_preset_emit_only_generated_layers",
+        "rust-tests:richview-core tests/style_backgrounds.rs::three_presets_ship_a_background_and_every_ink_keeps_its_floor_over_it",
+        "rust-tests:richview-core tests/style_backgrounds.rs::the_presets_backgrounds_keep_the_rules_the_presets_css_is_held_to",
+        "rust-tests:richview-core tests/style_backgrounds.rs::a_presets_own_background_keeps_the_presets_colours_and_says_nothing"
       ]
     },
     "TYP-02": {
@@ -1547,7 +1610,8 @@
       "checks": [
         "journeys:agent",
         "journeys-full",
-        "rust-tests:richview-app tests/native_contract.rs::mcp_tool_names_resources_and_hard_failure_contract"
+        "rust-tests:richview-app tests/native_contract.rs::mcp_tool_names_resources_and_hard_failure_contract",
+        "rust-tests:crates/richview-app/tests/sign_in.rs::the_mcp_publish_tool_uses_the_kept_sign_in_and_cannot_send_it_elsewhere"
       ],
       "partial": "The real MCP boundary cheaply pins actual tool names, core-generated learn bytes, camelCase inputPath/chartWidth calls, structuredContent and hard-call-failure versus report-error behavior. Full per-tool argument/annotation/default schemas and every diagnostic fix/location are not independently pinned; TYP-57/58 wire migrations remain unbuilt. Existing journey checks remain."
     },
@@ -1556,7 +1620,8 @@
         "rust-tests:richview-core parser",
         "rust-tests:richview-core parser::tests::a_well_formed_highlight_is_accepted_and_survives_schema_parsing",
         "rust-tests:richview-core parser::tests::malformed_highlights_name_the_key_and_the_fix",
-        "rust-tests:richview-core tests/block_fields.rs::a_highlight_that_names_no_point_says_so"
+        "rust-tests:richview-core tests/block_fields.rs::a_highlight_that_names_no_point_says_so",
+        "rust-tests:richview-chart tests/highlight_mute.rs"
       ]
     },
     "TYP-83": {
@@ -1840,7 +1905,18 @@
       "checks": [
         "rust-tests:richview-app tests/report_folders.rs::the_environment_token_is_sent_only_to_the_environment_server",
         "rust-tests:richview-app tests/native_contract.rs::mcp_tool_names_resources_and_hard_failure_contract",
-        "rust-tests:richview-app tests/identity.rs::write_routes_require_the_token"
+        "rust-tests:richview-app tests/identity.rs::write_routes_require_the_token",
+        "rust-tests:crates/richview-app/tests/sign_in.rs::a_kept_sign_in_publishes_without_a_token_and_goes_to_its_own_server_only",
+        "rust-tests:crates/richview-app/tests/sign_in.rs::a_token_the_server_does_not_know_is_not_kept",
+        "rust-tests:crates/richview-app/tests/sign_in.rs::a_token_typed_at_a_terminal_is_never_shown",
+        "rust-tests:crates/richview-app/src/credentials.rs::a_kept_token_is_private_and_found_only_for_its_own_server",
+        "rust-tests:crates/richview-app/src/credentials.rs::a_file_others_can_read_is_not_used_and_its_refusal_shows_no_token",
+        "rust-tests:crates/richview-app/tests/sign_in_browser.rs::the_command_line_signs_in_through_the_browser_and_signs_out_again",
+        "rust-tests:crates/richview-app/tests/sign_in_browser.rs::the_secret_collects_once_and_never_reaches_an_address_or_the_servers_files",
+        "rust-tests:crates/richview-app/tests/sign_in_browser.rs::the_routes_anyone_may_call_are_bounded_and_open_nothing_else",
+        "rust-tests:crates/richview-app/src/access/cli_sign_in.rs::a_confirmed_sign_in_hands_over_one_token_once",
+        "rust-tests:crates/richview-app/src/access/cli_sign_in.rs::a_sign_in_expires_and_a_refused_one_gives_no_token",
+        "rust-tests:crates/richview-app/src/access/cli_sign_in.rs::starting_collecting_and_guessing_are_bounded"
       ]
     },
     "ARC-24": {
@@ -2055,6 +2131,14 @@
       ],
       "partial": "Raw fixture HTML excluding embedded runtime and media is measured and advisory until launch (S27-980). Per-font160KiB, flagship offline5MiB and hosted first-load2304KiB budgets are not yet implemented."
     },
+    "PRF-35": {
+      "judged": "Review the layout-shift entries and first-load filmstrips for chart docs and the gallery at desktop and phone widths.",
+      "partial": "Evidence covers first-load layout stability on the measured pages. The full scrolling and chart-mount budget requires separate coverage."
+    },
+    "PRF-36": {
+      "judged": "Review the cold-load layout-shift measurements and filmstrips for the homepage and playground at desktop and phone widths.",
+      "partial": "Evidence covers layout stability. Paint, transfer and first-preview timing require separate coverage."
+    },
     "FEA-BR-23": {
       "checks": [
         "rust-tests:richview-publish tests/build.rs::both_layouts_build_and_each_front_page_carries_its_own_layout",
@@ -2151,8 +2235,8 @@
     },
     "FEA-RP-17": {
       "checks": [
-        "rust-tests:richview-core tests/markdown_ext.rs::fenced_code_is_plain_preformatted_text_whatever_its_tag",
-        "chromium:exports scripts/verify-exports.mjs::analyze"
+        "rust-tests:richview-core tests/markdown_ext.rs::fenced_code_preserves_source_and_highlights_only_supported_languages",
+        "exports:scripts/verify-exports.mjs analyze"
       ]
     },
     "FEA-RP-18": {
@@ -2166,6 +2250,8 @@
       "checks": [
         "rust-tests:richview-core tests/blocks.rs::a_table_is_one_semantic_table_with_a_caption_and_plain_headers",
         "rust-tests:richview-core tests/blocks.rs::align_wins_over_the_numeric_default",
+        "rust-tests:richview-core tests/blocks.rs::a_short_label_of_several_words_stays_on_one_line",
+        "data-integrity:csv-decimals",
         "rust-tests:richview-core tests/blocks.rs::rows_past_max_rows_fold_under_a_labelled_disclosure_and_the_total_follows_all_rows",
         "rust-tests:richview-core tests/column_order.rs::derived_table_columns_follow_the_source",
         "rust-tests:richview-core tests/contracts.rs::table_cells_link_web_addresses_by_host_and_keep_dates_and_ids_whole",
@@ -2599,7 +2685,13 @@
         "rust-tests:richview-app tests/report_folders.rs::a_report_folder_stands_for_its_one_rmd_file",
         "rust-tests:richview-app tests/report_folders.rs::one_absent_file_is_one_finding_without_the_operating_systems_words",
         "rust-slow:richview-app tests/report_folders.rs::cli_refuses_missing_shared_header_and_escaping_reports_with_corrections",
-        "rust-tests:richview-app tests/access.rs::http_validate_and_check_report_missing_and_escaping_files_once"
+        "rust-tests:richview-app tests/access.rs::http_validate_and_check_report_missing_and_escaping_files_once",
+        "rust-tests:richview-core tests/asset_failures.rs::a_macos_sidecar_of_the_source_is_not_a_second_report",
+        "rust-tests:richview-core tests/asset_failures.rs::a_macos_sidecar_is_never_read_as_a_file_of_the_report",
+        "rust-tests:richview-app tests/report_folders.rs::a_report_folder_copied_from_a_mac_is_still_one_report",
+        "rust-tests:richview-app tests/report_folders.rs::a_report_cannot_read_a_macos_sidecar_as_one_of_its_files",
+        "rust-tests:richview-app tests/report_folders.rs::publishing_a_folder_copied_from_a_mac_sends_no_sidecar",
+        "rust-tests:richview-app tests/access.rs::a_folder_copied_from_a_mac_is_one_report_over_http_and_its_sidecars_are_no_files"
       ],
       "partial": "Real root/symlink/missing-resource and HTTP/CLI refusal checks do not exhaust every path grammar × reference kind × host. Credited Unsplash and pinned hosted assets are deliberate remote exceptions."
     },
@@ -2681,7 +2773,7 @@
         "rust-tests:richview-core tests/styles.rs::each_builtin_has_its_own_motion_character_and_publishes_it_as_properties",
         "rust-tests:richview-core tests/contracts.rs::hostile_motion_leaves_never_reach_the_page",
         "rust-tests:richview-core tests/contracts.rs::a_still_character_renders_everything_settled",
-        "rust-tests:richview-core tests/contracts.rs::a_motion_character_alone_sets_its_timing"
+        "rust-tests:richview-core tests/contracts.rs::retired_motion_character_and_duration_keep_the_preset_timing"
       ],
       "partial": "Current part06 motion characters supersede the old enabled-only proposal. Native markup tests do not prove preference flips, timing or the full page/disclosure motion floor.",
       "judged": "Motion quality remains a design review."
@@ -2689,7 +2781,7 @@
     "TYP-50": {
       "checks": [
         "rust-tests:richview-core tests/contracts.rs::an_unknown_chart_key_is_reported",
-        "rust-tests:richview-core tests/contracts.rs::valid_chart_palettes_and_leaves_still_apply",
+        "rust-tests:richview-core tests/contracts.rs::retired_chart_leaves_leave_the_supported_palette_in_place",
         "rust-tests:richview-core tests/contracts.rs::unsafe_chart_colours_are_refused_at_the_leaf_and_never_reach_the_cascade"
       ],
       "partial": "Representative palette/leaf rejection and output are covered. Every listed chart-key bound, all retired aliases and a real host migration of old camelCase style files are not exhaustively pinned."
@@ -2716,11 +2808,25 @@
       ],
       "partial": "Converted .rstyle.yaml themes load cleanly. Dedicated historical richview-showcase-themes/1 rejection/removal and exhaustive rendering of every retained theme are not established; no historical-format compatibility implementation is claimed."
     },
+    "TYP-102": {
+      "checks": [
+        "rust-tests:richview-core tests/data_typing.rs",
+        "rust-tests:richview-app tests/parquet.rs",
+        "rust-tests:richview-app connectors",
+        "tool-tests:tools/rv-gate/test/connectors.test.mjs"
+      ]
+    },
+    "TYP-103": {
+      "judged": "review: a proposal only, not built (the lead, 19 November 2026); it has no behaviour to check until Daniel decides it"
+    },
+    "TYP-104": {
+      "judged": "review: a proposal only, not built (the lead, 19 November 2026); it has no behaviour to check until Daniel decides it"
+    },
     "TYP-99": {
       "checks": [
         "rust-tests:richview-core tests/contracts.rs::styles_define_one_type_scale_with_phone_values_and_true_italics_only",
         "rust-tests:richview-core tests/contracts.rs::an_unknown_chart_key_is_reported",
-        "rust-tests:richview-core tests/contracts.rs::valid_chart_palettes_and_leaves_still_apply",
+        "rust-tests:richview-core tests/contracts.rs::retired_chart_leaves_leave_the_supported_palette_in_place",
         "site:scripts/verify-site.mjs"
       ],
       "partial": "Native checks cover phone properties, representative chart properties and unknown-key exclusion. Actual shipped Wasm guard proves customPropertiesToCss absent. Complete generated schema-to-CSS mapping is NOT BUILT: the fixed chart-property mapping and steering-token exceptions are handwritten; no exhaustive generated mapping proof is claimed."
@@ -2804,7 +2910,10 @@
         "rust-tests:richview-app tests/access.rs::the_router_serves_exactly_the_route_table",
         "rust-slow:richview-app tests/native_contract.rs::the_report_host_serves_reports_only",
         "rust-slow:richview-app tests/identity.rs::versions_are_never_pruned_and_deletion_leaves_a_tombstone",
-        "rust-slow:richview-app tests/identity.rs::the_owner_can_pin_and_unpin_latest"
+        "rust-slow:richview-app tests/identity.rs::the_owner_can_pin_and_unpin_latest",
+        "rust-tests:crates/richview-app/tests/sign_in_browser.rs::the_command_line_signs_in_through_the_browser_and_signs_out_again",
+        "rust-tests:crates/richview-app/tests/sign_in_browser.rs::the_routes_anyone_may_call_are_bounded_and_open_nothing_else",
+        "rust-tests:crates/richview-app/tests/sign_in_browser.rs::the_confirm_page_says_what_is_asked_in_each_state"
       ],
       "partial": "Real routes/roles and immutable-version semantics are covered. Stored-record/summary camelCase now has an independent HTTP regression. The role matrix shares the production route table; exact health body, removed aliases, all download runtime/font/OG exclusions and complete cache headers are not independently frozen by these locators."
     },
@@ -2861,6 +2970,15 @@
         "host:scripts/verify-editor.cjs"
       ],
       "partial": "Actual stdio/unsaved source/frame bound/trusted preview and extension export/CLI parity are guarded. Protocol deliberately retains richview/snippets and trusted runtimeUrl under ARC-07, with no public_dir. Successful credentialed publication, every custom-result DTO and the full paper/output matrix remain unproved."
+    },
+    "TYP-101": {
+      "checks": [
+        "rust-tests:richview-core tests/style_backgrounds.rs::one_word_stands_for_a_texture_a_gradient_or_a_picture",
+        "rust-tests:richview-core tests/style_backgrounds.rs::the_report_says_none_or_another_background_over_its_preset",
+        "rust-tests:richview-core tests/style_backgrounds.rs::a_bad_frontmatter_background_is_a_finding_at_the_frontmatter",
+        "rust-tests:richview-core tests/style_backgrounds.rs::a_frontmatter_picture_is_bounded_like_a_style_files",
+        "rust-tests:richview-build src/documentation.rs::docs_pages_stay_flat_while_reports_keep_their_presets_background"
+      ]
     },
     "TYP-76": {
       "checks": [
@@ -2955,6 +3073,16 @@
         "site:scripts/verify-site.mjs"
       ],
       "partial": "Native checks cover generated CLI/MCP arguments, spec tables and public command/tool vocabulary; browser suite checks guide navigation, source code fidelity, source links and served routes. This does not independently establish that every prose tag/style/flag mention is valid or judge guide usefulness."
+    },
+    "FEA-SF-47": {
+      "checks": [
+        "rust-tests:richview-core tests/document_api.rs",
+        "rust-tests:richview-app tests/native_contract.rs",
+        "rust-tests:richview-app src/ops.rs::tests::learn_names_the_sections_when_one_is_unknown",
+        "surface",
+        "docs-match:richview-app tests/docs_match.rs"
+      ],
+      "partial": "Proposed card (assumed). The core tests pin the six sections in order, that each fits one tool output of 30,000 characters and that the grammar points to the slides section; the app tests pin the same bytes from the command and the MCP tool and the list an unknown section returns; the surface snapshots hold the command's help and the tool's enum. No check scores whether an agent that has read the bundle writes a correct first draft (FEA-SF-65)."
     },
     "FEA-SF-48": {
       "checks": [
@@ -3214,7 +3342,8 @@
         "rust-tests:richview-chart tests/geometry_rules.rs::area_names_stand_inside_the_plot_and_leave_the_margins_to_the_axis",
         "rust-tests:richview-chart tests/geometry_rules.rs::stacked_area_names_stand_inside_their_own_bands",
         "rust-tests:richview-chart tests/stack_contract.rs::line_ends_that_read_the_same_value_keep_series_order",
-        "visual-matrix:scripts/verify-chart-review.mjs"
+        "visual-matrix:scripts/verify-chart-review.mjs",
+        "rust-tests:richview-chart tests/highlight_mute.rs::a_line_chart_mutes_the_series_the_highlight_leaves_out"
       ],
       "partial": "Existing modern paths cover series naming, tie order and keyboard hide/restore. The complete leader-trigger/final-value/ambiguous-cue matrix is not established; visual naming craft still requires review."
     },
@@ -3405,7 +3534,8 @@
         "surface",
         "rust-tests:crates/richview-app/tests/report_folders.rs::a_folder_of_report_folders_runs_every_report_below_it",
         "rust-tests:crates/richview-app/tests/report_folders.rs::serve_and_publish_take_one_report_and_name_the_reports_a_folder_holds",
-        "rust-slow:crates/richview-app/tests/report_folders.rs::generate_writes_every_report_of_a_folder_into_its_own_rendered"
+        "rust-slow:crates/richview-app/tests/report_folders.rs::generate_writes_every_report_of_a_folder_into_its_own_rendered",
+        "rust-tests:crates/richview-app/tests/sign_in.rs::a_kept_sign_in_publishes_without_a_token_and_goes_to_its_own_server_only"
       ],
       "partial": "The surface snapshots pin every command's help and flags. The native tests cover what a report command reads from its input: a report, the folder holding it, and a folder of report folders on validate, check and generate, with serve and publish taking one report. They do not prove that every flag the card says leaves is gone."
     },
@@ -3516,6 +3646,23 @@
       ],
       "partial": "Chart design judges the rail, the fold and the bar from 1440, 1280 and 390 captures in every builtin; no browser step asserts the current-section mark or the bar's fill yet."
     },
+    "FEA-RP-65": {
+      "checks": [
+        "rust-tests:richview-core tests/slides.rs",
+        "rust-tests:richview-core src/slides.rs::the_slides_keep_region_order_and_fit_each_number_by_its_characters",
+        "rust-tests:richview-runtime tests/slide_text.rs",
+        "chromium:slides",
+        "docs-match:richview-core tests/spec_docs.rs"
+      ],
+      "partial": "FEA-RP-65 is an open proposal. verify-slides covers the stage at 1280, 1440 and 1920, keys, the address, reduced motion, the phone stack, no-JS, browser print and `generate --to pdf`. A publication's fallback to the report is not built. The lead judges the look from the sheet at 1920, 1440 and 390."
+    },
+    "TYP-100": {
+      "checks": [
+        "rust-tests:richview-core tests/slides.rs::a_source_without_the_field_is_the_report_it_was",
+        "rust-tests:richview-core tests/slides.rs::a_deck_within_the_rules_renders_without_a_slides_diagnostic",
+        "rust-tests:richview-core tests/slides.rs::a_slide_that_holds_too_much_is_named_with_its_line"
+      ]
+    },
     "FEA-RP-64": {
       "checks": [
         "rust-tests:richview-core src/reading.rs::the_bar_is_one_ink_on_a_soft_track",
@@ -3546,6 +3693,21 @@
       ],
       "partial": "Proposed card (assumed). The core tests cover columns in source order, their options and widths, a chart laid out at its column's width and its stacked box, malformed and stray markers, folds holding whole columns, and expands and code in columns; the hostile cases m17 to m19 cover options, forgery and unbalanced markers. The look is judged from the owner's sheet."
     },
+    "FEA-RP-69": {
+      "checks": [
+        "rust-tests:richview-core tests/table_tools.rs",
+        "docs-match:richview-core tests/spec_docs.rs"
+      ],
+      "partial": "Proposed card (assumed). The core tests cover sequential and diverging shades, a shade taken from the shown value, one scale for the table, the warning for a text column, the unshaded total, paper keeping the shades and a report without heat carrying no rules; a unit test holds ink at 7:1 on both shades in every preset, on screen and paper. The look is judged from the owner's sheet."
+    },
+    "FEA-RP-70": {
+      "checks": [
+        "rust-tests:richview-core tests/table_tools.rs",
+        "data-integrity:csv-decimals",
+        "docs-match:richview-core tests/spec_docs.rs"
+      ],
+      "partial": "Proposed card (assumed). The core tests cover which tables are marked for the box, the static page holding no field, paper having none and the refused value. The browser suite covers the box and its label, matching whatever the case or accents, the status line, hidden rows, the fold, sorting with a filter and the total. That the table does not move when the box arrives, and the look, are shown in the owner's sheet."
+    },
     "INT-10": {
       "checks": [
         "rust-tests:richview-core tests/contracts.rs::flagship_report_preserves_every_chart_and_sourced_narrative_across_styles",
@@ -3553,13 +3715,22 @@
       ]
     },
     "INT-41": {
-      "judged": "review: Cargo.toml, Cargo.lock, package.json, package-lock.json and the VS Code extension carry 3.0.0-alpha.3, and `richview --version` prints the workspace version of its build"
+      "judged": "review: Cargo.toml, Cargo.lock, package.json, package-lock.json and the VS Code extension carry 3.0.0, and `richview --version` prints the workspace version of its build"
     },
     "FEA-SF-32": {
       "judged": "review: legal and identity text on the site's root pages is design-class copy that reaches Daniel in the release packet before prod, and his go names it"
     },
     "INT-73": {
       "judged": "review: how RichView presents its maker (footer, About, impressum, licence) is public copy Daniel approves in the release packet; the impressum's identifiers are read from the public register"
+    },
+    "FEA-SF-53": {
+      "checks": [
+        "surface",
+        "rust-slow:richview-app tests/native_contract.rs::owner_actions_reach_the_server_through_the_operation_layer",
+        "rust-tests:crates/richview-app/tests/sign_in.rs::a_kept_sign_in_publishes_without_a_token_and_goes_to_its_own_server_only",
+        "rust-tests:crates/richview-app/tests/sign_in.rs::without_a_terminal_nobody_is_asked_and_both_ways_are_named"
+      ],
+      "partial": "The surface snapshots pin the four subcommands and their flags, the release-tier native test sends each owner action to a real server, and the sign-in tests cover where an owner action finds its server and token. Delete's confirmation prompt is not driven on a terminal."
     }
   }
 }

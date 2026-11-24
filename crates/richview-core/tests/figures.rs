@@ -114,16 +114,18 @@ fn before_the_runtime_a_figure_reserves_its_box_and_shows_the_notice() {
         let rest = &figure[at..];
         rest[..rest.find([';', '"']).unwrap()].parse().unwrap()
     };
-    // Every body block shares the report measure (STY-30): Brutalist's 38rem, Sleek's 42rem.
-    for (styles, desktop) in [
-        (vec![], 608.0),
-        (vec!["sleek".into()], 672.0),
+    // Screen geometry uses the reading measure less the frame's inset (STY-30).
+    for (styles, desktop, inset) in [
+        (vec![], 672.0, 40.0),
+        (vec!["air".into()], 672.0, 0.0),
+        (vec!["brutalist".into()], 672.0, 40.0),
+        (vec!["hand-drawn".into()], 672.0, 40.0),
         (
             vec!["sleek".into(), "tokens: {measure: 40rem}".into()],
             640.0,
+            40.0,
         ),
-        // Scientific's 78ch at 16.5 px in RichView Serif's regular "0", as browsers resolve it.
-        (vec!["scientific".into()], 681.0),
+        (vec!["scientific".into()], 672.0, 0.0),
     ] {
         let report = report_with(std::slice::from_ref(&chart), styles);
         let figure = figures(&report.html)[0];
@@ -149,7 +151,10 @@ fn before_the_runtime_a_figure_reserves_its_box_and_shows_the_notice() {
         let outside = figure.replace(group, "");
         assert!(!outside.contains("<svg"), "no static frame (FEA-CH-64)");
         let payload = &report.charts[0];
-        for (name, width) in [("--rv-ratio-phone", 358.0), ("--rv-ratio", desktop)] {
+        for (name, width) in [
+            ("--rv-ratio-phone", 358.0 - inset),
+            ("--rv-ratio", desktop - inset),
+        ] {
             let g = geometry(payload, width);
             let expected = g.width / g.height;
             assert!(
@@ -168,14 +173,19 @@ fn a_phone_keeps_two_icons_beside_the_title_wherever_the_style_sets_it() {
     // Up to 600 px the row never wraps and the two downloads leave the figure's own row; the
     // expanded view's group is not in a title row, so it keeps them (Daniel, 17 Nov 2026).
     let phone = "@media (max-width:600px){.rv-chart__titlerow{flex-wrap:nowrap}.rv-chart__titlerow>.rv-chart__title{flex-basis:0}.rv-chart__titlerow>.rv-chart__actions>.rv-chart__action--png,.rv-chart__titlerow>.rv-chart__actions>.rv-chart__action--csv{display:none}}";
-    // A style with the title under the chart (Hand-drawn) keeps the icons on their own line over
-    // the chart on a phone too, where a readout on chord or venn clears its mark, until Readout
-    // fit judges those two by painted mark (train 4).
-    let below = ".rv-chart .rv-chart__titlerow{display:flex}";
-    for style in ["sleek", "air", "scientific", "brutalist", "hand-drawn"] {
+    // A style with the title under the chart sets the icons over the chart on a wide screen; on
+    // a phone its row is whole again, so they take no line of their own there either.
+    let below = "@media (max-width:600px){.rv-chart .rv-chart__titlerow{display:flex}";
+    for (style, title_below) in [
+        ("sleek", false),
+        ("air", false),
+        ("scientific", false),
+        ("brutalist", false),
+        ("hand-drawn", true),
+    ] {
         let html = report_with(std::slice::from_ref(&chart), vec![style.into()]).html;
         assert_eq!(html.matches(phone).count(), 1, "{style}");
-        assert!(!html.contains(below), "{style}");
+        assert_eq!(html.contains(below), title_below, "{style}");
         // The base rule comes first, so the phone's rule of the same weight wins.
         assert!(
             html.find(".rv-chart .rv-chart__title{") < html.find(phone),

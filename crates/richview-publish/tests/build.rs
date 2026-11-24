@@ -519,13 +519,13 @@ fn published_report_and_share_image_include_the_company_logo() {
     f.replace("---\ntitle:", "---\nstyles: [company.rstyle.yaml]\ntitle:");
     fs::write(
         f.0.join("items/example/company.rstyle.yaml"),
-        "company: {name: Example Co, color: '#0B6E69', base: air}\n",
+        "preset: air\ncolors: {brand: '#0B6E69'}\ncompany: {name: Example Co}\n",
     )
     .unwrap();
     let plain = share_png(&f, "plain-company");
     fs::write(
         f.0.join("items/example/company.rstyle.yaml"),
-        "company: {name: Example Co, color: '#0B6E69', logo: logo.png, base: air}\n",
+        "preset: air\ncolors: {brand: '#0B6E69'}\ncompany: {name: Example Co, logo: logo.png}\n",
     )
     .unwrap();
     fs::write(
@@ -537,7 +537,7 @@ fn published_report_and_share_image_include_the_company_logo() {
     assert!(plain != branded, "the logo must affect the share image");
     fs::write(
         f.0.join("items/example/company.rstyle.yaml"),
-        "company: {name: Example Co, color: '#0B6E69', logo: logo.png, base: sleek}\n",
+        "preset: sleek\ncolors: {brand: '#0B6E69'}\ncompany: {name: Example Co, logo: logo.png}\n",
     )
     .unwrap();
     let dark = share_png(&f, "dark-company");
@@ -558,9 +558,9 @@ fn company_accent_reaches_the_published_share_card_without_a_logo() {
     f.replace("---\ntitle:", "---\nstyles: [company.rstyle.yaml]\ntitle:");
     f.replace("```chart", "```text");
     let style = f.0.join("items/example/company.rstyle.yaml");
-    fs::write(&style, "company: {base: brutalist}\n").unwrap();
+    fs::write(&style, "preset: brutalist\n").unwrap();
     let plain = share_png(&f, "plain-accent");
-    fs::write(&style, "company: {base: brutalist, color: '#0B6E69'}\n").unwrap();
+    fs::write(&style, "preset: brutalist\ncolors: {brand: '#0B6E69'}\n").unwrap();
     let branded = share_png(&f, "brand-accent");
     assert!(
         plain != branded,

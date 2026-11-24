@@ -1,0 +1,245 @@
+---
+title: One million orders, one Parquet file
+description: Twelve charts and a table that each read an aggregate of one large Parquet file, and a chart that reads a small one whole.
+version: 0.0.1
+slug: parquet-report
+---
+
+## Every chart asks the file for its own few rows
+
+The report folder holds `data/orders.parquet`: one million synthetic orders of a fictional retailer in sixteen columns, about 6 MB on disk. No chart below embeds those rows. Each names a SQL query in `queries/`, the query aggregates the file, and the chart embeds the result: 24 months, 8 categories, 40 cells.
+
+```callout
+kind: neutral
+title: Where the data comes from
+body: "`report.connectors.yaml` declares the file as the `orders` connector of kind `parquet`, and each query reads it as the table `orders`. RichView runs the query in a confined process that can read that one file and nothing else. The rendered HTML holds each chart's aggregated rows, labelled as a query's result, and never the file."
+```
+
+## Growth and season
+
+```chart
+type: line
+title: Revenue grew from 5.45 million in January 2024 to 23.5 million in October 2025
+subtitle: Revenue per month, synthetic orders
+data:
+  sql:
+    connector: orders
+    query: queries/revenue-by-month.sql
+encoding: {x: month, y: revenue}
+axes:
+  x: {label: Month}
+  y: {label: Revenue, format: number_compact}
+```
+
+*Source: `data/orders.parquet`, synthetic orders, aggregated by `queries/revenue-by-month.sql`.*
+
+```chart
+type: line
+title: West leads and North trails in every month
+subtitle: Revenue per month by region, synthetic orders
+data:
+  sql:
+    connector: orders
+    query: queries/revenue-by-month-and-region.sql
+encoding: {x: month, y: revenue, color: region}
+axes:
+  x: {label: Month}
+  y: {label: Revenue, format: number_compact}
+```
+
+*Source: `data/orders.parquet`, synthetic orders, aggregated by `queries/revenue-by-month-and-region.sql`.*
+
+## Channels
+
+```chart
+type: bar
+title: Web orders passed store orders in the last quarter of 2024
+subtitle: Orders per quarter by channel, synthetic orders
+data:
+  sql:
+    connector: orders
+    query: queries/orders-by-quarter-and-channel.sql
+encoding: {x: quarter, y: orders, color: channel}
+axes:
+  y: {label: Orders, format: number_compact}
+```
+
+*Source: `data/orders.parquet`, synthetic orders, aggregated by `queries/orders-by-quarter-and-channel.sql`.*
+
+```chart
+type: line
+title: The web's share of orders rose from 38 to 55 percent
+subtitle: Share of orders placed on the web per month, synthetic orders
+data:
+  sql:
+    connector: orders
+    query: queries/web-share-by-month.sql
+encoding: {x: month, y: web_share}
+axes:
+  x: {label: Month}
+  y: {label: Web share of orders, unit: '%'}
+```
+
+*Source: `data/orders.parquet`, synthetic orders, aggregated by `queries/web-share-by-month.sql`.*
+
+## Categories
+
+```chart
+type: bar
+title: Beauty and Fashion lead with 47 and 45 million
+subtitle: Revenue by category over both years, synthetic orders
+data:
+  sql:
+    connector: orders
+    query: queries/revenue-by-category.sql
+encoding: {x: category, y: revenue}
+axes:
+  y: {label: Revenue, format: number_compact}
+```
+
+*Source: `data/orders.parquet`, synthetic orders, aggregated by `queries/revenue-by-category.sql`.*
+
+```chart
+type: heatmap
+title: West sells the most in every category
+subtitle: Revenue in thousands by region and category, synthetic orders
+data:
+  sql:
+    connector: orders
+    query: queries/revenue-by-category-and-region.sql
+encoding: {x: region, y: category, color: revenue_thousands}
+axes:
+  color: {label: Revenue (thousands), format: number}
+```
+
+*Source: `data/orders.parquet`, synthetic orders, aggregated by `queries/revenue-by-category-and-region.sql`.*
+
+```chart
+type: bar
+title: Four in five orders are worth between 100 and 800
+subtitle: Orders by order value, synthetic orders
+data:
+  sql:
+    connector: orders
+    query: queries/orders-by-value-band.sql
+encoding: {x: order_value, y: orders}
+axes:
+  x: {label: Order value}
+  y: {label: Orders, format: number_compact}
+```
+
+*Source: `data/orders.parquet`, synthetic orders, aggregated by `queries/orders-by-value-band.sql`.*
+
+```chart
+type: lollipop
+title: "Fashion comes back most often: 11.5 orders in a hundred"
+subtitle: Returned orders in a hundred by category, synthetic orders
+data:
+  sql:
+    connector: orders
+    query: queries/return-rate-by-category.sql
+encoding: {x: category, y: return_rate}
+axes:
+  y: {label: Returned orders, unit: '%'}
+```
+
+*Source: `data/orders.parquet`, synthetic orders, aggregated by `queries/return-rate-by-category.sql`.*
+
+```chart
+type: bar
+title: Garden takes almost seven days to arrive, Grocery and Media under three
+subtitle: Average delivery days by category, synthetic orders
+data:
+  sql:
+    connector: orders
+    query: queries/delivery-days-by-category.sql
+encoding: {x: category, y: delivery_days}
+axes:
+  y: {label: Average delivery days}
+```
+
+*Source: `data/orders.parquet`, synthetic orders, aggregated by `queries/delivery-days-by-category.sql`.*
+
+## Customers and stores
+
+```chart
+type: bar
+title: Almost two in three orders are rated four or five stars
+subtitle: Orders by rating, synthetic orders
+data:
+  sql:
+    connector: orders
+    query: queries/orders-by-rating.sql
+encoding: {x: rating, y: orders}
+axes:
+  y: {label: Orders, format: number_compact}
+```
+
+*Source: `data/orders.parquet`, synthetic orders, aggregated by `queries/orders-by-rating.sql`.*
+
+```chart
+type: bar
+title: Store 19 leads with 22.0 million
+subtitle: Revenue of the ten largest stores over both years, synthetic orders
+data:
+  sql:
+    connector: orders
+    query: queries/top-stores.sql
+encoding: {x: store, y: revenue}
+axes:
+  y: {label: Revenue, format: number_compact}
+style: {orientation: horizontal}
+```
+
+*Source: `data/orders.parquet`, synthetic orders, aggregated by `queries/top-stores.sql`.*
+
+```chart
+type: bar
+title: Saturday brings almost a quarter of the orders
+subtitle: Orders by weekday over both years, synthetic orders
+data:
+  sql:
+    connector: orders
+    query: queries/orders-by-weekday.sql
+encoding: {x: weekday, y: orders}
+axes:
+  y: {label: Orders, format: number_compact}
+```
+
+*Source: `data/orders.parquet`, synthetic orders, aggregated by `queries/orders-by-weekday.sql`.*
+
+```table
+title: The twelve stores with the most revenue
+data:
+  sql:
+    connector: orders
+    query: queries/store-table.sql
+columns:
+  - {key: store, label: Store}
+  - {key: city, label: City}
+  - {key: region, label: Region}
+  - {key: orders, label: Orders, format: number, align: right}
+  - {key: revenue, label: Revenue, format: number, align: right}
+  - {key: order_value, label: Average order, format: number, align: right}
+  - {key: returned_per_thousand, label: "Returned in 1,000", format: number, align: right}
+```
+
+*Source: `data/orders.parquet`, synthetic orders, aggregated by `queries/store-table.sql`.*
+
+## A small file, read whole
+
+`data/stores.parquet` holds the forty stores. The chart below names the file itself in `data.parquet`: RichView reads the one column the chart uses, every row of it, and the chart counts the stores in each size band.
+
+```chart
+type: histogram
+title: "Most stores are small: 22 of the 40 are under 1,000 square metres"
+subtitle: Floor area of the forty stores, synthetic
+data: {parquet: data/stores.parquet}
+encoding: {x: floor_area_m2}
+binning: {count: 8}
+axes:
+  x: {label: Floor area (square metres)}
+  y: {label: Stores}
+```
+
+*Source: `data/stores.parquet`, synthetic stores.*

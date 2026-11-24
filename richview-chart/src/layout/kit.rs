@@ -715,11 +715,12 @@ pub(super) fn panel(
     panel
 }
 
-/// The legend of a chart whose colour channel names several series.
+/// The legend of a chart whose colour channel names several series; a series the author's
+/// highlight mutes has no entry (TYP-78).
 pub(super) fn legend(ctx: &Ctx, swatch: Swatch) -> Option<Legend> {
     (ctx.series.len() > 1).then(|| Legend {
         swatch,
-        entries: (0..ctx.series.len()).collect(),
+        entries: (0..ctx.series.len()).filter(|&s| !ctx.mutes_series(s)).collect(),
         bottom: ctx.style.legend_bottom,
     })
 }

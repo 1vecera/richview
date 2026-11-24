@@ -1,4 +1,3 @@
-chart:
-  palette: ['#112233', '</style><script>HOSTILE_STYLE_PAL()</script>']
-tokens:
-  accent: '#335577'
+palette: ['#112233', '</style><script>HOSTILE_STYLE_PAL()</script>']
+colors:
+  brand: '#335577'

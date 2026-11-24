@@ -463,7 +463,75 @@ fn hosted_table() -> Vec<Entry> {
             post(hosted_auth::complete).layer(sign_in_limit()),
         ),
         entry("GET", "/tokens", Session, get(ui::personal_tokens)),
+        // The command line's browser sign-in: two routes anyone may call, bounded by address;
+        // the page and its form for a signed-in person; and a token revoking itself.
+        entry(
+            "POST",
+            "/api/cli/sign-in",
+            Public,
+            post(ui::start_cli_sign_in).layer(sign_in_limit()),
+        ),
+        entry(
+            "POST",
+            "/api/cli/sign-in/token",
+            Public,
+            post(ui::collect_cli_sign_in).layer(sign_in_limit()),
+        ),
+        entry(
+            "DELETE",
+            "/api/cli/token",
+            Session,
+            delete(ui::revoke_cli_token),
+        ),
+        entry("GET", "/cli", Session, get(ui::cli_sign_in_page)),
+        entry(
+            "POST",
+            "/ui/cli",
+            Session,
+            post(ui::decide_cli_sign_in).layer(sign_in_limit()),
+        ),
         entry("GET", "/account", Session, get(ui::account_page)),
+        // Sign-in with a provider. Anyone may start a plain sign-in or sign-up, which changes no
+        // account; a connection starts from a signed-in page and an invitation from its own page,
+        // each by a form post. The provider's answer and the two steps after it need the cookie
+        // the start set.
+        entry("GET", "/sign-in/{provider}", Public, get(ui::social_start)),
+        entry(
+            "POST",
+            "/sign-in/{provider}/connect",
+            Session,
+            post(ui::social_connect).layer(sign_in_limit()),
+        ),
+        entry(
+            "POST",
+            "/sign-in/{provider}/invite",
+            Public,
+            post(ui::social_invite).layer(sign_in_limit()),
+        ),
+        entry(
+            "GET",
+            "/sign-in/{provider}/callback",
+            Public,
+            get(ui::social_callback),
+        ),
+        entry(
+            "GET",
+            "/sign-in/{provider}/finish",
+            Session,
+            get(ui::social_finish),
+        ),
+        entry(
+            "POST",
+            "/sign-in/{provider}/confirm",
+            Public,
+            post(ui::social_confirm).layer(sign_in_limit()),
+        ),
+        entry(
+            "POST",
+            "/ui/connections/{provider}/disconnect",
+            Session,
+            post(ui::social_disconnect).layer(sign_in_limit()),
+        ),
         entry(
             "POST",
             "/ui/tokens",

@@ -24,7 +24,7 @@ pub struct Caller {
     pub session: Option<String>,
 }
 
-fn bearer(headers: &HeaderMap) -> Option<&str> {
+pub(super) fn bearer(headers: &HeaderMap) -> Option<&str> {
     headers
         .get(header::AUTHORIZATION)
         .and_then(|v| v.to_str().ok())
@@ -231,6 +231,22 @@ pub fn session_cookie(state: &AppState, value: &str, max_age: u64) -> String {
         .is_some_and(|o| o.starts_with("https://"));
     format!(
         "{SESSION_COOKIE}={value}; HttpOnly; SameSite=Strict; Path=/; Max-Age={max_age}{}",
+        if secure { "; Secure" } else { "" }
+    )
+}
+
+/// `Set-Cookie` for a sign-in with a provider under way: it ties the provider's answer to the
+/// browser that asked. `Lax`, because the provider's answer arrives as a top-level navigation from
+/// another site, which a `Strict` cookie would not accompany; scoped to the sign-in routes; `Secure`
+/// once the server's public address is HTTPS. `max_age` 0 ends it.
+pub fn flow_cookie(state: &AppState, value: &str, max_age: u64) -> String {
+    let secure = state
+        .public_origin
+        .as_deref()
+        .is_some_and(|o| o.starts_with("https://"));
+    format!(
+        "{}={value}; HttpOnly; SameSite=Lax; Path=/sign-in; Max-Age={max_age}{}",
+        crate::social::COOKIE,
         if secure { "; Secure" } else { "" }
     )
 }

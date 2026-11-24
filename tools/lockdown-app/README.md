@@ -1,6 +1,6 @@
 # Lockdown app
 
-A local web app for reviewing the RichView lockdown. It shows every item of a part, prefilled with the proposed answer, its IDs and sources, saves Daniel's accept, edit, reject or defer decisions to files in this repository, and renders the guide and the lockdown files for reading alongside. The file formats are defined in [`docs/lockdown/README.md`](../../docs/lockdown/README.md).
+A local project dashboard for reading RichView’s technical documentation, finding a saved decision and answering the remaining lockdown questions. The [lockdown file formats](../../docs/lockdown/README.md) define the proposals and answers.
 
 ## Run
 
@@ -22,13 +22,22 @@ The server binds to `127.0.0.1` only. To use it from another machine, forward th
 | `docs/lockdown/answers/<part id>.json` | Written by the app only, atomically (temporary file and rename), one write at a time per file. An answers file that is not valid JSON is reported and never overwritten. |
 | `docs/lockdown/answers/log.jsonl` | One line appended per answer change: `{at, partId, itemId, decision, text, note, action}`; `action` is `set` or `clear`, and `bulk: true` marks lines written as one batch ("accept all remaining", or a decision on selected rows). A clear logs `decision: null`. |
 | `docs/guide/**/*.md`, `docs/lockdown/{README,GOALS,RULES,BOUNDARIES,EVIDENCE,DELIVERY,ids}.md` | Read-only Markdown for the Guide view, listed and read fresh on every request. The listing skips hidden entries and does not follow symlinked folders. A guide file may be a symlink only to another file inside `docs/guide`, `docs/guide` itself must not be a symlink, and a lockdown file must be a regular file at its own path. |
-| `docs/lockdown/screenshots/`, `docs/guide/` | Images only, served under `/files/<repo path>`. |
+| `docs/how-it-works/**/*.md` | Read-only technical pages. The dashboard opens the index in `README.md` when present. |
+| `docs/lockdown/screenshots/`, `docs/guide/`, `docs/how-it-works/diagrams/` | Images only, served under `/files/<repo path>`. |
 
 The part id is the part's file name without `.json`. Each answer also stores `proposedHash`, a hash of the proposal it answered; when an agent later changes that proposal, the app marks the answer as changed and the export flags it as stale.
 
 ## Review flow
 
-The start page (`#/`) says what the lockdown is and links to the Key decisions view with its progress ("Key decisions 3 of 104 answered"), then what accept, edit, reject and defer mean, what they mean on a card with options, the order to work in, the progress of every part, and links to the guide and the export. The order is: first the 19 cross-part contradiction cards in Part 08 (OPN-50 to OPN-68), which decide which part holds where parts disagree, so each is answered before or together with the cards it cites; then parts 01 and 02; then the rest. A link opens Part 08 at that group's heading, and the parts list marks 08, 01 and 02. The left rail lists Start here, Key decisions with its progress, the parts with their status, progress and key progress (`key 2 of 24`), then the Guide; the start page's parts list shows the same counts.
+The dashboard (`#/`) shows three live counts, refreshed every five seconds.
+
+- **How it works** (`#/how-it-works`) counts Markdown pages, including the index. It opens the index, lists available pages while the index is being written, and shows an empty state when the directory has no pages. Each page has a contents list for its sections. Links between pages stay in the reader. Links to source files show their repository paths and line references. Diagrams load inline and open at full size.
+- **Answered** (`#/answered`) lists each current answer once, newest first by its latest set or redaction in the log. Cleared answers disappear. Answers without a logged date appear last. Search matches IDs, titles, proposals, decisions, edits and notes. The part and decision selectors narrow the same results. Follow an item’s title to open its card. If its card was removed, the saved decision links to the part.
+- **Open questions** (`#/open`) lists unanswered cards from every part, with key questions first and unrated questions last. Open a row to answer, use a keyboard shortcut or select rows for a bulk decision. It uses the same answer files, journal and retry path as the part view. A successful save removes the question from the queue. An open editor stays available until you finish editing. A saved defer or stale answer remains in Answered.
+
+For a changed proposal, open **Proposal when answered** to look up its earlier wording. The app checks up to 64 revisions of that part file in the selected checkout. It displays text only when its hash matches the one recorded with the answer. A missing match leaves the current proposal labeled and explains that the earlier wording is unavailable. The lookup is read-only and cached in memory.
+
+The start page also links to the Key decisions view with its progress ("Key decisions 3 of 104 answered"), then what accept, edit, reject and defer mean, what they mean on a card with options, the order to work in, the progress of every part, and links to the guide and the export. The order is: first the 19 cross-part contradiction cards in Part 08 (OPN-50 to OPN-68), which decide which part holds where parts disagree, so each is answered before or together with the cards it cites; then parts 01 and 02; then the rest. A link opens Part 08 at that group's heading, and the parts list marks 08, 01 and 02. The left rail links to the dashboard, its three views, Key decisions with its progress, the parts with their status, progress and key progress (`key 2 of 24`), then the Guide; the start page's parts list shows the same counts.
 
 Every item may carry an `importance` (`key`, `important` or `detail`, defined in [`docs/lockdown/README.md`](../../docs/lockdown/README.md)). Cards and rows show it as a badge: Key stands out on the accent wash, Important and Detail are quiet text, and an item without one (or with any other value) is unrated and shows none. Within each group, items sort key first, then important, detail and unrated, otherwise in file order.
 
@@ -82,12 +91,15 @@ Links follow one rule everywhere. An item ID (`INT-`, `DEL-`, `ARC-`, `FEA-CH-`,
 | --- | --- |
 | `GET /api/parts` | Parts in order: id, title, status, order, revision, item and answered counts, counts by decision, `importance` (`{key, important, detail, unrated}`, each `{itemCount, answeredCount}`), warnings, and the error for an unreadable file; `totals` sums them. |
 | `GET /api/items?importance=key,important` | Items of every readable part with `partId` and `answer` merged in, in part order and then file order, limited to the listed levels (`key`, `important`, `detail`, `unrated`; omitted means every item; an unknown level is 400), plus `parts`: every part's id, title, status, order, revision and error. The Key decisions view reads it; against a server that predates it (404) the UI reads every part instead. |
+| `GET /api/answered` | Current answers with their card ID, title, part, proposal, stale marker and latest log date (`at`). |
+| `GET /api/proposal/:partId/:itemId` | The proposal matching the saved hash, or `null` if the earlier wording is unavailable. Git history is consulted only for a stale answer. |
+| `GET /api/parts?open` | Adds each part’s unanswered item IDs to the normal summaries so the open queue detects changes in other tabs. |
 | `GET /api/parts/:id` | The part with each item's `answer` merged in, plus answers whose item has left the part (`orphans`). |
 | `PUT /api/answers/:partId/:itemId` | Body `{decision, text, note}`; `decision` is `accept`, `edit`, `reject` or `defer`, and `edit` needs `text`. |
 | `POST /api/answers/:partId/bulk` | Body: an array of `{itemId, decision, text, note}`; all entries are saved or none. |
 | `DELETE /api/answers/:partId/:itemId` | Clears the answer. |
 | `GET /api/export.md` | Markdown digest of every part for agents: each item's final decision and text, its entity, its component as `Component: <ID> <title>`, titled from the part 03 card, and its importance on the `Kind:` line. `?part=<id>` limits it to one part. |
-| `GET /api/docs` | Guide documents, then the lockdown files that exist: `path`, `section` (`guide` or `lockdown`), `title` from the first heading (the file name when there is none), `revision`, `size`, `updatedAt`. |
+| `GET /api/docs` | Guide documents, the lockdown files that exist and How it works pages: `path`, `section` (`guide`, `lockdown` or `how-it-works`), `title` from the first heading (the file name when there is none), `revision`, `size`, `updatedAt`. |
 | `GET /api/docs/<repo path>` | The raw Markdown of one listed location (`text/markdown`), with its revision in `X-Doc-Revision`; anything else is 404. |
 | `GET /api/index` | `{itemId: partId}` for every item of every readable part, built from the part files on each request; an ID in two parts maps to the earlier part. The UI links item IDs with it. |
 | `GET /api/repo-paths` | `{commit, paths, lockdownPaths}`: `paths` from `git -C <root> ls-tree -r -z --full-tree --name-only b4db233`, run once and cached (empty when git fails), and `lockdownPaths`, the files on disk under `docs/lockdown`, `docs/guide` and `tools/lockdown-app`, listed fresh without hidden entries or linked folders. The UI links a repo path only when it is listed. |

@@ -1,5 +1,5 @@
 {
-  "notice_sha256": "180d107326d8599e97563f1a0da51c4e53e02e8955ea821d959f2db66028b1fd",
+  "notice_sha256": "a795f497e79ad0375f15875fd9814a84551849d8155691af9c8577a857a02a60",
   "crates": [
     {
       "name": "adler2",
@@ -952,7 +952,7 @@
     },
     {
       "name": "form_urlencoded",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "licence": "MIT OR Apache-2.0",
       "texts": [
         "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
@@ -2711,7 +2711,7 @@
     },
     {
       "name": "url",
-      "version": "2.5.8",
+      "version": "2.5.9",
       "licence": "MIT OR Apache-2.0",
       "texts": [
         "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",

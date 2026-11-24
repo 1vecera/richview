@@ -345,7 +345,7 @@ async function selectionContours(page, name, { input = 'keyboard' } = {}) {
     await page.mouse.move(1, 1);
     await frame.press('Escape');
     await settle(page);
-    const regions = await page.evaluate(({ k, name }) => {
+    const regions = await page.evaluate(({ k, name, input }) => {
       const model = window.__richview.charts()[0], panel = model.geometry.panels[0], o = panel.observations[k];
       if (name === 'sunburst' || name === 'packed-bubble') {
         const names = [o.readout.heading.split(' › ').at(-1), ...(name === 'sunburst' ? [panel.observations[0].readout.heading] : [])];
@@ -379,11 +379,20 @@ async function selectionContours(page, name, { input = 'keyboard' } = {}) {
         .map(p => ({ p, distance: Math.min(...segments.map(s => distance(p, s))) })).sort((a, b) => b.distance - a.distance);
       if (!candidates.length || candidates[0].distance < 6) throw Error('the hit bucket has an edge away from the true strokes');
       const [x, y] = candidates[0].p, [u, v] = segments[0], dx = v[0] - u[0], dy = v[1] - u[1], length = Math.hypot(dx, dy);
+      // Probe both sides of the actual wick. Keyboard focus sits beyond the hover band.
+      // Centre the sample on it so subpixel changes in chart width cannot miss the ring.
+      const reach = input === 'keyboard' ? 4.5 : 1;
+      const side = n => ({
+        name: `feedback on side ${n} of the wick`,
+        box: [(u[0] + v[0]) / 2 - dy / length * reach * n - 2, (u[1] + v[1]) / 2 + dx / length * reach * n - 2, 4, 4],
+        unchanged: false,
+      });
       return [
         { name: 'empty hit-bucket edge', box: [x - .5, y - .5, 1, 1], unchanged: true },
-        { name: 'contour beside the actual wick', box: [(u[0] + v[0]) / 2 - dy / length * 2 - 1.5, (u[1] + v[1]) / 2 + dx / length * 2 - 1.5, 3, 3], unchanged: false },
+        side(-1),
+        side(1),
       ];
-    }, { k, name });
+    }, { k, name, input });
     const pixels = () => page.evaluate(regions => {
       const m = window.__richview.charts()[0], canvas = document.querySelector('.rv-chart__canvas'), ctx = canvas.getContext('2d'), dpr = m.canvas.dpr;
       return regions.map(({ box }) => {

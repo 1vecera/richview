@@ -130,7 +130,7 @@ pub fn parse_schema(name: &str, mut value: Value) -> Result<Value, Vec<Diagnosti
             if !diagnostics.is_empty() {
                 return Err(diagnostics);
             }
-            retain_keys(&mut value, &["inline", "csv", "json"]);
+            retain_keys(&mut value, &["inline", "csv", "json", "parquet"]);
             return Ok(value);
         }
         "versionString" | "version" => {
@@ -184,7 +184,7 @@ pub fn parse_schema(name: &str, mut value: Value) -> Result<Value, Vec<Diagnosti
     }
     apply_defaults(tag, &mut value);
     if let Some(data) = value.get_mut("data") {
-        retain_keys(data, &["inline", "csv", "json"]);
+        retain_keys(data, &["inline", "csv", "json", "parquet"]);
     }
     Ok(value)
 }
@@ -261,7 +261,7 @@ fn validate_data(
         diagnostics.push(issue(path, "Expected a data mapping"));
         return;
     };
-    for key in ["id", "csv", "json", "url", "sql"] {
+    for key in ["id", "csv", "json", "parquet", "url", "sql"] {
         if map.get(key).is_some_and(|v| !v.is_string()) {
             diagnostics.push(issue(&format!("{path}.{key}"), "Expected a string"));
         }
@@ -281,7 +281,7 @@ fn validate_data(
             diagnostics.push(issue(path,"Use block-local data.inline or a bounded csv/json path; header IDs and remote/SQL sources are unsupported."));
         }
     }
-    for key in ["csv", "json"] {
+    for key in crate::document::DATA_FILE_KEYS {
         if let Some(path) = map.get(key).and_then(Value::as_str)
             && !crate::report_relative_path(path)
         {

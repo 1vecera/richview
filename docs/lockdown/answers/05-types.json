@@ -1,0 +1,11 @@
+{
+  "partId": "05-types",
+  "answers": {
+    "TYP-100": {
+      "decision": "reject",
+      "note": "Dictated by Daniel in the review chat on 2026-11-23: \"I think it needs to be a separate thing.\" Recorded by the lockdown agent at his request.\n\nSlides become a format of their own, a YAML-like file, not a frontmatter field: see the answer to FEA-RP-65 of the same day. The new format's fields and diagnostics need a type card of their own.",
+      "proposedHash": "76840aa8bd690a28",
+      "updatedAt": "2026-11-23T19:25:56.166Z"
+    }
+  }
+}

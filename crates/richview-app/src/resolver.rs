@@ -20,6 +20,11 @@ struct ResourceBudget {
     declared: std::collections::BTreeSet<String>,
     /// Findings on files the report names but the host did not read.
     findings: Vec<richview_core::document::Diagnostic>,
+    /// For each Parquet file the report names, the texts of the blocks that name it, whose
+    /// columns are the ones read; `None` when a block reads every column.
+    parquet_names: BTreeMap<String, Option<Vec<String>>>,
+    /// Parquet files that gave no rows, so each is read once however many blocks name it.
+    parquet_refused: BTreeMap<String, crate::connectors::parquet_source::ParquetRefusal>,
 }
 impl ResourceBudget {
     /// Keeps an asset finding for the report; any other error stays fatal.
@@ -245,6 +250,9 @@ fn resolve_inner(
         })
         .collect();
     cascade_sources.extend(options.styles.iter().cloned());
+    // The frontmatter's background is the cascade's last layer (STY-74); its picture is bounded
+    // below like a style file's.
+    cascade_sources.extend(richview_core::report_background_layer(&doc.frontmatter));
     let cascade = richview_core::resolve_styles(&cascade_sources, &mut Vec::new());
     for file in richview_core::brand_font_files(&cascade) {
         if contained_path(root, &file).is_ok_and(|path| path.is_file()) {
@@ -268,10 +276,21 @@ fn resolve_inner(
         }
     }
     for block in &doc.blocks {
+        let named = block.tag == "chart" || block.value.get("columns").is_some();
+        note_parquet_names(&block.value, &block.value, named, &mut budget.parquet_names);
+        // A scrolly's steps name fields of its chart's data too.
+        if block.tag == "scrolly"
+            && let Some(chart) = block.value.get("chart")
+        {
+            note_parquet_names(chart, &block.value, true, &mut budget.parquet_names);
+        }
+    }
+    for block in &doc.blocks {
         if let Some(data) = block.value.get("data") {
             resolve_data(
                 data,
                 &block.tag,
+                block.line,
                 root,
                 allow_network,
                 &mut options.data,
@@ -313,6 +332,7 @@ fn resolve_inner(
             resolve_data(
                 data,
                 "scrolly.chart",
+                block.line,
                 root,
                 allow_network,
                 &mut options.data,
@@ -563,11 +583,114 @@ fn resolve_style(
     Ok(content)
 }
 
-/// Reads the CSV or JSON file `value` names into `data`. `field` is the path of the block field
-/// that holds `value`, such as `chart` or `scrolly.chart`.
+/// Record, for the Parquet file `holder` names in its `data`, which columns its block uses:
+/// every text in `block`, of which the reader takes those that are column names. `named` says
+/// the block names each field it reads, as a chart does (TYP-36) and a table that lists its
+/// `columns`; any other block reads every column.
+fn note_parquet_names(
+    holder: &Value,
+    block: &Value,
+    named: bool,
+    names: &mut BTreeMap<String, Option<Vec<String>>>,
+) {
+    let Some(reference) = holder.pointer("/data/parquet").and_then(Value::as_str) else {
+        return;
+    };
+    fn texts(value: &Value, into: &mut Vec<String>) {
+        match value {
+            Value::String(text) => into.push(text.clone()),
+            Value::Array(items) => items.iter().for_each(|item| texts(item, into)),
+            Value::Object(map) => {
+                for (key, item) in map {
+                    into.push(key.clone());
+                    texts(item, into);
+                }
+            }
+            _ => {}
+        }
+    }
+    let named = named.then(|| {
+        let mut found = Vec::new();
+        texts(block, &mut found);
+        found
+    });
+    match (names.get_mut(reference), named) {
+        (None, named) => {
+            names.insert(reference.to_owned(), named);
+        }
+        (Some(Some(all)), Some(more)) => all.extend(more),
+        (Some(slot), None) => *slot = None,
+        (Some(None), Some(_)) => {}
+    }
+}
+
+/// Read the Parquet file a block names in `data.parquet`, once per report, in the restricted
+/// worker, which returns only the columns the report's blocks name. A file that gives no rows
+/// is a finding at each block that names it (FEA-RP-30).
+fn resolve_parquet(
+    reference: &str,
+    field: &str,
+    line: usize,
+    root: &Path,
+    data: &mut BTreeMap<String, String>,
+    budget: &mut ResourceBudget,
+) -> Result<(), String> {
+    use crate::connectors::parquet_source;
+    use richview_core::document::Diagnostic;
+    if data.contains_key(reference) {
+        return Ok(());
+    }
+    let finding = |level: &str, code: &str, message: String, fix: &str| {
+        let mut finding = Diagnostic::new(level, code, message, format!("{field}.data.parquet"))
+            .fix(fix)
+            .in_file(reference);
+        finding.line = Some(line);
+        finding.tag = field.split('.').next().map(str::to_owned);
+        finding
+    };
+    if !budget.parquet_refused.contains_key(reference) {
+        let path = match contained_path(root, reference) {
+            Ok(path) => path,
+            Err(e) => return budget.tolerate(e),
+        };
+        let names = budget.parquet_names.get(reference).cloned().flatten();
+        match parquet_source::read_columns(&path, reference, None, names.as_deref()) {
+            Ok(table) => {
+                if table.text.len() + reference.len() > budget.remaining() {
+                    return Err(budget.error(reference));
+                }
+                budget.charge(reference, table.text.len() + reference.len())?;
+                for (column, count) in table.non_finite {
+                    budget.findings.push(finding(
+                        "warning",
+                        "data.parquet.non-finite",
+                        format!(
+                            "Column '{column}' of Parquet file '{reference}' holds {count} NaN or infinite value{}, read as missing.",
+                            if count == 1 { "" } else { "s" }
+                        ),
+                        "Write those values as nulls when you export the file, or check the calculation that produced them.",
+                    ));
+                }
+                data.insert(reference.into(), table.text);
+                return Ok(());
+            }
+            Err(refusal) => {
+                budget.parquet_refused.insert(reference.to_owned(), refusal);
+            }
+        }
+    }
+    let refusal = &budget.parquet_refused[reference];
+    let found = finding("error", refusal.code, refusal.message.clone(), &refusal.fix);
+    budget.findings.push(found);
+    Ok(())
+}
+
+/// Reads the CSV, JSON or Parquet file `value` names into `data`. `field` is the path of the
+/// block field that holds `value`, such as `chart` or `scrolly.chart`, and `line` is its block's.
 fn resolve_data(
     value: &Value,
     field: &str,
+    line: usize,
     root: &Path,
     _allow_network: bool,
     data: &mut BTreeMap<String, String>,
@@ -610,6 +733,9 @@ fn resolve_data(
         };
         budget.charge(reference, content.len() + reference.len())?;
         data.insert(reference.into(), content);
+    }
+    if let Some(reference) = value.get("parquet").and_then(Value::as_str) {
+        resolve_parquet(reference, field, line, root, data, budget)?;
     }
     for key in ["sql", "metricflow", "cache"] {
         // Validation passes the block over but still checks that the connector it names exists.
@@ -821,7 +947,8 @@ impl Target {
 }
 
 /// The `.rmd` files, in name order, and the folders directly inside `folder`. Hidden folders and
-/// symlinked folders are left out, so a walk stays inside the folder it was given.
+/// symlinked folders are left out, so a walk stays inside the folder it was given, and so is a
+/// macOS sidecar (`._report.rmd`), which is no report.
 fn folder_entries(folder: &Path) -> Result<(Vec<PathBuf>, Vec<PathBuf>), String> {
     let (mut sources, mut folders) = (vec![], vec![]);
     for entry in fs::read_dir(folder).map_err(|e| format!("{}: {e}", folder.display()))? {
@@ -832,12 +959,18 @@ fn folder_entries(folder: &Path) -> Result<(Vec<PathBuf>, Vec<PathBuf>), String>
             if !entry.file_name().to_string_lossy().starts_with('.') {
                 folders.push(path);
             }
-        } else if path.is_file() && path.extension().is_some_and(|e| e == "rmd") {
+        } else if path.is_file() && path.extension().is_some_and(|e| e == "rmd") && !sidecar(&entry)
+        {
             sources.push(path);
         }
     }
     sources.sort();
     Ok((sources, folders))
+}
+
+/// Whether a folder entry is an AppleDouble sidecar, which no walk of a report folder counts.
+fn sidecar(entry: &fs::DirEntry) -> bool {
+    richview_core::document::apple_double_sidecar(&entry.file_name().to_string_lossy())
 }
 
 /// Every `.rmd` below `root`, in path order. A folder that holds a `.rmd` is a report folder: its
@@ -940,7 +1073,9 @@ pub(crate) fn inspect_report_folder(
             let kind = entry.file_type().map_err(|e| e.to_string())?;
             if kind.is_dir() {
                 pending.push(path);
-            } else {
+            } else if !sidecar(&entry) {
+                // A macOS sidecar is another file's attributes, not a file of the report: it
+                // stays out of the inventory, so nothing counts, reads or publishes it.
                 files.push(
                     path.strip_prefix(&root)
                         .unwrap()
@@ -975,6 +1110,15 @@ pub fn contained_path(root: &Path, reference: &str) -> Result<PathBuf, String> {
             // Messages reach MCP clients and hosted servers: they name the reference, never the host's path.
             format!(
                 "Reference '{reference}' escapes the report folder. Copy the file into that folder and use a relative path."
+            ),
+        ));
+    }
+    if richview_core::document::apple_double_sidecar(reference) {
+        return Err(root_error(
+            "report.asset.missing",
+            reference,
+            format!(
+                "Reference '{reference}' names a macOS sidecar file, which holds another file's attributes: a report never reads it. Name the file it stands beside."
             ),
         ));
     }

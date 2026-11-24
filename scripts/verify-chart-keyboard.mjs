@@ -73,45 +73,76 @@ const FRAME_RING = () => {
   return { shown, selected: frame.hasAttribute('data-rv-selected'), width, crowding };
 };
 
-/** In the page: the share of probes along the middle of a mark ring, 3 px past the selected mark's contour, that are drawn in the link colour, and the mark's centre in the viewport. */
+/** Sample the sharp band against the unselected canvas, including its arc across the left axis. */
 const MARK_RING = () => {
-  const figure = document.querySelector('figure[data-rv-chart]');
-  const frame = figure.querySelector('.rv-chart__frame');
-  const canvas = figure.querySelector('canvas.rv-chart__canvas');
-  const model = window.__richview.charts()[0];
-  const t = model.target;
-  if (!t) return { ringed: false, share: 0, at: [0, 0] };
-  const panel = model.geometry.panels[t.panel], o = panel.observations[t.observation];
-  const around = (c, r) => Array.from({ length: 8 }, (_, k) => [c[0] + r * Math.cos(k * Math.PI / 4), c[1] + r * Math.sin(k * Math.PI / 4)]);
-  const probes = [];
+  const canvas = document.querySelector('canvas.rv-chart__canvas');
+  const ctx = canvas.getContext('2d'), scale = canvas.width / canvas.clientWidth;
+  const model = window.__richview.charts()[0], t = model.target;
+  const { plot, observations, items } = model.geometry.panels[t.panel];
+  const o = observations[t.observation];
   let center = o.at;
-  if (panel.targeting === 'nearest-x') for (const d of o.dots.length ? o.dots : [{ at: o.at }]) probes.push(...around(d.at, 11));
-  else for (const m of panel.items.filter(i => i.kind !== 'text' && i.role === 'mark' && i.obs === t.observation)) {
-    if (m.kind === 'point') { center = m.center; probes.push(...around(m.center, m.radius + (m.stroke ? m.stroke.width / 2 : 0) + 4 + 3)); }
-    if (m.kind === 'rect') {
-      const r = m.rect, d = 0.75 + 3;
+  const outlines = [];
+  // Halfway through the 1.25 px band after the 1.5 px paper edge.
+  const gap = 2.125;
+  const circle = ([x, y], r) => Array.from({ length: 8 }, (_, i) =>
+    [x + (r + gap) * Math.cos(i * Math.PI / 4), y + (r + gap) * Math.sin(i * Math.PI / 4)]);
+  const rect = ([x, y], w, h) => [[x - w - gap, y], [x + w + gap, y], [x, y - h - gap], [x, y + h + gap]];
+  if (model.geometry.kind === 'line') {
+    for (const dot of o.dots.length ? o.dots : [{ at: o.at }]) outlines.push(circle(dot.at, 6));
+  } else for (const mark of items.filter(i => i.role === 'mark' && i.obs === t.observation)) {
+    const half = (mark.stroke?.width ?? 0) / 2;
+    if (mark.kind === 'rect') {
+      const r = mark.rect;
       center = [r.x + r.w / 2, r.y + r.h / 2];
-      probes.push([r.x + r.w / 2, r.y - d], [r.x + r.w / 2, r.y + r.h + d], [r.x - d, r.y + r.h / 2], [r.x + r.w + d, r.y + r.h / 2]);
+      outlines.push(rect(center, r.w / 2 + half, r.h / 2 + half));
+    } else if (mark.kind === 'point') {
+      center = mark.center;
+      const r = 1.6 * mark.radius;
+      outlines.push(mark.shape === 'square' ? rect(center, r * 0.85 + half, r * 0.85 + half) : circle(center, r + half));
     }
   }
-  const swatch = document.createElement('canvas').getContext('2d');
-  const style = getComputedStyle(frame);
-  swatch.fillStyle = style.getPropertyValue('--rv-link').trim() || style.getPropertyValue('--rv-accent').trim();
-  swatch.fillRect(0, 0, 1, 1);
-  const link = swatch.getImageData(0, 0, 1, 1).data;
-  const ctx = canvas.getContext('2d'), scale = canvas.width / canvas.clientWidth;
-  const plot = panel.plot;
-  const inside = ([x, y]) => x >= plot.x - 8 && y >= plot.y - 8 && x <= plot.x + plot.w + 8 && y <= plot.y + plot.h + 8;
-  // The ring is 2 px wide on a fractional grid: the nearest of each probe's 3 by 3 pixels.
-  const hits = probes.filter(inside).map(([x, y]) => {
-    const d = ctx.getImageData(Math.round(x * scale) - 1, Math.round(y * scale) - 1, 3, 3).data;
-    let nearest = Infinity;
-    for (let i = 0; i < d.length; i += 4) nearest = Math.min(nearest, Math.hypot(d[i] - link[0], d[i + 1] - link[1], d[i + 2] - link[2]));
-    return nearest < 40;
-  });
-  const share = hits.length ? hits.filter(Boolean).length / hits.length : 0;
+  const pixels = [], outside = [], shares = [];
+  const baseline = window.__unselectedPixels;
+  for (const outline of outlines) {
+    let seen = 0, inside = 0;
+    for (const [x, y] of outline) {
+      const col = Math.floor(x * scale), row = Math.floor(y * scale);
+      const rgb = [...ctx.getImageData(col, row, 1, 1).data].slice(0, 3);
+      const offset = (row * canvas.width + col) * 4;
+      const difference = Math.max(...rgb.map((v, k) => Math.abs(v - baseline[offset + k])));
+      pixels.push(rgb);
+      if (x >= plot.x && x < plot.x + plot.w && y >= plot.y && y < plot.y + plot.h) {
+        inside++;
+        if (difference > 12) seen++;
+      } else if (x < plot.x - 1) outside.push(difference);
+    }
+    shares.push(inside ? seen / inside : 0);
+  }
   const box = canvas.getBoundingClientRect();
-  return { ringed: share >= 0.75, share, probes: hits.length, at: [box.x + center[0], box.y + center[1]] };
+  const at = [box.x + Math.max(center[0], plot.x + 1), box.y + center[1]];
+  return { ringed: shares.length > 0 && shares.every(s => s >= 0.5), shares, pixels, outside, at, target: t };
+};
+
+/** Sample the scatter fill past the original disc and before the focus band. */
+const SCATTER_FILL = () => {
+  const canvas = document.querySelector('canvas.rv-chart__canvas');
+  const model = window.__richview.charts()[0], target = model.target;
+  const panel = model.geometry.panels[target.panel];
+  const mark = panel.items.find(item => item.kind === 'point' && item.role === 'mark' && item.obs === target.observation);
+  const [x, y] = mark.center, radius = mark.radius, grown = radius * 1.6;
+  const ctx = canvas.getContext('2d'), scale = canvas.width / canvas.clientWidth;
+  const pixel = (col, row) => ctx.getImageData(col, row, 1, 1).data;
+  const row = Math.floor(y * scale), ink = pixel(Math.floor(x * scale), row);
+  // Probe pixel centres strictly outside the original radius and inside the grown fill.
+  const outside = [];
+  for (let col = Math.floor((x - grown) * scale); col < panel.plot.x * scale; col++) {
+    const px = (col + 0.5) / scale;
+    const distance = Math.hypot(x - px, y - (row + 0.5) / scale);
+    if (px >= panel.plot.x - 0.5 || distance <= radius + 0.35 || distance >= grown - 0.35) continue;
+    const rgb = pixel(col, row);
+    outside.push(Math.hypot(rgb[0] - ink[0], rgb[1] - ink[1], rgb[2] - ink[2]));
+  }
+  return { painted: Math.abs(x - panel.plot.x) < 0.5 && outside.some(distance => distance < 35), outside };
 };
 
 // One report per chart mode, generated by the release CLI and drawn by the report runtime.
@@ -268,8 +299,7 @@ try {
 
   // Keyboard focus shows where it is (STY-38): the frame's ring on arrival, 3 px clear of the
   // text on the canvas and on the page, or midway where the two leave less room; an arrow key
-  // moves it onto the selected mark, 2 px past the mark's contour; a pointer never draws that
-  // ring; Escape brings the frame's ring back.
+  // moves it onto the selected mark. Pointer and keyboard draw the same clipped ring.
   for (const width of [720, 320]) for (const mode of ['numeric-line', 'category-bar', 'numeric-scatter']) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto(`${reportServer.base}/${mode}/report.html`);
@@ -282,19 +312,45 @@ try {
     cases.push(ring);
     expect(`${mode}/${width}: Tab arrival shows the frame's ring`, ring.arrival.shown, true);
     expect(`${mode}/${width}: the frame's ring keeps 3 px from text ${JSON.stringify(ring.arrival.crowding)}`, ring.arrival.crowding.length, 0);
-    // An inner mark: the feedback is clipped 8 px past the plot, a ring at its edge with it.
+    await page.evaluate(() => {
+      const canvas = document.querySelector('canvas.rv-chart__canvas');
+      window.__unselectedPixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+    });
+    // Select an interior mark on the line and the point beside the left axis on the scatter.
     await page.keyboard.press('Home');
     await page.keyboard.press('ArrowRight');
     await page.evaluate(() => window.__richview.settled());
     ring.selected = { frame: await page.evaluate(FRAME_RING), mark: await page.evaluate(MARK_RING) };
     expect(`${mode}/${width}: an arrow key's selection hides the frame's ring`, ring.selected.frame.shown, false);
     expect(`${mode}/${width}: the selected mark gets the ring ${JSON.stringify(ring.selected.mark)}`, ring.selected.mark.ringed, true);
-    // The pointer takes over on the same mark: the contour stays, the keyboard's ring goes.
+    if (mode === 'numeric-scatter') {
+      expect(`${mode}/${width}: the outer arc crosses the axis with its scatter point`, ring.selected.mark.outside.some(d => d > 12), true);
+      ring.selected.fill = await page.evaluate(SCATTER_FILL);
+      expect(`${mode}/${width}: the selected scatter fill crosses the axis ${JSON.stringify(ring.selected.fill)}`, ring.selected.fill.painted, true);
+    }
+    // Taking over the same mark must reproduce every sampled ring pixel.
     await page.mouse.move(ring.selected.mark.at[0] + 3, ring.selected.mark.at[1] + 3);
     await page.mouse.move(ring.selected.mark.at[0], ring.selected.mark.at[1], { steps: 3 });
     await page.evaluate(() => window.__richview.settled());
     ring.pointer = { frame: await page.evaluate(FRAME_RING), mark: await page.evaluate(MARK_RING) };
-    expect(`${mode}/${width}: pointer hover never shows the mark ring ${JSON.stringify(ring.pointer.mark)}`, ring.pointer.mark.share <= 0.25, true);
+    expect(`${mode}/${width}: pointer and keyboard paint identical ring pixels`, JSON.stringify(ring.pointer.mark.pixels), JSON.stringify(ring.selected.mark.pixels));
+    expect(`${mode}/${width}: compare the same observation`, JSON.stringify(ring.pointer.mark.target), JSON.stringify(ring.selected.mark.target));
+    if (mode === 'numeric-scatter') {
+      ring.pointer.fill = await page.evaluate(SCATTER_FILL);
+      expect(`${mode}/${width}: the hovered scatter fill crosses the axis ${JSON.stringify(ring.pointer.fill)}`, ring.pointer.fill.painted, true);
+    }
+    if (mode === 'numeric-line') {
+      await page.keyboard.press('Home');
+      await page.evaluate(() => window.__richview.settled());
+      const edge = await page.evaluate(MARK_RING);
+      expect(`${mode}/${width}: the visible arc is drawn at the axis ${JSON.stringify(edge)}`, edge.ringed, true);
+      expect(`${mode}/${width}: the line point's ring crosses the left axis`, edge.outside.some(d => d > 12), true);
+      await page.mouse.move(...edge.at);
+      await page.evaluate(() => window.__richview.settled());
+      ring.edge = { keyboard: edge, pointer: await page.evaluate(MARK_RING) };
+      expect(`${mode}/${width}: compare the same observation at the axis`, JSON.stringify(ring.edge.pointer.target), JSON.stringify(edge.target));
+      expect(`${mode}/${width}: pointer paints the same arcs across the axis`, JSON.stringify(ring.edge.pointer.pixels), JSON.stringify(edge.pixels));
+    }
     await page.keyboard.press('Home');
     await page.keyboard.press('Escape');
     await page.evaluate(() => window.__richview.settled());

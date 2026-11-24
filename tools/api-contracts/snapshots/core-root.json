@@ -258,6 +258,11 @@
         "declaration": "pub use blocks : : render_table ;"
       },
       {
+        "name": "report_background_layer",
+        "kind": "use",
+        "declaration": "pub use style : : report_background_layer ;"
+      },
+      {
         "name": "report_company_brand",
         "kind": "use",
         "declaration": "pub use company_brand : : report_company_brand ;"
@@ -710,6 +715,7 @@
               "RichMarkdown",
               "Yaml",
               "Shell",
+              "Sql",
               "Plain"
             ]
           },

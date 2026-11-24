@@ -1,0 +1,16 @@
+digraph cli {
+  graph [rankdir=TB, bgcolor="transparent", pad=0.12, nodesep=0.30, ranksep=0.40];
+  node [shape=box, style="rounded,filled", color="#474747", fontcolor="#333333", fillcolor="white", fontname="Helvetica", fontsize=12, margin="0.13,0.08"];
+  edge [color="#474747", fontcolor="#333333", fontname="Helvetica", fontsize=11, arrowsize=0.7];
+  folder [label="Report folder"];
+  resolve [label="Command-line program\nRead source and files", color="#196965", fontcolor="#196965", penwidth=1.6];
+  core [label="Report renderer\nGenerate screen or print HTML"];
+  html [label="CLI writes HTML\nand copies linked files"];
+  print [label="Local browser\nPrint the supplied HTML"];
+  upload [label="Cowork report server\nRender and store published inputs"];
+  folder -> resolve;
+  resolve -> core;
+  resolve -> upload;
+  core -> html;
+  core -> print;
+}

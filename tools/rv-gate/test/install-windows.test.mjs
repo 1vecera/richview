@@ -61,7 +61,7 @@ async function fixture(fn, { mutate = () => {}, digest, members = ['.'] } = {}) 
 test('install puts both executables in place and self-uninstall leaves the temporary HOME empty', { skip }, async () => {
   await fixture(async ({ home, prefix, install, uninstall, requests }) => {
     const installed = await install(['-Commit', commit]); assert.equal(installed.status, 0, JSON.stringify(installed));
-    assert.match(installed.stdout, /Agent MCP command: & '.*richview\.exe' mcp/); assert.match(installed.stdout, /Optional Cowork server: & '.*richview\.exe' server --help/); assert.doesNotMatch(installed.stdout, /not available on Windows/);
+    assert.match(installed.stdout, /Agent MCP command: & '.*richview\.exe' mcp/); assert.match(installed.stdout, /Run your own report server, RichView Cowork: & '.*richview\.exe' server --help/); assert.match(installed.stdout, /choose RichView Cowork hosted by RichView at app\.richview\.ai, or your own server; no hosted service was started/); assert.doesNotMatch(installed.stdout, /not available on Windows/);
     assert.ok(installed.stdout.includes(`-File '${join(prefix, 'uninstall.ps1').replaceAll("'", "''")}' -Uninstall`));
     assert.equal(readFileSync(join(prefix, 'bin/richview.exe'), 'utf8'), 'MZ fixture CLI');
     assert.ok(existsSync(join(prefix, 'bin/richview-sql-worker.exe')));

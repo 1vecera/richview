@@ -87,6 +87,44 @@ axes:
 
 *Source: synthetic fixture data generated for the lockdown, 21 October 2026.*
 
+### Highlight
+
+```chart
+type: line
+title: APAC is the only region where support load rose
+subtitle: Tickets per 1,000 accounts by month, synthetic, July to December 2025; the other regions recede
+data:
+  inline:
+    - {month: 2025-07, region: North America, tickets: 44}
+    - {month: 2025-08, region: North America, tickets: 43}
+    - {month: 2025-09, region: North America, tickets: 41}
+    - {month: 2025-10, region: North America, tickets: 40}
+    - {month: 2025-11, region: North America, tickets: 38}
+    - {month: 2025-12, region: North America, tickets: 36}
+    - {month: 2025-07, region: Europe, tickets: 40}
+    - {month: 2025-08, region: Europe, tickets: 39}
+    - {month: 2025-09, region: Europe, tickets: 37}
+    - {month: 2025-10, region: Europe, tickets: 35}
+    - {month: 2025-11, region: Europe, tickets: 33}
+    - {month: 2025-12, region: Europe, tickets: 31}
+    - {month: 2025-07, region: APAC, tickets: 27}
+    - {month: 2025-08, region: APAC, tickets: 28}
+    - {month: 2025-09, region: APAC, tickets: 30}
+    - {month: 2025-10, region: APAC, tickets: 31}
+    - {month: 2025-11, region: APAC, tickets: 32}
+    - {month: 2025-12, region: APAC, tickets: 34}
+    - {month: 2025-07, region: Latin America, tickets: 49}
+    - {month: 2025-08, region: Latin America, tickets: 47}
+    - {month: 2025-09, region: Latin America, tickets: 46}
+    - {month: 2025-10, region: Latin America, tickets: 44}
+    - {month: 2025-11, region: Latin America, tickets: 42}
+    - {month: 2025-12, region: Latin America, tickets: 40}
+encoding: {x: month, y: tickets, color: region}
+highlight: {by: region, include: [APAC]}
+axes:
+  y: {label: 'Tickets per 1,000 accounts'}
+```
+
 ### Scatter
 
 ```chart

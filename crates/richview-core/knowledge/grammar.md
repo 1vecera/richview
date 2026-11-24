@@ -7,7 +7,7 @@ Start a first report:
 
 If your shell cannot find `richview` and you installed it in the default location, use `"$HOME/.richview/bin/richview"` in place of `richview`. For a custom install, use the executable at the chosen location.
 
-This guide is long. `richview learn <section>` prints one section: grammar, chart-contract, style, workflow or anti-slop. If your tool cuts long output, read it section by section or page it, for example `richview learn chart-contract | sed -n '1,150p'`; every key has its own line.
+This guide is long. `richview learn <section>` prints one section: grammar, chart-contract, style, workflow, anti-slop or slides. If your tool cuts long output, read it section by section or page it, for example `richview learn chart-contract | sed -n '1,150p'`; every key has its own line.
 
 ### A report is Markdown with tagged blocks
 
@@ -77,7 +77,7 @@ Readers never get more precision than the author chose, and the default is three
 
 ### Data
 
-data takes exactly one source: data.inline with expanded row mappings for small inputs, or data.csv / data.json holding the path of a file in the report folder (data: {csv: data/sales.csv}; never the CSV text itself) for larger ones, or a connector query (data.sql, below). The accepted data.url field is not implemented by current native or browser loaders; save remote data locally for now. data.id and headers are errors.
+data takes exactly one source: data.inline with expanded row mappings for small inputs, or data.csv / data.json / data.parquet holding the path of a file in the report folder (data: {csv: data/sales.csv}; never the CSV text itself) for larger ones, or a connector query (data.sql; see `richview learn workflow`). The accepted data.url field is not implemented by current native or browser loaders; save remote data locally for now. data.id and headers are errors.
 
 Data typing is one contract for inline, CSV and JSON rows:
 
@@ -86,6 +86,8 @@ Data typing is one contract for inline, CSV and JSON rows:
 - Cells and headers are trimmed; headers must be nonempty and unique (data.csv.header); a row with the wrong number of fields is data.csv.
 - In CSV an empty cell is null, true and false are booleans, plain numbers are numbers (10.50 reads as 10.5), a leading-zero token such as 00123 is an identifier that stays text, and an integer past 2^53 or a decimal that binary64 cannot hold stays text with its digits.
 - A JSON file is an array of flat row objects whose values are strings, finite numbers, booleans or null; an outer object such as {"inline": [...]} or a nested object or array is a data.json error naming the row and key. Inline rows follow the same value rule (data.inline).
+- A Parquet file (data: {parquet: data/orders.parquet}) suits large or wide data: only the richview command and RichView servers read it, and only the columns the blocks name, up to 1,000,000 rows and 16 MiB of them (data.limit), never a sample. Values keep their Parquet type: text 123 stays text, 9.00 prints 9, dates and timestamps become ISO 8601 text, and NaN or an infinity is missing. A nested or binary column a block reads is a data.parquet error.
+- To chart a larger Parquet file, aggregate it with SQL (`richview learn workflow`): a connector with kind: parquet and file: data/orders.parquet makes the file the table named after the connector, so a report with many charts over one large file stays small.
 - Missing values are null, an empty CSV cell, or . NA N/A NaN null none in any case after trimming. Charts draw a gap and count it (chart.missing-observations); tables print the cell as written, sort it last and leave it out of totals.
 - Any other text in a numeric chart channel, such as 1,234 or 12 kg, is a chart.non-numeric error naming the row and value: write plain numbers.
 - Dates are text, plain in a CSV or JSON cell and quoted in YAML (`"2026-07"`): 2020, 2020-03, 2020-03-31, 2020-03-31T14:05, with :SS and a fraction of 1 to 9 digits (milliseconds kept), optionally ending in Z or an offset such as +02:00; without an offset the time is UTC. A line or area axis is a calendar only when every x qualifies.
@@ -94,37 +96,7 @@ Data typing is one contract for inline, CSV and JSON rows:
 
 Statistics and layout use the exact source observations; readouts, Table and CSV carry only the precision the author chose. Readers never get more precision than the author chose.
 
-### SQL and other connector queries
-
-A chart or table can read a database when it renders. The report names a connector, and a `report.connectors.yaml` beside the `.rmd` declares it:
-
-```yaml
-connectors:
-  shop:
-    kind: duckdb
-    database: data/shop.duckdb
-```
-
-```chart
-type: bar
-title: The app sells the most orders
-data:
-  sql:
-    connector: shop
-    query: queries/orders-by-channel.sql
-encoding: { x: channel, y: orders }
-```
-
-- **The query** is a file in the report folder (`query: queries/name.sql`) or the SQL itself (`inline: "select channel, count(*) as orders from orders group by channel"`). Give one of the two. The result's column names are the names `encoding` and `columns` use.
-- **The database** is a file inside the report folder, such as `data/shop.duckdb`. A path outside the folder, an absolute path or a symlink out of it is refused; copy or hard-link the file in. The reader opens databases in DuckDB's 1.5 storage format.
-- **Results are captured once and reused.** The first render runs the query and stores the rows; later renders reuse them until the query text changes, so a report rendered again after the data changed shows the captured rows. To change that, add `cache` under `sql`:
-  - `cache: { refresh: true }` runs the query on every render.
-  - `cache: { ttl: 1h }` runs it again once the capture is older than that (`30s`, `5m`, `1h`).
-  - `cache: { freshness: "2026-12-01T00:00:00Z" }` declares the capture stale from that time on: renders then warn `data.cache.stale`.
-  - The top-level `data.cache` is something else: a reference to a stored result by its key.
-- **What the reader sees.** Each connector chart carries a Data source note with the connector, the query fingerprint, when the rows were captured and how many there are. `check` reports the same as the info `data.provenance`.
-- **Other hosts.** `kind: metricflow` runs MetricFlow queries (`data.metricflow`) through a runtime the host binds in a trusted `connectors.toml`, passed with `--connectors` or `RICHVIEW_CONNECTORS`. A local DuckDB file needs no such file.
-- A metric's `value` is written in the source; it does not read a query.
+A chart or table can also read a database when it renders, through a connector that a `report.connectors.yaml` beside the `.rmd` declares (`data.sql`). `richview learn workflow` says how, under SQL and other connector queries.
 
 ### Frontmatter
 
@@ -137,6 +109,7 @@ Local drafts need no metadata. Publishing requires a title, a description (the l
 - **date** is shown under the description.
 - **format** `rmd/1` marks the format version; a newer major is an error.
 - **tabs** `tabs.panels` lists {id, label, from} views that split the body at top-level `## Heading {#from}` anchors, with optional tabs.default and tabs.export: all|active for printed and PDF output. An explicit heading id is kept only when a panel names it; other ids warn and the heading keeps its generated anchor. A generated anchor alone does not start a panel.
+- **slides** `slides: true` turns the source into slides, one for each top-level heading or `---`; `richview learn slides` says how to write for them.
 
 An unknown key in a fence or in the frontmatter warns and names the nearest known key (`block.unknown-key`); a retired key or tag fails with its replacement. Unknown fences remain code.
 
@@ -147,6 +120,8 @@ Every block but the chart, with each key it reads (* required). The chart has it
 @BLOCKFIELDS@
 
 Callout kinds: `up` for good news, `down` for bad news, `hold` for a caveat or something to wait for, and `neutral` for a plain note.
+
+Tables: a reader sorts by any heading (`sortable: false` when the order is the point) and, above 10 rows, filters the rows with a box (`filter: true` or `false` decides). `heat: true` on a numeric column shades its cells from the lowest to the highest value in the style's colours, and `heat: diverging` shades both sides of zero; every cell still prints its number. Shade the one or two columns the table is about, and set `heat_scale: table` when several columns are one matrix.
 
 ### Columns
 

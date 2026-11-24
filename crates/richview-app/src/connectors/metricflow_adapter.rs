@@ -98,6 +98,9 @@ impl Connector for MetricFlowConnector {
                 command.args(rest);
                 command
             };
+        // MetricFlow runs the author's project: it gets none of RichView's own variables, only
+        // the ones its connector lists.
+        crate::child_env::withhold(&mut command);
         for (key, value) in &self.runtime.env {
             command.env(key, value);
         }

@@ -445,3 +445,87 @@ fn every_file_is_one_finding_at_its_place_from_validate_and_from_check() {
             .any(|d| d.code == "report.asset.missing" && d.path == "image.src")
     );
 }
+
+/// What a Mac leaves in a report folder it copies through tar, zip, exFAT or an SMB share: an
+/// AppleDouble sidecar `._<name>` beside `<name>`, and in a zip a `__MACOSX` folder of them.
+const SIDECARS: [&str; 4] = [
+    "._report.rmd",
+    "data/._sales.csv",
+    "._brand.rstyle.yaml",
+    "__MACOSX/._report.rmd",
+];
+
+#[test]
+fn a_macos_sidecar_of_the_source_is_not_a_second_report() {
+    use richview_core::document::validate_report_folder;
+    let folder = |files: &[&str]| options(files).report_folder.unwrap();
+    let copied = [SIDECARS.as_slice(), ["data/sales.csv"].as_slice()].concat();
+    assert_eq!(
+        validate_report_folder(Some(&folder(&copied))).err(),
+        None,
+        "a folder copied from a Mac is one report"
+    );
+    let report = rendered("---\ntitle: T\n---\n\nBody text.\n", &copied);
+    assert!(report.html.contains("Body text."));
+    // Two reports in one folder are still refused, and the finding names the reports alone.
+    let shared = validate_report_folder(Some(&folder(&["second.rmd", "._second.rmd"])))
+        .expect_err("two .rmd files share the folder");
+    assert_eq!(shared[0].code, "report.root.shared");
+    assert!(
+        shared[0].message.contains("report.rmd, second.rmd") && !shared[0].message.contains("._"),
+        "{}",
+        shared[0].message
+    );
+    // A sidecar is never the source itself, whatever its extension says.
+    let mut named = folder(&["._report.rmd"]);
+    named.source = "._report.rmd".into();
+    let refused = validate_report_folder(Some(&named)).expect_err("a sidecar is no report");
+    assert_eq!(refused[0].code, "report.root.invalid");
+    assert_eq!(refused[0].file.as_deref(), Some("._report.rmd"));
+    assert!(
+        refused[0].message.contains("sidecar"),
+        "{}",
+        refused[0].message
+    );
+}
+
+#[test]
+fn a_macos_sidecar_is_never_read_as_a_file_of_the_report() {
+    // The inventory lists each sidecar and the host supplies one's bytes: neither makes it a file
+    // a report can name, as a style, a link, media or data.
+    let named = [
+        "._brand.rstyle.yaml",
+        "._notes.txt",
+        "._photo.png",
+        "data/._sales.csv",
+    ];
+    let source = "---\ntitle: T\nstyles: [._brand.rstyle.yaml]\n---\n\n[Notes](._notes.txt)\n\n```image\nsrc: ._photo.png\nalt: A\n```\n\n```table\ndata: {csv: data/._sales.csv}\n```\n";
+    let mut held = options(&named);
+    held.data
+        .insert("._photo.png".into(), "data:image/png;base64,CCCC".into());
+    let document = richview_core::document::parse(source).expect("the source parses");
+    let found =
+        richview_core::document::validate_report_document(&document, held.report_folder.as_ref())
+            .expect_err("each sidecar reference is a finding");
+    for path in named {
+        assert!(
+            found.iter().any(|d| d.code == "report.asset.missing"
+                && d.message.contains(path)
+                && d.message.contains("sidecar")),
+            "{path}: {found:?}"
+        );
+    }
+    let report = richview_core::document::render(source, &held).expect("the draft renders");
+    assert!(
+        !report.html.contains("CCCC") && !report.html.contains("<img"),
+        "a sidecar's bytes reach no page"
+    );
+    issue(&report, "report.asset.missing");
+    // The same bytes under a file of the report do reach the page.
+    let mut real = options(&["photo.png"]);
+    real.data
+        .insert("photo.png".into(), "data:image/png;base64,CCCC".into());
+    let shown = richview_core::document::render("```image\nsrc: photo.png\nalt: A\n```\n", &real)
+        .expect("the report renders");
+    assert!(shown.html.contains("data:image/png;base64,CCCC"));
+}

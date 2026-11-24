@@ -120,6 +120,9 @@ pub fn chart_theme(style: &ResolvedStyle) -> ChartTheme {
         motion_profile: motion_profile(style),
         legend: text("legend").unwrap_or(base.legend),
         down: token("down").unwrap_or(base.down),
+        wide_bars: false,
+        few_gridlines: false,
+        stage_values: false,
     }
 }
 
@@ -951,7 +954,7 @@ fn legend_html(g: &Geometry, class: &str) -> String {
 /// Figure styles: the reserved box, the notice, the runtime's controls and the readout
 /// (STY-39 faces, STY-40 swatches).
 /// The share of the page's text height a printed chart may take (FEA-CH-67).
-const PRINT_HEIGHT_SHARE: f64 = 0.6;
+pub(crate) const PRINT_HEIGHT_SHARE: f64 = 0.6;
 /// The narrowest a printed chart is laid out to fit that height; the engine's own minimum.
 const MIN_PRINT_WIDTH: f64 = 240.0;
 

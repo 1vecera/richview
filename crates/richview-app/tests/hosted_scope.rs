@@ -128,6 +128,29 @@ async fn call(
 }
 
 #[tokio::test]
+async fn hosted_hotfix_personalized_responses_are_private() {
+    let fixture = Fixture::new(false);
+    for path in [
+        "/api/session",
+        "/api/reports",
+        "/api/reports/aaaa0001/secret/access",
+    ] {
+        let (status, headers, _) = call(&fixture.app, "GET", path, Some("token-a")).await;
+        assert_eq!(status, StatusCode::OK, "{path}");
+        assert_eq!(
+            headers
+                .get(header::CACHE_CONTROL)
+                .and_then(|h| h.to_str().ok()),
+            Some("private, no-store"),
+            "{path}"
+        );
+    }
+    let (status, headers, _) = call(&fixture.app, "POST", "/api/cli/sign-in/token", None).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(headers[header::CACHE_CONTROL], "private, no-store");
+}
+
+#[tokio::test]
 async fn oversized_publish_reports_the_hosted_limit_and_remedy() {
     let host = Fixture::new(false);
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -606,6 +629,78 @@ fn stale_share_authority_is_rechecked_in_the_acl_write() {
             .is_ok()
     );
     assert_eq!(active.access.acl("bbbb0002/secret").grants, vec![grant]);
+}
+
+#[tokio::test]
+async fn hosted_hotfix_summary_explains_signup_capacity() {
+    use richview_app::mail::{ManualKind, Outbox};
+    use richview_app::server::hosted::{OperatorAction, operator_action};
+    let fixture = Fixture::new(false);
+    let access = fixture.access.clone();
+    access
+        .configure_mail(
+            std::sync::Arc::new(Outbox::open(&fixture.root.join("outbox")).unwrap()),
+            2,
+            true,
+        )
+        .unwrap();
+    let mut state = AppState {
+        access,
+        storage: FsStorage::new(&fixture.root)
+            .unwrap()
+            .with_hosted(true)
+            .with_quota(Some(u64::MAX)),
+        preview: None,
+        public_origin: Some("https://app.test".into()),
+        report_origin: Some("https://reports.test".into()),
+    };
+    async fn check(state: &AppState, reasons: &[&str], remaining: u64) {
+        let summary = operator_action(state, OperatorAction::Summary)
+            .await
+            .unwrap();
+        assert_eq!(summary["signupsOpen"], reasons.is_empty());
+        assert_eq!(summary["signupsPaused"], reasons.contains(&"manual-pause"));
+        assert_eq!(summary["signupClosedReasons"], json!(reasons));
+        assert_eq!(summary["mailsRemainingToday"], remaining);
+        let status = call(&build_app(state.clone()), "GET", "/sign-up", None)
+            .await
+            .0;
+        assert_eq!(
+            status,
+            if reasons.is_empty() {
+                StatusCode::OK
+            } else {
+                StatusCode::SERVICE_UNAVAILABLE
+            }
+        );
+    }
+    check(&state, &[], 2).await;
+    operator_action(&state, OperatorAction::SetSignupsPaused { paused: true })
+        .await
+        .unwrap();
+    check(&state, &["manual-pause"], 2).await;
+    state.access.set_signup_account_limit(2).unwrap();
+    check(&state, &["manual-pause", "account-limit"], 2).await;
+    operator_action(&state, OperatorAction::SetSignupsPaused { paused: false })
+        .await
+        .unwrap();
+    check(&state, &["account-limit"], 2).await;
+    state.access.set_signup_account_limit(3).unwrap();
+    state.storage = FsStorage::new(&fixture.root)
+        .unwrap()
+        .with_hosted(true)
+        .with_quota(Some(1));
+    check(&state, &["storage-limit"], 2).await;
+    state.storage = FsStorage::new(&fixture.root)
+        .unwrap()
+        .with_hosted(true)
+        .with_quota(Some(u64::MAX));
+    let queue = state.access.mail_queue().unwrap();
+    queue
+        .enqueue_manual("reader@example.test".into(), ManualKind::Signup, true)
+        .await
+        .unwrap();
+    check(&state, &["signup-mail-limit"], 1).await;
 }
 
 #[tokio::test]

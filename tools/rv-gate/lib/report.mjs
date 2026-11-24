@@ -213,6 +213,16 @@ node tools/rv-gate/rv-gate.mjs merge-prod ${receipt.candidate} --go "<Daniel's w
 	return path;
 }
 
+/**
+ * Whether `head`'s tree is exactly the clean cherry-pick of `source` onto `prod`, the merge `rv-gate
+ * hotfix` itself performs. Where dev and prod already differ beside the change, the pick's context
+ * lines differ from the source's, so the two patch texts cannot match (Daniel, 24 Nov 2026).
+ */
+function isCleanPick(cwd, source, prod, head) {
+	const picked = sh("git", ["merge-tree", "--write-tree", "--no-messages", `--merge-base=${source}^`, prod, source], { cwd, allowFail: true });
+	return picked.status === 0 && /^[0-9a-f]{40,64}$/.test(picked.stdout.trim()) && picked.stdout.trim() === sh("git", ["rev-parse", `${head}^{tree}`], { cwd }).trim();
+}
+
 /** A hotfix is one tested dev patch on the exact prod head recorded before its checks. */
 function validateHotfixReceipt({ cwd, receipt, head, prod }) {
 	if (receipt.prod !== prod) throw new Error("The hotfix receipt's prod changed; test a new candidate against current prod.");
@@ -223,7 +233,8 @@ function validateHotfixReceipt({ cwd, receipt, head, prod }) {
 	if (sh("git", ["rev-list", "--parents", "-n", "1", receipt.sourceCommit], { cwd }).split(/\s+/).length !== 2)
 		throw new Error("The hotfix source must be one non-merge commit on dev.");
 	const sourcePatch = patchId(cwd, receipt.sourceCommit);
-	if (!sourcePatch || sourcePatch !== patchId(cwd, head)) throw new Error("The hotfix candidate's patch differs from its source commit on dev.");
+	if (!sourcePatch || (sourcePatch !== patchId(cwd, head) && !isCleanPick(cwd, receipt.sourceCommit, prod, head)))
+		throw new Error("The hotfix candidate's patch differs from its source commit on dev.");
 	if (!Array.isArray(receipt.steps) || !receipt.steps.length) throw new Error("The hotfix receipt has no passing steps.");
 	const passed = new Set();
 	for (const step of receipt.steps) {

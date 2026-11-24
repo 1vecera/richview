@@ -73,8 +73,11 @@ fn narrow_two_series_label_both_last_values_and_no_first_value() {
     }
 }
 
+/// Overlapping areas: a lower curve's value may stand above its own line on the band over it,
+/// at 4.5:1 there, and never inside its own fill (chart design, 16 Nov 2026). The last values
+/// stay a complete group, or none shows and the drop is recorded.
 #[test]
-fn overlapping_areas_drop_the_whole_group_instead_of_covering_another_band() {
+fn overlapping_areas_print_values_on_another_bands_tint_never_in_their_own() {
     let spec = json!({"type":"area","title":"Output","encoding":{"x":"x","y":"v","color":"s"}});
     let rows = [
         json!({"x":0,"v":12,"s":"A"}),
@@ -82,13 +85,40 @@ fn overlapping_areas_drop_the_whole_group_instead_of_covering_another_band() {
         json!({"x":0,"v":42,"s":"B"}),
         json!({"x":1,"v":36,"s":"B"}),
     ];
-    let g = draw_at(&spec, &rows, 390.0);
-    assert!(values(&g).is_empty(), "a lower curve is inside another filled band");
-    assert!(
-        g.dropped
-            .iter()
-            .any(|d| d.kind.as_deref() == Some("value") && d.reason == richview_chart::geometry::DropReason::Collision)
-    );
+    for width in [390.0, 640.0] {
+        let g = draw_at(&spec, &rows, width);
+        let shown = values(&g);
+        let texts: Vec<_> = shown.iter().map(|t| t.text.as_str()).collect();
+        if texts.is_empty() {
+            assert!(
+                g.dropped.iter().any(|d| d.kind.as_deref() == Some("value")),
+                "{width}: values left out are recorded"
+            );
+            continue;
+        }
+        assert!(
+            texts.contains(&"18") && texts.contains(&"36"),
+            "{width}: a complete last-value group: {texts:?}"
+        );
+        let panel = &g.panels[0];
+        for t in &shown {
+            let x = t.bounds.center()[0];
+            let point = panel
+                .observations
+                .iter()
+                .flat_map(|o| &o.dots)
+                .filter(|d| Some(d.series) == t.series)
+                .map(|d| d.at)
+                .min_by(|a, b| (a[0] - x).abs().total_cmp(&(b[0] - x).abs()))
+                .expect("a value has its series' points");
+            assert!(
+                t.bounds.bottom() <= point[1],
+                "{width}: {} stands above its own line, out of its own fill: {:?} over {point:?}",
+                t.text,
+                t.bounds
+            );
+        }
+    }
 }
 
 #[test]

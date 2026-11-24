@@ -305,3 +305,67 @@ test("answering explains itself: tooltips on every answer button, the options li
 	assert.equal(await page.locator("#help").isHidden(), true);
 	await context.close();
 });
+
+test("dashboard opens the technical reader and an open question moves to the filtered answer list", { skip }, async () => {
+	const dir = path.join(root, "docs/how-it-works");
+	await mkdir(path.join(dir, "diagrams"), { recursive: true });
+	await writeFile(path.join(dir, "README.md"), "# How RichView works\n\n## Parts\n\n[Renderer](core.md#modules)");
+	await writeFile(path.join(dir, "core.md"), "# Renderer\n\n## Modules\n\n- Library\n  - [Source](../../crates/core/lib.rs#L5)\n\n![Flow](diagrams/core.svg)\n\n| Name | Path |\n| --- | --- |\n| Lib | `src` |\n\n```rs\nfn main() {}\n```");
+	await writeFile(path.join(dir, "diagrams/core.svg"), '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"/>');
+	const context = await browser.newContext();
+	const page = await context.newPage();
+	try {
+		await page.goto(`http://127.0.0.1:${port}/`);
+		const doors = page.getByRole("navigation", { name: "Project dashboard" });
+		const { totals } = await (await page.request.get(`http://127.0.0.1:${port}/api/parts`)).json();
+		await doors.getByText(`${totals.itemCount - totals.answeredCount} questions`, { exact: true }).waitFor();
+		await doors.getByRole("link", { name: /How it works.*2 pages/ }).click();
+		await page.getByRole("link", { name: "Renderer", exact: true }).first().click();
+		await page.locator(".doc-body li li code").waitFor();
+		assert.match(await page.locator(".doc-body li li").innerText(), /crates\/core\/lib.rs/);
+		assert.equal(await page.locator(".doc-body table tbody tr").count(), 1);
+		assert.equal(await page.locator(".doc-body pre code").innerText(), "fn main() {}");
+		assert.ok(await page.locator(".doc-contents").isVisible());
+		await until(() => page.locator(".doc-body img").evaluate(img => img.naturalWidth > 0), "loaded diagram");
+		await page.goto(`http://127.0.0.1:${port}/#/open`);
+		await card(page, "OPN-71").waitFor();
+		const ids = await shownIds(page);
+		assert.ok(ids.includes("OPN-70") && ids.indexOf("OPN-70") < ids.indexOf("OPN-71"));
+		const row = card(page, "OPN-71");
+		await row.locator(".row [data-act='edit']").click();
+		await row.locator("[data-role='edit']").fill("Dashboard edit");
+		await row.locator("[data-role='edit']").press("Control+Enter");
+		await until(async () => (await readAnswers("08-open-work"))["OPN-71"]?.text === "Dashboard edit", "saved through the card");
+		await until(async () => !await row.isVisible(), "answered row leaves the queue");
+		await page.goto(`http://127.0.0.1:${port}/#/answered`);
+		await page.getByRole("combobox", { name: "Part", exact: true }).selectOption("08-open-work");
+		await page.getByRole("combobox", { name: "Decision", exact: true }).selectOption("edit");
+		await page.getByRole("searchbox", { name: "Search", exact: true }).fill("Dashboard edit");
+		const entry = page.locator(".answer-entry:visible");
+		assert.equal(await entry.count(), 1);
+		assert.match(await entry.innerText(), /Dashboard edit/);
+		assert.match(await entry.innerText(), /Proposal for OPN-71/);
+		await entry.getByRole("link", { name: /OPN-71 Title/ }).click();
+		await card(page, "OPN-71").waitFor();
+		assert.match(page.url(), /#\/part\/08-open-work\/OPN-71$/);
+	} finally {
+		await context.close();
+	}
+});
+
+test("How it works updates from an empty directory to a page list and then the index", { skip }, async () => {
+	const dir = path.join(root, "docs/how-it-works");
+	await rm(dir, { recursive: true, force: true });
+	const page = await browser.newPage();
+	try {
+		await page.goto(`http://127.0.0.1:${port}/#/how-it-works`);
+		await page.getByText(/Technical pages appear here/).waitFor();
+		await mkdir(dir);
+		await writeFile(path.join(dir, "core.md"), "# Renderer");
+		await page.getByRole("main").getByRole("link", { name: "Renderer" }).waitFor();
+		await writeFile(path.join(dir, "README.md"), "# Technical index\n\n## Modules\n\n[Renderer](core.md)");
+		await page.getByRole("heading", { name: "Technical index" }).waitFor();
+	} finally {
+		await page.close();
+	}
+});

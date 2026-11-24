@@ -14,13 +14,12 @@ mod test_contour;
 #[cfg(test)]
 #[path = "web/host/focus.rs"]
 mod test_focus;
+#[cfg(test)]
+use test_focus as focus;
 
 #[cfg(test)]
 #[path = "web/host/hint_place.rs"]
 mod test_hint_place;
-#[cfg(test)]
-#[path = "web/host/name_target.rs"]
-mod test_name_target;
 #[cfg(test)]
 #[path = "web/host/wedge_readout.rs"]
 mod test_wedge_readout;

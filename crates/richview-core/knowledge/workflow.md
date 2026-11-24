@@ -31,6 +31,38 @@
 - `--chart-width <px>` on check: measure charts at that width instead of the phone and desktop layouts; repeatable.
 - `richview <command> --help` lists the rest.
 
+### SQL and other connector queries
+
+A chart or table can read a database when it renders. The report names a connector, and a `report.connectors.yaml` beside the `.rmd` declares it:
+
+```yaml
+connectors:
+  shop:
+    kind: duckdb
+    database: data/shop.duckdb
+```
+
+```chart
+type: bar
+title: The app sells the most orders
+data:
+  sql:
+    connector: shop
+    query: queries/orders-by-channel.sql
+encoding: { x: channel, y: orders }
+```
+
+- **The query** is a file in the report folder (`query: queries/name.sql`) or the SQL itself (`inline: "select channel, count(*) as orders from orders group by channel"`). Give one of the two. The result's column names are the names `encoding` and `columns` use.
+- **The database** is a file inside the report folder, such as `data/shop.duckdb`. A path outside the folder, an absolute path or a symlink out of it is refused; copy or hard-link the file in. The reader opens databases in DuckDB's 1.5 storage format.
+- **Results are captured once and reused.** The first render runs the query and stores the rows; later renders reuse them until the query text changes, so a report rendered again after the data changed shows the captured rows. To change that, add `cache` under `sql`:
+  - `cache: { refresh: true }` runs the query on every render.
+  - `cache: { ttl: 1h }` runs it again once the capture is older than that (`30s`, `5m`, `1h`).
+  - `cache: { freshness: "2026-12-01T00:00:00Z" }` declares the capture stale from that time on: renders then warn `data.cache.stale`.
+  - The top-level `data.cache` is something else: a reference to a stored result by its key.
+- **What the reader sees.** Each connector chart carries a Data source note with the connector, the query fingerprint, when the rows were captured and how many there are. `check` reports the same as the info `data.provenance`.
+- **Other hosts.** `kind: metricflow` runs MetricFlow queries (`data.metricflow`) through a runtime the host binds in a trusted `connectors.toml`, passed with `--connectors` or `RICHVIEW_CONNECTORS`. A local DuckDB file needs no such file.
+- A metric's `value` is written in the source; it does not read a query.
+
 ### Other surfaces
 
 - VS Code offers inline chart/table insertion, live semantic diagnostics, safe optional formatting, schema/value/data-field completion and preview; the web surface is a simple source/style playground.
@@ -45,7 +77,9 @@ Local PDF export uses richview generate --to pdf (or MCP richview_render with ou
 
 Publication remains separate from local preparation.
 
+- When asked to publish, run `richview publish <report>` or call `richview_publish` with `inputPath`. A first publish creates the report, private by default, and returns its address. Keep the slug and raise the version for a revision. A file that already published from this computer to that server needs `--new` (MCP `new: true`) only to create another address.
 - Publishing stores immutable slug/version artifacts, source and resolved styles/data for regeneration.
 - Publishing the same slug and version again with identical source, styles and data succeeds without storing anything; changed content is publish.version-exists, so raise the version.
 - A server quota refuses a publication as publish.quota.
+- The person signs in once with richview login; the CLI and richview_publish then use that sign-in, which goes only to its own server. Run from your shell, richview login --server <url> prints a short code and a page: give both to the person and wait while they confirm in their browser. An unattended host sets RICHVIEW_SERVER and RICHVIEW_TOKEN instead. Never ask for, print or store a token yourself.
 - The report page serves the highest release version, not the latest publication, unless the owner pins one.

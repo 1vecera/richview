@@ -61,7 +61,7 @@ axes:
 - A row whose high is below its open or close, or whose low is above them, fails the chart and names the row; rows missing a price are left out and reported
 - `axes.y` sets `label`, `unit` and `min` / `max`; the price axis does not have to include zero
 - `digits` sets the precision of axis labels and readouts, so prices with decimals need it
-- The last close is printed right of the plot at its own height, as a price tag; `auto_annotations: false` leaves it out and gives the plot that room
+- On an upright chart the last close stands right of the plot at its own height as a tag in the last period's colour, joined to its mark by a hairline; the period's high is printed over its wick as `High` and the number, the low under its wick as `Low` and the number. The two come as a pair: where either would meet the tag or a mark, or has no room, neither is printed. An upright chart whose panel (the chart, or each of its facets) is at least 480 px wide keeps a line of room past the highest and the lowest wick for them; a narrower one prints the pair only where its axis leaves a place for both. A horizontal chart has no room for any of the three and prints none. `auto_annotations: false` prints none of the three and gives the plot the tag's room and that of the two lines
 - `style.ratio` sets the width to height ratio (16:9 by default)
 
 ## Interactions

@@ -56,7 +56,8 @@
 				<h1 id="h-hero"><span class="hero__lead">Let your agent</span> <em>present.</em></h1>
 				<div class="hero__stage">
 				<div class="hero__copy">
-					<p class="hero__sub">RichView is a presentation layer for your agent.</p>
+					<!-- What RichView is, in Daniel's sentence of 16 Nov 2026; verbatim, and no line of ours beside it. -->
+					<p class="hero__sub">RichView is a local CLI that lets you generate beautiful HTML reports from simple Git-storable text files.</p>
 					<!-- rv-prompt-box -->
 					<p class="hero__try"><a class="pill pill--line" href="#demo">Try it in your browser <span aria-hidden="true">&#8595;</span></a></p>
 				</div>
@@ -165,8 +166,9 @@
 			     written in by the build, and labelled as an example. The hidden `data-size` slots wait for
 			     measured sizes, if Daniel picks a measured example. -->
 			<section class="problem" id="problem" aria-labelledby="h-problem">
-				<h2 id="h-problem">Agents create HTML reports by default. They're large, hard to edit, hard to version and iterate on, and different every time.</h2>
-				<p class="statement">There's a better way: <em>RichView.</em></p>
+				<h2 id="h-problem">Agents create <strong>HTML reports</strong> by default. They're <strong>large, hard to edit, hard to version and iterate on, and different every time</strong>.</h2>
+				<!-- The proof cards belong to the problem: they sit under its heading, before the answer and
+				     the explanation of the command and its workflow (FEA-SF-56, Daniel 24 Nov 2026). -->
 				<div class="proof">
 					<figure class="proof__card proof__card--agent">
 						<figcaption>What your agent writes</figcaption>
@@ -184,6 +186,36 @@
 						<p class="proof__excerpt">Example excerpt</p>
 						<pre class="proof__code"><code data-hl="rmd"><!-- rv-proof-rmd --></code></pre>
 					</figure>
+				</div>
+				<p class="statement">There's a better way: <em>RichView.</em></p>
+				<div class="explain" role="group" aria-labelledby="h-what">
+					<h3 id="h-what">How does RichView work?</h3>
+					<p class="explain__lead">RichView is a CLI that works entirely offline to turn a text specification into a beautiful, interactive HTML file with charts, images and more.</p>
+					<p class="explain__ecosystem">The broader ecosystem adds publishing, a VS Code extension, slides, brand styles and backgrounds.</p>
+					<ol class="eco eco--workflow" role="list" aria-label="From text to HTML">
+						<li class="eco__card">
+							<h4>Write a specification</h4>
+							<p>Describe your text, charts and images in a file.</p>
+							<pre class="hl eco__visual"><code>richview init my-report</code><br/><span aria-hidden="true">&#8627; </span><code>my-report/report.rmd</code></pre>
+						</li>
+						<li class="eco__card">
+							<h4>Convert it to HTML</h4>
+							<p>Turn your local files into one self-contained HTML file.</p>
+							<pre class="hl eco__visual"><code>richview generate <span class="explain__argument">my-report/report.rmd</span></code></pre>
+						</li>
+						<li class="eco__card">
+							<h4>Send it to a colleague</h4>
+							<p>They can open the file in their browser.</p>
+							<pre class="hl eco__visual"><code>my-report/<wbr/>Rendered/report.html</code></pre>
+						</li>
+						<li class="eco__card">
+							<h4>Publish it for a link</h4>
+							<p>Sign in to a RichView server and choose who can open the link.</p>
+							<pre class="hl eco__visual"><code>richview publish <span class="explain__argument">my-report/report.rmd</span></code></pre>
+						</li>
+					</ol>
+					<p class="explain__trust">Everything runs on your computer: no account, no upload, no AI calls of its own. Publishing is optional.</p>
+					<a href="/docs/install">Install RichView</a>
 				</div>
 			</section>
 
@@ -266,8 +298,9 @@
 
 			<!-- Your brand: an example company's style file and the report it makes, then the anchor report in each
 			     prebuilt style, as the build renders it, standing still. The company report is the page's example
-			     report rendered by the CLI with assets/landing/brand/company.rstyle.yaml over Air and captured as an
-			     image; the company, its name and its logo (the report's header image) are placeholders. -->
+			     report, without its photo, rendered by the CLI with assets/landing/brand/company.rstyle.yaml over Air
+			     and captured as an image by scripts/capture-brand-report.mjs; the company, its name and its logo
+			     are placeholders. -->
 			<section class="voices" id="styles" aria-labelledby="h-voices">
 				<div class="voices__head">
 					<h2 id="h-voices">Your brand</h2>
@@ -284,7 +317,7 @@
 								<li style="--chip: #34346f"></li>
 								<li style="--chip: #0a9ab5"></li>
 							</ul>
-							<p class="brand__note">A placeholder company; its logo bar is the report&#8217;s header image. The report is the example above, rendered with this file over the Air style.</p>
+							<p class="brand__note">A placeholder company. The report is the example above without its photo, rendered with this file over the Air style.</p>
 							<!-- Vee dips a brush in the paint. The still is the clip's first frame, or Vee at rest with reduced motion or without
 							     scripts; the site runtime gives the slot its clip as the reader comes near (homepage.rs). -->
 							<div class="pip-slot" data-pip="brush" data-clip="/landing/vee/brand" aria-hidden="true"><picture><source media="(prefers-reduced-motion: reduce), (scripting: none)" srcset="/landing/vee/brand-last.webp" /><img src="/landing/vee/brand-first.webp" width="400" height="400" alt="" loading="lazy" decoding="async" /></picture></div>
@@ -292,7 +325,7 @@
 						<div class="brand__page">
 							<picture>
 								<source type="image/avif" srcset="/landing/brand/company-report-720.avif 720w, /landing/brand/company-report-1280.avif 1280w" sizes="(max-width: 899px) 92vw, 44vw" />
-								<img src="/landing/brand/company-report-1280.webp" srcset="/landing/brand/company-report-720.webp 720w, /landing/brand/company-report-1280.webp 1280w" sizes="(max-width: 899px) 92vw, 44vw" width="1280" height="1788" loading="lazy" decoding="async" alt="The example report, Longer lives, in the style of Your Company Name Inc.: a slim green bar with its logo, its own headline typeface and its four colours on the life-expectancy chart." />
+								<img src="/landing/brand/company-report-1280.webp" srcset="/landing/brand/company-report-720.webp 720w, /landing/brand/company-report-1280.webp 1280w" sizes="(max-width: 899px) 92vw, 44vw" width="1280" height="1736" loading="lazy" decoding="async" alt="The example report, Longer lives, in the style of Your Company Name Inc.: its logo above the title, its own headline typeface and its four colours on the life-expectancy chart." />
 							</picture>
 						</div>
 					</figure>
@@ -320,7 +353,8 @@
 				<ul class="elements">
 					<li class="element element--charts">
 						<h3>Charts</h3>
-						<p>Line, bar and scatter to Sankey diagrams, treemaps and maps, each drawn from the data beside it.</p>
+						<!-- The number is the registry's chart types, written in by the build; never type one (DEL-18). The link names the gallery, which lists all but the flow chart and the pivot table (FEA-SF-30). -->
+						<p>RichView has its own charting library: <span data-chart-count><!-- rv-chart-count --></span> chart types, from line and bar to Sankey diagrams, treemaps and maps, each drawn from the data beside it. The <a href="/docs/charts">chart gallery</a> shows them, with flow charts and pivot tables on pages of their own.</p>
 						<div class="element__spec">
 							<!-- rv-elements-chart -->
 							<p class="spec-chart__source">Life expectancy at birth, 1950&#8211;2019. Data: Gapminder (CC BY 4.0).</p>
@@ -382,13 +416,12 @@
 							<li>Audio</li>
 							<li>Embeds</li>
 						</ul>
-						<p class="best__more"><a href="/docs/">All elements in the docs &#8594;</a></p>
+						<p class="best__more"><a href="/docs/elements">All elements in the docs &#8594;</a></p>
 					</li>
 				</ul>
 			</section>
 
-			<!-- The ecosystem: the five pieces of RichView, one line each. Rich Markdown is only one of them, and
-			     its card leads up to the elements. -->
+			<!-- The Rich Markdown card links to the elements above, and Backgrounds to its guide. -->
 			<section class="ecosystem" id="ecosystem" aria-labelledby="h-ecosystem">
 				<header class="section-head">
 					<h2 id="h-ecosystem">RichView is a whole ecosystem.</h2>
@@ -403,7 +436,10 @@
 type: bar
 title: Share of mentions
 data: { csv: data/hn.csv }
-```</code></pre>
+encoding: { x: month, y: anthropic_share }
+```
+
+*Source: Hacker News items, ClickHouse public copy.*</code></pre>
 					</li>
 					<li class="eco__card">
 						<h3>Renderer</h3>
@@ -416,6 +452,13 @@ data: { csv: data/hn.csv }
 						<div class="eco__visual eco__visual--tiles" aria-hidden="true">
 							<div class="theme-tiles"><!-- rv-style-tiles --></div>
 							<pre class="hl"><code data-hl="yaml">styles: [scientific, report.rstyle.yaml]</code></pre>
+						</div>
+					</li>
+					<li class="eco__card eco__card--doc">
+						<h3><a href="/docs/backgrounds">Backgrounds <span aria-hidden="true">&#8594;</span></a></h3>
+						<p>Your report on a background of its own, set in its style.</p>
+						<div class="eco__visual" aria-hidden="true">
+							<div class="bg-field"><span class="bg-field__page"><i></i><i></i><b><em style="--h: 45%"></em><em style="--h: 70%"></em><em style="--h: 100%"></em></b><i></i></span></div>
 						</div>
 					</li>
 					<li class="eco__card">

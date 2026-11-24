@@ -132,7 +132,7 @@ fn style_file_diagnostics_name_the_file_and_the_line_inside_it() {
     let d = report
         .diagnostics
         .iter()
-        .find(|d| d.path.starts_with("styles[1]"))
+        .find(|d| d.path == "styles[1].tokens.accent" && d.code == "style.retired")
         .unwrap_or_else(|| panic!("{:#?}", report.diagnostics));
     assert_eq!(d.file.as_deref(), Some("custom.rstyle.yaml"));
     assert_eq!((d.line, d.column), (Some(3), Some(3)), "{d:?}");

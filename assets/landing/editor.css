@@ -12,7 +12,9 @@
 .hl-key { color: var(--hl-key); }
 .hl-str { color: var(--hl-str); }
 .hl-num,
-.hl-bool { color: var(--hl-num); }
+.hl-bool,
+.hl-null,
+.hl-date { color: var(--hl-num); }
 .hl-punc,
 .hl-fm,
 .hl-fence,

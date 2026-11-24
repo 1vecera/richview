@@ -54,6 +54,23 @@ impl ValueAxis {
     pub fn widest(&self, font: &Font, size: f64) -> f64 {
         self.labels.iter().map(|l| font.width(l, size)).fold(0.0, f64::max)
     }
+
+    /// The axis with every `k`-th of its ticks and their labels as they were: the least `k` that
+    /// divides its steps evenly and leaves at most `most` of them, so the first and last ticks
+    /// stay. An axis whose steps nothing smaller divides keeps its two ends.
+    pub fn thinned(mut self, most: usize) -> ValueAxis {
+        let steps = self.ticks.len().saturating_sub(1);
+        if most == 0 || steps <= most {
+            return self;
+        }
+        let k = (2..steps)
+            .find(|k| steps.is_multiple_of(*k) && steps / k <= most)
+            .unwrap_or(steps);
+        self.ticks = self.ticks.into_iter().step_by(k).collect();
+        self.labels = self.labels.into_iter().step_by(k).collect();
+        self.step *= k as f64;
+        self
+    }
 }
 
 /// Pixels per label along an axis: about one label per 90 px horizontally and 52 px vertically
@@ -968,6 +985,46 @@ mod tests {
         });
         assert!(short.ticks.len() < tall.ticks.len());
         assert!(tall.ticks.len() <= 12);
+    }
+
+    #[test]
+    fn a_thinned_axis_keeps_its_ends_and_its_labels_in_at_most_three_steps() {
+        let f = Format::default();
+        let tall = value_axis(&ValueSpec {
+            data: [0.0, 800.0],
+            zero: Zero::Include,
+            min: None,
+            max: None,
+            length: 520.0,
+            horizontal: false,
+            format: &f,
+            font: &font(),
+            size: 12.0,
+        });
+        let thin = tall.clone().thinned(3);
+        assert!(tall.ticks.len() > 4, "{:?}", tall.ticks);
+        assert!(thin.ticks.len() >= 2 && thin.ticks.len() <= 4, "{:?}", thin.ticks);
+        assert_eq!(thin.ticks.first(), tall.ticks.first());
+        assert_eq!(thin.ticks.last(), tall.ticks.last());
+        assert_eq!((thin.lo, thin.hi), (tall.lo, tall.hi));
+        // Each kept tick keeps the label it had.
+        for (tick, label) in thin.ticks.iter().zip(&thin.labels) {
+            let at = tall.ticks.iter().position(|t| t == tick).unwrap();
+            assert_eq!(label, &tall.labels[at]);
+        }
+        // Steps that nothing divides keep the two ends: five steps of 100 become one of 500.
+        let five = ValueAxis {
+            lo: 0.0,
+            hi: 500.0,
+            step: 100.0,
+            ticks: vec![0.0, 100.0, 200.0, 300.0, 400.0, 500.0],
+            labels: ["0", "100", "200", "300", "400", "500"].map(String::from).to_vec(),
+            unit_dropped: None,
+        };
+        assert_eq!(five.thinned(3).ticks, vec![0.0, 500.0]);
+        // Three steps or fewer stay as they are.
+        let three = tall.clone().thinned(usize::MAX);
+        assert_eq!(three, tall);
     }
 
     #[test]

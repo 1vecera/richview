@@ -1,4 +1,4 @@
-*Cover: [I-COVER](assets/cover-two-publics.svg). Data: {{src:D-ITUNES,S097}} and the [population measures](data/charts/population-shares.csv). [Image provenance and licenses](ledger/image-sources.csv).*
+*Cover: [RichView graphic](assets/cover-two-publics.svg). Data: {{src:D-ITUNES,S097}} and the [population measures](data/charts/population-shares.csv). [Image provenance and licenses](ledger/image-sources.csv).*
 
 ## The verdict
 
@@ -24,7 +24,7 @@ value: {{fact:ios_ratings_ratio}}
 label: As many cumulative US App Store ratings for ChatGPT as for Claude, 18 November 2026
 ```
 
-*Sources: {{src:D-HN}} for Hacker News, {{src:C211}} for Ramp, {{src:C212,C213}} for revenue and {{src:D-ITUNES}} for the App Store.*
+*Sources: {{src:D-HN}}; {{src:C211}}; revenue from {{src:C212,C213}}; {{src:D-ITUNES}}.*
 
 The momentum among developers is contested, and that matters because developers moved first last time. Codex overtook Claude Code in Hacker News conversation in August and September 2026 and still draws more of the two products' searches; in October Claude Code was back ahead in conversation. Hacker News commenters who say they switched named OpenAI as the destination {{fact:switch_to_openai_2026_q3}} times in the third quarter of 2026, against {{fact:switch_to_anthropic_2026_q3}} for Anthropic. On capability the two are level.
 
@@ -34,13 +34,13 @@ Ask what share of the two-company total goes to Anthropic, and the answer runs f
 
 {{chart:share-by-population}}
 
-The closer a population sits to building with AI, the larger Anthropic's share. Consumer measures (App Store ratings, Google searches, weekly use) put Claude between 2% and 17% of the pair. Developers range from about a third (Python SDK installs) to about two-thirds and more (conversation, coding agents at work). Businesses and enterprises sit above 50%. Anthropic's consumer problem is mostly reach: awareness of Claude doubled from {{fact:ssrs_aware_claude_feb}} to {{fact:ssrs_aware_claude_may}} of US adults between February and May 2026, but weekly use only rose from {{fact:ssrs_week_claude_feb}} to {{fact:ssrs_week_claude_may}} ({{src:S006,S007,S004,S005}}).
+The closer a population sits to building with AI, the larger Anthropic's share. Consumer measures (App Store ratings, Google searches, weekly use) put Claude between 2% and 17% of the pair. Developers range from about a third (Python SDK installs) to about two-thirds and more (conversation, coding agents at work). Businesses and enterprises sit above 50%. Anthropic's consumer problem is mostly reach: awareness of Claude doubled from {{fact:ssrs_aware_claude_feb}} to {{fact:ssrs_aware_claude_may}} of US adults between {{cite:S006,S007,S004,S005|February and May 2026}}, but weekly use only rose from {{fact:ssrs_week_claude_feb}} to {{fact:ssrs_week_claude_may}}.
 
 ```callout
 kind: hold
 title: How to read this report
 body: |
-  Every measure names its population and its window. Scraped samples describe the people in them, not the public. Anthropic's revenue comes from its registration statement, filed on 26 October 2026; its figures are those of the 10 November amendment, which the latest, of 17 November, repeats unchanged ({{src:C208,C209,C220}}). OpenAI had published no registration statement as of 18 November 2026 ({{src:C219}}), so its revenue comes from figures it reported to investors, as relayed by the press. Each claim links to a dated source.
+  Every measure names its population and its window. Scraped samples describe the people in them, not the public. Anthropic's revenue comes from its registration statement, filed on 26 October 2026; its figures are those of the 10 November amendment, which the latest, of 17 November, repeats unchanged ({{src:C208,C209,C220}}). OpenAI had published no registration statement as of {{cite:C219|18 November 2026}}, so its revenue comes from figures it reported to investors, as relayed by the press. Each claim links to a dated source.
 ```
 
 ## Builders moved first, then buyers and bankers
@@ -66,15 +66,15 @@ Forum activity measures enthusiasm, not usage. The other developer-facing signal
 Claude Code turned developer goodwill into revenue: its annualised revenue went from $0.5bn in September 2025 to $1bn in November and more than $2.5bn in February 2026 ({{src:C086,C089,C099}}).
 
 ```image
-src: assets/codex-cli.png
+src: assets/codex-cli.webp
 alt: OpenAI's Codex command-line interface showing its model, working directory and interactive task prompt.
-caption: "OpenAI Codex CLI, repository snapshot 2 January 2026. OpenAI, Apache 2.0; reproduced unchanged."
+caption: "OpenAI Codex CLI, repository snapshot 2 January 2026. OpenAI, Apache 2.0; converted to WebP."
 width: 1898
 height: 1190
 fit: contain
 ```
 
-*Image: [I-CODEX](https://github.com/openai/codex/blob/ab753387ccf54aba94ab8c54da3149c743dbe189/.github/codex-cli-splash.png) · [Apache 2.0](https://github.com/openai/codex/blob/ab753387ccf54aba94ab8c54da3149c743dbe189/LICENSE) · [NOTICE](assets/licenses/openai-codex-NOTICE.txt). The archived interface illustrates the coding tool.*
+*Image: [OpenAI Codex repository](https://github.com/openai/codex/blob/ab753387ccf54aba94ab8c54da3149c743dbe189/.github/codex-cli-splash.png) · [Apache 2.0](https://github.com/openai/codex/blob/ab753387ccf54aba94ab8c54da3149c743dbe189/LICENSE) · [NOTICE](assets/licenses/openai-codex-NOTICE.txt). The archived interface illustrates the coding tool.*
 
 {{chart:hn-topics}}
 
@@ -95,7 +95,7 @@ In February 2026 Anthropic ran a Super Bowl campaign promising no ads in Claude 
 
 The moment changed what people knew more than what they used or preferred. YouGov's BrandIndex shows Claude's preference score up only 0.8 points from February to July, while OpenAI's fell 5.9 ({{src:S031}}). Among Americans who know both companies, OpenAI was still viewed more favourably in June (+11 against +3, {{src:S028}}).
 
-OpenAI's own trust problems were mostly self-inflicted and cumulative. It began testing ads in ChatGPT in January 2026 ({{src:E072}}). From July to September 2026 its own agents escaped evaluation sandboxes ({{src:E120,E133,E134}}). At the end of September the FTC confirmed a probe of both labs ({{src:E138}}), and California's attorney general subpoenaed OpenAI ({{src:E139}}).
+OpenAI's own trust problems were mostly self-inflicted and cumulative. It began testing ads in ChatGPT in {{cite:E072|January 2026}}. From July to September 2026 its own agents escaped evaluation sandboxes ({{src:E120,E133,E134}}). At the end of September the FTC confirmed a probe of both labs ({{src:E138}}), and California's attorney general subpoenaed OpenAI ({{src:E139}}).
 
 ## Money: a real but young crossover
 
@@ -121,7 +121,7 @@ height: 827
 fit: contain
 ```
 
-*Image: [I-COMPUTER-USE](https://github.com/anthropics/claude-quickstarts/blob/b03d42cc109ef2a61c65305ac2fb8b293bbdac71/computer-use-best-practices/docs/images/trajectory-viewer.jpg) · [MIT](https://github.com/anthropics/claude-quickstarts/blob/b03d42cc109ef2a61c65305ac2fb8b293bbdac71/LICENSE). This archived reference implementation illustrates computer use; capability results are sourced below.*
+*Image: [Anthropic claude-quickstarts repository](https://github.com/anthropics/claude-quickstarts/blob/b03d42cc109ef2a61c65305ac2fb8b293bbdac71/computer-use-best-practices/docs/images/trajectory-viewer.jpg) · [MIT licence](https://github.com/anthropics/claude-quickstarts/blob/b03d42cc109ef2a61c65305ac2fb8b293bbdac71/LICENSE). This archived reference implementation illustrates computer use; capability results are sourced below.*
 
 {{chart:capability-frontier}}
 
@@ -147,3 +147,5 @@ The composite lead is within measurement error. At the end of October GPT-6 Astr
 Every bracketed id links to its source; the complete ledger of {{fact:ledger_rows}} dated entries is [available as CSV](ledger/sources.csv). This is the fixed 18 November 2026 research snapshot, with data to 31 October 2026; it replaced the 2 October snapshot, whose superseded sources stay in the ledger. Presentation updates do not refresh its evidence.
 
 {{table:cited-sources}}
+
+*Sources: selected entries from the [dated source ledger](ledger/sources.csv).*

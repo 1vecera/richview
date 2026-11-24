@@ -1,8 +1,8 @@
 <h1 align="center">Let your agent present.</h1>
 
 <p align="center">
-  <strong>RichView is a presentation layer for your agent.</strong><br>
-  Your coding agent writes Rich Markdown. RichView renders it into a designed, self-contained report.
+  <strong>RichView is a command-line program that turns plain text and data into an interactive report.</strong><br>
+  You or your coding agent write Rich Markdown and keep it beside the data. RichView makes one HTML file you can open in a browser and share.
 </p>
 
 <p align="center">
@@ -22,7 +22,7 @@ starter example if I have none. Check it, fix anything it flags, and show me
 the result. Keep everything on my machine.
 ```
 
-**Or install it yourself.** One line, from the latest [GitHub release](https://github.com/1vecera/richview/releases/latest):
+**Or install it yourself.** Use [Windows PowerShell](https://richview.ai/docs/install#windows) or run the following on **macOS / Linux** to install the latest [GitHub release](https://github.com/1vecera/richview/releases/latest).
 
 ```sh
 curl -fsSL https://github.com/1vecera/richview/releases/latest/download/install.sh | sh
@@ -39,7 +39,7 @@ The installer verifies the archive checksum and creates `~/.richview`. It doesn'
 | Platform | Status |
 | --- | --- |
 | macOS on Apple Silicon | Supported |
-| Linux x64, glibc 2.35 or newer | Supported. Reports with SQL data sources also need kernel 6.2 or newer with Landlock ABI 3. |
+| Linux x64, glibc 2.35 or newer | Supported. SQL queries and Parquet files also need kernel 6.2 or newer with Landlock ABI 3. |
 | Windows x64 | Supported, with the same features. Tested on Windows Server 2025; Windows 10 and 11 should behave the same but are untested. The programs are not signed yet. |
 | Intel Mac | Not yet. Use the playground. |
 
@@ -86,16 +86,15 @@ The agent writes the story and the data. RichView owns the typography, the chart
 richview init first-report                      # a starter report folder
 richview check first-report/report.rmd          # diagnostics and per-chart checks
 richview generate first-report/report.rmd       # writes first-report/Rendered/report.html
-richview serve first-report/report.rmd          # live preview at http://127.0.0.1:4711/
 ```
 
-Open `first-report/Rendered/report.html` in a browser: hover the chart, open its table, download its data. Edit `report.rmd` and generate again, or keep `serve` running and the preview reloads on every save.
+Open `first-report/Rendered/report.html` in a browser. Hover the chart, open its table or download its data. Edit `report.rmd` and generate again. The [first report guide](https://richview.ai/docs/first-report) shows how to keep a live preview open while you edit.
 
 For your agent, `richview learn` prints the authoring guide, `richview mcp` serves the same tools over MCP, and `--format json` on `init`, `validate`, `check` and `generate` prints one object with `ok`, `status` and `diagnostics`. Everything runs on your machine. [Your first report](https://richview.ai/docs/first-report) walks through it step by step.
 
 ## Styles
 
-Five styles ship with RichView. Choose one in the frontmatter (`styles: [scientific]`) or with `richview generate --style scientific`. The same report in each:
+RichView ships five main styles and five more presets. Choose one in the frontmatter (`styles: [scientific]`) or with `richview generate first-report/report.rmd --style scientific`. Here is the same report in the five main styles:
 
 <p align="center">
   <img src="docs/readme/style-sleek.webp" width="270" alt="The Longer lives report in the sleek style, the default: light sans-serif type and bright chart lines on a near-black page.">
@@ -107,29 +106,31 @@ Five styles ship with RichView. Choose one in the frontmatter (`styles: [scienti
 
 A small `report.rstyle.yaml` beside the report adjusts colours, type and chart treatment on top of a style. See the [styles guide](https://richview.ai/docs/styles).
 
-## Publish
+## Export
 
-A file is often enough. The generated HTML is self-contained, and `richview generate first-report/report.rmd --to pdf` prints a PDF with a local Chromium, Chrome or Edge.
+`richview generate first-report/report.rmd --to pdf` prints a PDF with a local Chromium, Chrome or Edge. [Export HTML and PDF](https://richview.ai/docs/export) shows the available formats.
+
+## Publish
 
 For a link, publish to RichView Cowork, the report server: RichView hosts it at [app.richview.ai](https://app.richview.ai), or you run your own with `richview server`. Each published version keeps a permanent address, and the server stores the source with the result.
 
 ```sh
-richview publish first-report/report.rmd --slug first-report --new
+richview publish first-report/report.rmd --slug first-report
 ```
 
 With no server chosen, the command asks where to publish:
 
-- **Hosted by RichView.** Create an account with your email at [app.richview.ai](https://app.richview.ai) and create an author token on that page. Set `RICHVIEW_SERVER=https://app.richview.ai` and `RICHVIEW_TOKEN` to the token, then publish. Publishing uploads the report's source and linked files, and new reports are private to you until you share them. Each publish request is limited to 32 MiB, including the encoded source and files; an organization can store up to 50 MiB in total.
-- **Your own server.** `richview server` runs the same Cowork server on your infrastructure.
+- **Hosted by RichView.** Sign in at [app.richview.ai](https://app.richview.ai). If you need an account, check whether [sign-up](https://app.richview.ai/sign-up) is open. The command signs this computer in once: it shows a short code that you confirm in the browser, or asks for a CLI token from that page where the server has no such sign-in. A script sets `RICHVIEW_SERVER=https://app.richview.ai` and `RICHVIEW_TOKEN` instead. Publishing uploads the report's source and linked files, and new reports are private to you until you share them. Each publish request is limited to 32 MiB, including the encoded source and files; an organization can store up to 50 MiB in total.
+- **Your own server.** [Run RichView on your machine](https://richview.ai/docs/self-hosting), sign in as its first admin and publish to it.
 
-The [publishing walkthrough](https://richview.ai/docs/publishing) tries the whole path on your own machine first, and [publishing and access](https://richview.ai/docs/access) covers permissions, pinning and deletion.
+Follow the [hosted walkthrough](https://richview.ai/docs/publishing#publish-to-the-hosted-server) or [try it on your own computer](https://richview.ai/docs/publishing#try-your-own-server-on-this-computer). [Publishing and access](https://richview.ai/docs/access) covers permissions, pinning and deletion.
 
 ## Documentation
 
 - [Install](https://richview.ai/docs/install) and [your first report](https://richview.ai/docs/first-report)
 - [Authoring guide](https://richview.ai/docs/authoring), [styles](https://richview.ai/docs/styles) and the [chart gallery](https://richview.ai/docs/charts), with live examples and copyable source for every chart type
 - [CLI](https://richview.ai/docs/cli), [MCP](https://richview.ai/docs/mcp) and [VS Code](https://richview.ai/docs/vscode)
-- [Publishing](https://richview.ai/docs/publishing), [access](https://richview.ai/docs/access) and [HTML and PDF export](https://richview.ai/docs/export)
+- [HTML and PDF export](https://richview.ai/docs/export), [publishing](https://richview.ai/docs/publishing), [self-hosting](https://richview.ai/docs/self-hosting) and [slides](https://richview.ai/docs/slides)
 - [The `.rmd` format specification](docs/RMD-SPEC.md)
 - [Examples](examples/) in this repository: [`first-report`](examples/first-report/report.rmd) is a small starter with a CSV, [`every-block`](examples/every-block/report.rmd) uses every block and chart type, and [`openai-vs-anthropic`](examples/openai-vs-anthropic/README.md) is a larger sourced research report.
 

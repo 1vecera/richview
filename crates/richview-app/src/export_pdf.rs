@@ -52,6 +52,8 @@ pub struct PdfRequest<'a> {
     /// HTML rendered with `Output::Pdf`.
     pub html: &'a str,
     pub page: Page,
+    /// Slides bring their own page, one slide to it, so `page` does not apply (FEA-RP-65).
+    pub slides: bool,
     pub browser: Option<PathBuf>,
     pub settle_timeout: Duration,
 }
@@ -106,10 +108,12 @@ pub async fn export(
         return Err(serde_json::to_string(&[Diagnostic::new("error","report.output.runtime","Interactive chart runtime is missing. Build/package RichView with richview-build before exporting this report.","output")]).unwrap_or_default());
     }
     let (html, page) = (report.html.clone(), options.page);
+    let slides = report.metadata.pointer("/_richview/slides").is_some();
     let export = tokio::task::spawn_blocking(move || {
         print_pdf(&PdfRequest {
             html: &html,
             page,
+            slides,
             browser,
             settle_timeout,
         })
@@ -401,6 +405,9 @@ const SETTLE: &str = r#"(async () => {
   await frame(); await frame();
   return { charts, images, report: report ?? null };
 })()"#;
+
+/// The page slides print on, in CSS pixels: slides.css's `@page` of 13.333 × 7.5 in, margin 0.
+const SLIDE_PAGE: (f64, f64) = (1280.0, 720.0);
 
 /// Floats figures the way LaTeX does, so no page ends more than a quarter empty (FEA-RP-43, as
 /// Daniel chose on 2026-10-27 and the lead clarified in 1528b5e4). The document is laid out in
@@ -760,6 +767,22 @@ mod cdp {
         diagnostic("error", "export.browser-failed", message)
     }
 
+    /// Reports a browser that could not open the staged report. A timeout there means the browser
+    /// answered and then stalled on its first page. Full Chrome does that on macOS when HOME has
+    /// no login keychain (measured with Chrome 158), where Chrome's headless shell prints, so the
+    /// fix names the shell on every platform and the home on macOS only.
+    fn open_failed(error: &str) -> Diagnostic {
+        if error != CallError::TimedOut.to_string() {
+            return failed(format!("Cannot open the report: {error}"));
+        }
+        let fix = if cfg!(target_os = "macos") {
+            "Pass --browser with Chrome's headless shell (chrome-headless-shell), or run from your own user home: full Chrome can stall when HOME has no login keychain, as in sandboxes and CI runners."
+        } else {
+            "Retry the export, or pass --browser with another Chromium-family browser, such as Chrome's headless shell (chrome-headless-shell)."
+        };
+        failed("Cannot open the report: the browser started but did not load it in time.").fix(fix)
+    }
+
     fn record_relaunch() -> Result<(), Vec<Diagnostic>> {
         let event = json!({
             "version": 1,
@@ -866,10 +889,16 @@ mod cdp {
             let profile = format!("--user-data-dir={}", dir.join("profile").display());
             let mut args: Vec<&OsStr> = BROWSER_SWITCHES.iter().map(OsStr::new).collect();
             args.extend([OsStr::new(&profile), OsStr::new("about:blank")]);
+            // The page is the report author's: the browser gets none of RichView's variables.
+            let inherited = crate::child_env::inherited(std::env::vars_os());
+            let env: Vec<(&OsStr, &OsStr)> = inherited
+                .iter()
+                .map(|(name, value)| (name.as_os_str(), value.as_os_str()))
+                .collect();
             let child = win_process::launch(&Launch {
                 program: browser,
                 args: &args,
-                env: None,
+                env: Some(&env),
                 cwd: None,
                 descriptors: &[
                     null.as_raw_handle(),
@@ -954,6 +983,8 @@ mod cdp {
             // SAFETY: geteuid has no preconditions.
             let root = unsafe { libc::geteuid() } == 0;
             let mut command = Command::new(browser);
+            // The page is the report author's: the browser gets none of RichView's variables.
+            crate::child_env::withhold(&mut command);
             command
                 .process_group(0)
                 .args(BROWSER_SWITCHES)
@@ -1183,7 +1214,11 @@ mod cdp {
                 self.page("Emulation.setEmulatedMedia", json!({"media": "print", "features": [{"name": "prefers-reduced-motion", "value": "reduce"}, {"name": "prefers-color-scheme", "value": "light"}]}), setup)?;
                 // Charts lay out at the width they print at; the height is the page area, so
                 // viewport units mean the same on screen and on paper.
-                let (width, height) = request.page.text_area();
+                let (width, height) = if request.slides {
+                    SLIDE_PAGE
+                } else {
+                    request.page.text_area()
+                };
                 self.page("Emulation.setDeviceMetricsOverride", json!({"width": width.round(), "height": height.round(), "deviceScaleFactor": 1, "mobile": false}), setup)?;
                 self.events.clear();
                 let navigation =
@@ -1193,7 +1228,7 @@ mod cdp {
                 }
                 Ok(())
             })();
-            prepared.map_err(|e| vec![failed(format!("Cannot open the report: {e}"))])?;
+            prepared.map_err(|e| vec![open_failed(&e)])?;
             let started = Instant::now();
             let settle_deadline = started.checked_add(request.settle_timeout).ok_or_else(|| {
                 vec![diagnostic(
@@ -1249,7 +1284,10 @@ mod cdp {
                 diagnostics.push(diagnostic("warning", "export.photo-unavailable", format!("The photo '{photo}' could not be loaded while printing, so the PDF shows its box and credit without it.")));
             }
             let after = Instant::now() + PRINT_TIMEOUT;
-            settled["float"] = self.evaluate(FLOAT, after).map_err(|e| vec![failed(e)])?;
+            // A slide is its page: nothing floats past it and none of its pictures is fitted.
+            if !request.slides {
+                settled["float"] = self.evaluate(FLOAT, after).map_err(|e| vec![failed(e)])?;
+            }
             let local = self
                 .evaluate(LOCAL_LINKS, after)
                 .map_err(|e| vec![failed(e)])?;
@@ -1296,7 +1334,7 @@ mod cdp {
                 }
                 Ok(())
             })();
-            let mut diagnostics: Vec<_> = families.into_iter().map(|(family, glyphs)| diagnostic("warning", "export.font-fallback", format!("{glyphs} sampled glyphs were drawn in the system face '{family}' instead of the report's embedded faces, so this PDF depends on the fonts of the machine that printed it."))).collect();
+            let mut diagnostics: Vec<_> = families.into_iter().map(|(family, glyphs)| diagnostic("warning", "export.font-fallback", format!("{} drawn in the system face '{family}' instead of the report's embedded faces, so this PDF depends on the fonts of the machine that printed it.", if glyphs == 1 { "1 sampled glyph was".to_owned() } else { format!("{glyphs} sampled glyphs were") }))).collect();
             if let Err(error) = sampled {
                 diagnostics.push(diagnostic(
                     "info",
@@ -1491,6 +1529,87 @@ mod cdp {
     mod windows_tests {
         use super::*;
 
+        /// What `cmd /c set` prints when started as the browser is, with `vars` as its
+        /// environment.
+        fn child_sees(vars: &[(std::ffi::OsString, std::ffi::OsString)]) -> String {
+            use crate::win_process::{self, Job, Launch};
+            use std::{ffi::OsStr, os::windows::io::AsRawHandle};
+            let (output, child_writes) = win_process::pipe().unwrap();
+            let null = win_process::null_device().unwrap();
+            let job = Job::kill_on_close().unwrap();
+            let env: Vec<(&OsStr, &OsStr)> = vars
+                .iter()
+                .map(|(name, value)| (name.as_os_str(), value.as_os_str()))
+                .collect();
+            let cmd = std::env::var_os("ComSpec").unwrap();
+            let child = win_process::launch(&Launch {
+                program: Path::new(&cmd),
+                args: &[OsStr::new("/c"), OsStr::new("set")],
+                env: Some(&env),
+                cwd: None,
+                descriptors: &[
+                    null.as_raw_handle(),
+                    child_writes.as_raw_handle(),
+                    null.as_raw_handle(),
+                ],
+                job: &job,
+                tokens: None,
+                no_child_processes: false,
+            })
+            .unwrap();
+            drop((child_writes, null));
+            let mut text = Vec::new();
+            File::from(output).read_to_end(&mut text).unwrap();
+            assert_eq!(
+                child.wait_for(Some(Duration::from_secs(10))).unwrap(),
+                Some(0)
+            );
+            String::from_utf8_lossy(&text).into_owned()
+        }
+
+        #[test]
+        fn a_child_started_with_the_browsers_environment_receives_no_richview_variable() {
+            let mut vars: Vec<_> = std::env::vars_os().collect();
+            for (name, value) in [
+                ("RICHVIEW_TOKEN", "sentinel-token"),
+                ("richview_smtp_password", "sentinel-smtp"),
+                ("RichView_Operator_Token", "sentinel-operator"),
+                ("OTHER_RICHVIEW_NAME", "kept-other"),
+            ] {
+                vars.push((name.into(), value.into()));
+            }
+            let all = child_sees(&vars);
+            for sentinel in ["sentinel-token", "sentinel-smtp", "sentinel-operator"] {
+                assert!(
+                    all.contains(sentinel),
+                    "the control lacks {sentinel}: {all}"
+                );
+            }
+            let withheld = vars
+                .iter()
+                .filter(|(name, _)| crate::child_env::is_own(name))
+                .count();
+            assert!(withheld >= 3);
+            let browser = child_sees(&crate::child_env::inherited(vars));
+            assert!(!browser.contains("sentinel"), "{browser}");
+            let upper = browser.to_ascii_uppercase();
+            for kept in [
+                "SYSTEMROOT=",
+                "PATH=",
+                "TEMP=",
+                "USERPROFILE=",
+                "OTHER_RICHVIEW_NAME=KEPT-OTHER",
+            ] {
+                assert!(upper.contains(kept), "{kept} is missing: {browser}");
+            }
+            // Nothing else is lost: the two differ only by the variables withheld.
+            assert_eq!(
+                all.lines().count(),
+                browser.lines().count() + withheld,
+                "{all}\n{browser}"
+            );
+        }
+
         #[test]
         fn the_installed_browser_answers_on_the_pipe_and_its_whole_tree_ends_on_close() {
             let browser = find_browser(None).expect("Windows ships Microsoft Edge");
@@ -1603,6 +1722,33 @@ mod cdp {
                 let _ = self.child.kill();
                 let _ = self.child.wait();
             }
+        }
+
+        #[test]
+        fn a_report_that_never_opens_names_the_headless_shell_and_a_real_home() {
+            let stalled = open_failed(&CallError::TimedOut.to_string());
+            assert_eq!(stalled.code, "export.browser-failed");
+            assert_eq!(
+                stalled.message,
+                "Cannot open the report: the browser started but did not load it in time."
+            );
+            let fix = stalled.fix.unwrap();
+            assert!(fix.contains("--browser") && fix.contains("chrome-headless-shell"));
+            // The keychain stall is measured on macOS only, so only macOS names it.
+            assert_eq!(
+                fix.contains("HOME has no login keychain"),
+                cfg!(target_os = "macos")
+            );
+            // Any other failure keeps its own words and the registry's fix.
+            let other = open_failed("the report did not load: net::ERR_FILE_NOT_FOUND");
+            assert_eq!(
+                other.message,
+                "Cannot open the report: the report did not load: net::ERR_FILE_NOT_FOUND"
+            );
+            assert_eq!(
+                other.fix.as_deref(),
+                richview_core::registry::fix("export.browser-failed")
+            );
         }
 
         #[test]

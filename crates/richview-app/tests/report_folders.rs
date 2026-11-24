@@ -182,7 +182,7 @@ fn portable_export_keeps_source_style_and_data_and_places_required_links_inside_
     fs::write(f.0.join("data/sales.csv"), csv).unwrap();
     fs::write(
         f.0.join("report.rstyle.yaml"),
-        "tokens: {accent: '#a52a2a'}\n",
+        "fonts: { display: Geist }\n",
     )
     .unwrap();
     let source = "---\nstyles: [scientific, report.rstyle.yaml]\n---\n\n[Original observations](data/sales.csv)\n\n```table\ndata: {csv: data/sales.csv}\n```\n";
@@ -195,7 +195,7 @@ fn portable_export_keeps_source_style_and_data_and_places_required_links_inside_
     assert_eq!(output, f.0.join("Rendered/quarter.html"));
     let html = fs::read_to_string(output).unwrap();
     assert!(html.contains("href=\"data/sales.csv\""));
-    assert!(html.contains("#a52a2a"));
+    assert!(html.contains("--rv-font-display: Geist;"));
     assert!(html.contains("data:font/woff2;base64,"));
     assert!(html.contains("001"));
     assert_eq!(
@@ -346,6 +346,59 @@ fn init_next_steps_work_without_path_and_quote_the_report_path() {
     );
     let value: serde_json::Value = serde_json::from_slice(&result.stdout).unwrap();
     assert_eq!(value["status"], "clean");
+}
+
+#[test]
+fn counts_read_in_the_singular_for_one() {
+    // A first check of the starter has one chart. Its own folder checks as that one report, and
+    // the folder above it holds one report.
+    let folder = Folder::new();
+    let dir = folder.0.join("first-report");
+    assert!(folder.cli("init", &dir).status.success());
+    let pretty = |target: &std::path::Path| {
+        let output = Command::new(env!("CARGO_BIN_EXE_richview"))
+            .args(["check", target.to_str().unwrap(), "--format", "pretty"])
+            .output()
+            .unwrap();
+        assert!(output.status.success(), "{output:?}");
+        String::from_utf8(output.stdout).unwrap()
+    };
+    assert_eq!(
+        pretty(&dir.join("report.rmd")).trim_end(),
+        "Checked 1 chart: clean"
+    );
+    assert_eq!(pretty(&dir).trim_end(), "Checked 1 chart: clean");
+    let lines = pretty(&folder.0);
+    assert_eq!(
+        lines.lines().last(),
+        Some("1 report, 0 with errors"),
+        "{lines}"
+    );
+    assert!(lines.contains(": Checked 1 chart: clean"), "{lines}");
+    // A report of one block validates as one, and the starter's three as three.
+    let one = folder.0.join("one-block");
+    fs::create_dir_all(&one).unwrap();
+    fs::write(
+        one.join("report.rmd"),
+        "---\ntitle: One block\n---\n\n# One block\n\n```metric\nvalue: 1240\nlabel: Orders in launch week\n```\n",
+    )
+    .unwrap();
+    let valid = |target: &std::path::Path| {
+        let output = Command::new(env!("CARGO_BIN_EXE_richview"))
+            .args(["validate", target.to_str().unwrap(), "--format", "pretty"])
+            .output()
+            .unwrap();
+        assert!(output.status.success(), "{output:?}");
+        String::from_utf8(output.stdout).unwrap()
+    };
+    assert_eq!(
+        valid(&one.join("report.rmd")).trim_end(),
+        "Valid, 1 rich block"
+    );
+    assert_eq!(
+        valid(&dir.join("report.rmd")).trim_end(),
+        "Valid, 3 rich blocks"
+    );
 }
 
 #[test]
@@ -1124,7 +1177,7 @@ fn a_brand_font_named_by_the_reports_own_style_file_is_read_from_the_folder() {
     let (_, overridden) = resolver::resolve_document_options_policy(
         source,
         &path,
-        &["tokens:\n  accent: '#123456'\n".into()],
+        &["colors:\n  brand: '#123456'\n".into()],
         false,
         false,
     )
@@ -1341,4 +1394,205 @@ fn folder_and_output_findings_name_no_place_on_this_machine() {
         assert_eq!(found[0]["path"], path, "{case}: {error}");
         assert_eq!(found[0]["file"].as_str(), file, "{case}: {error}");
     }
+}
+
+/// A report folder `q3` in `f` as a Mac leaves it after tar, zip, exFAT or an SMB copy: an
+/// AppleDouble sidecar (`._<name>`) beside each file and folder, a `__MACOSX` folder of them, and
+/// a `.DS_Store`.
+fn copied_from_a_mac(f: &Folder) -> PathBuf {
+    let root = f.0.join("q3");
+    fs::create_dir_all(root.join("data")).unwrap();
+    fs::create_dir_all(root.join("__MACOSX")).unwrap();
+    fs::write(
+        root.join("report.rmd"),
+        "---\ntitle: Results\ndescription: Quarter three\nversion: 1.0.0\nslug: q3\n---\n\n```table\ndata: {csv: data/sales.csv}\n```\n",
+    )
+    .unwrap();
+    fs::write(root.join("data/sales.csv"), "region,sales\nNorth,4\n").unwrap();
+    // AppleDouble's magic number and version, then binary attribute data.
+    let attributes = b"\x00\x05\x16\x07\x00\x02\x00\x00Mac OS X        \x00\x02";
+    for name in [
+        "._report.rmd",
+        "._data",
+        "data/._sales.csv",
+        "__MACOSX/._report.rmd",
+    ] {
+        fs::write(root.join(name), attributes).unwrap();
+    }
+    fs::write(root.join(".DS_Store"), b"\x00\x00\x00\x01Bud1").unwrap();
+    root
+}
+
+#[test]
+fn a_report_folder_copied_from_a_mac_is_still_one_report() {
+    use serde_json::{Value, json};
+    let f = Folder::new();
+    let root = copied_from_a_mac(&f);
+    // The report by its file, by its folder, and as the one report below the folder above it.
+    for verb in ["validate", "check"] {
+        for target in [root.join("report.rmd"), root.clone()] {
+            let result = f.cli(verb, &target);
+            let text = String::from_utf8_lossy(&result.stdout);
+            assert_eq!(result.status.code(), Some(0), "{verb}: {text}");
+            assert!(!text.contains("._"), "{verb} names a sidecar: {text}");
+        }
+    }
+    // Archive Utility's zip of the folder also unpacks `__MACOSX/q3/._report.rmd` beside it.
+    fs::create_dir_all(f.0.join("__MACOSX/q3")).unwrap();
+    fs::copy(
+        root.join("._report.rmd"),
+        f.0.join("__MACOSX/q3/._report.rmd"),
+    )
+    .unwrap();
+    let below = f.cli("check", &f.0);
+    let value: Value = serde_json::from_slice(&below.stdout)
+        .unwrap_or_else(|e| panic!("{e}: {}", String::from_utf8_lossy(&below.stdout)));
+    assert_eq!(below.status.code(), Some(0), "{value}");
+    let reports = value["reports"].as_array().expect("a folder of reports");
+    assert_eq!(reports.len(), 1, "the sidecar is no second report: {value}");
+    assert_eq!(reports[0]["ok"], json!(true), "{value}");
+
+    // A sidecar is no report, alone in a folder or named outright.
+    let alone = f.0.join("only-a-sidecar");
+    fs::create_dir(&alone).unwrap();
+    fs::copy(root.join("._report.rmd"), alone.join("._report.rmd")).unwrap();
+    let result = f.cli("check", &alone);
+    assert!(!result.status.success());
+    let text = String::from_utf8_lossy(&result.stderr).to_string()
+        + &String::from_utf8_lossy(&result.stdout);
+    assert!(text.contains("no .rmd file"), "{text}");
+    let result = f.cli("check", &root.join("._report.rmd"));
+    assert!(!result.status.success());
+    let text = String::from_utf8_lossy(&result.stdout);
+    assert!(
+        text.contains("report.root.invalid") && text.contains("sidecar"),
+        "{text}"
+    );
+}
+
+#[test]
+fn a_report_cannot_read_a_macos_sidecar_as_one_of_its_files() {
+    // The sidecar holds text a table could read: it is refused for what it is, not for its bytes.
+    let f = Folder::new();
+    fs::create_dir_all(f.0.join("data")).unwrap();
+    fs::write(f.0.join("data/._sales.csv"), "region,sales\nNorth,4\n").unwrap();
+    fs::write(f.0.join("._brand.rstyle.yaml"), "preset: sleek\n").unwrap();
+    let source = f.0.join("report.rmd");
+    for (body, path) in [
+        (
+            "---\ntitle: Results\n---\n\n```table\ndata: {csv: data/._sales.csv}\n```\n",
+            "data/._sales.csv",
+        ),
+        (
+            "---\ntitle: Results\nstyles: [._brand.rstyle.yaml]\n---\n\nBody text.\n",
+            "._brand.rstyle.yaml",
+        ),
+    ] {
+        fs::write(&source, body).unwrap();
+        for verb in ["validate", "check"] {
+            let result = f.cli(verb, &source);
+            let value: serde_json::Value = serde_json::from_slice(&result.stdout).unwrap();
+            let refused = value["diagnostics"].as_array().unwrap().iter().any(|d| {
+                d["code"] == "report.asset.missing"
+                    && d["message"]
+                        .as_str()
+                        .is_some_and(|text| text.contains(path) && text.contains("sidecar"))
+            });
+            assert!(refused, "{verb} {path}: {value}");
+            assert_eq!(result.status.code(), Some(1), "{verb} {path}: {value}");
+        }
+    }
+    // Every read of a file a report names passes this one check.
+    let error = resolver::contained_path(&f.0, "data/._sales.csv").unwrap_err();
+    assert!(
+        error.contains("report.asset.missing") && error.contains("sidecar"),
+        "{error}"
+    );
+    assert!(
+        !error.contains(f.0.to_str().unwrap()),
+        "the finding names no place on this machine: {error}"
+    );
+}
+
+/// Answers one publication on a loopback port and gives back the JSON it carried.
+fn one_publication() -> (String, std::thread::JoinHandle<serde_json::Value>) {
+    use std::io::{Read, Write};
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let server = format!("http://{}", listener.local_addr().unwrap());
+    let worker = std::thread::spawn(move || {
+        let (mut stream, _) = listener.accept().unwrap();
+        let (mut request, mut chunk) = (Vec::new(), [0u8; 8192]);
+        let body = loop {
+            let read = stream.read(&mut chunk).unwrap();
+            assert!(read > 0, "the request ended before its body");
+            request.extend_from_slice(&chunk[..read]);
+            let Some(head) = request.windows(4).position(|w| w == b"\r\n\r\n") else {
+                continue;
+            };
+            let length: usize = String::from_utf8_lossy(&request[..head])
+                .lines()
+                .find_map(|line| {
+                    let (name, value) = line.split_once(':')?;
+                    name.eq_ignore_ascii_case("content-length")
+                        .then(|| value.trim().parse().unwrap())
+                })
+                .expect("a content-length");
+            if request.len() >= head + 4 + length {
+                break request[head + 4..head + 4 + length].to_vec();
+            }
+        };
+        let answer = r#"{"created":true}"#;
+        write!(
+            stream,
+            "HTTP/1.1 200 OK\r\ncontent-type: application/json\r\ncontent-length: {}\r\nconnection: close\r\n\r\n{answer}",
+            answer.len()
+        )
+        .unwrap();
+        serde_json::from_slice(&body).unwrap()
+    });
+    (server, worker)
+}
+
+#[test]
+fn publishing_a_folder_copied_from_a_mac_sends_no_sidecar() {
+    let f = Folder::new();
+    let root = copied_from_a_mac(&f);
+    let (server, publication) = one_publication();
+    let result = Command::new(env!("CARGO_BIN_EXE_richview"))
+        .arg("publish")
+        .arg(root.join("report.rmd"))
+        .args([
+            "--server",
+            &server,
+            "--token",
+            "publish-token",
+            "--new",
+            "--format",
+            "json",
+        ])
+        .env_remove("RICHVIEW_TOKEN")
+        .env_remove("RICHVIEW_SERVER")
+        .output()
+        .unwrap();
+    // Checked before the request is awaited: a refused publication sends none.
+    assert_eq!(
+        result.status.code(),
+        Some(0),
+        "{}{}",
+        String::from_utf8_lossy(&result.stdout),
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let sent = publication.join().unwrap();
+    let files: Vec<&str> = sent["reportFolder"]["files"]
+        .as_array()
+        .expect("the folder's inventory")
+        .iter()
+        .filter_map(|file| file.as_str())
+        .collect();
+    assert!(
+        files.contains(&"report.rmd") && files.contains(&"data/sales.csv"),
+        "{files:?}"
+    );
+    // Neither the inventory nor any other part of the request names a sidecar.
+    assert!(!sent.to_string().contains("._"), "{sent}");
 }

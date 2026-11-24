@@ -1,5 +1,7 @@
 # RichView guide
 
+For the current implementation, see [How RichView works](../how-it-works/README.md).
+
 This guide describes RichView as it stood before the rewrite, `main` at `b4db233` (the merge of PR #61 on 16 October 2026) plus the live sites on 21 and 22 October 2026, and the lockdown answers and proposals that carry it into the rewrite. It answers Daniel's request for "a unified set of documents which let me understand performance, styling, feature set of RichView, with screenshots ... what is the goal of RichView, what features each component has, how it should work, how it should look, what are we maximizing, where do we want to go beyond what anyone has ever made" (Daniel, 2026-10-21 brief). The guide explains; the [lockdown parts](../lockdown/README.md) decide. By 27 October 2026 Daniel had answered 77 of the 769 cards, 70 of the 134 key cards among them. A page binds the rewrite only where it quotes his answer, and everything else it says about the rewrite is a proposal until he answers the card it cites.
 
 ## Pages

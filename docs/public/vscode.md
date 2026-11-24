@@ -4,6 +4,8 @@ description: Rich Markdown diagnostics, completion, formatting and export in VS 
 styles: [scientific]
 ---
 
+The extension puts the rendered report beside its source and follows your edits as you type, so you watch the report change while you or your agent work on it.
+
 The extension is not on the Visual Studio Marketplace yet. It targets VS Code 1.90 or later and requires a trusted workspace.
 
 ## Install a VSIX

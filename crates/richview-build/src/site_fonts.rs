@@ -21,9 +21,19 @@ const FACES: [(&str, u16, &str); 10] = [
     ("Patrick Hand", 400, "patrick-hand-400"),
 ];
 
+/// The report faces the flagship page's frame sets beyond the site's own: it takes the active
+/// style's text and code faces (STY-60), and these four of the builtin styles' no other page loads.
+/// They are staged, licensed and served like the site's faces, and the page declares them itself.
+pub(crate) const FRAME_FACES: [(&str, u16, &str); 4] = [
+    ("Geist Mono", 400, "geist-mono-400"),
+    ("Space Mono", 400, "space-mono-400"),
+    ("RichView Serif", 600, "richview-serif-600"),
+    ("RichView Code", 400, "richview-code-400"),
+];
+
 /// The families on the licence page: report name, upstream name, notice file, what the site sets
 /// in it, and why the name differs.
-const NOTICES: [(&str, &str, &str, &str, &str); 10] = [
+const NOTICES: [(&str, &str, &str, &str, &str); 13] = [
     (
         "Newsreader",
         "Newsreader",
@@ -32,6 +42,27 @@ const NOTICES: [(&str, &str, &str, &str, &str); 10] = [
         "",
     ),
     ("Geist", "Geist", "geist.txt", "Interface and body text", ""),
+    (
+        "Geist Mono",
+        "Geist Mono",
+        "geist-mono.txt",
+        "Code on the flagship page in the Sleek and Air styles",
+        "",
+    ),
+    (
+        "Space Mono",
+        "Space Mono",
+        "space-mono.txt",
+        "Code on the flagship page in the Brutalist style",
+        "",
+    ),
+    (
+        "RichView Code",
+        "Source Code Pro",
+        "source-code-pro.txt",
+        "Code on the flagship page in the Scientific style",
+        "Adobe reserves the name “Source”, so the subset is named RichView Code.",
+    ),
     (
         "RichView Mono",
         "IBM Plex Mono",
@@ -43,7 +74,7 @@ const NOTICES: [(&str, &str, &str, &str, &str); 10] = [
         "RichView Serif",
         "Source Serif 4",
         "source-serif-4.txt",
-        "The Scientific style's button",
+        "The Scientific style's button, and the flagship page's text in that style",
         "Adobe reserves the name “Source”, so the subset is named RichView Serif.",
     ),
     (
@@ -94,6 +125,31 @@ const NOTICES: [(&str, &str, &str, &str, &str); 10] = [
 /// catalog's faces under their own names.
 const OWN_FACES: &str = "assets/site-fonts";
 
+/// Whether the site serves `family` at `weight` as a file under `/fonts/`.
+pub(crate) fn served(family: &str, weight: u16) -> bool {
+    FACES
+        .iter()
+        .chain(FRAME_FACES.iter())
+        .any(|(name, cut, _)| *name == family && *cut == weight)
+}
+
+/// Whether the report font catalog holds `family` at `weight`, upright and for all characters.
+pub(crate) fn in_catalog(catalog: &str, family: &str, weight: u16) -> bool {
+    payload(catalog, family, weight).is_some()
+}
+
+/// The `@font-face` rules for the frame's own faces, each loading its `/fonts/` file on first use.
+pub(crate) fn frame_faces_css() -> String {
+    FRAME_FACES
+        .iter()
+        .map(|(family, weight, stem)| {
+            format!(
+                "@font-face{{font-family:\"{family}\";font-style:normal;font-weight:{weight};font-display:swap;src:url(\"/fonts/{stem}.woff2\") format(\"woff2\")}}"
+            )
+        })
+        .collect()
+}
+
 /// The base64 payload of the catalog's `@font-face` for one family, style and weight.
 fn payload(catalog: &str, family: &str, weight: u16) -> Option<Vec<u8>> {
     let mut rest = catalog;
@@ -131,7 +187,7 @@ pub fn stage(root: &Path, public: &Path) -> Result<()> {
     let folder = public.join("fonts");
     let _ = fs::remove_dir_all(&folder);
     fs::create_dir_all(&folder)?;
-    for (family, weight, stem) in FACES {
+    for (family, weight, stem) in FACES.into_iter().chain(FRAME_FACES) {
         let bytes = payload(&catalog, family, weight)
             .ok_or_else(|| format!("the font catalog has no {family} {weight}"))?;
         fs::write(folder.join(format!("{stem}.woff2")), bytes)?;
@@ -170,7 +226,7 @@ mod tests {
     #[test]
     fn every_site_face_is_in_the_catalog_and_is_a_woff2() {
         let catalog = richview_core::bundled_font_catalog();
-        for (family, weight, _) in FACES {
+        for (family, weight, _) in FACES.into_iter().chain(FRAME_FACES) {
             let bytes = payload(&catalog, family, weight)
                 .unwrap_or_else(|| panic!("{family} {weight} is not in the catalog"));
             assert_eq!(&bytes[..4], b"wOF2", "{family} {weight}");
@@ -209,8 +265,18 @@ mod tests {
     }
 
     #[test]
+    fn the_licence_page_lists_every_served_face() {
+        for (family, ..) in FACES.into_iter().chain(FRAME_FACES) {
+            assert!(
+                NOTICES.iter().any(|(name, ..)| *name == family),
+                "{family} is served but not on the licence page"
+            );
+        }
+    }
+
+    #[test]
     fn no_site_family_carries_a_reserved_name() {
-        for (family, ..) in FACES {
+        for (family, ..) in FACES.into_iter().chain(FRAME_FACES) {
             assert!(
                 !family.contains("Plex") && !family.starts_with("Source"),
                 "{family}"

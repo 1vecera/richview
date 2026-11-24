@@ -4,6 +4,8 @@ description: Copy the configuration for your client, then ask for a render.
 styles: [scientific]
 ---
 
+Over MCP your agent uses RichView as tools instead of shell commands: it validates, checks and renders a report and reads back what to fix, from Claude Code, Codex, Cursor or any other client that speaks MCP.
+
 Install the native command first. Find its absolute executable path with `command -v richview`, then replace `/absolute/path/to/richview` below. A client starts a local stdio process with the argument `mcp`; it needs no network server.
 
 ## Claude Code

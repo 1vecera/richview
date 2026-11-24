@@ -6,7 +6,7 @@ styles: [scientific]
 
 RichView supports **Linux x64 with glibc 2.35 or newer and macOS arm64**.<!-- windows-unsupported:start --> Windows and Intel Mac are not supported yet.<!-- windows-unsupported:end --><!-- windows-preview:start --> It also runs on **Windows x64** with the same features, from its own PowerShell command: it is tested on Windows Server 2025, and Windows 10 and 11 on x64 should behave the same but are untested; see [Windows](https://richview.ai/docs/install#windows) below. Intel Mac is not supported yet.<!-- windows-preview:end --> You can try the [playground](https://richview.ai/playground) in your browser without installing anything.
 
-On Linux, reports with SQL data sources need kernel 6.2 or newer with Landlock ABI 3 enabled. Debian 12’s default 6.1 kernel and Ubuntu 22.04’s original 5.15 kernel are below this requirement; use a newer kernel for SQL. Reports without SQL need glibc 2.35 or newer and do not have this additional kernel requirement.
+On Linux, SQL queries and Parquet files need kernel 6.2 or newer with Landlock ABI 3 enabled. Debian 12’s default 6.1 kernel and Ubuntu 22.04’s original 5.15 kernel are below this requirement. Reports using neither SQL nor Parquet need glibc 2.35 or newer and have no additional kernel requirement.
 
 ## Get the native command
 
@@ -52,7 +52,16 @@ export PATH="$PWD/target/release:$PATH"
 richview --help
 ```
 
-Keep this shell open: the PATH change applies to it. Keep the generated `font-licenses/` beside the executable if you copy it elsewhere. Exported HTML also carries its font notices. The build stages the website and editor files locally.
+Keep this shell open: the PATH change applies to it. If you copy `richview` elsewhere, keep the SQL and Parquet worker and font notices beside it:
+
+```text
+bin/
+  richview
+  richview-sql-worker
+  font-licenses/
+```
+
+Exported HTML also carries its font notices. The build stages the website and editor files locally.
 <!-- repository-public:end -->
 
 ## Update

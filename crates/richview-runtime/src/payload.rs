@@ -81,6 +81,10 @@ pub struct Chart {
     /// The screen's theme, kept while the chart draws for paper in the payload's print theme
     /// (FEA-CH-67).
     screen_theme: Option<ChartTheme>,
+    /// The text sizes the style gave the screen's and the paper's theme, and the size a slide's
+    /// stage asked for in their place (FEA-RP-65).
+    style_sizes: (f64, Option<f64>),
+    text_size: Option<f64>,
     /// A key the chart draws itself stands beside its plot: the expanded view in a short, wide
     /// window (S27-875).
     pub aside: bool,
@@ -106,6 +110,7 @@ impl Chart {
         }
         .objects();
         let controls = Controls::parse(&payload.block, &objects);
+        let style_sizes = (payload.theme.size, payload.print.as_ref().map(|p| p.size));
         let mut chart = Chart {
             payload,
             block,
@@ -119,6 +124,8 @@ impl Chart {
             embedded_cache: RefCell::default(),
             prepared: RefCell::default(),
             screen_theme: None,
+            style_sizes,
+            text_size: None,
             aside: false,
             zoom_y: None,
         };
@@ -145,6 +152,41 @@ impl Chart {
         }
         // Every layout and preparation held was made for the other theme, and a preparation
         // belongs to one (`Prepared`).
+        self.shown = None;
+        self.text_shown = None;
+        self.text_cache.get_mut().take();
+        self.embedded_cache.get_mut().take();
+        self.prepared.get_mut().take();
+        let state = self.state.clone();
+        self.set_state(state);
+        true
+    }
+
+    /// Set the chart's lettering in `size` CSS pixels, or in the style's own size again. A slide's
+    /// stage sets every text size as a share of its width, and the chart is laid out with its
+    /// lettering at that size rather than drawn once and scaled (FEA-RP-65). The screen's and the
+    /// paper's theme both take it; what was laid out at the other size is dropped. Returns
+    /// whether the size changed.
+    pub fn set_text_size(&mut self, size: Option<f64>) -> bool {
+        if size == self.text_size {
+            return false;
+        }
+        self.text_size = size;
+        let (screen, paper) = self.style_sizes;
+        let paper = size.or(paper);
+        let screen = size.unwrap_or(screen);
+        if let Some(print) = &mut self.payload.print {
+            print.size = paper.unwrap_or(print.size);
+        }
+        // On paper the payload's theme is the print one and the screen's is held aside.
+        match &mut self.screen_theme {
+            Some(held) => {
+                held.size = screen;
+                self.payload.theme.size = paper.unwrap_or(self.payload.theme.size);
+            }
+            None => self.payload.theme.size = screen,
+        }
+        // As for paper: every layout and preparation held was made at the other size.
         self.shown = None;
         self.text_shown = None;
         self.text_cache.get_mut().take();

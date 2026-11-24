@@ -796,12 +796,12 @@ fn style_cascade_preserves_canonical_fonts_and_rejects_css_injection() {
     let report = render(
         "# Claim",
         &RenderOptions {
-            styles: vec!["scientific".into(), "tokens: {accent: '#123456'}".into()],
+            styles: vec!["scientific".into(), "fonts: { display: Geist }".into()],
             ..Default::default()
         },
     )
     .unwrap();
-    assert!(report.html.contains("--rv-accent: #123456"));
+    assert!(report.html.contains("--rv-font-display: Geist;"));
     assert!(report.html.contains("RichView Serif"));
     for unsafe_style in [
         "tokens: {bg: 'white;}</style><script>alert(1)</script>'}",
@@ -822,10 +822,10 @@ fn style_cascade_preserves_canonical_fonts_and_rejects_css_injection() {
         )
         .unwrap();
         assert!(
-            report
-                .diagnostics
-                .iter()
-                .any(|d| d.code == "style.schema" || d.code == "style.unknown-key"),
+            report.diagnostics.iter().any(|d| matches!(
+                d.code.as_str(),
+                "style.retired" | "style.internal" | "style.schema" | "style.unknown-key"
+            )),
             "{unsafe_style}"
         );
         assert!(!report.html.contains("<script>alert(1)</script>"));
@@ -1040,14 +1040,19 @@ fn layout_component_and_motion_tokens_have_observable_output() {
             .iter()
             .any(|d| d.code == "style.internal" && d.path == "styles[1].layout.report-max-width")
     );
-    assert!(report.html.contains("border-top:2px solid var(--rv-ink)"));
-    assert!(report.html.contains("font-weight:700"));
-    assert!(report.html.contains(".rv-callout{border-top-width:3px}"));
-    assert!(
-        report
-            .html
-            .contains(".rv-report__body th,.rv-chart-dialog th{text-transform:uppercase}")
-    );
+    for path in [
+        "components.header.border-top",
+        "components.title.weight",
+        "components.callout.border-width",
+        "components.table-head.transform",
+    ] {
+        assert!(
+            report
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "style.retired" && d.path == format!("styles[1].{path}"))
+        );
+    }
     // Report text, stats and callouts are at rest on first paint; reduced motion stays a floor.
     // The only animation is a waiting chart's loading state, inside its reserved box.
     let keyframes: Vec<&str> = report
@@ -1094,17 +1099,20 @@ fn layout_component_and_motion_tokens_have_observable_output() {
     assert_eq!(
         retired,
         [
+            ("warning", "styles[0].components.callout.border-width"),
             ("warning", "styles[0].components.callout.left-bar-width"),
             ("warning", "styles[0].motion.delay"),
+            ("warning", "styles[0].motion.enabled"),
+            ("warning", "styles[0].motion.stagger"),
         ]
     );
     assert!(!report.diagnostics.iter().any(|d| d.code == "style.schema"));
-    assert!(report.html.contains(".rv-callout{border-top-width:2px}"));
+    assert!(!report.html.contains(".rv-callout{border-top-width:2px}"));
     assert!(!report.html.contains("url(evil)"));
     assert_eq!(
         report.charts[0]["theme"]["motion"],
-        json!(false),
-        "motion: {{enabled: false}} reaches the chart"
+        json!(true),
+        "the preset keeps chart motion enabled"
     );
 }
 
@@ -1208,7 +1216,7 @@ fn hand_drawn_letters_its_heads_and_draws_its_marks_as_vector_strokes() {
     ] {
         assert!(!drawn.contains(raster_or_filter), "{raster_or_filter}");
     }
-    // A stroke is drawn in its style's token, so a later style that changes the ink recolours it.
+    // Retired ink cannot recolour the preset's strokes.
     let recoloured = render(
         source,
         &RenderOptions {
@@ -1222,8 +1230,8 @@ fn hand_drawn_letters_its_heads_and_draws_its_marks_as_vector_strokes() {
     .unwrap()
     .html;
     assert!(drawn.contains("fill='oklch(0.22 0.004 85)'"));
-    assert!(recoloured.contains("fill='oklch(0.3 0.1 250)'"));
-    assert!(!recoloured.contains("fill='oklch(0.22 0.004 85)'"));
+    assert!(!recoloured.contains("fill='oklch(0.3 0.1 250)'"));
+    assert!(recoloured.contains("fill='oklch(0.22 0.004 85)'"));
     for style in ["sleek", "air", "scientific", "brutalist"] {
         let other = html(style);
         assert!(!other.contains("data:image/svg+xml,"), "{style}");
@@ -1571,7 +1579,7 @@ fn schema_diagnostics_reject_invalid_optional_fields_instead_of_silently_ignorin
 #[test]
 fn compatibility_export_preserves_the_public_shape_flags_and_resolved_ast() {
     let source = "---\ntitle: Compatibility\n---\n\n```chart\ntype: bar\ntitle: Exact observations\ndata: {inline: [{x: A,y: 1}]}\nencoding: {x: x,y: y}\n```";
-    let output=render_compat(source,&json!({"chartWidth":640,"theme":"dark","reportCard":true,"styles":[{"kind":"builtin","name":"scientific"},{"kind":"source","source":"tokens: {accent: '#123456'}"}]})).unwrap();
+    let output=render_compat(source,&json!({"chartWidth":640,"theme":"dark","reportCard":true,"styles":[{"kind":"builtin","name":"scientific"},{"kind":"source","source":"palette: ['#123456']"}]})).unwrap();
     assert_eq!(output["hasCharts"], true);
     assert_eq!(output["parsed"]["frontmatter"]["title"], "Compatibility");
     assert_eq!(
@@ -1585,12 +1593,7 @@ fn compatibility_export_preserves_the_public_shape_flags_and_resolved_ast() {
             .unwrap()
             .contains("<html lang=\"en\" data-theme")
     );
-    assert!(
-        output["html"]
-            .as_str()
-            .unwrap()
-            .contains("--rv-accent: #123456")
-    );
+    assert!(output["html"].as_str().unwrap().contains("#123456"));
     // The in-report card is gone (FEA-RP-31).
     assert!(
         !output["html"]
@@ -1751,16 +1754,16 @@ fn generated_schema_adapters_keep_required_fields_defaults_and_frontmatter_passt
 fn public_style_helpers_preserve_cascade_and_share_the_css_security_boundary() {
     let mut diagnostics = vec![];
     let resolved=resolve_styles_compat(&json!([{"kind":"builtin","name":"scientific"},{"kind":"source","source":"tokens: {accent: '#abcdef'}\ncomponents: {title: {letter-spacing: '-.02em',weight: 950}}"}]),&mut diagnostics).unwrap();
-    // The leaves still apply; each says what replaces it (STY-73).
+    assert_eq!(diagnostics.len(), 3);
     assert!(
-        diagnostics.iter().all(|d| d.code == "style.legacy"),
+        diagnostics.iter().all(|d| d.code == "style.retired"),
         "{diagnostics:?}"
     );
-    assert_eq!(resolved["doc"]["tokens"]["accent"], "#abcdef");
+    let preset = resolve_styles_compat(&json!(["scientific"]), &mut vec![]).unwrap();
+    assert_eq!(resolved, preset);
     assert_eq!(resolved["chart"]["palette"], "scientific");
-    assert_eq!(resolved["components"]["title"]["letter-spacing"], "-.02em");
     let css = custom_properties_to_css(&resolved["customProperties"]).unwrap();
-    assert!(css.contains("--rv-accent: #abcdef;"));
+    assert!(!css.contains("--rv-accent: #abcdef;"));
     assert!(
         builtin_style_source("scientific")
             .unwrap()
@@ -1914,7 +1917,7 @@ fn every_report_prints_light_at_paper_size_without_chart_controls() {
     assert!(print.contains("--rv-size-display:40px;"));
     assert!(print.contains("--rv-measure:33.6rem;"));
     assert!(!print.contains("-phone"));
-    // Scientific's measure is in characters, which already follow the smaller type.
+    // Scientific shares the screen measure and keeps its font-relative measure on paper.
     let scientific = render(
         "# Paper",
         &RenderOptions {
@@ -1923,6 +1926,7 @@ fn every_report_prints_light_at_paper_size_without_chart_controls() {
         },
     )
     .unwrap();
+    assert!(scientific.html.contains("--rv-measure: 42rem;"));
     assert!(scientific.html.contains("--rv-measure:78ch;"));
     assert!(scientific.html.contains("--rv-size-base:13.2px;"));
     // One print sheet replaces the old rules, including the class nothing emitted.
@@ -2045,10 +2049,11 @@ fn table_cells_link_web_addresses_by_host_and_keep_dates_and_ids_whole() {
         "<td class=\"date\">2025-06-09</td>",
         "<td class=\"date\">2026-10-02T09:30:00Z</td>",
         "<td class=\"date\">2026-10</td>",
+        // A short label of several words stays on one line.
+        "<td class=\"label\">mid market</td>",
+        "<td class=\"label\">Oct 2026</td>",
         // Words, credentials, other schemes and right-aligned columns stay as they are.
         "<td class=\"\">A</td>",
-        "<td class=\"\">mid market</td>",
-        "<td class=\"\">Oct 2026</td>",
         "<td class=\"\">javascript:alert(1)</td>",
         "<td class=\"\">https://user:secret@example.org/x</td>",
         "<td class=\"\">https://example.org/a b</td>",
@@ -2944,9 +2949,7 @@ fn style_diagnostics(source: &str) -> Vec<richview_core::document::Diagnostic> {
     .unwrap()
     .diagnostics
     .into_iter()
-    // Token-level files are the presets' internal vocabulary: they still apply with
-    // `style.legacy` (STY-73), which these grammar and safety tests do not measure.
-    .filter(|d| d.code.starts_with("style.") && d.code != "style.legacy")
+    .filter(|d| d.code.starts_with("style."))
     .collect()
 }
 
@@ -2961,26 +2964,20 @@ fn resolved_style(source: &str) -> serde_json::Value {
 
 #[test]
 fn colour_names_are_the_css_keywords_and_nothing_else() {
-    for ok in [
-        "rebeccapurple",
-        "Transparent",
-        "currentColor",
-        "RED",
-        "lightgoldenrodyellow",
-    ] {
+    for ok in ["rebeccapurple", "RED", "lightgoldenrodyellow"] {
         // A named colour is a colour like any other: the contrast floor applies to it.
-        let found = style_diagnostics(&format!("tokens: {{accent: {ok}}}"));
+        let found = style_diagnostics(&format!("palette: [{ok}]"));
         assert!(
             found.iter().all(|d| d.code == "style.contrast"),
             "{ok}: {found:?}"
         );
     }
     for bad in ["notacolor", "redd", "inherit", "initial"] {
-        let found = style_diagnostics(&format!("tokens: {{accent: {bad}}}"));
+        let found = style_diagnostics(&format!("palette: [{bad}]"));
         assert!(
             found
                 .iter()
-                .any(|d| d.code == "style.schema" && d.path == "styles[0].tokens.accent"),
+                .any(|d| d.code == "style.schema" && d.path == "styles[0].palette"),
             "{bad}: {found:?}"
         );
     }
@@ -3008,7 +3005,7 @@ fn unsafe_chart_colours_are_refused_at_the_leaf_and_never_reach_the_cascade() {
         let found = style_diagnostics(source);
         let d = found
             .iter()
-            .find(|d| d.code == "style.schema")
+            .find(|d| d.code == "style.retired" && d.path.ends_with(leaf))
             .unwrap_or_else(|| panic!("{source}: {found:?}"));
         assert_eq!(d.path, format!("styles[0].{leaf}"), "{source}");
         assert_eq!(d.line, Some(line), "{source}");
@@ -3050,16 +3047,17 @@ fn every_colour_a_chart_list_admits_is_one_the_engine_reads() {
             richview_chart::color::parse(form).is_some(),
             "{form} is a colour the engine cannot read"
         );
-        let found = style_diagnostics(&format!("chart:\n  palette: [{quoted}]\n"));
+        let found = style_diagnostics(&format!("palette: [{quoted}]\n"));
         assert!(found.is_empty(), "{form}: {found:?}");
         let found = style_diagnostics(&format!("chart:\n  ramp: [{quoted}, {quoted}, {quoted}]\n"));
-        assert!(found.is_empty(), "{form}: {found:?}");
+        assert_eq!(found.len(), 1, "{form}: {found:?}");
+        assert_eq!(found[0].code, "style.retired");
     }
     // Valid for a page token, but no colour for a chart to draw with.
     for form in ["transparent", "currentcolor", "#12345"] {
         for source in [
-            format!("chart:\n  palette: ['{form}']\n"),
-            format!("chart:\n  ramp: ['{form}', red, blue]\n"),
+            format!("palette: ['{form}']\n"),
+            format!("palette: ['{form}', red, blue]\n"),
         ] {
             let found = style_diagnostics(&source);
             assert!(
@@ -3068,7 +3066,6 @@ fn every_colour_a_chart_list_admits_is_one_the_engine_reads() {
             );
         }
     }
-    assert!(style_diagnostics("tokens: {accent: transparent}").is_empty());
 }
 
 #[test]
@@ -3085,19 +3082,14 @@ fn an_unknown_chart_key_is_reported() {
 }
 
 #[test]
-fn valid_chart_palettes_and_leaves_still_apply() {
+fn retired_chart_leaves_leave_the_supported_palette_in_place() {
     let source = "chart:\n  palette: ['#112233', rebeccapurple, 'oklch(0.5 0.1 20)']\n  ramp: [white, '#888', black]\n  negative-ramp: [white, orange, red]\n  curve: step_after\n  font-numeric: 'Geist Mono, monospace'\n  font-family: 'Geist, sans-serif'\n  bar-radius: 2\n  decals: true\n  curvature: 0.5\n  legend: bottom\n  line: {smoothing: straight}\n";
-    assert!(
-        style_diagnostics(source).is_empty(),
-        "{:?}",
-        style_diagnostics(source)
-    );
-    let chart = resolved_style(source)["chart"].clone();
-    assert_eq!(chart["palette"][1], "rebeccapurple");
-    assert_eq!(chart["curve"], "step_after");
-    let named = resolved_style("chart:\n  palette: scientific\n");
-    assert_eq!(named["chart"]["palette"], "scientific");
-    assert!(style_diagnostics("chart:\n  palette: air\n").is_empty());
+    let found = style_diagnostics(source);
+    assert_eq!(found.len(), 11);
+    assert!(found.iter().all(|d| d.code == "style.retired"));
+    assert_eq!(resolved_style(source)["chart"], resolved_style("")["chart"]);
+    let source = format!("{source}palette: scientific\n");
+    assert_eq!(resolved_style(&source)["chart"]["palette"], "scientific");
 }
 
 #[test]
@@ -3171,7 +3163,7 @@ fn hostile_motion_leaves_never_reach_the_page() {
         )
         .unwrap();
         assert!(
-            report.diagnostics.iter().any(|d| d.code == "style.schema"),
+            report.diagnostics.iter().any(|d| d.code == "style.retired"),
             "{hostile} is reported"
         );
         for needle in ["evil", "url(evil)"] {
@@ -3186,7 +3178,7 @@ fn a_still_character_renders_everything_settled() {
     let report = render(
         chart,
         &RenderOptions {
-            styles: vec!["motion: {character: still}".into()],
+            styles: vec!["motion: xsmall".into()],
             ..Default::default()
         },
     )
@@ -3212,30 +3204,23 @@ fn a_report_that_prints_as_air_keeps_the_faces_it_embeds() {
 }
 
 #[test]
-fn a_motion_character_alone_sets_its_timing() {
-    let report = render(
-        "# Claim",
-        &RenderOptions {
-            styles: vec!["motion: {character: crisp}".into()],
-            ..Default::default()
-        },
-    )
-    .unwrap();
-    assert!(report.html.contains("--rv-motion-duration:160ms"));
-    assert!(report.html.contains("--rv-motion-block:none"));
-    let report = render(
-        "# Claim",
-        &RenderOptions {
-            styles: vec!["motion: {character: crisp, duration: 300}".into()],
-            ..Default::default()
-        },
-    )
-    .unwrap();
-    assert!(report.html.contains("--rv-motion-duration:300ms"));
+fn retired_motion_character_and_duration_keep_the_preset_timing() {
+    for (source, count) in [
+        ("motion: {character: crisp}", 1),
+        ("motion: {character: crisp, duration: 300}", 2),
+    ] {
+        assert_eq!(
+            resolved_style(source)["motion"],
+            resolved_style("")["motion"]
+        );
+        let found = style_diagnostics(source);
+        assert_eq!(found.len(), count);
+        assert!(found.iter().all(|d| d.code == "style.retired"));
+    }
 }
 
 #[test]
-fn quoted_motion_numbers_apply_a_fade_stays_put_and_a_font_quote_must_close() {
+fn quoted_motion_overrides_are_retired_and_font_quotes_must_close() {
     let chart = "```chart\ntype: bar\ntitle: Quoted\ndata: {inline: [{x: a, y: 1}]}\nencoding: {x: x, y: y}\n```";
     let report = render(
         chart,
@@ -3245,16 +3230,23 @@ fn quoted_motion_numbers_apply_a_fade_stays_put_and_a_font_quote_must_close() {
         },
     )
     .unwrap();
-    assert!(report.html.contains("--rv-motion-duration:1000ms"));
-    assert!(report.html.contains("--rv-motion-distance:0px"));
+    let baseline = render(chart, &RenderOptions::default()).unwrap();
     assert_eq!(
-        report.charts[0]["theme"]["motionProfile"]["durationMs"],
-        json!(1000.0)
+        report.charts[0]["theme"]["motionProfile"],
+        baseline.charts[0]["theme"]["motionProfile"]
+    );
+    assert_eq!(
+        report
+            .diagnostics
+            .iter()
+            .filter(|d| d.code == "style.retired")
+            .count(),
+        3
     );
     let report = render(
         "# Claim",
         &RenderOptions {
-            styles: vec![r#"tokens: {font-text: 'Geist", serif'}"#.into()],
+            styles: vec![r#"fonts: {text: 'Geist", serif'}"#.into()],
             ..Default::default()
         },
     )
@@ -3275,7 +3267,7 @@ fn a_chart_title_sits_one_step_below_the_section_heading() {
 
 #[test]
 fn a_font_stack_whose_quotes_interleave_is_refused() {
-    let stack = r#"tokens: {font-text: "\"a'b\"c', serif"}"#;
+    let stack = r#"fonts: {text: "\"a'b\"c', serif"}"#;
     let report = render(
         "# Claim",
         &RenderOptions {

@@ -113,10 +113,10 @@ test("report length does not change the score", () => {
 
 test("check results are read from JSON, pretty text and the MCP summary", () => {
 	assert.equal(parseCheck({ output: '{"diagnostics":[{"code":"x.y","level":"warning","line":3}],"ok":true}' }).clean, false);
-	const pretty = parseCheck({ output: "report.rmd:3 warning frontmatter.type: must be a string\nChecked 1 charts: issues" });
+	const pretty = parseCheck({ output: "report.rmd:3 warning frontmatter.type: must be a string\nChecked 1 chart: issues" });
 	assert.deepEqual(pretty.diagnostics.map((d) => d.code), ["frontmatter.type"]);
 	assert.equal(pretty.ok, true);
-	assert.equal(parseCheck({ output: "Checked 1 charts: clean" }).clean, true);
+	assert.equal(parseCheck({ output: "Checked 1 chart: clean" }).clean, true);
 	const summary = parseCheck({ output: "check: has errors, 5 diagnostics." });
 	assert.deepEqual([summary.ok, summary.visible, summary.count], [false, false, 5]);
 });

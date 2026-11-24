@@ -38,6 +38,9 @@ const QUERY_PREFIX: &str = "SELECT * FROM (\n";
 pub struct DuckDbConnector {
     database: PathBuf,
     worker: Option<PathBuf>,
+    /// The source is a Parquet file, which report SQL reads as one view named after the
+    /// connector.
+    parquet: bool,
     /// The run's copies of the source, for the Windows worker; they go with the connector.
     copies: super::sql_worker::SourceCopies,
 }
@@ -48,6 +51,7 @@ impl DuckDbConnector {
         Self {
             database,
             worker: None,
+            parquet: false,
             copies: Default::default(),
         }
     }
@@ -58,6 +62,19 @@ impl DuckDbConnector {
         Self {
             database,
             worker: Some(worker),
+            parquet: false,
+            copies: Default::default(),
+        }
+    }
+
+    /// A connector over the Parquet file `file`: report SQL reads it as the view named after
+    /// the connector, in the same restricted worker. `worker` is as for [`Self::with_worker`].
+    pub fn parquet(file: PathBuf, worker: Option<PathBuf>) -> Self {
+        let database = file.canonicalize().unwrap_or(file);
+        Self {
+            database,
+            worker,
+            parquet: true,
             copies: Default::default(),
         }
     }
@@ -65,22 +82,39 @@ impl DuckDbConnector {
 
 impl Connector for DuckDbConnector {
     fn kind(&self) -> &'static str {
-        "duckdb"
+        if self.parquet { "parquet" } else { "duckdb" }
     }
 
     fn source_identity(&self) -> String {
         let mut hash = Sha256::new();
         // Cached rows produced before metadata isolation must not survive the policy change.
-        hash.update(b"duckdb-file-v1\0");
+        hash.update(if self.parquet {
+            &b"parquet-file-v1\0"[..]
+        } else {
+            &b"duckdb-file-v1\0"[..]
+        });
         hash.update([super::spec::SQL_METADATA_POLICY_VERSION]);
         hash.update(self.database.as_os_str().as_encoded_bytes());
+        // A Parquet file is replaced whole by each export, so rows captured from the file as it
+        // was must not answer for the file as it is: its size and write time are its identity.
+        if self.parquet
+            && let Ok(metadata) = std::fs::metadata(&self.database)
+        {
+            hash.update(metadata.len().to_le_bytes());
+            let written = metadata
+                .modified()
+                .ok()
+                .and_then(|time| time.duration_since(std::time::UNIX_EPOCH).ok())
+                .map_or(0, |since| since.as_nanos());
+            hash.update(written.to_le_bytes());
+        }
         format!("{:x}", hash.finalize())
     }
 
     fn execute(&self, request: &Query<'_>) -> Result<DatasetSnapshot, ConnectorError> {
         let QueryBody::Sql(sql) = request.body else {
             return Err(ConnectorError::QueryRejected {
-                reason: "duckdb connector accepts only data.sql blocks".into(),
+                reason: format!("{} connector accepts only data.sql blocks", self.kind()),
             });
         };
         read_only_guard(sql)?;
@@ -101,6 +135,7 @@ impl Connector for DuckDbConnector {
             &self.database,
             self.worker.as_deref(),
             request,
+            self.parquet,
         )
     }
 }
@@ -307,7 +342,7 @@ fn sql_value(value: &Value) -> Result<SqlValue, ConnectorError> {
     })
 }
 
-fn convert_value(
+pub(super) fn convert_value(
     value: ValueRef<'_>,
     zoned: bool,
 ) -> Result<(Value, Option<FieldKind>), ConnectorError> {
@@ -397,7 +432,7 @@ fn now_rfc3339() -> String {
 }
 
 // Native error text may contain SQL literals, URLs and host paths. Keep it off every report surface.
-fn duck_err<'a>(
+pub(super) fn duck_err<'a>(
     connector: &'a str,
     sql: Option<&'a str>,
 ) -> impl Fn(duckdb::Error) -> ConnectorError + 'a {
@@ -480,7 +515,7 @@ pub(super) fn read_only_guard(sql: &str) -> Result<&str, ConnectorError> {
 }
 
 /// Interrupt preparation, execution and result collection at the deadline, then join the watchdog.
-fn with_timeout<T>(
+pub(super) fn with_timeout<T>(
     connection: &Connection,
     timeout: Duration,
     run: impl FnOnce() -> Result<T, ConnectorError>,

@@ -39,7 +39,7 @@ pub fn start() {
         .trim_end_matches("ms")
         .parse()
         .unwrap_or(0.0);
-    if reduced || motion_off || block == "none" {
+    if reduced || motion_off {
         return;
     }
     let height = window()
@@ -47,6 +47,10 @@ pub fn start() {
         .ok()
         .and_then(|h| h.as_f64())
         .unwrap_or(0.0);
+    slides(height);
+    if block == "none" {
+        return;
+    }
     let callback = Closure::<dyn FnMut(js_sys::Array, IntersectionObserver)>::new(
         move |entries: js_sys::Array, observer: IntersectionObserver| {
             let mut order: f64 = 0.0;
@@ -73,13 +77,54 @@ pub fn start() {
         return;
     };
     callback.forget();
-    for block in query_all(".rv-report__body > :not(.rv-keep), .rv-keep > *") {
+    // A slide is a screen, not a block: it comes as the reader's scroll brings it (FEA-RP-65).
+    for block in query_all(".rv-report__body > :not(.rv-keep):not(.rv-slide), .rv-keep > *") {
         // Only blocks wholly below the first screen enter; the rest are already at rest.
         if block.get_bounding_client_rect().top() < height {
             continue;
         }
         mark(&block);
         observer.observe(&block);
+    }
+}
+
+/// Slides build as they arrive (FEA-RP-65). A slide that starts below the first screen hides
+/// its parts until its top passes two thirds of the window, then its stage brings them in, each
+/// in its turn; slides.css says how for each stage. The style's block entrance does not apply:
+/// a slide is a screen, and only reduced motion or a style with motion off keeps it at rest.
+fn slides(height: f64) {
+    let pending: Vec<Element> = query_all("html[data-rv-slides] .rv-slide")
+        .into_iter()
+        .filter(|slide| slide.get_bounding_client_rect().top() >= height - 1.0)
+        .collect();
+    if pending.is_empty() {
+        return;
+    }
+    let callback = Closure::<dyn FnMut(js_sys::Array, IntersectionObserver)>::new(
+        move |entries: js_sys::Array, observer: IntersectionObserver| {
+            for entry in entries.iter() {
+                let entry: IntersectionObserverEntry = entry.unchecked_into();
+                if entry.is_intersecting() {
+                    let target = entry.target();
+                    let _ = target.class_list().add_1("rv-slide--entered");
+                    observer.unobserve(&target);
+                }
+            }
+        },
+    );
+    // The band the slide must reach: a margin, not a share of the slide, so a slide taller than
+    // the window (a phone's) still arrives.
+    let options = web_sys::IntersectionObserverInit::new();
+    options.set_root_margin("0px 0px -34% 0px");
+    let Ok(observer) =
+        IntersectionObserver::new_with_options(callback.as_ref().unchecked_ref(), &options)
+    else {
+        return;
+    };
+    callback.forget();
+    for slide in pending {
+        let _ = slide.class_list().add_1("rv-slide--enter");
+        observer.observe(&slide);
     }
 }
 

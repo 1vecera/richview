@@ -21,8 +21,17 @@ const CHANNELS: [&str; 4] = ["open", "high", "low", "close"];
 const KINDS: [&str; 2] = ["Up", "Down"];
 /// A body is hollow from this width on; thinner bodies are too small to read as an outline.
 const HOLLOW_FROM: f64 = 4.0;
-/// The gap between the plot's right edge and the last close printed beside it.
+/// The margin an upright plot keeps at its right edge, which the last close's tag stands in.
 const TAG_GAP: f64 = 6.0;
+/// The tag's box around its number, across and along. Twice the padding across is the margin,
+/// so the tag starts on the plot's right edge and costs the plot its number's width alone.
+const TAG_PAD: [f64; 2] = [TAG_GAP / 2.0, 2.0];
+/// The gap between a wick's end and the high or low printed past it.
+const EXTREME_GAP: f64 = 4.0;
+/// The panel width from which an upright chart keeps room on its value axis for the high and the
+/// low. The panel is the chart's own frame, or one facet's: under this width the room would cost
+/// the marks too much of a short plot.
+const ROOM_FROM: f64 = 480.0;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Glyph {
@@ -317,9 +326,11 @@ fn paint(ctx: &mut Ctx, facets: &Facets, glyph: Glyph) -> Painted {
             })
         })
         .collect();
-    // The last close stands right of the plot at the close's own height, where a price tag
-    // stands, so an upright chart keeps the width of the widest one beside its plot. The
-    // author's `auto_annotations: false` keeps the whole width for the plot.
+    // The last close's tag stands right of the plot at the close's own height, where a price
+    // chart keeps its price tag, so an upright chart keeps the width of the widest number beside
+    // its plot; the tag's padding comes out of the plot's own right margin, so the plot is as
+    // wide as it was for the bare number and its category names thin out no sooner. The author's
+    // `auto_annotations: false` keeps the whole width for the plot.
     let tag_room = if block.auto_annotations && !plan.horizontal {
         closing
             .iter()
@@ -345,6 +356,29 @@ fn paint(ctx: &mut Ctx, facets: &Facets, glyph: Glyph) -> Painted {
         if !data[0].is_finite() {
             data = ctx.wanted().y.unwrap_or([0.0, 1.0]);
         } else {
+            // The period's high and low are printed past the ends of their wicks, so an upright
+            // chart whose panel is at least 480 px wide keeps a line of room for one beyond each
+            // end of its value axis, as a dumbbell's does for its end values: the extent grows by
+            // that room in the axis's own units, judged against a plot of seven tenths of the
+            // panel, and never across zero. A narrower or a horizontal chart keeps none: there
+            // the room would cost the marks half the plot, so its high and low print only where
+            // the axis happens to leave a place for both, and are recorded where it does not.
+            if block.auto_annotations && !plan.horizontal && outer.w >= ROOM_FROM && data[1] > data[0] {
+                let room = EXTREME_GAP + 4.0 + ctx.line_height();
+                let length = 0.7 * outer.h;
+                let pad = room * (data[1] - data[0]) / (length - 2.0 * room).max(room);
+                let low = if data[0] >= 0.0 {
+                    (data[0] - pad).max(0.0)
+                } else {
+                    data[0] - pad
+                };
+                let high = if data[1] <= 0.0 {
+                    (data[1] + pad).min(0.0)
+                } else {
+                    data[1] + pad
+                };
+                data = [low, high];
+            }
             data = super::Fit::widen(data, ctx.wanted().y);
         }
         ctx.fit.y = Some(data);
@@ -366,6 +400,8 @@ fn paint(ctx: &mut Ctx, facets: &Facets, glyph: Glyph) -> Painted {
         // The last drawn period: its series slot, observation, close and the far edge of its
         // mark along the category axis.
         let mut last: Option<(usize, usize, f64, f64)> = None;
+        // Each drawn period's observation, by period.
+        let mut observed: Vec<Option<usize>> = vec![None; candles.len()];
         for (c, s) in candles.iter().enumerate() {
             let (kind, change_text) = moves[fi].get(c).cloned().unwrap_or_else(|| (s.kind(), String::new()));
             let slot = slot_of(kind);
@@ -388,7 +424,14 @@ fn paint(ctx: &mut Ctx, facets: &Facets, glyph: Glyph) -> Painted {
             match glyph {
                 Glyph::Candle => {
                     marks.push(wick(s.low, s.high));
-                    let body = visible(frame.span(c0, c0 + t, s.open, s.close), frame.horizontal);
+                    let mut body = visible(frame.span(c0, c0 + t, s.open, s.close), frame.horizontal);
+                    // The body is exactly `t` across: `c0 + t - c0` loses the last bits, and a
+                    // body thinned to one pixel must not fall under it.
+                    if frame.horizontal {
+                        body.h = t;
+                    } else {
+                        body.w = t;
+                    }
                     let up = kind == 0;
                     let hollow = up && hatch.is_none() && t >= HOLLOW_FROM;
                     marks.push(Item::Rect {
@@ -434,6 +477,7 @@ fn paint(ctx: &mut Ctx, facets: &Facets, glyph: Glyph) -> Painted {
             if closing[fi] == Some(c) {
                 last = Some((slot, observations.len(), s.close, c0 + t));
             }
+            observed[c] = Some(observations.len());
             observations.push(Observation {
                 row: Some(s.row),
                 dots: vec![],
@@ -468,49 +512,149 @@ fn paint(ctx: &mut Ctx, facets: &Facets, glyph: Glyph) -> Painted {
                 .into(),
             });
         }
-        // The one automatic value: the last close at the close's own height (chart design,
-        // 16 Nov 2026). Four numbers a period would be noise, so no other value is printed. An
-        // upright chart sets it in the room it kept beside the plot, as a price tag, or 4 px
-        // past the mark when periods this panel lacks follow it. A horizontal chart prints it
-        // under the last row where the plot has room, and records it as dropped where it has
-        // none.
+        // Three automatic values, each saying what it is (chart design, 17 Nov 2026; Daniel read
+        // a lone close as "one random number"). The last close is a tag in the last period's
+        // colour at the close's own height, joined to its mark by a hairline: an upright chart
+        // sets it in the room it kept beside the plot, or 4 px past the mark when periods this
+        // panel lacks follow it; a horizontal chart sets it under the last row. The period's
+        // high stands past the end of its wick and the low past the other end, a soft word
+        // before the number. The tag always stays; a high or low that meets the tag, a mark or
+        // the other goes, and is recorded as dropped.
         let plot = frame.plot;
-        let value = last.map(|(slot, observation, close, edge)| {
+        let lh = ctx.line_height();
+        let tag = last.map(|(slot, observation, close, edge)| {
             let text = numbers::label(close, &readout, digits);
+            let colour = ctx.series_color(slot);
+            // The number takes whichever of the style's ink and surface reads better on the
+            // period's colour, and keeps the 4.5:1 of every value printed on a mark. On a colour
+            // where neither reaches it (a mid-tone of an author's palette), the tag is outlined
+            // in that colour instead and its number stands in the ink on the surface.
+            let on_fill = super::hierarchy::ink_on(ctx, colour, 1.0);
+            let filled = crate::color::contrast(on_fill, colour) >= 4.5;
+            let ink = if filled { on_fill } else { ctx.style.ink };
+            let from = frame.pt(edge, close);
             let [x, y] = frame.pt(edge + 4.0, close);
-            let ink = ctx.style.ink;
             let mut place = if frame.horizontal {
-                let lh = ctx.line_height();
-                ctx.text_mid(&text, x, y + lh / 2.0, Anchor::Middle, Face::Figures, Role::Label, ink)
+                ctx.text_mid(
+                    &text,
+                    x,
+                    y + lh / 2.0 + TAG_PAD[1],
+                    Anchor::Middle,
+                    Face::Figures,
+                    Role::Label,
+                    ink,
+                )
             } else {
                 let x = if closing[fi].is_some_and(|c| c + 1 == names.len()) {
-                    plot.right() + TAG_GAP
+                    plot.right() + TAG_GAP - 2.0 * TAG_PAD[0]
                 } else {
                     x
                 };
-                ctx.text_mid(&text, x, y, Anchor::Start, Face::Figures, Role::Label, ink)
+                ctx.text_mid(&text, x + TAG_PAD[0], y, Anchor::Start, Face::Figures, Role::Label, ink)
             };
-            // A close at the plot's end keeps its value inside the plot along the value axis.
+            // A close at the plot's end keeps its tag inside the plot along the value axis.
             let b = place.bounds;
-            if frame.horizontal {
-                let dx = (plot.x - b.x).max(0.0) - (b.right() - plot.right()).max(0.0);
-                place.x += dx;
-                place.bounds.x += dx;
+            let chip = Rect::new(
+                b.x - TAG_PAD[0],
+                b.y - TAG_PAD[1],
+                b.w + 2.0 * TAG_PAD[0],
+                b.h + 2.0 * TAG_PAD[1],
+            );
+            let (dx, dy) = if frame.horizontal {
+                ((plot.x - chip.x).max(0.0) - (chip.right() - plot.right()).max(0.0), 0.0)
             } else {
-                let dy = (plot.y - b.y).max(0.0) - (b.bottom() - plot.bottom()).max(0.0);
-                place.y += dy;
-                place.bounds.y += dy;
-            }
-            super::place::SparseValue {
-                text,
-                series: slot,
-                observation,
-                places: vec![place],
+                (
+                    0.0,
+                    (plot.y - chip.y).max(0.0) - (chip.bottom() - plot.bottom()).max(0.0),
+                )
+            };
+            place.x += dx;
+            place.y += dy;
+            place.bounds.x += dx;
+            place.bounds.y += dy;
+            let chip = Rect::new(chip.x + dx, chip.y + dy, chip.w, chip.h);
+            let to = if frame.horizontal {
+                [chip.center()[0], chip.y]
+            } else {
+                [chip.x, chip.center()[1]]
+            };
+            super::place::PriceTag {
+                value: super::place::SparseValue {
+                    text,
+                    series: slot,
+                    observation,
+                    places: vec![place],
+                },
+                chip,
+                colour: Style::rgba(colour),
+                fill: Style::rgba(if filled { colour } else { ctx.style.surface }),
+                hairline: [from, to],
             }
         });
+        // The drawn period that reached the high, and the one that reached the low; the
+        // earliest on a tie.
+        let reached = |better: &dyn Fn(f64, f64) -> bool, of: &dyn Fn(&Candle) -> f64| {
+            (0..candles.len())
+                .filter(|&c| observed[c].is_some())
+                .fold(None, |best: Option<usize>, c| match best {
+                    Some(b) if !better(of(&candles[c]), of(&candles[b])) => Some(b),
+                    _ => Some(c),
+                })
+        };
+        let high = reached(&|a, b| a > b, &|s| s.high);
+        let low = reached(&|a, b| a < b, &|s| s.low);
+        let space = ctx.text_width(" ");
+        let soft = ctx.style.ink_soft;
+        let ink = ctx.style.ink;
+        let mut extremes = Vec::new();
+        for (c, word, line, beyond) in [(high, "High", 1, 1.0), (low, "Low", 2, -1.0)]
+            .into_iter()
+            .filter_map(|(c, word, line, beyond)| c.map(|c| (c, word, line, beyond)))
+        {
+            let v = if beyond > 0.0 { candles[c].high } else { candles[c].low };
+            let text = numbers::label(v, &readout, digits);
+            let cm = frame.slot_start(c, 0, 1, t) + t / 2.0;
+            let [px, py] = frame.pt(cm, v);
+            let word_width = ctx.text_width(word);
+            let width = word_width + space + ctx.text_width(&text);
+            // Upright, the pair is centred over the high's wick and under the low's, inside the
+            // plot across; lying down, it runs on past the high's end and back from the low's.
+            let (start, cy) = if frame.horizontal {
+                let start = if beyond > 0.0 {
+                    px + EXTREME_GAP
+                } else {
+                    px - EXTREME_GAP - width
+                };
+                (start, py)
+            } else {
+                let start = (px - width / 2.0).clamp(plot.x, (plot.right() - width).max(plot.x));
+                (start, py - beyond * (EXTREME_GAP + lh / 2.0))
+            };
+            let word = ctx.text_mid(word, start, cy, Anchor::Start, Face::Data, Role::Label, soft);
+            let number = ctx.text_mid(
+                &text,
+                word.bounds.right() + space,
+                cy,
+                Anchor::Start,
+                Face::Figures,
+                Role::Label,
+                ink,
+            );
+            let slot = slot_of(moves[fi].get(c).map_or_else(|| candles[c].kind(), |m| m.0));
+            extremes.push(super::place::PriceExtreme {
+                value: super::place::SparseValue {
+                    text,
+                    series: slot,
+                    observation: observed[c].unwrap_or_default(),
+                    places: vec![number],
+                },
+                word,
+                line,
+            });
+        }
         let mut panel = kit::panel(ctx, outer, frame, marks, observations, name);
         let bounds = Rect::new(plot.x, plot.y, (outer.right() - plot.x).max(plot.w), plot.h);
-        super::place::sparse_values_in(ctx, fi, &mut panel, 1, value.into_iter().collect(), &|_| true, bounds);
+        super::place::price_values(ctx, fi, &mut panel, tag, extremes, bounds);
         panels.push(panel);
     }
     ctx.summary = match all.last() {

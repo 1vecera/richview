@@ -4,9 +4,9 @@ description: Identities, immutable versions, permissions and the native server's
 styles: [scientific]
 ---
 
-Start with the [loopback publishing walkthrough](https://richview.ai/docs/publishing). This page explains what a stored address means and who can use it.
+A RichView server gives every published version a permanent address and decides who can open it. This page is the reference for those addresses, the permissions and the API. To publish for the first time, start with the [publishing walkthrough](https://richview.ai/docs/publishing); to set up a server for your team, for example on a virtual machine in Azure, follow [run your own server](https://richview.ai/docs/self-hosting).
 
-RichView Cowork is the report server: RichView runs it at `https://app.richview.ai` and serves reports from `https://reports.richview.ai`. Request access for an individual, revocable author token, or run your own server as described below.
+RichView Cowork is the report server: RichView runs it at `https://app.richview.ai` and serves reports from `https://reports.richview.ai`. Create an account there for an individual, revocable author token, or run your own server.
 
 ## Version and source behavior
 
@@ -17,6 +17,8 @@ RichView Cowork is the report server: RichView runs it at `https://app.richview.
 | `/raw/first-report/v/0.0.1` | Retained Rich Markdown source. |
 | `/api/reports/first-report/versions` | Stored version list. |
 | `/api/reports/first-report/v/0.0.1` | Retained source, resources and styling bundle. |
+
+`POST /api/reports` creates an unused address by default. A client that intends to revise an existing report can send `"new": false` to require that address. An unused slug then returns HTTP 409 with `publish.new-slug` and stores nothing. Creation requires permission to publish, and every revision requires edit access to the report.
 
 Publishing the same slug/version again returns `created: false` and preserves the first content. Increase the version to create a revision. The address `/r/<slug>` serves the highest release version, ranked by SemVer (a prerelease ranks below its release), unless the owner pins one; publishing a lower version does not move it. Changed content under a published version is refused as `publish.version-exists`, nothing is ever pruned, a deleted version answers 410 and can never be published again, and a server quota refuses a publication as `publish.quota`. The server retains source/resources for authenticated regeneration.
 
@@ -30,9 +32,11 @@ Report pages are served from an origin of their own, apart from sign-in and the 
 
 `POST /api/validate` and `POST /api/check` run the `validate` and `check` operations on a report sent as text with its folder inventory, answer the same JSON as `--format json`, and store nothing. They need the right to publish.
 
-Production hosting needs a separately managed server and its own selected HTTPS origin, storage and release process. No `richview` command deploys a shared Worker.
+A server for a team needs a machine of your own with HTTPS names and storage you back up. No `richview` command creates that machine for you.
 
 ## Run a server for your team
+
+[Run your own server](https://richview.ai/docs/self-hosting) is the walkthrough: the machine, the names, HTTPS, your colleagues and their first report. The command itself, in short:
 
 Use two HTTPS hostnames behind a TLS reverse proxy: one for the application and sign-in, one for rendered reports. This example listens only on loopback for that proxy. Replace the example domains and admin email with your own before using it as a service. The data directory needs persistent storage and backups.
 

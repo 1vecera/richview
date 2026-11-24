@@ -31,7 +31,7 @@ axes:
   y: { label: Life expectancy, unit: years }
 style: { ratio: '4:3' }
 controls:
-  - { kind: playback, id: year, field: year, label: Year, speed: 300, loop: true, initial: '2020' }
+  - { kind: playback, id: year, field: year, label: Year, speed: 300, initial: '2020' }
 ```
 
 *Source: Based on free [Gapminder data](https://www.gapminder.org/data/), [fast-track snapshot](https://github.com/open-numbers/ddf--gapminder--fasttrack/tree/b840e5be), fertility v15, life expectancy v15 and population v8, with Gapminder's four world regions; [CC BY 4.0](https://www.gapminder.org/free-material/). This frozen extract includes entities marked `un_state` by Gapminder with all three measures in every year from 1960 to 2020.*

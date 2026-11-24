@@ -257,10 +257,10 @@ body.docs-page .docs-search [data-docs-search-results] a:focus-visible {
 }
 /* The galleries use the room the reading measure leaves: they run across the page's headings
    column too, and give up that column's list (the page has few headings). */
-.docs-layout:has(.docs-featured-grid, .docs-report-grid, .docs-styles--type) > .rv-report {
+.docs-layout.docs-layout--wide > .rv-report {
 	grid-column: 2 / -1;
 }
-.docs-layout:has(.docs-featured-grid, .docs-report-grid, .docs-styles--type) > .docs-toc {
+.docs-layout.docs-layout--wide > .docs-toc {
 	display: none;
 }
 
@@ -496,7 +496,7 @@ body.docs-page .rv-report__lede {
 	text-wrap: pretty;
 }
 /* The home page of the docs is the one place that sets its title as large as the landing does. */
-.docs-layout:has(.docs-doors) .rv-report__title {
+.docs-layout.docs-layout--doors .rv-report__title {
 	max-width: none;
 	font-size: clamp(2.9rem, 1.4rem + 4.6vw, 4.9rem);
 	line-height: 0.96;
@@ -800,6 +800,11 @@ body.docs-page .rv-report__body code {
 	-webkit-box-decoration-break: clone;
 	box-decoration-break: clone;
 }
+/* Short inline code, marked by the build, stays on one line: a flag does not break at its hyphens. A
+   table cell keeps its own rule above, where a narrow column needs every break. */
+body.docs-page .rv-report__body code[data-short] {
+	white-space: nowrap;
+}
 body.docs-page .rv-report__body .docs-inline-command {
 	color: var(--ink);
 }
@@ -816,6 +821,10 @@ body.docs-page .rv-report__body .docs-code {
 /* A report's code block shown on a docs page sits in the same box as the page's own samples,
    its head in the place of their caption. */
 body.docs-page .rv-report__body .rv-code {
+	--rv-code-key: var(--hl-key);
+	--rv-code-string: var(--hl-str);
+	--rv-code-literal: var(--hl-num);
+	--rv-code-soft: color-mix(in oklch, var(--hl-punc) 97%, var(--ink));
 	margin: 1.5rem 0 2rem;
 	max-width: var(--docs-measure);
 	overflow: hidden;
@@ -916,52 +925,54 @@ html:not(.js) [data-copy-code] {
 }
 
 /* The one code palette of the site (STY-59), as site.css sets it. */
-body.docs-page .hl-key,
-body.docs-page .hl-link,
-body.docs-page .hl-cmd {
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-key,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-link,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-cmd {
 	color: var(--hl-key);
 }
-body.docs-page .hl-str,
-body.docs-page .hl-val,
-body.docs-page .hl-esc,
-body.docs-page .hl-inline,
-body.docs-page .hl-code,
-body.docs-page .hl-var {
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-str,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-val,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-esc,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-inline,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-code,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-var {
 	color: var(--hl-str);
 }
-body.docs-page .hl-num,
-body.docs-page .hl-bool,
-body.docs-page .hl-url {
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-num,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-bool,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-null,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-date,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-url {
 	color: var(--hl-num);
 }
-body.docs-page .hl-punc,
-body.docs-page .hl-fm,
-body.docs-page .hl-fence,
-body.docs-page .hl-comment,
-body.docs-page .hl-info,
-body.docs-page .hl-mark {
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-punc,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-fm,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-fence,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-comment,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-info,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-mark {
 	color: var(--hl-punc);
 }
-body.docs-page .hl-tag {
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-tag {
 	color: var(--hl-tag);
 }
-body.docs-page .hl-flag {
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-flag {
 	color: var(--hl-flag);
 }
-body.docs-page .hl-heading {
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-heading {
 	color: var(--hl-key);
 }
-body.docs-page .hl-heading,
-body.docs-page .hl-strong,
-body.docs-page .hl-cmd {
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-heading,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-strong,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-cmd {
 	font-weight: 600;
 }
-body.docs-page .hl-em,
-body.docs-page .hl-comment {
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-em,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-comment {
 	font-style: italic;
 }
-body.docs-page .hl-link,
-body.docs-page .hl-url {
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-link,
+body.docs-page :where(.docs-code, .docs-inline-command) .hl-url {
 	text-decoration: none;
 }
 
@@ -1468,13 +1479,8 @@ body.docs-page .docs-styles__links a[data-style-link="hand-drawn"] {
 	border-radius: var(--r-panel);
 	background: var(--panel);
 }
-html:not(.js) .docs-styles,
 .docs-styles__frame[hidden] {
 	display: none;
-}
-/* The elements page's type sample has an address and real links, so it stays without scripts. */
-html:not(.js) .docs-styles--type {
-	display: block;
 }
 .docs-styles__open {
 	display: inline-block;
@@ -1509,6 +1515,20 @@ html:not(.js) .docs-styles--type {
 	height: 64rem;
 	border: 0;
 	background: var(--paper);
+}
+.docs-report-preview__viewport--slides {
+	position: relative;
+	aspect-ratio: 16 / 9;
+}
+.docs-report-preview .docs-report-preview__viewport--slides iframe {
+	position: absolute;
+	inset: 0;
+	height: 100%;
+}
+@media (max-width: 620px) {
+	.docs-report-preview__viewport--slides {
+		aspect-ratio: 4 / 3;
+	}
 }
 .docs-report-preview .docs-actions {
 	margin-top: 1.1rem;

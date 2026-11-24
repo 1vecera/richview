@@ -75,6 +75,6 @@ axes:
 
 ## Interactions
 
-- Hover or focus a circle to read its name, group, value and share.
+- Point at a circle to read its name, group, value and share. A ring follows its edge while the other circles keep their colour. Use the arrow keys to select a part and see its ring and readout. A part too small to draw is indicated beside a packed circle.
 - Click a legend entry to remove a group and back.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

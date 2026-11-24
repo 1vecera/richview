@@ -43,7 +43,7 @@ async function fixture(fn, mutate = () => {}, wrongSha = false, options = {}) {
   const dir = mkdtempSync(resolve('tmp/install-test-')), home = join(dir, "home's spaces"), payload = join(dir, 'payload'), cwd = join(dir, 'working');
   mkdirSync(home); mkdirSync(cwd); mkdirSync(join(payload, 'bin'), { recursive: true }); mkdirSync(join(payload, 'notices'));
   const files = {
-    'bin/richview': '#!/bin/sh\nprintf "fixture CLI\\n"\n',
+    'bin/richview': options.cli ?? `#!/bin/sh\nif [ "$1" = --version ]; then printf 'richview 3.0.0 (commit ${commit.slice(0, 10)}, runtime 000000000000)\\n'; else printf "fixture CLI\\n"; fi\n`,
     'bin/richview-sql-worker': '#!/bin/sh\nexit 0\n',
     'uninstall.sh': readFileSync(installer), 'notices/LICENSE': 'fixture license\n',
     BUILD: `commit=${commit}\nplatform=${target}\n`,
@@ -80,10 +80,14 @@ async function fixture(fn, mutate = () => {}, wrongSha = false, options = {}) {
 test('install, executable launch and self-uninstall leave the temporary HOME empty', async () => {
   await fixture(async ({ home, prefix, install, uninstall, requests }) => {
     const installed = await install(); assert.equal(installed.status, 0, JSON.stringify(installed));
-    assert.match(installed.stdout, /MCP command:/); assert.match(installed.stdout, /choose RichView-hosted Cowork or your own server/); assert.match(installed.stdout, /no hosted service was started/);
+    assert.match(installed.stdout, /MCP command:/); assert.match(installed.stdout, /choose RichView Cowork hosted by RichView at app\.richview\.ai, or your own server/); assert.match(installed.stdout, /no hosted service was started/);
+    assert.match(installed.stdout, /Run your own report server, RichView Cowork: '.*' server --help/);
+    // The installer names the version the installed CLI reports, with the commit after it.
     const version = await run(join(prefix, 'bin/richview'), ['--version'], home);
     assert.equal(version.status, 0, JSON.stringify(version));
-    assert.equal(version.stdout, 'fixture CLI\n', JSON.stringify(version));
+    assert.equal(version.stdout, `richview 3.0.0 (commit ${commit.slice(0, 10)}, runtime 000000000000)\n`, JSON.stringify(version));
+    assert.equal(installed.stdout.split('\n')[0], `Installed RichView 3.0.0 (commit ${commit.slice(0, 10)}) in ${prefix}`);
+    assert.equal(installed.stderr, '', JSON.stringify(installed));
     const mcpCommand = installed.stdout.split('\n').find(line => line.startsWith('Agent MCP command: ')).slice('Agent MCP command: '.length);
     const mcp = await run('sh', ['-c', mcpCommand], home);
     assert.equal(mcp.status, 0, JSON.stringify(mcp));
@@ -93,6 +97,14 @@ test('install, executable launch and self-uninstall leave the temporary HOME emp
     assert.deepEqual(readdirSync(home), []);
     assert.deepEqual(requests, [`/${archiveName}`]);
   });
+});
+
+test('a CLI that reports no version still installs, names the build and says why', async () => {
+  await fixture(async ({ install }) => {
+    const installed = await install(); assert.equal(installed.status, 0, JSON.stringify(installed));
+    assert.match(installed.stdout, new RegExp(`^Installed RichView build ${commit} in `));
+    assert.match(installed.stderr, /the installed CLI did not report its version; run '.*' --version to see why/);
+  }, () => {}, false, { cli: '#!/bin/sh\nexit 3\n' });
 });
 
 test('a saved installer downloads from its stamped release after latest changes', async () => {

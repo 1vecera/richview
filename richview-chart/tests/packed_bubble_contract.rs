@@ -229,6 +229,22 @@ fn extreme_ranges_stay_finite_and_tiny_parts_are_reported() {
 }
 
 #[test]
+fn an_omitted_part_uses_a_packed_edge_with_room_for_its_selection_ring() {
+    let rows = parts(&[1e6, 1.0]);
+    for width in WIDTHS {
+        let g = draw_at(&spec(), &rows, width);
+        let panel = &g.panels[0];
+        let (center, radius, _) = circles(&g)[0];
+        let omitted = &panel.observations[1];
+        assert_eq!(omitted.radius, 0.0);
+        let [x, y] = omitted.at;
+        assert!(((x - center[0]).hypot(y - center[1]) - radius).abs() < 1e-6);
+        assert!(panel.plot.inflate(-19.0).contains(omitted.at));
+        assert_eq!(omitted.x, x);
+    }
+}
+
+#[test]
 fn facets_share_one_scale_so_equal_values_are_equal_areas() {
     let mut s = spec();
     s["encoding"]["facet"] = json!("f");

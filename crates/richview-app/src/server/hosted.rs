@@ -95,6 +95,7 @@ pub enum OperatorAction {
 #[derive(Debug)]
 pub(crate) enum DeleteAccountError {
     NotFound,
+    NeedsSuccessor,
     Failed(&'static str),
 }
 
@@ -114,35 +115,45 @@ pub(crate) async fn delete_account(
     tokio::spawn(async move {
         let publication = state.access.publication.clone().lock_owned().await;
         let privacy = state.access.mail_privacy.clone().lock_owned().await;
-        let target =
-            state
+        let prepared = async {
+            let target = state
                 .access
                 .operator_account_deletion(&person, &successors)
                 .map_err(|error| match error {
                     crate::access::AccessError::NotFound => DeleteAccountError::NotFound,
+                    crate::access::AccessError::Invalid(_) => DeleteAccountError::NeedsSuccessor,
                     _ => DeleteAccountError::Failed(
-                        "Account is the last owner of an organization with other members; name an eligible successor for each organization",
+                        "Cannot inspect account for deletion; no action taken",
                     ),
                 })?;
-        let queue = state
-            .access
-            .mail_queue()
-            .cloned()
-            .ok_or(DeleteAccountError::Failed(
-                "Mail is unavailable; no action taken",
-            ))?;
-        tokio::time::timeout(std::time::Duration::from_secs(30), queue.flush())
-            .await
-            .map_err(|_| DeleteAccountError::Failed("Mail queue is busy; no action taken"))?
-            .map_err(|_| {
-                DeleteAccountError::Failed("Mail queue is unavailable; no action taken")
-            })?;
+            let queue = state
+                .access
+                .mail_queue()
+                .cloned()
+                .ok_or(DeleteAccountError::Failed(
+                    "Mail is unavailable; no action taken",
+                ))?;
+            tokio::time::timeout(std::time::Duration::from_secs(30), queue.flush())
+                .await
+                .map_err(|_| DeleteAccountError::Failed("Mail queue is busy; no action taken"))?
+                .map_err(|_| {
+                    DeleteAccountError::Failed("Mail queue is unavailable; no action taken")
+                })?;
+            Ok((target, queue))
+        }
+        .await;
+        let audit_target = if crate::access::valid_hosted_person_id(&person) {
+            &person
+        } else {
+            "[invalid id]"
+        };
         state
             .access
-            .audit_operator("operator.delete-account", &person, true)
+            .audit_operator("operator.delete-account", audit_target, prepared.is_ok())
             .map_err(|_| {
                 DeleteAccountError::Failed("Operator audit unavailable; no action taken")
             })?;
+        let (target, queue) = prepared?;
         tokio::task::spawn_blocking(move || {
             let (_publication, _privacy) = (publication, privacy);
             let failed =
@@ -151,8 +162,7 @@ pub(crate) async fn delete_account(
                 .access
                 .operator_begin_account_deletion(&person, &successors)
                 .map_err(|_| failed())?;
-            if current.orgs != target.orgs || !current.email.eq_ignore_ascii_case(&target.email)
-            {
+            if current.orgs != target.orgs || !current.email.eq_ignore_ascii_case(&target.email) {
                 return Err(failed());
             }
             for org in &target.orgs {
@@ -166,7 +176,9 @@ pub(crate) async fn delete_account(
                 .operator_purge_account_links(&target.email)
                 .map_err(|_| failed())?;
             queue.purge_address(&target.email).map_err(|_| failed())?;
-            queue.purge_invitations(&target.email, &current.invitations).map_err(|_| failed())?;
+            queue
+                .purge_invitations(&target.email, &current.invitations)
+                .map_err(|_| failed())?;
             state
                 .access
                 .operator_finish_account_deletion(&person, &target, &successors)
@@ -381,17 +393,45 @@ async fn run_action(state: &AppState, action: OperatorAction) -> Result<Value, S
             Ok(json!({"to":mail.to,"subject":mail.subject,"body":mail.body}))
         }
         OperatorAction::Summary => {
-            let (waiting, oldest, sent, total) = match state.access.mail_queue() {
+            let (waiting, oldest, sent, total, remaining) = match state.access.mail_queue() {
                 Some(queue) => {
                     let (waiting, oldest, total) = queue.summary()?;
-                    (waiting, oldest, queue.sent_since_start(), total)
+                    (
+                        waiting,
+                        oldest,
+                        queue.sent_since_start(),
+                        total,
+                        Some(queue.remaining_allowances()),
+                    )
                 }
-                None => (0, None, 0, 0),
+                None => (0, None, 0, 0, None),
             };
             let bytes = state.storage.operator_total_bytes()?;
-            Ok(
-                json!({"accounts":state.access.users().len(),"organizations":state.access.operator_organizations().len(),"bytes":bytes,"accountsHalfFull":state.access.operator_accounts_half_full(),"storageHalfFull":state.storage.operator_storage_half_full(bytes),"signupsPaused":state.access.signups_paused(),"mailsSent":null,"refusals":null,"mailsWaiting":waiting,"oldestMailAgeSeconds":oldest,"mailsSentSinceStart":sent,"mailsSentTotal":total}),
-            )
+            let (paused, room) = state.access.signup_account_status();
+            let mut reasons = Vec::new();
+            if paused {
+                reasons.push("manual-pause");
+            }
+            if !room {
+                reasons.push("account-limit");
+            }
+            if !state.storage.signup_space_available_at(bytes) {
+                reasons.push("storage-limit");
+            }
+            match remaining {
+                None => reasons.push("mail-unavailable"),
+                Some((_, 0)) => reasons.push("signup-mail-limit"),
+                Some(_) => {}
+            }
+            Ok(json!({
+                "accounts": state.access.users().len(), "organizations": state.access.operator_organizations().len(),
+                "bytes": bytes, "accountsHalfFull": state.access.operator_accounts_half_full(),
+                "storageHalfFull": state.storage.operator_storage_half_full(bytes),
+                "signupsPaused": paused, "signupsOpen": reasons.is_empty(), "signupClosedReasons": reasons,
+                "mailsRemainingToday": remaining.map_or(0, |(daily, _)| daily),
+                "mailsSent": null, "refusals": null, "mailsWaiting": waiting,
+                "oldestMailAgeSeconds": oldest, "mailsSentSinceStart": sent, "mailsSentTotal": total,
+            }))
         }
     }
 }

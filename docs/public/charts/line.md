@@ -52,7 +52,7 @@ Primary values appear automatically in complete groups across the shown series: 
 
 ## Interactions
 
-- Hover or focus a point to read its value; the crosshair snaps to the nearest observation.
+- Point at the line to read the nearest observation. A ring surrounds each filled dot at that position, including where the dot crosses an axis. Use the arrow keys to select a mark and see the same ring and readout.
 - Click a legend entry to target or toggle a series when the chart has several.
 - Zoom and pan on the time axis with brush, wheel, pinch, keys or double-click; Escape or reset returns to the full range.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

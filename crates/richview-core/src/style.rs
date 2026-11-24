@@ -7,6 +7,7 @@ use std::{collections::BTreeMap, sync::OnceLock};
 pub(crate) mod background;
 mod brand;
 pub mod checks;
+pub(crate) mod code;
 mod components;
 pub mod presets;
 pub mod settings;
@@ -211,9 +212,8 @@ fn refuse_unsafe(props: &mut BTreeMap<String, String>, diagnostics: &mut Vec<Dia
     });
 }
 
-/// Tokens that steer the engine and are not CSS custom properties: the colour scheme and the
-/// builtin a dark style prints as (STY-57).
-const INTERNAL_TOKENS: [&str; 2] = ["scheme", "print-as"];
+/// Tokens the renderer uses without emitting them as screen custom properties.
+const INTERNAL_TOKENS: [&str; 3] = ["scheme", "print-as", "print-measure"];
 
 fn builtin_document(name: &str) -> Option<&'static Value> {
     static BUILTINS: OnceLock<BTreeMap<&'static str, Value>> = OnceLock::new();
@@ -254,6 +254,31 @@ pub fn cascade_refs(refs: &[String]) -> Vec<String> {
         .collect()
 }
 
+/// The report's own background (STY-74): the frontmatter's `background`, as one inline style
+/// layer for the end of the cascade, so the report's word wins over every style and preset. It
+/// goes through the style vocabulary and the picture bound like a style file's.
+pub fn report_background_layer(frontmatter: &Value) -> Option<String> {
+    let background = frontmatter.get("background")?;
+    serde_json::to_string(&json!({ "background": background })).ok()
+}
+
+/// Move the frontmatter background layer's findings from `styles[index]` to
+/// `frontmatter.background`, where the author wrote it.
+pub(crate) fn place_report_background(diagnostics: &mut [Diagnostic], index: usize) {
+    let root = format!("styles[{index}]");
+    for diagnostic in diagnostics {
+        if let Some(rest) = diagnostic.path.strip_prefix(&root)
+            && (rest.is_empty() || rest.starts_with('.'))
+        {
+            let rest = rest.strip_prefix(".background").unwrap_or(rest);
+            diagnostic.path = format!("frontmatter.background{rest}");
+            diagnostic.line = None;
+            diagnostic.column = None;
+            diagnostic.file = None;
+        }
+    }
+}
+
 /// Move the `styles[n]` paths of diagnostics from `start` on down by `offset`, so a default
 /// builtin placed underneath the author's list does not renumber it.
 pub(crate) fn shift_style_paths(diagnostics: &mut [Diagnostic], offset: usize) {
@@ -276,16 +301,11 @@ pub fn resolve_styles(refs: &[String], diagnostics: &mut Vec<Diagnostic>) -> Res
     let first_diagnostic = diagnostics.len();
     let mut cascaded = cascade_refs(refs);
     let offset = cascaded.len() - refs.len();
-    // An unbased company style starts on Air only when the author named no builtin. Selecting
-    // that base before the cascade preserves any earlier file layers. A file with colours and
-    // no preset starts there too (STY-73).
+    // A colours-only file starts from Air unless a preset was named (STY-73).
     if offset > 0
         && refs.iter().any(|source| {
             crate::yaml::from_str(source).ok().is_some_and(|value| {
-                (value.pointer("/company/color").is_some()
-                    && value.pointer("/company/base").is_none())
-                    || (value.get("colors").is_some_and(Value::is_object)
-                        && value.get("preset").is_none())
+                value.get("colors").is_some_and(Value::is_object) && value.get("preset").is_none()
             })
         })
     {
@@ -293,10 +313,8 @@ pub fn resolve_styles(refs: &[String], diagnostics: &mut Vec<Diagnostic>) -> Res
     }
     let refs = &cascaded;
     let mut merged = json!({});
-    // The colour leaves authors' files set explicitly, after the last preset that set them: they
-    // win over the colours derived from `colors`, `tint` and `gridlines` (STY-71, STY-73). Every
-    // other leaf, explicit or not, is scaled by the steps alike.
-    let mut explicit = json!({});
+    // An author palette overrides the derived series until a later preset replaces it.
+    let mut palette = None;
     let mut colours_at: Option<String> = None;
     let mut background_at: Option<String> = None;
     for (index, reference) in refs.iter().enumerate() {
@@ -320,7 +338,7 @@ pub fn resolve_styles(refs: &[String], diagnostics: &mut Vec<Diagnostic>) -> Res
                 }
             }
             merge_layer(&mut merged, value);
-            prune_explicit(&mut explicit, value);
+            palette = None;
             continue;
         }
         let source = match builtin(name).or_else(|| presets::recipe(name)) {
@@ -387,12 +405,12 @@ pub fn resolve_styles(refs: &[String], diagnostics: &mut Vec<Diagnostic>) -> Res
                 if let Some(Value::String(preset)) =
                     value.as_object_mut().and_then(|map| map.remove("preset"))
                 {
-                    // Hosts read which preset a branded file chose, as they read `company.base`.
+                    // Share cards use the preset chosen by the report.
                     value["settings"]["preset"] = json!(preset);
                     // A preset takes the place of everything before it.
                     if presets::is_preset(&preset) {
                         merged = json!({});
-                        explicit = json!({});
+                        palette = None;
                         colours_at = None;
                         background_at = None;
                     }
@@ -414,58 +432,6 @@ pub fn resolve_styles(refs: &[String], diagnostics: &mut Vec<Diagnostic>) -> Res
                 }
                 if value.pointer("/settings/colors").is_some() {
                     colours_at = Some(format!("{root}.colors"));
-                }
-                // A company layer starts from its builtin, then explicit leaves win.
-                let primary = value.pointer("/company/color").and_then(Value::as_str);
-                let base = value.pointer("/company/base").and_then(Value::as_str);
-                if let Some(base) = base
-                    && let Some(base) = builtin_document(base)
-                {
-                    merge_layer(&mut merged, base);
-                }
-                if let Some(primary) = primary {
-                    let secondary = value.pointer("/company/secondary").and_then(Value::as_str);
-                    if let Some(derived) = brand::derive(&merged, primary, secondary) {
-                        let adjusted_accent = derived.layer["tokens"]["accent"]
-                            .as_str()
-                            .unwrap_or(primary)
-                            .to_owned();
-                        let adjusted_series = derived.layer["chart"]["palette"][0]
-                            .as_str()
-                            .unwrap_or(primary)
-                            .to_owned();
-                        let adjusted_link = derived.layer["tokens"]["link"]
-                            .as_str()
-                            .unwrap_or(primary)
-                            .to_owned();
-                        // Do not let an earlier layer's accent shortcut overwrite the new company.
-                        if let Some(settings) =
-                            merged.get_mut("settings").and_then(Value::as_object_mut)
-                        {
-                            settings.remove("accent");
-                        }
-                        merge_layer(&mut merged, &derived.layer);
-                        if derived.adjusted {
-                            diagnostics.push(Diagnostic::new("info", "style.company-adjusted", format!("Company colour {primary} was adjusted to accent {adjusted_accent}, link {adjusted_link} and first series {adjusted_series} to meet contrast on the report surfaces"), format!("{root}.company.color")));
-                        }
-                        if derived.secondary_skipped {
-                            diagnostics.push(Diagnostic::new("info", "style.company-secondary", format!("The secondary colour {} was omitted because it could not be distinguished from the first series {adjusted_series}", secondary.unwrap_or("")), format!("{root}.company.secondary")));
-                        } else if let Some(adjusted) = derived.secondary_adjusted {
-                            diagnostics.push(Diagnostic::new("info", "style.company-secondary", format!("The secondary colour {} was adjusted to {adjusted} for contrast and distinction", secondary.unwrap_or("")), format!("{root}.company.secondary")));
-                        }
-                        if derived.palette_failed {
-                            diagnostics.push(Diagnostic::new("warning", "style.company-palette", "A distinct six-colour palette could not be derived; the base palette remains", format!("{root}.company.color")));
-                        }
-                    } else {
-                        diagnostics.push(Diagnostic::new("warning", "style.company-palette", "A distinct six-colour palette could not be derived from this brand and base", format!("{root}.company.color")));
-                    }
-                } else if value.pointer("/company/secondary").is_some() {
-                    diagnostics.push(Diagnostic::new(
-                        "warning",
-                        "style.schema",
-                        "A secondary brand colour needs company.color in the same style file",
-                        format!("{root}.company.secondary"),
-                    ));
                 }
                 // A file's background replaces an earlier one whole (STY-74).
                 if let Some(background) = value.pointer("/settings/background") {
@@ -494,7 +460,9 @@ pub fn resolve_styles(refs: &[String], diagnostics: &mut Vec<Diagnostic>) -> Res
                     }
                 }
                 merge_layer(&mut merged, &value);
-                track_explicit(&mut explicit, &value);
+                if let Some(series) = value.pointer("/chart/palette") {
+                    palette = Some(series.clone());
+                }
             }
             Err(err) => {
                 let mut d = crate::parser::yaml_diagnostic(&err, &root, "style", 0);
@@ -503,13 +471,12 @@ pub fn resolve_styles(refs: &[String], diagnostics: &mut Vec<Diagnostic>) -> Res
             }
         }
     }
-    finalize(&mut merged);
     settings::apply(&mut merged);
-    derive_author_colours(&mut merged, &explicit, colours_at.as_deref(), diagnostics);
+    derive_author_colours(&mut merged, palette, colours_at.as_deref(), diagnostics);
     background::derive(
         &mut merged,
-        &explicit,
         background_at.as_deref().unwrap_or("background"),
+        background_at.is_none(),
         diagnostics,
     );
     let mut props = BTreeMap::new();
@@ -528,7 +495,7 @@ pub fn resolve_styles(refs: &[String], diagnostics: &mut Vec<Diagnostic>) -> Res
         .and_then(Value::as_str)
         .unwrap_or("light")
         .to_owned();
-    // `still` is the character that does not move: the same as `motion: off`.
+    // A preset with a still character renders charts settled.
     if merged["motion"]["character"] == json!("still") {
         merged["motion"]["enabled"] = json!(false);
     }
@@ -773,103 +740,6 @@ fn fonts_for_style(props: &BTreeMap<String, String>, doc: &Value) -> String {
     css
 }
 
-/// Scale a length written in px or rem; other units and numbers keep their value.
-fn scale_length(value: &str, factor: f64) -> String {
-    for unit in ["px", "rem"] {
-        if let Some(n) = value.strip_suffix(unit).and_then(|n| n.parse::<f64>().ok()) {
-            let scaled = format!("{:.3}", n * factor);
-            return format!(
-                "{}{unit}",
-                scaled.trim_end_matches('0').trim_end_matches('.')
-            );
-        }
-    }
-    value.to_owned()
-}
-
-/// Apply the settings that depend on the whole cascade (STY-15): `type-size` scales the type
-/// scale as one, and `accent` sets the accent, its soft fill, the links where the accent reads
-/// as text, and the first series where that is the style's accent.
-fn finalize(merged: &mut Value) {
-    use richview_chart::color;
-    let settings = merged.get("settings").cloned().unwrap_or(json!({}));
-    if let Some(factor) = settings.get("type-scale").and_then(Value::as_f64)
-        && factor != 1.0
-        && let Some(tokens) = merged.get_mut("tokens").and_then(Value::as_object_mut)
-    {
-        for (key, value) in tokens.iter_mut() {
-            if size_token(key)
-                && let Some(text) = value.as_str()
-            {
-                *value = json!(scale_length(text, factor));
-            }
-        }
-    }
-    let Some(accent) = settings.get("accent").and_then(Value::as_str) else {
-        return;
-    };
-    let token = |merged: &Value, name: &str| {
-        merged
-            .pointer(&format!("/tokens/{name}"))
-            .and_then(Value::as_str)
-            .map(str::to_owned)
-    };
-    let old = token(merged, "accent").and_then(|c| color::parse(&c));
-    let new = color::parse(accent);
-    let surfaces: Vec<_> = ["bg", "bg-elev"]
-        .into_iter()
-        .filter_map(|name| token(merged, name).and_then(|c| color::parse(&c)))
-        .collect();
-    if !merged["tokens"].is_object() {
-        merged["tokens"] = json!({});
-    }
-    let tokens = merged["tokens"]
-        .as_object_mut()
-        .expect("tokens is a mapping");
-    tokens.insert("accent".into(), json!(accent));
-    let Some(new) = new else {
-        return;
-    };
-    tokens.insert(
-        "accent-soft".into(),
-        json!(format!(
-            "oklch({:.4} {:.4} {:.2} / 0.12)",
-            new.l, new.c, new.h
-        )),
-    );
-    // Links keep the style's own colour where the accent is too weak to read as text.
-    if surfaces
-        .iter()
-        .all(|surface| color::contrast(new, *surface) >= 4.5)
-    {
-        tokens.insert("link".into(), json!(accent));
-    }
-    // The first series follows the accent when it was the style's accent.
-    let chart = merged["chart"].as_object_mut();
-    let Some(chart) = chart else {
-        return;
-    };
-    let mut palette: Vec<String> = match chart.get("palette") {
-        Some(Value::String(name)) => richview_chart::rmd_render::palette(name)
-            .iter()
-            .map(|c| (*c).to_owned())
-            .collect(),
-        Some(Value::Array(list)) => list
-            .iter()
-            .filter_map(Value::as_str)
-            .map(str::to_owned)
-            .collect(),
-        _ => return,
-    };
-    let first = palette.first().and_then(|c| color::parse(c));
-    if let (Some(first), Some(old)) = (first, old)
-        && first.hex() == old.hex()
-    {
-        palette[0] = accent.to_owned();
-        chart.insert("palette".into(), json!(palette));
-    }
-}
-
 /// The loaded layer of an extended preset, with its `preset` still in place. Bundled presets
 /// use only the author syntax, so loading one reports nothing.
 fn recipe_layer(name: &str) -> Option<&'static Value> {
@@ -921,58 +791,11 @@ fn on_accent(merged: &mut Value) {
     merged["tokens"]["on-accent"] = json!(text);
 }
 
-/// The colour leaves a derivation writes: an author's explicit value for one of them wins.
-const DERIVED_TOKENS: [&str; 16] = [
-    "bg",
-    "bg-elev",
-    "bg-chart",
-    "ink",
-    "ink-soft",
-    "ink-faint",
-    "chart-ink",
-    "rule",
-    "rule-soft",
-    "accent",
-    "accent-soft",
-    "link",
-    "brand",
-    "up",
-    "down",
-    "hold",
-];
-const DERIVED_CHART: [&str; 3] = ["palette", "ramp", "negative-ramp"];
-
-/// Remember an author file's explicit colour leaves.
-fn track_explicit(explicit: &mut Value, layer: &Value) {
-    for name in DERIVED_TOKENS {
-        if let Some(value) = layer.pointer(&format!("/tokens/{name}")) {
-            explicit["tokens"][name] = value.clone();
-        }
-    }
-    for name in DERIVED_CHART {
-        if let Some(value) = layer.pointer(&format!("/chart/{name}")) {
-            explicit["chart"][name] = value.clone();
-        }
-    }
-}
-
-/// A preset merged later sets these leaves again: forget the files' earlier values of them.
-fn prune_explicit(explicit: &mut Value, document: &Value) {
-    for section in ["tokens", "chart"] {
-        let Some(set) = document.get(section).and_then(Value::as_object) else {
-            continue;
-        };
-        if let Some(leaves) = explicit.get_mut(section).and_then(Value::as_object_mut) {
-            leaves.retain(|key, _| !set.contains_key(key));
-        }
-    }
-}
-
 /// Derive every colour from the author's colours and the colour steps (STY-73), then put back
-/// the explicit colour leaves that win over the derivation.
+/// the author's palette, when supplied.
 fn derive_author_colours(
     merged: &mut Value,
-    explicit: &Value,
+    palette: Option<Value>,
     colours_at: Option<&str>,
     diagnostics: &mut Vec<Diagnostic>,
 ) {
@@ -996,7 +819,6 @@ fn derive_author_colours(
         },
         tint,
         gridlines,
-        false,
     ) else {
         return;
     };
@@ -1054,9 +876,10 @@ fn derive_author_colours(
             format!("{at}.brand"),
         ));
     }
-    // The settings' accent shortcut gave way to the brand colour.
     merge_layer(merged, &derived.layer);
-    merge_into(merged, explicit);
+    if let Some(palette) = palette {
+        merged["chart"]["palette"] = palette;
+    }
     // Text set on the accent (Brutalist's knockout metric) takes white or black, whichever
     // stands out more, once the author's colours chose the accent.
     if colours.is_some() {
@@ -1068,6 +891,13 @@ fn derive_author_colours(
 /// leaves out takes those from the character's preset, over whatever lower layers set, so
 /// `motion: {character: crisp}` alone is a crisp style (INT-12).
 fn merge_layer(merged: &mut Value, layer: &Value) {
+    // A preset's measure replaces the previous preset's paper measure as well.
+    if layer.pointer("/tokens/measure").is_some()
+        && layer.pointer("/tokens/print-measure").is_none()
+        && let Some(tokens) = merged.get_mut("tokens").and_then(Value::as_object_mut)
+    {
+        tokens.remove("print-measure");
+    }
     let preset = layer["motion"]["character"]
         .as_str()
         .and_then(motion_preset);
@@ -1301,22 +1131,8 @@ pub(crate) fn print_refs(refs: &[String]) -> Vec<String> {
                 if changed || expanded_recipe {
                     return serde_json::to_string(&source).unwrap_or_else(|_| reference.to_owned());
                 }
-                if source.get("company").is_none() {
-                    return reference.to_owned();
-                }
             }
-            let reference = reference.to_owned();
-            // A brand's base lives inside a style source, not as a cascade reference. Re-derive
-            // its colours over that builtin's print counterpart instead of dropping the company.
-            let Some(base) = source
-                .pointer("/company/base")
-                .and_then(Value::as_str)
-                .and_then(print_counterpart)
-            else {
-                return reference.clone();
-            };
-            source["company"]["base"] = json!(base);
-            serde_json::to_string(&source).unwrap_or_else(|_| reference.clone())
+            reference.to_owned()
         })
         .collect()
 }
@@ -1471,7 +1287,15 @@ pub(crate) const PRINT_TYPE_SCALE: f64 = 0.8;
 pub(crate) fn print_style(refs: &[String], screen: &ResolvedStyle) -> PrintStyle {
     let (light, _) = print_cascade(refs, screen);
     // Paper takes the light style's colours and sizes but keeps the faces the file embeds.
-    let mut props = light.as_ref().unwrap_or(screen).custom_properties.clone();
+    let paper = light.as_ref().unwrap_or(screen);
+    let mut props = paper.custom_properties.clone();
+    if let Some(measure) = paper
+        .document
+        .pointer("/tokens/print-measure")
+        .and_then(Value::as_str)
+    {
+        props.insert("--rv-measure".into(), measure.into());
+    }
     for (key, value) in &screen.custom_properties {
         if key.starts_with("--rv-font-") {
             props.insert(key.clone(), value.clone());
@@ -1525,6 +1349,14 @@ const REDUCED_MOTION_CSS: &str = "@media(prefers-reduced-motion:reduce){*,*::bef
 /// Declarative CSS is shipped separately from the engine and never interpreted as code.
 pub(crate) fn base_css() -> &'static str {
     include_str!("../assets/report.css")
+}
+
+/// What a resolved style adds to a slides rendition only: its stage's drawn marks (FEA-RP-65).
+pub(crate) fn slides_css(resolved: &ResolvedStyle) -> String {
+    components::slides_css(
+        resolved.document.get("components"),
+        &resolved.custom_properties,
+    )
 }
 
 /// The style's motion as custom properties the renderer's block entrances read (INT-12). They
@@ -1600,8 +1432,31 @@ mod tests {
     use super::*;
 
     #[test]
+    fn print_measure_follows_the_preset_without_changing_the_screen_measure() {
+        for (styles, paper_measure) in [
+            (&["scientific"][..], "78ch"),
+            (&["hand-drawn"][..], "32.8rem"),
+            (&["scientific", "air"][..], "33.6rem"),
+        ] {
+            let refs = styles
+                .iter()
+                .map(|style| (*style).to_owned())
+                .collect::<Vec<_>>();
+            let screen = resolve_styles(&refs, &mut vec![]);
+            assert_eq!(screen.custom_properties["--rv-measure"], "42rem");
+            assert!(!screen.css.contains("--rv-print-measure:"));
+            let paper = print_style(&refs, &screen);
+            assert!(
+                paper
+                    .css
+                    .contains(&format!("--rv-measure:{paper_measure};"))
+            );
+        }
+    }
+
+    #[test]
     fn a_dark_company_rederives_its_palette_for_print() {
-        let source = "company:\n  color: '#0A1F44'\n  base: sleek\n".to_owned();
+        let source = "preset: sleek\ncolors:\n  brand: '#0A1F44'\n".to_owned();
         let refs = vec![source];
         let screen = resolve_styles(&refs, &mut vec![]);
         let (paper, fallback) = print_cascade(&refs, &screen);

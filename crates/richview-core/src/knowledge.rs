@@ -109,6 +109,7 @@ const GRAMMAR: &str = include_str!("../knowledge/grammar.md");
 const CHART_CONTRACT: &str = include_str!("../knowledge/chart-contract.md");
 const STYLE: &str = include_str!("../knowledge/style.md");
 const COMPANY_STYLE: &str = include_str!("../knowledge/company-style.md");
+const SLIDES: &str = include_str!("../knowledge/slides.md");
 const WORKFLOW: &str = include_str!("../knowledge/workflow.md");
 const ANTI_SLOP: &str = include_str!("../knowledge/anti-slop.md");
 
@@ -120,6 +121,7 @@ pub fn learn_sections() -> Vec<LearnSection> {
         ("style", "Content plus cascading styles", style.as_str()),
         ("workflow", "The source-centered authoring loop", WORKFLOW),
         ("anti-slop", "RichView's design principles", ANTI_SLOP),
+        ("slides", "Slides", SLIDES),
     ]
     .into_iter()
     .map(|(kind, title, body)| LearnSection {

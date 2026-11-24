@@ -123,13 +123,9 @@ fn authored_control_fields_survive_worker_documents_and_use_reader_defaults() {
         assert!(controls.list.iter().all(|c| c.presentation == presentation));
         assert!(matches!(
             controls.list[0].kind,
-            Kind::Playback {
-                speed: 800.0,
-                looping: true,
-                ..
-            }
+            Kind::Playback { speed: 800.0, .. }
         ));
-        // Explicit values must override both defaults, including a false boolean.
+        // Explicit speed overrides the default. Older playback options still parse.
         let mut once = authored.clone();
         once["controls"][0]["speed"] = json!(1250);
         once["controls"][0]["loop"] = json!(false);
@@ -137,11 +133,7 @@ fn authored_control_fields_survive_worker_documents_and_use_reader_defaults() {
         assert!(once.diagnostics.is_empty(), "{:?}", once.diagnostics);
         assert!(matches!(
             Controls::parse(&once.blocks[0].value, rows).list[0].kind,
-            Kind::Playback {
-                speed: 1250.0,
-                looping: false,
-                ..
-            }
+            Kind::Playback { speed: 1250.0, .. }
         ));
 
         value["controls"][0].as_object_mut().unwrap().remove("as");

@@ -9,6 +9,10 @@
 # Paper, ink and every grey share one warm neutral hue (OKLCH 85) and differ in lightness, so the
 # greys are steps between the ink and the paper rather than separately picked colours.
 colophon: show
+# The page is paper: a fine grain behind the text (STY-74). Inks keep their floors over its
+# darkest grain; paper prints the flat page. A report says `background: none` for a flat page.
+background:
+  texture: grain
 tokens:
   scheme: light
   bg: "oklch(0.982 0.007 85)"
@@ -51,8 +55,8 @@ tokens:
   size-h1-phone: "33px"
   size-display-phone: "38px"
   line-base: "1.6"
-  # About 68 characters of Newsreader at 18px.
-  measure: "41rem"
+  measure: "42rem"
+  print-measure: "41rem"
   radius-s: "0px"
   radius-m: "0px"
   shadow-float: "none"
@@ -101,6 +105,9 @@ components:
   # The stat value underlined with one red-pencil stroke.
   metric:
     style: underline
+  # A slides source stands on this stage (FEA-RP-65): a talk drawn as it is given: lettering set at a tilt, the red pencil under the lone number.
+  slides:
+    stage: sketchbook
 chart:
   legend: bottom
   font-family: "Patrick Hand, cursive"

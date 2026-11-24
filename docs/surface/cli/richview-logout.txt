@@ -1,0 +1,8 @@
+Forget the sign-in this computer keeps for a server
+
+Usage: richview logout [OPTIONS]
+
+Options:
+      --server <SERVER>  Server URL; defaults to your publish server [env: RICHVIEW_SERVER=]
+      --format <FORMAT>  `pretty` for people, `json` for agents [default: pretty] [possible values: pretty, json]
+  -h, --help             Print help

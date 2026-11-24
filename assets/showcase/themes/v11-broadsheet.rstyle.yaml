@@ -1,27 +1,12 @@
 # Studio exploration "Broadsheet" (v11-broadsheet), Editorial.
 # Converted from richview-universe/richview-design-system studio/variants.js @ 8c6a8e0.
-# Tokens and layout live here; the variant's signature rules ship as CSS beside it.
-tokens:
-  scheme: light
-  size-base: "16.5px"
-  line-base: "1.6"
-  bg: "oklch(0.985 0.004 60)"
-  bg-elev: "oklch(0.97 0.005 60)"
-  bg-chart: "oklch(0.97 0.005 60)"
-  ink: "oklch(0.16 0.004 60)"
-  ink-soft: "oklch(0.40 0.006 60)"
-  ink-faint: "oklch(0.60 0.006 60)"
-  rule: "oklch(0.84 0.006 60)"
-  rule-soft: "oklch(0.92 0.005 60)"
-  accent: "oklch(0.5196 0.1248 247.06)"
-  accent-soft: "oklch(0.5196 0.1248 247.06 / 0.078)"
-  link: "oklch(0.5196 0.1248 247.06)"
-  up: "oklch(0.45 0.12 150)"
-  down: "oklch(0.50 0.16 25)"
-  hold: "oklch(0.55 0.13 70)"
-  font-text: '"RichView Serif", Georgia, serif'
-  font-display: '"Playfair Display", serif'
-  font-ui: '"Inter", sans-serif'
-  font-mono: '"JetBrains Mono", monospace'
-  radius-s: "0px"
-  radius-m: "0px"
+preset: scientific
+colors:
+  background: "oklch(0.985 0.004 60)"
+  brand: "oklch(0.5196 0.1248 247.06)"
+fonts:
+  display: '"Playfair Display", serif'
+  text: '"RichView Serif", Georgia, serif'
+  ui: '"Inter", sans-serif'
+  mono: '"JetBrains Mono", monospace'
+corners: xsmall

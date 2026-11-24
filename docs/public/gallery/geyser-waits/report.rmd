@@ -1,0 +1,33 @@
+---
+title: Four waits at Old Faithful
+description: A picture of the geyser and four recorded waits between eruptions.
+slug: geyser-waits
+version: 1.0.0
+styles: [scientific]
+---
+
+Old Faithful's next eruption came 54 to 79 minutes after the preceding one in these four observations.
+
+```image
+src: media/old-faithful.jpg
+alt: Old Faithful erupting in front of visitors on the viewing boardwalk
+caption: Old Faithful in eruption, October 2019. National Park Service photograph by Jim Peaco.
+width: 1344
+height: 872
+```
+
+*Source: [the Old Faithful photograph and its credit](https://richview.ai/docs/gallery/same-numbers/), National Park Service, public domain.*
+
+```chart
+type: bar
+title: The four waits range from 54 to 79 minutes
+data: { csv: data/waits.csv }
+encoding: { x: observation, y: wait_minutes }
+axes:
+  x: { label: Observation }
+  y: { label: Wait, unit: min }
+```
+
+*Source: The first four values in the Old Faithful geyser data shared with the [complete example](https://richview.ai/docs/gallery/same-numbers/).*
+
+[Download the four observations](data/waits.csv).

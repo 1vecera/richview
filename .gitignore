@@ -28,5 +28,7 @@ Rendered/
 
 # Connector-generated local data
 examples/*/data/warehouse.duckdb
+# Written by examples/parquet-report/data/seed.sql: one million synthetic orders
+examples/parquet-report/data/orders.parquet
 examples/*/.richview-cache/
 /target

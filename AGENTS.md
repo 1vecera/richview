@@ -113,6 +113,7 @@ Core and engine stay pure: no filesystem, network, process, environment or clock
 
 ## Contracts
 
+- Ship each new capability with a docs page and a live demo in the docs. Mention it on the website when readers would look for it there. In the PR body's `Docs and demo:` line, link the docs page, the demo and any website mention.
 - The schema registry (`crates/richview-core/src/registry.rs`) is the one definition of tags, fields, chart types and diagnostic codes (ARC-09). [RMD-SPEC.md](docs/RMD-SPEC.md)'s reference tables are generated from it: edit the registry, then run `RICHVIEW_BLESS=1 cargo test -p richview-core --test spec_docs`. Prose explains but never lists the vocabulary, and docs never state a count the build does not have; the `docs-match` gate step checks both (DEL-18).
 - Diagnostics carry level, code, message, path, line and tag; every surface returns them unchanged (ARC-08, TYP-53).
 - Authors customize only through validated vocabulary: no raw HTML, CSS, JavaScript, engine specs or SVG from any source or style file (INT-28, ARC-12, ARC-13). Safety is never traded (INT-79).

@@ -1,27 +1,11 @@
 # Studio exploration "Table First" (v16-table-first), Data-first.
 # Converted from richview-universe/richview-design-system studio/variants.js @ 8c6a8e0.
-# Tokens and layout live here; the variant's signature rules ship as CSS beside it.
-tokens:
-  scheme: light
-  size-base: "16.5px"
-  line-base: "1.6"
-  bg: "oklch(1 0 0)"
-  bg-elev: "oklch(0.982 0.0041 91.45)"
-  bg-chart: "oklch(0.982 0.0041 91.45)"
-  ink: "oklch(0.20 0.012 55)"
-  ink-soft: "oklch(0.45 0.012 55)"
-  ink-faint: "oklch(0.62 0.010 55)"
-  rule: "oklch(0.85 0.012 55)"
-  rule-soft: "oklch(0.92 0.010 55)"
-  accent: "oklch(0.5196 0.1248 247.06)"
-  accent-soft: "oklch(0.5196 0.1248 247.06 / 0.078)"
-  link: "oklch(0.5196 0.1248 247.06)"
-  up: "oklch(0.5330 0.1901 137.01)"
-  down: "oklch(0.5702 0.1539 13.31)"
-  hold: "oklch(0.5702 0.1539 13.31)"
-  font-text: '"Inter", sans-serif'
-  font-display: '"Inter", sans-serif'
-  font-ui: '"Inter", sans-serif'
-  font-mono: '"JetBrains Mono", ui-monospace, monospace'
-  radius-s: "4px"
-  radius-m: "4px"
+preset: scientific
+colors:
+  background: "oklch(1 0 0)"
+  brand: "oklch(0.5196 0.1248 247.06)"
+fonts:
+  display: '"Inter", sans-serif'
+  text: '"Inter", sans-serif'
+  ui: '"Inter", sans-serif'
+  mono: '"JetBrains Mono", ui-monospace, monospace'

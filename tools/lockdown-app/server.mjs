@@ -18,7 +18,7 @@ import {
 } from "node:fs/promises";
 import { createServer } from "node:http";
 import path from "node:path";
-import { parseArgs } from "node:util";
+import { parseArgs, promisify } from "node:util";
 
 const DECISIONS = new Set(["accept", "edit", "reject", "defer"]);
 // An item's optional importance, most important first; an item without one is "unrated".
@@ -26,7 +26,8 @@ const IMPORTANCE = ["key", "important", "detail"];
 const IMPORTANCE_LEVELS = [...IMPORTANCE, "unrated"];
 const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 const LOOPBACK_HOST = /^(?:localhost|127\.0\.0\.1|\[::1\])(?::\d{1,5})?$/i;
-const IMAGE_DIRS = ["docs/lockdown/screenshots", "docs/guide"];
+const TECH_DIR = "docs/how-it-works";
+const IMAGE_DIRS = ["docs/lockdown/screenshots", "docs/guide", `${TECH_DIR}/diagrams`];
 const IMAGE_TYPES = {
 	".avif": "image/avif",
 	".gif": "image/gif",
@@ -188,9 +189,17 @@ async function routeApi(req, res, method, url) {
 		.map(decodeSegment);
 	const [resource, partId, itemId] = segments;
 	const isRead = method === "GET" || method === "HEAD";
+	if (resource === "answered" && segments.length === 1) {
+		if (!isRead) throw new HttpError(405, "Method not allowed.");
+		return sendJson(res, 200, await listAnswered());
+	}
+	if (resource === "proposal" && segments.length === 3) {
+		if (!isRead) throw new HttpError(405, "Method not allowed.");
+		return sendJson(res, 200, { proposed: await proposalWhenAnswered(partId, itemId) });
+	}
 	if (resource === "parts" && segments.length <= 2) {
 		if (!isRead) throw new HttpError(405, "Method not allowed.");
-		return sendJson(res, 200, partId === undefined ? await listParts() : await getPart(partId));
+		return sendJson(res, 200, partId === undefined ? await listParts(url.searchParams.has("open")) : await getPart(partId));
 	}
 	if ((resource === "index" || resource === "repo-paths") && segments.length === 1) {
 		if (!isRead) throw new HttpError(405, "Method not allowed.");
@@ -464,7 +473,7 @@ async function itemIndex() {
 	return Object.fromEntries(index);
 }
 
-async function listParts() {
+async function listParts(includeOpenIds) {
 	const parts = await loadMergedParts();
 	const owners = new Map();
 	for (const part of parts) {
@@ -495,6 +504,7 @@ async function listParts() {
 			staleCount: part.staleCount,
 			importance,
 			orphanCount: part.orphans.length,
+			...(includeOpenIds ? { openIds: part.items.filter(item => !item.answer).map(item => item.id) } : {}),
 			warnings,
 			error: part.error,
 			answersError: part.answersError,
@@ -544,6 +554,68 @@ async function listItems(importance) {
 			part.items.filter((item) => !wanted || wanted.has(item.importance || "unrated")).map((item) => ({ ...item, partId: part.id })),
 		),
 	};
+}
+
+// Decisions and wording come from the current files. Only the date comes from the log,
+// which may contain superseded or redacted text.
+async function listAnswered() {
+	const [parts, log] = await Promise.all([loadMergedParts(), readFile(logFile, "utf8").catch(error => {
+		if (error.code === "ENOENT") return "";
+		throw error;
+	})]);
+	const dates = new Map();
+	for (const line of log.split("\n")) {
+		if (!line.trim()) continue;
+		const { partId, itemId, action, at } = JSON.parse(line);
+		const key = JSON.stringify([partId, itemId]);
+		if (action === "clear") dates.delete(key);
+		else if (["set", "redact"].includes(action) && Number.isFinite(Date.parse(at))) dates.set(key, at);
+	}
+	const items = [];
+	for (const part of parts) {
+		const add = (id, title, proposed, answer) => {
+			const at = dates.get(JSON.stringify([part.id, id])) ?? null;
+			items.push({ id, title, proposed, partId: part.id, partTitle: part.title, answer, at });
+		};
+		for (const item of part.items) {
+			if (item.answer) add(item.id, item.title, item.proposed, item.answer);
+		}
+		for (const { itemId, ...answer } of part.orphans) add(itemId, null, null, answer);
+	}
+	items.sort((a, b) => (Date.parse(b.at) || 0) - (Date.parse(a.at) || 0));
+	return { items };
+}
+
+const gitRead = promisify(execFile);
+const proposalCache = new Map();
+
+async function proposalWhenAnswered(partId, itemId) {
+	const part = await getPart(partId);
+	const item = part.items.find(candidate => candidate.id === itemId);
+	if (!item?.answer) throw new HttpError(404, "Answered card not found.");
+	if (!item.answer.stale) return item.proposed;
+	const key = JSON.stringify([partId, itemId, item.answer.proposedHash]);
+	if (!proposalCache.has(key)) {
+		proposalCache.set(key, findProposal(partFile(partId), itemId, item.answer.proposedHash));
+	}
+	return proposalCache.get(key);
+}
+
+async function findProposal(file, itemId, expectedHash) {
+	const git = async (...args) => (await gitRead("git", ["--git-dir", path.join(root, ".git"), ...args],
+		{ timeout: 3000, maxBuffer: MAX_DOC_BYTES })).stdout;
+	try {
+		const revisions = await git("log", "-64", "--format=%H", "--", file);
+		for (const revision of revisions.trim().split("\n").filter(Boolean)) {
+			const snapshot = await git("show", `${revision}:${file}`).catch(() => "");
+			if (!snapshot) continue;
+			let data;
+			try { data = JSON.parse(snapshot); } catch { continue; }
+			const item = data.items?.find(candidate => candidate?.id === itemId);
+			if (item && digest(markdown(item.proposed)) === expectedHash) return markdown(item.proposed);
+		}
+	} catch { /* Git or the repository history is unavailable. */ }
+	return null;
 }
 
 async function getPart(id) {
@@ -863,7 +935,7 @@ async function safeResolve(base, relative) {
 // A repo path such as docs/guide/components/charts.md; no empty, dot or hidden segment.
 function isDocPath(relative) {
 	if (LOCKDOWN_DOCS.includes(relative)) return true;
-	if (!relative.startsWith(`${GUIDE_DIR}/`) || !relative.endsWith(".md")) return false;
+	if (![GUIDE_DIR, TECH_DIR].some(dir => relative.startsWith(`${dir}/`)) || !relative.endsWith(".md")) return false;
 	const segments = relative.split("/");
 	return (
 		segments.length <= 3 + MAX_GUIDE_DEPTH &&
@@ -884,7 +956,7 @@ async function resolveDoc(relative) {
 	if (LOCKDOWN_DOCS.includes(relative)) {
 		if (real !== expected) return null;
 	} else {
-		const guideExpected = path.join(rootReal, ...GUIDE_DIR.split("/"));
+		const guideExpected = path.join(rootReal, ...relative.split("/").slice(0, 2));
 		const guideReal = await realpath(guideExpected).catch(() => null);
 		if (guideReal !== guideExpected || !real.startsWith(guideExpected + path.sep)) return null;
 	}
@@ -892,7 +964,7 @@ async function resolveDoc(relative) {
 	return info?.isFile() ? { file: real, info } : null;
 }
 
-async function guideDocPaths() {
+async function guideDocPaths(base) {
 	const found = [];
 	async function walk(dir, depth) {
 		let entries;
@@ -913,7 +985,7 @@ async function guideDocPaths() {
 			}
 		}
 	}
-	await walk(GUIDE_DIR, 0);
+	await walk(base, 0);
 	return found;
 }
 
@@ -934,7 +1006,7 @@ async function describeDoc(relative) {
 	}
 	return {
 		path: relative,
-		section: LOCKDOWN_DOCS.includes(relative) ? "lockdown" : "guide",
+		section: relative.split("/")[1],
 		title: cached.title,
 		revision: cached.revision,
 		size: info.size,
@@ -996,8 +1068,8 @@ function compareDocPaths(a, b) {
 }
 
 async function listDocs() {
-	const guide = (await guideDocPaths()).sort(compareDocPaths);
-	const described = await Promise.all([...guide, ...LOCKDOWN_DOCS].map(describeDoc));
+	const [guide, technical] = await Promise.all([guideDocPaths(GUIDE_DIR), guideDocPaths(TECH_DIR)]);
+	const described = await Promise.all([...guide.sort(compareDocPaths), ...LOCKDOWN_DOCS, ...technical.sort(compareDocPaths)].map(describeDoc));
 	return { docs: described.filter(Boolean) };
 }
 
@@ -1088,6 +1160,10 @@ async function serveImage(res, encoded) {
 	const relative = path.posix.normalize(decodeSegment(encoded));
 	const dir = IMAGE_DIRS.find((candidate) => relative.startsWith(`${candidate}/`));
 	const type = IMAGE_TYPES[path.posix.extname(relative).toLowerCase()];
+	if (dir) {
+		const expected = path.join(await realpath(root), dir);
+		if (await realpath(expected).catch(() => null) !== expected) throw new HttpError(404, "Not found.");
+	}
 	const file = dir && type ? await safeResolve(path.join(root, dir), relative.slice(dir.length + 1)) : null;
 	if (!file) throw new HttpError(404, "Not found.");
 	res.writeHead(200, {

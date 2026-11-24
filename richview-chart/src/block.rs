@@ -201,6 +201,8 @@ pub struct Highlight {
     pub by: String,
     pub include: Vec<String>,
     pub priority: Vec<String>,
+    /// `highlight.mute`; absent takes the chart type's default (TYP-78).
+    pub mute: Option<bool>,
 }
 
 /// A validated chart block with defaults applied.
@@ -381,6 +383,7 @@ impl ChartBlock {
                 by: string(h, "by")?,
                 include: list("include"),
                 priority: list("priority"),
+                mute: h.get("mute").and_then(Value::as_bool),
             })
         });
         let chart_digits = digits(v, "digits").unwrap_or(numbers::DEFAULT_DIGITS);

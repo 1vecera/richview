@@ -105,9 +105,7 @@ fn every_texture_and_gradient_keeps_every_ink_floor_over_its_worst_pixel() {
                     );
                     let (style, diagnostics) = resolve(&file);
                     assert!(
-                        diagnostics
-                            .iter()
-                            .all(|d| d.level == "info" || d.code == "style.legacy"),
+                        diagnostics.iter().all(|d| d.level == "info"),
                         "{label}: {diagnostics:?}"
                     );
                     let page = token(&style, "bg");
@@ -185,17 +183,274 @@ fn a_picture_under_text_is_washed_just_enough_for_any_pixel() {
     }
 }
 
+/// The presets that ship a background, with the words they ship (STY-74 as amended, Daniel
+/// 19 Nov: "at least three of the default styles ... should have backgrounds").
+const DEFAULTS: [(&str, &str, Option<&str>, u64); 3] = [
+    ("hand-drawn", "texture", Some("grain"), 2),
+    ("scientific", "texture", Some("grid"), 1),
+    ("sleek", "gradient", Some("glow"), 2),
+];
+
 #[test]
 fn a_cascade_without_a_background_is_byte_for_byte_as_before() {
     for name in builtin_style_names() {
         let mut diagnostics = vec![];
         let plain = resolve_styles(&[(*name).to_owned()], &mut diagnostics);
+        let ships = DEFAULTS.iter().any(|(preset, ..)| preset == name);
+        let mut flat = vec![];
         for cleared in ["background: none\n", "background:\n  texture: none\n"] {
             let with = resolve_styles(&[(*name).to_owned(), cleared.to_owned()], &mut diagnostics);
-            assert_eq!(plain.css, with.css, "{name} / {cleared}");
-            assert_eq!(plain.custom_properties, with.custom_properties, "{name}");
+            assert!(
+                with.document
+                    .pointer("/settings/background/derived")
+                    .is_none(),
+                "{name} / {cleared}"
+            );
+            if !ships {
+                assert_eq!(plain.css, with.css, "{name} / {cleared}");
+                assert_eq!(plain.custom_properties, with.custom_properties, "{name}");
+            }
+            flat.push(with);
+        }
+        // Both ways of saying "no background" give the same flat report.
+        assert_eq!(flat[0].css, flat[1].css, "{name}");
+        assert_eq!(
+            flat[0].custom_properties, flat[1].custom_properties,
+            "{name}"
+        );
+        assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    }
+}
+
+#[test]
+fn three_presets_ship_a_background_and_every_ink_keeps_its_floor_over_it() {
+    // Every main and extended preset as shipped, light and dark (Sleek, Midnight and Chalk are
+    // dark), and the author's colours over them, light and dark.
+    let mut cascades: Vec<(String, String)> = richview_core::preset_names()
+        .iter()
+        .map(|name| ((*name).to_owned(), format!("preset: {name}\n")))
+        .collect();
+    cascades.extend(bases().into_iter().filter(|(name, _)| name.contains('+')));
+    let mut dark = 0;
+    for (label, source) in &cascades {
+        let (style, diagnostics) = resolve(source);
+        assert!(
+            diagnostics.iter().all(|d| d.level == "info"),
+            "{label}: {diagnostics:?}"
+        );
+        let page = token(&style, "bg");
+        if page.l < 0.5
+            && style
+                .document
+                .pointer("/settings/background/derived")
+                .is_some()
+        {
+            dark += 1;
+        }
+        if let Some(texture) = derived(&style, "texture") {
+            floors_hold(&style, &[texture, page], label);
+        }
+        if let Some(stop) = derived(&style, "stop") {
+            let ramp: Vec<Oklch> = (0..=32)
+                .map(|i| color::mix(page, stop, f64::from(i) / 32.0))
+                .collect();
+            floors_hold(&style, &ramp, label);
         }
     }
+    assert!(
+        dark >= 3,
+        "the floors were checked over dark backgrounds too ({dark})"
+    );
+    for name in builtin_style_names() {
+        let (style, diagnostics) = resolve(&format!("preset: {name}\n"));
+        assert!(
+            diagnostics.iter().all(|d| d.level == "info"),
+            "{name}: {diagnostics:?}"
+        );
+        let background = style.document.pointer("/settings/background");
+        let Some((_, key, word, step)) = DEFAULTS.iter().find(|(preset, ..)| preset == name) else {
+            assert!(
+                background.and_then(|b| b.get("derived")).is_none(),
+                "{name} stays flat: {background:?}"
+            );
+            continue;
+        };
+        let background = background.expect("a default background");
+        assert_eq!(background[key].as_str(), *word, "{name}");
+        // A preset that names no strength takes medium, step 2.
+        assert_eq!(
+            background["strength"].as_u64().unwrap_or(2),
+            *step,
+            "{name}"
+        );
+        let page = token(&style, "bg");
+        // The texture's ink, or the gradient's stop, is the strongest pixel it draws.
+        let strongest = derived(&style, if *key == "texture" { "texture" } else { "stop" })
+            .expect("a drawn background");
+        let ratio = color::contrast(strongest, page);
+        assert!(
+            ratio > 1.04,
+            "{name}: the background is too faint to see ({ratio:.3}:1)"
+        );
+        let worst: Vec<Oklch> = if *key == "texture" {
+            vec![strongest]
+        } else {
+            (0..=32)
+                .map(|i| color::mix(page, strongest, f64::from(i) / 32.0))
+                .collect()
+        };
+        floors_hold(&style, &worst, name);
+        floors_hold(&style, &[page], name);
+    }
+}
+
+/// The CSS a preset's default background adds: what differs between the preset as shipped and the
+/// same preset with `background: none`, every token being equal.
+fn generated_block(name: &str) -> String {
+    let (with, _) = resolve(&format!("preset: {name}\n"));
+    let (flat, _) = resolve(&format!("preset: {name}\nbackground: none\n"));
+    assert_eq!(with.custom_properties, flat.custom_properties, "{name}");
+    let (a, b) = (with.css.as_bytes(), flat.css.as_bytes());
+    let head = a.iter().zip(b).take_while(|(x, y)| x == y).count();
+    let tail = a[head..]
+        .iter()
+        .rev()
+        .zip(b[head..].iter().rev())
+        .take_while(|(x, y)| x == y)
+        .count();
+    with.css[head..with.css.len() - tail].to_owned()
+}
+
+/// Every `selector { declarations }` pair of a CSS text, at-rules flattened.
+fn css_rules(css: &str) -> Vec<(String, String)> {
+    let rule = regex_lite::Regex::new(r"([^{}]+)\{([^{}]*)\}").unwrap();
+    rule.captures_iter(css)
+        .map(|r| {
+            let selector = r[1].trim();
+            let selector = selector.rsplit('{').next().unwrap_or(selector).trim();
+            (selector.to_owned(), r[2].trim().to_owned())
+        })
+        .collect()
+}
+
+#[test]
+fn the_presets_backgrounds_keep_the_rules_the_presets_css_is_held_to() {
+    // style_rules judges each preset's own CSS without this block; here the block is held to the
+    // same rules: STY-37 (only floating elements cast a shadow, nothing gains one on hover),
+    // STY-34 (gradients only where the background is painted, no side rules) and STY-61 (quotes,
+    // code and total rows keep the preset's own rules: the block names none of them).
+    let mut checked = 0;
+    for name in richview_core::preset_names() {
+        let block = generated_block(name);
+        let ships = !block.is_empty();
+        if !ships {
+            continue;
+        }
+        checked += 1;
+        let rules = css_rules(&block);
+        assert!(!rules.is_empty(), "{name}: {block}");
+        for (selector, body) in &rules {
+            assert!(
+                !selector.contains(":hover"),
+                "{name}: `{selector}` reacts to hover"
+            );
+            for declaration in body.split(';') {
+                let Some((property, value)) = declaration.split_once(':') else {
+                    continue;
+                };
+                let (property, value) = (property.trim(), value.trim());
+                if property == "box-shadow" {
+                    // A pad of the surface's own colour around a solid block: no offset, no blur,
+                    // nothing that reads as a cast shadow.
+                    assert!(
+                        value.starts_with("0 0 0 ") && value.ends_with("var(--rv-bg-chart)"),
+                        "{name}: `{selector}` casts a shadow ({value})"
+                    );
+                }
+                if value.contains("gradient(") || value.contains("url(") {
+                    assert!(
+                        ["html", ".rv-report__header::before", "body::before"]
+                            .contains(&selector.as_str()),
+                        "{name}: `{selector}` paints a gradient or picture"
+                    );
+                }
+                assert!(
+                    !matches!(
+                        property,
+                        "border-left" | "border-right" | "border-inline-start"
+                    ),
+                    "{name}: `{selector}` draws a side rule"
+                );
+            }
+            for owned in [
+                "pre",
+                "code",
+                "blockquote",
+                "rv-callout",
+                "tfoot",
+                "rv-total",
+                "th",
+                "td",
+            ] {
+                assert!(
+                    !selector
+                        .split(|c: char| !(c.is_alphanumeric() || c == '-' || c == '_'))
+                        .any(|part| part == owned),
+                    "{name}: `{selector}` restyles {owned}, which the preset's rules own"
+                );
+            }
+        }
+    }
+    assert!(
+        checked >= 3,
+        "Hand-drawn, Scientific and Sleek ship a background ({checked})"
+    );
+}
+
+#[test]
+fn a_presets_own_background_keeps_the_presets_colours_and_says_nothing() {
+    for (name, ..) in DEFAULTS {
+        let (style, diagnostics) = resolve(&format!("preset: {name}\n"));
+        let (flat, _) = resolve(&format!("preset: {name}\nbackground: none\n"));
+        assert_eq!(style.custom_properties, flat.custom_properties, "{name}");
+        assert!(diagnostics.is_empty(), "{name}: {diagnostics:?}");
+    }
+}
+
+#[test]
+fn one_word_stands_for_a_texture_a_gradient_or_a_picture() {
+    for (word, key) in [
+        ("grain", "texture"),
+        ("dots", "texture"),
+        ("grid", "texture"),
+        ("lines", "texture"),
+        ("soft", "gradient"),
+        ("glow", "gradient"),
+        ("media/hero.png", "picture"),
+        ("hero.JPG", "picture"),
+        ("hero.webp", "picture"),
+    ] {
+        let (style, diagnostics) = resolve(&format!("preset: air\nbackground: {word}\n"));
+        assert!(diagnostics.is_empty(), "{word}: {diagnostics:?}");
+        assert_eq!(
+            style
+                .document
+                .pointer(&format!("/settings/background/{key}"))
+                .and_then(Value::as_str),
+            Some(word),
+            "{word}"
+        );
+    }
+    // A word that is none of them says which words it takes.
+    let (_, diagnostics) = resolve("preset: air\nbackground: tartan\n");
+    let finding = diagnostics
+        .iter()
+        .find(|d| d.code == "style.schema")
+        .expect("a finding");
+    assert!(
+        finding.message.contains("grain") && finding.message.contains("glow"),
+        "{finding:?}"
+    );
 }
 
 #[test]
@@ -432,7 +687,9 @@ fn table_blocks_keep_a_solid_surface_over_a_page_background() {
     let solid = css
         .find(".rv-chart,.rv-table,")
         .expect("the solid surfaces");
-    assert!(css[solid..].starts_with(".rv-chart,.rv-table,.rv-table-scroll,.rv-report__body pre,.rv-embed{background:var(--rv-bg-chart)"));
+    assert!(css[solid..].starts_with(
+        ".rv-chart,.rv-table,.rv-table-scroll,.rv-embed{background:var(--rv-bg-chart)"
+    ));
 }
 
 #[test]
@@ -501,4 +758,123 @@ fn hostile_background_files_last_over_every_preset_emit_only_generated_layers() 
             }
         }
     }
+}
+
+fn report_with(
+    frontmatter: &str,
+    data: &[(&str, String)],
+) -> richview_core::document::RenderedReport {
+    let files: BTreeMap<String, String> = data
+        .iter()
+        .map(|(key, value)| ((*key).to_owned(), value.clone()))
+        .collect();
+    let options = RenderOptions {
+        report_folder: Some(richview_core::document::ReportFolder {
+            root: "report".into(),
+            source: "report.rmd".into(),
+            files: std::iter::once("report.rmd".to_owned())
+                .chain(files.keys().cloned())
+                .collect(),
+        }),
+        data: files,
+        output: Output::Report,
+        ..RenderOptions::default()
+    };
+    let source = format!(
+        "---\ntitle: Orders doubled\n{frontmatter}---\n\nThe launch week brought **1,240** orders.\n"
+    );
+    render(&source, &options).expect("report renders")
+}
+
+#[test]
+fn the_report_says_none_or_another_background_over_its_preset() {
+    let preset = report_with("styles: [hand-drawn]\n", &[]);
+    let flat = report_with("styles: [hand-drawn]\nbackground: none\n", &[]);
+    let air = report_with("styles: [air]\n", &[]);
+    let dots = report_with("styles: [hand-drawn]\nbackground: dots\n", &[]);
+    let mapped = report_with(
+        "styles: [hand-drawn]\nbackground:\n  gradient: soft\n  strength: small\n",
+        &[],
+    );
+    for rendered in [&preset, &flat, &air, &dots, &mapped] {
+        assert!(
+            rendered.diagnostics.iter().all(|d| d.level == "info"),
+            "{:?}",
+            rendered.diagnostics
+        );
+    }
+    let css = |r: &richview_core::document::RenderedReport| css_of(&r.html);
+    assert_ne!(
+        css(&preset),
+        css(&flat),
+        "hand-drawn ships grain; none takes it away"
+    );
+    assert!(
+        css(&dots).contains("radial-gradient(circle,"),
+        "dots replace the grain"
+    );
+    // Grain is the one texture drawn as an inline picture.
+    const GRAIN: &str = "image/svg+xml;base64,";
+    assert!(!css(&dots).contains(GRAIN));
+    assert!(css(&preset).contains(GRAIN) && !css(&flat).contains(GRAIN));
+    assert_ne!(css(&dots), css(&preset));
+    assert!(
+        css(&mapped).contains("linear-gradient(in oklch to bottom"),
+        "the mapping applies"
+    );
+    // The frontmatter wins over a style file that names its own background.
+    let file = report_with(
+        "styles: [air, look.rstyle.yaml]\nbackground: none\n",
+        &[("look.rstyle.yaml", "background: grid\n".to_owned())],
+    );
+    assert_eq!(css(&file), css(&air));
+}
+
+#[test]
+fn a_bad_frontmatter_background_is_a_finding_at_the_frontmatter() {
+    let rendered = report_with("styles: [air]\nbackground: tartan\n", &[]);
+    let finding = rendered
+        .diagnostics
+        .iter()
+        .find(|d| d.code == "style.schema")
+        .unwrap_or_else(|| panic!("{:?}", rendered.diagnostics));
+    assert_eq!(finding.path, "frontmatter.background");
+    assert_eq!(finding.line, Some(4), "{finding:?}");
+    assert!(finding.file.is_none());
+}
+
+#[test]
+fn a_frontmatter_picture_is_bounded_like_a_style_files() {
+    let huge = format!(
+        "data:image/png;base64,{}",
+        "A".repeat((400_usize * 1024 + 3).div_ceil(3) * 4 + 8)
+    );
+    for (picture, data, code) in [
+        ("hero.png", vec![], "style.background-missing"),
+        (
+            "hero.png",
+            vec![("hero.png", huge)],
+            "style.background-size",
+        ),
+        ("../outside.png", vec![], "style.schema"),
+        ("https://example.invalid/a.png", vec![], "style.schema"),
+    ] {
+        let rendered = report_with(&format!("styles: [air]\nbackground: {picture}\n"), &data);
+        assert!(
+            rendered.diagnostics.iter().any(|d| d.code == code),
+            "{picture} / {code}: {:?}",
+            rendered.diagnostics
+        );
+        assert!(!rendered.html.contains("data:image/png;base64,AAAA"));
+    }
+    let ok = report_with(
+        "styles: [air]\nbackground: media/hero.png\n",
+        &[("media/hero.png", png(OK_PNG))],
+    );
+    assert!(
+        ok.diagnostics.iter().all(|d| d.level == "info"),
+        "{:?}",
+        ok.diagnostics
+    );
+    assert!(ok.html.contains(OK_PNG), "the picture is embedded");
 }

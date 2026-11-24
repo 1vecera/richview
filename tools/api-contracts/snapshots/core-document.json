@@ -171,6 +171,11 @@
         "declaration": "pub const VERSION : & str = env ! ( \"CARGO_PKG_VERSION\" )"
       },
       {
+        "name": "apple_double_sidecar",
+        "kind": "use",
+        "declaration": "pub use crate : : folder : : apple_double_sidecar ;"
+      },
+      {
         "name": "attach_asset_findings",
         "kind": "use",
         "declaration": "pub use crate : : folder : : attach_asset_findings ;"
@@ -359,6 +364,11 @@
           "pub kind : & ' static str"
         ],
         "privateFields": false
+      },
+      {
+        "name": "apple_double_sidecar",
+        "kind": "fn",
+        "declaration": "pub fn apple_double_sidecar ( path : & str ) - > bool"
       },
       {
         "name": "attach_asset_findings",

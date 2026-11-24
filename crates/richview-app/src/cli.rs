@@ -107,10 +107,10 @@ struct FormatArg {
 /// Where an owner action goes and who is asking.
 #[derive(Args)]
 struct OwnerArgs {
-    /// Server URL (https, or http on loopback)
+    /// Server URL (https, or http on loopback); defaults to your publish server
     #[arg(long, env = "RICHVIEW_SERVER")]
     server: Option<String>,
-    /// Bearer token of the server
+    /// Bearer token of the server; defaults to the sign-in `richview login` keeps
     #[arg(long, env = "RICHVIEW_TOKEN", hide_env_values = true)]
     token: Option<String>,
     #[command(flatten)]
@@ -165,6 +165,9 @@ impl ReportCommand {
 #[derive(Subcommand)]
 enum Command {
     /// Write the self-contained report, or a PDF, into the report folder's Rendered/
+    ///
+    /// A source with `slides: true` in its frontmatter is written as slides: one screen for the
+    /// title and one for each top-level heading or `---`, and a PDF of one 16:9 page a slide.
     #[command(alias = "g")]
     Generate {
         #[command(flatten)]
@@ -175,7 +178,7 @@ enum Command {
         /// Write the interactive report (default) or a PDF printed by a local Chromium-family browser
         #[arg(long, value_enum)]
         to: Option<To>,
-        /// Paper size of a PDF
+        /// Paper size of a PDF; slides print on 16:9 pages of their own
         #[arg(long, value_enum, default_value = "a4")]
         page: PageSize,
         /// Chromium, Google Chrome or Microsoft Edge executable for PDF output (or RICHVIEW_BROWSER)
@@ -220,12 +223,12 @@ enum Command {
     },
     /// Print the authoring guide, or one section of it
     Learn {
-        /// grammar, chart-contract, style, workflow or anti-slop
+        /// grammar, chart-contract, style, workflow, anti-slop or slides
         section: Option<String>,
     },
     /// Serve the RichView tools to an agent over MCP (stdio)
     Mcp,
-    /// Publish a version of the report to a RichView server
+    /// Create a report or publish another version at its address
     Publish {
         #[command(flatten)]
         args: ReportArgs,
@@ -235,19 +238,42 @@ enum Command {
         /// Choose and remember a publish server again (without RICHVIEW_SERVER)
         #[arg(long)]
         choose_server: bool,
-        /// Bearer token of the server
+        /// Bearer token of the server; defaults to the sign-in `richview login` keeps
         #[arg(long, env = "RICHVIEW_TOKEN", hide_env_values = true)]
         token: Option<String>,
         /// Address of the report; defaults to the frontmatter slug, then the title
         #[arg(long)]
         slug: Option<String>,
-        /// Create a report address the server has not stored before
+        /// Allow this file to create another address on the same server
         #[arg(long)]
         new: bool,
         /// Who can open the report: private (you and the people you name), org (every member
-        /// of your organization) or public (anyone with the link). Left as it is when omitted
+        /// of your organization) or public (anyone with the link). With public sharing, anyone
+        /// with the link can read the original Markdown and save a copy. Left as it is when omitted
         #[arg(long, value_parser = ["private", "org", "public"])]
         visibility: Option<String>,
+        #[command(flatten)]
+        format: FormatArg,
+    },
+    /// Sign this computer in to a RichView server, so publishing needs no token again
+    Login {
+        /// Server URL (https, or http on loopback); defaults to your publish server
+        #[arg(long, env = "RICHVIEW_SERVER")]
+        server: Option<String>,
+        /// Read a CLI token from standard input instead of signing in through the browser
+        #[arg(long)]
+        with_token: bool,
+        /// Print the page to confirm on without opening a browser (or set RICHVIEW_NO_BROWSER)
+        #[arg(long)]
+        no_browser: bool,
+        #[command(flatten)]
+        format: FormatArg,
+    },
+    /// Forget the sign-in this computer keeps for a server
+    Logout {
+        /// Server URL; defaults to your publish server
+        #[arg(long, env = "RICHVIEW_SERVER")]
+        server: Option<String>,
         #[command(flatten)]
         format: FormatArg,
     },
@@ -268,7 +294,7 @@ enum Command {
     /// Run RichView Cowork, the report server
     Server {
         #[command(flatten)]
-        args: ServerArgs,
+        args: Box<ServerArgs>,
     },
     /// Upload, verify and abort integrity-pinned remote data and media
     Asset {
@@ -351,6 +377,47 @@ pub struct ServerArgs {
     /// from RICHVIEW_ADMIN_PASSWORD.
     #[arg(long, env = "RICHVIEW_ADMIN_EMAIL")]
     pub admin_email: Option<String>,
+    /// Lets people sign in with GitHub; the client secret comes only from
+    /// RICHVIEW_GITHUB_CLIENT_SECRET. Hosted mode only.
+    #[arg(long, env = "RICHVIEW_GITHUB_CLIENT_ID")]
+    pub github_client_id: Option<String>,
+    /// Lets people sign in with Microsoft; the client secret comes only from
+    /// RICHVIEW_MICROSOFT_CLIENT_SECRET. Hosted mode only.
+    #[arg(long, env = "RICHVIEW_MICROSOFT_CLIENT_ID")]
+    pub microsoft_client_id: Option<String>,
+    /// Lets people sign in with Google; the client secret comes only from
+    /// RICHVIEW_GOOGLE_CLIENT_SECRET. Hosted mode only.
+    #[arg(long, env = "RICHVIEW_GOOGLE_CLIENT_ID")]
+    pub google_client_id: Option<String>,
+    /// Points every provider at a stand-in on loopback, for tests. Refused unless this server's
+    /// own public address is on loopback too, so it can never be on in the hosted configuration.
+    #[arg(long, hide = true)]
+    pub identity_provider_test_base: Option<String>,
+}
+
+/// Whether hosted mode may serve at `url`: HTTPS, or plain HTTP at a loopback address
+/// (`localhost`, `127.0.0.1` or `[::1]`), for local development against the providers'
+/// development clients and for the stand-in tests. Hosted mode always listens on loopback behind
+/// its proxy, so this does not keep the internet out: a plain-HTTP address left in a deployed
+/// setting breaks its links instead of stopping the start, and the start line says so.
+fn hosted_origin_allowed(url: &str) -> bool {
+    url.starts_with("https://") || crate::social::is_loopback_origin(url)
+}
+
+/// The sign-in providers the server's settings ask for, or `None` for a server that offers none.
+/// A client secret is read from the environment and from nowhere else.
+fn social_from(args: &ServerArgs) -> Result<Option<crate::social::Social>, String> {
+    let secret = |name: &str| std::env::var(name).ok();
+    crate::social::Settings {
+        github_id: args.github_client_id.clone(),
+        github_secret: secret("RICHVIEW_GITHUB_CLIENT_SECRET"),
+        microsoft_id: args.microsoft_client_id.clone(),
+        microsoft_secret: secret("RICHVIEW_MICROSOFT_CLIENT_SECRET"),
+        google_id: args.google_client_id.clone(),
+        google_secret: secret("RICHVIEW_GOOGLE_CLIENT_SECRET"),
+        test_base: args.identity_provider_test_base.clone(),
+    }
+    .build(args.public_url.as_deref())
 }
 
 async fn server_command(args: ServerArgs) -> Result<(), String> {
@@ -399,6 +466,15 @@ async fn server_command(args: ServerArgs) -> Result<(), String> {
         }
         (None, None) => {}
     }
+    // Decided before anything is opened: a half-set client, or a stand-in on a real server, stops
+    // the start with nothing created.
+    let social = social_from(&args)?;
+    if social.is_some() && !args.hosted {
+        return Err(
+            "Sign-in with GitHub, Microsoft or Google needs --hosted: people sign up and connect providers on the hosted server."
+                .into(),
+        );
+    }
     let visibility = crate::access::Visibility::parse(&args.default_visibility)
         .ok_or("--default-visibility must be private, org or public".to_owned())?;
     let report_port = args.report_port.unwrap_or(if args.port == 0 {
@@ -415,16 +491,19 @@ async fn server_command(args: ServerArgs) -> Result<(), String> {
                 "Hosted mode refuses a service token and server-wide admin bootstrap".into(),
             );
         }
-        if !args
-            .public_url
-            .as_deref()
-            .is_some_and(|url| url.starts_with("https://"))
-            || !args
-                .report_origin
-                .as_deref()
-                .is_some_and(|url| url.starts_with("https://"))
-        {
+        let secure = |url: &Option<String>| url.as_deref().is_some_and(hosted_origin_allowed);
+        if !secure(&args.public_url) || !secure(&args.report_origin) {
             return Err("Hosted mode requires HTTPS app and separate report origins".into());
+        }
+        for url in [&args.public_url, &args.report_origin]
+            .into_iter()
+            .flatten()
+        {
+            if !url.starts_with("https://") {
+                eprintln!(
+                    "richview: hosted mode on plain HTTP at {url}: for local development only; a deployed server needs HTTPS."
+                );
+            }
         }
         if visibility != crate::access::Visibility::Private {
             return Err("Hosted mode requires private default visibility".into());
@@ -522,6 +601,19 @@ async fn server_command(args: ServerArgs) -> Result<(), String> {
             )?)
         };
         access.configure_mail(transport, args.mail_daily_limit, manual_outbox)?;
+    }
+    if let Some(social) = social {
+        let names: Vec<_> = social
+            .providers()
+            .into_iter()
+            .map(crate::social::Provider::name)
+            .collect();
+        access.configure_social(social)?;
+        let listed = match names.split_last() {
+            Some((last, rest)) if !rest.is_empty() => format!("{} and {last}", rest.join(", ")),
+            _ => names.join(""),
+        };
+        eprintln!("richview: sign-in with {listed} is on.");
     }
     if let Some(email) = args.admin_email.as_deref().filter(|e| !e.is_empty())
         && !access.has_users()
@@ -623,6 +715,8 @@ pub async fn run() -> Result<(), String> {
         | Command::Validate { format, .. }
         | Command::Check { format, .. }
         | Command::Publish { format, .. }
+        | Command::Login { format, .. }
+        | Command::Logout { format, .. }
         | Command::Init { format, .. } => format.format,
         Command::Report { command } => command.owner().format.format,
         _ => OutputFormat::Pretty,
@@ -754,8 +848,8 @@ fn finish_folder(run: &FolderRun, summary: impl Fn(&Value) -> String, format: Ou
             }
             let reports = result["reports"].as_array().map_or(&[][..], Vec::as_slice);
             println!(
-                "{} reports, {} with errors",
-                reports.len(),
+                "{}, {} with errors",
+                counted(reports.len(), "report", "reports"),
                 reports.iter().filter(|report| !ops::is_ok(report)).count()
             );
         }
@@ -828,18 +922,31 @@ async fn execute(command: Command) -> Result<(), Failure> {
             };
             let summary = |result: &Value| {
                 let target = result["output"].as_str().unwrap_or_default();
+                let number = |key: &str| {
+                    result[key]
+                        .as_u64()
+                        .and_then(|n| usize::try_from(n).ok())
+                        .unwrap_or(0)
+                };
                 if pdf {
+                    let size = result["page"].as_str().unwrap_or("A4").to_uppercase();
                     format!(
-                        "Generated {target} ({} {} pages, {} bytes, printed by {})",
-                        result["pages"],
-                        result["page"].as_str().unwrap_or("A4").to_uppercase(),
+                        "Generated {target} ({}, {} bytes, printed by {})",
+                        counted(
+                            number("pages"),
+                            &format!("{size} page"),
+                            &format!("{size} pages")
+                        ),
                         result["bytes"],
                         result["browser"]["product"]
                             .as_str()
                             .unwrap_or("the browser")
                     )
                 } else {
-                    format!("Generated {target} ({} rich blocks)", result["blocks"])
+                    format!(
+                        "Generated {target} ({})",
+                        counted(number("blocks"), "rich block", "rich blocks")
+                    )
                 }
             };
             let generate = async |report: &Path| ops::generate(&request(report)).await;
@@ -861,13 +968,20 @@ async fn execute(command: Command) -> Result<(), Failure> {
             };
             let summary = |result: &Value| {
                 format!(
-                    "{}, {} rich blocks",
+                    "{}, {}",
                     if ops::is_ok(result) {
                         "Valid"
                     } else {
                         "Invalid"
                     },
-                    result["blocks"]
+                    counted(
+                        result["blocks"]
+                            .as_u64()
+                            .and_then(|n| usize::try_from(n).ok())
+                            .unwrap_or(0),
+                        "rich block",
+                        "rich blocks"
+                    )
                 )
             };
             run_on(&input, validate, summary, format.format).await?;
@@ -880,8 +994,12 @@ async fn execute(command: Command) -> Result<(), Failure> {
             let check = async |report: &Path| ops::check(&args.read.input(report), &chart_width);
             let summary = |result: &Value| {
                 format!(
-                    "Checked {} charts: {}",
-                    result["charts"].as_array().map_or(0, Vec::len),
+                    "Checked {}: {}",
+                    counted(
+                        result["charts"].as_array().map_or(0, Vec::len),
+                        "chart",
+                        "charts"
+                    ),
                     result["status"].as_str().unwrap_or("issues")
                 )
             };
@@ -910,7 +1028,7 @@ async fn execute(command: Command) -> Result<(), Failure> {
             print!("{}", ops::learn(section.as_deref())?);
         }
         Command::Mcp => crate::mcp::serve_stdio().await?,
-        Command::Server { args } => server_command(args).await?,
+        Command::Server { args } => server_command(*args).await?,
         Command::Asset { command } => {
             let exit = crate::asset_upload::run(command).await;
             if exit != 0 {
@@ -1003,21 +1121,15 @@ async fn execute(command: Command) -> Result<(), Failure> {
                     format!("Regenerated {slug} {version}."),
                 ),
             };
-            let server = owner
-                .server
-                .clone()
-                .filter(|s| !s.is_empty())
-                .ok_or_else(|| {
-                    Failure::usage("Missing server. Pass --server or set RICHVIEW_SERVER.")
-                })?;
-            let token = owner
-                .token
-                .clone()
-                .filter(|s| !s.is_empty())
-                .ok_or_else(|| {
-                    Failure::usage("Missing API token. Set RICHVIEW_TOKEN or pass --token.")
-                })?;
-            bound_token(&server, &token)?;
+            let server = match owner.server.clone().filter(|s| !s.is_empty()) {
+                Some(server) => server,
+                None => crate::publish_destination::saved()?.ok_or_else(|| {
+                    Failure::usage(
+                        "Missing server. Pass --server, set RICHVIEW_SERVER, or run richview login.",
+                    )
+                })?,
+            };
+            let token = token_for(&server, owner.token.clone(), owner.format.format).await?;
             let result = ops::report(&server, &token, action).await?;
             let summary = match result["changed"].as_bool() {
                 Some(true) => format!("{summary} The HTML changes."),
@@ -1037,10 +1149,7 @@ async fn execute(command: Command) -> Result<(), Failure> {
             format,
         } => {
             let server = crate::publish_destination::resolve(server, choose_server, format.format)?;
-            let token = token.filter(|s| !s.is_empty()).ok_or_else(|| {
-                Failure::usage(crate::publish_destination::missing_token(&server))
-            })?;
-            bound_token(&server, &token)?;
+            let token = token_for(&server, token, format.format).await?;
             // The server renders the report before it answers, and a large upload takes a while:
             // a person at a terminal hears that it started. JSON and piped output stay unchanged.
             if matches!(format.format, OutputFormat::Pretty)
@@ -1064,8 +1173,129 @@ async fn execute(command: Command) -> Result<(), Failure> {
             let summary = publish_summary(&result, &server);
             finish(&result, summary, format.format, &args.input);
         }
+        Command::Login {
+            server,
+            with_token,
+            no_browser,
+            format,
+        } => {
+            let server = crate::publish_destination::resolve(server, false, format.format)?;
+            crate::remote::server_url(&server).map_err(Failure::usage)?;
+            let asks = matches!(format.format, OutputFormat::Pretty) && crate::sign_in::can_ask();
+            let browser = if with_token {
+                None
+            } else {
+                crate::sign_in::in_browser(
+                    &server,
+                    asks && !no_browser && crate::sign_in::may_open_browser(),
+                )
+                .await?
+            };
+            let signed_in = match browser {
+                Some(signed_in) => signed_in,
+                None if with_token || asks => {
+                    let token = crate::sign_in::read_token(&server)?;
+                    crate::sign_in::keep_token(&server, &token).await?
+                }
+                None => {
+                    return Err(Failure::usage(format!(
+                        "{server} has no sign-in through the browser, and there is no terminal to ask for a token. Pipe a CLI token to `richview login --with-token`."
+                    )));
+                }
+            };
+            // The server signed in to is where `richview publish` goes from now on, unless the
+            // environment names another.
+            if std::env::var_os("RICHVIEW_SERVER").is_none_or(|s| s.is_empty()) {
+                crate::publish_destination::remember(&server)?;
+            }
+            let result = ops::envelope(
+                Vec::new(),
+                None,
+                serde_json::json!({"server": server.trim_end_matches('/'), "account": signed_in.account, "signedIn": true}),
+            );
+            let summary = crate::sign_in::signed_in_line(&server, signed_in.account.as_deref());
+            finish(&result, summary, format.format, Path::new(""));
+        }
+        Command::Logout { server, format } => {
+            let server = match server.filter(|s| !s.is_empty()) {
+                Some(server) => server,
+                None => crate::publish_destination::saved()?.ok_or_else(|| {
+                    Failure::usage("No server named. Pass --server or set RICHVIEW_SERVER.")
+                })?,
+            };
+            // A file that cannot be used is still forgotten; only its token cannot be revoked.
+            let kept = crate::credentials::kept(&server).ok().flatten();
+            let was = crate::credentials::forget(&server)?;
+            use crate::sign_in::Revoked;
+            let revoked = match &kept {
+                Some(token) => crate::sign_in::revoke(&server, token).await,
+                None => Revoked::NotAsked,
+            };
+            let result = ops::envelope(
+                Vec::new(),
+                None,
+                serde_json::json!({"server": server.trim_end_matches('/'), "signedIn": false, "forgotten": was, "revoked": revoked == Revoked::Yes}),
+            );
+            let summary = match (was, revoked) {
+                (false, _) => format!("This computer keeps no sign-in for {server}."),
+                (true, Revoked::Yes) => {
+                    format!("Signed out of {server}. This computer's token is revoked.")
+                }
+                (true, Revoked::Unknown) => format!(
+                    "Signed out of {server} on this computer. The server no longer knew its token."
+                ),
+                (true, Revoked::NotOffered) => format!(
+                    "Signed out of {server} on this computer. This server does not revoke tokens from the command line, so the token still works until it is revoked on the server, or, if it is the server's own token, changed in its settings."
+                ),
+                (true, Revoked::NotAsked) => format!(
+                    "Signed out of {server} on this computer. The token itself works until you revoke it on the server's CLI tokens page."
+                ),
+            };
+            finish(&result, summary, format.format, Path::new(""));
+        }
     }
     Ok(())
+}
+
+/// The token a command sends to `server`: the one given, else the sign-in this computer keeps for
+/// exactly that server. On a terminal a command without either asks its person to sign in; a
+/// script or an agent is never asked and is told both ways instead.
+async fn token_for(
+    server: &str,
+    given: Option<String>,
+    format: OutputFormat,
+) -> Result<String, Failure> {
+    if let Some(token) = given.filter(|t| !t.is_empty()) {
+        if let Err(refused) = bound_token(server, &token) {
+            // A RICHVIEW_TOKEN with no RICHVIEW_SERVER names no server, so it is sent nowhere
+            // (FEA-SF-12); as the MCP tool does, the sign-in kept for this server is used instead.
+            if std::env::var("RICHVIEW_SERVER")
+                .unwrap_or_default()
+                .is_empty()
+                && let Some(kept) = crate::credentials::kept(server)?
+            {
+                eprintln!(
+                    "richview: RICHVIEW_TOKEN was not used because RICHVIEW_SERVER is not set; this computer's sign-in to {} was.",
+                    server.trim_end_matches('/')
+                );
+                return Ok(kept);
+            }
+            return Err(refused);
+        }
+        return Ok(token);
+    }
+    crate::remote::server_url(server).map_err(Failure::usage)?;
+    if let Some(kept) = crate::credentials::kept(server)? {
+        return Ok(kept);
+    }
+    if matches!(format, OutputFormat::Pretty) && crate::sign_in::can_ask() {
+        return crate::sign_in::offer(server)
+            .await?
+            .ok_or_else(|| Failure::usage("Cancelled; nothing was sent to the server."));
+    }
+    Err(Failure::usage(crate::publish_destination::missing_token(
+        server,
+    )))
 }
 
 pub async fn publish(
@@ -1301,6 +1531,12 @@ fn failure_text(failure: &Failure, input: Option<&Path>) -> String {
 pub fn hard_error(diagnostics: &[Diagnostic]) -> bool {
     ops::has_error(diagnostics)
 }
+
+/// Writes a count with its noun, singular for one and plural otherwise: `1 chart`, `0 charts`.
+pub(crate) fn counted(count: usize, one: &str, many: &str) -> String {
+    format!("{count} {}", if count == 1 { one } else { many })
+}
+
 /// Whether an output name asks for a PDF.
 pub fn names_pdf(path: &Path) -> bool {
     path.extension()
@@ -1311,6 +1547,30 @@ pub fn names_pdf(path: &Path) -> bool {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn hosted_mode_serves_plain_http_only_at_a_loopback_address() {
+        for public in [
+            "http://localhost:8080",
+            "http://127.0.0.1:8080",
+            "http://[::1]:8080",
+            "https://app.richview.ai",
+        ] {
+            assert!(hosted_origin_allowed(public), "{public}");
+        }
+        for public in [
+            "http://app.richview.ai",
+            "http://192.168.1.20:8080",
+            "http://localhost.evil.test:8080",
+            "http://localhost.:8080",
+            "http://[::ffff:127.0.0.1]:8080",
+            "http://localhost:8080/app",
+            "http://user@localhost:8080",
+            "ftp://localhost:8080",
+        ] {
+            assert!(!hosted_origin_allowed(public), "{public}");
+        }
+    }
 
     #[test]
     fn publish_summary_distinguishes_an_unchanged_republish() {

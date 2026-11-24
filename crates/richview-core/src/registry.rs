@@ -159,6 +159,8 @@ const NO: Option<&str> = None;
 /// The one value-format vocabulary of table columns, metrics and chart axes (TYP-23); `year`
 /// prints a whole number without grouping, so a year never reads `2,024` (FEA-CH-21).
 const FORMATS: &[&str] = &["number", "number_compact", "percent", "year"];
+/// The scales a table column's `heat` names (FEA-RP-69); `true` is `sequential`.
+const HEAT_SCALES: &[&str] = &["sequential", "diverging"];
 /// The built-in styles, the values of `styles` and `style.palette` (STY-05).
 pub(crate) const BUILTIN_STYLES: &[&str] =
     &["air", "brutalist", "hand-drawn", "scientific", "sleek"];
@@ -280,7 +282,7 @@ pub const TAGS: &[Tag] = &[
                 Ty::Map,
                 false,
                 NO,
-                "Names the scatter points that always get a label."
+                "Makes some series, categories or points the subject of a chart: they keep their colours, names and values, and with `mute` the rest draw in the style's quiet ink without the names and values the chart adds by itself."
             ),
             field!(
                 "highlight.by",
@@ -302,6 +304,13 @@ pub const TAGS: &[Tag] = &[
                 false,
                 NO,
                 "Values that win a label slot first."
+            ),
+            field!(
+                "highlight.mute",
+                Ty::Bool,
+                false,
+                Some("true; false on scatter"),
+                "Whether the marks `include` does not match recede into the quiet ink: on a line or area chart the series without a matching row, on a bar or lollipop chart the bars whose row does not match, on a scatter the points. `false` keeps every mark's colour and only names the highlighted."
             ),
             field!(
                 "data",
@@ -330,6 +339,13 @@ pub const TAGS: &[Tag] = &[
                 false,
                 NO,
                 "A JSON file of row mappings inside the report folder."
+            ),
+            field!(
+                "data.parquet",
+                Ty::File,
+                false,
+                NO,
+                "A Parquet file inside the report folder; the native host reads only the columns the report uses."
             ),
             field!(
                 "data.url",
@@ -790,8 +806,8 @@ pub const TAGS: &[Tag] = &[
                 "controls[n].loop",
                 Ty::Bool,
                 false,
-                Some("true"),
-                "Whether playback starts over; false plays once."
+                NO,
+                "Accepted for older reports. Playback always stops on the last frame."
             ),
             field!(
                 "controls[n].as",
@@ -1303,6 +1319,13 @@ pub const TAGS: &[Tag] = &[
                 "A JSON file of row mappings inside the report folder."
             ),
             field!(
+                "data.parquet",
+                Ty::File,
+                false,
+                NO,
+                "A Parquet file inside the report folder; the native host reads only the columns the report uses."
+            ),
+            field!(
                 "data.url",
                 Ty::Url,
                 false,
@@ -1533,6 +1556,20 @@ pub const TAGS: &[Tag] = &[
                 NO,
                 "The alignment of the column's cells."
             ),
+            field!(
+                "columns[n].heat",
+                Ty::Either(&Ty::Bool, &Ty::OneOf(HEAT_SCALES)),
+                false,
+                Some("false"),
+                "Shade a numeric column's cells by value in the style's colours: true or sequential from lowest to highest, diverging around zero."
+            ),
+            field!(
+                "heat_scale",
+                Ty::OneOf(&["column", "table"]),
+                false,
+                Some("column"),
+                "One scale for each heat column, or one for the table."
+            ),
             field!("sort", Ty::Map, false, NO, "The row order."),
             field!("sort.key", Ty::Column, true, NO, "The column to sort by."),
             field!(
@@ -1548,6 +1585,20 @@ pub const TAGS: &[Tag] = &[
                 false,
                 Some("20"),
                 "The most rows shown; a positive whole number."
+            ),
+            field!(
+                "sortable",
+                Ty::Bool,
+                false,
+                Some("true"),
+                "Whether a reader can sort the rows by a heading."
+            ),
+            field!(
+                "filter",
+                Ty::Either(&Ty::Bool, &Ty::OneOf(&["auto"])),
+                false,
+                Some("auto"),
+                "A box that keeps the rows holding the typed text; auto shows it above 10 rows."
             ),
             field!(
                 "total",
@@ -2192,6 +2243,13 @@ pub static FRONTMATTER: &[Field] = &[
         "Style names or report-relative style files; the first is the base and later ones override it. One string is one entry."
     ),
     field!(
+        "background",
+        Ty::Either(&Ty::Text, &Ty::Map),
+        false,
+        NO,
+        "The background behind the report, over every style: one word (grain, dots, grid, lines, soft, glow or a picture file in the folder), `none` for a flat page, or a mapping with texture, gradient, picture, place and strength."
+    ),
+    field!(
         "collapsed_sections",
         Ty::List(&Ty::Text),
         false,
@@ -2358,6 +2416,13 @@ pub static FRONTMATTER: &[Field] = &[
         false,
         Some("true"),
         "Shows how far the reader has scrolled as a thin bar in the report's colours along the bottom of the window."
+    ),
+    field!(
+        "slides",
+        Ty::Bool,
+        false,
+        Some("false"),
+        "`true` turns the source into slides: the title slide, then one slide for each top-level heading or `---` of the body; the style's stage sets the look."
     ),
 ];
 
@@ -3126,10 +3191,22 @@ pub static CODES: &[Code] = &[
     code!(
         "data.limit",
         Error,
-        "A resolved dataset exceeds 16 MiB.",
+        "A resolved dataset exceeds 16 MiB, or a Parquet file one million rows.",
         true
     ),
     code!("data.csv", Error, "A CSV dataset cannot be read.", true),
+    code!(
+        "data.parquet",
+        Error,
+        "A Parquet dataset cannot be read.",
+        true
+    ),
+    code!(
+        "data.parquet.non-finite",
+        Warning,
+        "A Parquet column holds NaN or infinite values, read as missing.",
+        true
+    ),
     code!(
         "data.csv.header",
         Error,
@@ -3175,7 +3252,7 @@ pub static CODES: &[Code] = &[
     code!(
         "publish.new-slug",
         Error,
-        "This report address is new and needs --new to be created.",
+        "This publish expected an existing report address.",
         false
     ),
     code!(
@@ -3418,7 +3495,7 @@ pub static CODES: &[Code] = &[
     code!(
         "style.retired",
         Warning,
-        "A style leaf is retired and ignored.",
+        "A retired author style key or motion value is ignored.",
         false
     ),
     code!("style.schema", Warning, "A style leaf is invalid.", false),
@@ -3438,12 +3515,6 @@ pub static CODES: &[Code] = &[
         "style.company-palette",
         Warning,
         "A distinct brand palette could not be derived.",
-        false
-    ),
-    code!(
-        "style.company-color",
-        Warning,
-        "A company colour is translucent or unresolved.",
         false
     ),
     code!(
@@ -3558,12 +3629,6 @@ pub static CODES: &[Code] = &[
         "style.experimental",
         Warning,
         "A style leaf is experimental: it can break the layout in ways nobody expects.",
-        false
-    ),
-    code!(
-        "style.legacy",
-        Warning,
-        "A style leaf of the presets' internal vocabulary still applies; a preset, colours or a five-step setting replaces it.",
         false
     ),
     code!(
@@ -3778,6 +3843,12 @@ pub static CODES: &[Code] = &[
         true
     ),
     code!(
+        "table.heat",
+        Warning,
+        "A table column asks for heat but is not all numbers.",
+        true
+    ),
+    code!(
         "security.runtime-url",
         Warning,
         "The chart runtime address is not allowed.",
@@ -3859,6 +3930,18 @@ pub static CODES: &[Code] = &[
         "columns.options",
         Warning,
         "The options after `::: columns` are not a YAML mapping, so the columns take their defaults.",
+        true
+    ),
+    code!(
+        "slides.tabs",
+        Warning,
+        "A slides source has no tabs, so the tabs setting has no effect.",
+        true
+    ),
+    code!(
+        "slides.density",
+        Warning,
+        "A slide holds more than one screen shows well: too many numbers, figures, words or table rows.",
         true
     ),
     // Charts.
@@ -4349,7 +4432,7 @@ pub const FIXES: &[(&str, &str)] = &[
     ),
     (
         "data.local",
-        "Keep exactly one `data` source (`inline`, `csv`, `json`, `url`, `sql`, `metricflow` or `cache`) and remove the others.",
+        "Keep exactly one `data` source (`inline`, `csv`, `json`, `parquet`, `url`, `sql`, `metricflow` or `cache`) and remove the others.",
     ),
     (
         "data.unresolved",
@@ -4357,11 +4440,19 @@ pub const FIXES: &[(&str, &str)] = &[
     ),
     (
         "data.limit",
-        "Reduce the dataset below 16 MiB by filtering rows or dropping columns.",
+        "Reduce the dataset below 16 MiB by filtering rows or dropping columns; aggregate a large Parquet file with SQL through a `parquet` connector.",
     ),
     (
         "data.csv",
         "Repair the CSV so it parses: consistent columns, valid quoting, UTF-8.",
+    ),
+    (
+        "data.parquet",
+        "Export the file again as unencrypted Parquet with scalar columns, or save the data as CSV and use `data.csv`.",
+    ),
+    (
+        "data.parquet.non-finite",
+        "Write those values as nulls when exporting the file, or check the calculation that produced them.",
     ),
     (
         "markdown.table-header",
@@ -4459,7 +4550,7 @@ pub const FIXES: &[(&str, &str)] = &[
     ),
     (
         "publish.new-slug",
-        "Pass --new to create this report address, or correct the slug.",
+        "Check the slug or pass --new to create a separate report.",
     ),
     (
         "publish.quota",
@@ -4763,7 +4854,7 @@ pub const FIXES: &[(&str, &str)] = &[
     ),
     (
         "style.retired",
-        "Remove the retired leaf; the message says why it no longer applies.",
+        "Remove the retired setting or use the replacement named in the message.",
     ),
     (
         "style.schema",
@@ -4780,10 +4871,6 @@ pub const FIXES: &[(&str, &str)] = &[
     (
         "style.company-palette",
         "Choose another brand colour or supply a checked explicit palette.",
-    ),
-    (
-        "style.company-color",
-        "Use an opaque concrete colour such as #0B6E69.",
     ),
     (
         "style.logo-path",
@@ -4850,10 +4937,6 @@ pub const FIXES: &[(&str, &str)] = &[
     (
         "style.experimental",
         "Remove the leaf, or keep it only after checking the report at phone and desktop widths.",
-    ),
-    (
-        "style.legacy",
-        "Use the replacement the message names: a preset, `colors` or a five-step setting.",
     ),
     (
         "style.internal",
@@ -4949,6 +5032,10 @@ pub const FIXES: &[(&str, &str)] = &[
         "List the columns to sum, such as `total: [accounts, revenue]`.",
     ),
     (
+        "table.heat",
+        "Set `heat` only on a column whose cells are all numbers, or remove it.",
+    ),
+    (
         "security.runtime-url",
         "Use the embedded runtime, or a root-relative path or an https base without credentials, query or fragment.",
     ),
@@ -5003,6 +5090,14 @@ pub const FIXES: &[(&str, &str)] = &[
     (
         "columns.options",
         "Write the options as a mapping, such as `::: columns {widths: 2-1, gap: large}`.",
+    ),
+    (
+        "slides.tabs",
+        "Remove `tabs`, or remove `slides: true` to render the report with its tabs.",
+    ),
+    (
+        "slides.density",
+        "Start a new slide: put a top-level heading, or a `---` line, before the content that does not fit.",
     ),
     (
         "chart.states-unchecked",

@@ -115,6 +115,23 @@ function assertCopyableCode(actual, source, name) {
   assert.deepEqual(actual, codeExamples(docsSource(source)), `${name} changed copyable code`);
 }
 
+async function assertPageCopyableCode(page, name) {
+  const blocks = await page.locator('.rv-report__body pre code').allTextContents();
+  if (name.startsWith('charts/')) {
+    const reportPath = `/examples/${name}/report.rmd`;
+    const link = page.locator('[data-copy-source] + a');
+    assert.equal(await link.getAttribute('href'), `/playground?src=${reportPath}`, `${name} playground source`);
+    const report = await page.request.get(new URL(reportPath, page.url()).href);
+    assert.equal(report.status(), 200, reportPath);
+    assert.equal(blocks.length, 1, `${name} must have one copyable report`);
+    assert.equal(await page.locator('.rv-report__body pre code.language-rmd').count(), 1, `${name} Copy source target`);
+    assert.deepEqual(Buffer.from(blocks[0], 'utf8'), await report.body(), `${name} copy differs from the packaged playground report`);
+    return;
+  }
+  const file = name === 'reference' ? 'docs/RMD-SPEC.md' : `docs/public/${name}.md`;
+  assertCopyableCode(blocks, readFileSync(join(root, file), 'utf8'), name);
+}
+
 async function startServer(binary, args, serverEnv = env) {
   const process = spawn(binary, args, { cwd: root, env: serverEnv, stdio: ['ignore', 'pipe', 'pipe'] });
   const base = await new Promise((accept, reject) => {
@@ -189,7 +206,7 @@ async function nativePhase() {
   writeFileSync(join(copied, 'report.rmd'), snippet);
   for (const action of ['validate', 'check', 'generate']) json(action, join(copied, 'report.rmd'));
   observations.push({ caseKey: 'native/authoring-snippet', ok: true });
-  for (const section of ['grammar', 'chart-contract', 'style', 'workflow', 'anti-slop']) assert.ok(command(['learn', section]).length > 100);
+  for (const section of ['grammar', 'chart-contract', 'style', 'workflow', 'anti-slop', 'slides']) assert.ok(command(['learn', section]).length > 100);
   observations.push({ caseKey: 'native/learn', ok: true });
   for (const action of ['validate', 'check', 'generate']) evidence.cli[action] = json(action);
   assert.equal(evidence.cli.validate.ok, true);
@@ -264,7 +281,7 @@ async function nativePhase() {
   const native = await startServer(cli, ['server', '--port', '0', '--data-dir', join(h.dir, 'publish-store')], { ...env, RICHVIEW_TOKEN: token });
   try {
     const publish = (status = 0) => {
-      const result = spawnSync(cli, ['publish', file, '--server', native.base, '--new', '--format', 'json'], { cwd: root, env: { ...env, RICHVIEW_TOKEN: token, RICHVIEW_SERVER: native.base }, encoding: 'utf8', timeout: 30_000 });
+      const result = spawnSync(cli, ['publish', file, '--server', native.base, '--format', 'json'], { cwd: root, env: { ...env, RICHVIEW_TOKEN: token, RICHVIEW_SERVER: native.base }, encoding: 'utf8', timeout: 30_000 });
       assert.equal(result.status, status, result.stderr || result.stdout);
       return JSON.parse(result.stdout);
     };
@@ -349,7 +366,7 @@ async function startNavigation() {
         assert.equal(await page.locator(`[id="${decodeURIComponent(href.slice(1))}"]`).count(), 1, `Broken section link ${name}${href}`);
       }
       if (width === 1440) {
-        if (guidePages.includes(name) || name.startsWith('charts/')) assertCopyableCode(await page.locator('.rv-report__body pre code').allTextContents(), readFileSync(join(root, `docs/public/${name}.md`), 'utf8'), name);
+        await assertPageCopyableCode(page, name);
         const codeAudit = await page.locator('.docs-code pre').evaluateAll(nodes => {
           const painter = new OffscreenCanvas(1, 1).getContext('2d', { willReadFrequently: true });
           const luminance = color => {
@@ -394,6 +411,14 @@ async function startNavigation() {
       }
       for (const url of await page.locator('a[href]').evaluateAll(nodes => nodes.map(node => node.href))) if (url.startsWith(h.base)) links.add(url);
       if (name === 'index') {
+        const slides = page.locator(`${menu} nav a[href="/docs/slides"]`);
+        assert.equal(await slides.count(), 1);
+        assert.equal(await slides.evaluate(link => {
+          let group = link.previousElementSibling;
+          while (group && !group.matches('.docs-nav__group')) group = group.previousElementSibling;
+          return group?.textContent;
+        }), 'How to use');
+        assert.equal(await page.locator('.rv-report__body a[href*="/docs/slides"], .rv-report__body iframe[src*="/monthly-review/"]').count(), 0);
         await page.screenshot({ path: join(h.dir, `docs-${width}.png`), fullPage: true });
         await page.screenshot({ path: join(h.dir, `docs-top-${width}.png`) });
         await page.locator('.docs-report-grid').scrollIntoViewIfNeeded();
@@ -485,7 +510,8 @@ async function finishNavigation({ page, links }) {
       const payload = JSON.parse(document.querySelector('script[data-rv-payload]').textContent);
       const [r, g, b] = window.__richview.charts()[0].geometry.series[0].color;
       return {
-        background: getComputedStyle(document.body).backgroundColor,
+        // The page colour, read from the style: a page background (STY-74) leaves the body transparent.
+        background: getComputedStyle(document.documentElement).getPropertyValue('--rv-bg').trim(),
         font: getComputedStyle(document.querySelector('.rv-report__body')).fontFamily,
         palette: (() => {
           const painter = new OffscreenCanvas(1, 1).getContext('2d', { willReadFrequently: true });

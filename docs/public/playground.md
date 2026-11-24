@@ -8,7 +8,7 @@ styles: [scientific]
 
 ## Edit the source, data and style
 
-Write ordinary Markdown around tagged blocks. Use inline data for a self-contained draft, or load a report folder and its local data and style resources. The same folder boundary applies as on the native command: one source, with its referenced files kept beside it. A browser draft cannot run SQL or MetricFlow queries.
+Write ordinary Markdown around tagged blocks. Paste drafts with inline rows. **Open in playground** loads a supplied example with its data and style files. To render a folder on your own disk, run `richview generate` with the path to its `.rmd` file. A browser draft cannot run SQL or MetricFlow queries.
 
 Choose a builtin style to compare the same observations. Keep the original values, units and source note as you change the presentation. Read the diagnostics before exporting; a preview can remain available while a block needs repair.
 

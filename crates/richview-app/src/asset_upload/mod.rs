@@ -230,11 +230,12 @@ fn describe(event: &Value) -> Option<String> {
         ),
         "exists" => format!("Already stored at {}", text("key")),
         "progress" => format!(
-            "{} of {} bytes, {}/{} parts",
+            "{} of {} bytes, {}/{} part{}",
             number("sent"),
             number("total"),
             number("parts_done"),
-            number("parts")
+            number("parts"),
+            if number("parts") == 1 { "" } else { "s" }
         ),
         "retry" => format!(
             "Retrying {} in {} ms (attempt {}): {}",
@@ -413,10 +414,28 @@ pub fn progress_of(event: &Value) -> Option<(u64, u64, String)> {
             event["sent"].as_u64().unwrap_or_default(),
             event["total"].as_u64().unwrap_or_default(),
             format!(
-                "{} of {} parts",
+                "{} of {} part{}",
                 event["parts_done"].as_u64().unwrap_or_default(),
-                event["parts"].as_u64().unwrap_or_default()
+                event["parts"].as_u64().unwrap_or_default(),
+                if event["parts"] == 1 { "" } else { "s" }
             ),
         )
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{describe, progress_of};
+    use serde_json::json;
+
+    #[test]
+    fn one_part_reads_in_the_singular() {
+        let one = json!({"event": "progress", "sent": 5, "total": 5, "parts_done": 1, "parts": 1});
+        assert_eq!(describe(&one).as_deref(), Some("5 of 5 bytes, 1/1 part"));
+        assert_eq!(progress_of(&one).unwrap().2, "1 of 1 part");
+        let three =
+            json!({"event": "progress", "sent": 5, "total": 9, "parts_done": 1, "parts": 3});
+        assert_eq!(describe(&three).as_deref(), Some("5 of 9 bytes, 1/3 parts"));
+        assert_eq!(progress_of(&three).unwrap().2, "1 of 3 parts");
+    }
 }

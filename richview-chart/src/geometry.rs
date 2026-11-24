@@ -930,8 +930,10 @@ impl Geometry {
     }
 
     /// Restores dropped values and their diagnostics from the canonical observation readouts: a
-    /// value takes the printed text of the readout line it names, else of the first line of its
-    /// series.
+    /// value takes the printed text of the readout line it names, when that line is its series'
+    /// own, else of the first line of its series. A named line that belongs to no series (a
+    /// price period's high or low) gives its name before its text, "Low 99.5", because the
+    /// number alone would not say which of the period's values was left out.
     pub fn restore_value_drop_text(&mut self) {
         let mut changed = false;
         for dropped in &mut self.dropped {
@@ -945,12 +947,18 @@ impl Geometry {
                 && let Some(line) = dropped
                     .line
                     .and_then(|n| readout.lines.get(n))
-                    .filter(|line| line.series == Some(series))
+                    .filter(|line| line.series.is_none_or(|of| of == series))
                     .or_else(|| readout.lines.iter().find(|line| line.series == Some(series)))
-                && dropped.text != line.printed()
             {
-                line.printed().clone_into(&mut dropped.text);
-                changed = true;
+                let text = if line.series.is_none() {
+                    format!("{} {}", line.name, line.printed())
+                } else {
+                    line.printed().to_owned()
+                };
+                if dropped.text != text {
+                    dropped.text = text;
+                    changed = true;
+                }
             }
         }
         if changed {

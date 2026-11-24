@@ -120,14 +120,14 @@ height: 756
 
 ## The warmest years
 
-The warmest years are all recent. 2014 is the twelfth warmest year, so the twelve warmest years of the record are its last twelve. The table opens on the warmest eleven; its remaining rows hold the whole record, and a click on a column heading sorts it.
+The warmest years are all recent. 2014 is the twelfth warmest year, so the twelve warmest years of the record are its last twelve. The table opens on the warmest eleven; its remaining rows hold the whole record. Each anomaly is shaded by its distance from the baseline, cooler on one side and warmer on the other; a click on a column heading sorts the record, and the filter box finds a year or a decade, such as `199`.
 
 ```table
 title: The record, warmest year first
 data: { csv: data/global-temperature.csv }
 columns:
   - { key: year, label: Year, format: year, align: left }
-  - { key: anomaly_c, label: "Anomaly, °C", align: right }
+  - { key: anomaly_c, label: "Anomaly, °C", align: right, heat: diverging }
 sort: { key: anomaly_c, dir: desc }
 max_rows: 11
 ```

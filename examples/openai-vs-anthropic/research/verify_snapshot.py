@@ -40,7 +40,7 @@ def main() -> None:
             if expected != actual:
                 raise AssertionError(f"Snapshot changed: {relative}")
             checks[relative] = {"identical": True, "bytes": len(actual), "sha256": hashlib.sha256(actual).hexdigest()}
-        for relative in ("content/report.json", "data/facts.json", "data/charts/index.json"):
+        for relative in ("content/report.json", "content/citations.json", "data/facts.json", "data/charts/index.json"):
             if json.loads((original / relative).read_text()) != json.loads((rebuilt / relative).read_text()):
                 raise AssertionError(f"Portable content changed: {relative}")
             checks[relative] = {"semantic_identical": True}

@@ -364,16 +364,35 @@ fn render(
     flags: BuildFlags,
     css: &str,
 ) -> Result<Vec<(String, Vec<serde_json::Value>)>> {
+    let variants: Vec<(String, Vec<String>)> = styles
+        .iter()
+        .map(|style| ((*style).to_owned(), vec![(*style).to_owned()]))
+        .collect();
+    render_variants(source, options, folder, &variants, false, flags, css)
+}
+
+/// Write the preview page of `source` once per variant, a file name and its style list, into
+/// `folder`, and return each variant's chart payloads. The report's header is dropped unless
+/// `header` asks to keep it.
+fn render_variants(
+    source: &str,
+    options: &RenderOptions,
+    folder: &Path,
+    variants: &[(String, Vec<String>)],
+    header: bool,
+    flags: BuildFlags,
+    css: &str,
+) -> Result<Vec<(String, Vec<serde_json::Value>)>> {
     fs::create_dir_all(folder)?;
     let source = without_reading_aids(&public::source(source, flags)?);
     let mut charts = Vec::new();
-    for style in styles {
+    for (style, styles) in variants {
         let mut options = options.clone();
-        options.styles = vec![(*style).into()];
+        options.styles = styles.clone();
         let report = richview_core::document::render(&source, &options)
             .map_err(|errors| format!("Preview: {errors:?}"))?;
         ensure_clean(style, &report.diagnostics)?;
-        charts.push(((*style).to_owned(), report.charts));
+        charts.push((style.clone(), report.charts));
         let mut html = report.html;
         // Opaque sandboxed frames need credentials for the gated preview host.
         let script = html
@@ -392,7 +411,8 @@ fn render(
             "crossorigin=\"use-credentials\"",
         );
         html.replace_range(script..end, &tag);
-        if let Some(start) = html.find("<header class=\"rv-report__header\"")
+        if !header
+            && let Some(start) = html.find("<header class=\"rv-report__header\"")
             && let Some(end) = html[start..].find("</header>")
         {
             html.replace_range(start..start + end + "</header>".len(), "");
@@ -613,7 +633,7 @@ pub(super) fn stage(
     )?;
     for &(name, _) in REPORTS
         .iter()
-        .filter(|(name, _)| !["blocks", "typography"].contains(name))
+        .filter(|(name, _)| *name != SLIDES_REPORT && !live_report_preview(name))
     {
         report_pictures(
             name,
@@ -626,7 +646,49 @@ pub(super) fn stage(
             &mut names,
         )?;
     }
+    backgrounds(&preview.join("backgrounds"), &options, charts, flags, &css)?;
     name_pictures(docs, &names)
+}
+
+/// The backgrounds guide's frames (STY-74): the three presets that ship a background, then each
+/// word over Air, as a short report with its header, since the background is the page's.
+pub(super) const BACKGROUNDS: [(&str, &str, &str, Option<&str>); 9] = [
+    ("hand-drawn", "Hand-drawn: grain", "hand-drawn", None),
+    ("scientific", "Scientific: grid", "scientific", None),
+    ("sleek", "Sleek: glow", "sleek", None),
+    ("grain", "grain", "air", Some("grain")),
+    ("dots", "dots", "air", Some("dots")),
+    ("grid", "grid", "air", Some("grid")),
+    ("lines", "lines", "air", Some("lines")),
+    ("soft", "soft", "air", Some("soft")),
+    ("glow", "glow", "air", Some("glow")),
+];
+
+fn backgrounds(
+    folder: &Path,
+    options: &RenderOptions,
+    charts: &[ChartPage],
+    flags: BuildFlags,
+    css: &str,
+) -> Result<()> {
+    let line = charts
+        .iter()
+        .find(|page| page.name == "line")
+        .ok_or("the backgrounds preview needs the line chart's page")?;
+    let source = format!(
+        "---\ntitle: Orders doubled in the launch week\ndescription: A short report on a background.\nauthor: RichView example\n---\n\nThe launch week brought **1,240** orders, twice the week before. Text keeps its contrast over every pixel of the background; the chart keeps its own surface.\n\n{}\n\n*Source: fictional inline example data.*\n",
+        line.chart_fence
+    );
+    let variants: Vec<(String, Vec<String>)> = BACKGROUNDS
+        .iter()
+        .map(|(file, _, preset, word)| {
+            let mut styles = vec![(*preset).to_owned()];
+            styles.extend(word.map(|word| format!("background: {word}\n")));
+            ((*file).to_owned(), styles)
+        })
+        .collect();
+    render_variants(&source, options, folder, &variants, true, flags, css)?;
+    Ok(())
 }
 
 /// A report's pictures on the Reports page: its first chart as the report renders it, with its own

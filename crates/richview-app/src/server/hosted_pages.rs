@@ -241,6 +241,8 @@ fn note(notice: &str) -> String {
         .contains(&notice)
             || [
                 "Saved ",
+                "Connected ",
+                "Disconnected ",
                 "Invited ",
                 "Shared with ",
                 "Added ",
@@ -286,9 +288,139 @@ fn shell(command: &str) -> String {
     )
 }
 
+/// A provider this server has a client for, as a page offers it.
+#[derive(Clone, Copy)]
+pub(super) struct Offer {
+    pub slug: &'static str,
+    pub name: &'static str,
+}
+
+/// GitHub's mark in the colour of the text around it. Drawn here, so no page loads an image or a
+/// script from a provider (INT-80).
+const GITHUB_LOGO: &str = "<svg class=\"logo\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12\"/></svg>";
+
+/// Microsoft's four squares, in its brand colours.
+const MICROSOFT_LOGO: &str = "<svg class=\"logo\" viewBox=\"0 0 23 23\" aria-hidden=\"true\"><path fill=\"#f35325\" d=\"M1 1h10v10H1z\"/><path fill=\"#81bc06\" d=\"M12 1h10v10H12z\"/><path fill=\"#05a6f0\" d=\"M1 12h10v10H1z\"/><path fill=\"#ffba08\" d=\"M12 12h10v10H12z\"/></svg>";
+
+/// Google's "G" in its four colours, as Google's sign-in branding shows it.
+const GOOGLE_LOGO: &str = "<svg class=\"logo\" viewBox=\"0 0 48 48\" aria-hidden=\"true\"><path fill=\"#ea4335\" d=\"M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z\"/><path fill=\"#4285f4\" d=\"M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z\"/><path fill=\"#fbbc05\" d=\"M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z\"/><path fill=\"#34a853\" d=\"M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z\"/></svg>";
+
+fn logo(slug: &str) -> &'static str {
+    match slug {
+        "github" => GITHUB_LOGO,
+        "microsoft" => MICROSOFT_LOGO,
+        "google" => GOOGLE_LOGO,
+        _ => "",
+    }
+}
+
+/// One link per provider, then a rule between them and the form below: `verb` is "Continue" or
+/// "Sign up". `back` is where the person was going; it travels in the link, never in a form.
+fn provider_links(offers: &[Offer], verb: &str, back: Option<&str>) -> String {
+    if offers.is_empty() {
+        return String::new();
+    }
+    let back = back.map_or_else(String::new, |back| {
+        format!("?back={}", super::encode_value(back))
+    });
+    let links: String = offers
+        .iter()
+        .map(|offer| {
+            format!(
+                "<a class=\"provider\" href=\"/sign-in/{}{}\">{}<span>{verb} with {}</span></a>",
+                offer.slug,
+                escape(&back),
+                logo(offer.slug),
+                offer.name
+            )
+        })
+        .collect();
+    format!(
+        "<div class=\"providers\">{links}</div><p class=\"or\" aria-hidden=\"true\"><span>or</span></p>"
+    )
+}
+
+/// A provider's button that posts: the invitation page, where the link's token travels in the body.
+fn provider_forms(offers: &[Offer], token: &str) -> String {
+    if offers.is_empty() {
+        return String::new();
+    }
+    let token = escape(token);
+    let forms: String = offers
+        .iter()
+        .map(|offer| {
+            format!(
+                "<form method=\"post\" action=\"/sign-in/{}/invite\"><input type=\"hidden\" name=\"token\" value=\"{token}\"><button class=\"docs-button provider\" type=\"submit\">{}<span>Continue with {}</span></button></form>",
+                offer.slug,
+                logo(offer.slug),
+                offer.name
+            )
+        })
+        .collect();
+    format!(
+        // Whoever makes an account this way sees the terms, as the form above shows them.
+        "<p class=\"or\" aria-hidden=\"true\"><span>or</span></p><div class=\"providers\">{forms}</div><p class=\"fine\">By creating an account, you agree to the <a href=\"https://richview.ai/terms\">Terms</a> and <a href=\"https://richview.ai/privacy\">Privacy policy</a>.</p>"
+    )
+}
+
+/// A page that sends the browser on by itself, and by a link where the browser does not. A
+/// redirect would not carry the session cookie: the cookie is `SameSite=Strict`, and a redirect
+/// that began at a provider counts as the provider's.
+pub(super) fn continue_on(title: &str, message: &str, target: &str) -> String {
+    format!(
+        "<div class=\"cowork-auth\"><h1>{}</h1><p class=\"lede\">{}</p><p class=\"cowork-actions\"><a class=\"docs-button\" href=\"{}\">Continue</a></p></div>",
+        escape(title),
+        escape(message),
+        escape(target)
+    )
+}
+
+/// A provider sign-in that ended in a refusal, in a few plain words.
+pub(super) fn sign_in_problem(title: &str, message: &str) -> String {
+    format!(
+        "<div class=\"cowork-auth\"><h1>{}</h1><p class=\"lede\">{}</p><p class=\"ways\"><a href=\"/\">Back to sign in</a><a href=\"/sign-up\">Create account</a></p></div>",
+        escape(title),
+        escape(message)
+    )
+}
+
+/// The provider vouched for no address: nothing was created or joined.
+pub(super) fn nothing_vouched(provider: &str) -> String {
+    let provider = escape(provider);
+    format!(
+        "<div class=\"cowork-auth\"><h1>We couldn’t confirm your address</h1><p class=\"lede\">{provider} did not give us an email address it has verified, so we can’t tell which RichView account is yours, and we haven’t created or changed one.</p><p class=\"lede\">Sign in with your email address and connect {provider} on the Account page, or create an account by email first.</p><p class=\"ways\"><a href=\"/\">Sign in</a><a href=\"/sign-up\">Create account</a></p></div>"
+    )
+}
+
+/// A stranger the provider vouches for: what the new account will carry, and the terms.
+pub(super) fn confirm_new_account(
+    provider: &Offer,
+    name: &str,
+    email: &str,
+    confirmation: &str,
+) -> String {
+    format!(
+        "<div class=\"cowork-auth\"><h1>Create your account</h1><p class=\"lede\">{} says this is you. We’ll create a RichView account with these details.</p><dl class=\"facts\"><dt>Name</dt><dd>{}</dd><dt>Email</dt><dd>{}</dd></dl><form class=\"panel\" method=\"post\" action=\"/sign-in/{}/confirm\"><input type=\"hidden\" name=\"confirmation\" value=\"{}\"><button type=\"submit\">Create account</button><p class=\"fine\">By creating an account, you agree to the <a href=\"https://richview.ai/terms\">Terms</a> and <a href=\"https://richview.ai/privacy\">Privacy policy</a>.</p></form><p class=\"ways\"><a href=\"/\">Cancel</a></p></div>",
+        escape(provider.name),
+        escape(name),
+        escape(email),
+        provider.slug,
+        escape(confirmation)
+    )
+}
+
 /// The first step takes no password; the mail link proves the address first.
-pub(super) fn sign_up() -> String {
-    r#"<div class="cowork-auth"><h1>Create account</h1><p class="lede">Publish the reports your agent writes. They’re private by default, with 50 MiB and 50 reports free.</p><form class="panel" method="post" action="/ui/sign-up"><div class="field"><label for="email">Email</label><input id="email" type="email" name="email" required autocomplete="email" aria-describedby="email-hint"><p class="hint" id="email-hint">We’ll mail you a link. You set your name and password after you open it.</p></div><button type="submit">Send sign-up link</button><p class="fine">By creating an account, you agree to the <a href="https://richview.ai/terms">Terms</a> and <a href="https://richview.ai/privacy">Privacy policy</a>.</p></form><div class="steps-aside"><h2>After you sign up</h2><ol><li>Create a CLI token for your agent.</li><li>Your agent publishes a report with one command.</li><li>You choose who opens it: only you, your organization, people you name, or anyone with the link.</li></ol></div><p class="ways"><span>Already have an account? <a href="/">Sign in</a></span></p></div>"#.to_owned()
+pub(super) fn sign_up(offers: &[Offer], byte_limit: u64, report_limit: u64) -> String {
+    let storage = escape(&mebibytes(byte_limit));
+    let unit = if report_limit == 1 {
+        "report"
+    } else {
+        "reports"
+    };
+    let providers = provider_links(offers, "Sign up", None);
+    format!(
+        r#"<div class="cowork-auth"><h1>Create account</h1><p class="lede">Publish the reports your agent writes. They’re private by default, with {storage} and {report_limit} {unit} free.</p>{providers}<form class="panel" method="post" action="/ui/sign-up"><div class="field"><label for="email">Email</label><input id="email" type="email" name="email" required autocomplete="email" aria-describedby="email-hint"><p class="hint" id="email-hint">We’ll mail you a link. You set your name and password after you open it.</p></div><button type="submit">Send sign-up link</button><p class="fine">By creating an account, you agree to the <a href="https://richview.ai/terms">Terms</a> and <a href="https://richview.ai/privacy">Privacy policy</a>.</p></form><div class="steps-aside"><h2>After you sign up</h2><ol><li>Create a CLI token for your agent.</li><li>Your agent publishes a report with one command.</li><li>You choose who opens it: only you, your organization, people you name, or anyone with the link.</li></ol></div><p class="ways"><span>Already have an account? <a href="/">Sign in</a></span></p></div>"#
+    )
 }
 
 /// A report the caller has already found the signed-in person may open.
@@ -332,6 +464,20 @@ pub(super) struct ReportList<'a> {
     /// Whether the person may publish in the current organization.
     pub can_publish: bool,
     pub usage: Option<&'a AccountUsage>,
+    /// Joins whose notice mail has not gone yet: the provider's name and when, in UTC.
+    pub unsent: &'a [(&'a str, &'a str)],
+}
+
+/// The alerts for joins whose notice mail could not go yet, until the mail goes.
+pub(super) fn unsent_notes(unsent: &[(&str, &str)]) -> String {
+    unsent
+        .iter()
+        .map(|(name, at)| {
+            note(&format!(
+                "{name} was connected on {at}. We could not mail you about it yet. If it was not you, disconnect it and change your password."
+            ))
+        })
+        .collect()
 }
 
 fn create_organization(csrf: &str) -> String {
@@ -366,7 +512,7 @@ pub(super) fn reports(list: &ReportList<'_>) -> String {
     let mut body = format!(
         r#"{}<div class="page-head"><div><h1>Reports</h1>{lede}</div>{usage}</div>{}"#,
         app_chrome(nav, "reports", list.show, list.query, None),
-        note(list.notice)
+        note(list.notice) + &unsent_notes(list.unsent)
     );
     for invite in list.invites {
         body.push_str(&format!(r#"<form class="note note--info invite" method="post" action="/ui/invitations/{}/accept"><input type="hidden" name="csrf" value="{}"><span>{} invited you to join <strong>{}</strong> as {}.</span><button type="submit">Join {}</button></form>"#, escape(invite.id), escape(nav.csrf), escape(invite.inviter), escape(invite.organization), escape(invite.role), escape(invite.organization)));
@@ -376,7 +522,7 @@ pub(super) fn reports(list: &ReportList<'_>) -> String {
             None => body.push_str(&create_organization(nav.csrf)),
             Some(_) if list.can_publish => {
                 let command = format!(
-                    "export RICHVIEW_SERVER={}\nexport RICHVIEW_TOKEN=your-token\nrichview publish report.rmd --new",
+                    "export RICHVIEW_SERVER={}\nexport RICHVIEW_TOKEN=your-token\nrichview publish report.rmd",
                     shell_quote(list.server)
                 );
                 // An organization still carries the name sign-up gave it, after its owner, until
@@ -663,7 +809,7 @@ pub(super) fn report(page: &ReportPage<'_>) -> String {
             way(
                 "public",
                 page.organization,
-                "<strong>Anyone with the link can open it, without signing in.</strong> Use it only for a report that holds nothing private.",
+                "<strong>Anyone with the link can open the report without signing in, read the original Markdown and save a copy.</strong> Use it only for a report that holds nothing private.",
                 "Make public",
                 "docs-button--danger",
             ),
@@ -1190,6 +1336,8 @@ pub(super) struct InvitePage<'a> {
     pub account_exists: bool,
     pub submitted_name: &'a str,
     pub error: &'a str,
+    /// The providers the invited person may accept with instead of a password.
+    pub offers: &'a [Offer],
 }
 
 /// What an invitation opens and who sent it, for the ink side beside its form, in place of the
@@ -1269,22 +1417,36 @@ pub(super) fn accept_invite(page: &InvitePage<'_>) -> String {
     } else {
         format!(r#" value="{}""#, escape(page.submitted_name))
     };
+    // An existing account does not take a provider through its invitation: its owner signs in and
+    // connects one on the Account page.
+    let providers = if page.account_exists {
+        String::new()
+    } else {
+        provider_forms(page.offers, page.token)
+    };
     if page.account_exists {
         return format!(
-            r#"{card}<div class="cowork-auth"><h1>{title}</h1><p class="lede">{sentence}</p><form class="panel" method="post" action="/ui/link/{token}"><button type="submit">Accept and sign in</button><p class="fine">You already have a RichView account for this address. Accept, then sign in as usual.</p></form></div>"#
+            r#"{card}<div class="cowork-auth"><h1>{title}</h1><p class="lede">{sentence}</p><form class="panel" method="post" action="/ui/link/{token}"><button type="submit">Accept and sign in</button><p class="fine">You already have a RichView account for this address. Accept, then sign in as usual.</p></form>{providers}</div>"#
         );
     }
+    // One terms line, at the foot: under the provider buttons when they are offered.
+    let terms = if providers.is_empty() {
+        r#"<p class="fine">By creating an account, you agree to the <a href="https://richview.ai/terms">Terms</a> and <a href="https://richview.ai/privacy">Privacy policy</a>.</p>"#
+    } else {
+        ""
+    };
     let hint = if hint {
         format!(r#"<p class="hint">Set up your account to {action}.</p>"#)
     } else {
         String::new()
     };
     format!(
-        r#"{card}<div class="cowork-auth"><h1>{title}</h1><p class="lede">{sentence}</p>{hint}{notice}<form class="panel" method="post" action="/ui/link/{token}"><div class="field"><label for="name">Name</label><input id="name" name="name" required autocomplete="name"{name_value}></div><div class="field"><label for="password">Password</label><input id="password" type="password" name="password" required minlength="12" autocomplete="new-password" aria-describedby="password-hint"><p class="hint" id="password-hint">At least 12 characters.</p></div><div class="field"><label for="password-confirm">Confirm password</label><input id="password-confirm" type="password" name="password_confirm" required minlength="12" autocomplete="new-password"></div><button type="submit">{button}</button><p class="fine">By creating an account, you agree to the <a href="https://richview.ai/terms">Terms</a> and <a href="https://richview.ai/privacy">Privacy policy</a>.</p></form></div>"#
+        r#"{card}<div class="cowork-auth"><h1>{title}</h1><p class="lede">{sentence}</p>{hint}{notice}<form class="panel" method="post" action="/ui/link/{token}"><div class="field"><label for="name">Name</label><input id="name" name="name" required autocomplete="name"{name_value}></div><div class="field"><label for="password">Password</label><input id="password" type="password" name="password" required minlength="12" autocomplete="new-password" aria-describedby="password-hint"><p class="hint" id="password-hint">At least 12 characters.</p></div><div class="field"><label for="password-confirm">Confirm password</label><input id="password-confirm" type="password" name="password_confirm" required minlength="12" autocomplete="new-password"></div><button type="submit">{button}</button>{terms}</form>{providers}</div>"#
     )
 }
 
-pub(super) fn sign_in(notice: &str, next: Option<&str>) -> String {
+pub(super) fn sign_in(notice: &str, next: Option<&str>, offers: &[Offer]) -> String {
+    let providers = provider_links(offers, "Continue", next);
     let next = next.map_or_else(String::new, |value| {
         format!(
             r#"<input type="hidden" name="next" value="{}">"#,
@@ -1292,7 +1454,7 @@ pub(super) fn sign_in(notice: &str, next: Option<&str>) -> String {
         )
     });
     format!(
-        r#"<div class="cowork-auth"><h1>Sign in to RichView</h1>{}{}<form class="panel" method="post" action="/ui/sign-in">{next}<div class="field"><label for="email">Email</label><input id="email" type="email" name="email" required autocomplete="username"></div><div class="field field--password"><label for="password">Password</label><input id="password" type="password" name="password" required autocomplete="current-password"><a class="field__aside" href="/forgot">Forgot password?</a></div><button type="submit">Sign in</button></form><p class="ways"><span>New to RichView? <a href="/sign-up">Create account</a></span></p></div>"#,
+        r#"<div class="cowork-auth"><h1>Sign in to RichView</h1>{}{}{providers}<form class="panel" method="post" action="/ui/sign-in">{next}<div class="field"><label for="email">Email</label><input id="email" type="email" name="email" required autocomplete="username"></div><div class="field field--password"><label for="password">Password</label><input id="password" type="password" name="password" required autocomplete="current-password"><a class="field__aside" href="/forgot">Forgot password?</a></div><button type="submit">Sign in</button></form><p class="ways"><span>New to RichView? <a href="/sign-up">Create account</a></span></p></div>"#,
         // Someone sent here to open a report needs the reason, not the author's pitch.
         if notice == "Sign in to open this report."
             || notice.starts_with("Accepted. Sign in to open")
@@ -1325,9 +1487,38 @@ pub(super) fn forgot() -> String {
     r#"<div class="cowork-auth"><h1>Reset password</h1><p class="lede">Enter your email and we’ll send you a link if we can help.</p><form class="panel" method="post" action="/ui/forgot"><div class="field"><label for="email">Email</label><input id="email" type="email" name="email" required autocomplete="email"></div><button type="submit">Send reset link</button></form><p class="ways"><a href="/">Back to sign in</a></p></div>"#.to_owned()
 }
 
+/// A provider connected to the account a reset link is for.
+pub(super) struct Keep {
+    pub slug: &'static str,
+    pub name: &'static str,
+    pub label: String,
+}
+
+/// The reset page's question about each connected provider, every box unticked: a reset
+/// disconnects what the person does not tick.
+fn keep_boxes(keeps: &[Keep]) -> String {
+    if keeps.is_empty() {
+        return String::new();
+    }
+    let boxes: String = keeps
+        .iter()
+        .map(|keep| {
+            format!(
+                "<p><label class=\"check\"><input type=\"checkbox\" name=\"keep_{}\" value=\"1\"> Keep {} ({}) connected</label></p>",
+                keep.slug,
+                escape(keep.name),
+                escape(&keep.label)
+            )
+        })
+        .collect();
+    format!(
+        "<fieldset class=\"field keep-boxes\"><legend>Connected sign-ins</legend><p class=\"hint\">Saving a password disconnects every account below that you leave unticked. Tick only the ones you still trust.</p>{boxes}</fieldset>"
+    )
+}
+
 /// The link is inspected without consuming it.
-pub(super) fn complete_link(token: &str, signup: bool) -> String {
-    complete_link_with_error(token, signup, "", "")
+pub(super) fn complete_link(token: &str, signup: bool, keeps: &[Keep]) -> String {
+    complete_link_with_error(token, signup, "", "", keeps)
 }
 
 pub(super) fn complete_link_with_error(
@@ -1335,7 +1526,9 @@ pub(super) fn complete_link_with_error(
     signup: bool,
     name: &str,
     error: &str,
+    keeps: &[Keep],
 ) -> String {
+    let keeps = keep_boxes(keeps);
     let token = escape(token);
     let notice = note(error);
     let name_value = if name.is_empty() {
@@ -1349,7 +1542,7 @@ pub(super) fn complete_link_with_error(
         )
     } else {
         format!(
-            r#"<div class="cowork-auth"><h1>Choose a new password</h1>{notice}<form class="panel" method="post" action="/ui/link/{token}"><div class="field"><label for="password">Password</label><input id="password" type="password" name="password" required minlength="12" autocomplete="new-password" aria-describedby="password-hint"><p class="hint" id="password-hint">At least 12 characters.</p></div><div class="field"><label for="password-confirm">Confirm password</label><input id="password-confirm" type="password" name="password_confirm" required minlength="12" autocomplete="new-password"></div><button type="submit">Save password</button></form></div>"#
+            r#"<div class="cowork-auth"><h1>Choose a new password</h1>{notice}<form class="panel" method="post" action="/ui/link/{token}"><div class="field"><label for="password">Password</label><input id="password" type="password" name="password" required minlength="12" autocomplete="new-password" aria-describedby="password-hint"><p class="hint" id="password-hint">At least 12 characters.</p></div><div class="field"><label for="password-confirm">Confirm password</label><input id="password-confirm" type="password" name="password_confirm" required minlength="12" autocomplete="new-password"></div>{keeps}<button type="submit">Save password</button></form></div>"#
         )
     }
 }
@@ -1375,6 +1568,65 @@ pub(super) struct Token<'a> {
     pub created: &'a str,
 }
 
+/// What the page that confirms a command-line sign-in shows.
+pub(super) enum CliSignIn<'a> {
+    /// No code yet, or one nothing waits under: ask for it, saying why when asked again.
+    Ask {
+        problem: Option<&'a str>,
+    },
+    /// A sign-in waits under this code; `computer` is the command line's own name for itself.
+    Confirm {
+        code: &'a str,
+        computer: &'a str,
+    },
+    Allowed {
+        computer: &'a str,
+    },
+    Cancelled,
+}
+
+/// The page where a signed-in person confirms the code their command line shows. Its address
+/// carries the short code only, which is no credential.
+pub(super) fn cli_sign_in(nav: &Nav<'_>, state: &CliSignIn<'_>) -> String {
+    let csrf = escape(nav.csrf);
+    let organization = escape(nav.org.map_or("your organization", |(_, name)| name));
+    let body = match state {
+        CliSignIn::Ask { problem } => format!(
+            "<div class=\"page-head\"><div><h1>Sign in the command line</h1><p class=\"lede\">Enter the code your terminal shows.</p></div></div>{}<form class=\"share-form share-form--one\" method=\"get\" action=\"/cli\"><div class=\"field\"><label for=\"cli-code\">Code</label><input id=\"cli-code\" name=\"code\" required autocomplete=\"off\" autocapitalize=\"characters\" spellcheck=\"false\" placeholder=\"XXXX-XXXX\"></div><button type=\"submit\">Continue</button></form>",
+            problem.map_or_else(String::new, |text| format!(
+                "<p class=\"note note--error\" role=\"alert\">{}</p>",
+                escape(text)
+            ))
+        ),
+        CliSignIn::Confirm { code, computer } => {
+            let code = escape(code);
+            let computer = if computer.is_empty() {
+                String::new()
+            } else {
+                format!(
+                    "<li>It names its computer as <strong>{}</strong>.</li>",
+                    escape(computer)
+                )
+            };
+            format!(
+                "<div class=\"page-head\"><div><h1>Let this command line publish as you?</h1><p class=\"lede\">Check that your terminal shows this code.</p></div></div><p class=\"cli-code\"><code>{code}</code></p><ul class=\"cli-facts\">{computer}<li>It will publish to <strong>{organization}</strong> with your role there, until you sign it out or revoke it on <a href=\"/tokens\">CLI tokens</a>.</li></ul><p class=\"note note--info\">Allow only if you started this yourself. If someone sent you this link, cancel.</p><div class=\"cli-acts\"><form method=\"post\" action=\"/ui/cli\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><input type=\"hidden\" name=\"code\" value=\"{code}\"><input type=\"hidden\" name=\"decision\" value=\"allow\"><button type=\"submit\">Allow</button></form><form method=\"post\" action=\"/ui/cli\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><input type=\"hidden\" name=\"code\" value=\"{code}\"><input type=\"hidden\" name=\"decision\" value=\"cancel\"><button class=\"docs-button docs-button--secondary\" type=\"submit\">Cancel</button></form></div>"
+            )
+        }
+        CliSignIn::Allowed { computer } => {
+            let token = if computer.is_empty() {
+                "Command line".to_owned()
+            } else {
+                format!("Command line on {}", escape(computer))
+            };
+            format!(
+                "<div class=\"page-head\"><div><h1>The command line is signed in</h1><p class=\"lede\">Return to your terminal; it carries on by itself. It can now publish as you to <strong>{organization}</strong>.</p></div></div><p>To end it, run <code>richview logout</code> there, or revoke “{token}” on <a href=\"/tokens\">CLI tokens</a>.</p><p><a href=\"/\">Go to your reports</a></p>"
+            )
+        }
+        CliSignIn::Cancelled => "<div class=\"page-head\"><div><h1>Cancelled</h1><p class=\"lede\">Nothing was signed in.</p></div></div><p><a href=\"/\">Go to your reports</a></p>".to_owned(),
+    };
+    format!("{}{body}", navigation(nav, "tokens"))
+}
+
 /// Only the response to token creation receives `secret`; it must never be stored in a URL.
 pub(super) fn tokens(
     nav: &Nav<'_>,
@@ -1393,7 +1645,7 @@ pub(super) fn tokens(
             shell_quote(server),
             shell_quote(secret)
         );
-        body.push_str(&format!("<div class=\"token-ready\"><p class=\"note note--ok\" role=\"status\">Copy this setup command now. The token will not be shown again.</p>{}<p class=\"next\">Then run <code>richview publish report.rmd --new</code>, or ask your agent to publish.</p></div>", shell(&command)));
+        body.push_str(&format!("<div class=\"token-ready\"><p class=\"note note--ok\" role=\"status\">Copy this setup command now. The token will not be shown again.</p>{}<p class=\"next\">Then run <code>richview publish report.rmd</code>, or ask your agent to publish.</p></div>", shell(&command)));
     }
     body.push_str(&format!("<section><h2>New token</h2><form class=\"share-form share-form--one\" method=\"post\" action=\"/ui/tokens\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><div class=\"field\"><label for=\"token-name\">Token name</label><input id=\"token-name\" name=\"name\" required aria-describedby=\"token-name-hint\"><p class=\"hint\" id=\"token-name-hint\">Name it after where it runs, such as “laptop” or “CI”.</p></div><button type=\"submit\">Create token</button></form></section><section><h2>Your tokens</h2>"));
     if rows.is_empty() {
@@ -1431,7 +1683,89 @@ fn mebibytes(bytes: u64) -> String {
     }
 }
 
-pub(super) fn account(nav: &Nav<'_>, email: &str, usage: Option<&AccountUsage>) -> String {
+/// One provider on the Account page: whether it is connected, as what and since when.
+pub(super) struct Connection<'a> {
+    pub slug: &'a str,
+    pub name: &'a str,
+    /// What the connection is called and when it was made; `None` when it is not connected.
+    pub connected: Option<(&'a str, &'a str)>,
+}
+
+/// How the person can sign in, on a server that offers providers.
+pub(super) struct SignInOptions<'a> {
+    pub has_password: bool,
+    pub rows: Vec<Connection<'a>>,
+    /// Joins whose notice mail has not gone yet: the provider's name and when, in UTC.
+    pub unsent: Vec<(&'a str, &'a str)>,
+}
+
+fn sign_in_section(nav: &Nav<'_>, options: &SignInOptions<'_>) -> String {
+    let csrf = escape(nav.csrf);
+    // Without a password, the only connected provider is the only way in: the server refuses to
+    // remove it, so the page does not offer to.
+    let last_way_in = !options.has_password
+        && options
+            .rows
+            .iter()
+            .filter(|row| row.connected.is_some())
+            .count()
+            <= 1;
+    let rows: String = options
+        .rows
+        .iter()
+        .map(|row| {
+            let (what, action) = match row.connected {
+                Some((label, since)) if last_way_in => {
+                    return format!(
+                        "<li><div class=\"who\">{}<strong>{}</strong><span>{}</span></div><div class=\"cells\">Connected {}</div><p class=\"row-note\">Your only way to sign in. Set a password or connect another account to disconnect it.</p></li>",
+                        logo(row.slug),
+                        escape(row.name),
+                        escape(label),
+                        escape(since)
+                    );
+                }
+                Some((label, since)) => (
+                    format!(
+                        "<div class=\"who\">{}<strong>{}</strong><span>{}</span></div><div class=\"cells\">Connected {}</div>",
+                        logo(row.slug),
+                        escape(row.name),
+                        escape(label),
+                        escape(since)
+                    ),
+                    format!(
+                        "<form method=\"post\" action=\"/ui/connections/{}/disconnect\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><button class=\"act--danger\" type=\"submit\" aria-label=\"Disconnect {}\">Disconnect</button></form>",
+                        row.slug,
+                        escape(row.name)
+                    ),
+                ),
+                None => (
+                    format!(
+                        "<div class=\"who\">{}<strong>{}</strong></div><div class=\"cells\">Not connected</div>",
+                        logo(row.slug),
+                        escape(row.name)
+                    ),
+                    format!(
+                        "<form method=\"post\" action=\"/sign-in/{}/connect\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><button class=\"act\" type=\"submit\" aria-label=\"Connect {}\">Connect</button></form>",
+                        row.slug,
+                        escape(row.name)
+                    ),
+                ),
+            };
+            format!("<li>{what}<div class=\"acts\">{action}</div></li>")
+        })
+        .collect();
+    format!(
+        "<section class=\"narrow\"><h2>Sign-in</h2><p>Sign in with your password or with an account you connect here. Disconnecting one never removes your RichView account.</p><ul class=\"rows rows--3\">{rows}</ul></section>"
+    )
+}
+
+pub(super) fn account(
+    nav: &Nav<'_>,
+    email: &str,
+    usage: Option<&AccountUsage>,
+    sign_in: Option<&SignInOptions<'_>>,
+    notice: &str,
+) -> String {
     let usage = usage.map_or_else(
         || "<p>Usage is temporarily unavailable. Try again later.</p>".to_owned(),
         |usage| {
@@ -1442,8 +1776,22 @@ pub(super) fn account(nav: &Nav<'_>, email: &str, usage: Option<&AccountUsage>) 
             format!("<p>Usage of {organization}: {} of {} reports · {used} of {limit}</p><p class=\"usage\"><span>Reports <strong>{} of {}</strong></span><progress max=\"{}\" value=\"{}\" aria-label=\"Reports used\">{} of {}</progress><span>Storage <strong>{used} of {limit}</strong></span><progress max=\"100\" value=\"{percent}\" aria-label=\"Storage used\">{used} of {limit}</progress></p>", usage.reports, usage.report_limit, usage.reports, usage.report_limit, usage.report_limit, usage.reports, usage.reports, usage.report_limit)
         },
     );
+    // A person who signs in with a provider may have no password yet: the reset link sets one.
+    let password = if sign_in.is_some_and(|options| !options.has_password) {
+        "Not set · <a href=\"/forgot\">Set a password</a>"
+    } else {
+        "<a href=\"/forgot\">Change password</a>"
+    };
+    let providers = sign_in.map_or_else(String::new, |options| sign_in_section(nav, options));
+    // A join whose notice mail could not go yet is told here instead, until the mail goes.
+    let unsent = unsent_notes(
+        sign_in
+            .map(|options| options.unsent.as_slice())
+            .unwrap_or_default(),
+    );
+    let notice = format!("{}{unsent}", note(notice));
     format!(
-        "{}<div class=\"page-head\"><div><h1>Account</h1></div></div><dl class=\"facts narrow\"><dt>Name</dt><dd>{}</dd><dt>Email</dt><dd>{}</dd><dt>Password</dt><dd><a href=\"/forgot\">Change password</a></dd></dl><section class=\"narrow\"><h2>Usage</h2>{usage}</section><section class=\"danger-zone narrow\"><div><h2>Delete account</h2><p>To delete your account and its reports, write to the address in the <a href=\"https://richview.ai/impressum\">Impressum</a>.</p></div></section>",
+        "{}<div class=\"page-head\"><div><h1>Account</h1></div></div>{notice}<dl class=\"facts narrow\"><dt>Name</dt><dd>{}</dd><dt>Email</dt><dd>{}</dd><dt>Password</dt><dd>{password}</dd></dl>{providers}<section class=\"narrow\"><h2>Usage</h2>{usage}</section><section class=\"danger-zone narrow\"><div><h2>Delete account</h2><p>To delete your account and its reports, write to the address in the <a href=\"https://richview.ai/impressum\">Impressum</a>.</p></div></section>",
         navigation(nav, "account"),
         escape(nav.name),
         escape(email)
@@ -1507,6 +1855,7 @@ mod report_tests {
             invites: &[],
             can_publish: true,
             usage: None,
+            unsent: &[],
         }
     }
 
@@ -1614,6 +1963,8 @@ mod report_tests {
                 bytes: 1_258_291,
                 byte_limit: 50 * 1024 * 1024,
             }),
+            None,
+            "",
         );
         assert!(html.contains("Usage of Acme: 2 of 50 reports · 1.2 MiB of 50 MiB"));
         assert!(html.contains("<progress max=\"50\" value=\"2\" aria-label=\"Reports used\">"));
@@ -1623,7 +1974,8 @@ mod report_tests {
         assert_eq!(mebibytes(0), "0 MiB");
         assert_eq!(mebibytes(1), "<0.1 MiB");
         assert!(
-            account(&nav, "a@example.test", None).contains("Usage is temporarily unavailable.")
+            account(&nav, "a@example.test", None, None, "")
+                .contains("Usage is temporarily unavailable.")
         );
     }
 
@@ -1746,6 +2098,7 @@ mod report_tests {
             )
         );
         assert!(html.contains("Every member of A&lt;b&gt;cme can open it."));
+        assert!(html.contains("read the original Markdown and save a copy."));
         assert!(!html.contains("<b>cme"));
         assert!(html.contains("Invited, not opened yet"));
         assert!(html.contains("action=\"/ui/reports/ab123456/report/people/remove\""));
@@ -1991,9 +2344,9 @@ mod auth_page_tests {
     #[test]
     fn sign_in_for_a_report_gives_the_reason_without_the_authors_pitch() {
         let pitch = "Open the reports your agent published";
-        assert!(!sign_in("Sign in to open this report.", None).contains(pitch));
-        assert!(!sign_in("Accepted. Sign in to open the report.", None).contains(pitch));
-        assert!(sign_in("", None).contains(pitch));
+        assert!(!sign_in("Sign in to open this report.", None, &[]).contains(pitch));
+        assert!(!sign_in("Accepted. Sign in to open the report.", None, &[]).contains(pitch));
+        assert!(sign_in("", None, &[]).contains(pitch));
         assert!(note("Deleted “Q3 revenue”.").contains("note--ok\" role=\"status"));
     }
 

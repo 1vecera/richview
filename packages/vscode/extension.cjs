@@ -168,7 +168,7 @@ function activate(context) {
     try {
       result = await publish(false);
     } catch (error) {
-      // A new report address needs one deliberate yes that names the slug and the server (FEA-SF-51).
+      // Creating a second address for this file needs confirmation (FEA-SF-51).
       const finding = findingsOf(error).find(f => f.code === 'publish.new-slug');
       if (!finding) throw error;
       const choice = await vscode.window.showWarningMessage(

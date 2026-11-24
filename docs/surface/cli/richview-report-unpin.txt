@@ -6,7 +6,7 @@ Arguments:
   <SLUG>  
 
 Options:
-      --server <SERVER>  Server URL (https, or http on loopback) [env: RICHVIEW_SERVER=]
-      --token <TOKEN>    Bearer token of the server [env: RICHVIEW_TOKEN]
+      --server <SERVER>  Server URL (https, or http on loopback); defaults to your publish server [env: RICHVIEW_SERVER=]
+      --token <TOKEN>    Bearer token of the server; defaults to the sign-in `richview login` keeps [env: RICHVIEW_TOKEN]
       --format <FORMAT>  `pretty` for people, `json` for agents [default: pretty] [possible values: pretty, json]
   -h, --help             Print help

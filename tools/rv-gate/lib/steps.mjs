@@ -35,6 +35,7 @@ export const CHROMIUM_SUITES = [
 	"flagship",
 	"figure-expand",
 	"chart-keyboard",
+	"facet-text",
 	"chart-readouts",
 	"readout-placement",
 	"wedge-readouts",
@@ -46,6 +47,7 @@ export const CHROMIUM_SUITES = [
 	"report-runtime",
 	"controls",
 	"tabs",
+	"slides",
 	"docs",
 ];
 

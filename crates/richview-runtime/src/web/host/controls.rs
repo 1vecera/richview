@@ -21,6 +21,8 @@ enum Change {
     Reader,
     /// Playback advanced a frame.
     Tick,
+    /// Play pressed on the last frame, snapping to the first before the run starts.
+    Restart,
 }
 
 fn items(root: &Element, selector: &str) -> Vec<Element> {
@@ -173,13 +175,13 @@ fn step_frame(view: &Rc<RefCell<View>>, k: usize, delta: isize) {
     choose(view, k, next, Change::Reader);
 }
 
-/// Speed and looping of control `k`, if it is a playback.
-fn playback_of(view: &Rc<RefCell<View>>, k: usize) -> Option<(f64, bool, usize)> {
+/// Frame duration and count for a playback control.
+fn playback_of(view: &Rc<RefCell<View>>, k: usize) -> Option<(f64, usize)> {
     let v = view.borrow();
     let c = v.chart.controls.list.get(k)?;
     match c.kind {
-        richview_chart::reader_controls::Kind::Playback { speed, looping, .. } => {
-            Some((speed, looping, c.options.len()))
+        richview_chart::reader_controls::Kind::Playback { speed, .. } => {
+            Some((speed, c.options.len()))
         }
         _ => None,
     }
@@ -195,23 +197,23 @@ fn toggle_play(view: &Rc<RefCell<View>>, k: usize) {
         }
         return;
     }
-    let Some((speed, looping, frames)) = playback_of(view, k) else {
+    let Some((speed, frames)) = playback_of(view, k) else {
         return;
     };
-    // Under reduced motion play advances one frame per press (FEA-BR-02).
-    if reduced_motion() {
-        let current = view.borrow().chart.state[k];
-        let next = if current + 1 >= frames {
-            if looping { 0 } else { current }
-        } else {
-            current + 1
-        };
-        choose(view, k, next, Change::Tick);
+    if frames < 2 {
         return;
     }
-    // A playback that stopped on its last frame restarts from the first.
-    if view.borrow().chart.state[k] + 1 >= frames {
-        choose(view, k, 0, Change::Tick);
+    let current = view.borrow().chart.state[k];
+    let at_end = current + 1 == frames;
+    // Under reduced motion Play advances once per press (FEA-BR-02).
+    if reduced_motion() {
+        choose(view, k, if at_end { 0 } else { current + 1 }, Change::Tick);
+        return;
+    }
+    // Only a new press of Play can restart at the first frame.
+    if at_end {
+        view.borrow_mut().glide = None;
+        choose(view, k, 0, Change::Restart);
     }
     schedule(view, k, speed);
     sync(view);
@@ -239,21 +241,16 @@ fn tick(view: &Rc<RefCell<View>>, k: usize) {
         pause(view);
         return;
     }
-    let Some((speed, looping, frames)) = playback_of(view, k) else {
+    let Some((speed, frames)) = playback_of(view, k) else {
         return;
     };
-    let current = view.borrow().chart.state[k];
-    let next = if current + 1 >= frames {
-        if !looping {
-            pause(view);
-            return;
-        }
-        0
-    } else {
-        current + 1
-    };
+    let next = view.borrow().chart.state[k] + 1;
+    if next >= frames {
+        pause(view);
+        return;
+    }
     choose(view, k, next, Change::Tick);
-    if !looping && next + 1 >= frames {
+    if next + 1 == frames {
         pause(view);
     } else {
         schedule(view, k, speed);
@@ -287,7 +284,8 @@ fn choose(view: &Rc<RefCell<View>>, k: usize, i: usize, how: Change) {
     // Playback moves at one pace through every frame: each glide lasts the whole frame and runs
     // straight on into the next, so the marks never stop between years (FEA-BR-02).
     let (glide, steady) = match (how, playback_of(view, k)) {
-        (Change::Tick, Some((speed, _, _))) => (speed, true),
+        (Change::Tick, Some((speed, _))) => (speed, true),
+        (Change::Restart, _) => (0.0, false),
         _ => (GLIDE_MS, false),
     };
     apply(view, state.clone(), glide, steady);

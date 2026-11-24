@@ -147,9 +147,9 @@ fn a_code_block_has_a_head_numbered_lines_and_marks() {
             .count(),
         3
     );
-    assert!(html.contains("<span class=\"rv-code-line rv-code-line--mark\">from orders\n</span>"));
+    assert!(html.contains("<span class=\"rv-code-line rv-code-line--mark\"><span class=\"hl-key\">from</span> orders\n</span>"));
     // Code is text: the comparison is escaped, nothing is run.
-    assert!(html.contains("where x &lt; 2\n"));
+    assert!(html.contains("where</span> x &lt; <span class=\"hl-num\">2</span>\n"));
     assert_eq!(html.matches("class=\"rv-code-line").count(), 5);
 }
 
@@ -186,7 +186,26 @@ fn an_ordinary_fence_in_a_known_language_is_highlighted_too() {
         html.contains("<span class=\"hl-cmd\">richview</span>"),
         "{html}"
     );
-    let plain = rendered(&report("```sql\nselect 1\n```"), Output::Report).html;
+    let sql = rendered(
+        &report("```sql\nselect 1, false, null, '<img>' /* a\n  note */\n```"),
+        Output::Report,
+    )
+    .html;
+    for (class, text) in [
+        ("key", "select"),
+        ("num", "1"),
+        ("bool", "false"),
+        ("null", "null"),
+        ("str", "'&lt;img&gt;'"),
+        ("comment", "/* a\n"),
+        ("comment", "  note */"),
+    ] {
+        assert!(
+            sql.contains(&format!("<span class=\"hl-{class}\">{text}</span>")),
+            "missing SQL {class} span for {text:?}"
+        );
+    }
+    let plain = rendered(&report("```text\nselect 1\n```"), Output::Report).html;
     assert!(plain.contains("<span class=\"rv-code-line\">select 1\n</span>"));
 }
 

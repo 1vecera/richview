@@ -1,10 +1,12 @@
-//! Presentation-only syntax highlighting for Rich Markdown, style YAML and shell examples.
+//! Presentation-only syntax highlighting for Rich Markdown, YAML, shell and SQL.
 //!
 //! The output is escaped HTML whose text content is byte-for-byte the input, so an editor can
 //! overlay a transparent text area on it. Classes are stable `hl-*` names; hosts style them.
 
 use crate::RICH_TAGS;
+use regex_lite::Regex;
 use std::fmt::Write;
+use std::sync::LazyLock;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum HighlightLanguage {
@@ -14,6 +16,8 @@ pub enum HighlightLanguage {
     Yaml,
     /// Command examples: commands, flags, environment variables and comments.
     Shell,
+    /// SQL keywords, literals and comments.
+    Sql,
     /// Directory trees and other plain listings.
     Plain,
 }
@@ -24,6 +28,7 @@ impl HighlightLanguage {
             "rmd" | "md" | "markdown" | "richmarkdown" => Self::RichMarkdown,
             "yaml" | "yml" | "rstyle" => Self::Yaml,
             "sh" | "shell" | "bash" | "console" => Self::Shell,
+            "sql" => Self::Sql,
             _ => Self::Plain,
         }
     }
@@ -46,6 +51,7 @@ pub fn highlight_html(source: &str, language: HighlightLanguage) -> String {
                 shell(line, &mut out);
             }
         }
+        HighlightLanguage::Sql => sql(source, &mut out),
         HighlightLanguage::Plain => out.plain(source),
     }
     out.0
@@ -86,6 +92,24 @@ fn lines(source: &str) -> impl Iterator<Item = &str> {
 fn split_eol(line: &str) -> (&str, &str) {
     let body = line.trim_end_matches(['\n', '\r']);
     (body, &line[body.len()..])
+}
+
+/// Read through a closing quote, including doubled delimiters and optional backslash escapes.
+fn quoted_len(text: &str, backslash_escapes: bool) -> usize {
+    let quote = text.as_bytes()[0];
+    let mut bytes = text.bytes().enumerate().skip(1).peekable();
+    while let Some((index, byte)) = bytes.next() {
+        if backslash_escapes && byte == b'\\' {
+            bytes.next();
+        } else if byte == quote {
+            if bytes.peek().is_some_and(|(_, next)| *next == quote) {
+                bytes.next();
+            } else {
+                return index + 1;
+            }
+        }
+    }
+    text.len()
 }
 
 fn rich_markdown(source: &str, out: &mut Out) {
@@ -313,10 +337,7 @@ impl Yaml {
 fn block_key(text: &str) -> Option<usize> {
     let bytes = text.as_bytes();
     let end = match bytes.first()? {
-        b'"' | b'\'' => {
-            let quote = bytes[0] as char;
-            text[1..].find(quote)? + 2
-        }
+        b'"' | b'\'' => quoted_len(text, bytes[0] == b'"'),
         _ => text
             .char_indices()
             .find(|(_, c)| matches!(c, ':' | '#' | '{' | '}' | '[' | ']' | ','))
@@ -332,18 +353,21 @@ fn block_key(text: &str) -> Option<usize> {
 
 /// Split a value from a trailing ` #comment`, ignoring `#` inside quotes.
 fn split_comment(text: &str) -> (&str, &str) {
-    let mut quote = None;
+    let mut rest = text;
     let mut previous = ' ';
-    for (i, c) in text.char_indices() {
-        match (quote, c) {
-            (None, '"' | '\'') => quote = Some(c),
-            (Some(q), _) if c == q => quote = None,
-            (None, '#') if previous.is_whitespace() => {
-                let value_end = text[..i].trim_end().len();
-                return (&text[..value_end], &text[value_end..]);
-            }
-            _ => {}
+    while let Some(c) = rest.chars().next() {
+        let space = previous.is_whitespace();
+        if c == '#' && space {
+            let value_end = text[..text.len() - rest.len()].trim_end().len();
+            return (&text[..value_end], &text[value_end..]);
         }
+        let len = if matches!(c, '"' | '\'') && (space || matches!(previous, '[' | '{' | ',' | ':'))
+        {
+            quoted_len(rest, c == '"')
+        } else {
+            c.len_utf8()
+        };
+        rest = &rest[len..];
         previous = c;
     }
     (text, "")
@@ -367,8 +391,18 @@ fn scalar_or_flow(value: &str, out: &mut Out) {
             continue;
         }
         if c == '"' || c == '\'' {
-            let len = rest[1..].find(c).map_or(rest.len(), |end| end + 2);
-            out.span("str", &rest[..len]);
+            let len = quoted_len(rest, c == '"');
+            let after = rest[len..].trim_start();
+            out.span(
+                if after.starts_with(':') { "key" } else { "str" },
+                &rest[..len],
+            );
+            if let Some(value) = after.strip_prefix(':') {
+                out.plain(&rest[len..rest.len() - after.len()]);
+                out.span("punc", ":");
+                i += rest.len() - value.len();
+                continue;
+            }
             i += len;
             continue;
         }
@@ -401,10 +435,100 @@ fn scalar_or_flow(value: &str, out: &mut Out) {
 }
 
 fn scalar_class(word: &str) -> &'static str {
-    match word {
-        "true" | "false" | "yes" | "no" | "on" | "off" | "null" | "~" => "bool",
-        _ if word.parse::<f64>().is_ok() => "num",
+    match word.to_ascii_lowercase().as_str() {
+        "true" | "false" | "yes" | "no" | "on" | "off" => "bool",
+        "null" | "~" => "null",
+        ".inf" | "-.inf" | "+.inf" | ".nan" => "num",
+        _ if is_number(word) => "num",
+        _ if crate::compat::date_shape(word) => "date",
         _ => "val",
+    }
+}
+
+fn is_number(word: &str) -> bool {
+    word.parse::<f64>().is_ok_and(f64::is_finite)
+}
+
+fn sql(source: &str, out: &mut Out) {
+    // At a token boundary, a number may start with a dot and use scientific notation.
+    static NUMBER: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"^(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?")
+            .expect("SQL number pattern")
+    });
+    let mut rest = source;
+    while let Some(first) = rest.chars().next() {
+        let (class, len) = if rest.starts_with("--") {
+            (
+                Some("comment"),
+                rest.find(['\r', '\n']).unwrap_or(rest.len()),
+            )
+        } else if rest.starts_with("/*") {
+            (Some("comment"), sql_comment_len(rest))
+        } else if first == '\'' {
+            (Some("str"), quoted_len(rest, false))
+        } else if first == '"' {
+            // Standard SQL double quotes delimit identifiers.
+            (None, quoted_len(rest, false))
+        } else if let Some(number) = (first.is_ascii_digit() || first == '.')
+            .then(|| NUMBER.find(rest))
+            .flatten()
+            .filter(|number| !rest[number.end()..].starts_with(sql_word_char))
+        {
+            (Some("num"), number.end())
+        } else if sql_word_char(first) {
+            let len = rest.find(|c| !sql_word_char(c)).unwrap_or(rest.len());
+            (sql_word_class(&rest[..len]), len)
+        } else {
+            (None, first.len_utf8())
+        };
+        let (token, tail) = rest.split_at(len);
+        if let Some(class) = class {
+            out.span(class, token);
+        } else {
+            out.plain(token);
+        }
+        rest = tail;
+    }
+}
+
+fn sql_comment_len(text: &str) -> usize {
+    let mut bytes = text.as_bytes().iter().enumerate().skip(2).peekable();
+    let mut depth = 1;
+    while let Some((index, byte)) = bytes.next() {
+        match (byte, bytes.peek().map(|(_, next)| **next)) {
+            (b'/', Some(b'*')) => depth += 1,
+            (b'*', Some(b'/')) => {
+                depth -= 1;
+                if depth == 0 {
+                    return index + 2;
+                }
+            }
+            _ => continue,
+        }
+        bytes.next();
+    }
+    text.len()
+}
+
+fn sql_word_char(c: char) -> bool {
+    c.is_alphanumeric() || matches!(c, '_' | '$')
+}
+
+fn sql_word_class(word: &str) -> Option<&'static str> {
+    match word.to_ascii_uppercase().as_str() {
+        "TRUE" | "FALSE" => Some("bool"),
+        "NULL" => Some("null"),
+        "ALL" | "ALTER" | "AND" | "AS" | "ASC" | "BETWEEN" | "BY" | "CASE" | "CAST" | "CHECK"
+        | "CREATE" | "CROSS" | "DATE" | "DEFAULT" | "DELETE" | "DESC" | "DISTINCT" | "DROP"
+        | "ELSE" | "END" | "ESCAPE" | "EXCEPT" | "EXISTS" | "FETCH" | "FIRST" | "FOLLOWING"
+        | "FOREIGN" | "FROM" | "FULL" | "GROUP" | "HAVING" | "IN" | "INDEX" | "INNER"
+        | "INSERT" | "INTERSECT" | "INTERVAL" | "INTO" | "IS" | "JOIN" | "KEY" | "LAST"
+        | "LEFT" | "LIKE" | "LIMIT" | "NATURAL" | "NOT" | "NULLS" | "OFFSET" | "ON" | "OR"
+        | "ORDER" | "OUTER" | "OVER" | "PARTITION" | "PRECEDING" | "PRIMARY" | "RANGE"
+        | "RECURSIVE" | "REFERENCES" | "RIGHT" | "ROWS" | "SELECT" | "SET" | "TABLE" | "THEN"
+        | "TIME" | "TIMESTAMP" | "TRUNCATE" | "UNBOUNDED" | "UNION" | "UNIQUE" | "UPDATE"
+        | "USING" | "VALUES" | "VIEW" | "WHEN" | "WHERE" | "WINDOW" | "WITH" => Some("key"),
+        _ => None,
     }
 }
 
@@ -427,7 +551,12 @@ fn shell(line: &str, out: &mut Out) {
         if rest.is_empty() {
             break;
         }
-        let len = rest.find(char::is_whitespace).unwrap_or(rest.len());
+        let quote = rest.starts_with(['\'', '"']);
+        let len = if quote {
+            quoted_len(rest, rest.starts_with('"'))
+        } else {
+            rest.find(char::is_whitespace).unwrap_or(rest.len())
+        };
         let word = &rest[..len];
         let class = if word == "\\" {
             "punc"
@@ -437,6 +566,10 @@ fn shell(line: &str, out: &mut Out) {
         } else if first {
             first = false;
             "cmd"
+        } else if quote {
+            "str"
+        } else if is_number(word) {
+            "num"
         } else if word.starts_with('-') {
             "flag"
         } else if word.starts_with('$')
@@ -535,5 +668,63 @@ mod tests {
         );
         assert!(html.contains("<span class=\"hl-cmd\">richview</span>"));
         assert!(html.contains("<span class=\"hl-flag\">--format</span>"));
+    }
+
+    #[test]
+    fn sql_highlights_literals_without_changing_source() {
+        let source = "SeLeCt .25, 4.7e-3, 'it''s <ok>', TRUE, null, \"FROM\", café42 -- false\r\n/* outer\n/* nested */ WHERE */ FROM café;";
+        let html = highlight_html(source, HighlightLanguage::from_name("SQL"));
+        for (class, text) in [
+            ("key", "SeLeCt"),
+            ("num", ".25"),
+            ("num", "4.7e-3"),
+            ("str", "'it''s &lt;ok&gt;'"),
+            ("bool", "TRUE"),
+            ("null", "null"),
+            ("comment", "-- false"),
+            ("comment", "/* outer\n/* nested */ WHERE */"),
+            ("key", "FROM"),
+        ] {
+            assert!(
+                html.contains(&format!("<span class=\"hl-{class}\">{text}</span>")),
+                "{html}"
+            );
+        }
+        assert_eq!(html.matches("class=\"hl-key\"").count(), 2, "{html}");
+        assert_eq!(text_of(&html), source);
+    }
+
+    #[test]
+    fn yaml_and_rich_markdown_distinguish_values_and_keys() {
+        let yaml = r#"settings: {"date": 2026-11-23, enabled: True, empty: null, count: -3, label: "a\" # b"} # comment"#;
+        let rmd = format!("---\n{yaml}\n---\n\n```expand\n{yaml}\n```\n");
+        for (source, language, occurrences) in [
+            (yaml, HighlightLanguage::Yaml, 1),
+            (&rmd, HighlightLanguage::RichMarkdown, 2),
+        ] {
+            let html = highlight_html(source, language);
+            for (class, text) in [
+                ("key", "&quot;date&quot;"),
+                ("date", "2026-11-23"),
+                ("bool", "True"),
+                ("null", "null"),
+                ("num", "-3"),
+                ("str", r#"&quot;a\&quot; # b&quot;"#),
+                ("comment", " # comment"),
+            ] {
+                let token = format!("<span class=\"hl-{class}\">{text}</span>");
+                assert_eq!(html.matches(&token).count(), occurrences, "{html}");
+            }
+            assert_eq!(text_of(&html), source);
+        }
+    }
+
+    #[test]
+    fn shell_highlights_quoted_arguments_and_numbers() {
+        let source = "printf '%s %d' -12 # note\n";
+        let html = highlight_html(source, HighlightLanguage::Shell);
+        assert!(html.contains("<span class=\"hl-str\">'%s %d'</span>"));
+        assert!(html.contains("<span class=\"hl-num\">-12</span>"));
+        assert_eq!(text_of(&html), source);
     }
 }

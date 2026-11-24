@@ -46,9 +46,6 @@ fn styled(
     let mut diagnostics = vec![];
     let refs: Vec<String> = refs.iter().map(|r| r.to_string()).collect();
     let style = resolve_styles(&refs, &mut diagnostics);
-    // These tests pin the old vocabulary, which still applies exactly; its `style.legacy`
-    // warnings, which name what replaces each leaf, are tested in `style_presets.rs` (STY-73).
-    diagnostics.retain(|d| d.code != "style.legacy");
     (style, diagnostics)
 }
 
@@ -118,20 +115,17 @@ fn retired_names_are_errors_that_name_their_replacement() {
 
 #[test]
 fn a_cascade_of_files_starts_from_sleek_without_renumbering_them() {
-    let file = "tokens:\n  accent: 'oklch(0.6 0.2 30)'\n";
-    let (style, diagnostics) = styled(&[file]);
-    assert!(diagnostics.is_empty(), "{diagnostics:?}");
-    assert_eq!(style.document["tokens"]["accent"], "oklch(0.6 0.2 30)");
+    let source = "fonts: {text: Geist}\ntokens: {accent: red}\n";
+    let (style, warnings) = styled(&[source]);
+    assert_eq!(warnings.len(), 1);
+    assert_eq!(warnings[0].path, "styles[0].tokens.accent");
+    assert_eq!(warnings[0].code, "style.retired");
+    assert_eq!(style.document["tokens"]["font-text"], "Geist");
     assert_eq!(
-        style.document["tokens"]["bg"],
-        styled(&["sleek"]).0.document["tokens"]["bg"]
+        style.document["tokens"]["accent"],
+        styled(&["sleek"]).0.document["tokens"]["accent"]
     );
-    // A bad leaf reports the file's own index, not one shifted by the builtin below it.
-    let (_, diagnostics) = styled(&["tokens:\n  accent: notacolor\n"]);
-    assert_eq!(diagnostics[0].path, "styles[0].tokens.accent");
-    // Naming a builtin keeps the cascade as written.
-    let (style, _) = styled(&["scientific", file]);
-    assert_eq!(style.scheme, "light");
+    assert_eq!(styled(&["scientific", source]).0.scheme, "light");
 }
 
 #[test]
@@ -185,9 +179,13 @@ fn file(
 #[test]
 fn a_bad_leaf_is_skipped_and_the_rest_of_the_file_applies() {
     let (style, diagnostics) = file(
-        "tokens:\n  accent: notacolor\n  bg: 'oklch(0.3 0.01 200)'\n  nope: 1\nlayout:\n  report-max-width: 1200px\n",
+        "tokens:\n  accent: notacolor\n  bg: 'oklch(0.3 0.01 200)'\n  nope: 1\ncolophon: hide\nlayout:\n  report-max-width: 1200px\n",
     );
-    assert_eq!(style.document["tokens"]["bg"], "oklch(0.3 0.01 200)");
+    assert_eq!(
+        style.document["tokens"]["bg"],
+        styled(&["sleek"]).0.document["tokens"]["bg"]
+    );
+    assert_eq!(style.document["colophon"], "hide");
     assert_eq!(
         style.document["tokens"]["accent"],
         styled(&["sleek"]).0.document["tokens"]["accent"]
@@ -200,7 +198,8 @@ fn a_bad_leaf_is_skipped_and_the_rest_of_the_file_applies() {
         codes,
         [
             ("style.internal", "styles[1].layout.report-max-width"),
-            ("style.schema", "styles[1].tokens.accent"),
+            ("style.retired", "styles[1].tokens.accent"),
+            ("style.retired", "styles[1].tokens.bg"),
             ("style.unknown-key", "styles[1].tokens.nope"),
         ]
     );
@@ -210,25 +209,25 @@ fn a_bad_leaf_is_skipped_and_the_rest_of_the_file_applies() {
 #[test]
 fn settings_expand_into_the_sections_behind_them() {
     let (style, diagnostics) = file(
-        "density: loose\nblock-gap: tight\npalette: air\nmotion: off\ncolophon: hide\nfonts:\n  text: 'Newsreader, Georgia, serif'\n",
+        "padding: large\nspacing: small\npalette: air\nmotion: xsmall\ncolophon: hide\nfonts:\n  text: 'Newsreader, Georgia, serif'\n",
     );
     assert!(diagnostics.is_empty(), "{diagnostics:?}");
     let doc = &style.document;
     assert_eq!(doc["tokens"]["density"], 1.25);
-    assert_eq!(doc["tokens"]["block-gap"], "3rem");
-    assert_eq!(doc["tokens"]["block-gap-phone"], "2rem");
+    assert_eq!(doc["tokens"]["block-gap"], "2.25rem");
+    assert_eq!(doc["tokens"]["block-gap-phone"], "1.75rem");
     assert_eq!(doc["chart"]["palette"], "air");
     assert_eq!(doc["motion"]["enabled"], false);
     assert_eq!(doc["colophon"], "hide");
     assert_eq!(doc["tokens"]["font-text"], "Newsreader, Georgia, serif");
-    assert_eq!(style.custom_properties["--rv-block-gap"], "3rem");
+    assert_eq!(style.custom_properties["--rv-block-gap"], "2.25rem");
     assert!(!style.custom_properties.contains_key("--rv-settings"));
 }
 
 #[test]
 fn type_size_scales_the_whole_scale_and_keeps_its_steps() {
     let base = styled(&["sleek"]).0;
-    let (small, _) = file("type-size: small\n");
+    let (small, _) = file("text-size: small\n");
     let px = |style: &richview_core::ResolvedStyle, step: &str| {
         style.custom_properties[&format!("--rv-size-{step}")]
             .trim_end_matches("px")
@@ -242,28 +241,14 @@ fn type_size_scales_the_whole_scale_and_keeps_its_steps() {
 }
 
 #[test]
-fn the_accent_setting_moves_the_accent_links_and_first_series_together() {
-    let (style, diagnostics) = styled(&["air", "accent: 'oklch(0.4128 0.1233 255.65)'\n"]);
-    assert!(diagnostics.is_empty(), "{diagnostics:?}");
-    let tokens = &style.document["tokens"];
-    assert_eq!(tokens["accent"], "oklch(0.4128 0.1233 255.65)");
-    assert_eq!(tokens["link"], "oklch(0.4128 0.1233 255.65)");
-    assert_eq!(
-        style.document["chart"]["palette"][0],
-        "oklch(0.4128 0.1233 255.65)"
-    );
-    // On Sleek's dark page the deep blue is too weak to read as text: links keep their colour.
-    let (sleek, _) = styled(&["sleek", "accent: 'oklch(0.4128 0.1233 255.65)'\n"]);
-    assert_eq!(
-        sleek.document["tokens"]["link"],
-        styled(&["sleek"]).0.document["tokens"]["link"]
-    );
-    // Hand-drawn's first series is graphite, not its red pencil, so the accent leaves it alone.
-    let (drawn, _) = styled(&["hand-drawn", "accent: 'oklch(0.4128 0.1233 255.65)'\n"]);
-    assert_eq!(
-        drawn.document["chart"]["palette"],
-        styled(&["hand-drawn"]).0.document["chart"]["palette"]
-    );
+fn retired_accent_keeps_each_presets_links_and_first_series() {
+    for name in builtin_style_names() {
+        let (style, warnings) = styled(&[name, "accent: '#0F62FE'\n"]);
+        assert_eq!(warnings.len(), 1);
+        assert_eq!(warnings[0].code, "style.retired");
+        assert!(warnings[0].message.contains("colors.brand"));
+        assert_eq!(style.document, styled(&[name]).0.document);
+    }
 }
 
 #[test]
@@ -276,7 +261,7 @@ fn the_vocabulary_marks_every_leaf_and_no_taught_setting_is_experimental() {
             .unwrap()
             .mark
     };
-    // Tokens are a preset's internal vocabulary: they still apply, and warn (STY-73).
+    // Tokens are a preset's internal vocabulary: author files skip them (STY-73).
     assert_eq!(mark("tokens.accent"), richview_core::StyleMark::Legacy);
     assert_eq!(mark("tokens.line-base"), richview_core::StyleMark::Legacy);
     assert_eq!(
@@ -468,7 +453,7 @@ fn a_cascade_still_dark_after_the_print_swap_warns_and_builtins_never_do() {
         assert!(!warns(vec![(*name).into()]), "{name}");
     }
     let darkened = "tokens:\n  bg: \"oklch(0.15 0 0)\"\n  ink: \"oklch(0.95 0 0)\"\n".to_owned();
-    assert!(warns(vec!["air".into(), darkened]));
+    assert!(!warns(vec!["air".into(), darkened]));
 }
 
 #[test]
@@ -516,35 +501,14 @@ fn each_builtin_has_its_own_motion_character_and_publishes_it_as_properties() {
 }
 
 #[test]
-fn a_motion_character_preset_matches_the_builtin_that_names_it() {
-    // `motion: {character: …}` alone fills the timing a builtin of that character sets in its file.
+fn motion_character_in_an_author_file_keeps_the_named_presets_timing() {
     for name in builtin_style_names() {
-        let mut diagnostics = vec![];
-        let builtin = resolve_styles(&[name.to_string()], &mut diagnostics);
-        let motion = &builtin.document["motion"];
-        let Some(character) = motion["character"].as_str() else {
-            continue;
-        };
-        // Air is gentle with a voice of its own (640 ms, soft); it sets every leaf itself.
-        if character == "still" || *name == "air" {
-            continue;
-        }
-        let preset = resolve_styles(
-            &[format!("motion: {{character: {character}}}")],
-            &mut diagnostics,
-        );
-        for key in [
-            "duration",
-            "easing",
-            "stagger",
-            "block-entrance",
-            "distance",
-        ] {
-            assert_eq!(
-                preset.document["motion"][key], motion[key],
-                "{name}: motion.{key} of character {character}"
-            );
-        }
+        let (preset, _) = styled(&[name]);
+        let (style, warnings) = styled(&[name, "motion: {character: still}"]);
+        assert_eq!(warnings.len(), 1);
+        assert_eq!(warnings[0].path, "styles[1].motion.character");
+        assert_eq!(warnings[0].code, "style.retired");
+        assert_eq!(style.document["motion"], preset.document["motion"]);
     }
 }
 
@@ -575,12 +539,12 @@ fn corners_follow_the_card_per_builtin_and_bars_are_square_in_the_square_styles(
 #[test]
 fn brand_shortcut_validates_its_colours_and_builtin_base() {
     let (_, valid) =
-        styled(&["company:\n  color: '#0B6E69'\n  secondary: '#C2650F'\n  base: air\n"]);
+        styled(&["preset: air\ncolors:\n  brand: '#0B6E69'\n  secondary: '#C2650F'\n"]);
     assert!(valid.is_empty(), "{valid:?}");
     let (_, invalid) = styled(&[
-        "company:\n  color: 'red; color: blue'\n  secondary: notacolor\n  base: missing\n",
+        "preset: missing\ncolors:\n  brand: 'red; color: blue'\n  secondary: notacolor\n",
     ]);
-    for path in ["company.color", "company.secondary", "company.base"] {
+    for path in ["colors.brand", "colors.secondary", "preset"] {
         assert!(
             invalid
                 .iter()
@@ -629,8 +593,7 @@ fn brand_logo_paths_stay_inside_the_report_and_name_is_plain_text() {
 #[test]
 fn brand_base_is_the_named_builtin_and_explicit_file_overrides_win() {
     let (air, _) = styled(&["air"]);
-    let (branded, diagnostics) =
-        styled(&["company:\n  base: air\ntokens:\n  font-display: Geist\n"]);
+    let (branded, diagnostics) = styled(&["preset: air\nfonts:\n  display: Geist\n"]);
     assert!(diagnostics.is_empty(), "{diagnostics:?}");
     assert_eq!(branded.scheme, "light");
     assert_eq!(
@@ -651,7 +614,7 @@ fn brand_derives_accessible_palette_and_reports_necessary_adjustments() {
     ] {
         let secondary =
             secondary.map_or(String::new(), |value| format!("  secondary: '{value}'\n"));
-        let source = format!("company:\n  color: '{primary}'\n  base: {base}\n{secondary}");
+        let source = format!("preset: {base}\ncolors:\n  brand: '{primary}'\n{secondary}");
         let (style, diagnostics) = styled(&[&source]);
         assert!(
             !diagnostics
@@ -689,7 +652,7 @@ fn brand_derives_accessible_palette_and_reports_necessary_adjustments() {
 #[test]
 fn brand_derivation_respects_explicit_overrides_and_reports_an_indistinguishable_secondary() {
     let (style, diagnostics) = styled(&[
-        "company:\n  color: '#0B6E69'\n  secondary: '#0B6E69'\n  base: air\npalette: ['#112233', '#aabbcc']\ntokens:\n  link: '#123456'\n",
+        "preset: air\ncolors:\n  brand: '#0B6E69'\n  secondary: '#0B6E69'\npalette: ['#112233', '#aabbcc']\ntokens:\n  link: '#123456'\n",
     ]);
     assert!(
         diagnostics
@@ -701,7 +664,12 @@ fn brand_derivation_respects_explicit_overrides_and_reports_an_indistinguishable
         style.chart["palette"],
         serde_json::json!(["#112233", "#aabbcc"])
     );
-    assert_eq!(style.document["tokens"]["link"], "#123456");
+    assert_ne!(style.document["tokens"]["link"], "#123456");
+    assert!(
+        diagnostics
+            .iter()
+            .any(|d| d.code == "style.retired" && d.path.ends_with("tokens.link"))
+    );
 }
 
 #[test]
@@ -719,7 +687,7 @@ fn company_style_checks_hold_for_hostile_colours_and_preserve_richview_wordmark(
             "#0A1F44",
             "oklch(0.7 0.37 135)",
         ] {
-            let source = format!("company:\n  color: '{color}'\n  base: {base}\n");
+            let source = format!("preset: {base}\ncolors:\n  brand: '{color}'\n");
             let (derived, diagnostics) = styled(&[&source]);
             assert!(
                 !diagnostics
@@ -760,12 +728,12 @@ fn company_rejects_translucent_and_unresolved_colours_with_a_finding() {
         "rgba(1, 2, 3, 0.5)",
         "oklch(0.5 0.1 30 / 0.5)",
     ] {
-        let source = format!("company:\n  color: '{color}'\n");
+        let source = format!("colors:\n  brand: '{color}'\n");
         let (style, diagnostics) = styled(&[&source]);
         assert!(
             diagnostics
                 .iter()
-                .any(|d| d.code == "style.company-color" && d.path.ends_with("company.color")),
+                .any(|d| d.code == "style.schema" && d.path.ends_with("colors.brand")),
             "{color}: {diagnostics:?}"
         );
         assert_eq!(
@@ -777,7 +745,7 @@ fn company_rejects_translucent_and_unresolved_colours_with_a_finding() {
 
 #[test]
 fn company_reports_when_only_the_link_needs_more_contrast() {
-    let (style, diagnostics) = styled(&["company:\n  color: '#777777'\n  base: air\n"]);
+    let (style, diagnostics) = styled(&["preset: air\ncolors:\n  brand: '#777777'\n"]);
     assert_eq!(style.chart["palette"][0], "#777777");
     let finding = diagnostics
         .iter()
@@ -789,7 +757,7 @@ fn company_reports_when_only_the_link_needs_more_contrast() {
 #[test]
 fn company_uses_an_explicit_cascade_builtin_when_its_own_base_is_omitted() {
     let (base, _) = styled(&["brutalist"]);
-    let (style, diagnostics) = styled(&["brutalist", "company:\n  color: '#0B6E69'\n"]);
+    let (style, diagnostics) = styled(&["brutalist", "colors:\n  brand: '#0B6E69'\n"]);
     assert!(
         diagnostics
             .iter()
@@ -810,7 +778,7 @@ fn company_uses_an_explicit_cascade_builtin_when_its_own_base_is_omitted() {
 fn company_finds_a_checked_palette_for_rare_hues() {
     for color in ["#6E6076", "oklch(0.5 0.06 300)", "oklch(0.5 0.1 150)"] {
         let (style, diagnostics) =
-            styled(&[&format!("company:\n  color: '{color}'\n  base: air\n")]);
+            styled(&[&format!("preset: air\ncolors:\n  brand: '{color}'\n")]);
         assert!(
             !diagnostics
                 .iter()
@@ -827,7 +795,7 @@ fn company_finds_a_checked_palette_for_rare_hues() {
 
 #[test]
 fn teal_company_palette_is_a_sibling_of_airs_designed_palette() {
-    let (style, diagnostics) = styled(&["company:\n  color: '#0B6E69'\n  base: air\n"]);
+    let (style, diagnostics) = styled(&["preset: air\ncolors:\n  brand: '#0B6E69'\n"]);
     assert!(diagnostics.is_empty(), "{diagnostics:?}");
     assert_eq!(
         style.chart["palette"],
@@ -839,7 +807,7 @@ fn teal_company_palette_is_a_sibling_of_airs_designed_palette() {
 
 #[test]
 fn yellow_company_palette_follows_the_reviewed_recipe() {
-    let (style, diagnostics) = styled(&["company:\n  color: '#F2C200'\n  base: air\n"]);
+    let (style, diagnostics) = styled(&["preset: air\ncolors:\n  brand: '#F2C200'\n"]);
     assert!(
         diagnostics.iter().all(|d| d.level == "info"),
         "{diagnostics:?}"
@@ -854,8 +822,8 @@ fn yellow_company_palette_follows_the_reviewed_recipe() {
 
 #[test]
 fn repeated_company_renders_keep_each_base_and_secondary_distinct() {
-    let company = "company:\n  color: '#0B6E69'\n";
-    let second = "company:\n  color: '#0B6E69'\n  secondary: '#C2650F'\n";
+    let company = "colors:\n  brand: '#0B6E69'\n";
+    let second = "colors:\n  brand: '#0B6E69'\n  secondary: '#C2650F'\n";
     let (air, _) = styled(&["air", company]);
     let (sleek, _) = styled(&["sleek", company]);
     let (with_second, _) = styled(&["air", second]);

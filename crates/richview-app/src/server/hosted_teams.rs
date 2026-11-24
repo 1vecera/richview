@@ -650,6 +650,7 @@ pub(super) async fn invitation_page(
         account_exists: view.account_exists,
         submitted_name,
         error,
+        offers: &super::offers(state),
     });
     hosted_page("Invitation", &body)
 }
@@ -663,13 +664,6 @@ fn report_key(state: &AppState, org: &str, slug: &str) -> Result<String, Respons
         .validate_key(&key)
         .map_err(|_| auth::not_found())?;
     Ok(key)
-}
-
-fn version_order(version: &str) -> Vec<u64> {
-    version
-        .split(['.', '-', '+'])
-        .map(|part| part.parse().unwrap_or(0))
-        .collect()
 }
 
 /// `GET /reports/{org}/{slug}`: the report's link, versions, sharing and removal, each shown only
@@ -702,7 +696,6 @@ pub async fn report_page(
             return Ok::<_, String>(None);
         };
         let mut versions = storage.list_versions(&lookup)?;
-        versions.sort_by_key(|version| std::cmp::Reverse(version_order(version)));
         versions.truncate(50);
         let mut dated = Vec::new();
         for version in versions {

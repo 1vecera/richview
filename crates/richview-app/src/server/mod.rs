@@ -261,10 +261,12 @@ fn bound_hosted_request_body(request: Request, duration: std::time::Duration) ->
                 | "/api/check"
                 | "/api/validate"
                 | "/api/session"
+                | "/api/cli/sign-in"
+                | "/api/cli/sign-in/token"
                 | "/ui/sign-in"
                 | "/ui/sign-up"
                 | "/ui/forgot"
-        )
+        ) && !request.uri().path().starts_with("/sign-in/")
     {
         return request;
     }
@@ -309,8 +311,14 @@ async fn refuse_before_body(
     let hosted_publish = state.access.is_hosted()
         && request.method() == axum::http::Method::POST
         && path == "/api/reports";
+    // A command line that is signing in has no token yet: these two take a short body from
+    // anyone and are bounded by address in the access store.
+    let cli_signing_in = state.access.is_hosted()
+        && request.method() == axum::http::Method::POST
+        && matches!(path, "/api/cli/sign-in" | "/api/cli/sign-in/token");
     if writes
         && !signing_in
+        && !cli_signing_in
         && !hosted_link_form
         && (path.starts_with("/api/") || path.starts_with("/ui/"))
         && matches!(
@@ -398,15 +406,22 @@ async fn not_found() -> Response {
 }
 
 async fn security_headers(State(state): State<AppState>, request: Request, next: Next) -> Response {
-    let sensitive_link = state.access.is_hosted()
-        && ["/link/", "/ui/link/"]
+    let hosted = state.access.is_hosted();
+    let path = request.uri().path();
+    let sensitive_link = hosted
+        && ["/link/", "/ui/link/", "/sign-in/"]
             .iter()
-            .any(|prefix| request.uri().path().starts_with(*prefix));
-    let hosted_report = state.access.is_hosted()
+            .any(|prefix| path.starts_with(*prefix));
+    let hosted_report = hosted
         && ["/r/", "/raw/", "/api/reports/"]
             .iter()
-            .any(|prefix| request.uri().path().starts_with(*prefix));
-    let browser_page = !request.uri().path().starts_with("/api/")
+            .any(|prefix| path.starts_with(*prefix));
+    let hosted_personalized = hosted
+        && matches!(
+            path,
+            "/api/session" | "/api/reports" | "/api/cli/sign-in/token"
+        );
+    let browser_page = !path.starts_with("/api/")
         && request
             .headers()
             .get(header::ACCEPT)
@@ -416,8 +431,7 @@ async fn security_headers(State(state): State<AppState>, request: Request, next:
                     .split(',')
                     .any(|item| item.trim().starts_with("text/html"))
             });
-    let hosted_app_page =
-        state.access.is_hosted() && !origin::on_report_origin(&state, request.headers());
+    let hosted_app_page = hosted && !origin::on_report_origin(&state, request.headers());
     let mut response = next.run(request).await;
     let is_html = response
         .headers()
@@ -475,9 +489,9 @@ async fn security_headers(State(state): State<AppState>, request: Request, next:
             .headers_mut()
             .insert("x-robots-tag", "noindex".parse().unwrap());
     }
-    // Visibility and suspension can change even for immutable report versions. A shared cache
-    // must not continue serving a previously public hosted report after that change.
-    if hosted_report {
+    // Session and account data belong to the caller. Report access can change even for
+    // immutable versions when an organization is suspended or the owner changes visibility.
+    if hosted_report || hosted_personalized {
         response
             .headers_mut()
             .insert(header::CACHE_CONTROL, "private, no-store".parse().unwrap());

@@ -269,23 +269,23 @@ fn author_frontmatter_date_and_version_repairs_are_copyable_yaml() {
 #[test]
 fn author_unknown_style_tokens_suggest_a_sibling_key_and_a_fix() {
     let mut opts = options();
-    opts.styles = vec!["tokens:\n  accnet: '#225588'\n".into()];
+    opts.styles = vec!["colors:\n  bran: '#225588'\n".into()];
     let finding = check("# Draft", &opts)
         .unwrap()
         .diagnostics
         .into_iter()
         .find(|d| d.code == "style.unknown-key")
         .unwrap();
-    assert_eq!(finding.path, "styles[0].tokens.accnet");
+    assert_eq!(finding.path, "styles[0].colors.bran");
     assert_eq!((finding.line, finding.column), (Some(2), Some(3)));
     assert!(
-        finding.message.contains("tokens.accent"),
+        finding.message.contains("colors.brand"),
         "{}",
         finding.message
     );
     let fix = finding.fix.unwrap();
     assert!(
-        fix.contains("tokens.accnet") && fix.contains("tokens.accent"),
+        fix.contains("colors.bran") && fix.contains("colors.brand"),
         "{fix}"
     );
 }

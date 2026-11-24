@@ -9,7 +9,9 @@ Commands:
   init      Start a report folder from the template, never overwriting
   learn     Print the authoring guide, or one section of it
   mcp       Serve the RichView tools to an agent over MCP (stdio)
-  publish   Publish a version of the report to a RichView server
+  publish   Create a report or publish another version at its address
+  login     Sign this computer in to a RichView server, so publishing needs no token again
+  logout    Forget the sign-in this computer keeps for a server
   serve     Preview the report in a browser and reload it when the folder changes
   report    Delete, pin, unpin or regenerate a stored report on a server
   server    Run RichView Cowork, the report server

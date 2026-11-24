@@ -12,7 +12,7 @@ title: US energy prices rise and fall sharply
 data: { csv: data.csv }
 encoding: { x: month, y: energy }
 axes:
-  y: { label: Energy price index, unit: "1982–84 = 100", digits: 6 }
+  y: { label: "Energy price index, 1982–84 = 100", digits: 6 }
 ```
 
 *Source: U.S. Bureau of Labor Statistics, CPI-U, not seasonally adjusted, via [FRED](https://fred.stlouisfed.org/series/CPIENGNS), retrieved 2 October 2026. The CSV retains [all items](https://fred.stlouisfed.org/series/CPIAUCNS), [core](https://fred.stlouisfed.org/series/CPILFENS), [food](https://fred.stlouisfed.org/series/CPIUFDNS), energy and [shelter](https://fred.stlouisfed.org/series/CUUR0000SAH1). October 2025 remains empty in this snapshot; it is not filled with zero or interpolated.*

@@ -48,6 +48,42 @@ fn a_table_is_one_semantic_table_with_a_caption_and_plain_headers() {
 }
 
 #[test]
+fn a_short_label_of_several_words_stays_on_one_line() {
+    // `Store 40` broke before its number in a tight table while the narrower `Store 19` did
+    // not: a label of at most 12 characters is kept whole, longer text still wraps.
+    let r = render(
+        "```table\ndata:\n  inline:\n    - {store: Store 40, city: Karlovy Vary, region: West, size: Rhône-Alpes}\n    - {store: Store 19, city: České Budějovice, region: South Bohemia, size: large}\n```\n",
+    );
+    let b = body(&r);
+    for cell in [
+        "<td class=\"label\">Store 40</td>",
+        "<td class=\"label\">Store 19</td>",
+        "<td class=\"label\">Karlovy Vary</td>",
+        "<td class=\"label\">Rhône-Alpes</td>",
+        // Longer text may wrap, and a single word has nowhere to break.
+        "<td class=\"\">České Budějovice</td>",
+        "<td class=\"\">South Bohemia</td>",
+        "<td class=\"\">West</td>",
+        "<td class=\"\">large</td>",
+    ] {
+        assert!(b.contains(cell), "{cell} in {b}");
+    }
+    // The runtime decides per table (`data-rv-labels`), on screen only. A page that runs
+    // scripts keeps labels whole on a wide screen until then; a phone, a page without scripts
+    // and paper wrap them, so a table that fits wrapped never scrolls sideways.
+    assert!(
+        r.html
+            .contains("@media screen{.rv-table[data-rv-labels=line] td.label{white-space:nowrap}}")
+    );
+    assert!(r.html.contains(
+        "@media screen and (scripting:enabled) and (min-width:641px){.rv-table:not([data-rv-labels]) td.label{white-space:nowrap}}"
+    ));
+    // A report without such a label carries none of it.
+    let plain = render("```table\ndata:\n  inline:\n    - {a: West, b: 1}\n```\n");
+    assert!(!plain.html.contains("td.label"));
+}
+
+#[test]
 fn align_wins_over_the_numeric_default() {
     let r = render(&format!(
         "```table\n{ROWS}columns:\n  - {{key: name}}\n  - {{key: units, align: left}}\n  - {{key: rate, align: center}}\n```\n"

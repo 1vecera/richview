@@ -1113,15 +1113,21 @@ impl MailQueue {
     fn pending_summary(&self) -> Result<(usize, Option<u64>), String> {
         self.summary().map(|(waiting, oldest, _)| (waiting, oldest))
     }
-    pub fn exhausted(&self) -> bool {
-        self.budget.lock().map_or(true, |budget| {
-            budget.day == day() && budget.sent >= self.limit
+    /// Remaining daily units for all mail and for sign-up, from the same budget.
+    pub(crate) fn remaining_allowances(&self) -> (u64, u64) {
+        self.budget.lock().map_or((0, 0), |budget| {
+            let used = if budget.day == day() { budget.sent } else { 0 };
+            (
+                self.limit.saturating_sub(used),
+                (self.limit / 2).saturating_sub(used),
+            )
         })
     }
+    pub fn exhausted(&self) -> bool {
+        self.remaining_allowances().0 == 0
+    }
     pub fn signup_exhausted(&self) -> bool {
-        self.budget.lock().map_or(true, |budget| {
-            budget.day == day() && budget.sent >= self.limit / 2
-        })
+        self.remaining_allowances().1 == 0
     }
     pub async fn enqueue(&self, mail: Mail) -> Result<(), String> {
         self.enqueue_inner(mail, None, true, None, false).await

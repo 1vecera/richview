@@ -154,7 +154,7 @@ export function sitePolicy({ sheets, classes }) {
         if (!['Newsreader', 'Geist', 'RichView Mono', 'RichView Serif', 'Space Grotesk', 'Big Shoulders', 'Patrick Hand', 'Caveat', 'Caveat Brush', 'Bricolage Grotesque'].includes(family)) fail('STY-46', `font family ${family} is not one of the site's faces`);
     }
   }
-  // STY-48: the cards of "What is RichView?" and the proof pair are rows of flat surfaces; the loop above already
+  // STY-48: the cards of the homepage explainer and the proof pair are rows of flat surfaces; the loop above already
   // refuses a soft shadow on any selector that is not a floating sheet.
   const homepage = all.find(sheet => sheet.href.endsWith('/homepage.css'));
   // STY-48: pinned, a voices sheet's one shadow is its ::before; its own drop-shadow filter must be off, or the
@@ -593,7 +593,8 @@ try {
             await frame.locator('figure[data-rv-chart] canvas').first().waitFor({ state: 'attached', timeout: 20_000 });
             // The previous style's document stays until the new one replaces it.
             for (let attempt = 0; attempt < 60; attempt++) {
-              looks[style] = await frame.locator('body').evaluate(body => getComputedStyle(body).fontFamily + '|' + getComputedStyle(body).backgroundColor).catch(() => '');
+              // The page colour, read from the style: a page background (STY-74) leaves the body transparent.
+              looks[style] = await frame.locator('body').evaluate(body => getComputedStyle(body).fontFamily + '|' + getComputedStyle(body.ownerDocument.documentElement).getPropertyValue('--rv-bg').trim()).catch(() => '');
               if (looks[style] && !Object.values(looks).slice(0, -1).includes(looks[style])) break;
               await page.waitForTimeout(250);
             }
@@ -677,6 +678,7 @@ try {
         heroLinks: [...document.querySelectorAll('.hero a')].map(link => link.getAttribute('href')),
         prompts: [...document.querySelectorAll('.prompt')].map(box => ({ label: text(box.querySelector('.prompt__label')), words: box.querySelector('.prompt__text code').textContent, copy: text(box.querySelector('[data-copy]')) })),
         promptsIn: [...document.querySelectorAll('.prompt')].map(box => box.closest('section').className.split(' ')[0]),
+        claims: [...document.querySelectorAll('#h-problem strong')].map(text),
         leads: [...document.querySelectorAll('.proof__lead')].map(text),
         sizes: [...document.querySelectorAll('[data-size]')].map(size => ({ text: text(size), hidden: size.hidden })),
         notes: [...document.querySelectorAll('.proof__note')].map(text),
@@ -685,11 +687,32 @@ try {
         brand: (slot => slot && { file: text(slot.querySelector('.brand__file pre code'))?.startsWith('# Your Company Name Inc.'), page: slot.querySelector('.brand__page img')?.getAttribute('src'), before: !!(slot.compareDocumentPosition(document.querySelector('.voices__label')) & Node.DOCUMENT_POSITION_FOLLOWING) })(document.querySelector('.brand-slot[data-brand]')),
         lede: text(document.querySelector('.voices__head p')),
         rowLabel: text(document.querySelector('.voices__label')),
-        eco: [...document.querySelectorAll('.eco__card h3')].map(heading => text(heading).replace(/\s*↑$/, '')),
-        ecoLines: [...document.querySelectorAll('.eco__card > p')].map(text),
+        eco: [...document.querySelectorAll('.eco__card h3')].map(heading => text(heading).replace(/\s*[↑→]$/, '')),
+        ecoLines: [...document.querySelectorAll('#ecosystem .eco__card > p')].map(text),
         ecoLink: document.querySelector('.eco__card h3 a')?.getAttribute('href'),
+        ecoLinks: [...document.querySelectorAll('#ecosystem .eco__card a')].map(link => link.getAttribute('href')),
+        deckLinks: [...document.querySelectorAll('a[href*="/monthly-review/"], a[href^="/docs/slides"], img[src^="/landing/slides/"]')].map(link => link.closest('section')?.id),
+        explain: (box => box && {
+          heading: text(box.querySelector('h3')),
+          lead: text(box.querySelector('.explain__lead')),
+          ecosystem: text(box.querySelector('.explain__ecosystem')),
+          flow: [...box.querySelectorAll('.eco--workflow > li')].map(step => ({
+            heading: text(step.querySelector('h4')),
+            line: text(step.querySelector('p')),
+            code: [...step.querySelectorAll('pre code')].map(text),
+          })),
+          install: box.querySelector('a')?.getAttribute('href'),
+          trust: text(box.querySelector('.explain__trust')),
+          in: box.closest('section')?.className.split(' ')[0],
+          afterProof: !!(box.compareDocumentPosition(document.querySelector('.proof')) & Node.DOCUMENT_POSITION_PRECEDING),
+          proofBeforeAnswer: !!(document.querySelector('.problem .statement').compareDocumentPosition(document.querySelector('.proof')) & Node.DOCUMENT_POSITION_PRECEDING),
+        })(document.querySelector('.explain')),
         elementsTarget: document.querySelector('#elements')?.className,
         elements: [...document.querySelectorAll('.element h3')].map(text),
+        charts: text(document.querySelector('.element--charts > p')),
+        chartCount: document.querySelector('.element--charts [data-chart-count]')?.textContent ?? null,
+        chartsLink: document.querySelector('.element--charts > p a')?.getAttribute('href') ?? null,
+        chartsLinkText: text(document.querySelector('.element--charts > p a')),
         specimens: { lines: document.querySelectorAll('.spec-chart polyline').length, rows: document.querySelectorAll('.spec-table tbody tr').length, colours: document.querySelectorAll('.spec-colour li').length },
         elementsMore: (link => link && { text: text(link), href: link.getAttribute('href') })(document.querySelector('.best__more a')),
         close: { note: text(document.querySelector('.close__note')), open: text(document.querySelector('.close__open')), updates: text(document.querySelector('.updates__label')), formInside: !!document.querySelector('.updates #interest-form'), fields: [...document.querySelectorAll('#interest-form input:not([tabindex="-1"])')].map(input => input.type), terms: !!document.querySelector('.updates__terms a[href="/privacy"]') },
@@ -714,7 +737,8 @@ try {
       ...(hostedOrigin ? ['Publish and share your reports.'] : []),
       'Try it right now and see how simple it is.',
     ]);
-    assert.equal(story.sub, 'RichView is a presentation layer for your agent.');
+    // Under the headline, what RichView is, in Daniel's sentence of 16 Nov 2026, verbatim.
+    assert.equal(story.sub, 'RichView is a local CLI that lets you generate beautiful HTML reports from simple Git-storable text files.');
     assert.equal(story.try, '#demo');
     assert.equal(story.pills, 0, 'the hero has no pills');
     assert.ok(!story.heroLinks.includes('/showcase/openai-vs-anthropic/') && !story.heroLinks.includes('#signup'), 'the hero names neither the flagship nor the updates');
@@ -722,6 +746,8 @@ try {
     assert.deepEqual(story.prompts.map(box => box.words), [prompt, prompt]);
     assert.deepEqual(story.prompts.map(box => box.copy), ['Copy', 'Copy']);
     assert.deepEqual(story.promptsIn, ['hero', 'close']);
+    // The problem sentence's claims stand out in it (Daniel, 16 Nov).
+    assert.deepEqual(story.claims, ['HTML reports', 'large, hard to edit, hard to version and iterate on, and different every time']);
     assert.deepEqual(story.leads, ['Megabytes of generated HTML', 'Kilobytes of text and data']);
     assert.deepEqual(story.notes, ['what your agent hands you', 'what you keep and review in Git']);
     // No numbers yet: the size slots wait, empty and hidden.
@@ -738,19 +764,71 @@ try {
     assert.deepEqual(story.brand, { file: true, page: '/landing/brand/company-report-1280.webp', before: true });
     assert.equal(story.lede, 'Set your typeface and colours once. Reuse them in every report.');
     assert.equal(story.rowLabel, 'Prebuilt styles');
-    assert.deepEqual(story.eco, ['Rich Markdown', 'Renderer', 'Styles', 'VS Code extension', 'Report server']);
-    assert.deepEqual(story.ecoLines, ['Your agent writes it, guided by richview learn.', 'Validation and chart diagnostics, then one self-contained HTML report.', 'Your brand, decided once and reused every time.', 'Live preview beside the source. Build it from source for now.', 'Share a stable, versioned link.']);
+    // The proof pair belongs to the problem: it sits under the problem heading, above the answer and
+    // the plain-language explainer with the real CLI workflow (Daniel, 24 Nov 2026).
+    assert.deepEqual(story.explain, {
+      heading: 'How does RichView work?',
+      lead: 'RichView is a CLI that works entirely offline to turn a text specification into a beautiful, interactive HTML file with charts, images and more.',
+      ecosystem: 'The broader ecosystem adds publishing, a VS Code extension, slides, brand styles and backgrounds.',
+      flow: [
+        { heading: 'Write a specification', line: 'Describe your text, charts and images in a file.', code: ['richview init my-report', 'my-report/report.rmd'] },
+        { heading: 'Convert it to HTML', line: 'Turn your local files into one self-contained HTML file.', code: ['richview generate my-report/report.rmd'] },
+        { heading: 'Send it to a colleague', line: 'They can open the file in their browser.', code: ['my-report/Rendered/report.html'] },
+        { heading: 'Publish it for a link', line: 'Sign in to a RichView server and choose who can open the link.', code: ['richview publish my-report/report.rmd'] },
+      ],
+      install: '/docs/install',
+      trust: 'Everything runs on your computer: no account, no upload, no AI calls of its own. Publishing is optional.',
+      in: 'problem',
+      afterProof: true,
+      proofBeforeAnswer: true,
+    });
+    // The release homepage has six ecosystem pieces and no slide destinations.
+    assert.deepEqual(story.eco, ['Rich Markdown', 'Renderer', 'Styles', 'Backgrounds', 'VS Code extension', 'Report server']);
+    assert.deepEqual(story.ecoLines, ['Your agent writes it, guided by richview learn.', 'Validation and chart diagnostics, then one self-contained HTML report.', 'Your brand, decided once and reused every time.', 'Your report on a background of its own, set in its style.', 'Live preview beside the source. Build it from source for now.', 'Share a stable, versioned link.']);
     assert.equal(story.ecoLink, '#elements');
+    assert.deepEqual(story.ecoLinks, ['#elements', '/docs/backgrounds', '/docs/vscode']);
+    assert.deepEqual(story.deckLinks, []);
     assert.equal(story.elementsTarget, 'best', 'the Rich Markdown card leads to the best elements');
-    assert.deepEqual(story.elementsMore, { text: 'All elements in the docs →', href: '/docs/' });
+    assert.deepEqual(story.elementsMore, { text: 'All elements in the docs →', href: '/docs/elements' });
+    const elementsGallery = await fetchStatus(story.elementsMore.href);
+    assert.equal(elementsGallery.status, 200);
+    for (const section of ['charts', 'flow-charts', 'tables']) {
+      assert.ok(elementsGallery.body.includes(`<h2 id="${section}"`), `elements gallery section: ${section}`);
+    }
     // The best elements are named, each with a specimen from the example's data (Daniel, 9 Nov), not a report in a frame.
     assert.deepEqual(story.elements, ['Charts', 'Metrics', 'Callouts', 'Tables', 'Images', 'Typography', 'Colour', 'And more']);
     assert.deepEqual(story.specimens, { lines: 4, rows: 4, colours: 5 });
+    // The home page says RichView draws with its own charting library and how many chart types it has (Daniel, 16 Nov).
+    // The number is the registry's, written in by the build and never typed (DEL-18): the docs' home states the same
+    // one, and it is the chart gallery's list plus the flow chart and the pivot table, which sit under their elements.
+    // The page carries the menu twice, for the side column and for the narrow layout; a type counts once.
+    const galleryTypes = new Set([...(await fetchStatus('/docs/charts')).body.matchAll(/<details class="docs-nav__more docs-chart-types">.*?<\/details>/gs)].flatMap(menu => [...menu[0].matchAll(/<a [^>]*href="([^"]+)"/g)].map(link => link[1]))).size;
+    assert.ok(galleryTypes >= 9, 'the chart gallery lists its chart types');
+    const chartTypes = /(\d+) chart types, from a line chart/.exec((await fetchStatus('/docs/')).body.replace(/<[^>]+>/g, ''))?.[1];
+    assert.equal(chartTypes, String(galleryTypes + 2), "the docs count the chart gallery's types, the flow chart and the pivot table");
+    assert.equal(story.chartCount, chartTypes, 'the home page and the docs state one number of chart types');
+    assert.equal(story.charts, `RichView has its own charting library: ${chartTypes} chart types, from line and bar to Sankey diagrams, treemaps and maps, each drawn from the data beside it. The chart gallery shows them, with flow charts and pivot tables on pages of their own.`);
+    // The link names what it opens, the gallery, so its list and the number agree (FEA-SF-30).
+    assert.equal(story.chartsLinkText, 'chart gallery');
+    assert.equal(story.chartsLink, '/docs/charts');
     // Release updates take an email and nothing else; one line says what the reader signs up for, with the privacy link.
     assert.deepEqual(story.close, { note: "Of course, you won't be doing any of this: it's for your agent.", open: 'RichView is open source and MIT licensed.', updates: installEnabled ? 'Get release updates.' : 'Coming soon.', formInside: true, fields: ['email'], terms: true });
     assert.deepEqual(story.removed, [], 'the how, why, flagship and sign-up sections are gone');
     assert.deepEqual(story.header, siteMode.header);
     assert.equal(story.frames, 0, 'the best elements are named, not a report in a frame');
+    // Homepage section titles and the workflow labels sit above their content, including on tablets.
+    for (const width of [390, 960, 1280]) {
+      await page.setViewportSize({ width, height: 900 });
+      const beside = await page.locator('.voices__head, .eco--workflow > li, .hosted').evaluateAll(groups =>
+        groups.flatMap(group => {
+          const heading = group.querySelector('h2, h4');
+          const bottom = heading.getBoundingClientRect().bottom;
+          return [...group.querySelectorAll('p, pre, .hosted__capture')].some(content =>
+            content.getClientRects().length && content.getBoundingClientRect().top < bottom - 1
+          ) ? [heading.textContent] : [];
+        }));
+      assert.deepEqual(beside, [], `Homepage content beside its heading at ${width}px`);
+    }
     // Pages of the styles row stand still and show no scroll bar: each frame is wider than its page by more than its own bar.
     await page.locator('#styles').scrollIntoViewIfNeeded();
     await page.waitForFunction(() => document.querySelectorAll('.voices__sheet[data-ready]').length === 5, null, { timeout: 60_000 });

@@ -835,3 +835,52 @@ test("redaction replaces one answer and removes its old log text without touchin
 	assert.equal(await readFile(logFile, "utf8"), saved + "{broken\n");
 	await writeFile(logFile, saved);
 });
+
+test("technical pages and their diagrams join the document API as files appear", async () => {
+	const dir = path.join(root, "docs/how-it-works");
+	await mkdir(path.join(dir, "diagrams"), { recursive: true });
+	await writeFile(path.join(dir, "core.md"), "# Renderer");
+	await writeFile(path.join(dir, "README.md"), "# How RichView works");
+	await writeFile(path.join(dir, "diagrams/chart.svg"), '<svg xmlns="http://www.w3.org/2000/svg"/>');
+	const docs = (await http("GET", "/api/docs")).json.docs.filter(doc => doc.section === "how-it-works");
+	assert.deepEqual(docs.map(doc => doc.title), ["How RichView works", "Renderer"]);
+	assert.equal((await http("GET", "/api/docs/docs/how-it-works/core.md")).text, "# Renderer");
+	const image = await http("GET", "/files/docs/how-it-works/diagrams/chart.svg");
+	assert.equal(image.headers["content-type"], "image/svg+xml");
+	assert.match(image.headers["content-security-policy"], /sandbox/);
+});
+
+test("answered lists the current decision at its latest log date, excluding cleared cards", async () => {
+	const id = "10-history";
+	await writePart(id, 10, [item("H-01"), item("H-02"), item("H-03")]);
+	const answer = (card, body) => http("PUT", `/api/answers/${id}/${card}`, { body });
+	await answer("H-01", { decision: "accept" });
+	await answer("H-02", { decision: "defer" });
+	await answer("H-03", { decision: "reject" });
+	await http("DELETE", `/api/answers/${id}/H-03`);
+	await answer("H-01", { decision: "edit", text: "My wording.", note: "My note." });
+	await writePart(id, 10, [item("H-01", { proposed: "Changed proposal" }), item("H-02"), item("H-03")]);
+	const result = await http("GET", "/api/answered");
+	assert.equal(result.status, 200);
+	const entries = result.json.items.filter(entry => entry.partId === id);
+	assert.deepEqual(entries.map(entry => entry.id), ["H-01", "H-02"]);
+	assert.equal(entries[0].at, (await readLog()).at(-1).at);
+	assert.equal(entries[0].answer.text, "My wording.");
+	assert.equal(entries[0].answer.note, "My note.");
+	assert.equal(entries[0].answer.stale, true);
+	assert.equal(entries[0].proposed, "Changed proposal");
+});
+
+test("a stale card recovers only a committed proposal matching its answer hash", async () => {
+	const partId = "11-history";
+	await writePart(partId, 11, [item("H-11"), item("H-12")]);
+	git(root, "init", "-q");
+	git(root, "add", `docs/lockdown/parts/${partId}.json`);
+	git(root, "commit", "-qm", "Original proposal");
+	await writePart(partId, 11, [item("H-11"), item("H-12", { proposed: "Never committed" })]);
+	for (const id of ["H-11", "H-12"]) await http("PUT", `/api/answers/${partId}/${id}`, { body: { decision: "accept" } });
+	await writePart(partId, 11, [item("H-11", { proposed: "Revised" }), item("H-12")]);
+	const lookup = (id) => http("GET", `/api/proposal/${partId}/${id}`);
+	assert.deepEqual((await lookup("H-11")).json, { proposed: "Proposal for H-11." });
+	assert.deepEqual((await lookup("H-12")).json, { proposed: null });
+});

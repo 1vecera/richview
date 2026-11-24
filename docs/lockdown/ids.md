@@ -259,7 +259,7 @@ After the entity tables come the features of each component, the IDs that appear
 | F-WEB-TABS-NAV | Tab navigation, deep links and hidden charts | FEA-BR-10 | 04d-features-branches | C-RICHVIEW-WEB |
 | F-WIKILINKS | Wikilinks `[[Report]]` | FEA-RP-12 | 04b-features-report | C-RICHVIEW-CORE |
 
-## T- Types (64)
+## T- Types (65)
 
 | ID | Title | Item | Part |
 | --- | --- | --- | --- |
@@ -287,6 +287,7 @@ After the entity tables come the features of each component, the IDs that appear
 | T-DATA-CONNECTOR | Data connectors (PR #66) | TYP-79 | 05-types |
 | T-DATA-CSV | CSV typing rules | TYP-37 | 05-types |
 | T-DATA-JSON | JSON data files | TYP-38 | 05-types |
+| T-DATA-PARQUET | Parquet data files | TYP-102 | 05-types |
 | T-DATA-SOURCE | Block data source | TYP-35 | 05-types |
 | T-DIAG-CODES | Diagnostic code catalogue | TYP-55 | 05-types |
 | T-DIAG-STATUS | Levels, status, `ok` and exit codes | TYP-54 | 05-types |
@@ -561,7 +562,7 @@ After the entity tables come the features of each component, the IDs that appear
 | G-WORKER-REPLY-HOLD | Deterministic ordering in browser checks | FEA-BR-47 | 04d-features-branches | C-DEV-HARNESS |
 | G-WORKTREE-ISOLATION | Worktrees and isolation | DEL-42 | 02-delivery |  |
 
-## D- Decisions (244)
+## D- Decisions (246)
 
 | ID | Title | Item | Part | Component |
 | --- | --- | --- | --- | --- |
@@ -748,6 +749,7 @@ After the entity tables come the features of each component, the IDs that appear
 | D-TOOLTIP | Readout panel: light, stable, never invented | FEA-CH-42 | 04a-features-chart | C-WEB-CHART-HOST |
 | D-TYP-ASSET-REF | Pinned remote asset references | TYP-41 | 05-types |  |
 | D-TYP-BLOCK-WIDTH | Full-width opt-in per block | TYP-89 | 05-types |  |
+| D-TYP-COLUMN-DECIMALS | A column from a typed numeric source shows one number of decimals | TYP-104 | 05-types |  |
 | D-TYP-COLUMN-ORDER | Column and key order | TYP-25 | 05-types |  |
 | D-TYP-CONTENT-IDENTITY | What makes two publications the same content | TYP-95 | 05-types |  |
 | D-TYP-CURRENCY | Money formats | TYP-87 | 05-types |  |
@@ -773,6 +775,7 @@ After the entity tables come the features of each component, the IDs that appear
 | D-TYP-REMOTE-MEDIA | Remote images, audio and video | TYP-40 | 05-types |  |
 | D-TYP-REPUBLISH | Republishing an existing version | TYP-63 | 05-types |  |
 | D-TYP-SLUG-FALLBACK | Slug when frontmatter has a problem | TYP-61 | 05-types |  |
+| D-TYP-STATISTIC-PAYLOAD | Statistic charts over many rows embed their structure, not their observations | TYP-103 | 05-types |  |
 | D-TYP-STYLE-FORMATS | The showcase theme format | TYP-93 | 05-types |  |
 | D-TYP-STYLE-INJECTION | Style values reaching CSS unchecked | TYP-51 | 05-types |  |
 | D-TYP-TEMPORAL-FEATURES | Which time-series engine features block YAML reaches | TYP-86 | 05-types |  |

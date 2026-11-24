@@ -12,9 +12,19 @@
 //! Argon2id; tokens and session cookies are stored only as SHA-256 digests.
 
 pub use crate::hosted_links::LinkPurpose;
+#[path = "access/cli_sign_in.rs"]
+mod cli_sign_in;
+#[path = "access/identities.rs"]
+mod identities;
 #[path = "access/teams.rs"]
 mod teams;
 use argon2::{Algorithm, Argon2, Params, Version};
+pub use cli_sign_in::{
+    CLI_SIGN_IN_POLL_SECONDS, CLI_SIGN_IN_SECONDS, CliSignInCollected, CliSignInStarted,
+    CliSignInWaiting, cli_user_code,
+};
+pub(crate) use identities::PROVIDER_ON_EXISTING;
+pub use identities::{SignedIn, UnsentNotice};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -168,6 +178,77 @@ pub(crate) fn first_organization_name(person: &str) -> String {
     format!("{}{SUFFIX}", person.trim_end())
 }
 
+/// Makes the account sign-up makes: a person who owns a first organization named after them,
+/// with the address already verified by whatever proved it. `password` is `None` for a person who
+/// signs in with a provider until they set one with the reset link.
+fn new_account(
+    state: &mut State,
+    name: String,
+    email: String,
+    password: Option<PasswordHash>,
+    identity: Option<Identity>,
+) -> Result<User, AccessError> {
+    let id = loop {
+        let candidate = format!(
+            "u-{}",
+            random_text(9)?.to_lowercase().replace(['_', '-'], "x")
+        );
+        if !state.users.iter().any(|u| u.user.id == candidate) {
+            break candidate;
+        }
+    };
+    let org = loop {
+        let mut bytes = [0u8; 8];
+        getrandom::fill(&mut bytes).map_err(|e| AccessError::Storage(e.to_string()))?;
+        if bytes.iter().any(|b| *b >= 252) {
+            continue;
+        }
+        let alphabet = b"abcdefghijklmnopqrstuvwxyz0123456789";
+        let candidate: String = bytes
+            .iter()
+            .map(|b| alphabet[(*b % 36) as usize] as char)
+            .collect();
+        if !state.organizations.iter().any(|o| o.id == candidate) {
+            break candidate;
+        }
+    };
+    let created = stamp();
+    let user = User {
+        id,
+        name,
+        email,
+        role: OrgRole::Owner,
+        disabled: false,
+        created: created.clone(),
+        verified: Some(created.clone()),
+        operator: false,
+        token_org: None,
+    };
+    state.organizations.push(Organization {
+        id: org.clone(),
+        name: first_organization_name(&user.name),
+        created: created.clone(),
+        suspended: false,
+        limits: OrganizationLimits::default(),
+    });
+    state.memberships.push(Membership {
+        person: user.id.clone(),
+        org,
+        role: OrgRole::Owner,
+        created,
+    });
+    state.org_creations.insert(user.id.clone(), 1);
+    state.users.push(UserRecord {
+        user: user.clone(),
+        password,
+        tokens: vec![],
+        identities: identity.into_iter().collect(),
+        removed_identities: vec![],
+        unsent_notices: vec![],
+    });
+    Ok(user)
+}
+
 fn default_org() -> String {
     "default".into()
 }
@@ -200,6 +281,21 @@ struct TokenRecord {
     org: String,
 }
 
+/// A sign-in provider's account joined to a person: the provider and the provider's own id for the
+/// account, never an address (`social`). One identity belongs to at most one person.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct Identity {
+    /// The provider's slug: `github`, `microsoft` or `google`.
+    pub provider: String,
+    /// GitHub's numeric user id; Microsoft's tenant id and object id; Google's `sub`.
+    pub subject: String,
+    /// What the Account page calls it: GitHub's login, or the provider's address. Shown, never
+    /// trusted.
+    pub label: String,
+    /// When the person connected it.
+    pub connected: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct UserRecord {
     #[serde(flatten)]
@@ -208,6 +304,15 @@ struct UserRecord {
     password: Option<PasswordHash>,
     #[serde(default)]
     tokens: Vec<TokenRecord>,
+    /// The provider accounts joined to this person.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    identities: Vec<Identity>,
+    /// Provider accounts taken off this person, which never join it again by address.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    removed_identities: Vec<identities::RemovedIdentity>,
+    /// Joins whose notice mail could not go yet.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    unsent_notices: Vec<UnsentNotice>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -296,7 +401,7 @@ impl Default for State {
     }
 }
 
-fn valid_hosted_person_id(id: &str) -> bool {
+pub(crate) fn valid_hosted_person_id(id: &str) -> bool {
     !id.is_empty()
         && id.len() <= 128
         && id
@@ -612,12 +717,12 @@ fn account_deletion(state: &State, person: &str) -> Result<AccountDeletion, Acce
         .find(|record| record.user.id == person)
         .ok_or(AccessError::NotFound)?;
     if user.user.email.trim().is_empty() {
-        return Err(AccessError::Invalid("Account email is unavailable".into()));
+        return Err(AccessError::Storage("Account email is unavailable".into()));
     }
     let mut orgs = Vec::new();
     for membership in state.memberships.iter().filter(|m| m.person == person) {
         if !state.organizations.iter().any(|o| o.id == membership.org) {
-            return Err(AccessError::Invalid(
+            return Err(AccessError::Storage(
                 "Account belongs to an unknown organization".into(),
             ));
         }
@@ -639,7 +744,7 @@ fn account_deletion(state: &State, person: &str) -> Result<AccountDeletion, Acce
     if state.acls.values().any(|acl| {
         acl.owner == person && !orgs.contains(&acl.org) && heir(state, &acl.org, person).is_none()
     }) {
-        return Err(AccessError::Invalid(
+        return Err(AccessError::Storage(
             "Account owns reports in an organization without another owner".into(),
         ));
     }
@@ -705,6 +810,10 @@ pub struct Access {
     /// Single-use hand-overs from the app origin to the report origin: digest → (person, slug, expiry).
     grants: Arc<Mutex<BTreeMap<String, Ticket>>>,
     report_sessions: Arc<Mutex<BTreeMap<String, ReportSession>>>,
+    /// Command-line sign-ins waiting for their person to confirm them in the browser.
+    cli_sign_ins: Arc<Mutex<cli_sign_in::CliSignIns>>,
+    /// Sign-in with GitHub, Microsoft or Google, when this server has a client for any (hosted only).
+    social: Arc<std::sync::OnceLock<Arc<crate::social::Social>>>,
     default_visibility: Visibility,
     service_token: Option<Arc<str>>,
     /// How long a sign-in waits for the hashing lane before it is refused as throttled.
@@ -921,6 +1030,27 @@ impl Access {
     /// Opens a fresh or already hosted data directory; single-server data cannot be reinterpreted.
     pub fn open_hosted(data_dir: &Path) -> Result<Self, String> {
         Self::open_for(data_dir, Visibility::Private, None, Tenancy::Hosted)
+    }
+
+    /// Opens a hosted directory again, as a restart would, once the `Access` a test dropped has
+    /// let go of its lock. Its mail queue's cleanup holds a clone for as long as one pass runs,
+    /// which on a loaded machine can outlast the drop; anything else still holding the
+    /// directory after 30 seconds fails the test.
+    #[cfg(test)]
+    pub(crate) async fn reopen_hosted(data_dir: &Path) -> Self {
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(30);
+        loop {
+            match Self::open_hosted(data_dir) {
+                Ok(access) => return access,
+                Err(error)
+                    if error == "Hosted data directory is already in use"
+                        && std::time::Instant::now() < deadline =>
+                {
+                    tokio::time::sleep(std::time::Duration::from_millis(20)).await;
+                }
+                Err(error) => panic!("{error}"),
+            }
+        }
     }
 
     fn open_for(
@@ -1193,6 +1323,8 @@ impl Access {
             registration_workers: Arc::new(tokio::sync::Semaphore::new(1)),
             grants: Arc::default(),
             report_sessions: Arc::default(),
+            cli_sign_ins: Arc::default(),
+            social: Arc::default(),
             default_visibility,
             service_token: service_token.filter(|t| !t.is_empty()),
             // An unoptimized build hashes many times slower, so a test suite signing in on many
@@ -1450,12 +1582,15 @@ impl Access {
         name: &str,
         password: &str,
     ) -> Result<User, AccessError> {
-        self.complete_hosted_link_inner(token, name, password, false, None)
+        self.complete_hosted_link_inner(token, name, password, false, None, None)
             .await
-            .map(|(user, _)| user)
+            .map(|(user, _, _)| user)
     }
 
-    /// Complete a verified link and create the browser session in the same state transaction.
+    /// Complete a verified link and create the browser session in the same state transaction,
+    /// keeping every connected provider. The server's own page uses
+    /// [`Self::complete_hosted_link_keeping`].
+    #[cfg(test)]
     pub(crate) async fn complete_hosted_link_and_sign_in(
         &self,
         token: &str,
@@ -1463,11 +1598,30 @@ impl Access {
         password: &str,
         publication: Option<tokio::sync::OwnedMutexGuard<()>>,
     ) -> Result<(User, String, String), AccessError> {
-        let (user, session) = self
-            .complete_hosted_link_inner(token, name, password, true, publication)
+        let (user, session, _) = self
+            .complete_hosted_link_inner(token, name, password, true, publication, None)
             .await?;
         let (cookie, csrf) = session.ok_or(AccessError::Credentials)?;
         Ok((user, cookie, csrf))
+    }
+
+    /// Like [`Self::complete_hosted_link_and_sign_in`], for the page a person reaches from the
+    /// server: a reset removes every connected provider whose slug is not in `keep`, and the ones
+    /// removed come back so the page can say which and the audit trail can name them. The other
+    /// callers keep every provider.
+    pub(crate) async fn complete_hosted_link_keeping(
+        &self,
+        token: &str,
+        name: &str,
+        password: &str,
+        publication: Option<tokio::sync::OwnedMutexGuard<()>>,
+        keep: Vec<String>,
+    ) -> Result<(User, String, String, Vec<Identity>), AccessError> {
+        let (user, session, removed) = self
+            .complete_hosted_link_inner(token, name, password, true, publication, Some(keep))
+            .await?;
+        let (cookie, csrf) = session.ok_or(AccessError::Credentials)?;
+        Ok((user, cookie, csrf, removed))
     }
 
     async fn complete_hosted_link_inner(
@@ -1477,7 +1631,8 @@ impl Access {
         password: &str,
         sign_in: bool,
         publication: Option<tokio::sync::OwnedMutexGuard<()>>,
-    ) -> Result<(User, Option<(String, String)>), AccessError> {
+        keep: Option<Vec<String>>,
+    ) -> Result<(User, Option<(String, String)>, Vec<Identity>), AccessError> {
         // Bound requests waiting on the deletion lock as well as the hashing workers.
         let permit = self
             .registration_workers
@@ -1547,6 +1702,7 @@ impl Access {
                     .ok_or(AccessError::Credentials)?
                     .take(&token)?
                     .ok_or(AccessError::Credentials)?;
+                let mut removed: Vec<Identity> = Vec::new();
                 let user = match link.purpose {
                     LinkPurpose::Signup => {
                         if state
@@ -1556,63 +1712,7 @@ impl Access {
                         {
                             return Err(AccessError::Credentials);
                         }
-                        let id = loop {
-                            let candidate = format!(
-                                "u-{}",
-                                random_text(9)?.to_lowercase().replace(['_', '-'], "x")
-                            );
-                            if !state.users.iter().any(|u| u.user.id == candidate) {
-                                break candidate;
-                            }
-                        };
-                        let org = loop {
-                            let mut bytes = [0u8; 8];
-                            getrandom::fill(&mut bytes)
-                                .map_err(|e| AccessError::Storage(e.to_string()))?;
-                            if bytes.iter().any(|b| *b >= 252) {
-                                continue;
-                            }
-                            let alphabet = b"abcdefghijklmnopqrstuvwxyz0123456789";
-                            let candidate: String = bytes
-                                .iter()
-                                .map(|b| alphabet[(*b % 36) as usize] as char)
-                                .collect();
-                            if !state.organizations.iter().any(|o| o.id == candidate) {
-                                break candidate;
-                            }
-                        };
-                        let created = stamp();
-                        let user = User {
-                            id,
-                            name,
-                            email: link.email,
-                            role: OrgRole::Owner,
-                            disabled: false,
-                            created: created.clone(),
-                            verified: Some(created.clone()),
-                            operator: false,
-                            token_org: None,
-                        };
-                        state.organizations.push(Organization {
-                            id: org.clone(),
-                            name: first_organization_name(&user.name),
-                            created: created.clone(),
-                            suspended: false,
-                            limits: OrganizationLimits::default(),
-                        });
-                        state.memberships.push(Membership {
-                            person: user.id.clone(),
-                            org,
-                            role: OrgRole::Owner,
-                            created,
-                        });
-                        state.org_creations.insert(user.id.clone(), 1);
-                        state.users.push(UserRecord {
-                            user: user.clone(),
-                            password: Some(password_hash),
-                            tokens: vec![],
-                        });
-                        user
+                        new_account(state, name, link.email, Some(password_hash), None)?
                     }
                     LinkPurpose::Reset => {
                         let user = state
@@ -1624,6 +1724,19 @@ impl Access {
                             .ok_or(AccessError::Credentials)?;
                         user.password = Some(password_hash);
                         user.tokens.clear();
+                        // A reset is for someone who may have lost control of the account: the
+                        // providers connected to it go unless the person keeps them.
+                        if let Some(keep) = &keep {
+                            let (kept, gone): (Vec<Identity>, Vec<Identity>) =
+                                std::mem::take(&mut user.identities)
+                                    .into_iter()
+                                    .partition(|identity| keep.contains(&identity.provider));
+                            user.identities = kept;
+                            for identity in &gone {
+                                identities::remember_removed(user, identity);
+                            }
+                            removed = gone;
+                        }
                         let result = user.user.clone();
                         state.sessions.retain(|s| s.user != result.id);
                         result
@@ -1651,7 +1764,7 @@ impl Access {
                         org: None,
                     });
                 }
-                Ok((user, session))
+                Ok((user, session, removed))
             })
         })
         .await
@@ -1708,11 +1821,20 @@ impl Access {
     }
 
     pub(crate) fn signup_account_capacity(&self) -> bool {
+        let (paused, room) = self.signup_account_status();
+        !paused && room
+    }
+
+    /// The manual switch and room under the hosted account cap, read together.
+    pub(crate) fn signup_account_status(&self) -> (bool, bool) {
         let limit = self
             .signup_account_limit
             .load(std::sync::atomic::Ordering::Relaxed);
         self.read(|state| {
-            state.tenancy == Tenancy::Hosted && !state.signups_paused && state.users.len() < limit
+            (
+                state.signups_paused,
+                state.tenancy == Tenancy::Hosted && state.users.len() < limit,
+            )
         })
     }
 
@@ -2630,6 +2752,9 @@ impl Access {
                     user: user.clone(),
                     password: Some(hash),
                     tokens: vec![],
+                    identities: vec![],
+                    removed_identities: vec![],
+                    unsent_notices: vec![],
                 });
                 Ok(user)
             })
@@ -3307,6 +3432,9 @@ impl Access {
                 user,
                 password,
                 tokens: vec![],
+                identities: vec![],
+                removed_identities: vec![],
+                unsent_notices: vec![],
             });
             Ok(())
         })?;
@@ -4134,6 +4262,9 @@ mod tests {
                         user,
                         password: None,
                         tokens: vec![],
+                        identities: vec![],
+                        removed_identities: vec![],
+                        unsent_notices: vec![],
                     });
                 }
                 Ok(())

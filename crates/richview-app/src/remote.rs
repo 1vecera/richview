@@ -87,7 +87,7 @@ pub async fn send(
     }
     if status == reqwest::StatusCode::UNAUTHORIZED {
         return Err(
-            "The server did not accept this token. Check RICHVIEW_TOKEN or --token, or create a new token on the server's CLI tokens page."
+            "The server did not accept this token. Run richview login again, or check RICHVIEW_TOKEN or --token; a new token comes from the server's CLI tokens page."
                 .into(),
         );
     }
@@ -99,6 +99,52 @@ pub async fn send(
     Err(format!(
         "Request failed: {status} — {}",
         said.chars().take(200).collect::<String>()
+    ))
+}
+
+/// One request that may carry no token, answered with the status and the JSON body whatever the
+/// status is: for the sign-in itself, where a refusal is an answer to read and not a failure.
+/// No redirects and a small bounded response; an error never names the address or a token.
+pub(crate) async fn call(
+    server: &reqwest::Url,
+    token: Option<&str>,
+    method: reqwest::Method,
+    path: &str,
+    body: Option<&Value>,
+) -> Result<(reqwest::StatusCode, Value), String> {
+    const MAX_ANSWER_BYTES: usize = 64 * 1024;
+    let endpoint = server.join(path).map_err(|e| e.to_string())?;
+    let client = reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .timeout(std::time::Duration::from_secs(30))
+        .build()
+        .map_err(|e| e.to_string())?;
+    let mut request = client.request(method, endpoint);
+    if let Some(token) = token {
+        request = request.bearer_auth(token);
+    }
+    if let Some(body) = body {
+        request = request.json(body);
+    }
+    let mut response = request
+        .send()
+        .await
+        .map_err(|e| e.without_url().to_string())?;
+    let status = response.status();
+    let mut bytes = Vec::new();
+    while let Some(chunk) = response
+        .chunk()
+        .await
+        .map_err(|e| e.without_url().to_string())?
+    {
+        if bytes.len() + chunk.len() > MAX_ANSWER_BYTES {
+            return Err("Server response exceeded size limit".into());
+        }
+        bytes.extend_from_slice(&chunk);
+    }
+    Ok((
+        status,
+        serde_json::from_slice(&bytes).unwrap_or(Value::Null),
     ))
 }
 

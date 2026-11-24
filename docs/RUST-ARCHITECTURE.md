@@ -1,5 +1,7 @@
 # Rust architecture and extension guidance
 
+For the current implementation, see [How RichView works](how-it-works/README.md).
+
 The pure report core accepts source and caller-resolved resources. Native and browser hosts own I/O and platform APIs; both call the same chart/render implementation. Source parsing, numerical transforms and interaction state are never delegated to a JavaScript renderer.
 
 ```mermaid

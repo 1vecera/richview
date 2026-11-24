@@ -1,8 +1,8 @@
 //! Automatic values of the charts that printed none (FEA-CH-28 as chart design ruled on
 //! 16 Nov 2026): a dumbbell's two ends, a bullet's measure, a box plot's medians, a treemap's
-//! largest tiles, a combo's bars and last line value, and a financial chart's last close. Rows
-//! share the budget of five, three under 480 px of plot width, and every value is printed or
-//! none.
+//! largest tiles, a combo's bars and last line value. Rows share the budget of five, three under
+//! 480 px of plot width, and every value is printed or none. A financial chart's last close, high
+//! and low follow their own ruling (chart design, 17 Nov 2026): the close always stays.
 
 mod common;
 
@@ -659,28 +659,47 @@ fn the_author_switch_prints_no_combo_value() {
     contract(&spec, &rows);
 }
 
-/// A candlestick and an OHLC chart print one value, the last close, as a price tag: 6 px right
-/// of the plot at the close's own height, in room the chart keeps for it at every width.
+/// The tag box drawn behind a financial chart's last close.
+fn tag_chip(g: &Geometry) -> Option<Rect> {
+    g.panels[0].items.iter().find_map(|item| match item {
+        Item::Rect {
+            rect,
+            role: Role::Annotation,
+            ..
+        } => Some(*rect),
+        _ => None,
+    })
+}
+
+/// The soft word set before a financial chart's high or low.
+fn word<'a>(g: &'a Geometry, word: &str) -> Option<&'a Text> {
+    g.panels[0].items.iter().find_map(|item| match item {
+        Item::Text(t) if t.text == word && t.role == Role::Label && t.face == Face::Data => Some(t),
+        _ => None,
+    })
+}
+
+/// A candlestick and an OHLC chart print three values, each saying what it is (chart design,
+/// 17 Nov 2026): the last close as a tag in the last period's colour, on the plot's right edge at
+/// the close's own height and joined to its mark by a hairline, in room the chart keeps for it
+/// at every width; the period high over its wick and the low under its wick, a soft word
+/// before each number. The tag always stays; a high or low with no clear place is recorded.
 #[test]
-fn a_financial_chart_prints_its_last_close_beside_the_plot() {
+fn a_financial_chart_prints_its_last_close_as_a_tag_and_names_its_high_and_low() {
     for name in ["candlestick", "ohlc"] {
         let (mut spec, rows) = fixture(name);
         for width in [1100.0, 390.0] {
             spec["auto_annotations"] = json!(true);
             let g = draw_at(&spec, &rows, width);
             let panel = &g.panels[0];
-            assert_eq!(texts(&g), ["$105.3"], "{name} at {width}: {:?}", g.dropped);
-            assert!(value_drops(&g).is_empty(), "{name} at {width}");
-            let tag = values(&g)[0];
-            assert!(
-                (tag.bounds.x - panel.plot.right() - 6.0).abs() < 0.01,
-                "{name} at {width}"
-            );
-            assert!(
-                tag.bounds.inside(&panel.frame, 0.5),
-                "{name} at {width}: {:?}",
-                tag.bounds
-            );
+            let tag = *values(&g)
+                .iter()
+                .find(|t| t.text == "$105.3")
+                .unwrap_or_else(|| panic!("{name} at {width}: the close prints: {:?}", texts(&g)));
+            let chip = tag_chip(&g).unwrap_or_else(|| panic!("{name} at {width}: the tag has its box"));
+            assert!(tag.bounds.inside(&chip, 0.01), "{name} at {width}");
+            assert!((chip.x - panel.plot.right()).abs() < 0.01, "{name} at {width}");
+            assert!(chip.inside(&panel.frame, 0.5), "{name} at {width}: {chip:?}");
             // The last period closed below its open: the close is the foot of a candle's body
             // and the right tick of an OHLC bar.
             let middle = tag.bounds.y + tag.bounds.h / 2.0;
@@ -706,31 +725,289 @@ fn a_financial_chart_prints_its_last_close_beside_the_plot() {
                 }
                 _ => false,
             });
-            assert!(at_close, "{name} at {width}: the value stands at the close's height");
+            assert!(at_close, "{name} at {width}: the tag stands at the close's height");
             assert_eq!(tag.series, panel.observations[last].series, "{name}");
+            // The hairline runs from the last mark to the tag's near side, in the tag's colour.
+            let hairline = panel.items.iter().find_map(|item| match item {
+                Item::Line {
+                    path,
+                    role: Role::Leader,
+                    obs,
+                    stroke,
+                    ..
+                } if *obs == Some(last) => Some((path.flatten(0.5), stroke.color)),
+                _ => None,
+            });
+            let (path, colour) = hairline.unwrap_or_else(|| panic!("{name} at {width}: a hairline"));
+            let end = *path.last().and_then(|l| l.last()).expect("a point");
+            assert!(
+                (end[0] - chip.x).abs() < 0.01 && (end[1] - middle).abs() < 0.6,
+                "{name} at {width}"
+            );
+            let fill = panel.items.iter().find_map(|item| match item {
+                Item::Rect {
+                    role: Role::Annotation,
+                    fill,
+                    ..
+                } => Some(fill.color),
+                _ => None,
+            });
+            assert_eq!(fill, Some(colour), "{name} at {width}");
+            // The high and the low: each printed past its wick with its word, or recorded.
+            let drops = value_drops(&g);
+            for (word_text, number, above) in [("High", "$107.4", true), ("Low", "$99.5", false)] {
+                match (word(&g, word_text), values(&g).into_iter().find(|t| t.text == number)) {
+                    (Some(w), Some(n)) => {
+                        assert!(w.bounds.right() < n.bounds.x, "{name} at {width}: {word_text} leads");
+                        assert!((w.y - n.y).abs() < 0.01, "{name} at {width}: one line");
+                        assert_ne!(w.color, n.color, "{name} at {width}: the word is soft");
+                        let o = &panel.observations[panel
+                            .observations
+                            .iter()
+                            .position(|o| {
+                                o.readout
+                                    .lines
+                                    .iter()
+                                    .any(|l| l.name == word_text && l.printed() == number)
+                            })
+                            .expect("its period")];
+                        let wick = o.area.expect("a wick");
+                        if above {
+                            assert!(n.bounds.bottom() <= wick.y, "{name} at {width}: over the wick");
+                        } else {
+                            assert!(n.bounds.y >= wick.bottom(), "{name} at {width}: under the wick");
+                        }
+                    }
+                    (None, None) => assert!(
+                        drops.iter().any(|d| d.0 == format!("{word_text} {number}")),
+                        "{name} at {width}: {number} printed or recorded: {drops:?}"
+                    ),
+                    other => panic!("{name} at {width}: {word_text} and its number go together: {other:?}"),
+                }
+            }
+            assert!(
+                !drops.iter().any(|d| d.0 == "$105.3"),
+                "{name} at {width}: the tag stays"
+            );
+            // An upright chart with a plot of 480 px or more keeps a line of room past the
+            // highest and the lowest wick, so both stand. A narrower one keeps none, so its marks
+            // keep the plot's height: its value axis is the one the switch leaves.
+            if width > 1000.0 {
+                assert!(
+                    word(&g, "High").is_some() && word(&g, "Low").is_some(),
+                    "{name} at {width}: the high and the low have room: {drops:?}"
+                );
+            }
+            let ticks = |g: &Geometry| -> Vec<String> {
+                g.panels[0]
+                    .items
+                    .iter()
+                    .filter_map(|item| match item {
+                        Item::Text(t) if t.role == Role::AxisLabel && t.text.starts_with('$') => Some(t.text.clone()),
+                        _ => None,
+                    })
+                    .collect()
+            };
+            let mut plain = spec.clone();
+            plain["auto_annotations"] = json!(false);
+            if width < 480.0 {
+                assert_eq!(ticks(&g), ticks(&draw_at(&plain, &rows, width)), "{name} at {width}");
+            }
             assert_eq!(lines_through_text(&g), 0, "{name} at {width}");
             contract(&spec, &rows);
             // The author's switch prints nothing, records nothing and gives the plot the room.
             spec["auto_annotations"] = json!(false);
             let off = draw_at(&spec, &rows, width);
             assert!(texts(&off).is_empty(), "{name} at {width}");
+            assert!(
+                word(&off, "High").is_none() && tag_chip(&off).is_none(),
+                "{name} at {width}"
+            );
             assert!(off.dropped.is_empty(), "{name} at {width}: {:?}", off.dropped);
-            let gained = off.panels[0].plot.w - panel.plot.w;
+            // The value axis keeps no room for a high and a low either, so its ticks, and with
+            // them the plot's left edge, may differ; the room gained is read at the right edge.
+            // It is the number's width alone: the tag's padding stands in the plot's own right
+            // margin, so the tag costs the plot no more than the bare number did.
+            let gained = off.panels[0].plot.right() - panel.plot.right();
             assert!((gained - tag.bounds.w).abs() < 0.01, "{name} at {width}: {gained}");
         }
     }
 }
 
+/// The high and the low come as a pair (lead, 19 Nov 2026): with room under the lowest wick and
+/// none over the highest, a lone "Low" would leave the reader looking for the high, so neither
+/// is printed and both are recorded; the tag stays.
+#[test]
+fn a_financial_high_and_low_are_printed_together_or_not_at_all() {
+    for name in ["candlestick", "ohlc"] {
+        let (mut spec, rows) = fixture(name);
+        // The axis ends at the highest wick and runs well below the lowest.
+        spec["axes"]["y"]["min"] = json!(90);
+        spec["axes"]["y"]["max"] = json!(107.4);
+        let mut g = draw_at(&spec, &rows, 1100.0);
+        assert!(word(&g, "High").is_none(), "{name}: no room over the highest wick");
+        assert!(word(&g, "Low").is_none(), "{name}: the low goes with the high");
+        g.restore_value_drop_text();
+        let mut drops: Vec<&str> = value_drops(&g).into_iter().map(|d| d.0).collect();
+        drops.sort_unstable();
+        assert_eq!(drops, ["High $107.4", "Low $99.5"], "{name}: both are recorded");
+        assert!(texts(&g).contains(&"$105.3"), "{name}: the tag stays");
+        // With room at both ends the pair stands.
+        spec["axes"]["y"]["max"] = json!(120);
+        let g = draw_at(&spec, &rows, 1100.0);
+        assert!(word(&g, "High").is_some() && word(&g, "Low").is_some(), "{name}");
+    }
+}
+
+/// The room for the high and the low is decided on one measure, the panel's width: an upright
+/// chart whose panel is at least 480 px wide keeps a line of room past its highest and lowest
+/// wick, and one a pixel narrower keeps dev's axis, whose ends are the wicks' ends.
+#[test]
+fn a_financial_chart_keeps_room_for_its_high_and_low_from_a_480_px_panel() {
+    for name in ["candlestick", "ohlc"] {
+        let (spec, rows) = fixture(name);
+        for width in [390.0, 470.0, 479.0, 480.0, 481.0, 640.0] {
+            let g = draw_at(&spec, &rows, width);
+            let panel = &g.panels[0];
+            let highest = panel
+                .observations
+                .iter()
+                .filter_map(|o| o.area)
+                .map(|wick| wick.y)
+                .fold(f64::INFINITY, f64::min);
+            let lowest = panel
+                .observations
+                .iter()
+                .filter_map(|o| o.area)
+                .map(|wick| wick.bottom())
+                .fold(f64::NEG_INFINITY, f64::max);
+            let room = (highest - panel.plot.y).min(panel.plot.bottom() - lowest);
+            let wide = panel.frame.w >= 480.0;
+            assert_eq!(wide, width >= 480.0, "{name} at {width}: the panel is the frame");
+            if wide {
+                assert!(room >= 20.0, "{name} at {width}: a line of room at each end: {room}");
+            } else {
+                assert!(room < 2.0, "{name} at {width}: the axis ends at the wicks: {room}");
+            }
+        }
+    }
+}
+
+/// WCAG 2 contrast of two gamma-encoded sRGB colours.
+fn contrast(a: richview_chart::geometry::Rgba, b: richview_chart::geometry::Rgba) -> f64 {
+    let luminance = |c: richview_chart::geometry::Rgba| {
+        let linear = |v: f32| {
+            let v = f64::from(v);
+            if v <= 0.04045 {
+                v / 12.92
+            } else {
+                ((v + 0.055) / 1.055).powf(2.4)
+            }
+        };
+        0.2126 * linear(c.0[0]) + 0.7152 * linear(c.0[1]) + 0.0722 * linear(c.0[2])
+    };
+    let (x, y) = (luminance(a), luminance(b));
+    (x.max(y) + 0.05) / (x.min(y) + 0.05)
+}
+
+/// The tag's number reads at 4.5:1 on its box whatever the last period's colour, as every value
+/// printed on a mark does: on a light or a dark colour it takes the surface or the ink, and on a
+/// mid-tone where neither reaches the floor the box is the surface, outlined in that colour.
+#[test]
+fn a_financial_tags_number_reads_on_its_box_in_any_palette() {
+    let (spec, rows) = fixture("candlestick");
+    let block = richview_chart::block::ChartBlock::from_value(&spec).expect("a chart block");
+    let mut outlined = 0;
+    let mut filled = 0;
+    for lightness in (20..=90).step_by(2) {
+        let colour = format!("oklch({} 0.12 250)", f64::from(lightness) / 100.0);
+        let theme = richview_chart::layout::ChartTheme {
+            palette: vec![colour.clone(), colour.clone()],
+            ..richview_chart::layout::ChartTheme::default()
+        };
+        let options = richview_chart::layout::Options {
+            width: 1100.0,
+            ..richview_chart::layout::Options::default()
+        };
+        let g = richview_chart::layout::layout(&block, &rows, &theme, &options);
+        let (fill, stroke) = g.panels[0]
+            .items
+            .iter()
+            .find_map(|item| match item {
+                Item::Rect {
+                    role: Role::Annotation,
+                    fill,
+                    stroke,
+                    ..
+                } => Some((fill.color, stroke.as_ref().map(|s| s.color))),
+                _ => None,
+            })
+            .unwrap_or_else(|| panic!("{colour}: a tag"));
+        let number = *values(&g).iter().find(|t| t.text == "$105.3").expect("the close");
+        let ratio = contrast(number.color, fill);
+        assert!(ratio >= 4.5, "{colour}: the number reads on its box: {ratio:.2}");
+        let hairline = g.panels[0]
+            .items
+            .iter()
+            .find_map(|item| match item {
+                Item::Line {
+                    role: Role::Leader,
+                    stroke,
+                    ..
+                } => Some(stroke.color),
+                _ => None,
+            })
+            .expect("a hairline");
+        match stroke {
+            // Outlined: the box is not the period's colour, its outline and the hairline are.
+            Some(outline) => {
+                assert_eq!(outline, hairline, "{colour}");
+                assert_ne!(fill, hairline, "{colour}");
+                outlined += 1;
+            }
+            None => {
+                assert_eq!(fill, hairline, "{colour}");
+                filled += 1;
+            }
+        }
+    }
+    assert!(
+        filled > 0 && outlined > 0,
+        "both forms occur: {filled} filled, {outlined} outlined"
+    );
+}
+
+/// A high or low with no place is recorded with its word and its own number, "Low $99.5", the
+/// one its readout line gives back, not with the close of its period: the lines of a price
+/// period's high and low belong to no series, and the record names them all the same.
+#[test]
+fn a_financial_high_or_low_with_no_place_is_recorded_with_its_own_number() {
+    for name in ["candlestick", "ohlc"] {
+        let (mut spec, rows) = fixture(name);
+        // The author fixes the axis at the prices' own ends: no room past either wick.
+        spec["axes"]["y"]["min"] = json!(99.5);
+        spec["axes"]["y"]["max"] = json!(107.4);
+        let mut g = draw_at(&spec, &rows, 1100.0);
+        g.restore_value_drop_text();
+        let mut drops: Vec<&str> = value_drops(&g).into_iter().map(|d| d.0).collect();
+        drops.sort_unstable();
+        assert_eq!(drops, ["High $107.4", "Low $99.5"], "{name}");
+        assert!(texts(&g).contains(&"$105.3"), "{name}: the tag stays");
+        assert!(word(&g, "High").is_none() && word(&g, "Low").is_none(), "{name}");
+    }
+}
+
 /// A horizontal financial chart keeps no room under its last row: where the plot has none, the
-/// last close is recorded as dropped.
+/// last close is recorded as dropped and no tag is drawn.
 #[test]
 fn a_horizontal_financial_chart_records_the_close_it_has_no_room_for() {
     for name in ["candlestick", "ohlc"] {
         let (mut spec, rows) = fixture(name);
         spec["style"]["orientation"] = json!("horizontal");
         let g = draw_at(&spec, &rows, 1100.0);
-        assert!(texts(&g).is_empty(), "{name}");
-        assert_eq!(value_drops(&g), [("$105.3", DropReason::OutOfBounds)], "{name}");
+        assert!(!texts(&g).contains(&"$105.3"), "{name}");
+        assert!(tag_chip(&g).is_none(), "{name}");
+        assert!(value_drops(&g).contains(&("$105.3", DropReason::OutOfBounds)), "{name}");
         contract(&spec, &rows);
     }
 }

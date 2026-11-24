@@ -255,6 +255,11 @@ fn render_document_internal(
         }
     }
     refs.extend(options.styles.iter().cloned());
+    // The report's own background comes last, so its word wins (STY-74).
+    let report_background = style::report_background_layer(&doc.frontmatter).map(|layer| {
+        refs.push(layer);
+        refs.len() - 1
+    });
     let authored = refs.len();
     let refs = style::cascade_refs(&refs);
     let default_below = refs.len() - authored;
@@ -268,6 +273,12 @@ fn render_document_internal(
         &mut doc.diagnostics,
     );
     style::shift_style_paths(&mut doc.diagnostics[first..], default_below);
+    if let Some(index) = report_background {
+        let mut late = doc.diagnostics.split_off(first);
+        style::place_report_background(&mut late, index);
+        crate::parser::place_frontmatter(&doc, &mut late);
+        doc.diagnostics.append(&mut late);
+    }
     for d in &mut doc.diagnostics[first..] {
         if let Some((_, file)) = files.iter().find(|(index, _)| {
             let root = format!("styles[{index}]");
@@ -361,6 +372,35 @@ fn render_document_internal(
             ui_font: chart_theme.ui_font.clone(),
             ..figure::chart_theme(paper)
         });
+    // On a slide's stage bars take their band's share, on screen and on paper, and the plot
+    // stands on the stage itself rather than on a panel of its own (FEA-RP-65). A builtin
+    // style's stage also lets the first series lead: the others step back to quiet tones. The
+    // sketchbook's charts lead in its red pencil, the ink its frame is drawn in, ahead of its
+    // greys. A chart keeps the style's data face, which the engine measures, so the runtime
+    // never clips a label to an estimated box.
+    let stage = resolved
+        .document
+        .pointer("/components/slides/stage")
+        .and_then(Value::as_str)
+        .filter(|stage| *stage != "plain");
+    let wide = |theme: &richview_chart::layout::ChartTheme| richview_chart::layout::ChartTheme {
+        wide_bars: true,
+        few_gridlines: stage.is_some(),
+        stage_values: stage.is_some(),
+        surface: theme.page.clone(),
+        palette: match stage {
+            Some("sketchbook") => crate::slides::quiet_palette(
+                &[std::slice::from_ref(&theme.accent), &theme.palette[..]].concat(),
+                &theme.page,
+            ),
+            Some(_) => crate::slides::quiet_palette(&theme.palette, &theme.page),
+            None => theme.palette.clone(),
+        },
+        ..theme.clone()
+    };
+    let on_slides = crate::slides::enabled(&doc.frontmatter);
+    let slide_theme = on_slides.then(|| wide(&chart_theme));
+    let slide_print = print_theme.as_ref().filter(|_| on_slides).map(wide);
     let figure_context = figure::Context {
         theme: &chart_theme,
         print: print_theme.as_ref(),
@@ -368,7 +408,7 @@ fn render_document_internal(
         colors: &[],
         widths: match options.chart_widths.as_slice() {
             [] => {
-                let inset = style::frame_inset_px(&resolved.document);
+                let inset = style::frame_inset_px(&resolved.document, pdf);
                 [PHONE_COLUMN - inset, figure_width(&resolved) - inset]
             }
             [only] => [*only, *only],
@@ -388,11 +428,16 @@ fn render_document_internal(
         .block_placeholder_prefix
         .clone()
         .unwrap_or_else(|| crate::parser::BLOCK_PLACEHOLDER_PREFIX.to_owned());
-    let placements = crate::columns::placements(&doc.body, &block_prefix, doc.blocks.len());
+    // Slides lay out no columns (FEA-RP-65): a chart there takes its box on the stage.
+    let placements = if on_slides {
+        Vec::new()
+    } else {
+        crate::columns::placements(&doc.body, &block_prefix, doc.blocks.len())
+    };
     let line_px = body_line_px(&resolved);
     let page_height = options.page.text_area().1;
     let column_context = |placement: &crate::columns::Placement| {
-        let inset = style::frame_inset_px(&resolved.document);
+        let inset = style::frame_inset_px(&resolved.document, pdf);
         let options = &placement.options;
         let container = if options.wide {
             desktop_column(&resolved.document)
@@ -421,6 +466,62 @@ fn render_document_internal(
         (desktop, paper, stacked)
     };
     let mut column_css = String::new();
+    let heading_ids: Vec<String> = doc
+        .frontmatter
+        .pointer("/tabs/panels")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(|panel| panel.get("from").and_then(Value::as_str))
+        .map(str::to_owned)
+        .collect();
+    let placeholder = doc
+        .block_placeholder_prefix
+        .clone()
+        .unwrap_or_else(|| crate::parser::BLOCK_PLACEHOLDER_PREFIX.to_owned());
+    // Slides (FEA-RP-65) show everything a slide holds, so a slides source folds no section.
+    let slides = crate::slides::enabled(&doc.frontmatter);
+    let collapsed: Vec<(usize, &str)> = if slides {
+        Vec::new()
+    } else {
+        doc.frontmatter
+            .get("collapsed_sections")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .enumerate()
+            .filter_map(|(index, value)| value.as_str().map(|anchor| (index, anchor)))
+            .collect()
+    };
+    let heading_marker = placeholder.replacen("block:", "heading:", 1);
+    let mut encoded_sections: std::collections::HashSet<String> = collapsed
+        .iter()
+        .map(|(_, anchor)| markdown::heading_marker_id(anchor))
+        .collect();
+    let body_line = doc.body_line;
+    let body_context = markdown::Context {
+        heading_ids: &heading_ids,
+        section_markers: !collapsed.is_empty(),
+        first_line: (body_line > 0).then_some(body_line),
+        columns: true,
+        path: "markdown",
+        scope: "",
+        placeholder: &placeholder,
+        lang: &lang,
+    };
+    // Slides (FEA-RP-65): a chart is laid out for its place on the stage, which the body's cut
+    // into slides decides, so the body is read once here before its blocks render. The findings
+    // of this reading are the later one's, and are not kept twice.
+    let slide_charts = if slides {
+        let body = crate::slides::without_columns(
+            &markdown::markdown_html(&doc.body, options, &body_context, &mut Vec::new()),
+            &placeholder,
+        );
+        crate::slides::Deck::cut(&body, &placeholder, &doc.blocks).chart_boxes(&doc.blocks)
+    } else {
+        Vec::new()
+    };
+    let frame_inset = style::frame_inset_px(&resolved.document, pdf);
     let mut bodies = Vec::with_capacity(doc.blocks.len());
     let mut block_bytes = 0usize;
     let mut charts = vec![];
@@ -479,13 +580,31 @@ fn render_document_internal(
                     ..figure_context
                 }
             });
+            // On a slide the chart's reference layout is its box on the stage; paper narrows a
+            // chart taller than the room its slide leaves (FEA-RP-65).
+            let on_slide =
+                slide_charts
+                    .iter()
+                    .find(|(index, _, _)| *index == i)
+                    .map(|&(_, width, room)| figure::Context {
+                        theme: slide_theme.as_ref().unwrap_or(figure_context.theme),
+                        print: slide_print.as_ref().or(figure_context.print),
+                        widths: [figure_context.widths[0], width - frame_inset],
+                        pdf: pdf.then(|| [width - frame_inset, room / figure::PRINT_HEIGHT_SHARE]),
+                        ..figure_context
+                    });
+            // On a stage the number is the message: a chart prints the values it adds by itself,
+            // as in a report, unless its author turns them off (FEA-RP-65).
             let figure = figure::chart(
                 &block.value,
                 &rows,
                 &order,
                 &id,
                 block.line,
-                in_column.as_ref().unwrap_or(&figure_context),
+                on_slide
+                    .as_ref()
+                    .or(in_column.as_ref())
+                    .unwrap_or(&figure_context),
             );
             doc.diagnostics.extend(figure.diagnostics);
             charts.extend(figure.payload);
@@ -637,6 +756,10 @@ fn render_document_internal(
             if matches!(block.tag.as_str(), "table" | "metric") {
                 // A host-internal key, like `_csvNumericText`: the number formatter reads it.
                 block.value["_lang"] = json!(lang);
+                if slides && block.tag == "table" {
+                    // A slide shows the table, not the report's filter box (FEA-RP-70).
+                    block.value["_slides"] = json!(true);
+                }
             }
             blocks::render_block(block, options, &lang, &failed_prefix, &mut doc.diagnostics)
         };
@@ -655,49 +778,8 @@ fn render_document_internal(
         bodies.push(body);
     }
     let diagnostic_start = doc.diagnostics.len();
-    let heading_ids: Vec<String> = doc
-        .frontmatter
-        .pointer("/tabs/panels")
-        .and_then(Value::as_array)
-        .into_iter()
-        .flatten()
-        .filter_map(|panel| panel.get("from").and_then(Value::as_str))
-        .map(str::to_owned)
-        .collect();
-    let placeholder = doc
-        .block_placeholder_prefix
-        .clone()
-        .unwrap_or_else(|| crate::parser::BLOCK_PLACEHOLDER_PREFIX.to_owned());
-    let collapsed: Vec<(usize, &str)> = doc
-        .frontmatter
-        .get("collapsed_sections")
-        .and_then(Value::as_array)
-        .into_iter()
-        .flatten()
-        .enumerate()
-        .filter_map(|(index, value)| value.as_str().map(|anchor| (index, anchor)))
-        .collect();
-    let heading_marker = placeholder.replacen("block:", "heading:", 1);
-    let mut encoded_sections: std::collections::HashSet<String> = collapsed
-        .iter()
-        .map(|(_, anchor)| markdown::heading_marker_id(anchor))
-        .collect();
-    let body_line = doc.body_line;
-    let markdown_body = markdown::markdown_html(
-        &doc.body,
-        options,
-        &markdown::Context {
-            heading_ids: &heading_ids,
-            section_markers: !collapsed.is_empty(),
-            first_line: (body_line > 0).then_some(body_line),
-            columns: true,
-            path: "markdown",
-            scope: "",
-            placeholder: &placeholder,
-            lang: &lang,
-        },
-        &mut doc.diagnostics,
-    );
+    let markdown_body =
+        markdown::markdown_html(&doc.body, options, &body_context, &mut doc.diagnostics);
     if has_output_limit(&doc.diagnostics[diagnostic_start..]) {
         return Err(output_limit(None));
     }
@@ -772,14 +854,27 @@ fn render_document_internal(
         .collect();
     let markdown_body = expand_blocks(&markdown_body, &failed_prefix, &failed, &[])
         .map_err(|_| output_limit(None))?;
-    let body = expand_blocks(
-        &markdown_body,
-        doc.block_placeholder_prefix
-            .as_deref()
-            .unwrap_or(crate::parser::BLOCK_PLACEHOLDER_PREFIX),
-        &bodies,
-        &keep,
-    )
+    let colophon = shell::colophon(&resolved.document);
+    let footer = format!("<footer class=\"rv-report__footer\">{colophon}</footer>");
+    // How many slides the rendition has, its title slide included; 0 for a report.
+    let mut slide_count = 0;
+    let body = if slides {
+        let flat = crate::slides::without_columns(&markdown_body, &placeholder);
+        let deck = crate::slides::Deck::cut(&flat, &placeholder, &doc.blocks);
+        slide_count = deck.len();
+        let lines = if body_line > 0 {
+            crate::slides::cut_lines(&doc.body, body_line)
+        } else {
+            Vec::new()
+        };
+        doc.diagnostics
+            .extend(deck.density(&placeholder, &doc.blocks, &bodies, &lines));
+        // The colophon closes the last slide; a source with no body has only its title slide.
+        let composed = deck.html(&doc.blocks, &bodies, &footer);
+        expand_blocks(&composed, &placeholder, &bodies, &[])
+    } else {
+        expand_blocks(&markdown_body, &placeholder, &bodies, &keep)
+    }
     .map_err(|_| output_limit(None))?;
     drop(bodies);
     let mut body = crate::columns::expand(&body, &block_prefix);
@@ -791,7 +886,7 @@ fn render_document_internal(
         TabsOutput::Screen
     };
     let mut tabbed = false;
-    if doc.frontmatter.get("tabs").is_some() {
+    if doc.frontmatter.get("tabs").is_some() && !slides {
         let authored = markdown::authored_heading_ids(&doc.body);
         let first = doc.diagnostics.len();
         (body, tabbed) = apply_tabs(
@@ -874,11 +969,30 @@ fn render_document_internal(
         header.push_str(&shell::byline(&doc.frontmatter, &lang));
     }
     // A PDF page is light whatever colour scheme the style asks for.
-    let theme_attr = if pdf {
+    let mut theme_attr = if pdf {
         " data-rv-output=\"pdf\"".to_owned()
     } else {
         String::new()
     };
+    if slides {
+        theme_attr.push_str(" data-rv-slides");
+        // The style's stage (FEA-RP-65): slides.css sets each builtin's world under it.
+        if let Some(stage) = resolved
+            .document
+            .pointer("/components/slides/stage")
+            .and_then(Value::as_str)
+            .filter(|stage| *stage != "plain")
+        {
+            theme_attr.push_str(&format!(" data-rv-stage=\"{}\"", escape(stage)));
+        }
+        // A picture behind the header (STY-74) fills the title slide's stage: slides.css sets
+        // the picture and the title's panel under this mark. Paper has no background.
+        let behind_header = style::background::Spec::read(&resolved.document)
+            .is_some_and(|spec| spec.picture.is_some() && spec.place == "header");
+        if behind_header && background_picture.is_some() && !pdf {
+            theme_attr.push_str(" data-rv-title-picture");
+        }
+    }
     let mut math_font_link = "";
     if body.contains("<math ") {
         let math_font = style::math_font_css();
@@ -891,7 +1005,7 @@ fn render_document_internal(
             .push_str(".rv-report__body math{font-family: \"STIX Two Math\"}\n");
     }
     // Reading aids are for the screen; paper has no scroll to follow (FEA-RP-63, FEA-RP-64).
-    let contents = if !pdf && reading::wants_contents(&doc.frontmatter, sections.len()) {
+    let contents = if !pdf && !slides && reading::wants_contents(&doc.frontmatter, sections.len()) {
         reading::contents(&sections)
     } else {
         String::new()
@@ -916,11 +1030,31 @@ fn render_document_internal(
         figure::FIGURE_CSS,
         print.css
     );
+    if body.contains("class=\"hl-") {
+        css.push_str(&style::code::css(
+            &resolved,
+            &chart_theme.palette,
+            paper.as_ref().zip(print_theme.as_ref()),
+        ));
+    }
     // Only a report that holds columns carries their rules (FEA-RP-68), so every other report
     // keeps its bytes.
     if has_columns {
         css.push_str(COLUMNS_CSS);
         css.push_str(&column_css);
+    }
+    // A table's heat and its filter box bring their rules only to a report that uses them
+    // (FEA-RP-69, FEA-RP-70).
+    if body.contains(" style=\"--rv-heat:") {
+        css.push_str(&crate::heat::css(&resolved, paper.as_ref()));
+    }
+    // The marker is a bare attribute, which escaped author text cannot write.
+    if body.contains(" data-rv-filter>") {
+        css.push_str(TABLE_FILTER_CSS);
+    }
+    // Short labels in table cells (FEA-RP-19); escaped author text cannot write the cell.
+    if body.contains("<td class=\"label\"") {
+        css.push_str(TABLE_LABEL_CSS);
     }
     css.push_str(&company.header_css());
     // Paper drops the background (STY-74); its CSS is screen only, and a PDF leaves it out.
@@ -932,11 +1066,16 @@ fn render_document_internal(
             picture.height,
         ));
     }
-    if pdf {
+    // A slide is its own page, so slides bring their page box (FEA-RP-65).
+    if pdf && !slides {
         css.push_str(&page_css(&print, options.page, title));
     }
     if !contents.is_empty() || !progress.is_empty() {
         css.push_str(reading::READING_CSS);
+    }
+    if slides {
+        css.push_str(crate::slides::CSS);
+        css.push_str(&style::slides_css(&resolved));
     }
     let font_notices = used_font_notices(&resolved.font_css);
     if options.runtime_url.is_some() {
@@ -995,7 +1134,6 @@ fn render_document_internal(
         scheme: color_scheme(&resolved),
         csp: shell::csp(&runtime, &embed_hosts, hotlinks),
     });
-    let colophon = shell::colophon(&resolved.document);
     // A style that switches motion off renders everything settled (FEA-RP-35, TYP-49).
     let motion_attr = if resolved.document["motion"]["enabled"] == json!(false) {
         " data-motion=\"off\""
@@ -1011,11 +1149,36 @@ fn render_document_internal(
             .saturating_add(1024)
             .min(crate::MAX_REPORT_BYTES),
     );
+    // The header of a slides rendition is its first slide, and the colophon closed the last one.
+    let (header, footer) = if slides {
+        (
+            format!(
+                "<section class=\"rv-slide rv-slide--title\" data-rv-slide=\"1\" aria-roledescription=\"slide\" aria-label=\"Slide 1 of {slide_count}\"><div class=\"rv-slide__stage\"><div class=\"rv-slide__body\"><header class=\"rv-report__header\">{header}</header>{}</div></div></section>",
+                if slide_count == 1 {
+                    footer.as_str()
+                } else {
+                    ""
+                }
+            ),
+            String::new(),
+        )
+    } else {
+        (
+            format!("<header class=\"rv-report__header\">{header}</header>"),
+            footer,
+        )
+    };
     write!(
         html,
-        "<!doctype html>\n<html lang=\"{}\"{theme_attr}><head>{head}{math_font_link}<style>{css}</style>{font_notices}</head><body><article class=\"rv-report{rail}\"{motion_attr}><header class=\"rv-report__header\">{header}</header>{contents}<main class=\"rv-report__body\">{body}</main><footer class=\"rv-report__footer\">{colophon}</footer></article>{progress}{runtime}</body></html>\n",
+        "<!doctype html>\n<html lang=\"{}\"{theme_attr}><head>{head}{math_font_link}<style>{css}</style>{font_notices}</head><body><article class=\"rv-report{rail}\"{motion_attr}>{header}{contents}<main class=\"rv-report__body\">{body}</main>{footer}</article>{progress}{runtime}</body></html>\n",
         escape(&lang),
-        rail = if contents.is_empty() { "" } else { " rv-report--toc" },
+        rail = if slides {
+            " rv-report--slides"
+        } else if contents.is_empty() {
+            ""
+        } else {
+            " rv-report--toc"
+        },
     )
     .expect("writing to a String cannot fail");
     if html.len() > crate::MAX_REPORT_BYTES {
@@ -1037,6 +1200,9 @@ fn render_document_internal(
         "clean"
     };
     metadata["_richview"] = json!({"generator":format!("richview/{VERSION}"),"format":crate::shell::FORMAT,"source":options.source,"block_count":doc.blocks.len(),"chart_count":chart_diagnostics.len(),"status":status,"offline":!doc.diagnostics.iter().any(|d|d.code.starts_with("assets.")),"interactive":!runtime.is_empty(),"chart_diagnostics":chart_diagnostics});
+    if slides {
+        metadata["_richview"]["slides"] = json!(slide_count);
+    }
     let diagnostics = if retain_document {
         doc.diagnostics.clone()
     } else {
@@ -1068,7 +1234,7 @@ fn failed_data(
 ) -> Option<String> {
     let (attached, start) = at;
     let added = diagnostics.split_off(start);
-    let file = ["csv", "json"]
+    let file = crate::document::DATA_FILE_KEYS
         .into_iter()
         .find_map(|kind| Some((kind, value["data"][kind].as_str()?)));
     let reported = file.and_then(|(kind, reference)| {
@@ -2112,6 +2278,14 @@ const SCROLLY_CSS: &str = include_str!("../assets/scrolly.css");
 
 /// The columns' layout, emitted only by reports that hold them (FEA-RP-68).
 const COLUMNS_CSS: &str = include_str!("../assets/columns.css");
+const TABLE_FILTER_CSS: &str = include_str!("../assets/table-filter.css");
+/// A short label of several words in a table cell stands on one line where the runtime found
+/// that the table then fits its box, or scrolls either way, and is no taller than with its
+/// labels wrapped (`data-rv-labels`, FEA-RP-19). Until
+/// the runtime has measured, a page that runs scripts keeps labels whole on a wide screen, where
+/// tables mostly fit, and lets them wrap on a phone, so a table that fits wrapped never scrolls
+/// sideways. Without scripts and on paper labels wrap at their words.
+const TABLE_LABEL_CSS: &str = "@media screen{.rv-table[data-rv-labels=line] td.label{white-space:nowrap}}\n@media screen and (scripting:enabled) and (min-width:641px){.rv-table:not([data-rv-labels]) td.label{white-space:nowrap}}\n";
 
 /// Rules every report carries beyond its style. On screen a number cell never breaks inside its
 /// value, as a date or an id never does: a table too wide for its column scrolls in its own box

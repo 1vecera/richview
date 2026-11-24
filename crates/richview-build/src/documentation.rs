@@ -39,8 +39,11 @@ const GUIDES: &[(&str, &str)] = &[
     ("mcp", "MCP"),
     ("vscode", "VS Code"),
     ("styles", "Styles & your brand"),
+    ("backgrounds", "Backgrounds"),
     ("export", "Export HTML & PDF"),
     ("publishing", "Publish: walkthrough"),
+    ("self-hosting", "Run your own server"),
+    ("slides", "Slides"),
     ("tools", "CLI & MCP reference"),
     ("style-yaml", "Style YAML reference"),
     ("authoring", "Rich Markdown"),
@@ -166,7 +169,20 @@ const REPORTS: &[(&str, &[&str])] = &[
         "families-and-lives",
         &["report.rmd", "data/families-and-lives.csv"],
     ),
+    (
+        "geyser-waits",
+        &["report.rmd", "data/waits.csv", "media/old-faithful.jpg"],
+    ),
+    (SLIDES_REPORT, &["report.rmd"]),
 ];
+
+/// The gallery's slides example (FEA-RP-65). Its frame shows the export itself: a
+/// slide is a screen, so it has no preview page with a style switch.
+pub(crate) const SLIDES_REPORT: &str = "monthly-review";
+
+fn live_report_preview(name: &str) -> bool {
+    matches!(name, "blocks" | "typography" | "geyser-waits")
+}
 
 // The frozen datasets retained from /charts/ (FEA-SF-44); one canonical CSV each.
 const TIME_SERIES: [&str; 3] = [
@@ -209,6 +225,17 @@ fn gallery_charts(charts: &[ChartPage]) -> impl Iterator<Item = &ChartPage> {
         .filter(|page| element_of(&page.name).is_none())
 }
 
+/// The slot a guide states the number of chart types with. The number is the schema registry's,
+/// written in by the build (DEL-18: a page never states a count the build does not have).
+const CHART_COUNT: &str = "{{chart-count}}";
+
+/// How many chart types the site may state: the registry's chart types that are public, each
+/// with its page (FEA-CH-75), the flow chart and the pivot table among them. The home page and
+/// the guides state this number and no typed one.
+pub fn chart_count(root: &Path) -> Result<usize> {
+    Ok(read_chart_pages(root)?.len())
+}
+
 /// The sidebar's groups of guides; the galleries and the playground have their own entries.
 const HOW_TO: &[&str] = &[
     "install",
@@ -217,8 +244,11 @@ const HOW_TO: &[&str] = &[
     "mcp",
     "vscode",
     "styles",
+    "backgrounds",
     "export",
     "publishing",
+    "self-hosting",
+    "slides",
 ];
 const REFERENCES: &[&str] = &["tools", "style-yaml"];
 const NITTY_GRITTY: &[&str] = &[
@@ -275,9 +305,11 @@ pub fn stage(root: &Path, public: &Path, flags: BuildFlags) -> Result<()> {
     fs::create_dir_all(&docs)?;
     fs::copy(root.join("assets/docs/docs.css"), docs.join("docs.css"))?;
     let charts = read_chart_pages(root)?;
+    let chart_count = charts.len().to_string();
     for &(stem, _) in GUIDES {
         let mut source = fs::read_to_string(root.join(format!("docs/public/{stem}.md")))?;
         source = source
+            .replace(CHART_COUNT, &chart_count)
             .replace("{{native-install}}", &native_install(flags))
             .replace("{{windows-install}}", &windows_install(flags))
             .replace(
@@ -484,12 +516,16 @@ fn stage_report_gallery(
         );
         let mut wrapper = wrapper;
         wrapper.push_str("\n## Credits\n\n");
+        // A source several figures share is credited once.
+        let mut credited = std::collections::BTreeSet::new();
         for line in source
             .lines()
             .filter(|line| line.starts_with("*Source:") || line.contains("NASA audio collection"))
         {
-            wrapper.push_str(line);
-            wrapper.push_str("\n\n");
+            if credited.insert(line) {
+                wrapper.push_str(line);
+                wrapper.push_str("\n\n");
+            }
         }
         let document = richview_core::document::parse(&source)
             .map_err(|errors| format!("Gallery credits: {errors:?}"))?;
@@ -524,30 +560,19 @@ fn stage_report_gallery(
     Ok(())
 }
 
-/// Every style leaf comes from the same closed grammar the loader validates.
+/// Public settings come from the same closed grammar the loader validates.
 fn style_reference() -> String {
-    let mut out = String::new();
-    for (mark, heading) in [
-        (richview_core::StyleMark::Safe, "Settings"),
-        (
-            richview_core::StyleMark::Legacy,
-            "Legacy leaves: still applied, each with a `style.legacy` warning naming its replacement",
-        ),
-    ] {
+    let mut out = String::from("\n## Settings\n\n| Path | Accepted value |\n| --- | --- |\n");
+    for leaf in richview_core::style_vocabulary()
+        .iter()
+        .filter(|leaf| leaf.mark == richview_core::StyleMark::Safe)
+    {
         out.push_str(&format!(
-            "\n## {heading}\n\n| Path | Accepted value |\n| --- | --- |\n"
+            "| `{}` | {} — {} |\n",
+            leaf.path,
+            grammar_label(leaf.grammar).replace('|', "\\|"),
+            leaf.about
         ));
-        for leaf in richview_core::style_vocabulary()
-            .iter()
-            .filter(|leaf| leaf.mark == mark)
-        {
-            out.push_str(&format!(
-                "| `{}` | {} — {} |\n",
-                leaf.path,
-                grammar_label(leaf.grammar).replace('|', "\\|"),
-                leaf.about
-            ));
-        }
     }
     out
 }
@@ -612,9 +637,13 @@ fn report_frames(html: &str) -> String {
         let marker = format!("<p>{{{{report:{name}}}}}</p>");
         let url = format!("/docs/gallery/{name}");
         let live = format!("{url}/Rendered/report.html");
-        let preview = if matches!(name, "blocks" | "typography") {
+        let preview = if live_report_preview(name) {
             format!(
                 "<iframe loading=\"lazy\" title=\"Live report: {name}\" src=\"{live}\" sandbox=\"allow-scripts allow-downloads\"></iframe>"
+            )
+        } else if name == SLIDES_REPORT {
+            format!(
+                "<div class=\"docs-report-preview__viewport docs-report-preview__viewport--slides\"><iframe loading=\"lazy\" title=\"Live slides: {name}\" src=\"{live}\" sandbox=\"allow-scripts allow-downloads\"></iframe></div>"
             )
         } else {
             let title = previews::REPORT_CARDS
@@ -623,8 +652,13 @@ fn report_frames(html: &str) -> String {
                 .map_or(name, |(_, title, _)| title);
             picture(name, title, &live)
         };
+        let open = if name == SLIDES_REPORT {
+            "Open the live deck"
+        } else {
+            "Open live report"
+        };
         let frame = format!(
-            "<div class=\"docs-report-preview\">{preview}<div class=\"docs-actions\"><a class=\"docs-button\" href=\"{live}\">Open live report</a><a class=\"docs-button docs-button--secondary\" href=\"{url}/report.rmd\">Rich Markdown source</a><a href=\"{url}/\">Data &amp; credits</a></div></div>"
+            "<div class=\"docs-report-preview\">{preview}<div class=\"docs-actions\"><a class=\"docs-button\" href=\"{live}\">{open}</a><a class=\"docs-button docs-button--secondary\" href=\"{url}/report.rmd\">Rich Markdown source</a><a href=\"{url}/\">Data &amp; credits</a></div></div>"
         );
         html = html.replace(&marker, &frame);
     }
@@ -715,29 +749,46 @@ fn feedback(place: Place, flags: BuildFlags, name: &str) -> String {
         Place::Reference if name == "reference" => "/docs/reference".into(),
         Place::Reference => format!("/docs/reference/{name}"),
     };
+    // Without a collector the widget offers only what works: the reader's own note, which they
+    // download or carry into a public issue draft (INT-82). It names no missing service and asks
+    // for no reply address, since nothing is sent.
     let issue = if flags.repository_public {
         format!(
-            "<p><a data-feedback-issue data-feedback-issue-base=\"https://github.com/1vecera/richview/issues/new?title=Documentation%20feedback\" href=\"https://github.com/1vecera/richview/issues/new?title=Documentation%20feedback&amp;body=Page%3A%20https%3A%2F%2Frichview.ai{}\" target=\"_blank\" rel=\"noopener noreferrer\">Open an issue draft</a>; review it before posting. Your email is excluded.</p>",
-            path.replace('/', "%2F")
+            "<p><a data-feedback-issue data-feedback-issue-base=\"https://github.com/1vecera/richview/issues/new?title=Documentation%20feedback\" href=\"https://github.com/1vecera/richview/issues/new?title=Documentation%20feedback&amp;body=Page%3A%20https%3A%2F%2Frichview.ai{}\" target=\"_blank\" rel=\"noopener noreferrer\">Open an issue draft</a>; review it before posting.{}</p>",
+            path.replace('/', "%2F"),
+            if flags.feedback_enabled {
+                " Your email is excluded."
+            } else {
+                ""
+            }
         )
     } else {
         String::new()
     };
-    let (enabled, submit, status) = if flags.feedback_enabled {
+    let (enabled, submit, email, status) = if flags.feedback_enabled {
         (
             " data-feedback-enabled",
             "<button type=\"submit\" class=\"docs-button\">Send feedback</button>",
+            "<label>Email for a reply (optional)<input data-feedback-email type=\"email\" maxlength=\"254\" autocomplete=\"email\"></label>",
             "Your note stays here until receipt is confirmed.",
+        )
+    } else if flags.repository_public {
+        (
+            "",
+            "",
+            "",
+            "Your note stays on this page. Download it, or open it as an issue draft.",
         )
     } else {
         (
             "",
             "",
-            "Feedback collection is not connected. Write a note and download it to keep locally.",
+            "",
+            "Your note stays on this page until you download it.",
         )
     };
     format!(
-        "<details class=\"docs-feedback\" id=\"feedback\"><summary>Was this page useful? Suggest an edit</summary><form class=\"docs-feedback__form\" data-docs-feedback{enabled} hidden><input type=\"hidden\" data-feedback-page value=\"{}\"><label>Your feedback<textarea data-feedback-message required minlength=\"5\" maxlength=\"2000\" rows=\"3\"></textarea></label><label>Email for a reply (optional)<input data-feedback-email type=\"email\" maxlength=\"254\" autocomplete=\"email\"></label><div class=\"docs-feedback__trap\" aria-hidden=\"true\"><input data-feedback-website tabindex=\"-1\" autocomplete=\"off\"></div><div class=\"docs-actions\">{submit}<a data-feedback-download download=\"richview-feedback.json\" hidden>Download your note</a></div><p data-feedback-status role=\"status\">{status}</p></form><noscript><p>JavaScript is off. <a download=\"richview-feedback.txt\" href=\"data:text/plain;charset=utf-8,Page%3A%20https%3A%2F%2Frichview.ai{}%0A%0AYour%20feedback%3A%20\">Download a feedback template</a>, add your note and keep it locally.</p></noscript>{issue}</details>",
+        "<details class=\"docs-feedback\" id=\"feedback\"><summary>Was this page useful? Suggest an edit</summary><form class=\"docs-feedback__form\" data-docs-feedback{enabled} hidden><input type=\"hidden\" data-feedback-page value=\"{}\"><label>Your feedback<textarea data-feedback-message required minlength=\"5\" maxlength=\"2000\" rows=\"3\"></textarea></label>{email}<div class=\"docs-feedback__trap\" aria-hidden=\"true\"><input data-feedback-website tabindex=\"-1\" autocomplete=\"off\"></div><div class=\"docs-actions\">{submit}<a data-feedback-download download=\"richview-feedback.json\" hidden>Download your note</a></div><p data-feedback-status role=\"status\">{status}</p></form><noscript><p>JavaScript is off. <a download=\"richview-feedback.txt\" href=\"data:text/plain;charset=utf-8,Page%3A%20https%3A%2F%2Frichview.ai{}%0A%0AYour%20feedback%3A%20\">Download a feedback template</a>, add your note and keep it locally.</p></noscript>{issue}</details>",
         escape(&path),
         path.replace('/', "%2F")
     )
@@ -1010,7 +1061,7 @@ fn first_chart(root: &Path, report: &str) -> Result<(serde_json::Value, String)>
 /// showcase, each under a line that names the gesture, so a visitor finds the interactions before
 /// the menu (Daniel, 15 Nov). The play chart opens on its last year and waits for Play; the link
 /// to every country stands under it. Their observations are registered in `options`.
-fn interactions(root: &Path, options: &mut RenderOptions) -> Result<String> {
+fn interactions(root: &Path, docs: &Path, options: &mut RenderOptions) -> Result<String> {
     let mut register = |key: &str, data: String| {
         if let Some(folder) = options.report_folder.as_mut() {
             folder.files.push(key.to_owned());
@@ -1024,6 +1075,9 @@ fn interactions(root: &Path, options: &mut RenderOptions) -> Result<String> {
     )?;
     let countries = most_populous(&observations, PLAY_COUNTRIES)?;
     let key = "gallery/families-and-lives/most-populous.csv";
+    let csv = docs.join(key);
+    fs::create_dir_all(csv.parent().unwrap())?;
+    fs::write(csv, &countries.csv)?;
     play["data"]["csv"] = key.into();
     play["wide"] = true.into();
     // The example's own page is 4:3; at the gallery's width that is taller than a window, and
@@ -1077,7 +1131,7 @@ fn stage_gallery(
         .find("\n## Featured charts")
         .ok_or("docs/public/charts.md needs a Featured charts section")?;
     let mut gallery_options = documentation_options();
-    let opening = showcase(root)? + &interactions(root, &mut gallery_options)?;
+    let opening = showcase(root)? + &interactions(root, docs, &mut gallery_options)?;
     index.insert_str(featured_at, &opening);
     index.push('\n');
     let folder = docs.join("charts");
@@ -1185,7 +1239,7 @@ fn stage_gallery(
             String::new()
         };
         let featured = format!(
-            "---\ntitle: {}\nstyles: [scientific]\n---\n\n[Back to the chart gallery](https://richview.ai/docs/charts)\n\n{note}\n\n```chart\n{}\n```\n{summary}\n## Source\n\n````rmd\n{example}\n````\n\n## Data and credits\n\n[Complete report and provenance](https://richview.ai/docs/{location}/{name}/) · [Rich Markdown source](https://richview.ai/examples/charts/{slug}/report.rmd) · [CSV observations](https://richview.ai/docs/{key}).\n",
+            "---\ntitle: {}\nstyles: [scientific]\n---\n\n[Back to the chart gallery](https://richview.ai/docs/charts)\n\n{note}\n\n```chart\n{}\n```\n{summary}\n## Source\n\n````rmd\n{example}\n````\n\n## Data and credits\n\n[Complete report and provenance](https://richview.ai/docs/{location}/{name}/) · [Rich Markdown source](https://richview.ai/examples/charts/{slug}/report.rmd) · [CSV observations](https://richview.ai/examples/charts/{slug}/data.csv).\n",
             serde_json::to_string(label)?,
             serde_json::to_string_pretty(&chart)?
         );
@@ -1211,7 +1265,7 @@ fn stage_gallery(
         fs::write(folder.join(format!("{slug}.html")), html)?;
         fs::write(folder.join(format!("{slug}.md")), featured)?;
     }
-    index.push_str("\n## Every chart type\n\nKeep scrolling: every supported type is rendered here. Each also has a deep link with its complete source, important fields and style comparison. These compact examples use illustrative data. [Flow charts](https://richview.ai/docs/charts/flow) and [pivot tables](https://richview.ai/docs/charts/pivot) are elements of their own: the [elements gallery](https://richview.ai/docs/elements) shows them.\n");
+    index.push_str("\n## Every chart type\n\nOpen an example for its source, fields and style comparison. These charts use illustrative data. The [elements gallery](https://richview.ai/docs/elements) shows [flow charts](https://richview.ai/docs/charts/flow) and [pivot tables](https://richview.ai/docs/charts/pivot).\n");
     for page in gallery_charts(charts) {
         index.push_str(&format!(
             "\n### [{}](https://richview.ai/docs/charts/{})\n\n{}\n\n{}\n\n*Source: [the {} example](https://richview.ai/docs/charts/{}), illustrative data.*\n",
@@ -1240,16 +1294,24 @@ fn stage_gallery(
     fs::write(docs.join("charts.html"), html)?;
     fs::write(docs.join("charts.md"), index)?;
     for page in charts {
+        let example = example_source(page);
+        let (intro, source) = page
+            .source
+            .split_once("\n````rmd\n")
+            .ok_or_else(|| format!("Chart {} needs a copyable RMD example", page.name))?;
+        let (_, rest) = source
+            .split_once("\n````\n")
+            .ok_or_else(|| format!("Chart {} has an unclosed RMD example", page.name))?;
+        let page_source = format!("{intro}\n````rmd\n{example}````\n{rest}");
         let html = render_page(
-            &page.source,
+            &page_source,
             &page.name,
             Place::ChartType(&page.name),
             charts,
             flags,
         )?;
-        let example =
-            richview_core::document::render(&example_source(page), &documentation_options())
-                .map_err(|errors| format!("Chart {} preview: {errors:?}", page.name))?;
+        let rendered = richview_core::document::render(&example, &documentation_options())
+            .map_err(|errors| format!("Chart {} preview: {errors:?}", page.name))?;
         let html = own_preview(
             &html,
             &folder.join(format!("{}.share.png", page.name)),
@@ -1257,13 +1319,13 @@ fn stage_gallery(
             &page.title,
             EXAMPLE_BYLINE,
             "scientific",
-            &example.charts,
+            &rendered.charts,
         )?;
         fs::write(folder.join(format!("{}.html", page.name)), html)?;
         // The playground and the page's Open link load the example from its own report folder.
-        let example = public.join("examples/charts").join(&page.name);
-        fs::create_dir_all(&example)?;
-        fs::write(example.join("report.rmd"), example_source(page))?;
+        let example_folder = public.join("examples/charts").join(&page.name);
+        fs::create_dir_all(&example_folder)?;
+        fs::write(example_folder.join("report.rmd"), example)?;
     }
     Ok(())
 }
@@ -1320,6 +1382,27 @@ fn style_frame(chart: &str) -> String {
         .collect();
     format!(
         "<div class=\"docs-styles\"><p class=\"docs-styles__label\">The same chart in each style</p><nav class=\"docs-styles__links\" aria-label=\"Style\">{links}</nav><iframe class=\"docs-styles__frame\" title=\"{chart} chart in the chosen style\" sandbox=\"allow-scripts allow-downloads\" hidden></iframe></div>"
+    )
+}
+
+/// The backgrounds guide's switch (STY-74): one short report on each background, the first
+/// shown. The links carry `data-style-link`, so the docs runtime swaps the frame as it does for
+/// the styles.
+fn background_frame() -> String {
+    let links: String = previews::BACKGROUNDS
+        .iter()
+        .enumerate()
+        .map(|(index, (file, label, ..))| {
+            let current = if index == 0 { " aria-current=\"true\"" } else { "" };
+            format!(
+                "<a href=\"/docs/previews/backgrounds/{file}.html\" data-preview-src=\"/docs/previews/backgrounds/{file}.html\" data-style-link=\"background-{file}\"{current}>{}</a>",
+                escape(label)
+            )
+        })
+        .collect();
+    let first = previews::BACKGROUNDS[0].0;
+    format!(
+        "<div class=\"docs-styles docs-styles--backgrounds\"><p class=\"docs-styles__label\">The same report on each background</p><nav class=\"docs-styles__links\" aria-label=\"Background\">{links}</nav><iframe class=\"docs-styles__frame\" title=\"A short report on the chosen background\" sandbox=\"allow-scripts allow-downloads\" src=\"/docs/previews/backgrounds/{first}.html\"></iframe></div>"
     )
 }
 
@@ -1400,6 +1483,20 @@ fn documentation_options() -> RenderOptions {
     }
 }
 
+/// A docs page is the site's chrome, so it stays flat whatever background its preset ships
+/// (STY-74, the lead's ruling of 19 Nov); an example page shows the report itself and keeps its
+/// preset's background, as the gallery's reports do.
+fn docs_page_options(place: Place, options: &RenderOptions) -> RenderOptions {
+    let mut options = options.clone();
+    if !matches!(place, Place::Example(_)) {
+        options.styles.push(FLAT_PAGE.into());
+    }
+    options
+}
+
+/// The style layer that turns a preset's background off.
+const FLAT_PAGE: &str = "background: none\n";
+
 fn render_page_with_options(
     source: &str,
     name: &str,
@@ -1410,6 +1507,7 @@ fn render_page_with_options(
 ) -> Result<String> {
     let source = without_reading_aids(&public::source(source, flags)?);
     let source = source.as_str();
+    let options = &docs_page_options(place, options);
     let rendered = richview_core::document::render(source, options)
         .map_err(|errors| format!("Documentation {name} failed: {errors:?}"))?;
     ensure_clean(name, &rendered.diagnostics)?;
@@ -1446,6 +1544,7 @@ fn render_page_with_options(
         );
     let decorated = decorated
         .replace("<p>{{typography}}</p>", &typography_switch())
+        .replace("<p>{{background-comparison}}</p>", &background_frame())
         .replace("<p>{{elements}}</p>", &previews::elements_grid());
     if place == Place::Guide("elements") {
         for (anchor, label) in ELEMENTS {
@@ -1475,8 +1574,23 @@ fn render_page_with_options(
             "<a class=\"docs-source-link\" href=\"{source_link}\">View Markdown source <span aria-hidden=\"true\">↗</span></a>"
         )
     };
+    // The body may stream in after its heading is painted. Choose the grid before it arrives.
+    let wide = [
+        "class=\"docs-featured-grid\"",
+        "class=\"docs-featured-grid docs-elements-grid\"",
+        "class=\"docs-report-grid\"",
+        "class=\"docs-styles docs-styles--type\"",
+    ]
+    .iter()
+    .any(|class| decorated.contains(class));
+    let layout_wide = if wide { " docs-layout--wide" } else { "" };
+    let layout_doors = if decorated.contains("class=\"docs-doors\"") {
+        " docs-layout--doors"
+    } else {
+        ""
+    };
     let top = format!(
-        "<a class=\"skip\" href=\"#guide-content\">Skip to content</a>{}<details class=\"docs-mobile-menu\"><summary>Documentation</summary>{sidebar}</details><div class=\"docs-layout\"><aside class=\"docs-sidebar\">{sidebar}</aside>",
+        "<a class=\"skip\" href=\"#guide-content\">Skip to content</a>{}<details class=\"docs-mobile-menu\"><summary>Documentation</summary>{sidebar}</details><div class=\"docs-layout{layout_wide}{layout_doors}\"><aside class=\"docs-sidebar\">{sidebar}</aside>",
         chrome::header()
             + "<search class=\"docs-search\"><label for=\"docs-search\">Search documentation <kbd>⌘ / Ctrl K</kbd></label><input id=\"docs-search\" data-docs-search type=\"search\" placeholder=\"Find a field, chart or guide\" autocomplete=\"off\" aria-controls=\"docs-search-results\"><ol id=\"docs-search-results\" data-docs-search-results aria-live=\"polite\"></ol></search>"
     );
@@ -1548,7 +1662,7 @@ fn render_page_with_options(
     if needs_copy {
         scripts.push_str("<script src=\"/richview_docs.js\" defer></script><script src=\"/bootstrap.js\" defer></script>");
     }
-    let html = soft_breaks(&reference::field_anchors(&html));
+    let html = keep_short_code(&soft_breaks(&reference::field_anchors(&html)));
     Ok(chrome::share_metadata(&html.replacen(
         "</body>",
         &format!("{scripts}</body>"),
@@ -1571,6 +1685,73 @@ fn soft_breaks(html: &str) -> String {
     }
     out.push_str(rest);
     out
+}
+
+/// The longest inline code that stays on one line. A flag, a command or a file name of this
+/// length fits the text column of a phone; longer code may wrap.
+const SHORT_CODE: usize = 30;
+
+/// Marks the inline code of up to [`SHORT_CODE`] characters, which the stylesheet keeps on one
+/// line: a browser may break a line after a hyphen, and `--chart-width` must not end a line as
+/// `--chart-`. Code blocks and scripts are left alone.
+fn keep_short_code(html: &str) -> String {
+    let mut out = String::with_capacity(html.len() + html.len() / 64);
+    let mut rest = html;
+    loop {
+        let next = ["<code", "<pre", "<script"]
+            .iter()
+            .filter_map(|tag| rest.find(tag).map(|at| (at, *tag)))
+            .min();
+        let Some((start, tag)) = next else { break };
+        if tag != "<code" {
+            // A block passes through whole, with the code inside it.
+            let close = if tag == "<pre" { "</pre>" } else { "</script>" };
+            let end = rest[start..]
+                .find(close)
+                .map_or(rest.len(), |n| start + n + close.len());
+            out.push_str(&rest[..end]);
+            rest = &rest[end..];
+            continue;
+        }
+        let name_end = start + tag.len();
+        out.push_str(&rest[..name_end]);
+        rest = &rest[name_end..];
+        // Another element whose name starts the same way is not code.
+        if !rest.starts_with(['>', ' ']) {
+            continue;
+        }
+        let (Some(open), Some(close)) = (rest.find('>'), rest.find("</code>")) else {
+            break;
+        };
+        if open < close && code_length(&rest[open + 1..close]) <= SHORT_CODE {
+            out.push_str(" data-short");
+        }
+        out.push_str(&rest[..close]);
+        rest = &rest[close..];
+    }
+    out.push_str(rest);
+    out
+}
+
+/// The characters a reader sees in a piece of inline code: no tags, and a character reference
+/// counts as the one character it stands for.
+fn code_length(inner: &str) -> usize {
+    let (mut length, mut in_tag, mut in_reference) = (0, false, false);
+    for c in inner.chars() {
+        match c {
+            '<' => in_tag = true,
+            '>' if in_tag => in_tag = false,
+            _ if in_tag => {}
+            '&' => {
+                in_reference = true;
+                length += 1;
+            }
+            ';' if in_reference => in_reference = false,
+            _ if in_reference => {}
+            _ => length += 1,
+        }
+    }
+    length
 }
 
 fn break_code(cell: &str) -> String {
@@ -1928,6 +2109,50 @@ fn ensure_clean(name: &str, diagnostics: &[richview_core::document::Diagnostic])
 #[cfg(test)]
 mod tests {
     #[test]
+    fn docs_pages_stay_flat_while_reports_keep_their_presets_background() {
+        // Scientific ships graph paper (STY-74); its grid is drawn as two linear-gradient rules.
+        const GRID: &str = "linear-gradient(90deg,";
+        let source = "---\ntitle: A guide\nstyles: [scientific]\n---\n\nSome words.\n";
+        let guide = render_page(
+            source,
+            "backgrounds",
+            Place::Guide("backgrounds"),
+            &[],
+            BuildFlags::default(),
+        )
+        .unwrap();
+        assert!(!guide.contains(GRID), "a docs page is flat");
+        let reference = render_page(
+            source,
+            "reference",
+            Place::Reference,
+            &[],
+            BuildFlags::default(),
+        )
+        .unwrap();
+        assert!(!reference.contains(GRID), "the reference is flat");
+        let example = render_page_with_options(
+            source,
+            "an-example",
+            Place::Example("an-example"),
+            &[],
+            &documentation_options(),
+            BuildFlags::default(),
+        )
+        .unwrap();
+        assert!(
+            example.contains(GRID),
+            "an example shows its preset's background"
+        );
+        // A gallery report renders on its own, outside the docs layout, in its preset.
+        let report = richview_core::document::render(source, &documentation_options()).unwrap();
+        assert!(
+            report.html.contains(GRID),
+            "a gallery report in Scientific keeps its grid"
+        );
+    }
+
+    #[test]
     fn the_guide_shows_the_powershell_command_only_when_the_release_ships_it() {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let guide = std::fs::read_to_string(root.join("docs/public/install.md")).unwrap();
@@ -2089,6 +2314,15 @@ mod tests {
     }
 
     #[test]
+    fn the_slides_preview_loads_the_complete_deck() {
+        let html = report_frames(&format!("<p>{{{{report:{SLIDES_REPORT}}}}}</p>"));
+        assert!(html.contains("<iframe loading=\"lazy\""));
+        assert!(html.contains(&format!(
+            " src=\"/docs/gallery/{SLIDES_REPORT}/Rendered/report.html\""
+        )));
+    }
+
+    #[test]
     fn documentation_build_renders_both_install_states_and_preserves_gallery_sources() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         fs::create_dir_all(root.join("tmp")).unwrap();
@@ -2148,8 +2382,49 @@ mod tests {
             let index = fs::read_to_string(docs.join("index.html")).unwrap();
             assert!(!index.contains("{{report:"));
             assert!(index.contains("/docs/gallery/longer-lives/Rendered/report.html"));
+            assert!(index.contains("docs-layout--doors\""));
             let gallery = fs::read_to_string(docs.join("charts.html")).unwrap();
+            let layout = gallery
+                .find("class=\"docs-layout docs-layout--wide\"")
+                .unwrap();
+            let content = gallery.find("id=\"guide-content\"").unwrap();
+            assert!(
+                layout < content,
+                "the gallery declares its width before its content"
+            );
             let pages = read_chart_pages(&root).unwrap();
+            // The docs state the registry's number of chart types, the flow chart and the
+            // pivot table included, and no guide keeps the slot the build writes it into.
+            for page in &pages {
+                let name = &page.name;
+                let html = fs::read_to_string(docs.join(format!("charts/{name}.html"))).unwrap();
+                let source =
+                    fs::read_to_string(output.join(format!("examples/charts/{name}/report.rmd")))
+                        .unwrap();
+                let copied = format!(
+                    "<code class=\"language-rmd\">{}</code>",
+                    highlight(&source, "rmd")
+                );
+                assert!(
+                    html.contains(&copied),
+                    "{name}: Copy source must match the playground"
+                );
+            }
+            let count = pages.len();
+            assert_eq!(chart_count(&root).unwrap(), count);
+            if accepted_chart_types(&root).is_none() {
+                assert_eq!(count, richview_core::CHART_TYPES.len());
+            }
+            assert_eq!(count, gallery_charts(&pages).count() + ELEMENT_PAGES.len());
+            let home = fs::read_to_string(docs.join("index.md")).unwrap();
+            assert!(
+                home.contains(&format!("{count} chart types")),
+                "the docs' home states the registry's count"
+            );
+            for &(stem, _) in GUIDES {
+                let page = fs::read_to_string(docs.join(format!("{stem}.html"))).unwrap();
+                assert!(!page.contains(CHART_COUNT), "{stem} keeps the count's slot");
+            }
             assert_eq!(
                 gallery.matches("data-rv-payload>").count(),
                 gallery_charts(&pages).count() + 3,
@@ -2195,6 +2470,7 @@ mod tests {
                 assert_eq!(example.matches("data-rv-payload>").count(), 1);
                 assert!(example.contains("href=\"/docs/charts\""));
                 assert!(example.contains("data-docs-feedback"));
+                assert!(example.contains(&format!("href=\"/examples/charts/{name}/data.csv\"")));
                 assert!(docs.join(format!("charts/{name}.md")).is_file());
             }
             let elements = fs::read_to_string(docs.join("elements.md")).unwrap();
@@ -2245,16 +2521,17 @@ mod tests {
                     .contains("/docs/gallery/longer-lives/Rendered/*\n  ! Content-Security-Policy")
             );
             let styles = fs::read_to_string(docs.join("style-yaml.md")).unwrap();
-            for leaf in richview_core::style_vocabulary()
-                .iter()
-                .filter(|leaf| leaf.mark != richview_core::StyleMark::Internal)
-            {
-                assert!(
-                    styles.contains(&format!("`{}`", leaf.path)),
-                    "missing {}",
-                    leaf.path
+            for leaf in richview_core::style_vocabulary() {
+                assert_eq!(
+                    styles.contains(&format!("| `{}` |", leaf.path)),
+                    leaf.mark == richview_core::StyleMark::Safe,
+                    "style reference row for {}",
+                    leaf.path,
                 );
             }
+            let html = fs::read_to_string(docs.join("style-yaml.html")).unwrap();
+            assert!(html.contains("href=\"#settings\""));
+            assert!(!html.contains("legacy-leaves"));
         }
     }
 
@@ -2312,6 +2589,20 @@ mod tests {
             soft_breaks(html),
             "<p><code>a.b_c</code></p><table><tr><td><code id=\"field-x\">data.<wbr>metricflow.<wbr>cache_<wbr>freshness</code> 1.0.2 <code>/<wbr>api/<wbr>v/<wbr>0.0.1</code></td><td>plain.text</td></tr></table>"
         );
+    }
+
+    #[test]
+    fn short_inline_code_is_marked_to_stay_on_one_line() {
+        let html = "<p>Pass <code>--chart-width</code> or <code class=\"docs-inline-command\"><span>richview</span> check &lt;report&gt;</code>, not <code>richview report regenerate first-report 0.0.1</code>.</p><pre><code class=\"language-sh\">ls</code></pre><codex>x</codex><script>\"<code>a</code>\"</script>";
+        assert_eq!(
+            keep_short_code(html),
+            "<p>Pass <code data-short>--chart-width</code> or <code data-short class=\"docs-inline-command\"><span>richview</span> check &lt;report&gt;</code>, not <code>richview report regenerate first-report 0.0.1</code>.</p><pre><code class=\"language-sh\">ls</code></pre><codex>x</codex><script>\"<code>a</code>\"</script>"
+        );
+        // Thirty characters stay whole, thirty-one may wrap.
+        let exact = format!("<code>{}</code>", "a".repeat(SHORT_CODE));
+        assert!(keep_short_code(&exact).starts_with("<code data-short>"));
+        let longer = format!("<code>{}</code>", "a".repeat(SHORT_CODE + 1));
+        assert_eq!(keep_short_code(&longer), longer);
     }
 
     #[test]
@@ -2541,7 +2832,8 @@ mod tests {
     fn the_gallery_invites_play_and_zoom_with_a_cue_each() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let mut options = documentation_options();
-        let section = interactions(&root, &mut options).unwrap();
+        let docs = tempfile::tempdir().unwrap();
+        let section = interactions(&root, docs.path(), &mut options).unwrap();
         assert!(section.starts_with("\n## Try it yourself\n"));
         assert_eq!(section.matches("```chart\n").count(), 2);
         // The line that names the gesture stands above each chart, with the years the data has;
@@ -2566,7 +2858,9 @@ mod tests {
         assert!(section.contains("See all 194 countries play"));
 
         // The play chart carries the most populous countries only, every year of each.
-        let subset = &options.data["gallery/families-and-lives/most-populous.csv"];
+        let csv = "gallery/families-and-lives/most-populous.csv";
+        let subset = &options.data[csv];
+        assert_eq!(&fs::read_to_string(docs.path().join(csv)).unwrap(), subset);
         let countries: std::collections::BTreeSet<&str> =
             subset.lines().skip(1).filter_map(second_field).collect();
         assert_eq!(countries.len(), PLAY_COUNTRIES);
@@ -2656,5 +2950,41 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn feedback_without_a_collector_offers_only_what_works() {
+        let private = feedback(Place::Guide("install"), BuildFlags::default(), "install");
+        let public = feedback(
+            Place::Guide("install"),
+            BuildFlags {
+                repository_public: true,
+                ..BuildFlags::default()
+            },
+            "install",
+        );
+        for html in [&private, &public] {
+            assert!(!html.contains("not connected"), "{html}");
+            assert!(!html.contains("data-feedback-email"), "{html}");
+            assert!(!html.contains("Send feedback"), "{html}");
+            assert!(html.contains("data-feedback-download"), "{html}");
+        }
+        assert!(private.contains("Your note stays on this page until you download it."));
+        assert!(!private.contains("data-feedback-issue"));
+        assert!(public.contains("Download it, or open it as an issue draft."));
+        assert!(public.contains("Open an issue draft</a>; review it before posting.</p>"));
+        let collected = feedback(
+            Place::Guide("install"),
+            BuildFlags {
+                repository_public: true,
+                feedback_enabled: true,
+                ..BuildFlags::default()
+            },
+            "install",
+        );
+        assert!(collected.contains("data-feedback-enabled"));
+        assert!(collected.contains("Send feedback"));
+        assert!(collected.contains("data-feedback-email"));
+        assert!(collected.contains("Your email is excluded."));
     }
 }

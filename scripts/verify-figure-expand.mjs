@@ -1,5 +1,6 @@
 // Real report controls: subtitle layout, width changes, exports and the Expand modal.
 import assert from 'node:assert/strict';
+import ringColours from './fixtures/selection-ring-colours.json' with { type: 'json' };
 import { execFileSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -138,12 +139,10 @@ try {
     // The actions sit at the right of the title, in its row, or under it; never over it.
     const besideTitle = before.actions.x >= before.title.right - 1 && before.actions.y < before.title.bottom - 1;
     assert.ok(besideTitle || before.actions.y >= before.title.bottom - 1 || before.actions.bottom <= before.title.y + 1, `${theme}/${width}: actions never overlap the title`);
-    // A phone gives the icons no line of their own: they keep the right end of the title's first line and a
-    // long title wraps beside them, so nothing stands between the title, the subtitle and the plot (Daniel,
-    // 17 Nov: "no empty line for icons"). Hand-drawn, which sets the title under the chart, keeps its icon line
-    // over the chart, the only place a phone's readout clears its mark on chord and venn, until Readout fit
-    // judges those two by painted mark (train 4).
-    if (phone && theme !== 'hand-drawn') {
+    // A phone gives the icons no line of their own, in any style, wherever the style sets the title: they keep
+    // the right end of the title's first line and a long title wraps beside them, so nothing stands between
+    // the title, the subtitle and the plot (Daniel, 17 Nov: "no empty line for icons").
+    if (phone) {
       for (let index = 0; index < 3; index++) {
         const row = await figures.nth(index).evaluate(node => {
           const title = node.querySelector('.rv-chart__title'), t = title.getBoundingClientRect(), a = node.querySelector('.rv-chart__titlerow > .rv-chart__actions').getBoundingClientRect();
@@ -929,76 +928,61 @@ try {
   // dialog brings the ring back, and a keyboard open shows it at once (S27-878).
   evidence.focusRing = {};
   for (const [width, height, touch] of [[1440, 900, false], [844, 390, true]]) {
-    const page = await h.browser.newPage({ viewport: { width, height }, hasTouch: touch, reducedMotion: 'reduce' });
+    const page = await h.browser.newPage({ viewport: { width, height }, hasTouch: touch, deviceScaleFactor: 2, reducedMotion: 'reduce' });
     watchErrors(page, evidence.errors);
     await page.goto(`${inputs.base}/every-block/report.html`);
     await settle(page, 45_000, { models: false });
-    // The frame's ring is its painted ::after (STY-38). Once a key in the dialog selects a mark,
-    // the ring round that mark replaces it: data-rv-selected on the frame and a closed ring in the
-    // link colour on the canvas. The dialog's view belongs to its inline chart and is not among
-    // charts(), so the probe finds the ring in the pixels: a patch of link colour, absent when the
-    // dialog opened, whose centre is unlit and which at least 6 of 8 rays from that centre meet.
-    const ringOf = () => page.evaluate(async () => {
-      // The mark ring arrives over 120 ms: read it once the chart has settled.
+    // The dialog has its own layout, so the inline model's dot coordinates do not apply.
+    // Find each selected line dot by its newly painted fill and sample the two bands around it.
+    const ringOf = () => page.evaluate(async palette => {
       await window.__richview.settled();
       const frame = document.querySelector('dialog.rv-chart-dialog[open] .rv-chart__frame');
-      if (!frame) return { focused: false, ring: false };
+      if (!frame) return { focused: false, framed: false, selected: false, rings: [] };
       const after = getComputedStyle(frame, '::after');
       const framed = (!['none', 'normal'].includes(after.content) && after.borderTopStyle !== 'none' && parseFloat(after.borderTopWidth) > 0)
         || getComputedStyle(frame).outlineStyle !== 'none';
       const selected = frame.hasAttribute('data-rv-selected');
-      const swatch = document.createElement('canvas').getContext('2d');
-      const style = getComputedStyle(frame);
-      swatch.fillStyle = style.getPropertyValue('--rv-link').trim() || style.getPropertyValue('--rv-accent').trim();
-      swatch.fillRect(0, 0, 1, 1);
-      const link = swatch.getImageData(0, 0, 1, 1).data;
       const canvas = frame.querySelector('canvas.rv-chart__canvas');
-      const { width: w, height: h } = canvas;
-      const px = canvas.getContext('2d').getImageData(0, 0, w, h).data;
-      const lit = new Uint8Array(w * h);
-      for (let i = 0; i < lit.length; i++) lit[i] = px[4 * i + 3] > 128 && Math.hypot(px[4 * i] - link[0], px[4 * i + 1] - link[1], px[4 * i + 2] - link[2]) < 40 ? 1 : 0;
-      // What is link-coloured before any mark is selected is the chart's own, not a ring.
-      const base = window.__rvRingBase;
-      if (!selected) window.__rvRingBase = { canvas, lit: lit.slice() };
-      else if (base?.canvas === canvas && base.lit.length === lit.length) for (let i = 0; i < lit.length; i++) if (base.lit[i]) lit[i] = 0;
-      const label = new Int32Array(w * h);
-      const rings = [];
-      let share = 0, next = 0;
-      for (let s = 0; s < lit.length; s++) {
-        if (!lit[s] || label[s]) continue;
-        const id = ++next, stack = [s], cells = [];
-        label[s] = id;
-        while (stack.length) {
-          const i = stack.pop(), x = i % w, y = (i - x) / w;
-          cells.push(i);
-          for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-            const nx = x + dx, ny = y + dy, j = ny * w + nx;
-            if (nx >= 0 && ny >= 0 && nx < w && ny < h && lit[j] && !label[j]) { label[j] = id; stack.push(j); }
-          }
-        }
-        if (cells.length < 20) continue;
-        let sx = 0, sy = 0, x0 = w, x1 = 0, y0 = h, y1 = 0;
-        for (const i of cells) {
-          const x = i % w, y = (i - x) / w;
-          sx += x; sy += y; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
-        }
-        const cx = sx / cells.length, cy = sy / cells.length;
-        // A ring, not a blob or a line: its centre is unlit.
-        if (label[Math.round(cy) * w + Math.round(cx)] === id) continue;
-        let hits = 0;
-        for (let k = 0; k < 8; k++) {
-          const a = k * Math.PI / 4;
-          for (let t = 1; ; t++) {
-            const x = Math.round(cx + t * Math.cos(a)), y = Math.round(cy + t * Math.sin(a));
-            if (x < x0 || x > x1 || y < y0 || y > y1) break;
-            if (label[y * w + x] === id) { hits++; break; }
-          }
-        }
-        rings.push({ box: [x0, y0, x1 - x0, y1 - y0], hits });
-        share = Math.max(share, hits / 8);
+      const { width, height } = canvas;
+      const pixels = canvas.getContext('2d').getImageData(0, 0, width, height).data;
+      const state = { focused: document.activeElement === frame, framed, selected, rings: [] };
+      if (!selected) {
+        window.__rvRingBase = { canvas, pixels };
+        return state;
       }
-      return { focused: document.activeElement === frame, ring: framed || (selected && share >= 0.75), framed, selected, share, rings: rings.slice(0, 4) };
-    });
+      const base = window.__rvRingBase;
+      if (base?.canvas !== canvas || base.pixels.length !== pixels.length) return state;
+      const rgb = hex => hex.slice(1).match(/../g).map(pair => parseInt(pair, 16));
+      const paper = rgb(palette.paper);
+      const near = (data, offset, colour, tolerance) =>
+        colour.every((value, k) => Math.abs(data[offset + k] - value) <= tolerance);
+      const scale = width / canvas.clientWidth;
+      // Every-block's first line has two series. Each gains a filled 6 px dot on ArrowRight.
+      for (const slot of [0, 1]) {
+        const fill = rgb(palette.marks[slot]), ink = rgb(palette.rings[slot]);
+        let left = width, right = -1, top = height, bottom = -1;
+        for (let offset = 0; offset < pixels.length; offset += 4) {
+          if (!near(pixels, offset, fill, 2) || near(base.pixels, offset, fill, 8)) continue;
+          const x = offset / 4 % width, y = Math.floor(offset / 4 / width);
+          left = Math.min(left, x); right = Math.max(right, x);
+          top = Math.min(top, y); bottom = Math.max(bottom, y);
+        }
+        const cx = (left + right + 1) / 2, cy = (top + bottom + 1) / 2;
+        const dot = [right - left + 1, bottom - top + 1].every(size => Math.abs(size / scale - 12) <= 1.5);
+        const hits = [0, 0, 0, 0];
+        if (dot) for (let ray = 0; ray < 16; ray++) {
+          const angle = (ray + 0.5) * Math.PI / 8;
+          const at = radius => 4 * (Math.floor(cy + Math.sin(angle) * radius * scale) * width
+            + Math.floor(cx + Math.cos(angle) * radius * scale));
+          // Sample the middle of the 1.5 px paper gap and the 1.25 px band at 2×.
+          const band = at(8.125);
+          if (near(pixels, at(6.75), paper, 3) && near(pixels, band, ink, 4) && !near(base.pixels, band, ink, 8))
+            hits[Math.floor(ray / 4)]++;
+        }
+        state.rings.push({ slot, dot, hits });
+      }
+      return state;
+    }, ringColours.sleek);
     const closeAll = async () => {
       for (let i = 0; i < 4 && (await page.locator('dialog.rv-chart-dialog[open]').count()); i++) { await page.keyboard.press('Escape'); await settled(page); }
     };
@@ -1012,14 +996,17 @@ try {
     await page.keyboard.press('ArrowRight'); await settled(page);
     const keyed = await ringOf();
     const label = `${width}x${height} ${touch ? 'touch' : 'mouse'}`;
-    if (!opened.focused || opened.ring) failures.push(`${label}: after a ${touch ? 'tap' : 'click'} on Expand the chart ${opened.focused ? 'shows its keyboard focus ring' : 'does not hold focus'}`);
-    if (!keyed.focused || !keyed.ring) failures.push(`${label}: after a key in the dialog the chart shows no focus ring: ${JSON.stringify(keyed)}`);
+    if (!opened.focused || opened.framed || opened.selected) failures.push(`${label}: after a ${touch ? 'tap' : 'click'} on Expand the chart ${opened.focused ? 'shows its keyboard focus ring' : 'does not hold focus'}`);
+    const ringed = keyed.rings.length === 2 && keyed.rings.every(({ dot, hits }) =>
+      dot && hits.every(count => count >= 2) && hits.reduce((sum, count) => sum + count, 0) >= 12);
+    if (!keyed.focused || keyed.framed || !keyed.selected || !ringed)
+      failures.push(`${label}: expected a series-coloured selection ring around each dialog dot: ${JSON.stringify(keyed)}`);
     await closeAll();
     await expand.focus();
     await page.keyboard.press('Enter');
     await page.evaluate(() => window.__richview.settled()); await settled(page);
     const entered = await ringOf();
-    if (!entered.focused || !entered.ring) failures.push(`${label}: after Enter on Expand the chart shows no focus ring: ${JSON.stringify(entered)}`);
+    if (!entered.focused || !entered.framed || entered.selected) failures.push(`${label}: after Enter on Expand the chart shows no focus ring: ${JSON.stringify(entered)}`);
     evidence.focusRing[label] = { opened, keyed, entered };
     await closeAll();
     await page.close();

@@ -25,6 +25,27 @@ fn html(style: &str) -> String {
 
 const SOURCE: &str = "---\ntitle: Rules\n---\n\nText ~~gone~~ and `code`.\n\n> A quote\n\n```\nlet x = 1;\n```\n\n| a | b |\n|---|---|\n| 1 | 2 |\n| Total | 3 |\n\n::: callout\nNote\n:::\n";
 
+/// The CSS without STY-74's generated background block.
+fn without_background(css: &str) -> String {
+    // The screen block, then the rule that drops it for high contrast and forced colours.
+    let mut out = css.to_owned();
+    for (start, end) in [
+        ("@media screen{html{background:", "}}\n"),
+        (
+            "@media (prefers-contrast:more),(forced-colors:active){html{background:var(--rv-bg)!important}",
+            "\n",
+        ),
+    ] {
+        if let Some(at) = out.find(start) {
+            let stop = out[at..]
+                .find(end)
+                .map_or(out.len(), |e| at + e + end.len());
+            out.replace_range(at..stop, "");
+        }
+    }
+    out
+}
+
 /// Every `selector { declarations }` pair of the report's stylesheets, at-rules flattened.
 fn rules(style: &str) -> Vec<(String, String)> {
     let page = html(style);
@@ -33,7 +54,10 @@ fn rules(style: &str) -> Vec<(String, String)> {
     let rule = Regex::new(r"([^{}]+)\{([^{}]*)\}").unwrap();
     let mut found = vec![];
     for block in sheet.captures_iter(&page) {
-        let css = comment.replace_all(&block[1], "");
+        // STY-74's generated background is judged by its own tests (style_backgrounds): its page
+        // layers and the solid surfaces it gives charts and code are not the preset's rules.
+        let own = without_background(&block[1]);
+        let css = comment.replace_all(&own, "");
         for r in rule.captures_iter(&css) {
             let selector = r[1].trim().trim_start_matches('{').trim().to_owned();
             found.push((selector, r[2].trim().to_owned()));
@@ -218,18 +242,10 @@ fn token(style: &str, name: &str) -> Option<String> {
 
 #[test]
 fn each_builtin_sets_its_measure_and_the_report_column_is_one_width() {
-    // STY-30, widened by a fifth on Daniel's call of 2026-11-15 (S27-986): Sleek and Air 42rem,
-    // Scientific 78ch, Brutalist 38rem, Hand-drawn 41rem.
+    // STY-30 keeps the reading measure at 42rem across styles.
     // STY-31: one report width for every style, centred (margin auto on the report).
-    let measures = [
-        ("sleek", "42rem"),
-        ("air", "42rem"),
-        ("scientific", "78ch"),
-        ("brutalist", "38rem"),
-        ("hand-drawn", "41rem"),
-    ];
-    for (style, measure) in measures {
-        assert_eq!(token(style, "measure").as_deref(), Some(measure), "{style}");
+    for style in builtin_style_names() {
+        assert_eq!(token(style, "measure").as_deref(), Some("42rem"), "{style}");
         let page = rules(style);
         let report = page
             .iter()

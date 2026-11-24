@@ -1,4 +1,4 @@
-Publish a version of the report to a RichView server
+Create a report or publish another version at its address
 
 Usage: richview publish [OPTIONS] <INPUT>
 
@@ -10,9 +10,9 @@ Options:
       --connectors <CONNECTORS>  Trusted `connectors.toml` binding the names in `report.connectors.yaml` to data sources [env: RICHVIEW_CONNECTORS=]
       --server <SERVER>          Server URL (https, or http on loopback) [env: RICHVIEW_SERVER=]
       --choose-server            Choose and remember a publish server again (without RICHVIEW_SERVER)
-      --token <TOKEN>            Bearer token of the server [env: RICHVIEW_TOKEN]
+      --token <TOKEN>            Bearer token of the server; defaults to the sign-in `richview login` keeps [env: RICHVIEW_TOKEN]
       --slug <SLUG>              Address of the report; defaults to the frontmatter slug, then the title
-      --new                      Create a report address the server has not stored before
-      --visibility <VISIBILITY>  Who can open the report: private (you and the people you name), org (every member of your organization) or public (anyone with the link). Left as it is when omitted [possible values: private, org, public]
+      --new                      Allow this file to create another address on the same server
+      --visibility <VISIBILITY>  Who can open the report: private (you and the people you name), org (every member of your organization) or public (anyone with the link). With public sharing, anyone with the link can read the original Markdown and save a copy. Left as it is when omitted [possible values: private, org, public]
       --format <FORMAT>          `pretty` for people, `json` for agents [default: pretty] [possible values: pretty, json]
   -h, --help                     Print help

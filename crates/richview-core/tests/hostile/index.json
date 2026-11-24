@@ -2,7 +2,7 @@
   "cases": [
     {
       "case": "s01-opn16-palette",
-      "sink": "style file chart.palette (OPN-16 probe, ARC-12)",
+      "sink": "style file palette (OPN-16 probe, ARC-12)",
       "expect": [
         "style.schema"
       ],
@@ -14,21 +14,21 @@
       "case": "s02-style-chart-keys",
       "sink": "style file chart leaves: palette, ramp, negativeRamp, curve, fontFamily, figuresFont, legend, barRadius, line, unknown key",
       "expect": [
-        "style.schema"
+        "style.retired"
       ]
     },
     {
       "case": "s03-style-tokens",
       "sink": "style file tokens: colours, fonts, dimensions, unknown key",
       "expect": [
-        "style.schema"
+        "style.retired"
       ]
     },
     {
       "case": "s04-style-layout-motion-components",
       "sink": "style file layout, motion and components leaves and keys",
       "expect": [
-        "style.schema"
+        "style.retired"
       ]
     },
     {
@@ -431,12 +431,29 @@
       ]
     },
     {
+      "case": "b05c-table-heat-filter",
+      "sink": "table column heat, heat_scale, filter and sortable (enums and booleans); cell text beside a shaded cell",
+      "expect": [
+        "block.schema",
+        "table.heat"
+      ]
+    },
+    {
       "case": "b06-table-csv",
       "sink": "table block CSV headers and cells",
       "expect": [],
       "data": [],
       "present": [
         "&lt;img src=x onerror=HOSTILE_CSV_CELL()&gt;"
+      ]
+    },
+    {
+      "case": "b06c-table-parquet",
+      "sink": "table block Parquet column names and cells, as a native host hands them to core (TYP-102)",
+      "expect": [],
+      "data": [],
+      "present": [
+        "&lt;img src=x onerror=HOSTILE_PARQUET_CELL()&gt;"
       ]
     },
     {

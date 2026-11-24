@@ -134,6 +134,45 @@ test("a hotfix source must be on current dev and contain the candidate patch", a
 	});
 });
 
+test("a clean pick whose context differs from dev's promotes, and a pick with any other content does not", async t => {
+	// Dev changed the line beside the fix after production was cut, so the pick's patch text has
+	// production's context line and cannot equal the source commit's.
+	const drifted = t => {
+		const f = fixture(t);
+		f.git("checkout", "-q", "--detach", f.prod);
+		f.edit("tools/fix.mjs", "above\nbroken\nkept\nbelow in production\n");
+		const prod = f.commit("production with a neighbouring line");
+		f.edit("tools/fix.mjs", "above\nbroken\nkept\nbelow on dev\n");
+		f.commit("dev changes the neighbouring line");
+		f.edit("tools/fix.mjs", "above\nfixed\nkept\nbelow on dev\n");
+		const sourceCommit = f.commit("fix on dev");
+		f.git("checkout", "-q", "--detach", prod);
+		f.git("cherry-pick", sourceCommit);
+		assert.equal(readFileSync(join(f.cwd, "tools/fix.mjs"), "utf8"), "above\nfixed\nkept\nbelow in production\n");
+		return { f, prod, sourceCommit };
+	};
+	const push = (f, prod, sourceCommit) => {
+		const head = f.git("rev-parse", "HEAD"), tree = f.git("rev-parse", "HEAD^{tree}");
+		f.git("push", "-qf", "origin", `${prod}:refs/heads/prod`, `${sourceCommit}:refs/heads/dev`, `${head}:refs/heads/candidate/7`);
+		f.save({ ...f.receipt, id: `hotfix-20261124T120000Z-${head.slice(0, 10)}`, commit: head, tree, prod, sourceCommit });
+		return head;
+	};
+	await t.test("the gate's own pick", t => {
+		const { f, prod, sourceCommit } = drifted(t);
+		const head = push(f, prod, sourceCommit);
+		assert.equal(f.promote(), 0);
+		assert.equal(f.remoteProd(), head);
+	});
+	await t.test("a pick amended with another change", t => {
+		const { f, prod, sourceCommit } = drifted(t);
+		f.edit("tools/fix.mjs", "above\nfixed\nkept\nbelow in production, and more\n");
+		f.git("commit", "-qa", "--amend", "--no-edit");
+		push(f, prod, sourceCommit);
+		assert.throws(() => f.promote(), /patch differs/);
+		assert.equal(f.remoteProd(), prod);
+	});
+});
+
 test("hotfix receipt validation rejects failed or incomplete evidence", async t => {
 	for (const [label, alter, error] of [
 		["failed result", r => r.result = "fail", /failed/],

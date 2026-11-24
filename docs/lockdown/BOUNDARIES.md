@@ -17,7 +17,7 @@ How to read this file:
 ## Product boundaries
 
 - RichView is local tools first, servers on top (INT-27). The CLI, MCP server and VS Code extension create one HTML file that can be shared and works offline; RichView's servers add sharing, roles and approvals. Everything local works without the servers.
-- The core holds no accounts, roles or approvals; they belong to the servers (INT-06, FEA-SF-19). The CLI, MCP server and VS Code extension stay free of accounts (FEA-SF-19).
+- The core holds no accounts, roles or approvals; they belong to the servers (INT-06, FEA-SF-19). The CLI, MCP server and VS Code extension need no account; to publish, the command line keeps a sign-in per server that you can remove with richview logout (FEA-SF-19, amended 19 Nov).
 - A RichView server comes in exactly two forms, Cowork or Publish; there is no third server (INT-83). Both share one internal server core (INT-35). Today's report host becomes Cowork (INT-83).
 - RichView does five jobs: Write, Check, Present, Revise and Share (INT-08). It is not a BI tool: it does not run the analysis, and the core never queries data. The one exception is a RichView server, where a report can link datasets through the server's connectors and the server loads the data (INT-08, OPN-63).
 - RichView does not maximize storytelling and makes no judgment of a story's quality beyond syntax-level analysis (structure, missing sources, unlabelled charts); it gives authors and agents the tools, and nothing promises that a report argues well (INT-77).
@@ -82,7 +82,7 @@ Safety is a floor that is never traded, and a hostile-input fixture proves these
 - Private uploads stay private, and public delivery is an explicit choice (INT-79).
 - Every server endpoint that renders, publishes or regenerates requires a token and is bounded, except the loopback preview (INT-79).
 - Authors customize only through declared, validated vocabulary; no raw CSS, JavaScript, HTML, engine specs or raw SVG (INT-28).
-- Style files take a preset, the author's colours and five-step settings; token-level keys still apply with a `style.legacy` warning. Nothing changes the underlying mechanics such as phone or page width; every value passes the closed vocabulary and is measured at render (STY-73, which overrides that part of STY-14 and OPN-59).
+- Style files take a preset, the author's colours and five-step settings; an author file skips retired keys and reports `style.retired` at each one. Nothing changes the underlying mechanics such as phone or page width; every value passes the closed vocabulary and is measured at render (STY-73, which overrides that part of STY-14 and OPN-59).
 - Data-source credentials stay in the server's configuration and never appear in `.rmd` files, report folders, rendered output, MCP arguments or agent context (OPN-63). The Unsplash key comes only from `UNSPLASH_ACCESS_KEY` and never appears in sources, output or agent context (FEA-RP-62).
 - Readers never get more precision than the author chose: readouts, tooltips, the Table view, CSV and every export show the author's precision, and the exact source values cannot be retrieved (FEA-CH-37). This also keeps an author's calculation precision private.
 - A link preview never reveals a private story: a story shared only with signed-in readers shows its title and thumbnail only to them, and an anonymous unfurler gets neither (INT-07, OPN-54; FEA-SF-55, ARC-69, TYP-65).

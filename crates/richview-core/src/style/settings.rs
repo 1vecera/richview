@@ -256,14 +256,12 @@ pub(super) fn apply(merged: &mut Value) {
     }
 }
 
-/// The padding factor of a framed chart: shaded and outlined figures pad by 1rem and 1.25rem a
-/// side at `medium`, and the layout insets the plot by the same amount (`frame_inset_px`).
+/// The padding factor used by a framed chart and its reserved geometry (`frame_inset_px`).
 pub(crate) fn frame_padding(document: &Value) -> f64 {
     PADDING[step(document, "padding")]
 }
 
-/// CSS the steps add beyond the tokens: a framed chart's padding (`padding`) and the metric's
-/// rules (`lines`). At `medium` it is empty, so a report without steps is byte for byte as before.
+/// CSS for framed chart padding and the metric's rules (`lines`).
 pub(super) fn css(merged: &Value) -> String {
     let mut css = String::new();
     let padding = step(merged, "padding");
@@ -309,7 +307,33 @@ pub(super) fn css(merged: &Value) -> String {
             )),
         }
     }
+    let frame = merged
+        .pointer("/components/figure/frame")
+        .and_then(Value::as_str);
+    let inset = super::frame_inset_px(merged, false);
+    if inset > 0.0 && frame != Some("shaded") {
+        // On screen the outline spends two pixels of its allowance on each side's border.
+        let border = if frame == Some("outline") { 2.0 } else { 0.0 };
+        let inline = inset / 2.0 - border;
+        css.push_str(&format!(
+            "@media screen{{.rv-chart:not(.rv-chart--expanded){{padding-inline:{inline}px}}}}\n"
+        ));
+    }
     css
+}
+
+/// Scale a length written in px or rem; other units and numbers keep their value.
+fn scale_length(value: &str, factor: f64) -> String {
+    for unit in ["px", "rem"] {
+        if let Some(n) = value.strip_suffix(unit).and_then(|n| n.parse::<f64>().ok()) {
+            let scaled = format!("{:.3}", n * factor);
+            return format!(
+                "{}{unit}",
+                scaled.trim_end_matches('0').trim_end_matches('.')
+            );
+        }
+    }
+    value.to_owned()
 }
 
 /// Multiply every type size; phone sizes take the phone factor.
@@ -324,7 +348,7 @@ fn scale_sizes(tokens: &mut Map<String, Value>, factor: f64, phone: f64) {
             factor
         };
         if let Some(text) = value.as_str() {
-            *value = json!(super::scale_length(text, factor));
+            *value = json!(scale_length(text, factor));
         }
     }
 }

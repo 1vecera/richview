@@ -1,6 +1,6 @@
 {
 	"name": "richview",
-	"version": "3.0.0-alpha.3",
+	"version": "3.0.0",
 	"private": true,
 	"description": "Rust Rich Markdown product with generated host facades, verification and editor packaging.",
 	"license": "MIT",

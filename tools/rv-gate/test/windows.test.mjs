@@ -13,7 +13,7 @@ const git = (cwd, ...args) => execFileSync("git", args, { cwd, encoding: "utf8",
 const passingSteps = () => stepsForTier("full", "full").map(({ id }) => ({ id, status: ["voiceover", "hosted-smoke", "windows"].includes(id) ? "unrun" : "pass", reason: "Standing gap" }));
 
 const commit = "a".repeat(40);
-const passing = `== install the candidate with the one-liner\nrichview 3.0.0-alpha.3 (commit ${commit.slice(0, 10)}, runtime 0123456789ab)\r\nPASS  the version names the commit\r\n\n== result\n42 checks passed, 0 failed\r\nE2E PASS\r\n`;
+const passing = `== install the candidate with the one-liner\nrichview 3.0.0 (commit ${commit.slice(0, 10)}, runtime 0123456789ab)\r\nPASS  the version names the commit\r\n\n== result\n42 checks passed, 0 failed\r\nE2E PASS\r\n`;
 
 const sums = { richviewSha256: "1".repeat(64), workerSha256: "2".repeat(64), editorSha256: "e".repeat(64), databaseSha256: "d".repeat(64), archiveSha256: "a".repeat(64) };
 // The build's own list, as walk.sh copies SUMS into the run.

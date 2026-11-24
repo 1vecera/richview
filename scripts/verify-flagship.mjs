@@ -50,7 +50,8 @@ const snapshot = body => {
     text: [...body.querySelectorAll('h1,h2,h3,p,.rv-big__value,.rv-big__label,td,th')].filter(node => !node.closest('.rv-chart')).map(node => node.textContent.trim()),
     citations: [...body.querySelectorAll('.rv-report a[href]')].map(node => ({ text: node.textContent.trim(), href: node.getAttribute('href') })),
     charts: payloads.map(payload => ({ title: payload.block.title, data: { columns: payload.columns, rows: payload.rows }, encoding: payload.block.encoding, axes: payload.block.axes, annotations: payload.block.annotations })),
-    appearance: { background: getComputedStyle(body).backgroundColor, titleFont: getComputedStyle(body.querySelector('h1')).fontFamily, bar: drawn('bar'), temporal: drawn('line') },
+    // The page colour, read from the style: a page background (STY-74) leaves the body transparent.
+    appearance: { background: getComputedStyle(document.documentElement).getPropertyValue('--rv-bg').trim(), titleFont: getComputedStyle(body.querySelector('h1')).fontFamily, bar: drawn('bar'), temporal: drawn('line') },
     loaded_fonts: [...document.fonts].filter(font => font.status === 'loaded').map(font => font.family),
   };
 };
@@ -148,6 +149,37 @@ async function verifyShowcase(page, baseline, exports) {
     await page.keyboard.press('Escape');
     await page.locator('#citation-card[hidden]').waitFor({ state: 'attached' });
   }
+  // Every source link opens the entry its own sentence cites, never another entry at the same URL:
+  // build_report.py lists each link in reading order with its ids (content/citations.json).
+  const listed = JSON.parse(readFileSync(join(root, 'examples/openai-vs-anthropic/content/citations.json'), 'utf8'));
+  const cited = new Set(listed.map(link => link.url));
+  const shown = (await page.frameLocator('#report-frame').locator('.rv-report a[href]').evaluateAll(nodes => nodes.map(node => ({
+    href: node.getAttribute('href'), id: node.getAttribute('data-source-id'), ids: node.getAttribute('data-source-ids'),
+    cell: !!node.closest('td.link'), text: node.textContent.trim(),
+  })))).filter(link => cited.has(link.href));
+  assert.equal(shown.length, listed.length, `the frame shows ${shown.length} links to cited sources; citations.json lists ${listed.length}`);
+  listed.forEach((link, i) => {
+    const at = `source link ${i + 1} ("${shown[i].text}", ${link.url})`;
+    assert.equal(shown[i].href, link.url, `${at} is in reading order`);
+    assert.equal(shown[i].cell, link.text === '', `${at} is ${link.text === '' ? 'a table cell' : 'in the text'}`);
+    assert.equal(shown[i].id, link.ids[0], `${at} opens ${link.ids[0]}, the entry its sentence cites`);
+    assert.equal(shown[i].ids ?? shown[i].id, link.ids.join(' '), `${at} keeps every id it cites`);
+  });
+  // And each card in the text shows that entry.
+  const sourceLinks = page.frameLocator('#report-frame').locator('.rv-report a[data-source-id]');
+  for (let i = 0; i < await sourceLinks.count(); i++) {
+    const link = sourceLinks.nth(i);
+    if (await link.evaluate(node => !!node.closest('td.link'))) continue;
+    const id = await link.getAttribute('data-source-id');
+    await link.evaluate(node => node.dispatchEvent(new FocusEvent('focusin', { bubbles: true })));
+    await page.locator('#citation-card:not([hidden])').waitFor();
+    const card = await page.locator('#citation-card').innerText();
+    const title = titles.find(([key]) => key === id)?.[1];
+    assert.ok(title && card.includes(id) && card.includes(title), `the card of ${id} shows its own entry "${title}" (got ${JSON.stringify(card.slice(0, 120))})`);
+    await page.keyboard.press('Escape');
+    await page.locator('#citation-card[hidden]').waitFor({ state: 'attached' });
+  }
+  evidence.checks.push(`Citations: all ${listed.length} source links open the ledger entry their sentence cites, in reading order; every card in the text shows that entry`);
   // Reloading a shared address restores both frames, and the address survives the reload.
   await page.goto(h.base + route + '?theme=air&compare=brutalist');
   await frameReady(page, '#report-frame', 'air');

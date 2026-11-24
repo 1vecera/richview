@@ -30,10 +30,9 @@ fn every_builtin_passes_every_measured_style_check() {
 
 #[test]
 fn an_authors_cascade_is_measured_with_the_same_floors() {
-    let weak = resolved(&[
-        "air",
-        "tokens:\n  ink-soft: 'oklch(0.8 0 0)'\n  size-h2: 20px\n",
-    ]);
+    let mut weak = resolved(&["air"]);
+    weak.document["tokens"]["ink-soft"] = serde_json::json!("oklch(0.8 0 0)");
+    weak.document["tokens"]["size-h2"] = serde_json::json!("20px");
     let findings = style_checks::style_findings(&weak);
     let codes: Vec<_> = findings
         .iter()
@@ -51,7 +50,7 @@ fn an_authors_cascade_is_measured_with_the_same_floors() {
         style_checks::style_findings(&resolved(&["air"])).is_empty(),
         "a builtin alone has no findings"
     );
-    let drifting = resolved(&["air", "tokens:\n  font-text: 'Nonesuch Sans, serif'\n"]);
+    let drifting = resolved(&["air", "fonts:\n  text: 'Nonesuch Sans, serif'\n"]);
     assert!(
         style_checks::style_findings(&drifting)
             .iter()
@@ -63,14 +62,12 @@ fn an_authors_cascade_is_measured_with_the_same_floors() {
 fn a_weak_palette_and_equal_arms_are_named() {
     let weak = resolved(&[
         "air",
-        "chart:\n  palette: ['#1B6F9E', '#2277AA', '#3388BB', '#99BBDD']\n",
+        "palette: ['#1B6F9E', '#2277AA', '#3388BB', '#99BBDD']\n",
     ]);
     assert!(!style_checks::palette(&weak).is_empty());
     // Two arms the same colour differ by nothing: the diverging rule names it.
-    let same = resolved(&[
-        "air",
-        "chart:\n  negative-ramp: ['oklch(0.965 0.015 262)', 'oklch(0.72 0.12 262)', 'oklch(0.46 0.21 264)']\n",
-    ]);
+    let mut same = resolved(&["air"]);
+    same.chart["negative-ramp"] = same.chart["ramp"].clone();
     assert!(
         style_checks::ramps(&same)
             .iter()
@@ -200,19 +197,8 @@ fn the_showcase_studio_themes_load_clean_over_a_builtin_and_pass_the_style_check
         let name = path.file_name().unwrap().to_string_lossy().into_owned();
         let source = std::fs::read_to_string(&path).unwrap();
         let mut diagnostics = vec![];
-        // A dark theme sits over Sleek, a light one over Air.
-        let base = if source.contains("scheme: dark") {
-            "sleek"
-        } else {
-            "air"
-        };
-        let style = resolve_styles(&[base.to_owned(), source], &mut diagnostics);
-        // The studio themes are written in the presets' internal vocabulary (tokens and
-        // components), which still applies with `style.legacy` (STY-05's extended themes, STY-73).
-        for d in diagnostics
-            .into_iter()
-            .filter(|d| d.code != "style.experimental" && d.code != "style.legacy")
-        {
+        let style = resolve_styles(&[source], &mut diagnostics);
+        for d in diagnostics.into_iter().filter(|d| d.level != "info") {
             failures.push(format!("{name}: {} {} ({})", d.code, d.message, d.path));
         }
         for d in style_checks::contrast(&style) {
@@ -264,7 +250,10 @@ fn a_brand_font_counts_only_once_its_file_is_in_the_report_folder() {
 #[test]
 fn an_accent_in_a_style_file_without_tokens_does_not_panic() {
     let options = richview_core::document::RenderOptions {
-        styles: vec!["editorial".into(), "accent: \"oklch(0.5 0.2 30)\"\n".into()],
+        styles: vec![
+            "scientific".into(),
+            "accent: \"oklch(0.5 0.2 30)\"\n".into(),
+        ],
         report_folder: Some(richview_core::document::ReportFolder {
             root: "x".into(),
             source: "report.rmd".into(),
@@ -272,7 +261,8 @@ fn an_accent_in_a_style_file_without_tokens_does_not_panic() {
         }),
         ..Default::default()
     };
-    let _ = richview_core::document::render("# T\n", &options);
+    let report = richview_core::document::render("# T\n", &options).unwrap();
+    assert!(report.diagnostics.iter().any(|d| d.code == "style.retired"));
 }
 
 #[test]
@@ -330,7 +320,7 @@ fn a_hostile_brand_font_payload_or_family_never_reaches_the_page() {
 }
 
 #[test]
-fn a_pale_link_that_reads_on_the_dark_screen_fails_the_printed_paper() {
+fn a_retired_pale_link_cannot_change_print_contrast() {
     let tweaks = "tokens:\n  link: \"oklch(0.85 0.12 250)\"\n".to_owned();
     let options = richview_core::document::RenderOptions {
         styles: vec!["sleek".into(), tweaks],
@@ -343,10 +333,16 @@ fn a_pale_link_that_reads_on_the_dark_screen_fails_the_printed_paper() {
     };
     let report = richview_core::document::render("# T\n", &options).unwrap();
     assert!(
+        !report
+            .diagnostics
+            .iter()
+            .any(|d| d.code == "style.contrast" && d.message.starts_with("On paper:"))
+    );
+    assert!(
         report
             .diagnostics
             .iter()
-            .any(|d| d.code == "style.contrast" && d.message.starts_with("On paper:")),
+            .any(|d| d.code == "style.retired" && d.path.ends_with("tokens.link")),
         "{:?}",
         report.diagnostics
     );

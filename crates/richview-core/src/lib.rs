@@ -20,6 +20,7 @@ pub mod document;
 mod fences;
 mod figure;
 mod folder;
+mod heat;
 mod highlight;
 mod identity;
 mod knowledge;
@@ -33,6 +34,7 @@ pub mod registry;
 mod render;
 mod scrolly;
 mod shell;
+mod slides;
 pub mod spec;
 mod style;
 mod walker;
@@ -72,7 +74,8 @@ pub use style::settings::{SETTINGS as STEP_SETTINGS, STEPS, StepSetting};
 pub use style::{
     Grammar as StyleGrammar, Leaf as StyleLeaf, Mark as StyleMark, ResolvedStyle, brand_font_files,
     builtin_style_names, builtin_style_source, custom_properties_to_css, is_retired_style_name,
-    is_style_name, resolve_styles, resolve_styles_compat, style_vocabulary,
+    is_style_name, report_background_layer, resolve_styles, resolve_styles_compat,
+    style_vocabulary,
 };
 
 /// Top, side and bottom page margins in millimetres.

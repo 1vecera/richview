@@ -56,10 +56,6 @@ async fn call(app: &axum::Router, method: &str, path: &str, body: Value) -> (Sta
         body["reportFolder"] =
             json!({"root":"identity-fixture","source":"report.rmd","files":files});
     }
-    // These tests are about identity, not about confirming a new address.
-    if body.get("slug").is_some() && body.get("new").is_none() {
-        body["new"] = json!(true);
-    }
     let request = Request::builder()
         .method(method)
         .uri(path)

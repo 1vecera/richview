@@ -696,12 +696,12 @@
         },
         {
           "label": "Daniel, 18 Nov 2026 ~09:40: \"yes, i wanna windows to work e2e, it can be tested on some aws machine, make sure it will be done e2e\"",
-          "ref": "Lead brief tmp/team/launch/d16/launch/windows-e2e/brief.md",
+          "ref": "Daniel, relayed by the RichView lead",
           "date": "2026-11-18"
         },
         {
           "label": "Windows preview smoke 15/15 on Windows Server 2025 (aws-run-20261118T0724), shipped in 3.0.0-alpha.2",
-          "ref": "tmp/team/launch/d16/windows/HANDOVER-command-line.md",
+          "ref": "https://github.com/1vecera/richview/releases/tag/v3.0.0-alpha.2",
           "date": "2026-11-18"
         }
       ]

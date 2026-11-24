@@ -333,6 +333,28 @@ mod cleanup_tests {
     use super::*;
 
     #[test]
+    fn hosted_hotfix_operator_runbook_matches_links_and_callback_redaction() {
+        let runbook = include_str!("../../../docs/hosted-operator.md");
+        for (purpose, label) in [
+            (LinkPurpose::Signup, "Sign-up"),
+            (LinkPurpose::Invite, "Invitation"),
+            (LinkPurpose::Reset, "Password reset"),
+        ] {
+            let hours = purpose.lifetime() / HOUR;
+            let unit = if hours == 1 { "hour" } else { "hours" };
+            assert!(
+                runbook.contains(&format!("| {label} | {hours} {unit} |")),
+                "{label}"
+            );
+        }
+        let proxy = runbook
+            .lines()
+            .find(|line| line.contains("X-Real-IP"))
+            .unwrap();
+        assert!(proxy.contains("query strings on `/sign-in/{provider}/callback`"));
+    }
+
+    #[test]
     fn startup_removes_abandoned_legacy_and_link_staging() {
         let dir = tempfile::tempdir().unwrap();
         fs::write(dir.path().join(".tmplegacy"), b"private address").unwrap();

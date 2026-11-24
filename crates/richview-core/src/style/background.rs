@@ -5,7 +5,8 @@
 //! every CSS value here is generated from validated numbers (INT-28, ARC-12, ARC-13). The
 //! background yields to the text: each ink keeps its STY-25 floor over the background's worst
 //! pixel. Inks the author did not set move in lightness first; only when they cannot does the
-//! background weaken. Charts, tables and code keep solid surfaces. Everything is screen only:
+//! background weaken. Charts, tables and embeds keep solid surfaces, and code keeps its own opaque
+//! panel (STY-61). Everything is screen only:
 //! paper prints the flat page (STY-21).
 
 use super::settings;
@@ -19,6 +20,30 @@ pub const TEXTURES: [&str; 5] = ["none", "grain", "dots", "grid", "lines"];
 pub const GRADIENTS: [&str; 3] = ["none", "soft", "glow"];
 /// Where a background sits.
 pub const PLACES: [&str; 3] = ["page", "margins", "header"];
+/// The words `background` takes alone: `none`, a texture or a gradient. A picture file is the
+/// fourth one-word form, recognised by its extension.
+pub const WORDS: [&str; 7] = ["none", "grain", "dots", "grid", "lines", "soft", "glow"];
+/// The extensions that make one word a picture: the still rasters a background takes.
+const PICTURE_EXTENSIONS: [&str; 4] = [".png", ".jpg", ".jpeg", ".webp"];
+
+/// The mapping one word stands for (`background: grain`): a texture, a gradient, or a picture
+/// file by its extension. `none` and any other word stand for no mapping.
+pub(crate) fn one_word(word: &str) -> Option<Value> {
+    if word == "none" {
+        return None;
+    }
+    if TEXTURES.contains(&word) {
+        return Some(json!({ "texture": word }));
+    }
+    if GRADIENTS.contains(&word) {
+        return Some(json!({ "gradient": word }));
+    }
+    let lower = word.to_ascii_lowercase();
+    PICTURE_EXTENSIONS
+        .iter()
+        .any(|extension| lower.ends_with(extension))
+        .then(|| json!({ "picture": word }))
+}
 
 /// A texture's contrast over the page per step, for textures that text sits on. Grid and lines
 /// draw continuous rules; grain and dots cover few pixels, so they need more to be present.
@@ -165,10 +190,13 @@ struct Settled {
 /// Derive the background's colours from the final inks and write them to
 /// `settings.background.derived`; move the inks the author did not set where the background
 /// needs it. Run after the colour derivation, so `tint`, `gridlines` and `colors` are settled.
+/// `preset_default` says the background is the preset's own (no author file or frontmatter named
+/// one): it then yields to every ink the preset set, so the preset keeps its exact colours, and
+/// weakens without a finding, since the author asked for nothing.
 pub(super) fn derive(
     merged: &mut Value,
-    explicit: &Value,
     at: &str,
+    preset_default: bool,
     diagnostics: &mut Vec<Diagnostic>,
 ) {
     let Some(spec) = Spec::read(merged) else {
@@ -183,7 +211,6 @@ pub(super) fn derive(
         .iter()
         .filter_map(|(name, floor)| token(merged, name).map(|c| (*name, *floor, c)))
         .collect();
-    let fixed = |name: &str| explicit.pointer(&format!("/tokens/{name}")).is_some();
     // The hue a gradient carries: the author's brand (or, for a glow, the second colour), else
     // the preset's accent.
     let hue_of = |key: &str| {
@@ -243,7 +270,7 @@ pub(super) fn derive(
             if worst.iter().all(|w| color::contrast(*ink, *w) >= *floor) {
                 return true;
             }
-            if fixed(name) {
+            if preset_default {
                 return false;
             }
             match reach(*ink, dark, *floor, &worst) {
@@ -284,7 +311,7 @@ pub(super) fn derive(
         derived["wash"] = json!(wash(merged, page, spec.step));
     }
     merged["settings"]["background"]["derived"] = derived;
-    if settled.weakened {
+    if settled.weakened && !preset_default {
         diagnostics.push(
             Diagnostic::new(
                 "info",
@@ -323,7 +350,7 @@ fn wash(document: &Value, page: Oklch, step: usize) -> f64 {
 }
 
 /// The solid surfaces figures keep over a page background.
-const SOLID: &str = ".rv-chart,.rv-table,.rv-table-scroll,.rv-report__body pre,.rv-embed{background:var(--rv-bg-chart);box-shadow:0 0 0 .75rem var(--rv-bg-chart);border-radius:var(--rv-radius-s,0)}";
+const SOLID: &str = ".rv-chart,.rv-table,.rv-table-scroll,.rv-embed{background:var(--rv-bg-chart);box-shadow:0 0 0 .75rem var(--rv-bg-chart);border-radius:var(--rv-radius-s,0)}";
 /// High contrast and forced colours show the flat page.
 const PLAIN: &str = "@media (prefers-contrast:more),(forced-colors:active){html{background:var(--rv-bg)!important}.rv-report__header::before,.rv-report__header::after,body::before{display:none}}\n";
 /// The sheet the report sits on when its background is in the margins.
@@ -339,13 +366,11 @@ fn texture_layers(texture: &str, ink: &str, centred: bool) -> Vec<String> {
                 "<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='g' color-interpolation-filters='sRGB'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 {:.4} 0 0 0 0 {:.4} 0 0 0 0 {:.4} 2.2 0 0 0 -.75'/></filter><rect width='240' height='240' filter='url(#g)'/></svg>",
                 rgb[0], rgb[1], rgb[2]
             );
-            let encoded = svg
-                .replace('%', "%25")
-                .replace('<', "%3C")
-                .replace('>', "%3E")
-                .replace('#', "%23");
+            // Base64, so the filter's own `url(#g)` never reads as a CSS url() of the page.
+            use base64::{Engine, engine::general_purpose::STANDARD};
+            let encoded = STANDARD.encode(svg);
             vec![format!(
-                "url(\"data:image/svg+xml,{encoded}\") 0 0/240px 240px"
+                "url(\"data:image/svg+xml;base64,{encoded}\") 0 0/240px 240px"
             )]
         }
         "dots" => vec![format!(
@@ -506,5 +531,101 @@ mod tests {
             }
         }
         assert!(wash(&document, page, 0) > alpha);
+    }
+
+    /// A light page whose status inks sit just above their 4.5:1 floor, so that a texture or a
+    /// picture under them breaks it unless the derivation holds them.
+    fn status_document(background: Value) -> Value {
+        json!({
+            "tokens": {
+                "bg": "oklch(0.99 0.004 70)", "ink": "oklch(0.2 0 0)", "ink-soft": "oklch(0.45 0 0)",
+                "link": "oklch(0.5 0.15 260)", "accent": "oklch(0.5 0.15 260)",
+                "ink-faint": "oklch(0.6 0 0)", "up": "oklch(0.52 0.14 150)",
+                "down": "oklch(0.55 0.19 25)", "hold": "oklch(0.53 0.02 260)"
+            },
+            "settings": {"background": background}
+        })
+    }
+
+    const STATUS: [&str; 3] = ["up", "down", "hold"];
+
+    #[test]
+    fn status_inks_keep_their_floor_over_the_strongest_textures() {
+        for texture in ["grain", "dots"] {
+            let before = status_document(json!({"texture": texture, "strength": 4}));
+            let page = token(&before, "bg").unwrap();
+            // The inks hold on the flat page and would not over the texture at full strength.
+            let strongest = if texture == "grain" {
+                GRAIN_STEPS[4]
+            } else {
+                DOT_STEPS[4]
+            };
+            let full = written(toward(page, false, page.c, page.h, strongest));
+            for name in STATUS {
+                let ink = token(&before, name).unwrap();
+                assert!(color::contrast(ink, page) >= 4.5, "{name} on the page");
+                assert!(color::contrast(ink, full) < 4.5, "{name} must be at risk");
+            }
+            // Inks the author did not set move, and the texture keeps its full strength.
+            let (mut moved, mut findings) = (before.clone(), vec![]);
+            derive(&mut moved, "background", false, &mut findings);
+            assert!(findings.is_empty(), "{texture}: {findings:?}");
+            let drawn = token_at(&moved, "/settings/background/derived/texture");
+            assert!(
+                color::contrast(drawn, page) >= strongest - 0.01,
+                "{texture}"
+            );
+            for name in STATUS {
+                let ink = token(&moved, name).unwrap();
+                assert!(color::contrast(ink, drawn) >= 4.5, "{texture}: {name}");
+                assert_ne!(moved["tokens"][name], before["tokens"][name], "{name}");
+            }
+            // A preset’s own texture yields to its inks without an author warning.
+            let (mut kept, mut findings) = (before.clone(), vec![]);
+            derive(&mut kept, "background", true, &mut findings);
+            assert!(findings.is_empty(), "{texture}: {findings:?}");
+            let drawn = token_at(&kept, "/settings/background/derived/texture");
+            for name in STATUS {
+                assert_eq!(kept["tokens"][name], before["tokens"][name], "{name}");
+                let ink = token(&kept, name).unwrap();
+                assert!(color::contrast(ink, drawn) >= 4.5, "{texture}: {name}");
+            }
+        }
+    }
+
+    #[test]
+    fn status_inks_keep_their_floor_under_a_picture_on_the_page() {
+        let mut document =
+            status_document(json!({"picture": "hero.jpg", "place": "page", "strength": 4}));
+        derive(&mut document, "background", false, &mut vec![]);
+        let alpha = document["settings"]["background"]["derived"]["wash"]
+            .as_f64()
+            .unwrap();
+        let page = token(&document, "bg").unwrap();
+        for extreme in [0.0, 1.0] {
+            let composite =
+                Oklch::from_srgb(page.srgb().map(|p| alpha * p + (1.0 - alpha) * extreme));
+            for name in STATUS {
+                let ink = token(&document, name).unwrap();
+                assert!(
+                    color::contrast(ink, composite) >= 4.5,
+                    "{name} over {extreme}"
+                );
+            }
+        }
+        // The status inks bind: without them the same page needs less wash.
+        let mut without = document.clone();
+        for name in STATUS {
+            without["tokens"].as_object_mut().unwrap().remove(name);
+        }
+        assert!(wash(&without, page, 4) < alpha);
+    }
+
+    fn token_at(document: &Value, pointer: &str) -> Oklch {
+        document
+            .pointer(pointer)
+            .and_then(Value::as_str)
+            .and_then(color::parse)
+            .unwrap()
     }
 }

@@ -436,7 +436,16 @@ pub(crate) fn place_block(diagnostics: &mut [Diagnostic], block: &RichBlock) {
 }
 
 /// The keys of a block's one data source (TYP-35).
-const DATA_SOURCES: [&str; 7] = ["inline", "csv", "json", "url", "sql", "metricflow", "cache"];
+const DATA_SOURCES: [&str; 8] = [
+    "inline",
+    "csv",
+    "json",
+    "parquet",
+    "url",
+    "sql",
+    "metricflow",
+    "cache",
+];
 
 /// The marker of a rich fence that failed, beside the marker of one that became a block.
 pub(crate) fn failed_prefix(block_prefix: &str) -> String {
@@ -576,6 +585,20 @@ pub(crate) fn validate_frontmatter(doc: &mut Document) {
             ),
         }
     }
+    // Slides name the one setting they leave without effect: slides have no tabs to switch
+    // between (FEA-RP-65).
+    if crate::slides::enabled(&doc.frontmatter) && doc.frontmatter.get("tabs").is_some() {
+        doc.diagnostics.push(Diagnostic::new(
+            "warning",
+            "slides.tabs",
+            "Slides have no tabs: frontmatter.tabs has no effect while slides is true",
+            "frontmatter.tabs",
+        ));
+    }
+    let fm = doc
+        .frontmatter
+        .as_object_mut()
+        .expect("frontmatter mapping");
     validate_tabs(fm, &mut doc.diagnostics);
     if let Some(image) = title_image(&doc.frontmatter) {
         doc.diagnostics
@@ -690,7 +713,12 @@ fn validate_tabs(fm: &mut serde_json::Map<String, Value>, diagnostics: &mut Vec<
 
 /// Problems with `highlight` as `(path, message)` pairs. Only the shape is checked here:
 /// the column must exist when inline rows are present (CSV/JSON columns are known only to the
-/// host), and values that match no row simply highlight nothing.
+/// host), and values that match no row highlight nothing; the chart warns for them
+/// (`chart.unresolved-highlight`). Line, area, bar, lollipop and scatter charts take a
+/// highlight (TYP-78).
+/// The chart types that draw a `highlight` (TYP-78).
+const HIGHLIGHT_TYPES: [&str; 5] = ["line", "area", "bar", "lollipop", "scatter"];
+
 fn highlight_issues(
     highlight: &Value,
     chart_type: Option<&str>,
@@ -712,14 +740,25 @@ fn highlight_issues(
         );
         return issues;
     };
-    if chart_type.is_some() && chart_type != Some("scatter") {
-        add("", "highlights require type: scatter".into());
+    if let Some(kind) = chart_type
+        && !HIGHLIGHT_TYPES.contains(&kind)
+    {
+        add(
+            "",
+            "highlights require type: line, area, bar, lollipop or scatter".into(),
+        );
     }
     for key in map
         .keys()
-        .filter(|key| !["by", "include", "priority"].contains(&key.as_str()))
+        .filter(|key| !["by", "include", "priority", "mute"].contains(&key.as_str()))
     {
-        add(key, "unknown key; expected by, include or priority".into());
+        add(
+            key,
+            "unknown key; expected by, include, priority or mute".into(),
+        );
+    }
+    if map.get("mute").is_some_and(|mute| !mute.is_boolean()) {
+        add("mute", "expected true or false".into());
     }
     match map.get("by") {
         None => add(
@@ -1342,7 +1381,7 @@ pub(crate) fn validate_block(tag: &str, value: &Value, line: usize) -> Vec<Diagn
         if data.get("inline").is_some_and(|v| !v.is_array()) {
             issue("data.inline", "expected array of rows");
         }
-        for key in ["id", "csv", "json", "url"] {
+        for key in ["id", "csv", "json", "parquet", "url"] {
             if data.get(key).is_some_and(|v| !v.is_string()) {
                 issue(&format!("data.{key}"), "expected string");
             }
@@ -1434,7 +1473,7 @@ pub(crate) fn validate_block(tag: &str, value: &Value, line: usize) -> Vec<Diagn
                 );
             }
         }
-        for key in ["csv", "json"] {
+        for key in crate::document::DATA_FILE_KEYS {
             if let Some(path) = data.get(key).and_then(Value::as_str)
                 && !crate::report_relative_path(path)
             {
@@ -1664,8 +1703,18 @@ mod tests {
         assert!(authoring_keys("chart", &[]).unwrap().contains(&"highlight"));
         assert_eq!(
             authoring_keys("chart", &["highlight"]).unwrap(),
-            ["by", "include", "priority"]
+            ["by", "include", "priority", "mute"]
         );
+        for kind in ["line", "area", "bar", "lollipop"] {
+            let mut chart = scatter(json!({"by": "group", "include": ["a"], "mute": false}));
+            chart["type"] = json!(kind);
+            chart["encoding"] = if matches!(kind, "line" | "area") {
+                json!({"x": "x", "y": "y"})
+            } else {
+                json!({"x": "name", "y": "y"})
+            };
+            assert_eq!(messages(&chart), Vec::<String>::new(), "{kind}");
+        }
     }
 
     #[test]
@@ -1709,6 +1758,11 @@ mod tests {
                 "highlight.order",
                 "unknown key",
             ),
+            (
+                json!({"by": "name", "include": ["Alpha"], "mute": "yes"}),
+                "highlight.mute",
+                "true or false",
+            ),
         ];
         for (highlight, path, needle) in cases {
             let found = messages(&scatter(highlight.clone()));
@@ -1717,12 +1771,12 @@ mod tests {
                 "{highlight}: expected {path} / {needle}, got {found:?}"
             );
         }
-        let mut line = scatter(json!({"by": "name", "include": ["Alpha"]}));
-        line["type"] = json!("line");
+        let mut pie = scatter(json!({"by": "name", "include": ["Alpha"]}));
+        pie["type"] = json!("pie");
         assert!(
-            messages(&line)
+            messages(&pie)
                 .iter()
-                .any(|m| m.contains("require type: scatter"))
+                .any(|m| m.contains("require type: line, area, bar, lollipop or scatter"))
         );
     }
 

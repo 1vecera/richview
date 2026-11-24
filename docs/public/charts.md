@@ -1,9 +1,9 @@
 ---
 title: The chart gallery
-description: Explore a famous chart, or scroll through every chart type.
+description: Explore featured charts and live examples by type.
 styles: [scientific]
 ---
 
-Choose a featured example to open its own page. Below the menu, every chart type is live as you scroll: inspect observations, open its table, try its controls and download its values.
+Explore the live examples below, or open the separate pages for [flow charts](https://richview.ai/docs/charts/flow) and [pivot tables](https://richview.ai/docs/charts/pivot). Choose a featured example to inspect its observations, try its controls or download its data.
 
 ## Featured charts

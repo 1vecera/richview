@@ -201,6 +201,8 @@ body[data-richview-page="showcase"] {
 .citation-card {
 	position: fixed;
 	z-index: 30;
+	/* The script places the card by this width, so padding and border count inside it. */
+	box-sizing: border-box;
 	width: 340px;
 	padding: 0.8rem 1rem;
 	background: var(--panel);

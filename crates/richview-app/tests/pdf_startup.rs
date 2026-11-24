@@ -75,6 +75,7 @@ fn a_system_math_face_cannot_hide_a_missing_embedded_face() {
         print_pdf(&PdfRequest {
             html,
             page: Page::A4,
+            slides: false,
             browser: browser.clone(),
             settle_timeout: DEFAULT_SETTLE_TIMEOUT,
         })

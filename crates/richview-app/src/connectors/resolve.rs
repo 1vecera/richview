@@ -350,8 +350,8 @@ fn hex_digest(hasher: Sha256) -> String {
 
 fn provenance_message(snapshot: &DatasetSnapshot, params: &BTreeMap<String, Value>) -> String {
     let mut message = format!(
-        "{} rows from {} via {} (fingerprint {})",
-        snapshot.provenance.row_count,
+        "{} from {} via {} (fingerprint {})",
+        crate::cli::counted(snapshot.provenance.row_count, "row", "rows"),
         snapshot.provenance.connector,
         match snapshot.provenance.source {
             super::spec::ProvenanceSource::Sql => "sql",

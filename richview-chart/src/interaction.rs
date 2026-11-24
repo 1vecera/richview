@@ -223,3 +223,95 @@ mod tests {
         assert!(position[0] >= 8.0 && position[0] + 240.0 <= 312.0);
     }
 }
+
+/// The margin of a series name's button around the name the canvas draws (FEA-CH-27).
+pub const NAME_MARGIN: f64 = 2.0;
+/// The least width and height of a name button's target, in CSS pixels (WCAG 2.5.8).
+pub const NAME_TARGET: f64 = 24.0;
+
+/// How far a name's target keeps from the centre of a dot of its own line: a pointer on the dot
+/// is off the target by more than the fraction of a pixel a browser rounds a pointer by.
+const NAME_CLEAR: f64 = 3.0;
+/// How far beside a name's text a dot can lie and still move the name's target. A moved target
+/// still holds the name with its margin, so beside a name of no width it reaches the target's
+/// width less the margin past the text, and it reads a dot the clearance beyond that; 7 px more
+/// are spare.
+const NAME_REACH: f64 = NAME_TARGET - NAME_MARGIN + NAME_CLEAR + 7.0;
+
+/// The stretch of `points`, in rising order of `x`, that lies within a name target's reach of
+/// `text`: the only points [`name_target`] can react to. A line of a hundred thousand points is
+/// bisected, not walked, on every layout and zoom frame. Points in no rising order are all kept.
+pub fn name_stretch<T>(points: &[T], x: impl Fn(&T) -> f64, text: crate::geometry::Rect) -> std::ops::Range<usize> {
+    match (points.first(), points.last()) {
+        (Some(first), Some(last)) if x(first) <= x(last) => {
+            let from = points.partition_point(|p| x(p) < text.x - NAME_REACH);
+            let to = points.partition_point(|p| x(p) <= text.right() + NAME_REACH);
+            from..to.max(from)
+        }
+        _ => 0..points.len(),
+    }
+}
+
+/// A name button's target over the text at `text`: the name with its margin, and at least 24 by
+/// 24 CSS pixels (WCAG 2.5.8). The hit area beyond the name is centred on it, except beside a
+/// dot of the name's own line: a name stands 5 px from its line, so a centred target would take
+/// the pointer on the dot it names, and whoever points at that value would get the series, not
+/// the value. There the target starts 3 px past the dot, at the name's own edge at the latest,
+/// and its extra area grows away from the line.
+///
+/// The layout keeps two names' targets apart by this box and the runtime lays the button over
+/// it, so the two cannot disagree about where a target is.
+pub fn name_target(text: crate::geometry::Rect, dots: &[[f64; 2]]) -> crate::geometry::Rect {
+    use crate::geometry::Rect;
+    const CLEAR: f64 = NAME_CLEAR;
+    let name = text.inflate(NAME_MARGIN);
+    let (w, h) = (name.w.max(NAME_TARGET), name.h.max(NAME_TARGET));
+    let mut target = Rect::new(name.x + name.w / 2.0 - w / 2.0, name.y + name.h / 2.0 - h / 2.0, w, h);
+    for dot in dots {
+        if !target.inflate(CLEAR).contains(*dot) {
+            continue;
+        }
+        if dot[1] <= name.y {
+            target.y = target.y.max((dot[1] + CLEAR).min(name.y));
+        } else if dot[1] >= name.bottom() {
+            target.y = target.y.min((dot[1] - CLEAR).max(name.bottom()) - h);
+        } else if dot[0] <= name.x {
+            target.x = target.x.max((dot[0] + CLEAR).min(name.x));
+        } else if dot[0] >= name.right() {
+            target.x = target.x.min((dot[0] - CLEAR).max(name.right()) - w);
+        }
+    }
+    target
+}
+
+#[cfg(test)]
+mod name_target_tests {
+    use super::{NAME_MARGIN, name_target};
+    use crate::geometry::Rect;
+
+    #[test]
+    fn a_name_under_its_line_keeps_its_target_off_the_dot_it_names() {
+        // The flagship's Epoch chart: Anthropic stands 5 px under its line at April 2025.
+        let name = Rect::new(299.9, 125.5, 64.8, 15.6);
+        let dot = [299.1, 120.5];
+        let centred = name_target(name, &[]);
+        assert!((centred.y - 121.3).abs() < 1e-9 && centred.h == 24.0, "{centred:?}");
+        assert!(centred.inflate(1.0).contains(dot), "the centred target reaches the dot");
+        let target = name_target(name, &[dot, [316.8, 116.1]]);
+        assert!(!target.inflate(2.9).contains(dot), "{target:?}");
+        assert_eq!((target.w, target.h), (centred.w, 24.0));
+        assert!(name.inflate(NAME_MARGIN).inside(&target, 1e-9), "{target:?}");
+    }
+
+    #[test]
+    fn a_name_over_its_line_or_beside_its_end_grows_away_from_the_dot() {
+        let name = Rect::new(100.0, 50.0, 12.0, 15.6);
+        let over = name_target(name, &[[106.0, 71.0]]);
+        assert!(over.bottom() <= 68.0 + 1e-9 && over.h == 24.0, "{over:?}");
+        let beside = name_target(name, &[[95.0, 58.0]]);
+        assert!(beside.x >= 98.0 - 1e-9 && beside.w == 24.0, "{beside:?}");
+        assert!(name.inflate(NAME_MARGIN).inside(&beside, 1e-9), "{beside:?}");
+        // A dot the centred target does not come near changes nothing.
+        assert_eq!(name_target(name, &[[60.0, 58.0]]), name_target(name, &[]));
+    }
+}

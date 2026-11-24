@@ -538,20 +538,39 @@ impl Renderer {
         gl.blend_func(Gl::ONE, Gl::ONE_MINUS_SRC_ALPHA);
     }
 
-    fn scissor(&self, clip: Option<Rect>, size: [f64; 2], dpr: f64) {
+    fn scissor(&self, clip: Option<Rect>, size: [f64; 2], dpr: f64, strict: bool) {
         let gl = &self.gl;
         match clip {
             None => gl.disable(Gl::SCISSOR_TEST),
             Some(r) => {
                 let h = (size[1] * dpr).round();
                 gl.enable(Gl::SCISSOR_TEST);
-                let x = (r.x * dpr).floor();
-                let y = (h - r.bottom() * dpr).floor();
+                let left = r.x * dpr;
+                let bottom = h - r.bottom() * dpr;
+                // Round explicit feedback clips inward, including at fractional device
+                // pixel ratios.
+                let (x, y, width, height) = if strict {
+                    let x = left.ceil();
+                    let y = bottom.ceil();
+                    (
+                        x,
+                        y,
+                        (r.right() * dpr).floor() - x,
+                        (h - r.y * dpr).floor() - y,
+                    )
+                } else {
+                    (
+                        left.floor(),
+                        bottom.floor(),
+                        (r.w * dpr).ceil(),
+                        (r.h * dpr).ceil(),
+                    )
+                };
                 gl.scissor(
                     x as i32,
                     y as i32,
-                    (r.w * dpr).ceil().max(0.0) as i32,
-                    (r.h * dpr).ceil().max(0.0) as i32,
+                    width.max(0.0) as i32,
+                    height.max(0.0) as i32,
                 );
             }
         }
@@ -560,6 +579,18 @@ impl Renderer {
     /// Draw one uploaded chart of CSS size `size` at `dpr`.
     pub fn draw(&self, mesh: &Mesh, up: &Uploaded, size: [f64; 2], dpr: f64, clock: Clock) {
         self.draw_range(mesh, up, size, dpr, clock, 0..mesh.ops.len());
+    }
+
+    /// Draw settled feedback with a scissor that includes only whole pixels inside the plot.
+    pub(super) fn draw_overlay(&self, mesh: &Mesh, up: &Uploaded, size: [f64; 2], dpr: f64) {
+        self.paint(
+            mesh,
+            up,
+            size,
+            dpr,
+            Clock::settled(),
+            (0..mesh.ops.len(), true),
+        );
     }
 
     /// Draw a contiguous span of the same uploaded operations without changing their order.
@@ -571,6 +602,18 @@ impl Renderer {
         dpr: f64,
         clock: Clock,
         range: std::ops::Range<usize>,
+    ) {
+        self.paint(mesh, up, size, dpr, clock, (range, false));
+    }
+
+    fn paint(
+        &self,
+        mesh: &Mesh,
+        up: &Uploaded,
+        size: [f64; 2],
+        dpr: f64,
+        clock: Clock,
+        (range, strict_clip): (std::ops::Range<usize>, bool),
     ) {
         let gl = &self.gl;
         let set_common = |p: &Program| {
@@ -612,7 +655,7 @@ impl Renderer {
                         use_solid();
                         solid_active = true;
                     }
-                    self.scissor(*clip, size, dpr);
+                    self.scissor(*clip, size, dpr, strict_clip);
                     gl.draw_arrays(Gl::TRIANGLES, *first as i32, *count as i32);
                 }
                 Op::Stencil {
@@ -625,7 +668,7 @@ impl Renderer {
                         use_solid();
                         solid_active = true;
                     }
-                    self.scissor(*clip, size, dpr);
+                    self.scissor(*clip, size, dpr, strict_clip);
                     gl.enable(Gl::STENCIL_TEST);
                     gl.color_mask(false, false, false, false);
                     gl.stencil_func(Gl::ALWAYS, 0, 0xff);
@@ -668,7 +711,7 @@ impl Renderer {
                     gl.bind_texture(Gl::TEXTURE_2D, Some(tex));
                     gl.uniform1i(self.text.uniform("u_tex"), 0);
                     gl.bind_vertex_array(Some(vao));
-                    self.scissor(*clip, size, dpr);
+                    self.scissor(*clip, size, dpr, strict_clip);
                     gl.draw_arrays(Gl::TRIANGLES, first, count);
                 }
             }

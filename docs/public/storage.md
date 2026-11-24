@@ -29,11 +29,10 @@ stores:
 Without `endpoint`, the store is AWS S3 in `region`, addressed by virtual host; with one, requests use path-style URLs unless `url_style: virtual-host` says otherwise. `credentials: env` reads `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and an optional `AWS_SESSION_TOKEN`; `profile:<name>` reads static keys from the AWS shared credentials file. For single sign-on or role profiles, export temporary keys into the environment first. Every request is signed locally; keys and signed URLs never appear in references, output or the upload journal. `http` endpoints are accepted only on loopback.
 
 ```sh
-richview asset put data/readings.csv --to local
-richview asset put media/launch.mp4 --to local --public
-richview asset verify launch.json --hash
-richview asset verify readings.json --to local --hash
-richview asset abort
+richview asset put data/readings.csv --to local > readings.yaml
+richview asset put media/launch.mp4 --to local --public > launch.yaml
+richview asset verify launch.yaml --hash
+richview asset verify readings.yaml --to local --hash
 ```
 
 Uploads are private unless `--public` is given. Keys are `<prefix><kind>/<first 16 hex digits of the SHA-256>/<file name>`, under `private/` or `public/` by default, so uploading the same file again sends nothing and changed content always gets a new key. Public objects go to `public_bucket` when the profile names one, carry `Cache-Control: public, max-age=31536000, immutable` and are referenced through `public_base_url`, which should be a CDN, custom domain or website endpoint that serves only the public objects. Private references point at the bucket and need the store's credentials to read; a website endpoint must never serve the private bucket.
@@ -60,5 +59,13 @@ With `--format json`, standard output carries one JSON result with the reference
 Network errors, timeouts, `429` and `5xx` responses get up to five attempts per request, with exponential backoff and full jitter between them. An interrupted multipart upload keeps a journal in `$XDG_STATE_HOME/richview/uploads/`; running the same command again asks the store which parts it already has and sends only the rest. `richview asset abort` cancels journaled uploads, all of them or those whose SHA-256 starts with a given prefix. Exit codes are 0 for an uploaded or already stored object, 2 for an invalid file, type or profile, 3 for a failed transfer (rerun to resume) and 4 when the stored object differs from the reference.
 
 `verify` reads references saved as YAML or JSON, including the output of `put`. It checks the status, `Content-Length`, `Content-Type` and, for video and audio, `Accept-Ranges: bytes`; `--hash` downloads the object and compares its SHA-256. Private references need `--to` with the store that holds them.
+
+## Cancel an interrupted upload
+
+Use the SHA-256 prefix of the interrupted file and its store profile. For example, if the hash starts with `0c6eb955d7b052f7`, run:
+
+```sh
+richview asset abort 0c6eb955d7b052f7 --to local
+```
 
 [Garage](https://garagehq.deuxfleurs.fr/), run as a separate process on loopback, is a convenient store for trying this locally. The repository’s `scripts/verify-assets.mjs` exercises uploads against a disposable Garage server; inspect its prerequisites before running it.

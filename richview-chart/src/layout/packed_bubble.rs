@@ -72,6 +72,27 @@ fn pack(radii: &[f64]) -> Vec<[f64; 2]> {
     placed.into_iter().map(|(c, _)| c).collect()
 }
 
+/// A point on the packed circle's edge inside the box reserved for selection.
+fn omitted_anchor(room: Rect, center: [f64; 2], radius: f64) -> Option<[f64; 2]> {
+    let offsets = |position: f64, low: f64, high: f64| {
+        let (low, high) = (low - position, high - position);
+        let near = 0.0_f64.clamp(low, high);
+        let far = if low.abs() > high.abs() { low } else { high };
+        (near, far)
+    };
+    let (near_x, far_x) = offsets(center[0], room.x, room.right());
+    let (near_y, far_y) = offsets(center[1], room.y, room.bottom());
+    let square = radius * radius;
+    if near_x * near_x + near_y * near_y > square || far_x * far_x + far_y * far_y < square {
+        return None;
+    }
+    // The nearest and farthest points straddle the perimeter. Take the widest chord
+    // that fits between them, leaving at least the required vertical clearance.
+    let dx = (square - near_y * near_y).max(0.0).sqrt().min(far_x.abs());
+    let dy = (square - dx * dx).max(0.0).sqrt();
+    Some([center[0] + dx.copysign(far_x), center[1] + dy.copysign(far_y)])
+}
+
 pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
     let block = ctx.block;
     let (Some(name_field), Some(value_field)) = (block.encoding.label.clone(), block.encoding.y.clone()) else {
@@ -258,12 +279,31 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
             .zip(&shares)
             .filter(|(b, _)| !ctx.is_hidden(b.group))
             .collect();
+        let packed_center = |b: &Bubble| [cx + b.at[0] * scale, cy + b.at[1] * scale];
+        let mut anchors = Vec::new();
+        if visible.iter().any(|(b, _)| !b.drawn) {
+            // The 4 px location marker and its ring and tail reach 18.75 px.
+            let room = plot.inflate(-19.0);
+            anchors.extend(
+                bubbles
+                    .iter()
+                    .filter(|p| p.drawn)
+                    .filter_map(|p| omitted_anchor(room, packed_center(p), p.radius * scale).map(|at| (p, at))),
+            );
+        }
         for (b, share) in visible {
             total_parts += 1;
             let centre = if b.drawn {
-                [cx + b.at[0] * scale, cy + b.at[1] * scale]
+                packed_center(b)
             } else {
-                [plot.x, plot.y]
+                // Sub-threshold parts never enter the packing. Anchor both the readout and the
+                // keyboard ring to the largest visible member of their group when possible.
+                let parent = anchors.iter().max_by(|(a, _), (c, _)| {
+                    let rank = |p: &Bubble| (!ctx.is_hidden(p.group), p.group == b.group);
+                    rank(a).cmp(&rank(c)).then_with(|| a.radius.total_cmp(&c.radius))
+                });
+                // If every packed circle is outside the selection room, its centre is free.
+                parent.map_or_else(|| plot.center(), |(_, at)| *at)
             };
             let r = if b.drawn { b.radius * scale } else { 0.0 };
             let base = ctx.series_color(b.group);

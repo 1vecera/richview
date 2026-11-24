@@ -1,0 +1,21 @@
+digraph runtime {
+  graph [rankdir=TB, bgcolor="transparent", pad=0.12, nodesep=0.30, ranksep=0.40];
+  node [shape=box, style="rounded,filled", color="#474747", fontcolor="#333333", fillcolor="white", fontname="Helvetica", fontsize=12, margin="0.13,0.08"];
+  edge [color="#474747", fontcolor="#333333", fontname="Helvetica", fontsize=11, arrowsize=0.7];
+  figure [label="Figure and embedded rows"];
+  reader [label="Report reader\nMeasure frame and apply controls", color="#196965", fontcolor="#196965", penwidth=1.6];
+  chart [label="Chart engine\nLay out this view"];
+  model [label="Geometry and observations"];
+  shared [label="Shared WebGL2 canvas\nDraw the marks and labels"];
+  visible [label="Visible figure canvas\nReceives copied pixels"];
+  inspect [label="Selected value\nRead from geometry"];
+  table [label="Table or CSV\nUse embedded rows"];
+  { rank=same; figure; reader; }
+  figure -> reader;
+  reader -> chart;
+  reader -> table;
+  chart -> model;
+  model -> shared;
+  shared -> visible;
+  model -> inspect;
+}

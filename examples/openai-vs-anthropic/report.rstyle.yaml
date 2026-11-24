@@ -1,4 +1,2 @@
-# Reading rhythm for this fixed research snapshot. `line-base` is a preset's internal leaf: it
-# still applies, with a style.legacy warning the golden fixture declares (STY-73).
-tokens:
-  line-base: 1.65
+# Scientific supplies the reading rhythm. Add supported overrides here.
+{}

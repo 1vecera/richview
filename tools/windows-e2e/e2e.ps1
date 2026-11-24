@@ -301,7 +301,7 @@ $env:RICHVIEW_TOKEN = -join ((1..48) | ForEach-Object { '{0:x}' -f (Get-Random -
 $cowork = Start-Process -FilePath $rv -ArgumentList 'server', '--data-dir', (Join-Path $work 'server-data'), '--port', '8090', '--public-url', 'http://127.0.0.1:8090', '--report-port', '8091', '--report-origin', 'http://localhost:8091', '--default-visibility', 'public' -PassThru -WindowStyle Hidden -RedirectStandardOutput (Join-Path $out 'server.log') -RedirectStandardError (Join-Path $out 'server.err.log')
 Check 'the server listens' (Wait-Port 8090)
 try { Check 'the server answers /health' ((Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8090/health).StatusCode -eq 200) } catch { Check 'the server answers /health' $false $_.Exception.Message }
-$published = & $rv publish $rmd --server http://127.0.0.1:8090 --slug windows-walk --new --format json 2>&1
+$published = & $rv publish $rmd --server http://127.0.0.1:8090 --slug windows-walk --format json 2>&1
 Check 'publish exits 0' ($LASTEXITCODE -eq 0)
 Remove-Item Env:\RICHVIEW_TOKEN, Env:\RICHVIEW_SERVER
 "$published".Substring(0, [Math]::Min(600, "$published".Length))

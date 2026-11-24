@@ -26,6 +26,10 @@ struct ReportConnectorEntry {
     /// For `duckdb`: a report-relative database path. For `metricflow`: must be absent.
     #[serde(default)]
     database: Option<String>,
+    /// For `parquet`: a report-relative Parquet file, which report SQL reads as the table named
+    /// after the connector.
+    #[serde(default)]
+    file: Option<String>,
     /// For `metricflow`: a trusted runtime handle resolved via `connectors.toml`.
     #[serde(default)]
     runtime: Option<String>,
@@ -89,12 +93,21 @@ pub fn load_registry(
 
     for (name, entry) in report.connectors {
         match entry.kind.as_str() {
-            "duckdb" => {
-                let rel = entry.database.ok_or_else(|| {
-                    format!("connector '{name}' of kind 'duckdb' needs a `database` path")
+            kind @ ("duckdb" | "parquet") => {
+                let parquet = kind == "parquet";
+                // What the source is called in a message, and the key that names it.
+                let (noun, key) = if parquet {
+                    ("file", "file")
+                } else {
+                    ("database", "database")
+                };
+                let rel = if parquet { entry.file } else { entry.database }.ok_or_else(|| {
+                    format!("connector '{name}' of kind '{kind}' needs a `{key}` path")
                 })?;
                 if !richview_core::document::report_relative_path(&rel) {
-                    return Err("connector database must be a report-relative file path".into());
+                    return Err(format!(
+                        "connector {noun} must be a report-relative file path"
+                    ));
                 }
                 let path = canonical_root.join(&rel);
                 // A stored snapshot remains readable when its source is offline. No adapter
@@ -104,19 +117,36 @@ pub fn load_registry(
                 }
                 let canonical = path
                     .canonicalize()
-                    .map_err(|err| format!("resolve duckdb database '{rel}': {err}"))?;
+                    .map_err(|err| format!("resolve {kind} {noun} '{rel}': {err}"))?;
                 if !canonical.starts_with(&canonical_root) {
                     return Err(format!(
-                        "connector '{name}' database '{rel}' escapes the report folder"
+                        "connector '{name}' {noun} '{rel}' escapes the report folder"
                     ));
                 }
-                let connector = if let Some(worker) = &trusted.sql_worker {
-                    if !worker.is_absolute() {
-                        return Err("connectors.toml sql_worker must be an absolute trusted executable path".into());
+                // The worker opens the file at this path; on Windows it opens a copy under a
+                // name of the host's own.
+                if parquet && cfg!(not(windows)) && super::parquet_source::pattern_path(&canonical)
+                {
+                    return Err(format!(
+                        "connector '{name}' file '{rel}' {}. {}.",
+                        super::parquet_source::PATTERN_PATH,
+                        super::parquet_source::PATTERN_PATH_FIX
+                    ));
+                }
+                if let Some(worker) = &trusted.sql_worker
+                    && !worker.is_absolute()
+                {
+                    return Err(
+                        "connectors.toml sql_worker must be an absolute trusted executable path"
+                            .into(),
+                    );
+                }
+                let connector = match (&trusted.sql_worker, parquet) {
+                    (worker, true) => DuckDbConnector::parquet(canonical, worker.clone()),
+                    (Some(worker), false) => {
+                        DuckDbConnector::with_worker(canonical, worker.clone())
                     }
-                    DuckDbConnector::with_worker(canonical, worker.clone())
-                } else {
-                    DuckDbConnector::new(canonical)
+                    (None, false) => DuckDbConnector::new(canonical),
                 };
                 registry.register(name, connector);
             }
@@ -138,7 +168,7 @@ pub fn load_registry(
             }
             other => {
                 return Err(format!(
-                    "connector '{name}' has unknown kind '{other}' (expected duckdb or metricflow)"
+                    "connector '{name}' has unknown kind '{other}' (expected duckdb, parquet or metricflow)"
                 ));
             }
         }

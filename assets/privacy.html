@@ -15,13 +15,13 @@
 		<main id="main" class="legal">
 			<article>
 				<h1>Privacy</h1>
-				<p class="updated">Updated: 15 November 2026</p>
+				<p class="updated">Updated: 19 November 2026</p>
 
 				<section>
 					<h2>Update signup</h2>
 					<p>If you opt in to release and product updates, we store your normalised e-mail address, the time of consent and the version of the consent text in a private Cloudflare D1 database. Repeated signups do not create another subscriber. The signup sends no confirmation e-mail.</p>
 					<p>Daniel Vecera operates the list. Subscriber addresses are not published and there is no read API. Rate limits are based on your network address; the application does not store that address.</p>
-					<p>We use your consent only for RichView release and product updates, and keep the signup until you withdraw consent or the list is retired. To withdraw consent or ask for deletion of your information, e-mail <a href="mailto:daniel.vecera@outlook.com">daniel.vecera@outlook.com</a>.</p>
+					<p>We use your consent only for RichView release and product updates, and keep the signup until you withdraw consent or the list is retired. To withdraw consent or ask for deletion of your information, e-mail <a href="mailto:daniel@richview.ai">daniel@richview.ai</a>.</p>
 				</section>
 
 				<section>
@@ -37,11 +37,21 @@
 				<section>
 					<h2>Hosted accounts</h2>
 					<p>If you create an account on the hosted server, we store your e-mail address, the name you enter, a salted hash of your password, hashes of your CLI tokens with the names you give them, the organizations you belong to with your role in each, and the reports you publish with their versions and attached data. The members of an organization you belong to see your name, your e-mail address and your role. When we send account, invitation or report-share mail through Cloudflare's email service, it receives your address and the mail in order to deliver it.</p>
+					<p>When you sign the command line in to the hosted server, it sends the name of your computer. The page where you allow the sign-in shows that name, and it becomes the name of the CLI token (“Command line on” and the name) whose hash the server keeps. A started sign-in waits in the server's memory for at most ten minutes. To limit abuse, the server counts in memory the sign-ins started from each network address for ten minutes, the attempts to collect a token for one minute, and wrong codes per account for ten minutes. Allowing or cancelling a sign-in, and creating or revoking its token, is written to the security log with your account's internal id and your organization's or the token's id; your computer's name is not. The token itself stays on your computer, in a file only you can read (<code>credentials.json</code> in RichView's configuration folder), with the server's address, your name, e-mail address and organization as the server gave them, and the date. <code>richview logout</code> deletes it there and asks the server to revoke it.</p>
 					<p>When you invite someone, or share a report with a person not already named on it, we store that person's address with the invitation and try to send them a mail; you can send it again. When an invitation or report-share mail is sent, the mail shows your e-mail address and, unless they look like a link, your name, the organization's name and the shared report's title. An invitation that is not accepted expires after seven days and can be cancelled earlier.</p>
 					<p>Sign-up, invitation and sharing links expire after 24 hours, and password-reset links after one hour. The server keeps a hash of each link and a record of the address for about 24 hours to limit abuse. When mail is sent automatically, a waiting message containing the link is normally removed when the provider accepts it or within about a minute after the link expires. An unaccepted invitation or report share is normally removed within about a minute after its seven days, and counts of invitation and share mails per sender are kept for about 24 hours. If mail is handled by hand, the server normally removes delivery records and mail copies in its outbox within seven days.</p>
 					<p>The server runs on Amazon Web Services in Frankfurt, Germany, on an encrypted disk with daily encrypted snapshots, of which the last five are kept. The web server logs requests with network addresses to limit abuse and find faults; the log leaves out sign-up and reset links and is kept for at most 14 days. To limit abuse, the application counts sign-up and reset requests per network address in memory for one hour, and failed sign-ins per account for 15 minutes. A failed sign-in is written to a security log together with the e-mail address that was typed; that log is not kept by date but is overwritten as it fills.</p>
 					<p>A private report can be opened by you, by the people you name and by your organization's owners and admins. A report opened to the organization can be read by its members. A report with a public link can be opened by anyone who has the link. We do not read reports except when needed to fix a fault or act on a complaint.</p>
 					<p>We keep an account until you ask for its deletion or the service closes. Deleting a report removes it from the server at once and from the snapshots within five days. To delete your account, or to get a copy of what we hold, write to the address below.</p>
+				</section>
+
+				<section>
+					<h2>Signing in with GitHub, Microsoft or Google</h2>
+					<p>You can sign in to the hosted server with a GitHub, Microsoft or Google account instead of a password. RichView asks the provider only for what signing in needs: GitHub's <code>user:email</code> permission, and the <code>openid</code>, <code>profile</code> and <code>email</code> permissions from Microsoft and Google. From the provider's answer it uses the provider's id for your account, your name, your GitHub login, your e-mail address or your Microsoft user name, and whether the provider has verified that address. It uses nothing else from the answer, keeps no token from the provider and does not call the provider again once you are signed in.</p>
+					<p>For each provider you connect, your account keeps four things: the provider's name; the provider's id for your account (GitHub's numeric user id, Microsoft's tenant and object ids, or Google's account id); a label for your Account page, which is your GitHub login, the e-mail address Microsoft or Google gave, or your Microsoft user name; and the time you connected it. The first time you sign in with a provider, RichView creates an account or joins one only through an address the provider has verified; without one, nothing is created or joined. An account created this way has that address, the name the provider gave, or the part of the address before the @ when it gave none, and no password. Connecting a provider on your Account page while signed in, or accepting an invitation with one, joins it whatever address the provider has; an account made from an invitation has the invited address.</p>
+					<p>This is stored with the rest of your account, on the server described under Hosted accounts, and kept until you disconnect the provider or your account is deleted. Only you see your connected providers: on your Account page, and on the page a password-reset link sent to your address opens. The other members of your organizations do not see them.</p>
+					<p>While a sign-in is under way, the server holds it in memory for at most ten minutes, and the provider's answer for at most ten minutes more while it waits for your confirmation; it counts started sign-ins per network address for ten minutes to limit abuse. Each sign-in, connection and disconnection is written to the security log with your account's internal id and the provider's name; a sign-in that fails is logged with the provider's name alone. When a provider is connected to an account that already exists, we send a mail to that account's address to say so; if the mail cannot go yet, your account keeps the provider's name and the time until it goes, and your Account page shows it.</p>
+					<p>To remove a provider, choose Disconnect on your Account page. Your last way to sign in cannot be removed: set a password or connect another provider first. A password reset also disconnects the providers you do not choose to keep on its page. After a disconnection the server still keeps the provider's name and its id for that account, without the label, for up to sixteen removed connections, so that the provider account cannot be joined to yours again through its e-mail address; you can connect it again yourself while signed in. Deleting your account removes everything it keeps, and from the snapshots within five days: write to the address below. You can also withdraw RichView's access in your settings at GitHub, Microsoft or Google; that does not delete what is kept here.</p>
 				</section>
 
 				<section>
@@ -51,12 +61,12 @@
 
 				<section>
 					<h2>Cookies and analytics</h2>
-					<p>This site sets no cookies and runs no analytics. The hosted server sets one cookie when you sign in, to keep you signed in; it is not used for tracking and is removed when you sign out.</p>
+					<p>This site sets no cookies and runs no analytics. The hosted server sets a cookie when you sign in, to keep you signed in; it is not used for tracking and is removed when you sign out. When you open a report from the app while signed in, the report address sets a second cookie for that report, for one hour, so the report can load; it is not used for tracking. While you sign in with GitHub, Microsoft or Google it sets a third kind of cookie, for ten minutes and ten more while you confirm, which ties the provider's answer to your browser and is removed when the sign-in ends.</p>
 				</section>
 
 				<section>
 					<h2>Contact</h2>
-					<p>For questions about your data, contact <a href="mailto:daniel.vecera@outlook.com">daniel.vecera@outlook.com</a>. The operator is named in the <a href="/impressum">Impressum</a>.</p>
+					<p>For questions about your data, contact <a href="mailto:daniel@richview.ai">daniel@richview.ai</a>. The operator is named in the <a href="/impressum">Impressum</a>.</p>
 				</section>
 			</article>
 		</main>

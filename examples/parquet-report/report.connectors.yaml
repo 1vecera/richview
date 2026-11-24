@@ -1,0 +1,4 @@
+connectors:
+  orders:
+    kind: parquet
+    file: data/orders.parquet

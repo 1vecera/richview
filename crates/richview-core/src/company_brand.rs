@@ -136,14 +136,10 @@ pub fn resolve_company_brand(
     let branded = company.is_object() || style.document.pointer("/settings/colors/brand").is_some();
     CompanyBrand {
         name,
-        base: company["base"]
-            .as_str()
-            .or_else(|| {
-                style
-                    .document
-                    .pointer("/settings/preset")
-                    .and_then(|p| p.as_str())
-            })
+        base: style
+            .document
+            .pointer("/settings/preset")
+            .and_then(|p| p.as_str())
             .map(str::to_owned),
         accent: branded.then_some(()).and_then(|_| {
             style.document["tokens"]["accent"]
@@ -176,6 +172,7 @@ fn report_style(
         })
         .collect();
     sources.extend(options.styles.iter().cloned());
+    sources.extend(crate::report_background_layer(frontmatter));
     let style = crate::resolve_styles(&sources, &mut Vec::new());
     (sources, style)
 }
@@ -204,8 +201,7 @@ pub fn report_company_brand(
     let mut company = resolve_company_brand(&style, &options.data, &mut Vec::new());
     // A colour-only company file takes Air when the author did not select a builtin (STY-71).
     if company.base.is_none()
-        && (style.document["company"]["color"].is_string()
-            || style.document.pointer("/settings/colors/brand").is_some())
+        && style.document.pointer("/settings/colors/brand").is_some()
         && !sources
             .iter()
             .any(|source| crate::builtin_style_names().contains(&source.as_str()))
@@ -463,7 +459,7 @@ mod tests {
     #[test]
     fn company_card_uses_the_resolved_accent_in_srgb() {
         let resolved = crate::resolve_styles(
-            &["company:\n  color: '#0B6E69'\n  base: brutalist\n".into()],
+            &["preset: brutalist\ncolors:\n  brand: '#0B6E69'\n".into()],
             &mut Vec::new(),
         );
         let brand = resolve_company_brand(&resolved, &BTreeMap::new(), &mut Vec::new());
@@ -481,7 +477,7 @@ mod tests {
     #[test]
     fn a_color_only_company_uses_air_for_its_card_unless_a_builtin_was_named() {
         let mut options = RenderOptions {
-            styles: vec!["company: {color: '#0B6E69'}".into()],
+            styles: vec!["colors: {brand: '#0B6E69'}".into()],
             ..Default::default()
         };
         let frontmatter = json!({});

@@ -1,27 +1,11 @@
 # Studio exploration "Vermilion" (v09-vermilion), Editorial.
 # Converted from richview-universe/richview-design-system studio/variants.js @ 8c6a8e0.
-# Tokens and layout live here; the variant's signature rules ship as CSS beside it.
-tokens:
-  scheme: light
-  size-base: "17px"
-  line-base: "1.65"
-  bg: "oklch(0.985 0.008 60)"
-  bg-elev: "oklch(0.97 0.010 60)"
-  bg-chart: "oklch(0.97 0.010 60)"
-  ink: "oklch(0.18 0.012 50)"
-  ink-soft: "oklch(0.40 0.010 50)"
-  ink-faint: "oklch(0.60 0.010 50)"
-  rule: "oklch(0.86 0.012 60)"
-  rule-soft: "oklch(0.92 0.010 60)"
-  accent: "oklch(0.50 0.18 28)"
-  accent-soft: "oklch(0.50 0.18 28 / 0.10)"
-  link: "oklch(0.50 0.18 28)"
-  up: "oklch(0.45 0.12 150)"
-  down: "oklch(0.50 0.18 25)"
-  hold: "oklch(0.55 0.14 70)"
-  font-text: '"Newsreader", Georgia, serif'
-  font-display: '"Newsreader", serif'
-  font-ui: '"Inter", sans-serif'
-  font-mono: '"JetBrains Mono", monospace'
-  radius-s: "2px"
-  radius-m: "2px"
+preset: scientific
+colors:
+  background: "oklch(0.985 0.008 60)"
+  brand: "oklch(0.50 0.18 28)"
+fonts:
+  display: '"Newsreader", serif'
+  text: '"Newsreader", Georgia, serif'
+  ui: '"Inter", sans-serif'
+  mono: '"JetBrains Mono", monospace'

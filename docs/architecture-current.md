@@ -1,5 +1,7 @@
 # Current system and evidence boundaries
 
+For the current implementation, see [How RichView works](how-it-works/README.md).
+
 Snapshot: 18 October 2026, `origin/main` at `b4db233`. Use [CLAUDE.md](../CLAUDE.md), the [source contract](RMD-SPEC.md), and the [Rust extension guide](RUST-ARCHITECTURE.md) for implementation. This map connects the hosts, retained data, build outputs, and verification boundaries. A historical design or an open PR does not change the current contract.
 
 ```mermaid

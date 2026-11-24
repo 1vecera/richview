@@ -25,6 +25,7 @@
           "items": [
             "ReportFolder",
             "ReportResource",
+            "apple_double_sidecar",
             "attach_asset_findings",
             "operation_result",
             "report_relative_path",

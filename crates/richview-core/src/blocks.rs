@@ -45,7 +45,7 @@ pub(crate) fn resolve_data(
         return;
     };
     // The source key names the format; the content never does (TYP-92).
-    let source = ["csv", "json"]
+    let source = crate::document::DATA_FILE_KEYS
         .iter()
         .find_map(|key| data.get(*key).and_then(Value::as_str).map(|r| (*key, r)));
     let mut csv_numeric_text = false;
@@ -66,6 +66,12 @@ pub(crate) fn resolve_data(
         let tag = &block.tag;
         let sources = "write the rows under `data.inline`, or save them as a CSV or JSON file in the report folder and name it in `data.csv` or `data.json`";
         let (message, path, fix) = match (source, data.get("url").and_then(Value::as_str)) {
+            // Only a native host reads Parquet (TYP-102): a browser host has no reader for it.
+            (Some(("parquet", reference)), _) => (
+                format!("Parquet file '{reference}' was not read by this host."),
+                format!("{tag}.data.parquet"),
+                format!("Render with the `richview` command or a RichView server, which read Parquet files in the report folder; or {sources}."),
+            ),
             (Some((kind, reference)), _) => (
                 format!("Data file '{reference}' was not resolved inside this report folder."),
                 format!("{tag}.data.{kind}"),
@@ -398,11 +404,60 @@ fn parsed_data(
         return file.error("data.limit", message, None, diagnostics);
     }
     let content = content.strip_prefix('\u{feff}').unwrap_or(content);
-    if kind == "json" {
+    if kind == "parquet" {
+        parse_table(content, &file, diagnostics, columns)
+    } else if kind == "json" {
         parse_json(content, &file, diagnostics, columns)
     } else {
         parse_csv(content, &file, diagnostics, csv_numeric_text, columns)
     }
+}
+
+/// A Parquet data file as the native host read it (TYP-102). Core never reads Parquet bytes
+/// (ARC-02): the host passes a table of the file's column names in file order (`columns`), the
+/// names of the columns the report's blocks read (`fields`), and one list of scalars per row,
+/// in the order of `fields`. Parquet's own types decided each value's type. `columns` lists
+/// every column, read or not, so a misspelt field is answered with the file's real names.
+fn parse_table(
+    content: &str,
+    file: &DataFile,
+    diagnostics: &mut Vec<Diagnostic>,
+    columns: &mut Vec<String>,
+) -> Vec<Value> {
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct Table {
+        columns: Vec<String>,
+        fields: Vec<String>,
+        rows: Vec<Vec<Value>>,
+    }
+    let table = serde_json::from_str::<Table>(content).ok().filter(|table| {
+        table
+            .fields
+            .iter()
+            .all(|field| table.columns.contains(field))
+            && table.rows.iter().all(|row| {
+                row.len() == table.fields.len()
+                    && !row.iter().any(|cell| cell.is_array() || cell.is_object())
+            })
+    });
+    let Some(table) = table else {
+        let reference = file.reference;
+        return file.error(
+            "data.parquet",
+            format!(
+                "Parquet file '{reference}' did not reach the renderer as a table of its columns and rows."
+            ),
+            None,
+            diagnostics,
+        );
+    };
+    *columns = table.columns;
+    table
+        .rows
+        .into_iter()
+        .map(|row| Value::Object(table.fields.iter().cloned().zip(row).collect()))
+        .collect()
 }
 
 /// A JSON data file: an array of flat row objects (TYP-38).
@@ -1023,7 +1078,48 @@ struct Column {
     align: Option<String>,
     /// Every cell is a number, so the column is right-aligned unless `align` says otherwise.
     numeric: bool,
+    /// The scale the column's cells are shaded on, when the author asked for one (FEA-RP-69).
+    heat: Option<Heat>,
 }
+
+/// How a heat column maps its values to a shade (FEA-RP-69).
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Heat {
+    /// From the lowest value, unshaded, to the highest.
+    Sequential,
+    /// On both sides of zero, which is unshaded; equal distances are equally strong.
+    Diverging,
+}
+
+/// The values a heat column's shades span: the lowest and highest a sequential scale shows, or
+/// zero and the largest distance from it for a diverging one.
+#[derive(Clone, Copy)]
+struct HeatRange {
+    kind: Heat,
+    low: f64,
+    high: f64,
+}
+
+impl HeatRange {
+    /// The cell's share of the strongest shade in whole percent, and whether it is on the
+    /// negative arm; `None` for a cell that stays unshaded.
+    fn of(self, shown: f64) -> Option<(u8, bool)> {
+        let span = self.high - self.low;
+        if span <= 0.0 || !span.is_finite() {
+            return None;
+        }
+        let (share, negative) = match self.kind {
+            Heat::Sequential => ((shown - self.low) / span, false),
+            Heat::Diverging => (shown.abs() / span, shown < 0.0),
+        };
+        let percent = (share.clamp(0.0, 1.0) * 100.0).round() as u8;
+        (percent > 0).then_some((percent, negative))
+    }
+}
+
+/// A table with more rows than this gets the filter box unless `filter` says otherwise
+/// (FEA-RP-70).
+const FILTER_ROWS: usize = 10;
 
 /// How a table is written: into the report, into a browser re-render, or for paper.
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -1105,6 +1201,12 @@ fn table_columns(table: &Value, rows: &[&Value], csv: bool) -> Vec<Column> {
                     .filter(|s| matches!(*s, "left" | "right" | "center"))
                     .map(str::to_owned),
                 numeric: numeric(&key),
+                heat: match spec.and_then(|c| c.get("heat")) {
+                    Some(Value::Bool(true)) => Some(Heat::Sequential),
+                    Some(Value::String(scale)) if scale == "sequential" => Some(Heat::Sequential),
+                    Some(Value::String(scale)) if scale == "diverging" => Some(Heat::Diverging),
+                    _ => None,
+                },
                 key,
             }
         })
@@ -1264,7 +1366,32 @@ fn table_html(
         .into_iter()
         .flatten()
         .collect();
-    let columns = table_columns(table, &rows, csv);
+    let mut columns = table_columns(table, &rows, csv);
+    let unshaded: Vec<String> = columns
+        .iter_mut()
+        .filter(|c| c.heat.is_some() && !c.numeric)
+        .map(|c| {
+            c.heat = None;
+            c.key.clone()
+        })
+        .collect();
+    if !unshaded.is_empty() {
+        diagnostics.push(
+            Diagnostic::new(
+                "warning",
+                "table.heat",
+                format!(
+                    "heat skips columns that are not all numbers ({})",
+                    unshaded.join(", ")
+                ),
+                "table.columns",
+            )
+            .fix("Set heat only on a column whose cells are all numbers")
+            .at(line, "table"),
+        );
+    }
+    let heat = heat_ranges(table, &columns, &rows, csv);
+    let sortable = table.get("sortable").and_then(Value::as_bool) != Some(false);
     let sorted_by = table.pointer("/sort/key").and_then(Value::as_str);
     if let Some(key) = sorted_by {
         // Missing cells sort last in both directions (TYP-91).
@@ -1299,9 +1426,9 @@ fn table_html(
                 };
                 let class = column_class(c);
                 let label = escape(&c.label);
-                if mode == TableMode::Browser {
+                if mode == TableMode::Browser && sortable {
                     format!("<th scope=\"col\" class=\"{class}\" aria-sort=\"{direction}\"><button type=\"button\" data-rv-sort=\"{}\" aria-label=\"Sort by {label}\">{label}</button></th>", escape(&c.key))
-                } else if print || hidden {
+                } else if print || hidden || !sortable {
                     format!("<th scope=\"col\" class=\"{class}\">{label}</th>")
                 } else {
                     let aria = if active {
@@ -1320,7 +1447,7 @@ fn table_html(
         };
         format!("<thead{class}><tr>{cells}</tr></thead>")
     };
-    let visible = table_rows(&rows[..rows.len().min(limit)], &columns, print, csv);
+    let visible = table_rows(&rows[..rows.len().min(limit)], &columns, &heat, print, csv);
     let totals = total_row(table, &columns, &rows, csv, diagnostics, line);
     let caption = table
         .get("title")
@@ -1338,12 +1465,21 @@ fn table_html(
     } else {
         String::new()
     };
+    // The runtime puts the filter box in a table marked for one; paper has no reader to type,
+    // and a slide shows the table without the report's tools.
+    let filtered = mode == TableMode::Report
+        && !table["_slides"].as_bool().unwrap_or(false)
+        && match table.get("filter") {
+            Some(Value::Bool(on)) => *on,
+            _ => rows.len() > FILTER_ROWS,
+        };
+    let filter = if filtered { " data-rv-filter" } else { "" };
     if !folded {
         let foot = totals
             .map(|row| format!("<tfoot>{row}</tfoot>"))
             .unwrap_or_default();
         return format!(
-            "<div class=\"rv-table{}\"><table{typed}>{caption}{}<tbody>{visible}</tbody>{foot}</table>{payload}</div>",
+            "<div class=\"rv-table{}\"{filter}><table{typed}>{caption}{}<tbody>{visible}</tbody>{foot}</table>{payload}</div>",
             wide(table, "rv-table--full"),
             head(false)
         );
@@ -1361,14 +1497,14 @@ fn table_html(
         })
         .collect::<String>();
     let min = format!(" style=\"min-width:{}ch\"", sum + 2 * columns.len());
-    let rest = table_rows(&rows[limit..], &columns, false, csv);
+    let rest = table_rows(&rows[limit..], &columns, &heat, false, csv);
     let total = totals
         .map(|row| {
             format!("<table class=\"rv-table__part rv-table__total\"{min}><colgroup>{cols}</colgroup><tbody>{row}</tbody></table>")
         })
         .unwrap_or_default();
     format!(
-        "<div class=\"rv-table{}\"><table class=\"rv-table__part\"{typed}{min}>{caption}<colgroup>{cols}</colgroup>{}<tbody>{visible}</tbody></table><details class=\"rv-table__overflow\"><summary>Showing {limit} of {} rows</summary><table class=\"rv-table__part\" data-rv-typed{min}><colgroup>{cols}</colgroup>{}<tbody>{rest}</tbody></table></details>{total}{payload}</div>",
+        "<div class=\"rv-table{}\"{filter}><table class=\"rv-table__part\"{typed}{min}>{caption}<colgroup>{cols}</colgroup>{}<tbody>{visible}</tbody></table><details class=\"rv-table__overflow\"><summary>Showing {limit} of {} rows</summary><table class=\"rv-table__part\" data-rv-typed{min}><colgroup>{cols}</colgroup>{}<tbody>{rest}</tbody></table></details>{total}{payload}</div>",
         wide(table, "rv-table--full"),
         head(false),
         rows.len(),
@@ -1486,14 +1622,62 @@ fn column_class(c: &Column) -> &'static str {
         None => "",
     }
 }
-fn table_rows(rows: &[&Value], columns: &[Column], print: bool, csv: bool) -> String {
+/// The range each heat column's shades span, from the values its cells show; with
+/// `heat_scale: table` the columns of one kind share a range, so the table reads as a matrix.
+fn heat_ranges(
+    table: &Value,
+    columns: &[Column],
+    rows: &[&Value],
+    csv: bool,
+) -> Vec<Option<HeatRange>> {
+    let range = |c: &Column| -> Option<HeatRange> {
+        let kind = c.heat?;
+        let shown = rows.iter().filter_map(|row| {
+            sort_value(&row[&c.key], csv, &c.spec())?
+                .parse::<f64>()
+                .ok()
+        });
+        let (low, high) = shown.fold((f64::INFINITY, f64::NEG_INFINITY), |(low, high), v| {
+            (low.min(v), high.max(v))
+        });
+        low.is_finite().then_some(match kind {
+            Heat::Sequential => HeatRange { kind, low, high },
+            Heat::Diverging => HeatRange {
+                kind,
+                low: 0.0,
+                high: low.abs().max(high.abs()),
+            },
+        })
+    };
+    let mut ranges: Vec<Option<HeatRange>> = columns.iter().map(range).collect();
+    if table.get("heat_scale").and_then(Value::as_str) == Some("table") {
+        for kind in [Heat::Sequential, Heat::Diverging] {
+            let of_kind = || ranges.iter().flatten().filter(move |r| r.kind == kind);
+            let low = of_kind().map(|r| r.low).fold(f64::INFINITY, f64::min);
+            let high = of_kind().map(|r| r.high).fold(f64::NEG_INFINITY, f64::max);
+            for range in ranges.iter_mut().flatten().filter(|r| r.kind == kind) {
+                (range.low, range.high) = (low, high);
+            }
+        }
+    }
+    ranges
+}
+
+fn table_rows(
+    rows: &[&Value],
+    columns: &[Column],
+    heat: &[Option<HeatRange>],
+    print: bool,
+    csv: bool,
+) -> String {
     rows.iter()
         .map(|row| {
             format!(
                 "<tr>{}</tr>",
                 columns
                     .iter()
-                    .map(|c| {
+                    .zip(heat)
+                    .map(|(c, heat)| {
                         let value = &row[&c.key];
                         // Numbers take the format and the three-digit rule; text, identifiers
                         // such as `001` and inline strings are shown as written (TYP-23).
@@ -1502,12 +1686,12 @@ fn table_rows(rows: &[&Value], columns: &[Column], print: bool, csv: bool) -> St
                         } else {
                             text(value)
                         };
-                        table_cell(
-                            &shown,
-                            c,
-                            print,
-                            sort_value(value, csv, &c.spec()).as_deref(),
-                        )
+                        // A shade comes from the value the cell shows, never a finer one
+                        // (FEA-CH-37): cells that show the same number share a shade.
+                        let sort = sort_value(value, csv, &c.spec());
+                        let shade = heat
+                            .and_then(|range| range.of(sort.as_deref()?.parse::<f64>().ok()?));
+                        table_cell(&shown, c, print, sort.as_deref(), shade)
                     })
                     .collect::<String>()
             )
@@ -1519,32 +1703,59 @@ fn table_rows(rows: &[&Value], columns: &[Column], print: bool, csv: bool) -> St
 /// shows (`45%`, `$1,200`, `1.2 million`, or `1.23` under the three-digit rule), at the precision
 /// it displays and never finer, so the page carries no digit the reader cannot see (FEA-CH-37,
 /// FEA-RP-22). Cells that show the same value tie, and the runtime keeps the author's order for
-/// them. Text and empty cells have none.
+/// them. Text and empty cells have none, and neither has a number the cell cannot show: a
+/// percent too large to print as one shows `inf%`, so such cells sort as that text, tie, and
+/// take no shade, whatever finite fractions they came from.
 fn sort_value(value: &Value, csv: bool, spec: &ValueFormat) -> Option<String> {
     let TableSortKey::Number { number, .. } = TableSortKey::new(value, csv) else {
         return None;
     };
+    let kind = spec
+        .format
+        .and_then(numbers::Kind::parse)
+        .unwrap_or_default();
     let shown = numbers::shown(
         number,
         &numbers::Format {
-            kind: spec
-                .format
-                .and_then(numbers::Kind::parse)
-                .unwrap_or_default(),
+            kind,
             unit: None,
             digits: spec.digits.unwrap_or(numbers::DEFAULT_DIGITS),
             locale: numbers::Locale::default(),
         },
     );
-    Some(format!("{shown}"))
+    // A percent prints its fraction times a hundred, which can leave what a number holds.
+    let printed = if kind == numbers::Kind::Percent {
+        shown * 100.0
+    } else {
+        shown
+    };
+    printed.is_finite().then(|| format!("{shown}"))
 }
 
 /// One body cell. A value that is a whole web address links with its host as the text, and the
 /// address stays in `href` and `title`; on paper the whole address is the text (`address`), so
-/// the reference survives printing. ISO dates and identifiers never break. The authoring
+/// the reference survives printing. ISO dates and identifiers never break, and a short label of
+/// several words is marked (`label`) for the runtime to keep on one line where the table fits. The authoring
 /// re-render's payload keeps the source value; the sort value is the one shown (`sort_value`).
-fn table_cell(value: &str, column: &Column, print: bool, sort: Option<&str>) -> String {
+fn table_cell(
+    value: &str,
+    column: &Column,
+    print: bool,
+    sort: Option<&str>,
+    shade: Option<(u8, bool)>,
+) -> String {
     let class = column_class(column);
+    let (heat_class, heat_style) = match shade {
+        Some((percent, negative)) => (
+            if negative {
+                " rv-heat rv-heat--neg"
+            } else {
+                " rv-heat"
+            },
+            format!(" style=\"--rv-heat:{percent}%\""),
+        ),
+        None => ("", String::new()),
+    };
     let sort = sort
         .filter(|_| !print)
         .map(|v| format!(" data-rv-sort-value=\"{}\"", escape(v)))
@@ -1572,12 +1783,15 @@ fn table_cell(value: &str, column: &Column, print: bool, sort: Option<&str>) -> 
         "date"
     } else if identifier(value) {
         "id"
+    } else if short_label(value) {
+        "label"
     } else {
         ""
     };
+    let class = if token.is_empty() { class } else { token };
     format!(
-        "<td class=\"{}\"{sort}>{}</td>",
-        if token.is_empty() { class } else { token },
+        "<td class=\"{}\"{heat_style}{sort}>{}</td>",
+        format!("{class}{heat_class}").trim_start(),
         escape(value)
     )
 }
@@ -1616,6 +1830,22 @@ fn identifier(value: &str) -> bool {
         && value
             .bytes()
             .any(|b| b.is_ascii_digit() || b"-_.".contains(&b))
+}
+
+/// The most characters a label of several words has to stay on one line.
+const SHORT_LABEL: usize = 12;
+
+/// A short label with a place where a line could break, such as `Store 40`, `New York` or
+/// `mid-size`. A browser gives a column that can wrap less than its cells need as soon as the
+/// table is tight, so `Store 40` broke before its number while `Store 19`, a little narrower,
+/// did not. The cell is marked, and on screen the runtime keeps such labels whole wherever that
+/// makes a table neither scroll that would otherwise fit nor grow taller: the column then takes
+/// what its labels need and the longer cells beside it give the room.
+fn short_label(value: &str) -> bool {
+    value.chars().count() <= SHORT_LABEL
+        && value
+            .chars()
+            .any(|c| c.is_whitespace() || matches!(c, '-' | '/' | '\u{2013}'))
 }
 
 /// The tag as a sentence start: `Chart`, `Table`, `Image`.

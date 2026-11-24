@@ -18,6 +18,7 @@ mod density;
 mod dotplot;
 mod dumbbell;
 mod ecdf;
+mod emphasis;
 mod financial;
 mod finish;
 mod flow;
@@ -121,6 +122,22 @@ pub struct ChartTheme {
     pub legend: String,
     /// `down`: what needs the reader's eye, such as a flow chart's failure path.
     pub down: String,
+    /// A chart on a slide's stage (FEA-RP-65): its bars take their band's share, without the
+    /// widths a report's column caps them at, so a few columns fill a wide plot. Off in a
+    /// report, where the payload leaves it out.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub wide_bars: bool,
+    /// A chart on a builtin style's slide stage (FEA-RP-65): its value axis keeps at most three
+    /// of a report's steps, every second or every few ticks with both ends, so the stage carries
+    /// two to four gridlines. Off in a report, where the payload leaves it out.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub few_gridlines: bool,
+    /// A chart on a builtin style's slide stage (FEA-RP-65): the values a bar, line or area chart
+    /// prints by itself are set half again as large as its other text, in the axis's compact
+    /// form (`$420K` rather than `$420 thousand`) at the same precision (FEA-CH-37). Off in a
+    /// report, where the payload leaves it out.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub stage_values: bool,
 }
 
 impl Default for ChartTheme {
@@ -165,6 +182,9 @@ impl Default for ChartTheme {
             motion_profile: crate::motion::Profile::default(),
             legend: "top".into(),
             down: "oklch(0.55 0.17 27)".into(),
+            wide_bars: false,
+            few_gridlines: false,
+            stage_values: false,
         }
     }
 }
@@ -276,7 +296,21 @@ pub(crate) struct Style {
     pub motion: bool,
     pub motion_profile: crate::motion::Profile,
     pub legend_bottom: bool,
+    /// See [`ChartTheme::wide_bars`].
+    pub wide_bars: bool,
+    /// See [`ChartTheme::few_gridlines`].
+    pub few_gridlines: bool,
+    /// See [`ChartTheme::stage_values`].
+    pub stage_values: bool,
 }
+
+/// How much larger than a chart's other text its own values are set on a slide's stage
+/// ([`ChartTheme::stage_values`]): 1.8 stage units beside the 1.2 of its axes.
+pub(crate) const STAGE_VALUE_SCALE: f64 = 1.5;
+
+/// The widest a bar stands in a report: upright, and lying across a horizontal chart (FEA-CH-06).
+pub(crate) const BAR_CAP: f64 = 64.0;
+pub(crate) const BAR_CAP_ACROSS: f64 = 40.0;
 
 fn parse_color(css: &str, fallback: Oklch) -> Oklch {
     color::parse(css).unwrap_or(fallback)
@@ -321,7 +355,14 @@ impl Style {
             motion: theme.motion,
             motion_profile: theme.motion_profile.clone(),
             legend_bottom: theme.legend == "bottom",
+            wide_bars: theme.wide_bars,
+            few_gridlines: theme.few_gridlines,
+            stage_values: theme.stage_values,
         }
+    }
+    /// The widest a bar stands: `cap` in a report, its band's share on a slide's stage.
+    pub fn bar_cap(&self, cap: f64) -> f64 {
+        if self.wide_bars { f64::INFINITY } else { cap }
     }
     pub fn rgba(c: Oklch) -> Rgba {
         Rgba::from_oklch(c, 1.0)
@@ -360,6 +401,8 @@ pub(crate) struct Ctx<'a> {
     pub value_kinds: Vec<[Option<usize>; 4]>,
     /// What the painters derived, recorded for the geometry (TYP-36).
     pub derived: std::cell::RefCell<Vec<crate::derived::Derived>>,
+    /// The author's highlight with mute on, once the painter has resolved it (TYP-78).
+    pub emphasis: Option<emphasis::Emphasis>,
 }
 
 impl<'a> Ctx<'a> {
@@ -502,6 +545,21 @@ impl<'a> Ctx<'a> {
         self.style.font.width(text, self.size())
     }
 
+    /// The text an automatic value prints for `v`: [`crate::numbers::printed`]'s at the label's
+    /// `digits`, or on a slide's stage the axis's compact form at the same digits, which every
+    /// value then carries ([`ChartTheme::stage_values`]).
+    pub fn value_label(&self, v: f64, readout: &crate::numbers::Format, digits: u8) -> Option<String> {
+        if self.style.stage_values {
+            let format = crate::numbers::Format {
+                digits: digits.min(readout.digits),
+                ..readout.clone()
+            };
+            Some(crate::numbers::compact(v, &format))
+        } else {
+            crate::numbers::printed(v, readout, digits)
+        }
+    }
+
     /// One line of chart text with its laid-out box.
     #[allow(clippy::too_many_arguments)]
     pub fn text(&self, text: &str, x: f64, y: f64, anchor: Anchor, face: Face, role: Role, color: Oklch) -> Text {
@@ -578,9 +636,52 @@ impl<'a> Ctx<'a> {
         });
     }
 
+    /// Series `index`'s colour: its palette slot, or the quiet ink when the author's highlight
+    /// mutes the whole series (TYP-78).
     pub fn series_color(&self, index: usize) -> Oklch {
+        if self.emphasis.as_ref().is_some_and(|e| e.mutes_series(index)) {
+            return self.style.ink_faint;
+        }
         let slot = self.series.get(index).map_or(0, |s| s.slot);
         self.style.palette[slot % self.style.palette.len()]
+    }
+
+    /// The colour of the mark that draws `row` in series `index`: the quiet ink when the
+    /// author's highlight mutes it (TYP-78), otherwise `color`.
+    pub fn mark_color(&self, row: usize, index: usize, color: Oklch) -> Oklch {
+        if self.mutes_mark(row, index) {
+            self.style.ink_faint
+        } else {
+            color
+        }
+    }
+
+    /// Whether the author's highlight mutes the mark of `row` in series `index` (TYP-78).
+    pub fn mutes_mark(&self, row: usize, index: usize) -> bool {
+        self.emphasis.as_ref().is_some_and(|e| e.mutes_mark(row, index))
+    }
+
+    /// Whether the author's highlight mutes series `index` as a whole (TYP-78).
+    pub fn mutes_series(&self, index: usize) -> bool {
+        self.emphasis.as_ref().is_some_and(|e| e.mutes_series(index))
+    }
+
+    /// Resolve the author's highlight against the drawn `(row, series)` pairs and give muted
+    /// series the quiet ink, so the legend and readout swatches follow their marks (TYP-78).
+    pub fn resolve_emphasis(&mut self, members: &[(usize, usize)]) {
+        self.emphasis = emphasis::Emphasis::resolve(self, members);
+        if self.emphasis.is_some() {
+            let quiet = Style::rgba(self.style.ink_faint);
+            for s in 0..self.series.len() {
+                if self.mutes_series(s) {
+                    self.series[s].color = quiet;
+                } else {
+                    // With decals, a highlighted series draws solid: a dotted subject would read
+                    // lighter than the muted lines it stands out from.
+                    self.series[s].dash.clear();
+                }
+            }
+        }
     }
 
     /// `color` as text on the chart surface: its lightness moves away from the surface until the
@@ -792,6 +893,7 @@ pub fn layout_prepared_reusing(
         fit: Fit::default(),
         value_kinds: Vec::new(),
         derived: std::cell::RefCell::new(Vec::new()),
+        emphasis: None,
     };
     let facets = prepared.facets.get_or_init(|| facet_groups(block, rows));
     // Rows without a facet value sit in no panel; they are disclosed, never dropped silently

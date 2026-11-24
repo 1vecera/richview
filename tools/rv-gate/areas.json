@@ -46,6 +46,7 @@
           "scripts/verify-flagship.mjs",
           "scripts/verify-figure-expand.mjs",
           "scripts/verify-chart-keyboard.mjs",
+          "scripts/verify-facet-text.mjs",
           "scripts/verify-chart-readouts.mjs",
           "scripts/verify-readout-placement.mjs",
           "scripts/verify-wedge-readouts.mjs",

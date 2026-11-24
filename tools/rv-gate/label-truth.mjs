@@ -49,7 +49,7 @@ import { SKIP_COPY } from "./lib/connectors.mjs";
 /** The style every report is rendered in: the product default (DEFAULT_STYLE of core). */
 export const STYLE = "sleek";
 /** Reports that need a connector and cannot render offline. */
-export const SKIP_REPORTS = new Set(["metricflow-report", "sql-report"]);
+export const SKIP_REPORTS = new Set(["metricflow-report", "parquet-report", "sql-report"]);
 /** The kinds of state a chart is read in; the run names each one, such as "filter South (1100)" or "frame 1960 (1100)". */
 export const STATES = ["initial", "filter <option>", "frame <label>", "first frame", "zoom", "legend off"];
 /** The chart types whose derived readouts (shares, totals, ratios) the judge can recompute from the Table alone. */

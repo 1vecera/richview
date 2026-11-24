@@ -62,6 +62,7 @@ RichView places value labels, line-end labels and annotation texts only where th
 ### Per-type notes
 
 - **Scatter.** Names are sparse by default (isolated points first, at most 16, no leader lines); the top-level highlight: {by: field, include: [values], priority: [values]} always attempts those names first, case-insensitively, with a leader only when a highlight cannot sit beside its point.
+- **Highlight and mute.** On line, area, bar and lollipop charts the same `highlight` makes the matching series or bars the subject: `mute` (default true; false on scatter) draws the rest in the style's quiet ink, without automatic names or values. Write the claim in the title; highlight what it names.
 - **Histogram.** Uses encoding.x alone for numeric observations and optional binning: {count, extent, measure: count|proportion|density}; explicit edges replace count/extent. Groups stack within shared intervals and original rows remain in Table/CSV.
 - **Boxplot.** Uses numeric encoding.y and optional categorical encoding.x, color and facets; R-7 quartiles, observed whiskers inside inclusive 1.5-IQR fences and original potential-outlier records. Its orientation may be auto, vertical or horizontal; axes.x/y retain category/value meanings.
 - **Interval.** Requires categorical encoding.x and authored numeric encoding.lower/encoding.upper; optional encoding.y supplies an estimate. The renderer does not infer confidence or a distribution. Duplicate category/group pairs in a panel and reversed bounds are errors.

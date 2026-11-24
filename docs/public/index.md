@@ -8,7 +8,17 @@ styles: [scientific]
 
 {{report-grid}}
 
-Markdown in. Interactive report out. Every preview below is a working RichView report: inspect a point, open its table, download its observations. Open the report for the full reading experience; take the source and data to make it yours.
+Markdown in. Interactive report out. Open a report to inspect a point, view its table or download its data. Take the source and data to make it yours.
+
+## Why RichView
+
+Your agent writes a short Markdown file with charts and data. RichView renders it into one designed, self-contained HTML report, the same way every time.
+
+- **Its own charting library.** {{chart-count}} chart types, from a line chart to a Sankey diagram, each with a live example and source you can copy; start in the [chart gallery](https://richview.ai/docs/charts). A reader can hover a point, open the table behind a chart and download its values.
+- **A source you can review.** The report is text and data files. Read it, diff it, keep it in Git and pick up where an interrupted session stopped.
+- **Checked before anyone reads it.** `richview check` lays out every chart at a phone and a desktop width and tells your agent what does not fit.
+- **Your brand, decided once.** Pick a prebuilt [style](https://richview.ai/docs/styles), or set your own colours and fonts in one small file that every report reuses.
+- **Yours to share.** One HTML file, a PDF, or a permanent link from a report server: RichView's, or [one you run yourself](https://richview.ai/docs/self-hosting).
 
 ## The Most Expensive Race Ever Run
 

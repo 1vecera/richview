@@ -835,7 +835,7 @@
       "title": "Code blocks",
       "question": "How do ordinary fenced code blocks render: plain, in the style’s mono face, or highlighted?",
       "why": "Only inline code gets the style’s mono face; `pre code` falls back to the browser’s default monospace, so the fixture PDF reports 137 glyphs drawn in Menlo (`export.font-fallback`). A highlighter for Rich Markdown, YAML and shell exists, but only the site uses it.",
-      "proposed": "A fenced code block renders as preformatted text in the style's mono face at the small size. On screen it scrolls sideways inside its own box; on paper it wraps, each wrapped line hanging from its own indent. An info string of Rich Markdown, YAML or shell (such as `rmd`, `yaml` or `sh`) is highlighted as below; any other leaves the code plain.\n\nThe label, the title, line numbers and marks belong to the `code` block. Its head shows `lang` as the language label and `title`, a file name or caption, and it has three more fields:\n\n- `lines`: line numbers, which are never copied with the code.\n- `mark`: lines and ranges such as `5-6`, set as a rule plus a tint, never colour alone. A mark past the last line warns `code.mark`.\n- `src`: a UTF-8 text file of the report folder, given instead of `text`. It holds 400 lines at most; a longer file is a `block.schema` error that says to excerpt it.\n\nCode is text and is never executed. Diagram languages such as `mermaid` are code like any other.\n\nRich Markdown, YAML and shell are highlighted when the report is built, in two tones of the style's own text colours: keys, commands, tags and headings strong, comments and punctuation soft. A strong tone takes the code face's 600, and a comment its italic, only where the style embeds that face; otherwise the ink alone carries the tone, never a synthesized bold or slant. Every other language is plain.\n\n`code` is a rich fence tag, so a plain fence whose info string is `code` is now read as the block; a listing written that way needs another info string.",
+      "proposed": "A fenced code block renders as preformatted text in the style's mono face at the small size. On screen it scrolls sideways inside its own box; on paper it wraps, each wrapped line hanging from its own indent. An info string of SQL, Rich Markdown, YAML or shell (such as `sql`, `rmd`, `yaml` or `sh`) is highlighted as below; any other leaves the code plain.\n\nThe label, the title, line numbers and marks belong to the `code` block. Its head shows `lang` as the language label and `title`, a file name or caption, and it has three more fields:\n\n- `lines`: line numbers, which are never copied with the code.\n- `mark`: lines and ranges such as `5-6`, set as a rule plus a tint, never colour alone. A mark past the last line warns `code.mark`.\n- `src`: a UTF-8 text file of the report folder, given instead of `text`. It holds 400 lines at most; a longer file is a `block.schema` error that says to excerpt it.\n\nCode is text and is never executed. Diagram languages such as `mermaid` are code like any other.\n\nHighlight at build time. Keys and keywords take the accent hue, strings a warm hue, and numbers, booleans, null and YAML dates a third hue from the style’s chart series. Use the resolved chart palette for custom colours. Comments and punctuation use soft ink, and unmarked text uses the main ink. On both ordinary and marked lines each role reaches 4.5:1. The three coloured roles have chroma at least 0.09 on light surfaces and 0.07 on dark, with 45 degrees between their hues. Hand-drawn uses its graphite inks and the code face’s weight. Paper keeps the same roles with the paper palette. Use the code face's 600 for structure and its italic for comments only where the style embeds those faces. Every other language is plain.\n\n`code` is a rich fence tag, so a plain fence whose info string is `code` is now read as the block; a listing written that way needs another info string.",
       "options": [
         {
           "label": "Plain, style mono face",
@@ -843,14 +843,14 @@
         },
         {
           "label": "Highlight known languages",
-          "detail": "Reuse the site highlighter for rmd, YAML and shell; every style must define code colours."
+          "detail": "Highlight SQL, Rich Markdown, YAML and shell at build time, with value inks derived from each style."
         },
         {
           "label": "Keep as is",
           "detail": "Browser monospace; PDF depends on the printing machine’s fonts."
         }
       ],
-      "recommendation": "Highlight known languages: Daniel asked for code blocks as an element of the format (16 November 2026), and RichView's own examples are Rich Markdown, YAML and shell. The two tones come from each style's existing text colours, so no style needs new colours.",
+      "recommendation": "Highlight known languages: Daniel asked for code blocks on 16 November 2026 and for value highlighting on 23 November 2026. Use the style’s existing inks to distinguish values in SQL, Rich Markdown, YAML and shell.",
       "confidence": "observed",
       "sources": [
         {
@@ -872,9 +872,14 @@
           "label": "Daniel's review of candidate/17, 16 November 2026: “two new things that I really need to build”, expands and code blocks; the elements gallery should list everything; the format reference topics should be one long page",
           "ref": "Daniel's annotations on candidate/17",
           "date": "2026-11-16"
+        },
+        {
+          "label": "Daniel’s words: “for code blocks, we need value highlighting”",
+          "ref": "Daniel’s dev review, Code blocks in the elements gallery",
+          "date": "2026-11-23"
         }
       ],
-      "conflicts": "`evidence/product.md` (F-CORE-CODE-HIGHLIGHT) lists highlighting as a core feature; no report path calls it."
+      "conflicts": "STY-59 sets the site palette for site examples. Report code uses the report style."
     },
     {
       "id": "FEA-RP-18",
@@ -1122,7 +1127,7 @@
       "title": "Table block rendering",
       "question": "Is this how a table block renders?",
       "why": "Today numeric columns align left unless the author sets `format` or `align`, columns taken from the data come out in alphabetical order (inline keys `a, n, m` render as `a, m, n`), and rows beyond `max_rows` move into a second table, with its own column widths, placed after the totals row.",
-      "proposed": "A table block renders one semantic `<table>`: header cells with `scope=\"col\"`, columns in source order (TYP-25), values formatted per column (T-VALUE-FORMAT), numeric columns right-aligned with tabular figures unless `align` says otherwise, ISO dates and identifiers kept on one line, and a cell holding one whole URL shown as its host and linked. Rows beyond `max_rows` sit in a native disclosure labelled “Showing N of M rows” (TYP-24) directly below, continuing the same columns; the total row comes after all rows. Print shows every row with headers repeated. A table wider than its box scrolls inside it; its width follows STY-30 and TYP-89 (FEA-RP-26).\n\nDaniel's FEA-CH-01 answer asks for much better tables, with the best styling, as normal tables and pivot tables. This card is the normal table; how it looks in each style is STY-61's and each style's design review (STY-01).\n\nOpen item: specify the pivot table: how it is authored, how it aggregates and how it renders.",
+      "proposed": "A table block renders one semantic `<table>`: header cells with `scope=\"col\"`, columns in source order (TYP-25), values formatted per column (T-VALUE-FORMAT), numeric columns right-aligned with tabular figures unless `align` says otherwise, ISO dates and identifiers kept on one line, and a cell holding one whole URL shown as its host and linked. On screen the runtime also keeps short labels of several words (at most 12 characters, such as “Store 40”) on one line, wherever the table then fits its box and is no taller than with them wrapped. Where one line would make a table scroll sideways that fits with them wrapped, or would make it taller because another column is squeezed onto more lines, they wrap at their words, as they do without scripts and on paper; a table that scrolls sideways either way keeps them on one line when it is no taller for it. It measures again when the box, the rows a filter or sort leaves, or the fonts change, once a frame for however many tables. Rows beyond `max_rows` sit in a native disclosure labelled “Showing N of M rows” (TYP-24) directly below, continuing the same columns; the total row comes after all rows. Print shows every row with headers repeated. A table wider than its box scrolls inside it; its width follows STY-30 and TYP-89 (FEA-RP-26).\n\nDaniel's FEA-CH-01 answer asks for much better tables, with the best styling, as normal tables and pivot tables. This card is the normal table; how it looks in each style is STY-61's and each style's design review (STY-01).\n\nOpen item: specify the pivot table: how it is authored, how it aggregates and how it renders.",
       "confidence": "observed",
       "sources": [
         {
@@ -1211,7 +1216,7 @@
       "title": "Table totals",
       "question": "What does `total` sum?",
       "why": "`total: true` sums every column whose cells are all numbers, rates included: the fixture’s “Monthly churn” total reads 14.4%. A numeric first column such as a year is summed too (`2024` and `2025` print `4049.0`), so “Total” disappears, and sums of columns without a format print raw floats (`6.0`, `3.0`).",
-      "proposed": "`total` takes a list of columns to sum (`total: [accounts, revenue]`) or `true`, which sums every numeric column except `percent` ones and warns `table.total` naming any it skipped. `true` cannot tell an average, price or index formatted as `number` or `currency` from a count, so those tables need the list form. Each sum uses its column’s format, the first column reads “Total”, and the row follows all rows, hidden ones included. Averages and rates are never implied.",
+      "proposed": "`total` takes a list of columns to sum (`total: [accounts, revenue]`) or `true`, which sums every numeric column except `percent` ones and warns `table.total` naming any it skipped. `true` cannot tell an average, price or index formatted as `number` or `currency` from a count, so those tables need the list form. Each sum uses its column’s format, the first column reads “Total”, and the row follows all rows, hidden ones included. Averages and rates are never implied. While a reader filters the table (FEA-RP-70) the row stays the total of every row, and the filter's status line says so.",
       "options": [
         {
           "label": "List, plus a safe `true`",
@@ -1262,7 +1267,7 @@
       "title": "Sorting a table",
       "question": "Keep reader sorting by column header, and how should it behave?",
       "why": "Today a sort replaces the whole table element, so keyboard focus drops to the page and an opened overflow closes; the cycle never returns to the author’s order; and without the runtime the header buttons do nothing.",
-      "proposed": "Keep. Once the runtime runs, each header becomes a button; activating it sorts ascending, then descending, then back to the author’s order, announced through `aria-sort`. Rows reorder in place: focus stays on the header, and the overflow state and total stay. Numbers sort numerically, dates chronologically, text by the report language, empty cells last. Static HTML has plain headers, so no button is dead before the runtime starts.",
+      "proposed": "Keep. Once the runtime runs, each header becomes a button; activating it sorts ascending, then descending, then back to the author’s order, announced through `aria-sort`. Rows reorder in place: focus stays on the header, and the overflow state and total stay. Numbers sort numerically, dates chronologically, text by the report language, empty cells last. Static HTML has plain headers, so no button is dead before the runtime starts. `sortable: false` keeps the headings plain for a table whose order is its point. With a filter box (FEA-RP-70) a sort orders the matching rows and the filter keeps the sort.",
       "confidence": "observed",
       "sources": [
         {
@@ -1279,6 +1284,96 @@
           "label": "Sort arrows and focus ring",
           "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/render.rs#L948",
           "date": "2026-10-16"
+        }
+      ]
+    },
+    {
+      "id": "FEA-RP-69",
+      "kind": "feature",
+      "importance": "important",
+      "refId": "F-TABLE-HEAT",
+      "component": "C-RICHVIEW-CORE",
+      "group": "Rich blocks: tables and metrics",
+      "title": "Heat in table cells",
+      "question": "Can an author shade a numeric column of a table by value, so the table reads as a heat map while every number stays printed?",
+      "why": "Daniel asked on 16 November 2026 for tables with heat maps, sorting and filtering. A table cell has no shade today: a `heatmap` chart exists, but a table whose point is one column, or a matrix of numbers, can only print them.",
+      "proposed": "`columns[n].heat` shades the cells of a numeric column by value. `true` or `sequential` runs from the column's lowest value, which stays unshaded, to its highest; `diverging` shades both sides of zero, which stays unshaded, with the style's negative colour below it and equal distances equally strong. `heat_scale: table` puts the heat columns of one kind on one scale, so the table reads as a matrix; the default, `column`, gives each its own. Heat is off unless the author names a column. No author writes a colour.\n\nThe shade is the style's own heat colour, the one its heatmap charts use (`chart.ramp`, and `chart.negative-ramp` for the negative arm), so it follows a brand colour and the scheme. It is mixed into the page only as far as `ink` keeps 7:1 on it (STY-25): the strongest shade is capped, the number is printed in the page's ink and nothing flips. Every cell prints its number, so the shade is never the only carrier and there is no colour key. A style whose two heat colours are one, as Hand-drawn's graphite is, hatches the cells below zero, as its charts do. Paper keeps the shades.\n\nA cell's shade comes from the value the cell shows, at the precision it shows, in whole percent of the column's shown range: cells that show the same number share a shade, and the page holds no finer value (FEA-CH-37). A number its cell cannot show, a percent past what a number holds (`inf%`), has no shade and no sort value, so such cells tie. Sorting keeps a shade with its row. The total row, empty and missing cells and text cells are not shaded. `heat` on a column that is not all numbers warns `table.heat` and the column stays plain; a value outside the vocabulary is a `block.schema` error. A report without a heat column carries none of the rules.",
+      "options": [
+        {
+          "label": "Build as proposed",
+          "detail": "Per column, off by default; the style's heat colour capped at the 7:1 ink floor; sequential and diverging around zero; one shared scale on request."
+        },
+        {
+          "label": "The full ramp with flipping ink",
+          "detail": "Stronger colour, as in a heatmap chart, but the text changes colour from cell to cell and a table stops reading as a table."
+        },
+        {
+          "label": "Bars in cells instead",
+          "detail": "Easier to compare along one column, weaker for a matrix; can follow as its own field on the same scale rules."
+        }
+      ],
+      "recommendation": "Build as proposed: a calm shade behind numbers that stay in the page's ink holds the contrast floor in every style and on paper without a rule per style.",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "Daniel, 16 November 2026: “Tables get heat maps, sorting and filtering”",
+          "ref": "Daniel's review of the example reports, 16 November 2026",
+          "date": "2026-11-16"
+        },
+        {
+          "label": "The lead's approval of the tables proposal as written, 18 November 2026: heat off by default and capped so ink keeps 7:1, the filter box above 10 rows, sorting as today, the total staying the total of every row",
+          "ref": "The RichView lead's message of 18 November 2026",
+          "date": "2026-11-18"
+        },
+        {
+          "label": "The scale, the cap and the cell markup",
+          "ref": "crates/richview-core/src/heat.rs, crates/richview-core/src/blocks.rs",
+          "date": "2026-11-18"
+        }
+      ]
+    },
+    {
+      "id": "FEA-RP-70",
+      "kind": "feature",
+      "importance": "important",
+      "refId": "F-WEB-TABLE-FILTER",
+      "component": "C-RICHVIEW-WEB",
+      "group": "Rich blocks: tables and metrics",
+      "title": "Filtering a table",
+      "question": "Can a reader filter the rows of a table by typing, without the author writing anything?",
+      "why": "Daniel asked on 16 November 2026 for tables with heat maps, sorting and filtering. A long table can be sorted and folds at `max_rows`, but a reader looking for one region or one name has to read every row.",
+      "proposed": "A table gets a filter box: one search field above its rows and under its title, labelled “Filter rows” in the page's language. Typing keeps the rows whose shown text holds every typed word in any column, whatever the case or accents; Escape or the field's clear button empties it. `filter` is `auto` by default, which shows the box for a table of more than 10 rows; `true` and `false` decide.\n\nThe runtime adds the field, as it does the sort buttons, so the static page has no dead control: without scripts the table is the plain table, and a PDF has no field and every row. Slides (FEA-RP-65) show a table without the box, as they show a chart without the report’s tools. A page that runs scripts keeps the line's room under the title from the first paint, so neither the title nor the rows move when the box arrives; if the runtime has not started after 10 s, when the page's charts say so too, the room is given back. In a narrow table the field shrinks beside its label, so the empty box keeps to the one line its room holds; only the status line, which typing brings, may take a second.\n\nA status line beside the field says what the filter did, politely to a screen reader: “7 of 64 rows”, or “No rows match” while the table keeps its headings and, when it has one, its total. Rows that do not match are hidden, so they leave the accessibility tree; focus never moves while typing. The field is a real search input with a visible label, before the table in the tab order. Matching rows fill the first `max_rows` places and the rest stay under the fold, whose line reads “Showing 20 of 57 matching rows”. Sorting orders the matching rows and the filter keeps the sort (FEA-RP-22). A `total` row stays the total of every row, and while a filter is on the status line says so (FEA-RP-21). The browser's print shows the rows in view and the filter's text.",
+      "options": [
+        {
+          "label": "Build as proposed",
+          "detail": "A search box added by the runtime, on above 10 rows, with a status line; the total stays the total of every row."
+        },
+        {
+          "label": "An authored `controls` filter, as on charts",
+          "detail": "One vocabulary with charts and a defined printed state, but the author has to write it and a reader can only pick the listed values."
+        },
+        {
+          "label": "Only when the author asks",
+          "detail": "No change to existing reports, but most long tables would never get one."
+        }
+      ],
+      "recommendation": "Build as proposed: it needs no author work, and a long table is where a reader looks for one row.",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "Daniel, 16 November 2026: “Tables get heat maps, sorting and filtering”",
+          "ref": "Daniel's review of the example reports, 16 November 2026",
+          "date": "2026-11-16"
+        },
+        {
+          "label": "The lead's approval of the tables proposal as written, 18 November 2026: heat off by default and capped so ink keeps 7:1, the filter box above 10 rows, sorting as today, the total staying the total of every row",
+          "ref": "The RichView lead's message of 18 November 2026",
+          "date": "2026-11-18"
+        },
+        {
+          "label": "The box, the row arranging and its rules",
+          "ref": "crates/richview-runtime/src/web/tables.rs, crates/richview-core/assets/table-filter.css, crates/richview-core/src/blocks.rs",
+          "date": "2026-11-18"
         }
       ]
     },
@@ -3012,6 +3107,62 @@
         }
       ],
       "conflicts": "OPN-52 asks where the pagination fixtures run; under Daniel's DEL-81 answer they run in the release run on `pre-prod`, not in the `dev` gate. Five styles multiply their cost, unmeasured since the vector conversion is slow (PRF-16); if that makes the release run too slow, the other styles run at the candidate."
+    },
+    {
+      "id": "FEA-RP-65",
+      "kind": "decision",
+      "importance": "key",
+      "refId": "F-SLIDES",
+      "component": "C-RICHVIEW-CORE",
+      "group": "PDF and other outputs",
+      "title": "Slides",
+      "question": "Should a Rich Markdown source be able to render as slides, one screen per section, built for big numbers, charts and short text, shipped to users?",
+      "why": "Daniel asked for it on 17 November 2026: internal reviews want screens of big bold numbers, charts, small text and headings, and the format should reach users too; on 19 November he asked for slides on the home page, no longer called experimental. It is a second rendition of the same source, so it reopens the “report HTML and its PDF are the only outputs” line of FEA-RP-46 and FEA-RP-47 without bringing the carousel or per-output markers back. INT-25 stands: RichView makes no slides from prompts; the author's agent writes them.",
+      "proposed": "**Slides are a second rendition of a Rich Markdown source.** `slides: true` in the frontmatter turns the source into slides. Each top-level heading or `---` starts a slide. The style's stage sets the look. The registry, `richview learn slides` and the guide open with these three lines. Slides were first built under an experimental label (17 November); Daniel dropped it on 19 November, so no render, check or page carries one.\n\n**What the author writes.** An ordinary `.rmd` with `slides: true` in the frontmatter (TYP-100). Nothing else is new: the same prose, the same `metric`, `chart`, `table`, `callout` and `image` blocks, the same styles and the same checks. Removing the line gives the report back. No raw HTML, CSS or positions (INT-28).\n\n**Where a slide starts.** The title, description, author and date make the title slide. Each top-level heading of the body (the ones a report's contents list) starts a slide and is its title. A thematic break (`---`) starts a slide without a title, for a screen that is only a number or a chart. Text before the first heading is a slide of its own.\n\n**A big number is a `metric` block**, unchanged (FEA-RP-23): `value` with `unit`, `format` and `digits`; `label`; the change `delta` as a fraction; `delta_label` for what it is compared with (the period: `vs October`); `trend` when a fall is the good direction. One comparison per number, named in words, with its sign printed; colour only backs it up. On a slide the value is set in the display face at a size that follows the screen, and is fitted to its column by its character count, so a long value never leaves its box.\n\n**Layout is automatic.** The author chooses what is on a slide, never where it sits. A slide has four regions in a fixed order: its title; a row of numbers; the figures; the text.\n\n- Metrics stand in one row of equal columns, up to four; five to eight take two rows.\n- A slide whose only content is one metric shows it as the hero: the largest number the format sets.\n- Charts, tables and images are figures. One figure takes the room left; two stand side by side. A chart is laid out by the chart engine for the box it gets and at the screen's own resolution, with its lettering scaled to the stage; it is never a scaled picture. On a slide the numbers are the metrics: a chart prints none of the values it would add by itself (`auto_annotations` is `false` unless its author sets it), so no bar carries a number its neighbour lacks, and its actions (table, downloads, the expanded view) stay with the report the same source renders. Its bars take their category's share of the plot rather than the width a report's column caps them at, and two charts side by side share one card height. A table that is its slide's only figure keeps the slide's width, its text under it, and is set larger.\n- Paragraphs, lists and callouts are the slide's text. Beside one figure it is a column a third of the slide wide; under two figures it runs the slide's width; alone it is set larger at the reading measure. A source note stays under its figure.\n- A heading with nothing under it is a section slide.\n\n**Density is checked, not hoped for.** A render and `richview check` warn `slides.density`, naming the slide and its line, when a slide holds more than four numbers beside a figure or more than eight in all, more than two figures, more than 50 words of text beside a figure or number (80 alone), or a table of more than ten rows. The fix is always the same: start a new slide. `slides.tabs` warns that `tabs` has no effect in slides. `collapsed_sections` (FEA-RP-67) has no effect either, without a warning: a slide shows everything it holds. Nor do columns (FEA-RP-68): their markers drop out before the cut, and what they hold takes its place in the slide's numbers, figures and text. A style's background (STY-74) stays behind the slides; a picture behind the header fills the title slide's stage, with the title on a solid panel, and on a phone it is the report's band above the title. These numbers are ours: the published ones are practitioner heuristics (3 to 4 big numbers, 2 to 3 views, a table past about eight cards), and no study stands behind 6×6 or 10/20/30.\n\n**Fit.** On a landscape window of 900 px or more a slide is a 16:9 stage, as large as the window allows and centred. Every text size and gap is a share of the stage, so 1280 × 720, 1440 × 810 and 1920 × 1080 show the same composition: text at 2.7% of the stage's height and the smallest lettering at 2.1%, the sizes Apple sets for a television and the range AVIXA gives for a meeting room. On a narrower or portrait window (a phone) a slide is the window's width and at least its height: numbers stand two to a row, figures and text one under another, at the style's own sizes. Nothing is clipped and no text is shrunk to make it fit: a slide that needs more than one screen grows and scrolls.\n\n**Each style has a stage.** A slides source stands on its style's stage, a world of its own built from the style's tokens and faces rather than one layout recoloured (STY-01). The style chooses it with the leaf `components.slides.stage` (TYP-48); the builtins set Sleek's `keynote`, Air's `gallery`, Brutalist's `poster`, Hand-drawn's `sketchbook` and Scientific's `paper`, and `plain` keeps the layout alone. A stage changes type, colour, framing and how a slide arrives, never what a slide holds or where it sits, and keeps its character on a phone at the style's own sizes.\n\n- Keynote, a stage at night: the lone number and the section slides stand on a full field of the accent in white; the title is set large at the foot of its slide, its date a small line of capitals at the top; charts stand straight on the dark.\n- Gallery, daylight on a Swiss grid: flush left; the lone number in the text face's light figures, in the accent, across the foot of the slide under its label; the section on the raised surface, the one quiet field.\n- Poster, a wall of posters: condensed capitals to the edges between heavy bars; the lone number white on the accent's field over a heavy bar, the section on ink; numbers beside a figure as one band of knockout blocks; table heads on ink; each working slide's title under a short accent tag.\n- Sketchbook, a talk drawn as it is given: lettering at a tilt, the title, the lone number and the section centred, the red pencil under each number.\n- Paper, the talk of a good paper: a title page, headings over a rule, the lone number between two rules with its label in italic, figures and tables numbered as a paper numbers them (\"Figure 2\", \"Table 1\"), tables in booktabs rules.\n\nOn a field the counter and the progress bar take the field's ink, and up and down lose their colours: a change's sign and words carry it, as on STY-33's knockout. On a slide a chart stands on the stage rather than on a panel of its own; Poster keeps its outline.\n\n**Every slide is a stage moment, not only the lone number and the section.** On a builtin style's stage the renderer marks only what the source tells it, and the stage sets each in its own manner:\n\n- A slide about one chart, with no numbers, states the chart's title as its headline at display size; the slide's own title runs above it as its topic, at the text's size.\n- In a row of two to four numbers the first leads, wider and larger, and the others support it: the first metric is taken as the slide's headline figure. Two to four numbers over one chart, with no text beside it, stand as a rail: a column on the left, the first leading, each as large as its share of the column's height allows, and the chart takes the slide's whole height beside them rather than the strip a row would leave it.\n- A number's change is a chip that names its direction with a mark pointing up or down. Gallery and Paper set it as type, Poster boxes it in its ink, and Sketchbook rings the lone number's change in pencil.\n- In a Markdown table a column whose every cell is a signed change (`+50%`, `−3.1 pp`) carries each as a chip; the number column just before a closing run of such columns, the latest one the changes compare, leads while the other number columns step back; and a last row whose every number column is the sum of the rows above it is ruled off as their total. What each cell says and the order of rows and columns stay as written.\n- A slide of text sets its callout as a pull quote beside its points.\n- A chart lets its first series lead in its colour while the others step back to quiet tones, keeps two to four gridlines and prints its values as in a report: on a stage the number is the message. A bar, line or area chart sets those values half again as large as its axes (about 1.8 stage units) and in the axis's compact form (`$420K`, not `$420 thousand`), as the slide's headlines write them, at the same precision (FEA-CH-37). On a light page a quiet tone keeps its own hue; on Keynote's night it is a slate of the page's own hue. Sketchbook's charts lead in its red pencil ahead of its greys. The lettering stays in the style's measured data face.\n- The title slide is each stage's opening: Keynote's large type on the night stage with the accent's glow behind it, Gallery's huge light type over a foot of date and lede, Paper's title between the rules of its tables, its section slides between the same two rules, Sketchbook's lettered title over a red swash with its date ringed. Keynote's fields have depth, light from the upper left deepening to the foot, all from the field's own colour.\n\n**Slides arrive.** A slide that starts below the first screen builds as it comes into view: its title, numbers, figures and text come in one after another at the pace of the style's motion (FEA-RP-35's tokens), each stage in its own manner: a rise (keynote and gallery, whose lone number rises from behind the slide's foot), a hard wipe (poster), a landing with a wobble and the red pencil drawn after it (sketchbook), a fade (paper). Nothing of a build stays once the slide has arrived. The first screen, a page without scripts, reduced motion, a style with motion off and paper show every slide at rest. Nothing waits for a key press: this is not a step-by-step reveal.\n\n**Moving through them.** The slides are one vertical sequence that snaps to each slide, so the wheel, a trackpad and a swipe work as on any page. Space, Page Down, → and ↓ go on; Shift+Space, Page Up, ← and ↑ go back; Home and End go to the ends; `F` toggles full screen. Arrow keys and Space stay with a chart, table or control while it has focus. A counter (`4 / 12`) sits in a corner of the stage, and the report's progress bar fills as the slides pass. The address carries the slide (`#slide=4`, counted from 1) without adding history entries. Keys, counter and address live in the report runtime; no handwritten JavaScript is added (ARC-03). Without scripts the sequence, the snapping and the browser's own keys remain; the counter does not. Reduced motion jumps instead of gliding.\n\n**Paper.** Printing from the browser gives one slide per page on a 16:9 landscape page (13.33 × 7.5 in), in the style's print colours, without the counter. `richview generate --to pdf` gives the same pages.\n\n**Where it shows.** Slides are what the renderer returns for the source, so every surface that shows the rendered document in a window of its own shows slides: the exported file, `richview serve`, the hosted app (its bar stands above the first slide and scrolls away with it), the VS Code preview and the playground's preview pane. A page that frames a report at the height of its content cannot hold a screen-high slide: a Publish story is one. A publication shows a slides source as the report.\n\n**Not in this card:** speaker notes, step-by-step reveals, transitions between slides, per-slide layout keywords, backgrounds or images an author sets behind a slide, an overview grid, a measured overflow check, PowerPoint or Google Slides export, and new `metric` fields (a sparkline, a target, an absolute change). Each returns as its own card.",
+      "options": [
+        {
+          "label": "Build and ship",
+          "detail": "Lands in `dev` and reaches users as a format of its own; Daniel judges the sheet and the example with the candidate."
+        },
+        {
+          "label": "Card and prototype only",
+          "detail": "Built on a branch and not merged until he has seen it."
+        },
+        {
+          "label": "Drop",
+          "detail": "Reports stay the only screen rendition."
+        }
+      ],
+      "recommendation": "Build and ship: Daniel asked for the format to launch, first under an experimental label and since 19 November without it.",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "Daniel, 17 November 2026, relayed by the chief of staff: “make richview slides a thing. A lot of time for internal usecase you wanna fit screens with big bold numbers, charts and small texts and headings. Do a research on that and create a fully new format now. Tag experimental but we launch it for people as well”",
+          "ref": "Chief of staff's brief of 17 November 2026",
+          "date": "2026-11-17"
+        },
+        {
+          "label": "How slide tools start a slide, fit a screen, size text and print, and what dashboard practice says about big numbers and density",
+          "ref": "docs/lockdown/evidence/slides.md",
+          "date": "2026-11-17"
+        },
+        {
+          "label": "Daniel, 17 November 2026, on the first sheet of the slides: “slides look basic --> wanna have the most kicks ass slides ever made - pure aesthetic joy for all of them thanks!”",
+          "ref": "The lead's brief of 17 November 2026",
+          "date": "2026-11-17"
+        },
+        {
+          "label": "What makes keynote stages, editorial graphics and studio decks joyful, and what each style takes from them",
+          "ref": "docs/lockdown/evidence/slides.md#the-look",
+          "date": "2026-11-17"
+        },
+        {
+          "label": "Daniel, 19 November 2026, looking at pre-prod, relayed by the lead: slides on the homepage, and “don't call it experimental anymore”",
+          "ref": "day19/common.md, the lead's brief of 19 November 2026",
+          "date": "2026-11-19"
+        }
+      ],
+      "conflicts": "FEA-RP-46 and FEA-RP-47 drop the carousel and per-output markers and call the report HTML and its PDF the only outputs; this card adds a second screen rendition and brings neither back. INT-25 keeps RichView from making slides out of prompts, which this card does not do: the author's agent writes the source."
     }
   ]
 }

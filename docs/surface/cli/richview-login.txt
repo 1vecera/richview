@@ -1,0 +1,10 @@
+Sign this computer in to a RichView server, so publishing needs no token again
+
+Usage: richview login [OPTIONS]
+
+Options:
+      --server <SERVER>  Server URL (https, or http on loopback); defaults to your publish server [env: RICHVIEW_SERVER=]
+      --with-token       Read a CLI token from standard input instead of signing in through the browser
+      --no-browser       Print the page to confirm on without opening a browser (or set RICHVIEW_NO_BROWSER)
+      --format <FORMAT>  `pretty` for people, `json` for agents [default: pretty] [possible values: pretty, json]
+  -h, --help             Print help

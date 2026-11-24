@@ -45,8 +45,8 @@ pub struct PublishRequest {
     pub styles: Vec<String>,
     #[serde(default)]
     pub data: BTreeMap<String, String>,
-    /// Confirms that a slug the server has not stored before is meant (FEA-SF-51).
-    #[serde(default)]
+    /// A client revising a previously published file sends false to require an existing address.
+    #[serde(default = "allow_new_address")]
     pub new: bool,
     /// The files the source links to, base64 by report-relative path (FEA-SF-52).
     #[serde(default)]
@@ -55,6 +55,24 @@ pub struct PublishRequest {
     /// report starts with the server's default. Changing it needs the `share` right.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub visibility: Option<Visibility>,
+}
+
+fn allow_new_address() -> bool {
+    true
+}
+
+impl PublishRequest {
+    /// Drops every macOS sidecar (`._<name>`) the publication lists or carries. It is another
+    /// file's attributes, not a file of the report (TYP-39), so this server stores and serves
+    /// none, whatever client built the request.
+    fn drop_sidecars(&mut self) {
+        use richview_core::document::apple_double_sidecar as sidecar;
+        if let Some(folder) = self.report_folder.as_mut() {
+            folder.files.retain(|path| !sidecar(path));
+        }
+        self.data.retain(|path, _| !sidecar(path));
+        self.files.retain(|path, _| !sidecar(path));
+    }
 }
 
 /// What `validate` and `check` receive over HTTP: the report as the folder holds it, nothing more.
@@ -296,6 +314,7 @@ fn publish_error_response(error: &PublishError, slug: &str, version: &str) -> Re
         PublishError::ReportLimit { limit } => diagnostic_response(
             StatusCode::INSUFFICIENT_STORAGE,
             richview_core::document::Diagnostic::new("error", "publish.quota", error.to_string(), "slug")
+                .fix("Delete a report to free a report slot.")
                 .with_details(json!({"scope":"organization-reports", "limit":limit})),
         ),
         PublishError::Deleted => diagnostic_response(
@@ -335,7 +354,7 @@ fn audit(state: &AppState, caller: &Caller, action: &str, target: &str) {
     let _ = state.access.audit(&caller.principal, action, target, true);
 }
 
-/// `POST /api/reports`: publish a version. A new address needs `create` and `new: true`; a stored
+/// `POST /api/reports`: publish a version. A new address needs `create`; a stored
 /// address needs `edit` (FEA-SF-51, FEA-SF-19).
 pub async fn publish_api(
     State(state): State<AppState>,
@@ -368,6 +387,7 @@ pub async fn publish_api(
     if request.source.is_empty() {
         return api_error(StatusCode::BAD_REQUEST, "Missing slug or source");
     }
+    request.drop_sidecars();
     if let Err(problem) = validate_slug(&request.slug) {
         return diagnostic_response(
             StatusCode::BAD_REQUEST,
@@ -521,12 +541,12 @@ pub async fn publish_api(
                     "error",
                     "publish.new-slug",
                     format!(
-                        "`{}` is a new report address on this server, so nothing was stored.",
+                        "`{}` does not exist on this server and this request expected an existing report. Nothing was stored.",
                         request.slug
                     ),
                     "slug",
                 )
-                .fix("Publish again with --new (MCP: new: true) to create this address, or fix the slug if it is a typo or a changed title"),
+                .fix("Use the previous slug, or pass --new (MCP: new: true) to create another address intentionally"),
             );
         }
         // Reserve room for the retained access record before writing a first version. Publishing
@@ -1840,6 +1860,43 @@ mod publish_refusal_tests;
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn hosted_hotfix_report_count_remedy() {
+        let response =
+            publish_error_response(&PublishError::ReportLimit { limit: 3 }, "fourth", "1.0.0");
+        assert_eq!(response.status(), StatusCode::INSUFFICIENT_STORAGE);
+        let data = axum::body::to_bytes(response.into_body(), 8192)
+            .await
+            .unwrap();
+        let json: serde_json::Value = serde_json::from_slice(&data).unwrap();
+        let diagnostic = &json["diagnostics"][0];
+        assert_eq!(diagnostic["code"], "publish.quota");
+        assert_eq!(diagnostic["fix"], "Delete a report to free a report slot.");
+    }
+
+    #[test]
+    fn a_publication_keeps_no_macos_sidecar_and_every_other_file() {
+        let mut request: PublishRequest = serde_json::from_value(json!({
+            "slug": "q3",
+            "source": "# Q3",
+            "reportFolder": {"root": "q3", "source": "report.rmd", "files": [
+                "report.rmd", "._report.rmd", "data/sales.csv", "data/._sales.csv",
+                "__MACOSX/._report.rmd", ".DS_Store"
+            ]},
+            "data": {"data/sales.csv": "region,sales\nNorth,4\n", "data/._sales.csv": "x"},
+            "files": {"notes.txt": "bm90ZXM=", "._notes.txt": "AAUWBw=="}
+        }))
+        .unwrap();
+        request.drop_sidecars();
+        // Only the sidecar's own name is dropped: another hidden file stays a file of the folder.
+        assert_eq!(
+            request.report_folder.unwrap().files,
+            ["report.rmd", "data/sales.csv", ".DS_Store"]
+        );
+        assert_eq!(request.data.keys().collect::<Vec<_>>(), ["data/sales.csv"]);
+        assert_eq!(request.files.keys().collect::<Vec<_>>(), ["notes.txt"]);
+    }
 
     #[test]
     fn a_version_that_exists_is_answered_with_the_next_patch_to_write() {

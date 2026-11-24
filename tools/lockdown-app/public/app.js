@@ -40,7 +40,7 @@ const REPO_FILES = new Set([
 	"wrangler.interest-preview.toml",
 	"wrangler.toml",
 ]);
-const SERVED_IMAGE = /^(?:docs\/lockdown\/screenshots|docs\/guide)\/.+\.(?:avif|gif|jpe?g|png|svg|webp)$/i;
+const SERVED_IMAGE = /^(?:docs\/lockdown\/screenshots|docs\/guide|docs\/how-it-works\/diagrams)\/.+\.(?:avif|gif|jpe?g|png|svg|webp)$/i;
 const DECISIONS = ["accept", "edit", "reject", "defer"];
 const DECISION_BUTTON = { accept: "Accept", edit: "Edit", reject: "Reject", defer: "Defer" };
 const DECISION_STATE = { accept: "Accepted", edit: "Edited", reject: "Rejected", defer: "Deferred" };
@@ -73,6 +73,7 @@ const IMPORTANCE_FILTERS = ["all", "key", "important"];
 // file can have (part IDs start with a letter or digit).
 const KEY_VIEW = ":key";
 const KEY_HREF = "#/key";
+const OPEN_VIEW = ":open";
 const newFilter = (importance) => ({ view: "all", kind: "any", component: "any", topic: "any", query: "", importance });
 
 // Unsaved changes survive failed saves, reloads and closed tabs in this browser (journal.js).
@@ -107,6 +108,7 @@ const state = {
 	filters: {
 		part: newFilter(prefIn("importance", IMPORTANCE_FILTERS, "all")),
 		key: newFilter(prefIn("importance.key", ["key", "important"], "key")),
+		open: newFilter("all"),
 	},
 	filter: null,
 	collapse: readPref("collapse") === "1",
@@ -211,7 +213,7 @@ function init() {
 	// The importance choice is remembered: one for every part, one for the Key decisions view.
 	els.importance.addEventListener("change", () => {
 		state.filter.importance = els.importance.value;
-		writePref(isKeyView() ? "importance.key" : "importance", els.importance.value);
+		if (state.partId !== OPEN_VIEW) writePref(isKeyView() ? "importance.key" : "importance", els.importance.value);
 		applyFilters();
 		renderPartProgress();
 	});
@@ -352,7 +354,8 @@ function withFolders(paths) {
 }
 
 async function refresh() {
-	const [parts, docs] = await Promise.allSettled([api("GET", "/api/parts"), api("GET", "/api/docs")]);
+	const partsUrl = state.partId === OPEN_VIEW ? "/api/parts?open" : "/api/parts";
+	const [parts, docs] = await Promise.allSettled([api("GET", partsUrl), api("GET", "/api/docs")]);
 	if (parts.status === "fulfilled") {
 		state.parts = parts.value.parts;
 		state.totals = parts.value.totals;
@@ -379,6 +382,10 @@ async function refresh() {
 		renderRail();
 		renderOverall();
 		if (state.view === "start") renderStart();
+		if (state.view === "technical") {
+			if (technicalPages().some(doc => doc.path === technicalIndex)) route();
+			else showTechnicalIndex();
+		}
 	}
 	renderUnsaved();
 	if (parts.status === "fulfilled") {
@@ -388,6 +395,7 @@ async function refresh() {
 	if (state.view === "part") checkOpenPart();
 	else if (state.view === "doc") checkOpenDoc();
 	else if (state.view === "start") loadFirstGroup();
+	else if (state.view === "answered") state.refreshAnswers?.();
 }
 
 // The cross-part contradiction cards for the start page: their first item and progress, read
@@ -486,8 +494,8 @@ function scheduleRefresh() {
 
 function checkOpenPart() {
 	if (!state.partId) return;
-	if (isKeyView()) {
-		checkKeyView();
+	if (isKeyView() || state.partId === OPEN_VIEW) {
+		checkCrossPartView();
 		return;
 	}
 	const summary = state.parts.find((part) => part.id === state.partId);
@@ -512,12 +520,23 @@ function checkOpenPart() {
 
 // The Key decisions view is built from every part: it offers the new version when any part file
 // changes, and reloads by itself while it has no items.
-function checkKeyView() {
+function checkCrossPartView() {
 	if (!state.part) {
-		if (!state.loading) openPart(KEY_VIEW);
+		if (!state.loading) openPart(state.partId);
 		return;
 	}
 	if (partsRevision(state.parts) === state.part.revision) {
+		if (state.partId === OPEN_VIEW && state.parts.every(part => part.openIds)) {
+			const open = new Set(state.parts.flatMap(part => part.openIds));
+			const local = state.part.items.filter(item => !item.answer);
+			if (local.length !== open.size || local.some(item => !open.has(item.id))) {
+				const busy = state.selection.size || els.cards.contains(document.activeElement)
+					|| [...state.ui.values()].some(ui => ui.editing || ui.noteOpen || ["saving", "error", "conflict"].includes(ui.status));
+				if (!state.loading && !busy) reloadPart();
+				else showBanner("The open questions changed since you opened this list.", "Show the new version");
+				return;
+			}
+		}
 		hideBanner();
 		return;
 	}
@@ -541,6 +560,13 @@ function parseHash() {
 		}
 		match = /^#\/key(?:\/([^#]+))?$/.exec(hash);
 		if (match) return { view: "part", partId: KEY_VIEW, itemId: match[1] ? decodeURIComponent(match[1]) : null };
+		match = /^#\/open(?:\/([^#]+))?$/.exec(hash);
+		if (match) return { view: "part", partId: OPEN_VIEW, itemId: match[1] ? decodeURIComponent(match[1]) : null };
+		if (hash === "#/answered") return { view: "answered" };
+		if (hash === "#/how-it-works") {
+			return technicalPages().some(doc => doc.path === technicalIndex)
+				? { view: "doc", path: technicalIndex } : { view: "technical" };
+		}
 		match = /^#\/guide\/([^#]+)(?:#(.*))?$/.exec(hash);
 		if (match) {
 			const docPath = match[1].split("/").map(decodeURIComponent).join("/");
@@ -552,6 +578,7 @@ function parseHash() {
 
 async function route() {
 	const target = parseHash();
+	state.refreshAnswers = null;
 	toggleRail(false);
 	if (target.view === "part") {
 		leaveDoc();
@@ -566,6 +593,13 @@ async function route() {
 		showView("doc");
 		renderRail();
 		await openDoc(target.path, target.anchor);
+	} else if (target.view === "answered" || target.view === "technical") {
+		leavePart();
+		leaveDoc();
+		showView(target.view);
+		window.scrollTo(0, 0);
+		if (target.view === "answered") await openAnswered();
+		else showTechnicalIndex();
 	} else {
 		leavePart();
 		leaveDoc();
@@ -620,11 +654,11 @@ async function openPart(partId, { keep = false } = {}) {
 	await state.pending;
 	await linksReady();
 	try {
-		const part = partId === KEY_VIEW ? await loadKeyView() : await loadPart(partId);
+		const part = partId === KEY_VIEW ? await loadKeyView() : partId === OPEN_VIEW ? await loadOpenView() : await loadPart(partId);
 		if (seq !== state.loadSeq) return;
 		state.loading = false;
 		state.part = part;
-		state.filter = part.virtual ? state.filters.key : state.filters.part;
+		state.filter = state.filters[part.virtual || "part"];
 		state.items = new Map(part.items.map((item) => [item.id, item]));
 		state.ui = new Map();
 		state.selection.clear();
@@ -682,7 +716,7 @@ async function loadKeyView() {
 	rated.sort((a, b) => a.viewRank - b.viewRank);
 	return {
 		id: KEY_VIEW,
-		virtual: true,
+		virtual: "key",
 		title: "Key decisions",
 		status: "ready",
 		revision: partsRevision(parts),
@@ -690,6 +724,14 @@ async function loadKeyView() {
 		warnings: [],
 		items: byImportance(rated, (item) => item.viewGroup),
 	};
+}
+
+async function loadOpenView() {
+	const { parts, items } = await api("GET", "/api/items");
+	const open = items.filter(item => !item.answer);
+	open.sort((a, b) => importanceRank(a) - importanceRank(b));
+	for (const item of open) item.viewGroup = IMPORTANCE_LABEL[importanceOf(item)] || "Unrated";
+	return { id: OPEN_VIEW, virtual: "open", title: "Open questions", revision: partsRevision(parts), items: open };
 }
 
 async function reloadPart() {
@@ -755,6 +797,7 @@ function commit(item, next) {
 			ui.error = "";
 			updateCard(item);
 			renderPartProgress();
+			if (state.partId === OPEN_VIEW && state.items.get(item.id) === item) applyFilters();
 			scheduleRefresh();
 		},
 		(error) => {
@@ -859,6 +902,7 @@ function saveEdit(item, close) {
 		ui.editing = false;
 		updateCard(item);
 		focusCard(item);
+		if (state.partId === OPEN_VIEW) applyFilters();
 	}
 }
 
@@ -1152,13 +1196,13 @@ function journalFailedBatch(list, decision, error) {
 
 // The Key decisions view opens as rows, each opening its full card in place, unless Daniel chose cards.
 function compactPref(part) {
-	const saved = readPref(`rows.${part.virtual ? "key" : part.id}`);
-	return saved === null ? part.virtual || part.items.length > ROWS_OVER : saved === "1";
+	const saved = readPref(`rows.${part.virtual || part.id}`);
+	return saved === null ? Boolean(part.virtual) || part.items.length > ROWS_OVER : saved === "1";
 }
 
 function setCompact(on) {
 	if (!state.part) return;
-	writePref(`rows.${state.part.virtual ? "key" : state.part.id}`, on ? "1" : "0");
+	writePref(`rows.${state.part.virtual || state.part.id}`, on ? "1" : "0");
 	if (state.compact === on) return;
 	state.compact = on;
 	clearSelection();
@@ -1185,6 +1229,7 @@ function setOpen(item, open) {
 	const ui = uiFor(item.id);
 	if (!open && ui.editing) return;
 	ui.open = open;
+	if (open && ui.history) ui.history.open = true;
 	updateCard(item);
 	if (!open) {
 		const top = ui.card.getBoundingClientRect().top;
@@ -1373,6 +1418,7 @@ async function applySelection(decision, confirmed = false) {
 	}
 	state.selectionBusy = false;
 	if (state.part?.id !== viewId) return;
+	if (state.partId === OPEN_VIEW) applyFilters();
 	renderSelection();
 	renderPartProgress();
 	scheduleRefresh();
@@ -1401,6 +1447,11 @@ function renderOverall() {
 }
 
 function renderRail() {
+	for (const link of els.rail.querySelectorAll(".dashboard-links a")) {
+		const current = link.hash === "#/how-it-works" ? state.view === "technical" || technicalPath(state.doc?.path)
+			: link.hash === "#/open" ? state.partId === OPEN_VIEW : state.view === "answered";
+		link.setAttribute("aria-current", current ? "page" : "false");
+	}
 	els.railStart.setAttribute("aria-current", state.view === "start" ? "page" : "false");
 	renderRailKey();
 	els.railEmpty.hidden = state.parts.length > 0 || Boolean(state.listError) || !state.loaded;
@@ -1478,11 +1529,11 @@ function renderGuideRail() {
 		lockdown.length ? el("ul", { class: "guide-list" }, ...lockdown.map(link)) : null,
 		state.docsError ? el("p", { class: "rail-error" }, `Cannot list the documents: ${sentence(state.docsError)}`) : null,
 	);
-	els.guideEmpty.hidden = state.docs.length > 0 || Boolean(state.docsError) || !state.loaded;
+	els.guideEmpty.hidden = guide.length + lockdown.length > 0 || Boolean(state.docsError) || !state.loaded;
 	const first = guide[0] ?? lockdown[0];
 	els.mastheadGuide.hidden = !first;
 	if (first) els.mastheadGuide.href = guideHref(first.path);
-	els.mastheadGuide.setAttribute("aria-current", state.view === "doc" ? "page" : "false");
+	els.mastheadGuide.setAttribute("aria-current", state.view === "doc" && !technicalPath(current) ? "page" : "false");
 }
 
 // The answer buttons explained, in a panel beside the cards; ? or the header button opens it.
@@ -1513,20 +1564,15 @@ function renderStart() {
 		el(
 			"header",
 			{ class: "start-head" },
-			el("p", { class: "part-eyebrow" }, "RichView rewrite"),
-			el("h1", { class: "part-title" }, "Lock RichView down before the rewrite"),
+			el("h1", { class: "part-title" }, "Project dashboard"),
+			dashboardDoors(),
 			el(
 				"div",
 				{ class: "start-lead" },
 				el(
 					"p",
 					{},
-					"RichView will be rewritten from scratch. This lockdown fixes what it is for, what it maximizes, every feature, component, type and style it keeps, how agents deliver changes, and the evidence that proves each outcome.",
-				),
-				el(
-					"p",
-					{},
-					"Each item is a proposal mined from the code, pull requests, Linear and Notion, with its sources and a confidence. Your answers are the source of truth: a proposal is only evidence until you accept or edit it, and the lockdown files and the rewrite are built from your answers.",
+					"The lockdown records the decisions that shape RichView. Each card holds a proposal, its sources and your answer.",
 				),
 			),
 			startKey(),
@@ -1548,7 +1594,7 @@ function renderStart() {
 				{ class: "start-note" },
 				"Every answer saves at once to ",
 				el("code", {}, "docs/lockdown/answers/"),
-				". If an agent later changes a proposal you answered, the item is marked changed and counts as open until you answer it again. Confidence says how a proposal is backed: observed in code or a running build, stated in a document but not verified, inferred from several sources, or unknown, which means you decide.",
+				". If a proposal changes, its saved decision stays in Answered with a marker. Confidence shows whether the evidence was observed in code, stated in a document, inferred from sources or unknown.",
 			),
 			el("h3", { class: "start-subheading" }, "On a card with options"),
 			el(
@@ -1806,13 +1852,14 @@ function checkOpenDoc() {
 }
 
 function docHeader(docPath) {
-	const section = docPath.startsWith("docs/guide/") ? "Guide" : "Lockdown file";
+	const section = technicalPath(docPath) ? el("a", { href: "#/how-it-works" }, "How it works")
+		: docPath.startsWith("docs/guide/") ? "Guide" : "Lockdown file";
 	return el(
 		"p",
 		{ class: "part-eyebrow doc-eyebrow" },
 		section,
 		el("span", { class: "part-file" }, docPath),
-		el("a", { class: "doc-github", href: blobUrl(docPath), target: "_blank", rel: "noopener noreferrer" }, "On GitHub"),
+		technicalPath(docPath) ? null : el("a", { class: "doc-github", href: blobUrl(docPath), target: "_blank", rel: "noopener noreferrer" }, "On GitHub"),
 	);
 }
 
@@ -1832,14 +1879,15 @@ function renderDoc() {
 						{ class: "callout" },
 						isDocPath(doc.path)
 							? "This document is not on disk yet. It appears here as soon as an agent writes it."
-							: "The app shows only docs/guide/ and the lockdown files. Open this file on GitHub instead.",
+							: "Choose a page from How it works or the Guide.",
 					)
 				: el("p", { class: "callout callout-alert" }, `Cannot open the document: ${sentence(doc.error)}`),
 		);
 		return;
 	}
 	const rendered = renderDocument(doc.source, doc.path);
-	const contents = rendered.headings.filter((heading) => heading.level === 2);
+	let contents = rendered.headings.filter(heading => heading.level === 2);
+	if (!contents.length && technicalPath(doc.path)) contents = rendered.headings;
 	document.title = `${rendered.title || entry?.title || name} · RichView lockdown`;
 	setChildren(
 		els.page,
@@ -1847,7 +1895,7 @@ function renderDoc() {
 		rendered.title
 			? el("h1", { class: "part-title doc-title doc-h", id: `doc-${rendered.titleSlug}`, tabindex: "-1", html: rendered.titleHtml })
 			: null,
-		contents.length >= 3
+		contents.length >= (technicalPath(doc.path) ? 1 : 3)
 			? el(
 					"nav",
 					{ class: "doc-contents", "aria-label": "Contents" },
@@ -1904,6 +1952,7 @@ function renderPart() {
 	els.partView.classList.toggle("is-key-view", Boolean(part.virtual));
 	// The Key decisions view groups by part, and its one decision filter is "Unanswered only".
 	els.viewField.hidden = Boolean(part.virtual);
+	els.unanswered.closest("label").hidden = part.id === OPEN_VIEW;
 	if (part.virtual && !["all", "unanswered"].includes(state.filter.view)) state.filter.view = "all";
 	els.view.value = state.filter.view;
 	els.unanswered.checked = state.filter.view === "unanswered";
@@ -1921,6 +1970,13 @@ function renderPart() {
 
 function renderHead() {
 	const part = state.part;
+	if (part.id === OPEN_VIEW) {
+		setChildren(els.head, el("p", { class: "part-eyebrow" }, "Across every part"),
+			el("h1", { class: "part-title" }, part.title),
+			el("p", { class: "start-note", id: "part-progress" }));
+		renderPartProgress();
+		return;
+	}
 	if (part.virtual) {
 		renderKeyHead();
 		return;
@@ -1991,6 +2047,10 @@ function notices(part, summary) {
 function renderPartProgress() {
 	const box = document.getElementById("part-progress");
 	if (!box || !state.part) return;
+	if (state.partId === OPEN_VIEW) {
+		box.textContent = plural(state.part.items.filter(item => !item.answer).length, "unanswered question");
+		return;
+	}
 	const focused = document.activeElement?.closest?.("#part-progress [data-act]")?.dataset.act;
 	const items = scopeItems();
 	const tally = tallyAnswers(items);
@@ -2039,7 +2099,7 @@ function renderGroupCounts() {
 	for (const section of els.cards.querySelectorAll(".group")) {
 		const counts = groups.get(section.dataset.group) ?? { answered: 0, total: 0 };
 		const label = section.querySelector(".group-count");
-		if (label) label.textContent = `${counts.answered} of ${counts.total} answered`;
+		if (label) label.textContent = state.partId === OPEN_VIEW ? plural(counts.total - counts.answered, "question") : `${counts.answered} of ${counts.total} answered`;
 	}
 }
 
@@ -2105,11 +2165,11 @@ function renderImportanceOptions() {
 		if (importanceOf(item) === "key") counts.key += 1;
 		if (importanceIn(item, "important")) counts.important += 1;
 	}
-	const allowed = state.part.virtual ? ["key", "important"] : IMPORTANCE_FILTERS;
+	const allowed = isKeyView() ? ["key", "important"] : IMPORTANCE_FILTERS;
 	if (!allowed.includes(state.filter.importance)) state.filter.importance = allowed[0];
 	setChildren(
 		els.importance,
-		state.part.virtual ? null : el("option", { value: "all" }, "All items"),
+		isKeyView() ? null : el("option", { value: "all" }, "All items"),
 		el("option", { value: "key" }, `Key (${counts.key})`),
 		el("option", { value: "important" }, `Key + important (${counts.important})`),
 	);
@@ -2177,6 +2237,7 @@ function applyFilters() {
 		const ui = uiFor(item.id);
 		const answer = item.answer;
 		const visible =
+			(state.partId !== OPEN_VIEW || !answer || ui.editing || ui.status !== "saved") &&
 			(view === "all" ||
 				(view === "unanswered" && !answer) ||
 				(DECISIONS.includes(view) && answer?.decision === view) ||
@@ -2210,6 +2271,7 @@ function applyFilters() {
 }
 
 function noMatchText() {
+	if (state.partId === OPEN_VIEW) return state.part.items.some(item => !item.answer) ? "No questions match these filters." : "Every question has an answer.";
 	const rated = [...state.items.values()].some((item) => importanceOf(item));
 	if (state.part.virtual) {
 		if (!state.items.size) {
@@ -2308,6 +2370,7 @@ function buildCard(item) {
 		{ class: "callout callout-alert detail", hidden: true },
 		"The proposal changed after your answer. Read it again and answer again.",
 	);
+	ui.history = item.answer?.stale ? historyDisclosure(item) : null;
 	ui.versionBody = el("div", { class: "md serif" });
 	ui.versionLabel = el("p", { class: "label" }, "Your version");
 	ui.version = el("div", { class: "your-version detail", hidden: true }, ui.versionLabel, ui.versionBody);
@@ -2389,8 +2452,9 @@ function buildCard(item) {
 			ui.staleNote,
 			item.question ? el("div", { class: "question md detail", html: renderMarkdown(item.question) }) : null,
 			item.why ? block("Why it matters", renderMarkdown(item.why), "why") : null,
+			ui.history,
 			block(
-				"Proposed answer",
+				item.answer?.stale ? "Current proposal" : "Proposed answer",
 				item.proposed ? renderMarkdown(item.proposed) : '<p class="empty">No proposal. Edit to write the answer, or defer.</p>',
 				"proposal",
 				"serif",
@@ -2533,6 +2597,7 @@ function updateCard(item) {
 		ui.rowExcerpt.classList.toggle("is-empty", !excerptSource);
 	}
 	ui.staleNote.hidden = !answer?.stale;
+	if (ui.history) ui.history.hidden = !answer?.stale;
 	ui.rowStale.hidden = !answer?.stale;
 	ui.editor.hidden = !ui.editing;
 	ui.buttons.edit.textContent = decision === "edit" && !choice && !ui.editing ? "Edit again" : "Edit";
@@ -2891,6 +2956,7 @@ function onCardClick(event) {
 				focusCard(item);
 			} else {
 				ui.expanded = !ui.expanded;
+				if (ui.expanded && ui.history) ui.history.open = true;
 				updateCard(item);
 			}
 			break;
@@ -2956,6 +3022,11 @@ function onKey(event) {
 	if (event.key === "?") {
 		event.preventDefault();
 		toggleHelp();
+		return;
+	}
+	if (event.key === "/" && state.view === "answered") {
+		event.preventDefault();
+		$("#answered-query")?.focus();
 		return;
 	}
 	if (state.view !== "part" || !state.part || state.part.error || !state.items.size) return;
@@ -3051,6 +3122,7 @@ function revealItem(itemId) {
 	const item = state.items.get(itemId);
 	if (!item) return;
 	const ui = uiFor(itemId);
+	if (ui.history) ui.history.open = true;
 	if (ui.card.hidden) {
 		resetFilters();
 		toast(`Filters cleared to show ${itemId}.`);
@@ -3066,7 +3138,7 @@ function revealItem(itemId) {
 
 // Clears every filter for this visit; the remembered importance choice stays for the next part.
 function resetFilters() {
-	Object.assign(state.filter, newFilter(state.part?.virtual ? "important" : "all"));
+	Object.assign(state.filter, newFilter(isKeyView() ? "important" : "all"));
 	els.query.value = "";
 	els.view.value = "all";
 	els.unanswered.checked = false;
@@ -3086,7 +3158,8 @@ function setCurrent(itemId, { scroll = false, focus = false } = {}) {
 	ui.card.classList.add("is-current");
 	if (focus) ui.card.focus({ preventScroll: true });
 	if (scroll) ui.card.scrollIntoView({ block: state.compact && !ui.open ? "nearest" : "start" });
-	history.replaceState(null, "", `${state.part.virtual ? KEY_HREF : partHref(state.part.id)}/${encodeURIComponent(itemId)}`);
+	const href = state.part.virtual ? `#/${state.part.virtual}` : partHref(state.part.id);
+	history.replaceState(null, "", `${href}/${encodeURIComponent(itemId)}`);
 }
 
 function focusCard(item) {
@@ -3195,7 +3268,7 @@ function isDocPath(repoPath) {
 	if (LOCKDOWN_DOCS.has(repoPath)) return true;
 	const segments = repoPath.split("/");
 	return (
-		repoPath.startsWith("docs/guide/") &&
+		(repoPath.startsWith("docs/guide/") || technicalPath(repoPath)) &&
 		repoPath.endsWith(".md") &&
 		segments.every((segment) => segment && segment !== ".." && !segment.startsWith("."))
 	);
@@ -3553,6 +3626,10 @@ function inline(text) {
 	);
 	out = out.replace(/\[([^\]\n]+)\]\(\s*((?:[^\s()&]|&amp;)+)(?:\s+&quot;[^\n]*?&quot;)?\s*\)/g, (_, label, target) => {
 		const link = resolveLink(target);
+		if (link?.sourcePath) {
+			const path = keep(`<code>${escapeHtml(link.sourcePath)}</code>`);
+			return flat(label) === escapeHtml(link.sourcePath) ? path : `${label} (${path})`;
+		}
 		return link ? keep(anchorTag(link, emphasis(label))) : label;
 	});
 	out = out.replace(/&lt;(https?:\/\/(?:[^\s&]|&amp;)+?)&gt;/gi, (_, url) => keep(anchor(url, url)));
@@ -3659,6 +3736,7 @@ function resolveLink(raw) {
 	const repoPath = resolveRepoPath(safeDecode(pathPart));
 	if (!repoPath) return null;
 	if (isDocPath(repoPath)) return { href: guideHref(repoPath, fragment), app: true };
+	if (technicalPath(md.docPath)) return { sourcePath: repoPath + (fragment ? `#${fragment}` : "") };
 	const hash = /^L\d+(?:-L\d+)?$/.test(fragment) ? `#${fragment}` : fragment ? `#${encodeURIComponent(fragment)}` : "";
 	// A path that does not exist leaves the label as plain text.
 	return pathTarget(repoPath, hash);
@@ -3789,7 +3867,7 @@ function byImportance(items, groupOf) {
 	);
 }
 
-const isKeyView = () => Boolean(state.part?.virtual) || state.partId === KEY_VIEW;
+const isKeyView = () => state.partId === KEY_VIEW;
 const groupOf = (item) => item.viewGroup ?? (item.group || "");
 
 // The item's optional component ID; a server started before the field existed passes it through raw.

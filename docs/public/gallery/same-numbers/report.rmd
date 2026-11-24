@@ -98,7 +98,11 @@ height: 872
 
 *Image: [National Park Service, NPGallery](https://npgallery.nps.gov/AssetDetail/9c858b86-9cdb-4bb0-8c17-ea567391faa2), "Old Faithful Geyser, Upper Geyser Basin", NPS/Jim Peaco, 2019; public domain.*
 
-Old Faithful's waiting times and eruptions form two clusters. The observations are pairs, not a time series.
+Old Faithful's waiting times and eruptions form two clusters. The **columns** put the paired observations beside the distribution of waits, so you can compare both views.
+
+::: columns
+
+::: column
 
 ```chart
 type: scatter
@@ -111,8 +115,9 @@ axes:
 ```
 
 *Source: Old Faithful geyser data, [R datasets package](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/faithful.html); see Azzalini and Bowman (1990) and Härdle (1991).*
+:::
 
-Across all 272 eruptions the correlation between duration and wait is 0.90. Split the eruptions at three minutes and it is 0.29 among the short ones and 0.37 among the long ones: most of the relationship is the distance between the two clusters, not a trend inside either.
+::: column
 
 ```chart
 type: histogram
@@ -126,8 +131,23 @@ axes:
 ```
 
 *Source: the same Old Faithful data.*
+:::
+
+:::
 
 The mean wait is 70.9 minutes, and few waits are near it: 32 of the 272 fall between 65 and 74 minutes, against 111 between 75 and 84. One average describes neither kind of eruption.
+
+Open the **expand** for the comparison method.
+
+```expand
+title: How the two groups were compared
+body: |
+  Each observation pairs the length of one eruption with the wait until the next. The analysis treats observations as pairs.
+
+  Across all 272 eruptions the correlation between duration and wait is 0.90. The data hold no eruption between 2.9 and 3.067 minutes, so the report splits the observations at three minutes.
+
+  The correlation falls to 0.29 among short eruptions and 0.37 among long ones. Most of the overall relationship comes from the distance between the two clusters.
+```
 
 ```table
 title: Short and long eruptions, split at three minutes

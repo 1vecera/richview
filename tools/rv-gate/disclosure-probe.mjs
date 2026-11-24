@@ -29,6 +29,7 @@ export const INPUT = "examples";
 /** Examples that read a live connector, which no gate host configures, and why. */
 export const CONNECTED = new Map([
 	["metricflow-report", "reads a MetricFlow runtime from connectors.toml"],
+	["parquet-report", "reads a Parquet file its seed script writes"],
 	["sql-report", "reads a registered SQL connector"],
 ]);
 /** Significant digits a reader may see at most (FEA-CH-37: three, four with a scale word). */

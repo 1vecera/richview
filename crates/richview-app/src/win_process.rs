@@ -381,7 +381,7 @@ pub struct Launch<'a> {
     pub program: &'a Path,
     pub args: &'a [&'a OsStr],
     /// The whole environment, or `None` to pass this process's on.
-    pub env: Option<&'a [(&'a str, &'a OsStr)]>,
+    pub env: Option<&'a [(&'a OsStr, &'a OsStr)]>,
     pub cwd: Option<&'a Path>,
     /// Descriptor 0, 1, 2 and then 3 and up, in order. The first three are also the standard
     /// handles. They are the only handles the child inherits.
@@ -437,10 +437,10 @@ fn command_line(program: &Path, args: &[&OsStr]) -> Vec<u16> {
     line
 }
 
-fn environment_block(env: &[(&str, &OsStr)]) -> Vec<u16> {
+fn environment_block(env: &[(&OsStr, &OsStr)]) -> Vec<u16> {
     let mut block = Vec::new();
     for (name, value) in env {
-        block.extend(OsStr::new(name).encode_wide());
+        block.extend(name.encode_wide());
         block.push(b'=' as u16);
         block.extend(value.encode_wide());
         block.push(0);
@@ -779,7 +779,7 @@ mod tests {
     #[test]
     fn an_empty_environment_is_two_terminators() {
         assert_eq!(environment_block(&[]), [0, 0]);
-        let block = environment_block(&[("A", OsStr::new("1"))]);
+        let block = environment_block(&[(OsStr::new("A"), OsStr::new("1"))]);
         assert_eq!(String::from_utf16(&block).unwrap(), "A=1\0\0");
     }
 

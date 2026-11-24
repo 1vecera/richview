@@ -551,6 +551,80 @@
       ]
     },
     {
+      "id": "TYP-100",
+      "kind": "type",
+      "importance": "detail",
+      "refId": "T-SLIDES",
+      "group": "Frontmatter",
+      "title": "Frontmatter `slides` and its diagnostics",
+      "question": "Is one boolean frontmatter field the whole syntax of slides?",
+      "why": "FEA-RP-65 renders a source as slides. The less syntax a format adds, the less an author or agent has to learn and the less there is to migrate, and the same source must stay a valid report (INT-13).",
+      "proposed": "`slides` is an optional boolean, default `false`. `true` renders the source as slides (FEA-RP-65); any other type is the frontmatter's ordinary type error and the source renders as a report. No block, field or marker is added: slides start at top-level headings and thematic breaks. Two diagnostics come with it: `slides.density` (warning) for a slide that holds more than a screen shows well, with the slide's number, the count and the limit in its details; and `slides.tabs` (warning) when `tabs` is set, since it has no effect in slides.",
+      "options": [
+        {
+          "label": "One boolean field",
+          "detail": "The smallest syntax; layout is derived, never written."
+        },
+        {
+          "label": "A `slides` mapping with layout options",
+          "detail": "Room for aspect ratio, a theme and per-slide layouts; more for an author or agent to learn and keep stable."
+        }
+      ],
+      "recommendation": "One boolean field: a format should add the least syntax that works, and `slides: true` is the shortest thing an author or agent can write and the least it can get wrong (the lead, 19 November, over `as: slides` and `format: slides`; `format` is the source format version).",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "Daniel, 17 November 2026, relayed by the chief of staff: “make richview slides a thing. A lot of time for internal usecase you wanna fit screens with big bold numbers, charts and small texts and headings. Do a research on that and create a fully new format now. Tag experimental but we launch it for people as well”",
+          "ref": "Chief of staff's brief of 17 November 2026",
+          "date": "2026-11-17"
+        },
+        {
+          "label": "Daniel, 19 November 2026, looking at pre-prod, relayed by the lead: slides on the homepage, and “don't call it experimental anymore”",
+          "ref": "day19/common.md, the lead's brief of 19 November 2026",
+          "date": "2026-11-19"
+        }
+      ]
+    },
+    {
+      "id": "TYP-101",
+      "kind": "type",
+      "importance": "detail",
+      "refId": "T-FRONTMATTER-BACKGROUND",
+      "group": "Frontmatter",
+      "title": "Frontmatter `background`",
+      "question": "May a report name its own background, or turn a preset's default off, without a style file?",
+      "why": "STY-74 gives three presets a background by default. Before this card only a style file could set one, so turning a preset's default off took a second file listed in `styles`, and an agent reading the report alone could not see where the background came from.",
+      "proposed": "`background` is an optional frontmatter field in STY-74's words: one word (a texture `grain`, `dots`, `grid` or `lines`; a gradient `soft` or `glow`; a picture file in the report folder, recognised by its .png, .jpg, .jpeg or .webp extension), `none` for a flat page, or a mapping with `texture`, `gradient`, `picture`, `place` and `strength`. It is the cascade's last layer, after `styles` and `--style`, so the report's word wins. It passes the same style vocabulary, and its picture the same report-relative 400 KiB resolver bound, as a style file's; a bad value is a finding at `frontmatter.background`. The one-word form is valid in style files too.",
+      "options": [
+        {
+          "label": "The style file's words, plus one word",
+          "detail": "`background: grain`, `background: none`; the same vocabulary everywhere, read at a glance."
+        },
+        {
+          "label": "The mapping only",
+          "detail": "One rule, but `grain` alone, what authors and agents write first, would be an error."
+        },
+        {
+          "label": "A style named `flat`",
+          "detail": "No new field, but a magic style name that collides with author files and cannot say which background instead."
+        }
+      ],
+      "recommendation": "The style file's words, plus one word: the report says what it shows, and nothing is renamed.",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "Daniel, 19 Nov 2026 ~11:45, on pre-prod, relayed by the chief of staff: “at least three of the default styles, or maybe two ... should have backgrounds”, “backgrounds properly documented” and “iterate to have a super clear, super meaningful syntax”",
+          "ref": "tmp/team/launch/d16/launch/day19/common.md",
+          "date": "2026-11-19"
+        },
+        {
+          "label": "The syntax page and the lead's choice of option A, 19 Nov 11:46",
+          "ref": "tmp/team/launch/d16/launch/day19/backgrounds/syntax.md",
+          "date": "2026-11-19"
+        }
+      ]
+    },
+    {
       "id": "TYP-09",
       "kind": "type",
       "importance": "important",
@@ -1560,7 +1634,7 @@
       "title": "Table block",
       "question": "Is this the table vocabulary, with row mappings as the only data shape?",
       "why": "S27-580 left a column-oriented \"series\" syntax open; adding it means two data shapes for every table feature, check and editor completion. This settles D-TABLE-SYNTAX from the evidence.",
-      "proposed": "| Field | Type | Rule |\n| --- | --- | --- |\n| `data` | data source (T-DATA-SOURCE) | Required; rows are mappings |\n| `title` | string | Only if FEA-RP-20 is accepted: `<caption>` and accessible name; otherwise an unknown key |\n| `columns` | list of `{key, label?, format?, unit?, align?}` | Optional; derived in source order (D-TYP-COLUMN-ORDER) |\n| `sort` | `{key, dir}` | `dir` is `asc`/`desc`, default `asc` |\n| `max_rows` | positive integer | Default 20; the rest folds into \"Showing N of M rows\" |\n| `total` | boolean | Default false; sums columns whose cells are all numeric (T-DATA-CSV); FEA-RP-21 would also accept a list of columns |\n| `wide` | boolean | Only if D-TYP-BLOCK-WIDTH is accepted |\n\n`align` is `left`/`center`/`right`. `columns` and `sort` keys must exist (D-TYP-FIELD-CHECKS). A cell that is one whole http(s) URL renders as a link.",
+      "proposed": "| Field | Type | Rule |\n| --- | --- | --- |\n| `data` | data source (T-DATA-SOURCE) | Required; rows are mappings |\n| `title` | string | Only if FEA-RP-20 is accepted: `<caption>` and accessible name; otherwise an unknown key |\n| `columns` | list of `{key, label?, format?, unit?, align?, heat?}` | Optional; derived in source order (D-TYP-COLUMN-ORDER); `heat` is `true`, `false`, `sequential` or `diverging`, default `false` (FEA-RP-69) |\n| `heat_scale` | `column` or `table` | Default `column`; `table` puts the heat columns on one scale (FEA-RP-69) |\n| `sort` | `{key, dir}` | `dir` is `asc`/`desc`, default `asc` |\n| `max_rows` | positive integer | Default 20; the rest folds into \"Showing N of M rows\" |\n| `total` | boolean | Default false; sums columns whose cells are all numeric (T-DATA-CSV); FEA-RP-21 would also accept a list of columns |\n| `sortable` | boolean | Default true; `false` keeps the headings plain (FEA-RP-22) |\n| `filter` | `auto`, `true` or `false` | Default `auto`: a filter box for more than 10 rows (FEA-RP-70) |\n| `wide` | boolean | Only if D-TYP-BLOCK-WIDTH is accepted |\n\n`align` is `left`/`center`/`right`. `columns` and `sort` keys must exist (D-TYP-FIELD-CHECKS). A cell that is one whole http(s) URL renders as a link.",
       "options": [
         {
           "label": "Row mappings only",
@@ -2060,9 +2134,9 @@
       "refId": "T-DATA-SOURCE",
       "group": "Data and report folder",
       "title": "Block data source",
-      "question": "Is block-local data with exactly one of `inline`, `csv` or `json` the whole data contract?",
+      "question": "Is block-local data with exactly one of `inline`, `csv`, `json` or `parquet` the whole data contract?",
       "why": "It decides where data may come from; S27-579 moved data out of frontmatter into the consuming block, and PR #66 would add connectors.",
-      "proposed": "| Key | Type | Rule |\n| --- | --- | --- |\n| `data.inline` | list of row mappings | Small data written in the block |\n| `data.csv` | report-relative path | T-DATA-CSV |\n| `data.json` | report-relative path | T-DATA-JSON |\n| `data.url` | absolute `https` URL | Downloaded by the reader's browser when the report opens, never by a render or check (OPN-63, ARC-11) |\n| `data.sql` | connector and query | Resolved by a RichView server's connector (TYP-79, OPN-63) |\n\nExactly one key; none or several is `data.local` (error). `id`, `url` and `sql` are `data.local` errors today; the rewrite accepts `url` and `sql` (OPN-63) and keeps `id` an error; `headers` and `cache` next to a valid key pass core validation and are rejected only by the public schema adapter, and the rewrite makes them `data.local` errors too. Frontmatter `data` is `frontmatter.data`. Paths follow T-REPORT-FOLDER; whether the key or the file content decides the parser: D-TYP-DATA-FORMAT-SNIFF. Core does no I/O: hosts pass resolved content, and a missing one is `data.unresolved`; a `sql` source resolves only on a RichView server with that connector. What a render draws for a `url` block before the browser fetches it is open (ARC-11). Blocks may share a file.",
+      "proposed": "| Key | Type | Rule |\n| --- | --- | --- |\n| `data.inline` | list of row mappings | Small data written in the block |\n| `data.csv` | report-relative path | T-DATA-CSV |\n| `data.json` | report-relative path | T-DATA-JSON |\n| `data.parquet` | report-relative path | T-DATA-PARQUET (TYP-102): read by native hosts only |\n| `data.url` | absolute `https` URL | Downloaded by the reader's browser when the report opens, never by a render or check (OPN-63, ARC-11) |\n| `data.sql` | connector and query | Resolved by a RichView server's connector (TYP-79, OPN-63) |\n\nExactly one key; none or several is `data.local` (error). `id`, `url` and `sql` are `data.local` errors today; the rewrite accepts `url` and `sql` (OPN-63) and keeps `id` an error; `headers` and `cache` next to a valid key pass core validation and are rejected only by the public schema adapter, and the rewrite makes them `data.local` errors too. Frontmatter `data` is `frontmatter.data`. Paths follow T-REPORT-FOLDER; whether the key or the file content decides the parser: D-TYP-DATA-FORMAT-SNIFF. Core does no I/O: hosts pass resolved content, and a missing one is `data.unresolved`; a `sql` source resolves only on a RichView server with that connector. What a render draws for a `url` block before the browser fetches it is open (ARC-11). Blocks may share a file.",
       "confidence": "observed",
       "sources": [
         {
@@ -2245,6 +2319,133 @@
           "label": "Nested values render as `{\"x\":1}` and `[1,2]` in table cells (reproduced with the b4db233 release build)",
           "ref": "https://github.com/1vecera/richview/blob/b4db233/crates/richview-core/src/blocks.rs#L577-L646",
           "date": "2026-10-21"
+        }
+      ]
+    },
+    {
+      "id": "TYP-102",
+      "kind": "type",
+      "importance": "important",
+      "refId": "T-DATA-PARQUET",
+      "group": "Data and report folder",
+      "title": "Parquet data files",
+      "question": "Does a block read a Parquet file in the report folder through `data.parquet`, parsed only in the confined SQL worker, with only the columns the report uses read, and with SQL over the same file as the way to aggregate it?",
+      "why": "Daniel asked on 9 November 2026 for \"Parquet data files for large data, and smaller reports with many charts\". A report's size follows the rows each chart draws, not the file's format: eight all-row charts over one 100,000-row, 10.5 MB CSV made a 34.2 MB HTML file in 6.7 s (docs/lockdown/evidence/parquet.md). A wide export read as CSV is parsed whole and capped at 16 MiB of file. Parquet lets one large file stay in the folder, costs only the columns a report reads, and SQL over it gives each chart its own few aggregated rows.",
+      "proposed": "| Rule | Value |\n| --- | --- |\n| Key | `data.parquet`: a report-relative path, under the report-folder rules of T-REPORT-FOLDER; one of the block's exclusive sources (TYP-35) |\n| Reader | DuckDB's Parquet reader inside the confined SQL worker (FEA-BR-14's sandbox): the worker reads that one file and nothing else, reaches no network and writes nowhere; 30 s and 256 MiB. Core never receives Parquet bytes (ARC-02) |\n| Hosts | Native hosts only: the `richview` command and RichView servers. A browser host reports `data.unresolved` naming them. On Linux the worker needs kernel 6.2 or newer, as SQL sources do |\n| Columns | Only the columns the report's blocks name in that file are read, once per render for every block that names it: a chart's fields (TYP-36), a table's `columns`, or every column for a table without them. Other columns are never read and never reach the HTML |\n| Rows | Every row, never a sample |\n| Types | Parquet's types decide. Integers and floats are numbers; a decimal is a number read from its own digits, not through a nearest float, and its trailing zeros are not kept (TYP-104); a decimal or integer binary64 cannot hold is numeric text (TYP-37); text stays text, so `00123` or `123` stored as text never becomes a number; booleans are booleans; dates, times and timestamps become ISO 8601 text; nulls are missing |\n| NaN and infinities | Missing, with one `data.parquet.non-finite` warning per column giving the count |\n| Unsupported column | A list, struct, map, union, interval or binary column that a block reads is `data.parquet` (error) naming the column and its kind |\n| Unreadable file | Not Parquet, truncated, damaged or encrypted: `data.parquet` (error) at each block that names it, with no engine text |\n| Limits | At most 1,000,000 rows from one file, and the columns read stay under TYP-43's 16 MiB dataset limit: `data.limit`, whose fix names SQL. The file itself may be larger; on Windows the worker reads a private copy of at most 4 GiB |\n| Aggregation | Report SQL over the same file through the connector route (TYP-35, TYP-79, FEA-BR-14): a connector of kind `parquet` in `report.connectors.yaml` names the file with `file`, and `data.sql` reads it as the table named after the connector. The read-only guard, bound parameters, the 100,000-row cap, snapshots and the provenance finding apply unchanged. A snapshot follows the file: a file written again is queried again |\n\nNo author text reaches SQL for a `data.parquet` block: the host writes the query, and column names are taken from the file's own schema after an exact match with the texts of the blocks that name it. A statistic chart over every row still embeds every row (TYP-36); TYP-103 proposes the alternative.",
+      "options": [
+        {
+          "label": "Confined worker with DuckDB's Parquet reader",
+          "detail": "A hostile file is parsed inside the operating system's sandbox, the same engine serves SQL over the file, and only the worker binary grows. Costs the Linux kernel 6.2 requirement that SQL sources already have."
+        },
+        {
+          "label": "A pure Rust reader in the resolver",
+          "detail": "No kernel requirement and no worker; a hostile file is parsed in the command and server process, a second Parquet implementation sits beside DuckDB's, and SQL over the file still needs the worker."
+        },
+        {
+          "label": "No Parquet",
+          "detail": "Authors export one CSV per chart, as today; a wide or large export never sits in the report folder as one file."
+        }
+      ],
+      "recommendation": "Confined worker with DuckDB's Parquet reader: it is the only option that parses a hostile file outside the host process, and it adds one Cargo feature to an engine the worker already links.",
+      "confidence": "stated",
+      "conflicts": "INT-24 keeps RichView out of computing metrics: this card adds no aggregation vocabulary; aggregation is the author's SQL through the connector route OPN-63 already decides. TYP-35's \"exactly one of\" list and TYP-43's dataset limit gain a Parquet row each. ARC-27 keeps the editor, build and bench free of connector engines: the editor service resolves through the same host code and has no worker beside it, so a `data.parquet` block there reports that the worker is missing; whether the editor ships the worker is open. A file on a Linux kernel older than 6.2 is not read; the lead accepted that on 19 November 2026 in place of a second reader.",
+      "sources": [
+        {
+          "label": "Daniel's ask: \"Parquet data files for large data, and smaller reports with many charts.\"",
+          "ref": "S27-986",
+          "date": "2026-11-09"
+        },
+        {
+          "label": "The lead's approval of the design: confined worker, DuckDB's Parquet feature, referenced columns only, the `parquet` connector kind; the Linux kernel limit accepted",
+          "ref": "S27-986",
+          "date": "2026-11-19"
+        },
+        {
+          "label": "Measured report sizes and render times, the worker's size and the example report",
+          "ref": "docs/lockdown/evidence/parquet.md",
+          "date": "2026-11-19"
+        },
+        {
+          "label": "The bundled DuckDB build leaves its Parquet reader off unless the `parquet` feature is set",
+          "ref": "crates/richview-app/Cargo.toml",
+          "date": "2026-11-19"
+        }
+      ]
+    },
+    {
+      "id": "TYP-103",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "D-TYP-STATISTIC-PAYLOAD",
+      "group": "Data and report folder",
+      "title": "Statistic charts over many rows embed their structure, not their observations",
+      "question": "Above a row count, should a chart whose picture is a statistic embed only its bins, densities or quartiles, and no longer every observation?",
+      "why": "TYP-36 embeds every observation of every chart, so that the Table view and the CSV download show all rows. For a statistic chart over a large file the observations are most of the report and none of the picture: on a 100,000-row file a histogram's payload is 1.31 MB of which its 30 bins are about 2 KB, a box plot's is 3.07 MB and a density's 0.84 MB (docs/lockdown/evidence/parquet.md). TYP-102's row limit lets one such chart read a million rows: a histogram over one column of the example's million-row file is a 16.3 MB report.",
+      "proposed": "Not built. Above 10,000 observations a histogram, density, ECDF, box plot, violin, hexbin or two-dimensional bin chart embeds its derived structure and the count of observations, and its Table view and CSV download show that structure (one row per bin, group or cell), labelled as computed by RichView, with the sentence \"Summarised from N observations\". Below the count nothing changes. Charts whose marks are observations (scatter, line, strip, dot plot) are untouched; their per-point readout text is the readout-numbers payload work.",
+      "options": [
+        {
+          "label": "Keep every observation (current)",
+          "detail": "Table and CSV always show the rows; a statistic chart over a million rows costs megabytes, and the author aggregates with SQL to avoid it."
+        },
+        {
+          "label": "Structure only above a row count",
+          "detail": "A statistic chart over any number of rows costs kilobytes; readers of a large statistic chart get its bins in the Table, not its rows. Changes TYP-36's Table promise and each such chart type's runtime."
+        }
+      ],
+      "recommendation": "Structure only above a row count, decided after TYP-102's two halves have landed: it is the one change that makes an all-rows statistic chart small, and nothing in TYP-102 depends on it.",
+      "confidence": "inferred",
+      "conflicts": "TYP-36 promises that Table views and CSV downloads show the referenced fields for all rows. FEA-CH-37 already requires derived values to be labelled as such. The lead ruled on 19 November 2026 that this is proposed and not built before TYP-102 is ready.",
+      "sources": [
+        {
+          "label": "Measured payloads per chart type on a 100,000-row file",
+          "ref": "docs/lockdown/evidence/parquet.md",
+          "date": "2026-11-19"
+        },
+        {
+          "label": "The lead's ruling: write the lever up as a proposed card with the measured numbers, do not build it before both halves of Parquet are ready",
+          "ref": "S27-986",
+          "date": "2026-11-19"
+        }
+      ]
+    },
+    {
+      "id": "TYP-104",
+      "kind": "decision",
+      "importance": "detail",
+      "refId": "D-TYP-COLUMN-DECIMALS",
+      "group": "Data and report folder",
+      "title": "A column from a typed numeric source shows one number of decimals",
+      "question": "Should a field from a typed numeric source be shown with one number of decimals across its column, decided by the author or by the source's declared scale?",
+      "why": "A value that arrives as a number has no written form, so its trailing zeros are gone. A SQL result or a Parquet column that holds 9.26, 9.00 and 8.98 prints 9.26, 9 and 8.98 in a heatmap, and a table prints 7% among 6.1%. A CSV does the same: `9.00` written in a file prints 9 (checked on the release build of 19 November 2026). The vocabulary sets significant digits (`digits`) and has no way to fix decimal places, so an author cannot repair it. The Parquet example printed it on every page until its queries were changed to return whole numbers and one-decimal averages (the lead's review of 19 November 2026).",
+      "proposed": "Not built.\n\n| Rule | Value |\n| --- | --- |\n| Scope | A field whose values arrive typed as numbers: a `data.sql` result, a `data.parquet` column, a JSON number. Whether a CSV column follows the same rule, with the most decimals written in the column as its declared scale, is part of this question |\n| One scale per column | Every printed value of the field, in a chart's labels and readouts and in a table's cells, shows the same number of decimals |\n| The author decides | A new closed option beside `digits`, a whole number of decimal places from 0 to 6, on a chart, an axis and a table column |\n| Else the source's declared scale | A column the source declares with a fixed scale, such as SQL or Parquet `DECIMAL(12,2)`, shows that scale: 9.00 stays 9.00. The worker passes the scale with the column |\n| Else the data | A column of floats with no declared scale shows the most decimals any of its values needs within the author's significant digits, on every row |\n| Never more than the author chose | The scale never shows a digit beyond the author's `digits` or decimals (FEA-CH-37): padding adds zeros, never precision |\n| Whole numbers | A column whose values are all whole shows no decimals, as today |",
+      "options": [
+        {
+          "label": "One scale per column, from the author or the source",
+          "detail": "A typed column reads as a column: 9.26, 9.00, 8.98. Adds one option to the vocabulary and a scale to the rows a host passes for SQL and Parquet."
+        },
+        {
+          "label": "Keep today's shortest form per value",
+          "detail": "No change to the vocabulary or the payload; a typed column mixes 9 and 9.26, and the author works around it in SQL by returning whole numbers."
+        }
+      ],
+      "recommendation": "One scale per column, from the author or the source: a column of measurements is read down, and mixed decimals read as different precision that the data does not have.",
+      "confidence": "inferred",
+      "conflicts": "FEA-CH-37 bounds what readers see by the author's precision; this card pads with zeros and never adds a digit. TYP-37 types a CSV cell from its text, and its trailing zeros are lost when the cell becomes a number, so the same reader sees the same mix from a CSV. `digits` stays significant digits; whether the new option may stand beside `digits` on one field or replaces it there is open. The lead ruled on 19 November 2026 that this is proposed and the engine change is not built that night.",
+      "sources": [
+        {
+          "label": "The lead's review of the Parquet example: the heatmap printed 9 and 8 among 9.26 and 8.98, and the table 7% among 6.1%; write the rule up as a card, do not build it",
+          "ref": "S27-986",
+          "date": "2026-11-19"
+        },
+        {
+          "label": "The vocabulary's `digits` fields are significant digits, not decimal places",
+          "ref": "crates/richview-core/src/registry.rs",
+          "date": "2026-11-19"
+        },
+        {
+          "label": "A CSV column of 9.26, 9.00 and 8.98 prints 9.26, 9 and 8.98 in a table: `richview generate` with the release build of the branch at b0e709bb",
+          "ref": "S27-986",
+          "date": "2026-11-19"
         }
       ]
     },
@@ -2573,7 +2774,7 @@
       "title": "Size and count limits",
       "question": "Are these the limits, enforced the same way in every host, and can every report that renders also be published?",
       "why": "Limits protect hosts from oversized input and set the ceiling for embedded media. Today they do not fit together: up to 64 MiB of resolved resources renders locally, but publishing sends them in a request body capped at 32 MiB, and T-PUBLISH-REQUEST sends binary files as base64, which adds a third. PRF-62's informational fixture (about 16 MB of CSV, roughly 15 MiB) sits just under the 16 MiB dataset limit.",
-      "proposed": "| Limit | Value | On breach |\n| --- | --- | --- |\n| `.rmd` source | 16 MiB | `source.limit` |\n| One resolved dataset | 16 MiB | `data.limit` |\n| Resolved data, media and styles together | 64 MiB | error naming the largest files |\n| Report HTML | 64 MiB | `render.output-limit` |\n| HTTP render and MCP request body, host file read | 32 MiB | error |\n| Publish request body | Change: 104 MiB, enough for 64 MiB of files as base64 plus a 16 MiB source | error |\n| Editor service request | 24 MiB | error |\n| Entries in a report folder, files and directories alike | 10,000 | `report.root.unresolved` |\n| Chart width | D-TYP-WIDTH-RANGE | `options.width` |\n\nPRF-62's fixture must stay under the dataset limit; a larger fixture needs that limit raised first.",
+      "proposed": "| Limit | Value | On breach |\n| --- | --- | --- |\n| `.rmd` source | 16 MiB | `source.limit` |\n| One resolved dataset | 16 MiB | `data.limit` |\n| One Parquet file's rows | 1,000,000, and the 16 MiB above counted on the columns the report reads, not on the file (TYP-102) | `data.limit` |\n| Resolved data, media and styles together | 64 MiB | error naming the largest files |\n| Report HTML | 64 MiB | `render.output-limit` |\n| HTTP render and MCP request body, host file read | 32 MiB | error |\n| Publish request body | Change: 104 MiB, enough for 64 MiB of files as base64 plus a 16 MiB source | error |\n| Editor service request | 24 MiB | error |\n| Entries in a report folder, files and directories alike | 10,000 | `report.root.unresolved` |\n| Chart width | D-TYP-WIDTH-RANGE | `options.width` |\n\nPRF-62's fixture must stay under the dataset limit; a larger fixture needs that limit raised first.",
       "options": [
         {
           "label": "Raise the publish body",
@@ -2836,7 +3037,7 @@
       "title": "Style components section",
       "question": "Are these the component keys a style may set?",
       "why": "Components are the structural style choices; part 06 picks their values, this item fixes the vocabulary.",
-      "proposed": "Today's keys; part 06 decides which stay (ARC-12, INT-28), and this card fixes the grammar of every key that does.\n\n| Key | Values |\n| --- | --- |\n| `metric.style` (today `big.style`; follows T-RICH-FENCE) | `card`/`bracket`/`knockout`/`underline` |\n| `deck.style` | `italic`/`normal` |\n| `callout.style`, `callout.border-width` | `rule`/`bracket`; dimension |\n| `header.border-top`, `header.border-bottom` | dimension |\n| `rules.style` | `hairline`/`pencil` |\n| `title`, `heading`, `table-head`, `source-label`: `transform`, `weight`, `letter-spacing`, `font` | `none`/`uppercase`; `normal`/`bold`/`lighter`/`bolder` or 1–1000; number, `normal` or length; `display`/`text`/`ui`/`mono` |\n\nThe retired `callout.left-bar-width` is an unknown key. Every builtin sets `components.big`; the migration renames it with the tag (D-TYP-MIGRATIONS).\n\nUnder Daniel's STY-14 answer these keys are author-facing. His STY-01 answer adds the structural choices the styles differ by — outlines or shading, legend position, chart-title position and where a chart's description sits — which join this table with the values part 06's design reviews give them (STY-67). Choices that can break layout, such as a centred title, carry the `experimental` mark (TYP-44).",
+      "proposed": "Today's keys; part 06 decides which stay (ARC-12, INT-28), and this card fixes the grammar of every key that does.\n\n| Key | Values |\n| --- | --- |\n| `metric.style` (today `big.style`; follows T-RICH-FENCE) | `card`/`bracket`/`knockout`/`underline` |\n| `deck.style` | `italic`/`normal` |\n| `callout.style`, `callout.border-width` | `rule`/`bracket`; dimension |\n| `header.border-top`, `header.border-bottom` | dimension |\n| `rules.style` | `hairline`/`pencil` |\n| `title`, `heading`, `table-head`, `source-label`: `transform`, `weight`, `letter-spacing`, `font` | `none`/`uppercase`; `normal`/`bold`/`lighter`/`bolder` or 1–1000; number, `normal` or length; `display`/`text`/`ui`/`mono` |\n| `slides.stage` (FEA-RP-65) | `plain`/`keynote`/`gallery`/`poster`/`sketchbook`/`paper` |\n\nThe retired `callout.left-bar-width` is an unknown key. Every builtin sets `components.big`; the migration renames it with the tag (D-TYP-MIGRATIONS).\n\nUnder Daniel's STY-14 answer these keys are author-facing. His STY-01 answer adds the structural choices the styles differ by — outlines or shading, legend position, chart-title position and where a chart's description sits — which join this table with the values part 06's design reviews give them (STY-67). Choices that can break layout, such as a centred title, carry the `experimental` mark (TYP-44).",
       "confidence": "observed",
       "sources": [
         {
@@ -4461,7 +4662,7 @@
       "title": "Label highlights (PR #67)",
       "question": "If PR #67's explicit label highlights stay, do they belong in `encoding` or in their own chart field?",
       "why": "PR #67 adds `encoding.highlight: {by, include, priority}` without a spec change; `encoding` otherwise maps channels to field names, and a nested object there breaks that rule.",
-      "proposed": "A top-level chart field `highlight: {by, include, priority}`: `by` is a data field, `include` lists the values whose labels must be drawn (with leaders when needed), and `priority` orders them when they compete; matching is case-insensitive. It applies to scatter charts, with or without a `label` channel; without one the label text is the `by` value, as on the branch. Change from the branch: an `include` value that matches no row warns `chart.unresolved-highlight` (the branch ignores it silently), as unresolved annotations do (T-CHART-ANNOTATION).",
+      "proposed": "A top-level chart field `highlight: {by, include, priority}`: `by` is a data field, `include` lists the values whose labels must be drawn (with leaders when needed), and `priority` orders them when they compete; matching is case-insensitive. It applies to scatter charts, with or without a `label` channel; without one the label text is the `by` value, as on the branch. Change from the branch: an `include` value that matches no row warns `chart.unresolved-highlight` (the branch ignores it silently), as unresolved annotations do (T-CHART-ANNOTATION). With `mute` the same field makes series, categories or points the subject of line, area, bar, lollipop and scatter charts: `highlight.mute` (default `true` on line, area, bar and lollipop, `false` on scatter, which keeps its look unless asked) draws every mark `include` does not match in the style's quiet ink, `ink-faint` (STY-25), paints it first, and gives it none of the names and values the chart adds by itself; readouts, Table and CSV keep every value. A line or area recedes by series (one without a matching row), a bar, lollipop or scatter point by row. A highlight that matches no row mutes nothing.",
       "options": [
         {
           "label": "Top-level `highlight`",
@@ -4484,6 +4685,11 @@
           "label": "Flagship and chart polish",
           "ref": "S27-654",
           "date": "2026-10-18"
+        },
+        {
+          "label": "Daniel, 19 November 2026, relayed by the lead: “add annotations - full breadth of cool chart annotations”; highlight and mute opens the annotations gallery",
+          "ref": "The lead's brief of 19 November 2026 (highlight and mute) and its annotations proposal",
+          "date": "2026-11-19"
         }
       ]
     },

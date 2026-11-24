@@ -16,8 +16,9 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="https://richview.ai/showcase/openai-vs-anthropic/">
 <link rel="icon" type="image/svg+xml" href="/landing/favicon.svg">
+<link rel="preload" href="/fonts/geist-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/geist-600.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/site.css">
-<link rel="stylesheet" href="/richview-fonts.css">
 <link rel="stylesheet" href="/showcase/showcase.css">
 <style><!-- rv-initial-frame-style --></style>
 </head>
@@ -42,14 +43,16 @@
 </main>
 <div class="flag-foot">
 <span>The wording, figures and evidence stay fixed.</span>
-<a href="ledger/sources.csv" download id="source-count">Source ledger</a>
+<a href="ledger/sources.csv" download id="source-count"><!-- rv-source-count --></a>
 <a href="ledger/collection-runs.csv" download>Collection runs</a>
 <a href="report.rmd" download>report.rmd</a>
+<a href="openai-vs-anthropic.zip" download>Download complete report folder (.zip)</a>
 <span>Content hash <code><!-- rv-content-hash --></code></span>
 </div>
 <div id="citation-card" class="citation-card" role="tooltip" hidden></div>
 <!-- rv-site-footer -->
 <script id="showcase-tokens" type="application/json"><!-- rv-showcase-tokens --></script>
+<script id="showcase-citations" type="application/json"><!-- rv-showcase-citations --></script>
 <script src="/richview_site.js"></script><script src="/bootstrap.js"></script>
 </body>
 </html>

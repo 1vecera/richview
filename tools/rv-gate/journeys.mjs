@@ -460,7 +460,7 @@ async function agentJourney(j, c) {
 		j.assert(`the fix (${fix.from} -> ${fix.to}) clears the error`, "app surfaces", fixed.data?.ok === true && !(fixed.data.diagnostics ?? []).some((d) => d.level === "error"), "ok: true and no error", JSON.stringify(fixed.data?.diagnostics)?.slice(0, 200));
 
 		// Publish to the local server.
-		const publish = await mcp.call("richview_publish", { inputPath: file, new: true });
+		const publish = await mcp.call("richview_publish", { inputPath: file });
 		const slug = "hello-world";
 		const published = publish.data ?? {};
 		j.assert("publish returns ok with the diagnostic shape", "publish", publish.isError === false && published.ok === true && resultProblems(published).length === 0, "ok: true", `isError ${publish.isError} ${JSON.stringify(published)?.slice(0, 220)} ${publish.text.slice(0, 120)}`);
@@ -525,9 +525,9 @@ async function coworkJourney(j, c) {
 		const offline = cli(c, ["generate", cliFile, "--format", "json"]);
 		j.need("the offline report builds", "app surfaces", offline.json?.ok === true, "ok", offline.stderr.slice(0, 160));
 
-		const first = cli(c, ["publish", cliFile, "--server", server.base, "--token", owner.token, "--new", "--format", "json"]);
+		const first = cli(c, ["publish", cliFile, "--server", server.base, "--token", owner.token, "--format", "json"]);
 		j.need("publish from the CLI", "app surfaces", first.status === 0 && first.json?.ok === true && first.json.url === `${server.base}/r/cli-story`, "ok and the report's URL", `exit ${first.status} ${first.stdout.slice(0, 200)} ${first.stderr.slice(0, 120)}`);
-		const second = await mcp.call("richview_publish", { inputPath: mcpFile, new: true });
+		const second = await mcp.call("richview_publish", { inputPath: mcpFile });
 		j.need("publish from MCP", "app surfaces", second.data?.ok === true && second.data.url === `${server.base}/r/mcp-story`, "ok and the report's URL", `${JSON.stringify(second.data)?.slice(0, 200)} ${second.text.slice(0, 120)}`);
 		j.equal("both reports are owned by the publisher and private", "publish", [first.json.visibility, second.data.visibility], ["private", "private"]);
 

@@ -136,6 +136,33 @@ pub(crate) fn already_registered_html(link: &str) -> String {
     })
 }
 
+/// The subject of the notice that a provider's account was joined to an account.
+pub(crate) fn connected_subject(provider: &str) -> String {
+    format!("{provider} was connected to your RichView account")
+}
+
+/// Tell the holder of an account that a provider's account now signs in to it. `when` is the
+/// time, as a person reads it; `link` is the Account page, where it can be disconnected.
+pub(crate) fn connected(provider: &str, when: &str, link: &str) -> String {
+    format!(
+        "{provider} was connected to your RichView account\n\nAt {when}, a {provider} account was connected to your RichView account. You can now sign in to RichView with it.\n\nIf this was you, there is nothing to do. If it wasn't, disconnect it on your Account page and choose a new password:\n{link}\n\n{FOOTER}"
+    )
+}
+
+/// The HTML part of [`connected`].
+pub(crate) fn connected_html(provider: &str, when: &str, link: &str) -> String {
+    html(&Card {
+        heading: "A sign-in was connected",
+        eyebrow: "",
+        title: &format!("{provider} was connected"),
+        about: &format!("At {when}. You can now sign in to RichView with it."),
+        button: "Review your account",
+        link,
+        after: "If it wasn’t you, disconnect it on the Account page and choose a new password.",
+        ignore: "If it was you, there is nothing to do.",
+    })
+}
+
 /// A name someone else typed, as it may appear in a mail: one line, bounded, and never
 /// something a mail client would turn into a second link.
 pub(crate) fn plain(text: &str, fallback: &str) -> String {
@@ -566,5 +593,31 @@ mod tests {
             share_subject,
             "A colleague shared a RichView report with you"
         );
+    }
+
+    #[test]
+    fn the_notice_mail_carries_one_link_and_no_provider_supplied_text() {
+        let account = "https://app.test/account";
+        let told = connected("Microsoft", "11 Nov 2026, 15:25 UTC", account);
+        assert!(told.contains("At 11 Nov 2026, 15:25 UTC, a Microsoft account was connected"));
+        assert!(told.contains("disconnect it on your Account page"));
+        assert!(told.ends_with("RichView · operated by Daniel Vecera\n"));
+        assert_eq!(
+            connected_subject("GitHub"),
+            "GitHub was connected to your RichView account"
+        );
+        let html_told = connected_html("Microsoft", "11 Nov 2026, 15:25 UTC", account);
+        for message in [&told, &html_told] {
+            assert_eq!(links(message), 1, "{message}");
+            assert!(message.contains(account));
+        }
+        assert!(html_told.starts_with("<!doctype html>") && html_told.ends_with("</html>"));
+        assert!(html_told.contains("max-width:560px"));
+        assert!(
+            !html_told.contains("<img")
+                && !html_told.contains("<style")
+                && !html_told.contains("<script")
+        );
+        assert!(html_told.contains("At 11 Nov 2026, 15:25 UTC."));
     }
 }

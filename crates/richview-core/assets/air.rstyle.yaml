@@ -67,6 +67,9 @@ components:
     border-width: "1px"
   title:
     letter-spacing: "-0.035em"
+  # A slides source stands on this stage (FEA-RP-65): daylight on a Swiss grid: the lone number in light figures across the foot of the slide in the accent, its label set at the top.
+  slides:
+    stage: gallery
 chart:
   legend: bottom
   palette: air

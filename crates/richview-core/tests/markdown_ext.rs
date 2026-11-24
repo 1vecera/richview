@@ -195,18 +195,37 @@ fn bare_addresses_link_without_trailing_punctuation_and_never_inside_code_or_lin
 }
 
 #[test]
-fn fenced_code_is_plain_preformatted_text_whatever_its_tag() {
-    let (html, _) = render("```sql\nSELECT 1; -- \"x\"\n```\n\n```mermaid\ngraph TD\n```");
-    // Each source line is one span for print (FEA-RP-17); nothing else marks the text up.
-    let plain = html
-        .replace("<span class=\"rv-code-line\">", "")
-        .replace("</span>", "");
-    assert!(
-        plain.contains("<pre><code class=\"language-sql\">SELECT 1; -- \"x\"\n</code></pre>"),
-        "{html}"
+fn fenced_code_preserves_source_and_highlights_only_supported_languages() {
+    let sql = "SELECT 1; -- \"x\"\n";
+    let mermaid = "graph TD\n";
+    let (html, _) = render(&format!("```sql\n{sql}```\n\n```mermaid\n{mermaid}```"));
+    let block = |language: &str| {
+        html.split_once(&format!("<pre><code class=\"language-{language}\">"))
+            .unwrap()
+            .1
+            .split_once("</code></pre>")
+            .unwrap()
+            .0
+    };
+    let spans = regex::Regex::new(r"</?span\b[^>]*>").unwrap();
+    let sql_block = block("sql");
+    let mermaid_block = block("mermaid");
+    assert_eq!(spans.replace_all(sql_block, ""), sql);
+    assert_eq!(spans.replace_all(mermaid_block, ""), mermaid);
+    assert_eq!(
+        mermaid_block,
+        format!("<span class=\"rv-code-line\">{mermaid}</span>")
     );
-    assert!(plain.contains("<pre><code class=\"language-mermaid\">graph TD\n</code></pre>"));
-    assert!(!plain.contains("<span"));
+    for (class, token) in [
+        ("hl-key", "SELECT"),
+        ("hl-num", "1"),
+        ("hl-comment", "-- \"x\""),
+    ] {
+        assert!(
+            sql_block.contains(&format!("<span class=\"{class}\">{token}</span>")),
+            "{sql_block}"
+        );
+    }
 }
 
 #[test]

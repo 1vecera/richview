@@ -188,7 +188,7 @@ async function nativeSmoke(context, work, evidence) {
 			return issued.json.token;
 		};
 		const owner = await person("Owner", "author"), outsider = await person("Outsider", "reader");
-		const publish = { slug: "hosted-smoke", source: SOURCE, new: true, reportFolder: { root: "hosted-smoke", source: "report.rmd", files: ["report.rmd"] } };
+		const publish = { slug: "hosted-smoke", source: SOURCE, reportFolder: { root: "hosted-smoke", source: "report.rmd", files: ["report.rmd"] } };
 		assert.equal((await api(null, "POST", "/api/reports", publish)).status, 401);
 		response = await api(owner, "POST", "/api/reports", publish);
 		assert.equal(response.status, 200, response.text); assert.equal(response.json.visibility, "private");

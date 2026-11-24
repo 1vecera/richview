@@ -114,7 +114,8 @@ impl std::fmt::Display for PublishError {
             ),
             Self::ReportLimit { limit } => write!(
                 f,
-                "This organization already has its {limit} live reports. Delete a report before creating another."
+                "This organization already has its {limit} live report{}. Delete a report before creating another.",
+                if *limit == 1 { "" } else { "s" }
             ),
             Self::Deleted => write!(
                 f,
@@ -244,6 +245,10 @@ impl FsStorage {
         self
     }
 
+    pub(crate) fn hosted_limits(&self) -> (u64, u64) {
+        (self.org_quota, self.org_reports)
+    }
+
     pub fn is_hosted(&self) -> bool {
         self.hosted
     }
@@ -296,15 +301,19 @@ impl FsStorage {
         dir_bytes(&self.dir)
     }
 
+    pub(crate) fn signup_space_available_at(&self, used: u64) -> bool {
+        self.hosted
+            && self
+                .quota
+                .is_some_and(|quota| (used as u128) * 5 < (quota as u128) * 4)
+    }
+
     /// Pause new accounts when the configured store reaches 80%; cache brief reads and invalidate
     /// on report writes so anonymous requests cannot trigger an unbounded directory scan.
     pub(crate) fn signup_space_available(&self) -> Result<bool, String> {
-        if !self.hosted {
+        if !self.signup_space_available_at(0) {
             return Ok(false);
         }
-        let Some(quota) = self.quota.filter(|quota| *quota > 0) else {
-            return Ok(false);
-        };
         let _storage = self.lock.lock().map_err(|_| "Storage lock poisoned")?;
         let mut cache = self
             .signup_space
@@ -316,7 +325,7 @@ impl FsStorage {
             return Ok(available);
         }
         let used = dir_bytes(&self.dir)?;
-        let available = (used as u128) * 5 < (quota as u128) * 4;
+        let available = self.signup_space_available_at(used);
         *cache = Some((std::time::Instant::now(), available));
         Ok(available)
     }

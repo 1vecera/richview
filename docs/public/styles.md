@@ -67,7 +67,9 @@ colors:
 | `secondary` | the second series | kept exact when it reaches 3:1 and can be told from `brand`; otherwise adjusted, or left out with a note |
 | `background` | the page | your exact page, unless no text could reach 7:1 on it or four series 3:1: then it is lightened or darkened only as far as they need, keeping its hue; a dark colour makes a dark report |
 
-Text reaches 7:1 on every surface, secondary text 4.5:1, and the first four series 3:1. When a colour has to move to reach its floor, `check` says which colour moved and to what. Any CSS colour works; hex is the easiest to copy from a brand guide. Printed pages are always light: a dark page prints as its preset's light counterpart, still in your colours.
+Text reaches 7:1 on every surface, secondary text 4.5:1, and the first four series 3:1. A `palette` list of series colours overrides the derived palette and is checked by the palette rule. The [style YAML reference](https://richview.ai/docs/style-yaml) lists every supported setting.
+
+When a colour has to move to reach its floor, `check` says which colour moved and to what. Any CSS colour works; hex is the easiest to copy from a brand guide. Printed pages are always light: a dark page prints as its preset's light counterpart, still in your colours.
 
 Add the file to the report's style list, after the preset or instead of it:
 
@@ -80,6 +82,8 @@ styles: [sleek, report.rstyle.yaml]
 ```
 
 A file's own `preset` takes the place of the preset listed before it. Later files win setting by setting. CLI `--style` replaces the source list for that call; repeat it to name a preset and then a file.
+
+RichView skips a retired setting and reports `style.retired` at its location in the style file. The warning names a supported replacement when one exists. Otherwise the preset supplies the value. Other settings in the same file still apply.
 
 ## Set the size of things
 
@@ -106,28 +110,16 @@ corners: xsmall
 motion: xsmall
 ```
 
-The steps are built to combine. The type scale moves as one, so headings stay clearly larger than body text. Space between blocks follows the text size. On phones text moves at most a tenth either way and gaps half as far. Colours are derived after the steps, so `tint` and `gridlines` never take text below its contrast floor, and the faintest gridlines stay visible. A colour you set in an older style file's tokens wins over the derived one. Page width and the reading measure stay fixed. Reduced-motion preferences are always honoured.
+The steps are built to combine. The type scale moves as one, so headings stay clearly larger than body text. Space between blocks follows the text size. On phones text moves at most a tenth either way and gaps half as far. Colours are derived after the steps, so `tint` and `gridlines` never take text below its contrast floor, and the faintest gridlines stay visible. Page width and the reading measure stay fixed. Reduced-motion preferences are always honoured.
+
+## Put it on a background
+
+Hand-drawn, Scientific and Sleek ship a background: paper grain, graph paper and a glow. Change it, or turn it off, in one word in the report's frontmatter (`background: dots`, `background: none`), or once for every report in a style file. The [backgrounds guide](https://richview.ai/docs/backgrounds) shows each one.
 
 ## Bring your fonts
 
 Use the `fonts` setting to assign display, text, UI and monospace roles. Bundled stacks travel with the report. For a brand font, a role can use a mapping such as `fonts: {text: {family: My Brand, file: media/brand.woff2}}`; supply that WOFF2 file inside the report folder and ensure you can redistribute it. The native exporter embeds the resolved font. A system font name alone cannot make a font portable.
 
-## Moving from tokens
-
-Earlier style files set tokens, components and chart keys directly, and older settings used their own words. They still apply exactly as before, and `check` gives each a `style.legacy` warning naming what replaces it:
-
-| Earlier | Now |
-| --- | --- |
-| `type-size: small`, `large`, `bigger` | `text-size: small`, `medium`, `large` |
-| `density: comfortable`, `loose`, `airmax` | `padding: medium`, `large`, `xlarge` |
-| `block-gap: tight`, `regular`, `wide` | `spacing`, at the nearest step |
-| `motion: on`, `off` | `motion: medium`, `xsmall` |
-| `accent` or `company.color` | `colors.brand` |
-| `company.secondary`, `company.base` | `colors.secondary`, `preset` |
-| `tokens`, `components`, `chart`, `motion` and `layout` keys | the setting the warning names, or the preset that has the look |
-
-A `palette` list of series colours still overrides the derived palette; the palette rule measures it. The [style YAML reference](https://richview.ai/docs/style-yaml) lists every setting and every legacy leaf. Raw CSS, HTML and JavaScript are not customization interfaces.
-
 ## Review the result
 
-Inspect narrow and desktop layouts, and run `check`: it reports any colour it moved and any legacy leaf. Sleek prints as Air; [PDF export](https://richview.ai/docs/export) keeps the report readable on paper.
+Inspect narrow and desktop layouts, and run `check`: it reports any colour it moved. Sleek prints as Air; [PDF export](https://richview.ai/docs/export) keeps the report readable on paper.

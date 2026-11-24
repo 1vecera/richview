@@ -26,17 +26,29 @@ For account deletion, verify the person ID in the private access state first. Wh
 
 ## Hosted startup and mail
 
-Hosted mode requires separate HTTPS app and report origins behind a trusted proxy. The proxy must overwrite `X-Real-IP` with the actual client IP; do not trust a value supplied by the client. Exclude `/link/`, `/ui/link/` and report handoff queries from access and application logs. Keep the operator listener on loopback and its token in the host's secret mechanism.
+Hosted mode requires separate HTTPS app and report origins behind a trusted proxy. The one exception is for local development: plain HTTP at `localhost`, `127.0.0.1` or `[::1]`, which the start reports as local development only. A deployed server must use HTTPS; with a plain-HTTP address its links and sign-in callbacks point at the local machine. The proxy must overwrite `X-Real-IP` with the actual client IP; do not trust a value supplied by the client. Exclude `/link/`, `/ui/link/`, report handoff query strings and query strings on `/sign-in/{provider}/callback` from access and application logs. Keep the operator listener on loopback and its token in the host's secret mechanism.
 
 Choose exactly one mail transport: `--mail-outbox` for manual delivery, or SMTP with `RICHVIEW_SMTP_PASSWORD`. For SMTP, set `RICHVIEW_MAIL_FROM` to `RichView <address@example.com>` using the real sender address so the display name is RichView. The default limits are 500 signup accounts, 1,000 mail messages per UTC day, 10 link requests per IP per hour and 60 publish attempts per organization per hour. Manual requests and links have per-address limits of three per hour and ten per day; manual requests also have a 10,000-per-day cap. Half the daily mail budget and half of the 10,000-entry daily request/link history are reserved for existing-account resets, invitations and shares; decoys and requests over the address cap use no mail unit. A person may create one organization, counted even after an ownership transfer; raise `--org-creation-limit` or `RICHVIEW_ORG_CREATION_LIMIT` and restart to change the limit. Existing accounts without a creation record count as one; deletion removes the count, so re-registration starts a new sign-up.
+
+In the operator summary, `signupsPaused` shows the manual switch. `signupsOpen` is true when new sign-ups can be accepted. `signupClosedReasons` lists every active limit, including a manual pause, a full account allocation, storage at or above 80%, or an unavailable or exhausted sign-up mail allowance. `mailsRemainingToday` counts the remaining mail units across all purposes until midnight UTC.
 
 The operator summary reports `accountsHalfFull` and `storageHalfFull` at 50% of the configured account and store limits. The server checks both once a minute and logs one alert on each threshold crossing. Arrange delivery of those alerts to the operator separately. Check the configured `--signup-account-limit` and `--mail-daily-limit` before operating; a check-mail response alone does not confirm that a message was queued.
 
 SMTP uses implicit TLS on port 465 and mandatory STARTTLS on port 587; for another port set `--smtp-tls implicit` or `--smtp-tls starttls`. Cloudflare Email Sending uses `smtp.mx.cloudflare.net` on port 465 with user `api_token` and its API token in `RICHVIEW_SMTP_PASSWORD`.
 
+## Sign-in with GitHub, Microsoft and Google
+
+People may sign up and sign in with GitHub, Microsoft or Google once the hosted server has that provider's client: `RICHVIEW_GITHUB_CLIENT_ID` (or `--github-client-id`) with `RICHVIEW_GITHUB_CLIENT_SECRET`, `RICHVIEW_MICROSOFT_CLIENT_ID` (or `--microsoft-client-id`) with `RICHVIEW_MICROSOFT_CLIENT_SECRET`, and `RICHVIEW_GOOGLE_CLIENT_ID` (or `--google-client-id`) with `RICHVIEW_GOOGLE_CLIENT_SECRET`. A secret is read from the environment only. A client id without its secret, or a secret without its id, stops the server at start; with neither, no button shows and nothing changes. Register each client with the callback `<public URL>/sign-in/github/callback`, `<public URL>/sign-in/microsoft/callback` or `<public URL>/sign-in/google/callback`; Microsoft's registration must add the optional ID-token claims `email` and `xms_edov`, without which a Microsoft address never counts as checked, so Microsoft sign-in then only works for people who connect it on their Account page or accept an invitation with it. A Google address counts only when Google marks it verified (`email_verified`). The server calls `github.com`, `api.github.com`, `login.microsoftonline.com` and `oauth2.googleapis.com` on TCP 443. At start it logs which providers are on.
+
 ## Manual outbox
 
-The manual outbox stores pending requests without live links. Requests expire after 24 hours. Immediately before sending, list the pending requests through the operator listener and dispatch the intended request. Dispatch creates a single-use link that expires one hour later and returns the recipient, subject and message text. Send the returned message promptly with sender display name RichView; never send a previously generated link after it has expired.
+The manual outbox stores pending requests without live links. Requests expire after 24 hours. Immediately before sending, list the pending requests through the operator listener and dispatch the intended request. Dispatch creates a single-use link and returns the recipient, subject and message text. Send the returned message promptly with sender display name RichView. Link lifetimes start at dispatch.
+
+| Mail link | Lifetime |
+| --- | --- |
+| Sign-up | 24 hours |
+| Invitation | 24 hours |
+| Password reset | 1 hour |
 
 Work privately as the server user. Pending requests contain addresses; the dispatch response contains a live credential. Set the destination paths below to private files outside web-served and shared folders, use `umask 077`, and keep the response, links and addresses out of logs, shell history and support requests:
 

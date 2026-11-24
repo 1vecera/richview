@@ -87,7 +87,7 @@ edges:
 
 ## Interactions
 
-- Hover or focus a card to read what it is, its group, its lines and the cards before and after it.
+- Point at a card to read its details and the cards before and after it. Its border strengthens and a ring follows the same outline. Use the arrow keys to select a mark and see the same ring and readout.
 - Hover or focus a line to read the cards it joins and its label.
 - Move through the cards with the keyboard in reading order, then the lines.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

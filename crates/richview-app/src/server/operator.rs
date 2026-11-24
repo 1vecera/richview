@@ -135,6 +135,10 @@ async fn delete_person(
     match hosted::delete_account(&state.app, person, successors).await {
         Ok(value) => Json(value).into_response(),
         Err(hosted::DeleteAccountError::NotFound) => StatusCode::NOT_FOUND.into_response(),
+        Err(hosted::DeleteAccountError::NeedsSuccessor) => (
+            StatusCode::CONFLICT,
+            Json(serde_json::json!({"error": "Account is the last owner of an organization with other members; name an eligible successor for each organization"})),
+        ).into_response(),
         Err(hosted::DeleteAccountError::Failed(message)) => (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(serde_json::json!({"error": message})),
@@ -586,7 +590,7 @@ mod tests {
                 .await
                 .unwrap()
                 .status(),
-            StatusCode::INTERNAL_SERVER_ERROR
+            StatusCode::CONFLICT
         );
         assert!(access.user("person-c").is_some());
         assert!(access.user("person-d").is_some());
@@ -799,6 +803,31 @@ mod tests {
                 .status(),
             StatusCode::UNSUPPORTED_MEDIA_TYPE
         );
+        let missing = Request::builder()
+            .method("DELETE")
+            .uri("/operator/people/person-a")
+            .header(header::AUTHORIZATION, format!("Bearer {secret}"))
+            .body(Body::empty())
+            .unwrap();
+        let refused = app.clone().oneshot(missing).await.unwrap();
+        assert_eq!(refused.status(), StatusCode::CONFLICT);
+        let body = axum::body::to_bytes(refused.into_body(), 4096)
+            .await
+            .unwrap();
+        let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(
+            body["error"],
+            "Account is the last owner of an organization with other members; name an eligible successor for each organization"
+        );
+        let audit = std::fs::read_to_string(access_dir.join("audit-refused.log")).unwrap();
+        let attempts: Vec<serde_json::Value> = audit
+            .lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .filter(|row: &serde_json::Value| row["action"] == "operator.delete-account")
+            .collect();
+        assert_eq!(attempts.len(), 1);
+        assert_eq!(attempts[0]["target"], "person-a");
+        assert_eq!(attempts[0]["allowed"], false);
         let request = |successor: &str| {
             Request::builder()
                 .method("DELETE")
@@ -816,7 +845,7 @@ mod tests {
                 .await
                 .unwrap()
                 .status(),
-            StatusCode::INTERNAL_SERVER_ERROR
+            StatusCode::CONFLICT
         );
         assert!(access.user("person-a").is_some());
         assert_eq!(
@@ -843,7 +872,7 @@ mod tests {
                 .is_some()
         );
         drop(access);
-        let reopened = Access::open_hosted(root.path()).unwrap();
+        let reopened = Access::reopen_hosted(root.path()).await;
         assert!(reopened.user("person-a").is_none());
         assert_eq!(
             reopened.role_in("person-b", "aaaa0001"),

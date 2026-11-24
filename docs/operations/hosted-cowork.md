@@ -7,7 +7,7 @@ This runbook applies after the hosted Cowork server has been deployed and its op
 - The visitor requests access by emailing the contact listed at `https://richview.ai/impressum`. Confirm who they are and agree a secure channel for credentials. Email is the request address, not a place to paste a token.
 - Sign in to the Cowork app as an administrator over HTTPS and open `/governance`. Add the person with the **author** role, set an individual password and deliver it over the agreed secure channel. The password lets the author sign in to read, manage and share their private reports.
 - Under that person's **Password and tokens**, enter a distinct token name and select **New token**. Copy the secret immediately; the server shows it once and stores only its digest. Deliver it through the agreed secure channel. Never copy it into an issue, log, terminal transcript or report.
-- Tell the author to set `RICHVIEW_SERVER=https://app.richview.ai` and `RICHVIEW_TOKEN` to their token in their own shell or MCP host environment. They can use `richview publish <report> --new`. A new report is private by default; sign in to the app to share it when desired.
+- Tell the author to set `RICHVIEW_SERVER=https://app.richview.ai` and `RICHVIEW_TOKEN` to their token in their own shell or MCP host environment. They can use `richview publish <report>`. A new report is private by default; sign in to the app to share it when desired.
 
 ## Revoke access
 

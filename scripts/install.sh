@@ -20,7 +20,7 @@ usage() {
 Usage: sh install.sh [--prefix DIR] [--base-url URL] [--commit FULL_COMMIT]
        sh install.sh --uninstall [--prefix DIR]
 
-Installs the CLI (including MCP and the Cowork server) and its SQL worker.
+Installs the CLI (including MCP and RichView Cowork, the report server) and its SQL worker.
 DIR defaults to $HOME/.richview and must not already exist; its parent must exist.
 The default downloads from the release stamped into this installer.
 URL serves release assets directly;
@@ -186,12 +186,21 @@ installing=true
 cp -R "$work/payload/." "$prefix"
 installing=false
 cli=$(quote "$prefix/bin/richview")
-printf '%s\n' "Installed RichView build $commit in $prefix" \
+# The version is the one the installed CLI reports, so it matches `richview --version`.
+version=$("$prefix/bin/richview" --version 2>/dev/null | sed -n '1s/^richview \([^ ]*\) .*$/\1/p') || version=''
+case $version in ''|*[!0-9A-Za-z.+-]*) version='';; esac
+if [ -n "$version" ]; then
+  installed="Installed RichView $version (commit $(printf '%s' "$commit" | cut -c1-10)) in $prefix"
+else
+  installed="Installed RichView build $commit in $prefix"
+  printf '%s\n' "richview install: the installed CLI did not report its version; run $cli --version to see why." >&2
+fi
+printf '%s\n' "$installed" \
   "Add $prefix/bin to PATH, or invoke $prefix/bin/richview directly." \
   "Start a report: $cli init my-report" \
   "Agent MCP command: $cli mcp" \
-  "Optional Cowork server: $cli server --help" \
-  'When you publish, choose RichView-hosted Cowork or your own server; no hosted service was started.' \
+  "Run your own report server, RichView Cowork: $cli server --help" \
+  'When you publish, choose RichView Cowork hosted by RichView at app.richview.ai, or your own server; no hosted service was started.' \
   "Uninstall: sh $(quote "$prefix/uninstall.sh") --uninstall --prefix $(quote "$prefix")"
 }
 main "$@"

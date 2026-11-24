@@ -40,7 +40,7 @@ tokens:
   size-display-phone: "34px"
   line-base: "1.65"
   # About 68 characters of Newsreader at 17px.
-  measure: "38rem"
+  measure: "42rem"
   radius-s: "0px"
   radius-m: "0px"
   shadow-float: "none"
@@ -88,6 +88,9 @@ components:
     transform: uppercase
     weight: normal
     letter-spacing: "0.06em"
+  # A slides source stands on this stage (FEA-RP-65): a wall of posters: condensed capitals to the edges, the lone number white on an accent field over a heavy bar, section slides on ink.
+  slides:
+    stage: poster
 chart:
   legend: bottom
   palette: brutalist

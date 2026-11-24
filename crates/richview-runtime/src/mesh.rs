@@ -679,7 +679,11 @@ pub fn rounded_ring(rect: Rect, radius: [f64; 4], tolerance: f64) -> Vec<[f64; 2
 }
 
 /// The outline of a marker shape, as rings (filled) and strokes (plus and cross).
-fn shape_outline(shape: Shape, c: [f64; 2], r: f64) -> (Vec<[f64; 2]>, Vec<[[f64; 2]; 2]>) {
+pub(crate) fn shape_outline(
+    shape: Shape,
+    c: [f64; 2],
+    r: f64,
+) -> (Vec<[f64; 2]>, Vec<[[f64; 2]; 2]>) {
     let [x, y] = c;
     match shape {
         Shape::Circle => (
@@ -1117,6 +1121,14 @@ fn push_item(
 
 /// Items drawn over a settled chart, such as the hover overlay, clipped to `clip`.
 pub fn overlay(items: &[Item], clip: Option<Rect>, scale: f64) -> Mesh {
+    overlay_layers([(items, clip)], scale)
+}
+
+/// Draw each feedback layer inside the plot it belongs to, in the given order.
+pub(crate) fn overlay_layers<'a>(
+    layers: impl IntoIterator<Item = (&'a [Item], Option<Rect>)>,
+    scale: f64,
+) -> Mesh {
     let mut b = Builder {
         mesh: Mesh::default(),
         scale,
@@ -1124,8 +1136,10 @@ pub fn overlay(items: &[Item], clip: Option<Rect>, scale: f64) -> Mesh {
         analytic_circles: false,
     };
     let tol = b.tolerance();
-    for item in items {
-        push_item(&mut b, item, clip, 0.0, Motion::Still, [0.0; 2], 0.0, tol);
+    for (items, clip) in layers {
+        for item in items {
+            push_item(&mut b, item, clip, 0.0, Motion::Still, [0.0; 2], 0.0, tol);
+        }
     }
     b.close();
     b.mesh

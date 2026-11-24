@@ -23,7 +23,8 @@ export function chartTextAppearance(root) {
   const html = selector => [...root.querySelectorAll(selector)].filter(visible).map(node => {
     const figure = node.closest('figure[data-rv-chart]');
     const chart = charts.find(item => item.id === figure?.id);
-    const surface = chart ? model(chart.geometry.background) : rgb(getComputedStyle(root).backgroundColor);
+    // Off a chart, text sits on the page colour; a page background (STY-74) leaves the body transparent.
+    const surface = chart ? model(chart.geometry.background) : rgb(getComputedStyle(root.ownerDocument.documentElement).getPropertyValue('--rv-bg'));
     const fill = getComputedStyle(node).color;
     return { text: node.textContent.trim(), fill, surface: surface.join(','), contrast: contrast(rgb(fill), surface) };
   });

@@ -50,7 +50,7 @@ encoding: { x: rps, y: p95_ms, color: region }
 
 ## Interactions
 
-- Hover, tap or focus a point to read its values; the point grows slightly.
+- Point at a mark to read its values. A small point grows by 60%, or by 25% when a field sets its size. The ring follows its new outline across an axis, within the same 8 px allowance as the point. Use the arrow keys to select a mark and see the same ring and readout.
 - Click a legend entry to toggle a group when the chart has several.
 - Zoom and pan on the x axis with brush, wheel, pinch, keys or double-click; Escape or reset returns to the full range.
 - Every observation stays in the readouts and the Table view even when its label is hidden.

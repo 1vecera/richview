@@ -1,256 +1,319 @@
 //! Selection follows the observation's own mark paths without repainting fills or labels.
 
+use richview_chart::color::{Oklch, parse};
 use richview_chart::geometry::{
-    Cmd, Fill, Item, Panel, Path, Rect, Rgba, Role, Shape, Stroke, Wedge,
+    Cmd, Fill, Geometry, Item, Panel, Path, Rect, Rgba, Role, Shape, Stroke,
 };
+use richview_chart::layout::ChartTheme;
 
-/// Where the contour's surface separator ends outside a filled mark's edge.
-const SEPARATOR: f64 = 1.75;
-
-/// The glow round a selected mark, in the mark's own colour (FEA-CH-53; Daniel's pick of
-/// 17 Nov 2026): `bands` nested bands of equal strength out to `reach` CSS pixels, which
-/// together give `inner` of the colour's strength at the mark, so the glow fades evenly
-/// outwards instead of stepping in rings. A hovered scatter point grows by `grow`.
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub(super) struct Glow {
-    pub reach: f64,
-    pub bands: u32,
-    pub inner: f64,
-    pub grow: f64,
+/// The filled data mark may be drawn whole at a plot axis.
+pub(super) fn dot(center: [f64; 2], level: f64, color: Rgba) -> Item {
+    Item::Point {
+        center,
+        radius: 6.0 * (0.4 + 0.6 * level),
+        shape: Shape::Circle,
+        fill: Some(Fill::solid(color.with_alpha(color.alpha() * level))),
+        stroke: None,
+        role: Role::Annotation,
+        series: None,
+        obs: None,
+    }
 }
 
-impl Glow {
-    /// One flat band, four pixels wide: a soft grey glow on paper reads as a drop shadow, which a
-    /// pen drawing does not have.
-    pub(super) const FLAT: Glow = Glow {
-        reach: 4.0,
-        bands: 1,
-        inner: 0.25,
-        grow: 0.25,
-    };
-    /// Soft and close to the mark, so it never reaches a neighbour's label.
-    pub(super) const MEDIUM: Glow = Glow {
-        reach: 10.0,
-        bands: 10,
-        inner: 0.34,
-        grow: 0.25,
-    };
-    /// A single point is small, so it carries the larger glow and grows by 60%.
-    pub(super) const FAR: Glow = Glow {
-        reach: 18.0,
-        bands: 14,
-        inner: 0.36,
-        grow: 0.6,
-    };
+pub(super) fn point_growth(kind: &str, sized: bool) -> f64 {
+    match kind {
+        "scatter" | "scatter3d" if sized => 0.25,
+        "scatter" | "scatter3d" | "strip" | "qq" => 0.6,
+        _ => 0.0,
+    }
+}
 
-    /// A style's glow for a mark or a hover dot: a style that sets `chart.glow: flat` (Hand-drawn)
-    /// keeps the flat band; every other style glows medium.
-    pub(super) fn style(flat: bool) -> Glow {
-        if flat { Glow::FLAT } else { Glow::MEDIUM }
+const RING_ALPHA: f64 = 0.8;
+
+/// Resolved when laying out the chart. RGB identifies an ink even while its opacity animates.
+pub(super) struct RingInks {
+    paper: Rgba,
+    palette: Vec<String>,
+    colours: std::collections::BTreeMap<[u32; 3], Rgba>,
+    pub(super) ink: Rgba,
+}
+
+impl RingInks {
+    fn key(mark: Rgba) -> [u32; 3] {
+        [mark.0[0], mark.0[1], mark.0[2]].map(f32::to_bits)
     }
 
-    /// The glow of a `kind`'s marks: the style's, except that a small single dot that stands apart
-    /// glows far: the points of scatter, strip, Q-Q and 3-D scatter charts. A scatter or 3-D
-    /// scatter sized by a field draws bubbles, which keep the medium glow, as packed bubbles do,
-    /// and a dot plot's dots are large and touch, so they glow medium and do not grow.
-    pub(super) fn of(kind: &str, flat: bool, sized: bool) -> Glow {
-        let dot =
-            matches!(kind, "strip" | "qq") || (matches!(kind, "scatter" | "scatter3d") && !sized);
-        if !flat && dot {
-            Glow::FAR
-        } else {
-            Glow::style(flat)
+    pub(super) fn new(theme: &ChartTheme, geometry: &Geometry) -> Self {
+        let mut inks = Self {
+            paper: geometry.background,
+            palette: theme.palette.clone(),
+            colours: Default::default(),
+            ink: Rgba([0.5, 0.5, 0.5, 1.0]),
+        };
+        for authored in theme.palette.iter().filter_map(|css| parse(css)) {
+            inks.register(Rgba::from_oklch(authored, 1.0), Some(authored));
+        }
+        inks.collect(theme, geometry);
+        inks
+    }
+
+    fn register(&mut self, mark: Rgba, authored: Option<Oklch>) {
+        self.colours
+            .entry(Self::key(mark))
+            .or_insert_with(|| ring_ink(mark, self.paper, authored));
+    }
+
+    fn collect(&mut self, theme: &ChartTheme, geometry: &Geometry) {
+        self.ink =
+            parse(&theme.ink).map_or(Rgba([0.5, 0.5, 0.5, 1.0]), |c| Rgba::from_oklch(c, 1.0));
+        self.register(self.ink, None);
+        for series in &geometry.series {
+            self.register(series.color, None);
+        }
+        if matches!(
+            geometry.kind.as_str(),
+            "bar" | "packed-bubble" | "scatter" | "flow"
+        ) {
+            for item in geometry
+                .panels
+                .iter()
+                .flat_map(|p| &p.items)
+                .filter(|i| i.role() == Role::Mark)
+            {
+                if let Some(color) = mark_colour(item) {
+                    self.register(color, None);
+                }
+            }
         }
     }
 
-    /// Each band's reach and its share of the colour's strength, innermost first.
-    pub(super) fn bands(self) -> impl Iterator<Item = (f64, f64)> {
-        let alpha = 1.0 - (1.0 - self.inner).powf(1.0 / self.bands as f64);
-        (1..=self.bands).map(move |k| (self.reach * k as f64 / self.bands as f64, alpha))
+    pub(super) fn refresh(&mut self, theme: &ChartTheme, geometry: &Geometry) {
+        if self.paper != geometry.background || self.palette != theme.palette {
+            *self = Self::new(theme, geometry);
+        } else {
+            self.collect(theme, geometry);
+        }
     }
 
-    /// Discs of the glow round a dot of `radius` at `level`, outermost first, for a dot drawn
-    /// over them.
-    pub(super) fn discs(self, radius: f64, color: Rgba, level: f64) -> Vec<(f64, Rgba)> {
-        let mut discs: Vec<(f64, Rgba)> = self
-            .bands()
-            .map(|(reach, alpha)| (radius + reach, halo(color, alpha, level)))
-            .collect();
-        discs.reverse();
-        discs
+    fn get(&self, mark: Rgba) -> Rgba {
+        self.colours[&Self::key(mark)]
     }
 }
 
-/// One band's paint: the mark's own colour at `alpha` of its strength.
-pub(super) fn halo(color: Rgba, alpha: f64, level: f64) -> Rgba {
-    color.with_alpha(alpha * color.alpha() * level.clamp(0.0, 1.0))
+fn mark_colour(mark: &Item) -> Option<Rgba> {
+    match mark {
+        Item::Point { fill, stroke, .. } => fill
+            .map(|f| f.color)
+            .or_else(|| stroke.as_ref().map(|s| s.color)),
+        Item::Rect { fill, .. } => Some(fill.color),
+        Item::Line { stroke, .. } => Some(stroke.color),
+        _ => None,
+    }
 }
 
-/// Draw the existing hover-dot treatment at a contour grid node, never its hit box.
-pub(super) fn node(
-    panel: &Panel,
-    observation: usize,
+pub(super) fn crisp_target(kind: &str, panel: &Panel, observation: usize) -> bool {
+    match kind {
+        "line" | "bar" | "scatter" | "packed-bubble" => true,
+        "flow" => panel.items.iter().any(|item| {
+            matches!(item,
+            Item::Area { role: Role::Mark, obs: Some(i), .. }
+            | Item::Rect { role: Role::Mark, obs: Some(i), .. } if *i == observation)
+        }),
+        _ => false,
+    }
+}
+
+/// The sharp band is blended in sRGB by the renderer, then seen against the paper.
+fn ring_ink(mark: Rgba, paper: Rgba, authored: Option<Oklch>) -> Rgba {
+    use richview_chart::color::to_linear;
+
+    let luminance = |rgb: [f64; 3]| {
+        let [r, g, b] = rgb.map(to_linear);
+        0.2126 * r + 0.7152 * g + 0.0722 * b
+    };
+    let background = [paper.0[0], paper.0[1], paper.0[2]].map(f64::from);
+    let paper_lum = luminance(background);
+    let contrast = |ink: Rgba| {
+        let blended = std::array::from_fn(|i| {
+            RING_ALPHA * f64::from(ink.0[i]) + (1.0 - RING_ALPHA) * background[i]
+        });
+        let y = luminance(blended);
+        (y.max(paper_lum) + 0.05) / (y.min(paper_lum) + 0.05)
+    };
+    if contrast(mark) >= 3.0 {
+        return mark.with_alpha(RING_ALPHA);
+    }
+    let source = authored.unwrap_or_else(|| mark.oklch());
+    let mut pass = if paper_lum < 0.18 { 1.0 } else { 0.0 };
+    let mut fail = source.l;
+    for _ in 0..16 {
+        let l = (pass + fail) / 2.0;
+        let ink = Rgba::from_oklch(Oklch { l, ..source }, RING_ALPHA);
+        if contrast(ink) >= 3.05 {
+            pass = l;
+        } else {
+            fail = l;
+        }
+    }
+    Rgba::from_oklch(Oklch { l: pass, ..source }, RING_ALPHA)
+}
+
+/// Append the paper edge and coloured ring outside the visible mark. The soft tail
+/// samples a 4 px Gaussian across the edge of the prototype's 12% underlay.
+pub(super) fn selection_ring(
+    mark: &Item,
+    inks: &RingInks,
     level: f64,
-    color: Rgba,
-    surface: Rgba,
-    glow: Glow,
-) -> Option<Vec<Item>> {
-    let center = panel.observations.get(observation)?.at;
-    if level <= 0.0 {
-        return Some(Vec::new());
-    }
-    let scale = 0.4 + 0.6 * level;
-    let mut discs: Vec<(f64, Rgba)> = glow
-        .discs(8.0, color, level)
-        .into_iter()
-        .map(|(radius, fill)| (radius * scale, fill))
-        .collect();
-    discs.extend([
-        (
-            8.0 * scale,
-            surface.with_alpha(surface.alpha() * level.min(1.0)),
-        ),
-        (
-            6.0 * scale,
-            color.with_alpha(color.alpha() * level.min(1.0)),
-        ),
-    ]);
-    Some(
-        discs
-            .into_iter()
-            .map(|(radius, fill)| Item::Point {
+    flat: bool,
+    items: &mut Vec<Item>,
+) {
+    const EDGE: f64 = 1.5;
+    const RING: f64 = 1.25;
+    let Some(color) = mark_colour(mark) else {
+        return;
+    };
+    let half = match mark {
+        Item::Point { stroke, .. } | Item::Rect { stroke, .. } => {
+            stroke.as_ref().map_or(0.0, |s| s.width / 2.0)
+        }
+        Item::Line { stroke, .. } => stroke.width / 2.0,
+        _ => return,
+    };
+    let polygon = match mark {
+        Item::Line { path, .. } => path.flatten(0.25).into_iter().next().unwrap_or_default(),
+        Item::Point {
+            center,
+            shape,
+            radius,
+            ..
+        } if *shape != Shape::Circle || half > 0.0 => {
+            crate::mesh::shape_outline(*shape, *center, *radius).0
+        }
+        _ => Vec::new(),
+    };
+    let perimeter = |gap: f64| {
+        let by = half + gap;
+        match mark {
+            Item::Rect { rect, radius, .. } => crate::mesh::rounded_ring(
+                rect.inflate(by),
+                radius.map(|r| if r > 0.0 { r + by } else { 0.0 }),
+                0.125,
+            ),
+            Item::Point {
                 center,
-                radius,
                 shape: Shape::Circle,
-                fill: Some(Fill::solid(fill)),
-                stroke: None,
-                role: Role::Annotation,
-                series: None,
-                obs: None,
-            })
-            .collect(),
-    )
+                radius,
+                ..
+            } if polygon.is_empty() => super::focus::circle_points(*center, *radius + by),
+            _ => super::focus::offset(&polygon, by),
+        }
+    };
+    let mut band = |gap: f64, width: f64, ink: Rgba| {
+        let ink = ink.with_alpha(ink.alpha() * level);
+        if let Item::Point {
+            center,
+            radius,
+            shape: shape @ (Shape::Plus | Shape::Cross),
+            ..
+        } = mark
+        {
+            items.push(cross_ring(
+                *center,
+                *radius,
+                *shape,
+                half,
+                gap,
+                Stroke::solid(ink, width),
+            ));
+            return;
+        }
+        // Fill between closed paths once. Overlapping translucent strokes would
+        // darken their joins and leave a dotted rim on a round bubble.
+        let mut path = Path::polyline(&perimeter(gap + width));
+        path.close();
+        path.extend(&Path::polyline(&perimeter(gap)));
+        path.close();
+        items.push(Item::Area {
+            path,
+            fill: Fill::solid(ink),
+            role: Role::Annotation,
+            series: None,
+            obs: None,
+        });
+    };
+    // The underlay extends 4 px past the paper edge before blur. The flat
+    // style keeps that same extent with a hard stop, as in the prototype.
+    let outer = EDGE + RING;
+    if flat {
+        band(outer, 4.0 - RING, color.with_alpha(0.12));
+    } else {
+        // Coverage at the midpoint of each 2 px band, from a Gaussian with σ = 4 px.
+        for (i, coverage) in [0.669, 0.475, 0.287, 0.144, 0.059, 0.020]
+            .into_iter()
+            .enumerate()
+        {
+            band(
+                outer + 2.0 * i as f64,
+                2.0,
+                color.with_alpha(0.12 * coverage),
+            );
+        }
+    }
+    band(EDGE, RING, inks.get(color));
+    band(0.0, EDGE, inks.paper);
+}
+
+/// Paint a narrow band in the mark's own colour along its edge, with no separator.
+fn trace(mark: &Item, level: f64) -> Option<Item> {
+    let (color, width) = match mark {
+        Item::Line { stroke, .. } => (stroke.color, stroke.width + 2.0),
+        Item::Area { fill, .. } => (fill.color, 2.0),
+        Item::Rect { fill, stroke, .. } => (stroke.as_ref().map_or(fill.color, |s| s.color), 2.0),
+        Item::Point { fill, stroke, .. } => (
+            fill.map(|f| f.color).or(stroke.as_ref().map(|s| s.color))?,
+            1.5,
+        ),
+        Item::Text(_) => return None,
+    };
+    Some(outline(
+        mark,
+        Stroke::solid(color.with_alpha(color.alpha() * 0.22 * level), width),
+        0.0,
+    ))
 }
 
 /// Fade a contour along owned marks; other families retain their existing feedback.
-#[allow(clippy::too_many_arguments)] // The mark, its place, its colours, the fade and its glow.
 pub(super) fn items(
     kind: &str,
     panel: &Panel,
     observation: usize,
-    wedge: Option<Wedge>,
-    ink: Rgba,
     surface: Rgba,
     level: f64,
-    glow: Glow,
+    sized: bool,
+    keyboard: bool,
 ) -> Option<Vec<Item>> {
     if kind == "gauge" {
-        let mark = gauge_band(panel, observation);
-        return Some(if level <= 0.0 {
+        return Some(if level <= 0.0 || keyboard {
             Vec::new()
         } else {
-            mark.into_iter()
-                .map(|mark| outline(mark, Stroke::solid(ink.with_alpha(0.85 * level), 1.5), 0.0))
+            gauge_band(panel, observation)
+                .and_then(|mark| trace(mark, level))
+                .into_iter()
                 .collect()
         });
+    }
+    // These families identify the target through emphasis in the base chart.
+    if matches!(
+        kind,
+        "bar" | "bar3d" | "packed-bubble" | "sankey" | "alluvial"
+    ) {
+        return Some(Vec::new());
     }
     if kind == "map" && !panel.items.iter().any(|item| matches!(item, Item::Point { role: Role::Mark, obs: Some(index), .. } if *index == observation)) {
         return None;
     }
-    if kind == "bar3d" {
-        let Some((path, color)) = bar_silhouette(panel, observation) else {
-            return Some(Vec::new());
-        };
-        if level <= 0.0 {
-            return Some(Vec::new());
-        }
-        // Bars nearer the viewer paint over this one: trace only the edges the reader can see,
-        // and keep the halo off the bars in front.
-        let front = front_faces(panel, observation);
-        let rings: Vec<Vec<[f64; 2]>> = path.flatten(0.5).into_iter().map(open_ring).collect();
-        let line = |stroke: Stroke| Item::Line {
-            path: visible_edges(&rings, &front),
-            stroke,
-            role: Role::Annotation,
-            series: None,
-            obs: None,
-        };
-        let mut result: Vec<Item> = glow
-            .bands()
-            .map(|(reach, alpha)| Item::Area {
-                path: halo_outside(&rings, &front, reach),
-                fill: Fill::solid(halo(color, alpha, level)),
-                role: Role::Annotation,
-                series: None,
-                obs: None,
-            })
-            .collect();
-        for (width, color) in [
-            (3.5, surface.with_alpha(level)),
-            (1.5, ink.with_alpha(0.85 * level)),
-        ] {
-            result.push(line(Stroke::solid(color, width)));
-        }
-        return Some(result);
-    }
-    if matches!(kind, "network" | "parallel" | "flow") {
-        let mark = panel.items.iter().find(|mark| matches!(mark, Item::Line { role: Role::Mark, obs: Some(index), .. } if *index == observation));
-        if let Some(Item::Line { path, stroke, .. }) = mark {
-            if level <= 0.0 {
-                return Some(Vec::new());
-            }
-            let line = |stroke: Stroke| Item::Line {
-                path: path.clone(),
-                stroke,
-                role: Role::Annotation,
-                series: None,
-                obs: None,
-            };
-            let mut lines: Vec<Item> = glow
-                .bands()
-                .map(|(reach, alpha)| {
-                    let mut band = stroke.clone();
-                    band.color = stroke.color.with_alpha(alpha * level);
-                    band.width += 1.0 + 2.0 * reach;
-                    line(band)
-                })
-                .collect();
-            let mut selected = stroke.clone();
-            selected.color = stroke.color.with_alpha(stroke.color.alpha() * level);
-            selected.width += level;
-            lines.push(line(selected));
-            return Some(lines);
-        }
-    }
     if matches!(kind, "hexbin" | "waffle") {
         return None;
-    }
-    if kind == "venn" {
-        let items = if level <= 0.0 {
-            Vec::new()
-        } else {
-            panel
-                .items
-                .iter()
-                .find_map(|mark| match mark {
-                    Item::Area {
-                        path,
-                        role: Role::Mark,
-                        obs: Some(index),
-                        ..
-                    } if *index == observation => Some(Item::Line {
-                        path: path.clone(),
-                        stroke: Stroke::solid(ink.with_alpha(level), 1.5),
-                        role: Role::Annotation,
-                        series: None,
-                        obs: None,
-                    }),
-                    _ => None,
-                })
-                .into_iter()
-                .collect()
-        };
-        return Some(items);
     }
     if !matches!(
         kind,
@@ -283,15 +346,25 @@ pub(super) fn items(
             | "strip"
             | "scatter3d"
             | "network"
+            | "parallel"
             | "map"
             | "flow"
+            | "venn"
     ) {
         return None;
     }
-    let mut items = Vec::new();
     if level <= 0.0 {
-        return Some(items);
+        return Some(Vec::new());
     }
+    let line = if matches!(kind, "network" | "parallel" | "flow") {
+        panel.items.iter().find(|item| {
+            matches!(item,
+                Item::Line { role: Role::Mark, obs: Some(index), .. } if *index == observation
+            )
+        })
+    } else {
+        None
+    };
     let mut marks: Vec<_> = panel
         .items
         .iter()
@@ -302,6 +375,7 @@ pub(super) fn items(
             | Item::Point { obs, role, .. } => *role == Role::Mark && *obs == Some(observation),
             Item::Text(_) => false,
         })
+        .filter(|mark| line.is_none_or(|line| std::ptr::eq(*mark, line)))
         // Grouped observations can own many shapes; existing single-shape families keep
         // their established selection, including the three components of an OHLC glyph.
         .take(match kind {
@@ -326,14 +400,15 @@ pub(super) fn items(
             }
         }
     }
-    // A hovered scatter point, and any dot with the far glow, grows by its glow's share
-    // (FEA-CH-53), over a disc of the page so its translucent fill does not double over the
+    // A hovered scatter point grows while its contour follows the resized mark.
+    // Put a disc of paper below it so its translucent fill does not double over the
     // original.
     let mut grown = Vec::new();
-    if kind == "scatter" || glow == Glow::FAR {
+    let growth = point_growth(kind, sized);
+    if growth > 0.0 {
         for mark in &mut marks {
             if let Item::Point { center, radius, .. } = mark {
-                *radius *= 1.0 + glow.grow * level;
+                *radius *= 1.0 + growth * level;
                 grown.push(Item::Point {
                     center: *center,
                     radius: *radius,
@@ -352,12 +427,7 @@ pub(super) fn items(
             }
         }
     }
-    // A soft halo in the mark's own colour marks the selection where a mark can carry one, with
-    // no ink outline: the page shows between mark and halo (FEA-CH-53; Chart design, 15 Nov).
-    // Each is one filled band, painted once: a translucent stroke would overlap itself at
-    // every join of a curve.
-    // A line inside the mark's own box, as a boxplot's median, glows into nothing: its glow
-    // would band the box's fill, and the box's own glow already marks the selection.
+    // Leave a median inside its own box alone. The contour follows the enclosing mark.
     let boxes: Vec<Rect> = marks
         .iter()
         .filter_map(|m| match m {
@@ -375,54 +445,34 @@ pub(super) fn items(
         }
         _ => false,
     };
-    let halos: Vec<Vec<Item>> = marks
+    if growth > 0.0 || (keyboard && kind != "flow") {
+        return Some(grown);
+    }
+    if kind == "flow" {
+        // A node has an owned fill and a visible border. Reinforce only that existing line.
+        if !crisp_target(kind, panel, observation) {
+            return Some(Vec::new());
+        }
+        return Some(
+            marks
+                .iter()
+                .filter_map(|mark| {
+                    let Item::Line { stroke, .. } = mark else {
+                        return None;
+                    };
+                    let mut stronger = stroke.clone();
+                    stronger.width += 0.5 * level;
+                    stronger.color = stronger.color.with_alpha(stronger.color.alpha() * level);
+                    Some(outline(mark, stronger, 0.0))
+                })
+                .collect(),
+        );
+    }
+    let items = marks
         .iter()
-        .map(|mark| {
-            if inside(mark) {
-                return Vec::new();
-            }
-            glow.bands()
-                .filter_map(|(reach, alpha)| halo_band(kind, mark, wedge, level, reach, alpha))
-                .collect()
-        })
+        .filter(|mark| !inside(mark))
+        .filter_map(|mark| trace(mark, level))
         .collect();
-    items.extend(halos.iter().flatten().cloned());
-    items.extend(grown);
-    // Paint each layer across the whole glyph before the next. A tick's surface separator
-    // must not erase its connected wick or a contour already drawn along that wick.
-    for (extra, color, point_gap) in [
-        (6.0, ink.with_alpha(0.12 * level), 0.5),
-        (3.5, surface.with_alpha(level), 0.5),
-        (1.5, ink.with_alpha(0.85 * level), 2.5),
-    ] {
-        for (mark, halo) in marks.iter().zip(&halos) {
-            if !halo.is_empty() || inside(mark) {
-                continue;
-            }
-            let base = match mark {
-                Item::Line { stroke, .. } => stroke.width,
-                _ => 0.0,
-            };
-            items.push(outline(mark, Stroke::solid(color, base + extra), point_gap));
-        }
-    }
-    // Restore the original coloured line components together, with their original widths, over
-    // the separator of a mark without a halo.
-    for (mark, halo) in marks.into_iter().zip(&halos) {
-        if halo.is_empty()
-            && !inside(&mark)
-            && let Item::Line { stroke, .. } = &mark
-        {
-            items.push(outline(
-                &mark,
-                Stroke {
-                    color: stroke.color.with_alpha(stroke.color.alpha() * level),
-                    ..stroke.clone()
-                },
-                0.0,
-            ));
-        }
-    }
     Some(items)
 }
 
@@ -519,296 +569,11 @@ fn exposed_wick(path: &Path, body: Rect) -> Path {
     result
 }
 
-/// The outside edges of the visible faces of one projected bar, with shared edges removed.
-fn bar_silhouette(panel: &Panel, observation: usize) -> Option<(Path, Rgba)> {
-    let mut edges: Vec<([f64; 2], [f64; 2])> = Vec::new();
-    let mut color = None;
-    for mark in &panel.items {
-        let Item::Area {
-            path,
-            fill,
-            role: Role::Mark,
-            obs: Some(index),
-            ..
-        } = mark
-        else {
-            continue;
-        };
-        if *index != observation {
-            continue;
-        }
-        color.get_or_insert(fill.color);
-        for ring in path.flatten(0.5) {
-            for pair in ring.windows(2) {
-                let (a, b) = (pair[0], pair[1]);
-                if let Some(i) = edges
-                    .iter()
-                    .position(|(x, y)| (*x == a && *y == b) || (*x == b && *y == a))
-                {
-                    edges.remove(i);
-                } else {
-                    edges.push((a, b));
-                }
-            }
-        }
-    }
-    let mut path = Path::new();
-    while let Some((start, mut at)) = edges.pop() {
-        path.move_to(start);
-        path.line_to(at);
-        while at != start {
-            let i = edges.iter().position(|(a, b)| *a == at || *b == at)?;
-            let (a, b) = edges.remove(i);
-            at = if a == at { b } else { a };
-            path.line_to(at);
-        }
-        path.close();
-    }
-    Some((path, color?))
-}
-
-/// The faces of other bars painted after this one's that still hide whatever of it they cover.
-/// While a bar is selected the other rows step back (`focus::select` gives bar3d `SeriesOf`), so
-/// only bars of its own row, at full strength, hide it; with one row that is every bar.
-fn front_faces(panel: &Panel, observation: usize) -> Vec<Vec<[f64; 2]>> {
-    let own = |item: &Item| matches!(item, Item::Area { role: Role::Mark, obs: Some(index), .. } if *index == observation);
-    let Some(last) = panel.items.iter().rposition(own) else {
-        return Vec::new();
-    };
-    let row = panel.items[last].series();
-    panel.items[last + 1..]
-        .iter()
-        .filter_map(|item| match item {
-            Item::Area {
-                path,
-                role: Role::Mark,
-                obs: Some(index),
-                series,
-                ..
-            } if *index != observation && *series == row => Some(path.flatten(0.5)),
-            _ => None,
-        })
-        .flatten()
-        .map(open_ring)
-        .filter(|ring| ring.len() >= 3)
-        .collect()
-}
-
-/// A flattened ring without its closing point.
-fn open_ring(mut ring: Vec<[f64; 2]>) -> Vec<[f64; 2]> {
-    if ring.len() > 1 && ring.first() == ring.last() {
-        ring.pop();
-    }
-    ring
-}
-
-/// Twice the signed area of a ring: positive for one turning direction, negative for the other.
-fn signed_area(ring: &[[f64; 2]]) -> f64 {
-    (0..ring.len())
-        .map(|i| {
-            let (a, b) = (ring[i], ring[(i + 1) % ring.len()]);
-            a[0] * b[1] - b[0] * a[1]
-        })
-        .sum()
-}
-
-/// Which side of the edge from `a` to `b` a point lies on, scaled by the edge's length:
-/// positive inside a ring of turning direction `turn`.
-fn side(a: [f64; 2], b: [f64; 2], p: [f64; 2], turn: f64) -> f64 {
-    turn * ((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]))
-}
-
-/// The stretch of the segment from `a` to `b`, as fractions of it, that lies inside a convex
-/// polygon (Cyrus-Beck).
-fn inside_span(a: [f64; 2], b: [f64; 2], polygon: &[[f64; 2]]) -> Option<(f64, f64)> {
-    let turn = signed_area(polygon).signum();
-    if turn == 0.0 {
-        return None;
-    }
-    let (mut t0, mut t1) = (0.0_f64, 1.0_f64);
-    for i in 0..polygon.len() {
-        let (p, q) = (polygon[i], polygon[(i + 1) % polygon.len()]);
-        let (sa, sb) = (side(p, q, a, turn), side(p, q, b, turn));
-        if sa <= 0.0 && sb <= 0.0 {
-            return None;
-        }
-        if sa < 0.0 || sb < 0.0 {
-            let t = sa / (sa - sb);
-            if sa < 0.0 {
-                t0 = t0.max(t)
-            } else {
-                t1 = t1.min(t)
-            }
-        }
-    }
-    (t1 - t0 > 1e-9).then_some((t0, t1))
-}
-
-/// The silhouette's edges, less what the faces in front hide, as open polylines; a fully
-/// visible ring stays closed.
-fn visible_edges(rings: &[Vec<[f64; 2]>], front: &[Vec<[f64; 2]>]) -> Path {
-    let mut path = Path::new();
-    for ring in rings {
-        let n = ring.len();
-        let mut pieces: Vec<([f64; 2], [f64; 2])> = Vec::new();
-        for i in 0..n {
-            let (a, b) = (ring[i], ring[(i + 1) % n]);
-            let mut shown = vec![(0.0_f64, 1.0_f64)];
-            for face in front {
-                let Some((h0, h1)) = inside_span(a, b, face) else {
-                    continue;
-                };
-                shown = shown
-                    .into_iter()
-                    .flat_map(|(s0, s1)| [(s0, s1.min(h0)), (s0.max(h1), s1)])
-                    .filter(|(s0, s1)| s1 - s0 > 1e-6)
-                    .collect();
-            }
-            let at = |t: f64| [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
-            pieces.extend(shown.into_iter().map(|(s0, s1)| (at(s0), at(s1))));
-        }
-        if pieces.len() == n && pieces.iter().zip(ring).all(|((p, _), v)| p == v) {
-            path.move_to(ring[0]);
-            for &v in &ring[1..] {
-                path.line_to(v);
-            }
-            path.close();
-            continue;
-        }
-        // Join pieces that meet into polylines, the last into the first when it runs on.
-        let mut lines: Vec<Vec<[f64; 2]>> = Vec::new();
-        for (p0, p1) in pieces {
-            match lines.last_mut() {
-                Some(line) if line.last() == Some(&p0) => line.push(p1),
-                _ => lines.push(vec![p0, p1]),
-            }
-        }
-        if lines.len() > 1
-            && lines.last().and_then(|l| l.last()) == lines.first().and_then(|l| l.first())
-        {
-            let mut tail = lines.pop().unwrap_or_default();
-            tail.extend(lines[0].drain(1..));
-            lines[0] = tail;
-        }
-        for line in lines {
-            path.move_to(line[0]);
-            for &v in &line[1..] {
-                path.line_to(v);
-            }
-        }
-    }
-    path
-}
-
-/// The part of a convex polygon on the inner side of the edge from `p` to `q` (`keep` > 0) or
-/// on its outer side (`keep` < 0), for a clipping polygon of turning direction `turn`.
-fn clip_half(
-    polygon: &[[f64; 2]],
-    p: [f64; 2],
-    q: [f64; 2],
-    turn: f64,
-    keep: f64,
-) -> Vec<[f64; 2]> {
-    let mut out = Vec::new();
-    for i in 0..polygon.len() {
-        let (a, b) = (polygon[i], polygon[(i + 1) % polygon.len()]);
-        let (sa, sb) = (keep * side(p, q, a, turn), keep * side(p, q, b, turn));
-        if sa >= 0.0 {
-            out.push(a);
-        }
-        if (sa >= 0.0) != (sb >= 0.0) {
-            let t = sa / (sa - sb);
-            out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
-        }
-    }
-    out
-}
-
-/// A convex polygon less a convex hole, as convex pieces.
-fn subtract(polygon: Vec<[f64; 2]>, hole: &[[f64; 2]]) -> Vec<Vec<[f64; 2]>> {
-    let turn = signed_area(hole).signum();
-    if turn == 0.0 {
-        return vec![polygon];
-    }
-    let mut pieces = Vec::new();
-    let mut rest = polygon;
-    for i in 0..hole.len() {
-        let (p, q) = (hole[i], hole[(i + 1) % hole.len()]);
-        let outside = clip_half(&rest, p, q, turn, -1.0);
-        if signed_area(&outside).abs() > 1e-6 {
-            pieces.push(outside);
-        }
-        rest = clip_half(&rest, p, q, turn, 1.0);
-        if signed_area(&rest).abs() <= 1e-6 {
-            return pieces;
-        }
-    }
-    pieces
-}
-
-/// The halo band outside a convex silhouette, between `SEPARATOR` and `SEPARATOR + reach` from
-/// it, less the faces in front.
-fn halo_outside(rings: &[Vec<[f64; 2]>], front: &[Vec<[f64; 2]>], reach: f64) -> Path {
-    let mut quads: Vec<Vec<[f64; 2]>> = Vec::new();
-    for ring in rings {
-        let n = ring.len();
-        let turn = signed_area(ring).signum();
-        if n < 3 || turn == 0.0 {
-            continue;
-        }
-        // The outward normal of the edge leaving vertex i.
-        let normal = |i: usize| {
-            let (a, b) = (ring[i], ring[(i + 1) % n]);
-            let d = [b[0] - a[0], b[1] - a[1]];
-            let len = d[0].hypot(d[1]).max(1e-9);
-            [turn * d[1] / len, -turn * d[0] / len]
-        };
-        let off = |p: [f64; 2], m: [f64; 2], r: f64| [p[0] + m[0] * r, p[1] + m[1] * r];
-        let (inner, outer) = (SEPARATOR, SEPARATOR + reach);
-        for i in 0..n {
-            let (a, b, m) = (ring[i], ring[(i + 1) % n], normal(i));
-            quads.push(vec![
-                off(a, m, inner),
-                off(b, m, inner),
-                off(b, m, outer),
-                off(a, m, outer),
-            ]);
-            // The corner at b, between this edge's normal and the next one's.
-            let next = normal((i + 1) % n);
-            if (m[0] - next[0]).hypot(m[1] - next[1]) > 1e-6 {
-                quads.push(vec![
-                    off(b, m, inner),
-                    off(b, m, outer),
-                    off(b, next, outer),
-                    off(b, next, inner),
-                ]);
-            }
-        }
-    }
-    let mut pieces = quads;
-    for face in front {
-        pieces = pieces
-            .into_iter()
-            .flat_map(|piece| subtract(piece, face))
-            .collect();
-    }
-    let mut path = Path::new();
-    for piece in pieces.iter().filter(|piece| piece.len() >= 3) {
-        path.move_to(piece[0]);
-        for &v in &piece[1..] {
-            path.line_to(v);
-        }
-        path.close();
-    }
-    path
-}
-
-/// Trace tiled observations in ink, without a halo over their neighbours.
+/// Trace tiled observations in their own colour, without a halo over their neighbours.
 pub(super) fn tiles(
     kind: &str,
     panel: &Panel,
     observation: usize,
-    ink: Rgba,
     level: f64,
 ) -> Option<Vec<Item>> {
     if !matches!(
@@ -845,7 +610,7 @@ pub(super) fn tiles(
                 } => *index == observation,
                 _ => false,
             })
-            .map(|mark| outline(mark, Stroke::solid(ink.with_alpha(0.85 * level), 1.5), 0.0))
+            .filter_map(|mark| trace(mark, level))
             .collect(),
     )
 }
@@ -892,8 +657,7 @@ fn outline(mark: &Item, mut stroke: Stroke, point_gap: f64) -> Item {
             ..
         } => {
             let original_half = original.as_ref().map_or(0.0, |s| s.width / 2.0);
-            // Leave the original mark and its stroke untouched. The final ink line starts
-            // beyond the surface separator; the glow and separator start just outside it.
+            // Leave the original mark and its stroke untouched.
             if matches!(shape, Shape::Plus | Shape::Cross) {
                 return cross_ring(*center, *radius, *shape, original_half, point_gap, stroke);
             }
@@ -979,207 +743,173 @@ fn cross_ring(
     }
 }
 
-/// One band of a mark's glow, `reach` past its contour at `alpha` of its colour, or none for a
-/// mark that keeps the ink glow: lines, and filled marks whose neighbours touch them.
-fn halo_band(
-    kind: &str,
-    mark: &Item,
-    wedge: Option<Wedge>,
-    level: f64,
-    reach: f64,
-    alpha: f64,
-) -> Option<Item> {
-    let (path, color) = match mark {
-        Item::Point {
-            center,
-            radius,
-            shape,
-            fill,
-            stroke,
-            ..
-        } => {
-            let color = fill.map(|f| f.color).or(stroke.as_ref().map(|s| s.color))?;
-            let half = stroke.as_ref().map_or(0.0, |s| s.width / 2.0);
-            // The page shows between the marker and its halo; a cross reaches its corners.
-            let extent = match shape {
-                Shape::Circle => *radius,
-                Shape::Square => radius * 0.85 * std::f64::consts::SQRT_2,
-                Shape::Triangle | Shape::Diamond | Shape::Plus | Shape::Cross => *radius,
-            };
-            let inner = extent + half + SEPARATOR;
-            let mut path = Path::new();
-            ring(&mut path, *center, inner + reach);
-            ring(&mut path, *center, inner);
-            (path, color)
-        }
-        Item::Area { fill, .. } if matches!(kind, "pie" | "rose") => {
-            let w = wedge?;
-            if w.end - w.start <= 0.0 {
-                return None;
-            }
-            let (inner, outer) = (w.radius + SEPARATOR, w.radius + SEPARATOR + reach);
-            let steps = (((w.end - w.start) * outer / 3.0).ceil() as usize).clamp(2, 240);
-            let at = |r: f64, k: usize| {
-                let a = w.start + (w.end - w.start) * k as f64 / steps as f64
-                    - std::f64::consts::FRAC_PI_2;
-                [w.center[0] + r * a.cos(), w.center[1] + r * a.sin()]
-            };
-            let mut path = Path::new();
-            path.move_to(at(inner, 0));
-            for k in 1..=steps {
-                path.line_to(at(inner, k));
-            }
-            for k in (0..=steps).rev() {
-                path.line_to(at(outer, k));
-            }
-            path.close();
-            (path, fill.color)
-        }
-        Item::Rect {
-            rect, fill, stroke, ..
-        } if matches!(
-            kind,
-            "bar"
-                | "combo"
-                | "boxplot"
-                | "bullet"
-                | "candlestick"
-                | "pareto"
-                | "waterfall"
-                | "gantt"
-                | "funnel"
-                | "flow"
-        ) =>
-        {
-            let mut path = Path::new();
-            rounded(&mut path, rect.inflate(SEPARATOR), SEPARATOR + reach);
-            rounded(&mut path, rect.inflate(SEPARATOR), SEPARATOR);
-            (path, stroke.as_ref().map_or(fill.color, |s| s.color))
-        }
-        Item::Line { path, stroke, .. }
-            if matches!(kind, "boxplot" | "candlestick" | "interval") =>
-        {
-            let mut halo_stroke = stroke.clone();
-            halo_stroke.color = halo(stroke.color, alpha, level);
-            halo_stroke.width += 2.0 * (SEPARATOR + reach);
-            return Some(Item::Line {
-                path: path.clone(),
-                stroke: halo_stroke,
-                role: Role::Annotation,
-                series: None,
-                obs: None,
-            });
-        }
-        Item::Area { path, fill, .. } if kind == "violin" => {
-            let mut band = Path::new();
-            for points in path.flatten(0.5) {
-                offset_polygon(&mut band, &points, SEPARATOR + reach);
-                offset_polygon(&mut band, &points, SEPARATOR);
-            }
-            (band, fill.color)
-        }
-        _ => return None,
-    };
-    Some(Item::Area {
-        path,
-        fill: Fill::solid(halo(color, alpha, level)),
-        role: Role::Annotation,
-        series: None,
-        obs: None,
-    })
-}
-
-/// Trace an offset polygon, capping mitres at sharp turns in a curved silhouette.
-fn offset_polygon(path: &mut Path, points: &[[f64; 2]], distance: f64) {
-    let n = if points.first() == points.last() {
-        points.len().saturating_sub(1)
-    } else {
-        points.len()
-    };
-    if n < 3 {
-        return;
-    }
-    let area: f64 = (0..n)
-        .map(|i| {
-            let a = points[i];
-            let b = points[(i + 1) % n];
-            a[0] * b[1] - b[0] * a[1]
-        })
-        .sum();
-    if area.abs() < 1e-9 {
-        return;
-    }
-    for i in 0..n {
-        let p = points[i];
-        let previous = points[(i + n - 1) % n];
-        let next = points[(i + 1) % n];
-        let normal = |a: [f64; 2], b: [f64; 2]| {
-            let d = [b[0] - a[0], b[1] - a[1]];
-            let len = d[0].hypot(d[1]).max(1e-9);
-            [area.signum() * d[1] / len, -area.signum() * d[0] / len]
-        };
-        let a = normal(previous, p);
-        let b = normal(p, next);
-        let scale = (distance / (1.0 + a[0] * b[0] + a[1] * b[1]).max(0.25)).min(distance * 4.0);
-        let q = [p[0] + (a[0] + b[0]) * scale, p[1] + (a[1] + b[1]) * scale];
-        if i == 0 {
-            path.move_to(q);
-        } else {
-            path.line_to(q);
-        }
-    }
-    path.close();
-}
-
-/// A circle as one closed polygon.
-fn ring(path: &mut Path, center: [f64; 2], radius: f64) {
-    let steps = ((radius * 2.0).ceil() as usize).clamp(24, 96);
-    for k in 0..steps {
-        let a = std::f64::consts::TAU * k as f64 / steps as f64;
-        let point = [center[0] + radius * a.cos(), center[1] + radius * a.sin()];
-        if k == 0 {
-            path.move_to(point);
-        } else {
-            path.line_to(point);
-        }
-    }
-    path.close();
-}
-
-/// `rect` grown by `reach - corner` with corners rounded to `reach`: the outline `reach`
-/// away from a rectangle whose own corners are `corner` inside it.
-fn rounded(path: &mut Path, rect: Rect, reach: f64) {
-    let grow = reach - SEPARATOR;
-    let r = rect.inflate(grow);
-    let radius = reach.min(r.w / 2.0).min(r.h / 2.0);
-    let corners = [
-        ([r.right() - radius, r.y + radius], -90.0_f64),
-        ([r.right() - radius, r.bottom() - radius], 0.0),
-        ([r.x + radius, r.bottom() - radius], 90.0),
-        ([r.x + radius, r.y + radius], 180.0),
-    ];
-    let mut first = true;
-    for (c, from) in corners {
-        for k in 0..=6 {
-            let a = (from + 90.0 * k as f64 / 6.0).to_radians();
-            let point = [c[0] + radius * a.cos(), c[1] + radius * a.sin()];
-            if first {
-                path.move_to(point);
-                first = false;
-            } else {
-                path.line_to(point);
-            }
-        }
-    }
-    path.close();
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use richview_chart::block::ChartBlock;
-    use richview_chart::geometry::Geometry;
     use richview_chart::layout::{ChartTheme, Options, layout};
+
+    #[test]
+    fn the_settled_ring_reaches_three_to_one_on_every_builtin_palette() {
+        use richview_chart::color::{Oklch, contrast, parse};
+        use richview_core::document::{RenderOptions, ReportFolder, render};
+
+        let expected: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../../../scripts/fixtures/selection-ring-colours.json"
+        ))
+        .unwrap();
+        for &style in richview_core::builtin_style_names() {
+            let block = r#"{"type":"bar","title":"A","encoding":{"x":"x","y":"y"},"data":{"inline":[{"x":"A","y":1}]}}"#;
+            let source =
+                format!("---\ntitle: Contrast\nstyles: [{style}]\n---\n\n```chart\n{block}\n```");
+            let options = RenderOptions {
+                report_folder: Some(ReportFolder {
+                    root: "contrast".into(),
+                    source: "report.rmd".into(),
+                    files: vec!["report.rmd".into()],
+                }),
+                ..Default::default()
+            };
+            let report = render(&source, &options).unwrap();
+            let payload = report
+                .html
+                .split_once("data-rv-payload>")
+                .unwrap()
+                .1
+                .split_once("</script>")
+                .unwrap()
+                .0;
+            let chart = crate::payload::Chart::parse(payload).unwrap();
+            let theme = &chart.payload.theme;
+            let geometry = chart.geometry(640.0, &[], None);
+            let mut inks = RingInks::new(theme, &geometry);
+            assert_eq!(
+                expected[style]["marks"].as_array().unwrap().len(),
+                theme.palette.len()
+            );
+            let paper = Rgba::from_oklch(parse(&theme.surface).unwrap(), 1.0);
+            assert_eq!(expected[style]["paper"], paper.hex());
+            for (slot, css) in theme.palette.iter().enumerate() {
+                let mark = Rgba::from_oklch(parse(css).unwrap(), 1.0);
+                let ink = inks.get(mark);
+                assert_eq!(expected[style]["marks"][slot], mark.hex());
+                let blended = |ink: Rgba| {
+                    Oklch::from_srgb(std::array::from_fn(|i| {
+                        0.8 * f64::from(ink.0[i]) + 0.2 * f64::from(paper.0[i])
+                    }))
+                };
+                assert_eq!(expected[style]["rings"][slot], blended(ink).hex());
+                let original = contrast(blended(mark), paper.oklch());
+                let adjusted = contrast(blended(ink), paper.oklch());
+                assert_eq!(ink.0[3], 0.8);
+                if original >= 3.0 {
+                    assert_eq!(ink.0[..3], mark.0[..3], "{style} {css}");
+                } else {
+                    assert!(
+                        (3.0499..3.051).contains(&adjusted),
+                        "{style} {css}: {adjusted}"
+                    );
+                }
+            }
+            // Redrawing and relaying out a corrected slot preserve its cache entry regardless of fade alpha.
+            let mark = Rgba::from_oklch(parse(&theme.palette[1]).unwrap(), 1.0);
+            let sentinel = Rgba([0.25; 4]);
+            inks.colours.insert(RingInks::key(mark), sentinel);
+            inks.refresh(theme, &geometry);
+            for alpha in [0.0, 0.4, 0.8, 1.0] {
+                assert_eq!(inks.get(mark.with_alpha(alpha)), sentinel);
+            }
+            let mut other_paper = geometry;
+            other_paper.background = Rgba([0.3, 0.3, 0.3, 1.0]);
+            inks.refresh(theme, &other_paper);
+            assert_ne!(inks.get(mark), sentinel);
+        }
+    }
+
+    #[test]
+    fn a_stroked_bubble_ring_keeps_its_gap_at_vertices_and_facet_midpoints() {
+        let mut mark = dot([0.0, 0.0], 1.0, Rgba([0.0, 0.0, 0.0, 1.0]));
+        let Item::Point { radius, stroke, .. } = &mut mark else {
+            unreachable!()
+        };
+        *radius = 200.0;
+        *stroke = Some(Stroke::solid(Rgba([1.0; 4]), 2.0));
+        let color = mark_colour(&mark).unwrap();
+        let inks = RingInks {
+            paper: Rgba([1.0; 4]),
+            palette: Vec::new(),
+            colours: [(RingInks::key(color), color.with_alpha(RING_ALPHA))].into(),
+            ink: color,
+        };
+        let mut items = Vec::new();
+        selection_ring(&mark, &inks, 1.0, true, &mut items);
+        let Item::Area { path, .. } = &items[items.len() - 2] else {
+            panic!("sharp ring")
+        };
+        let inner = &path.flatten(0.125)[1];
+        let (facet, _) = crate::mesh::shape_outline(Shape::Circle, [0.0, 0.0], 200.0);
+        // Project onto the outward normal of the first facet, then onto its first vertex.
+        for [x, y] in [
+            [
+                (facet[0][0] + facet[1][0]) / 2.0,
+                (facet[0][1] + facet[1][1]) / 2.0,
+            ],
+            facet[0],
+        ] {
+            let r = x.hypot(y);
+            let farthest = inner
+                .iter()
+                .map(|p| (p[0] * x + p[1] * y) / r)
+                .fold(f64::NEG_INFINITY, f64::max);
+            assert!(
+                (farthest - r - 1.0 - 1.5).abs() < 0.02,
+                "gap at {x},{y}: {}",
+                farthest - r - 1.0
+            );
+        }
+    }
+
+    #[test]
+    fn selection_ring_starts_at_the_mark_and_preserves_its_fill() {
+        let paper = Rgba([1.0; 4]);
+        let color = Rgba([0.1, 0.3, 0.6, 0.5]);
+        let mark = dot([20.0, 30.0], 1.0, color);
+        for flat in [false, true] {
+            let mut items = Vec::new();
+            let inks = RingInks {
+                paper,
+                palette: Vec::new(),
+                colours: [(RingInks::key(color), color.with_alpha(RING_ALPHA))].into(),
+                ink: color,
+            };
+            selection_ring(&mark, &inks, 1.0, flat, &mut items);
+            let bands: Vec<_> = items
+                .iter()
+                .map(|item| {
+                    let Item::Area { path, fill, .. } = item else {
+                        panic!("expected a band")
+                    };
+                    let loops = path.flatten(0.125);
+                    // Both circles start on the positive x axis.
+                    assert_eq!(loops.len(), 2);
+                    (loops[1][0][0] - 20.0, loops[0][0][0] - 20.0, fill.color)
+                })
+                .collect();
+            let (edge, rest) = bands.split_last().unwrap();
+            let (ring, tail) = rest.split_last().unwrap();
+            assert_eq!(*edge, (6.0, 7.5, paper));
+            assert_eq!(*ring, (7.5, 8.75, color.with_alpha(0.8)));
+            assert!(!tail.is_empty());
+            assert!(
+                tail.iter()
+                    .all(|(inner, _, c)| *inner >= ring.1 && c.alpha() <= 0.121)
+            );
+            assert!(
+                tail.windows(2)
+                    .all(|w| w[0].1 == w[1].0 && w[0].2.alpha() > w[1].2.alpha())
+            );
+        }
+    }
 
     #[test]
     fn separated_marks_follow_their_observation_geometry() {
@@ -1245,97 +975,54 @@ mod tests {
                 &Options::default(),
             );
             let panel = &geometry.panels[0];
-            for (index, observation) in panel.observations.iter().enumerate() {
+            for index in 0..panel.observations.len() {
                 let marks: Vec<_> = panel.items.iter().filter(|item| matches!(item, Item::Rect { role: Role::Mark, obs: Some(k), .. } | Item::Line { role: Role::Mark, obs: Some(k), .. } | Item::Area { role: Role::Mark, obs: Some(k), .. } | Item::Point { role: Role::Mark, obs: Some(k), .. } if *k == index)).collect();
                 assert!(
                     !marks.is_empty(),
                     "{kind} observation {index} has no owned mark"
                 );
-                let contours = items(
-                    kind,
-                    panel,
-                    index,
-                    observation.wedge,
-                    Rgba([0.0, 0.0, 0.0, 1.0]),
-                    geometry.background,
-                    1.0,
-                    Glow::of(kind, false, false),
-                )
-                .unwrap_or_else(|| panic!("{kind} has no contour"));
+                let contours = items(kind, panel, index, geometry.background, 1.0, false, false)
+                    .unwrap_or_else(|| panic!("{kind} has no contour"));
                 let body = marks.iter().find_map(|mark| match mark {
-                    Item::Rect { rect, .. } if kind == "candlestick" => Some(*rect),
+                    Item::Rect { rect, .. }
+                        if matches!(kind, "boxplot" | "candlestick" | "interval") =>
+                    {
+                        Some(*rect)
+                    }
                     _ => None,
                 });
                 let follows = |mark: &Item, item: &Item| match (mark, item) {
                     (Item::Rect { rect: a, .. }, Item::Rect { rect: b, .. }) => a == b,
                     (Item::Line { path: a, .. }, Item::Line { path: b, .. }) => {
-                        a == b || body.is_some_and(|rect| exposed_wick(a, rect) == *b)
+                        a == b
+                            || kind == "candlestick"
+                                && body.is_some_and(|rect| exposed_wick(a, rect) == *b)
                     }
                     (Item::Area { path: a, .. }, Item::Line { path: b, .. }) => a == b,
                     (Item::Point { center: a, .. }, Item::Point { center: b, .. }) => a == b,
                     _ => false,
                 };
-                // An ink outline is drawn in the passed ink, at full strength.
-                let inked = |item: &Item| match item {
-                    Item::Rect {
-                        stroke: Some(s), ..
-                    }
-                    | Item::Line { stroke: s, .. }
-                    | Item::Point {
-                        stroke: Some(s), ..
-                    } => s.color.0[..3] == [0.0, 0.0, 0.0] && s.color.0[3] > 0.5,
-                    _ => false,
-                };
                 for mark in &marks {
-                    // A mark with a halo answers with the halo alone; the others keep their
-                    // ink contour (FEA-CH-53; Chart design, 15 Nov).
-                    let haloed = halo_band(kind, mark, observation.wedge, 1.0, 4.0, 0.25).is_some();
-                    let outlined = contours
-                        .iter()
-                        .any(|item| follows(mark, item) && inked(item));
-                    if haloed {
-                        assert!(
-                            !outlined,
-                            "{kind} observation {index} draws ink round a haloed mark: {mark:?}"
-                        );
-                    } else {
-                        assert!(
-                            outlined,
-                            "{kind} observation {index} misses a mark: {mark:?}"
-                        );
+                    if matches!(mark, Item::Line { path, .. } if body.is_some_and(|rect| {
+                        path.bounds().is_some_and(|bounds| {
+                            let rect = rect.inflate(0.5);
+                            rect.contains([bounds.x, bounds.y]) && rect.contains([bounds.right(), bounds.bottom()])
+                        })
+                    })) {
+                        continue;
                     }
+                    assert!(
+                        contours.iter().any(|item| follows(mark, item)),
+                        "{kind} observation {index} misses a mark: {mark:?}"
+                    );
                 }
                 assert!(
                     !contours.is_empty(),
                     "{kind} observation {index} shows no feedback"
                 );
-                // A glow reaches its own width past the mark, and past a dot grown by its share.
-                let glow = Glow::of(kind, false, false);
                 for item in &contours {
-                    let owned = if matches!(item, Item::Area { .. }) {
-                        item.bounds().is_some_and(|r| {
-                            marks.iter().any(|mark| {
-                                mark.bounds().is_some_and(|b| {
-                                    // Only a point grows; a bar's or a tile's glow stays
-                                    // within its reach.
-                                    let grown = if matches!(mark, Item::Point { .. }) {
-                                        0.5 * b.w.max(b.h) * glow.grow
-                                    } else {
-                                        0.0
-                                    };
-                                    let b = b.inflate(glow.reach + grown + 7.0);
-                                    r.x >= b.x
-                                        && r.y >= b.y
-                                        && r.right() <= b.right()
-                                        && r.bottom() <= b.bottom()
-                                })
-                            })
-                        })
-                    } else {
-                        marks.iter().any(|mark| follows(mark, item))
-                    };
                     assert!(
-                        owned,
+                        marks.iter().any(|mark| follows(mark, item)),
                         "{kind} observation {index} contours an unrelated shape: {item:?}"
                     );
                 }
@@ -1344,28 +1031,7 @@ mod tests {
     }
 
     #[test]
-    fn glow_is_medium_far_for_small_dots_and_flat_in_hand_drawn() {
-        for kind in ["bar", "pie", "packed-bubble", "boxplot", "dotplot"] {
-            assert_eq!(Glow::of(kind, false, false), Glow::MEDIUM, "{kind}");
-        }
-        for kind in ["scatter", "strip", "qq", "scatter3d"] {
-            assert_eq!(Glow::of(kind, false, false), Glow::FAR, "{kind}");
-            assert_eq!(Glow::of(kind, true, false), Glow::FLAT, "{kind}");
-        }
-        // A scatter sized by a field draws bubbles, which glow medium and grow by a quarter.
-        assert_eq!(Glow::of("scatter", false, true), Glow::MEDIUM);
-        assert_eq!(Glow::of("scatter3d", false, true), Glow::MEDIUM);
-        assert_eq!(Glow::MEDIUM.grow, 0.25);
-        assert_eq!(Glow::FAR.grow, 0.6);
-        assert_eq!(Glow::of("bar", true, false), Glow::FLAT);
-        for glow in [Glow::FLAT, Glow::MEDIUM, Glow::FAR] {
-            let bands: Vec<(f64, f64)> = glow.bands().collect();
-            assert_eq!(bands.len(), glow.bands as usize);
-            assert_eq!(bands.last().unwrap().0, glow.reach);
-            let at_mark = 1.0 - bands.iter().map(|(_, a)| 1.0 - a).product::<f64>();
-            assert!((at_mark - glow.inner).abs() < 1e-9);
-        }
-
+    fn scatter_grows_with_a_tight_contour_and_packed_bubbles_keep_size() {
         let scatter = r#"{"spec":{"type":"scatter","title":"T","encoding":{"x":"a","y":"b"}},"rows":[{"a":1,"b":2},{"a":2,"b":4},{"a":3,"b":1}]}"#;
         let input: serde_json::Value = serde_json::from_str(scatter).unwrap();
         let geometry = layout(
@@ -1388,40 +1054,20 @@ mod tests {
                 _ => None,
             })
             .unwrap();
-        let ink = Rgba([0.0, 0.0, 0.0, 1.0]);
-        for (pen, grow, bands) in [(false, 0.6, 14), (true, 0.25, 1)] {
-            let drawn = items(
-                "scatter",
-                panel,
-                0,
-                None,
-                ink,
-                geometry.background,
-                1.0,
-                Glow::of("scatter", pen, false),
-            )
-            .unwrap();
-            let glow = drawn
-                .iter()
-                .filter(|item| matches!(item, Item::Area { .. }))
-                .count();
-            assert_eq!(glow, bands, "pen {pen}");
-            // The grown point is drawn over a disc of the page of the same size.
-            let grown: Vec<f64> = drawn
-                .iter()
-                .filter_map(|item| match item {
-                    Item::Point { radius, .. } => Some(*radius),
-                    _ => None,
-                })
-                .collect();
-            assert_eq!(grown.len(), 2, "pen {pen}");
-            for r in grown {
-                assert!((r - radius * (1.0 + grow)).abs() < 1e-9, "pen {pen}: {r}");
+        for (sized, grow) in [(false, 0.6), (true, 0.25)] {
+            let drawn = items("scatter", panel, 0, geometry.background, 1.0, sized, false).unwrap();
+            assert_eq!(drawn.len(), 2);
+            assert!(drawn.iter().all(|item| matches!(item, Item::Point { .. })));
+            for item in &drawn[..2] {
+                assert!(matches!(item, Item::Point { radius: r, fill: Some(_), .. }
+                    if (r - radius * (1.0 + grow)).abs() < 1e-9));
             }
         }
+        assert_eq!(point_growth("packed-bubble", false), 0.0);
+    }
 
-        // A boxplot's median lies inside its own box: it glows into nothing, while the box and
-        // the whiskers glow.
+    #[test]
+    fn boxplot_feedback_follows_the_box_and_skips_the_median() {
         let boxplot = r#"{"spec":{"type":"boxplot","title":"T","encoding":{"x":"k","y":"v"}},"rows":[{"k":"a","v":1},{"k":"a","v":2},{"k":"a","v":3},{"k":"a","v":4},{"k":"a","v":9}]}"#;
         let input: serde_json::Value = serde_json::from_str(boxplot).unwrap();
         let geometry = layout(
@@ -1470,30 +1116,17 @@ mod tests {
                 _ => None,
             })
             .expect("a boxplot draws its median inside the box");
-        let drawn = items(
-            "boxplot",
-            panel,
-            0,
-            None,
-            ink,
-            geometry.background,
-            1.0,
-            Glow::of("boxplot", false, false),
-        )
-        .unwrap();
+        let drawn = items("boxplot", panel, 0, geometry.background, 1.0, false, false).unwrap();
         assert!(
             !drawn
                 .iter()
                 .any(|item| matches!(item, Item::Line { path, .. } if *path == median)),
-            "the median glows inside its own box"
+            "the median needs no outline inside its own box"
         );
         assert!(
-            drawn
-                .iter()
-                .filter(|item| matches!(item, Item::Area { .. }))
-                .count()
-                >= Glow::MEDIUM.bands as usize,
-            "the box glows"
+            drawn.iter().any(
+                |item| matches!(item, Item::Rect { rect: r, stroke: Some(_), .. } if *r == rect)
+            )
         );
     }
 
@@ -1567,8 +1200,7 @@ mod tests {
                         !marks.is_empty(),
                         "{kind} observation {index} has no owned tile"
                     );
-                    let ink = Rgba([0.2, 0.3, 0.4, 1.0]);
-                    let outlines = tiles(kind, panel, index, ink, 1.0).expect("a tiled family");
+                    let outlines = tiles(kind, panel, index, 1.0).expect("a tiled family");
                     assert_eq!(
                         outlines.len(),
                         marks.len(),
@@ -1577,7 +1209,12 @@ mod tests {
                     for (mark, outline) in marks.into_iter().zip(outlines.iter()) {
                         match (mark, outline) {
                             (
-                                Item::Rect { rect: a, .. },
+                                Item::Rect {
+                                    rect: a,
+                                    fill,
+                                    stroke: original,
+                                    ..
+                                },
                                 Item::Rect {
                                     rect: b,
                                     stroke: Some(stroke),
@@ -1585,16 +1222,26 @@ mod tests {
                                 },
                             ) => {
                                 assert_eq!(a, b);
-                                assert_eq!(*stroke, Stroke::solid(ink.with_alpha(0.85), 1.5));
+                                let own = original.as_ref().map_or(fill.color, |s| s.color);
+                                assert_eq!(
+                                    *stroke,
+                                    Stroke::solid(own.with_alpha(own.alpha() * 0.22), 2.0)
+                                );
                             }
                             (
-                                Item::Area { path: a, .. },
+                                Item::Area { path: a, fill, .. },
                                 Item::Line {
                                     path: b, stroke, ..
                                 },
                             ) => {
                                 assert_eq!(a, b);
-                                assert_eq!(*stroke, Stroke::solid(ink.with_alpha(0.85), 1.5));
+                                assert_eq!(
+                                    *stroke,
+                                    Stroke::solid(
+                                        fill.color.with_alpha(fill.color.alpha() * 0.22),
+                                        2.0
+                                    )
+                                );
                             }
                             _ => panic!("{kind} observation {index} has the wrong contour"),
                         }
@@ -1605,7 +1252,7 @@ mod tests {
     }
 
     #[test]
-    fn parallel_network_and_flow_lines_thicken_without_a_stray_point() {
+    fn parallel_and_network_lines_keep_their_own_colour_on_hover() {
         for (kind, fixture) in [
             (
                 "parallel",
@@ -1614,10 +1261,6 @@ mod tests {
             (
                 "network",
                 include_str!("../../../../../richview-chart/tests/fixtures/types/network.json"),
-            ),
-            (
-                "flow",
-                include_str!("../../../../../richview-chart/tests/fixtures/types/flow.json"),
             ),
         ] {
             let input: serde_json::Value = serde_json::from_str(fixture).unwrap();
@@ -1644,287 +1287,21 @@ mod tests {
                 .collect();
             assert!(!lines.is_empty(), "{kind} has selectable lines");
             for (index, path, stroke) in lines {
-                let items = items(
-                    kind,
-                    panel,
-                    index,
-                    None,
-                    Rgba([0.0, 0.0, 0.0, 1.0]),
-                    geometry.background,
-                    1.0,
-                    Glow::of(kind, false, false),
-                )
-                .unwrap();
-                // The glow's bands along the path, then the path itself one pixel thicker.
-                let (glow, selected) = items.split_at(items.len() - 1);
-                assert_eq!(glow.len(), Glow::MEDIUM.bands as usize, "{kind}: {items:?}");
+                let items =
+                    items(kind, panel, index, geometry.background, 1.0, false, false).unwrap();
                 assert!(
-                    glow.iter()
-                        .all(|item| matches!(item, Item::Line { path: band, .. } if band == path)),
-                    "{kind} must glow along the selected path without a point: {items:?}"
-                );
-                assert!(
-                    matches!(selected, [Item::Line { path: selected_path, stroke: selected, .. }] if selected_path == path && (selected.width - stroke.width - 1.0).abs() < 1e-9),
-                    "{kind} must thicken the selected path without a point: {items:?}"
+                    matches!(items.as_slice(),
+                        [Item::Line { path: selected_path, stroke: selected, .. }]
+                        if selected_path == path && (selected.width - stroke.width - 2.0).abs() < 1e-9
+                            && selected.color == stroke.color.with_alpha(stroke.color.alpha() * 0.22)
+                    ),
+                    "{kind} must trace its path in its own colour: {items:?}"
                 );
             }
         }
     }
 
     /// The bar3d fixture with its three rows of bars, or as one row without `color`.
-    fn bar3d(rows: bool) -> Geometry {
-        let mut input: serde_json::Value = serde_json::from_str(include_str!(
-            "../../../../../richview-chart/tests/fixtures/types/bar3d.json"
-        ))
-        .unwrap();
-        if !rows {
-            input["spec"]["encoding"]
-                .as_object_mut()
-                .unwrap()
-                .remove("color");
-        }
-        layout(
-            &ChartBlock::from_value(&input["spec"]).unwrap(),
-            input["rows"].as_array().unwrap(),
-            &ChartTheme::default(),
-            &Options::default(),
-        )
-    }
-
-    /// Whether `p` lies strictly inside `face`, a quarter pixel in from each of its edges.
-    fn inside_face(p: [f64; 2], face: &[[f64; 2]]) -> bool {
-        let turn = signed_area(face).signum();
-        (0..face.len()).all(|i| {
-            let (a, b) = (face[i], face[(i + 1) % face.len()]);
-            side(a, b, p, turn) / (b[0] - a[0]).hypot(b[1] - a[1]) > 0.25
-        })
-    }
-
-    fn length(rings: Vec<Vec<[f64; 2]>>) -> f64 {
-        rings
-            .iter()
-            .flat_map(|ring| ring.windows(2))
-            .map(|pair| (pair[1][0] - pair[0][0]).hypot(pair[1][1] - pair[0][1]))
-            .sum()
-    }
-
-    /// Points every twentieth of the way along each segment of `rings`.
-    fn along(rings: &[Vec<[f64; 2]>]) -> Vec<[f64; 2]> {
-        rings
-            .iter()
-            .flat_map(|ring| ring.windows(2))
-            .flat_map(|pair| {
-                (0..=20).map(move |step| {
-                    let t = f64::from(step) / 20.0;
-                    [
-                        pair[0][0] + (pair[1][0] - pair[0][0]) * t,
-                        pair[0][1] + (pair[1][1] - pair[0][1]) * t,
-                    ]
-                })
-            })
-            .collect()
-    }
-
-    #[test]
-    fn bar3d_contour_traces_only_what_the_bars_in_front_leave_visible() {
-        // With one row nothing steps back and every nearer bar hides; with several, the bars of
-        // the selected one's own row do.
-        for rows in [false, true] {
-            contour_traces_only_what_the_bars_in_front_leave_visible(&bar3d(rows), rows);
-        }
-    }
-
-    fn contour_traces_only_what_the_bars_in_front_leave_visible(geometry: &Geometry, rows: bool) {
-        let panel = &geometry.panels[0];
-        let (mut partly, mut whole) = (0, 0);
-        for index in 0..panel.observations.len() {
-            let front = front_faces(panel, index);
-            let contour = items(
-                "bar3d",
-                panel,
-                index,
-                None,
-                Rgba([0.0, 0.0, 0.0, 1.0]),
-                geometry.background,
-                1.0,
-                Glow::of("bar3d", false, false),
-            )
-            .unwrap();
-            let (bands, lines) = contour.split_at(contour.len().saturating_sub(2));
-            let [
-                Item::Line {
-                    path: separator, ..
-                },
-                Item::Line { path: ink, .. },
-            ] = lines
-            else {
-                panic!("bar {index}: a glow, a separator and an ink line");
-            };
-            assert_eq!(bands.len(), Glow::MEDIUM.bands as usize, "bar {index}");
-            assert_eq!(separator.flatten(0.5), ink.flatten(0.5));
-            for p in along(&ink.flatten(0.5)) {
-                assert!(
-                    !front.iter().any(|face| inside_face(p, face)),
-                    "rows {rows}, bar {index}: its contour runs over a bar in front at {p:?}"
-                );
-            }
-            for piece in bands.iter().flat_map(|band| match band {
-                Item::Area { path, .. } => path.flatten(0.5),
-                _ => panic!("bar {index}: a glow band is an area"),
-            }) {
-                let piece = open_ring(piece);
-                let n = piece.len() as f64;
-                let centre = [
-                    piece.iter().map(|p| p[0]).sum::<f64>() / n,
-                    piece.iter().map(|p| p[1]).sum::<f64>() / n,
-                ];
-                assert!(
-                    !front.iter().any(|face| inside_face(centre, face)),
-                    "bar {index}: its halo lies over a bar in front"
-                );
-            }
-            let (silhouette, _) = bar_silhouette(panel, index).unwrap();
-            let (all, shown) = (length(silhouette.flatten(0.5)), length(ink.flatten(0.5)));
-            if shown < all - 1.0 {
-                partly += 1;
-            } else {
-                assert!((shown - all).abs() < 1e-6, "bar {index}: {shown} of {all}");
-                whole += 1;
-            }
-        }
-        assert!(
-            partly > 0,
-            "rows {rows}: the fixture has a partly hidden bar"
-        );
-        assert!(whole > 0, "rows {rows}: the fixture has a bar in full view");
-    }
-
-    #[test]
-    fn bar3d_contour_goes_over_the_rows_that_step_back() {
-        let geometry = bar3d(true);
-        let panel = &geometry.panels[0];
-        let mut kept = 0;
-        for (index, o) in panel.observations.iter().enumerate() {
-            // The faces of the other rows painted after it, dimmed while it is selected.
-            let own = |item: &Item| matches!(item, Item::Area { role: Role::Mark, obs: Some(k), .. } if *k == index);
-            let last = panel.items.iter().rposition(own).unwrap();
-            let dimmed: Vec<Vec<[f64; 2]>> = panel.items[last + 1..]
-                .iter()
-                .filter_map(|item| match item {
-                    Item::Area {
-                        path,
-                        role: Role::Mark,
-                        series,
-                        ..
-                    } if *series != o.series => Some(path.flatten(0.5)),
-                    _ => None,
-                })
-                .flatten()
-                .map(open_ring)
-                .collect();
-            let front = front_faces(panel, index);
-            assert!(
-                front.iter().all(|face| !dimmed.contains(face)),
-                "bar {index}: a dimmed row hides it"
-            );
-            let (silhouette, _) = bar_silhouette(panel, index).unwrap();
-            let edge = along(&silhouette.flatten(0.5));
-            let covered = edge
-                .iter()
-                .any(|p| dimmed.iter().any(|face| inside_face(*p, face)));
-            if covered && front.is_empty() {
-                // Only dimmed rows lie in front of it: the contour goes round the whole bar.
-                let contour = items(
-                    "bar3d",
-                    panel,
-                    index,
-                    None,
-                    Rgba([0.0, 0.0, 0.0, 1.0]),
-                    geometry.background,
-                    1.0,
-                    Glow::of("bar3d", false, false),
-                )
-                .unwrap();
-                let Some(Item::Line { path: ink, .. }) = contour.last() else {
-                    panic!("bar {index}: a glow, a separator and an ink line");
-                };
-                let (all, shown) = (length(silhouette.flatten(0.5)), length(ink.flatten(0.5)));
-                assert!((shown - all).abs() < 1e-6, "bar {index}: {shown} of {all}");
-                kept += 1;
-            }
-        }
-        assert!(
-            kept > 0,
-            "a bar only the dimmed rows cover keeps its whole contour"
-        );
-    }
-
-    #[test]
-    fn bar3d_silhouette_keeps_outer_face_edges_and_removes_shared_edges() {
-        let input: serde_json::Value = serde_json::from_str(include_str!(
-            "../../../../../richview-chart/tests/fixtures/types/bar3d.json"
-        ))
-        .unwrap();
-        let geometry = layout(
-            &ChartBlock::from_value(&input["spec"]).unwrap(),
-            input["rows"].as_array().unwrap(),
-            &ChartTheme::default(),
-            &Options::default(),
-        );
-        let panel = &geometry.panels[0];
-        for index in 0..panel.observations.len() {
-            let mut expected: Vec<([f64; 2], [f64; 2])> = Vec::new();
-            for item in &panel.items {
-                if let Item::Area {
-                    path,
-                    role: Role::Mark,
-                    obs: Some(owner),
-                    ..
-                } = item
-                    && *owner == index
-                {
-                    for ring in path.flatten(0.5) {
-                        for pair in ring.windows(2) {
-                            let (a, b) = (pair[0], pair[1]);
-                            if let Some(i) = expected
-                                .iter()
-                                .position(|(x, y)| (*x == a && *y == b) || (*x == b && *y == a))
-                            {
-                                expected.remove(i);
-                            } else {
-                                expected.push((a, b));
-                            }
-                        }
-                    }
-                }
-            }
-            let (silhouette, _) = bar_silhouette(panel, index).expect("bar has an outside");
-            let actual: Vec<_> = silhouette
-                .flatten(0.5)
-                .into_iter()
-                .flat_map(|ring| {
-                    ring.windows(2)
-                        .map(|pair| (pair[0], pair[1]))
-                        .collect::<Vec<_>>()
-                })
-                .collect();
-            assert!(!expected.is_empty());
-            assert_eq!(
-                actual.len(),
-                expected.len(),
-                "bar {index} has only outside edges"
-            );
-            for (a, b) in expected {
-                assert!(
-                    actual
-                        .iter()
-                        .any(|(x, y)| (*x == a && *y == b) || (*x == b && *y == a)),
-                    "bar {index} misses an outside edge"
-                );
-            }
-        }
-    }
-
     #[test]
     fn map_countries_and_surface_quads_use_their_own_paths() {
         for (kind, fixture) in [
@@ -1960,8 +1337,7 @@ mod tests {
                         })
                         .collect();
                     assert!(!paths.is_empty(), "{kind} observation {index} has a path");
-                    let outlines =
-                        tiles(kind, panel, index, Rgba([0.0, 0.0, 0.0, 1.0]), 1.0).unwrap();
+                    let outlines = tiles(kind, panel, index, 1.0).unwrap();
                     assert_eq!(
                         outlines.len(),
                         paths.len(),
@@ -1978,7 +1354,7 @@ mod tests {
     }
 
     #[test]
-    fn map_spots_answer_with_their_own_halo() {
+    fn map_spots_answer_with_their_own_contour() {
         let spec = serde_json::json!({"type":"map", "title":"Offices", "encoding":{"lat":"la", "lon":"lo"}});
         let rows = vec![
             serde_json::json!({"la":50.09,"lo":14.42}),
@@ -1991,29 +1367,13 @@ mod tests {
             &Options::default(),
         );
         let panel = &geometry.panels[0];
-        for (index, observation) in panel.observations.iter().enumerate() {
-            let outlines = items(
-                "map",
-                panel,
-                index,
-                observation.wedge,
-                Rgba([0.0, 0.0, 0.0, 1.0]),
-                geometry.background,
-                1.0,
-                Glow::of("map", false, false),
-            )
-            .unwrap();
-            // A spot answers with its own halo, centred on it, and no ink ring.
-            assert!(outlines.iter().any(|item| matches!(item, Item::Area { .. })
-                && item.bounds().is_some_and(|b| {
-                    (b.center()[0] - observation.at[0]).abs() < 0.5
-                        && (b.center()[1] - observation.at[1]).abs() < 0.5
-                })));
-            assert!(
-                !outlines
-                    .iter()
-                    .any(|item| matches!(item, Item::Point { .. }))
-            );
+        for index in 0..panel.observations.len() {
+            let outlines =
+                items("map", panel, index, geometry.background, 1.0, false, false).unwrap();
+            assert_eq!(outlines.len(), 1);
+            assert!(outlines.iter().all(|item| matches!(item,
+                Item::Point { center, stroke: Some(_), fill: None, .. } if *center == panel.observations[index].at
+            )));
         }
     }
 
@@ -2031,34 +1391,18 @@ mod tests {
         );
         let color = Rgba([0.3, 0.4, 0.5, 1.0]);
         for panel in &geometry.panels {
-            for (index, observation) in panel.observations.iter().enumerate() {
-                let dot = node(panel, index, 1.0, color, geometry.background, Glow::FLAT).unwrap();
-                assert_eq!(dot.len(), 3);
-                for (item, radius) in dot.iter().zip([12.0, 8.0, 6.0]) {
-                    assert!(
-                        matches!(item, Item::Point { center, radius: r, shape: Shape::Circle, .. } if *center == observation.at && *r == radius)
-                    );
-                }
+            for observation in &panel.observations {
+                let mark = dot(observation.at, 1.0, color);
                 assert!(
-                    matches!(dot[0], Item::Point { fill: Some(fill), .. } if fill.color == halo(color, 0.25, 1.0))
+                    matches!(mark, Item::Point { center, radius: 6.0, shape: Shape::Circle, stroke: None, .. }
+                    if center == observation.at)
                 );
             }
-            assert!(
-                node(
-                    panel,
-                    panel.observations.len(),
-                    1.0,
-                    color,
-                    geometry.background,
-                    Glow::FLAT,
-                )
-                .is_none()
-            );
         }
     }
 
     #[test]
-    fn network_nodes_answer_with_their_own_halo() {
+    fn network_nodes_answer_with_their_own_contour() {
         let input: serde_json::Value = serde_json::from_str(include_str!(
             "../../../../../richview-chart/tests/fixtures/types/network.json"
         ))
@@ -2089,24 +1433,16 @@ mod tests {
                 "network",
                 panel,
                 index,
-                None,
-                Rgba([0.0, 0.0, 0.0, 1.0]),
                 geometry.background,
                 1.0,
-                Glow::of("network", false, false),
+                false,
+                false,
             )
             .unwrap();
-            // A node answers with its own halo, centred on it, and no ink ring.
-            assert!(outlines.iter().any(|item| matches!(item, Item::Area { .. })
-                && item.bounds().is_some_and(|b| {
-                    (b.center()[0] - center[0]).abs() < 0.5
-                        && (b.center()[1] - center[1]).abs() < 0.5
-                })));
-            assert!(
-                !outlines
-                    .iter()
-                    .any(|item| matches!(item, Item::Point { .. }))
-            );
+            assert_eq!(outlines.len(), 1);
+            assert!(outlines.iter().all(|item| matches!(item,
+                Item::Point { center: point, stroke: Some(_), fill: None, .. } if *point == center
+            )));
         }
     }
 
@@ -2149,17 +1485,8 @@ mod tests {
                 .take(3)
                 .collect();
             assert_eq!(bands.len(), 3);
-            let outlines = items(
-                "gauge",
-                panel,
-                0,
-                None,
-                Rgba([0.0, 0.0, 0.0, 1.0]),
-                geometry.background,
-                1.0,
-                Glow::of("gauge", false, false),
-            )
-            .unwrap();
+            let outlines =
+                items("gauge", panel, 0, geometry.background, 1.0, false, false).unwrap();
             assert!(
                 matches!((bands[expected], outlines.as_slice()), (Item::Area { path, .. }, [Item::Line { path: actual, .. }]) if path == actual)
             );
@@ -2188,17 +1515,7 @@ mod tests {
                 _ => None,
             })
             .unwrap();
-        let outlines = items(
-            "gauge",
-            panel,
-            0,
-            None,
-            Rgba([0.0, 0.0, 0.0, 1.0]),
-            geometry.background,
-            1.0,
-            Glow::of("gauge", false, false),
-        )
-        .unwrap();
+        let outlines = items("gauge", panel, 0, geometry.background, 1.0, false, false).unwrap();
         assert!(matches!(outlines.as_slice(), [Item::Line { path, .. }] if path == track));
     }
 
@@ -2216,7 +1533,7 @@ mod tests {
         );
         let mut checked = 0;
         for panel in &geometry.panels {
-            for (index, observation) in panel.observations.iter().enumerate() {
+            for index in 0..panel.observations.len() {
                 // A card is a filled shape with its outline; a connection is a line alone.
                 let filled = panel.items.iter().any(|item| {
                     matches!(item, Item::Area { role: Role::Mark, obs: Some(owner), .. } if *owner == index)
@@ -2233,17 +1550,8 @@ mod tests {
                     continue;
                 };
                 checked += 1;
-                let contour = items(
-                    "flow",
-                    panel,
-                    index,
-                    observation.wedge,
-                    Rgba([0.0, 0.0, 0.0, 1.0]),
-                    geometry.background,
-                    1.0,
-                    Glow::of("flow", false, false),
-                )
-                .unwrap();
+                let contour =
+                    items("flow", panel, index, geometry.background, 1.0, false, false).unwrap();
                 assert!(
                     contour
                         .iter()
@@ -2282,29 +1590,22 @@ mod tests {
                 _ => None,
             })
             .unwrap();
-        let ink = Rgba([0.2, 0.2, 0.2, 1.0]);
         let outlines = if kind == "hexbin" {
-            tiles(kind, panel, observation, ink, 1.0)
+            tiles(kind, panel, observation, 1.0)
         } else {
             items(
                 kind,
                 panel,
                 observation,
-                None,
-                ink,
                 geometry.background,
                 1.0,
-                Glow::of(kind, false, false),
+                false,
+                false,
             )
         }
-        .expect("the mark has an outline");
-        let expected = if kind == "hexbin" {
-            ink.with_alpha(0.85)
-        } else {
-            ink
-        };
+        .expect("the mark has feedback");
         assert!(
-            matches!(outlines.as_slice(), [Item::Line { path: actual, stroke, .. }] if actual == path && *stroke == Stroke::solid(expected, 1.5)),
+            matches!(outlines.as_slice(), [Item::Line { path: actual, stroke, .. }] if actual == path && stroke.width == 2.0),
             "outline must follow the mark path using the bin stroke"
         );
     }
@@ -2360,16 +1661,14 @@ mod tests {
                 continue;
             };
             matched[usize::from(o.wedge.is_some())] = true;
-            let ink = Rgba([0.2, 0.2, 0.2, 1.0]);
             let outlines = items(
                 "chord",
                 panel,
                 observation,
-                o.wedge,
-                ink,
                 geometry.background,
                 1.0,
-                Glow::of("chord", false, false),
+                false,
+                false,
             )
             .unwrap();
             assert!(

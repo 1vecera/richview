@@ -2,7 +2,7 @@
 // unrun with reason; FEA-BR-14, FEA-BR-15). The seed binary is a fake; none of these needs a build.
 
 import assert from "node:assert/strict";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import test from "node:test";
@@ -88,6 +88,39 @@ test("a seed example is copied, seeded at the copy's database path, and gets a c
 		writeFileSync(join(dest, ".richview-cache/rows"), "stale");
 		prepareSeedExample({ source, dest, seedBin: bin });
 		assert.equal(existsSync(join(dest, ".richview-cache")), false);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
+const PARQUET = "connectors:\n  orders:\n    kind: parquet\n    file: data/orders.parquet\n";
+
+test("a parquet connector example is seeded by its own script, run once in the copy against an in-memory database", () => {
+	const root = tmp();
+	try {
+		assert.equal(classifyConnectors(join(repo, "examples/parquet-report")).kind, "seed");
+		assert.match(classifyConnectors(example(root, "nofile", "connectors:\n  orders:\n    kind: parquet\n")).reason, /parquet connector 'orders' names no file/);
+		assert.match(classifyConnectors(example(root, "noseed", PARQUET, { seed: false })).reason, /a parquet connector needs data\/seed.sql/);
+		// A seed binary that, like the real script, writes the Parquet file relative to where it runs.
+		const bin = join(root, "seed_duckdb");
+		writeFileSync(bin, `#!/bin/sh\necho "$1 $2 $(pwd -P)" >> "${root}/seed-calls"\nmkdir -p data && echo PAR1 > data/orders.parquet\n`);
+		chmodSync(bin, 0o755);
+		const source = example(root, "parquet", PARQUET);
+		writeFileSync(join(source, "data/orders.parquet"), "left in the checkout by a test");
+		const dest = join(root, "run/parquet");
+		mkdirSync(dirname(dest), { recursive: true });
+		const prepared = prepareSeedExample({ source, dest, seedBin: bin });
+		const [seed, database, cwd] = readFileSync(join(root, "seed-calls"), "utf8").trim().split(" ");
+		assert.equal(seed, `${prepared.folder}/data/seed.sql`);
+		assert.equal(database, ":memory:");
+		assert.equal(resolve(cwd), resolve(realpathSync(prepared.folder)));
+		assert.equal(readFileSync(join(prepared.folder, "data/orders.parquet"), "utf8"), "PAR1\n", "the copy holds the seeded file, not the checkout's");
+		assert.equal(readFileSync(join(source, "data/orders.parquet"), "utf8"), "left in the checkout by a test", "the checkout is never written");
+		// A script that does not write the file the connector names is a failure that says so.
+		writeFileSync(bin, "#!/bin/sh\nexit 0\n");
+		assert.throws(() => prepareSeedExample({ source, dest, seedBin: bin }), /data\/seed.sql did not write 'data\/orders.parquet'/);
+		const escape = example(root, "esc", "connectors:\n  o:\n    kind: parquet\n    file: ../out.parquet\n");
+		assert.throws(() => prepareSeedExample({ source: escape, dest: join(root, "o1"), seedBin: bin }), /file '\.\.\/out\.parquet' escapes the report folder/);
 	} finally {
 		rmSync(root, { recursive: true, force: true });
 	}

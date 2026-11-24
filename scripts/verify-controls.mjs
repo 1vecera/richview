@@ -225,8 +225,9 @@ try {
         // A full playback with motion: every frame in order, axes still, then pause (FEA-BR-31).
         const seen = [0];
         const ticks = new Set([JSON.stringify(valueTicks(start.m))]);
+        const play = group.locator('.rv-chart__control-button--play');
         await page.keyboard.press(' ');
-        await check(`${label}: Space plays`, async () => assert.equal(await group.locator('.rv-chart__control-button--play').getAttribute('aria-pressed'), 'true'));
+        await check(`${label}: Space plays`, async () => assert.equal(await play.getAttribute('aria-pressed'), 'true'));
         const deadline = Date.now() + frames * 2000 + 4000;
         while (seen.length < frames && Date.now() < deadline) {
           const f = (await stateOf(figure))[k];
@@ -239,18 +240,37 @@ try {
         }
         await check(`${label}: playback visits every frame in order`, () => assert.deepEqual(seen, [...Array(frames).keys()]));
         await check(`${label}: frames share their axes`, () => assert.equal(ticks.size, 1, [...ticks].join(' | ')));
-        await group.locator('.rv-chart__control-button--play').click();
-        await check(`${label}: play pauses`, async () => assert.equal((await model(page)).playing, false));
-        await agrees(page, figure, `${label} paused`);
-        // Reduced motion: each press advances one frame and nothing glides.
-        await page.emulateMedia({ reducedMotion: 'reduce' });
-        const before = (await stateOf(figure))[k];
-        await group.locator('.rv-chart__control-button--play').click();
-        const after = await page.evaluate(() => ({ settled: window.__richview.charts()[0].settled, playing: window.__richview.charts()[0].playing }));
-        await check(`${label}: reduced motion steps once without a glide`, async () => {
-          assert.equal((await stateOf(figure))[k], (before + 1) % frames);
-          assert.deepEqual(after, { settled: true, playing: false });
+        await page.waitForTimeout(2000);
+        const end = await group.evaluate(group => ({
+          frame: Number(group.querySelector('.rv-chart__scrubber').value),
+          label: group.querySelector('.rv-chart__control-button--play').getAttribute('aria-label'),
+          playing: window.__richview.charts()[0].playing,
+        }));
+        assert.deepEqual(end, { frame: frames - 1, label: 'Play', playing: false }, `${label}: playback stops and stays at the last frame`);
+        await agrees(page, figure, `${label} last frame`);
+        // Read the restarted state in the click's task, before the next frame's timer can fire.
+        const restarted = await play.evaluate(button => {
+          button.click();
+          return { frame: Number(button.closest('[data-rv-control]').querySelector('input').value), label: button.getAttribute('aria-label') };
         });
+        await check(`${label}: Play restarts from the first frame`, () => assert.deepEqual(restarted, { frame: 0, label: 'Pause' }));
+        await play.click();
+        await check(`${label}: play pauses`, async () => assert.equal((await model(page)).playing, false));
+        // Reduced motion: each press advances once without gliding, including at the ends.
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await group.locator('.rv-chart__scrubber').evaluate((s, frame) => {
+          s.value = String(frame);
+          s.dispatchEvent(new Event('input', { bubbles: true }));
+        }, frames - 2);
+        for (const frame of [frames - 1, 0]) {
+          await play.click();
+          const after = await page.evaluate(() => ({ settled: window.__richview.charts()[0].settled, playing: window.__richview.charts()[0].playing }));
+          await check(`${label}: reduced motion goes to frame ${frame} without a glide`, async () => {
+            assert.equal((await stateOf(figure))[k], frame);
+            assert.equal(await play.getAttribute('aria-label'), 'Play');
+            assert.deepEqual(after, { settled: true, playing: false });
+          });
+        }
         await page.emulateMedia({ reducedMotion: 'no-preference' });
       }
       // CSV keeps every source row; the PNG names the state (FEA-BR-32).

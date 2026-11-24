@@ -8,7 +8,7 @@ use std::{
     path::PathBuf,
 };
 
-pub(super) const VERSION: u8 = 2;
+pub(super) const VERSION: u8 = 3;
 pub(super) const MAX_BYTES: usize = crate::MAX_INPUT_BYTES;
 
 #[derive(Serialize, Deserialize)]
@@ -20,6 +20,23 @@ pub(super) struct Request {
     pub connector: String,
     pub fingerprint: String,
     pub params: BTreeMap<String, Value>,
+    /// The source is a Parquet file, not a DuckDB database: the worker opens an empty in-memory
+    /// database whose one view, named after the connector, reads that file.
+    #[serde(default)]
+    pub parquet: bool,
+    /// A host-written read of a Parquet source's columns, in place of report SQL.
+    #[serde(default)]
+    pub table: Option<TableRequest>,
+}
+
+/// Which columns of a Parquet file a report reads (`data.parquet`). It carries no SQL: the worker
+/// writes the query from the file's own column names.
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct TableRequest {
+    /// Every text the blocks that name the file hold. The worker reads each column whose name
+    /// is exactly one of them. `None` reads every column.
+    pub names: Option<Vec<String>>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -32,6 +49,56 @@ pub(super) enum Reply {
     Failed {
         error: Failure,
     },
+    /// A table read: this line, a line feed, then the table as `richview-core` reads it.
+    Table {
+        /// Columns that held NaN or an infinity, read as missing, with how many.
+        non_finite: Vec<(String, u64)>,
+    },
+    /// A table read refused for its size: the file's row count, and whether the count itself
+    /// or the bytes of the columns read crossed the limit.
+    TooLarge {
+        rows: u64,
+        by_rows: bool,
+    },
+    /// A table read refused for a column whose values are not scalars.
+    Unsupported {
+        column: String,
+        kind: ColumnKind,
+    },
+}
+
+/// Why a Parquet column cannot be a column of report data.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub(in crate::connectors) enum ColumnKind {
+    List,
+    Struct,
+    Map,
+    Union,
+    Binary,
+    Interval,
+}
+
+impl ColumnKind {
+    /// The kind as a finding names it.
+    pub(in crate::connectors) fn noun(self) -> &'static str {
+        match self {
+            Self::List => "a list",
+            Self::Struct => "a struct",
+            Self::Map => "a map",
+            Self::Union => "a union",
+            Self::Binary => "binary data",
+            Self::Interval => "an interval",
+        }
+    }
+}
+
+/// Split a worker's output into its reply line and the table that follows a table reply.
+pub(super) fn split(output: &[u8]) -> (&[u8], &[u8]) {
+    match output.iter().position(|byte| *byte == b'\n') {
+        Some(at) => (&output[..at], &output[at + 1..]),
+        None => (output, &[]),
+    }
 }
 
 #[derive(Clone, Copy, Serialize, Deserialize)]

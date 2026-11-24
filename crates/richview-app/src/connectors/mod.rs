@@ -13,6 +13,7 @@ pub mod cache;
 pub mod config;
 pub mod duckdb_adapter;
 pub mod metricflow_adapter;
+pub mod parquet_source;
 pub mod registry;
 pub mod resolve;
 pub mod spec;

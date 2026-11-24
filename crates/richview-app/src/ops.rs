@@ -428,7 +428,8 @@ pub async fn generate(request: &GenerateRequest) -> Outcome {
         return Ok(envelope(
             diagnostics,
             Some(&output),
-            json!({"blocks":blocks,"charts":charts,"interactive":interactive,"page":options.page,"pages":export.pages(),"bytes":export.pdf.len(),"browser":export.browser,"settled":export.settled}),
+            // Slides print on their own 16:9 page whatever `--page` asked for (FEA-RP-65).
+            json!({"blocks":blocks,"charts":charts,"interactive":interactive,"page":if render_meta(&report, "slides").is_some() { json!("16:9") } else { json!(options.page) },"pages":export.pages(),"bytes":export.pdf.len(),"browser":export.browser,"settled":export.settled}),
         ));
     }
     let output = match resolver::export_report(
@@ -548,8 +549,30 @@ pub async fn publish_as(
         false,
         false,
     )?;
-    let mut result =
-        crate::cli::publish_as(&source, &options, server, token, slug, new, visibility).await?;
+    // Existing scripts can explicitly allow creation even on machines without writable config.
+    let first = match crate::publish_destination::first_publication(&input.path, server) {
+        Ok(first) => first,
+        Err(_) if new => None,
+        Err(error) => return Err(error),
+    };
+    let mut result = crate::cli::publish_as(
+        &source,
+        &options,
+        server,
+        token,
+        slug,
+        new || first.is_some(),
+        visibility,
+    )
+    .await?;
+    if let Some(history) = first {
+        history.set_len(1).map_err(|error| {
+            Failure::host(format!(
+                "Published at {}, but could not save the local publish history: {error}",
+                result["url"].as_str().unwrap_or(server)
+            ))
+        })?;
+    }
     let mut diagnostics: Vec<Diagnostic> = slug_derived(&source, slug).into_iter().collect();
     // The server's render may add findings of its own; the envelope fields are computed here,
     // from both lists, whatever an older or newer server sent.

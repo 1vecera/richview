@@ -1447,6 +1447,30 @@ fn publish_body(slug: &str, version: &str, visibility: Option<&str>, new: bool) 
 }
 
 #[tokio::test]
+async fn the_hosted_version_list_places_a_release_before_its_prerelease() {
+    let key = "aaaa0001/q3";
+    let host = team().report(key, "author", "private").start(Mail::Files);
+    let storage = &host.state.storage;
+    let seed = storage.get(key, None).unwrap().unwrap();
+    for version in ["3.0.0", "3.0.0-alpha.4"] {
+        storage
+            .put_version(StoredReport {
+                version: version.into(),
+                ..seed.clone()
+            })
+            .unwrap();
+    }
+    let page = host.get(&me("author"), "/reports/aaaa0001/q3").await;
+    assert_eq!(page.status, StatusCode::OK);
+    let release = page.body.find("href=\"/r/aaaa0001/q3/v/3.0.0\"").unwrap();
+    let prerelease = page
+        .body
+        .find("href=\"/r/aaaa0001/q3/v/3.0.0-alpha.4\"")
+        .unwrap();
+    assert!(release < prerelease);
+}
+
+#[tokio::test]
 async fn an_editor_cannot_change_who_can_open_a_report_by_republishing_it() {
     let host = team()
         .person("ed", "Edith Editor")
@@ -2626,7 +2650,7 @@ mod operator {
         let before = state_of(&data);
 
         let (status, body) = server.delete("solo").await;
-        assert_eq!(status, StatusCode::INTERNAL_SERVER_ERROR);
+        assert_eq!(status, StatusCode::CONFLICT);
         assert!(
             body["error"].as_str().unwrap().contains("last owner"),
             "{body}"

@@ -1,6 +1,7 @@
 // Host reason (ARC-03): verify chart readout placement through real browser input.
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
+import { loadavg } from 'node:os';
 import { join } from 'node:path';
 import { harness, root, watchErrors } from './browser-harness.mjs';
 import { reports, settle } from './report-runtime.mjs';
@@ -9,7 +10,129 @@ import { reports, settle } from './report-runtime.mjs';
 const only = (name, all) => process.env[name] ? process.env[name].split(',').map(item => all.find(value => String(value) === item) ?? item) : all;
 const styles = only('RV_PLACEMENT_STYLES', ['sleek', 'air', 'scientific', 'brutalist', 'hand-drawn']);
 const widths = only('RV_PLACEMENT_WIDTHS', [1280, 390]).map(Number);
-const pages = only('RV_PLACEMENT_PAGES', ['types', 'openai-vs-anthropic', 'touch-point']);
+const pages = only('RV_PLACEMENT_PAGES', ['types', 'openai-vs-anthropic', 'touch-point', 'dense']);
+// Dense charts for hover timing only (PRF-25): one line of 5,000 days, three of 2,000 days and
+// 3,000 points, from a seeded walk so every run draws the same data.
+const seeded = seed => () => { seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+const day = i => new Date(Date.UTC(2012, 0, 1 + i)).toISOString().slice(0, 10);
+const walk = (random, n, from) => { let value = from; return Array.from({ length: n }, () => (value = Math.max(1, value + (random() - 0.5) * 2)).toFixed(2)); };
+const denseFiles = (() => {
+  const random = seeded(986);
+  const one = walk(random, 5000, 40).map((value, i) => `${day(i)},${value}`);
+  const three = ['North', 'South', 'West'].flatMap((region, r) => walk(random, 2000, 50 + 10 * r).map((value, i) => `${day(i)},${region},${value}`));
+  const points = Array.from({ length: 3000 }, (_, i) => `${(random() * 100).toFixed(2)},${(random() * 60).toFixed(2)},${['North', 'South', 'West'][i % 3]}`);
+  return { 'one.csv': `day,price\n${one.join('\n')}\n`, 'three.csv': `day,region,value\n${three.join('\n')}\n`, 'scatter.csv': `x,y,region\n${points.join('\n')}\n` };
+})();
+const dense = '---\ntitle: Dense hover\n---\n' + [
+  'type: line\ntitle: One series of 5,000 days\ndata:\n  csv: one.csv\nencoding: {x: day, y: price}',
+  'type: line\ntitle: Three series of 2,000 days\ndata:\n  csv: three.csv\nencoding: {x: day, y: value, color: region}',
+  'type: scatter\ntitle: Three thousand points\ndata:\n  csv: scatter.csv\nencoding: {x: x, y: y, color: region}',
+].map(body => `\n\`\`\`chart\n${body}\n\`\`\`\n`).join('');
+// Hover timing (PRF-25), per chart: main-thread time from a pointer move to the end of the next
+// frame, without the wait for that frame, and whether that frame already shows the readout for
+// the observation the move reached. The limits are always judged, beside a full run's other
+// suites too, so they catch a freeze and nothing else: a busy host moves the slowest hovers, not
+// the median. Each chart's line carries the 1-minute load it was timed under and, where its
+// slowest move took longer than a frame, whether that time went into the handler or the frame.
+// A chart that misses a limit while the 1-minute load is over 8, the perf step's threshold, is
+// re-timed once over the same moves against the same limits; both are recorded and the re-time
+// decides.
+const HOVER_P50 = 16.7, HOVER_P95 = 50, HOVER_MAX = 250, FIRST_FRAME = 0.95, RETIME_LOAD = 8;
+// The fewest moves a median is judged from: a chart of one observation is hovered once, and one
+// searched place of 20 to 30 ms is a slow frame, which the 95th percentile and the maximum bound.
+const MEDIAN_MOVES = 5;
+const timings = [];
+// A listener before the chart's own (capture) and one after it (bubble): the first opens a
+// record and asks for the next frame before the chart can, the second asks after it; a task
+// posted from the second frame callback runs once that frame is painted.
+const installTiming = page => page.evaluate(() => {
+  if (window.__rvHover) return;
+  const hover = window.__rvHover = { current: null, chart: 0 };
+  addEventListener('pointermove', event => {
+    if (!event.isTrusted) return;
+    const record = hover.current = { start: performance.now() };
+    requestAnimationFrame(() => { record.frame ??= performance.now(); });
+  }, { capture: true });
+  addEventListener('pointermove', event => {
+    const record = hover.current;
+    if (!event.isTrusted || !record || record.handled) return;
+    record.handled = performance.now();
+    requestAnimationFrame(() => {
+      const channel = new MessageChannel();
+      channel.port1.onmessage = () => {
+        record.end = performance.now();
+        const model = window.__richview.charts()[hover.chart], readout = document.getElementById(model.figure).querySelector('.rv-chart__readout');
+        record.target = model.target;
+        record.text = readout.hidden ? null : readout.querySelector('.rv-chart__readout-head')?.textContent ?? readout.textContent;
+        record.searched = readout.hasAttribute('data-rv-placement-fallback');
+      };
+      channel.port2.postMessage(0);
+    });
+  });
+});
+// Move the pointer and time the move; the record says what the first frame after it showed.
+const timedMove = async (page, chart, x, y) => {
+  await page.evaluate(index => { window.__rvHover.chart = index; window.__rvHover.current = null; }, chart);
+  await page.mouse.move(x, y);
+  return (await page.waitForFunction(() => window.__rvHover.current?.end !== undefined && window.__rvHover.current, null, { timeout: 5000 })).jsonValue();
+};
+// What the readout settled on, to compare with what the first frame showed.
+const settledReadout = (page, chart) => page.evaluate(index => {
+  const model = window.__richview.charts()[index], readout = document.getElementById(model.figure).querySelector('.rv-chart__readout');
+  return { target: model.target, text: readout.hidden ? null : readout.querySelector('.rv-chart__readout-head')?.textContent ?? readout.textContent };
+}, chart);
+const timeDense = async (page, chart, model, figure, label, width) => {
+  const box = await figure.locator('canvas.rv-chart__canvas').boundingBox();
+  const panel = model.geometry.panels[0], sx = box.width / model.geometry.width, sy = box.height / model.geometry.height;
+  const time = timing(label);
+  for (let i = 0; i < 24; i++) {
+    // A shared line is targeted by x alone; points by their own place.
+    const o = panel.observations[Math.floor((i + 0.5) * panel.observations.length / 24)];
+    const [px, py] = panel.targeting === 'nearest-x' ? [panel.plot.x + panel.plot.w * (i + 0.5) / 24, panel.plot.y + panel.plot.h / 2] : o.at;
+    const x = box.x + px * sx, y = box.y + py * sy;
+    if (x < 0 || y < 0 || x >= width || y >= 900) continue;
+    try { await time.at(page, chart, x, y); } catch (error) { fail(`${label}: hover timing failed: ${error.message.split('\n')[0]}`); }
+  }
+  await retimeUnderLoad(page, chart, time);
+};
+const quantile = (sorted, q) => sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil(q * sorted.length) - 1))];
+// A chart's hover statistics, and what they miss of the limits (empty when they meet them all).
+const hoverStats = (entry) => {
+  const sorted = [...entry.ms].sort((a, b) => a - b), p50 = quantile(sorted, 0.5), p95 = quantile(sorted, 0.95), max = sorted.at(-1), first = entry.first / sorted.length;
+  const missed = (sorted.length >= MEDIAN_MOVES && p50 > HOVER_P50) || p95 > HOVER_P95 || max > HOVER_MAX || first < FIRST_FRAME;
+  return { sorted, p50, p95, max, first, missed };
+};
+// Re-time a chart once over the same moves when it missed a limit under a 1-minute load over 8.
+const retimeUnderLoad = async (page, chart, time) => {
+  const entry = time.entry;
+  if (!entry.ms.length || !hoverStats(entry).missed || Math.max(entry.load, loadavg()[0]) <= RETIME_LOAD) return;
+  const again = timing(`${entry.label}, re-timed under load`);
+  entry.retimed = again.entry;
+  again.entry.retime = true;
+  for (const [x, y] of entry.moves) {
+    try { await again.at(page, chart, x, y); } catch (error) { fail(`${again.entry.label}: hover timing failed: ${error.message.split('\n')[0]}`); }
+  }
+  await page.keyboard.press('Escape');
+};
+const timing = (label) => {
+  const entry = { label, ms: [], moves: [], first: 0, load: loadavg()[0] };
+  timings.push(entry);
+  const time = async (page, chart, record) => {
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const settled = await settledReadout(page, chart);
+    const handler = record.handled - record.start, frame = record.end - record.frame;
+    entry.ms.push(handler + frame);
+    if (!entry.slowest || handler + frame > entry.slowest.handler + entry.slowest.frame) entry.slowest = { handler, frame, observation: record.target?.observation, searched: record.searched };
+    if (JSON.stringify(record.target) === JSON.stringify(settled.target) && record.text === settled.text && settled.text !== null) entry.first++;
+  };
+  time.entry = entry;
+  // Move to (x, y), remembering the move for a re-time, and time it.
+  time.at = async (page, chart, x, y) => {
+    entry.moves.push([x, y]);
+    await time(page, chart, await timedMove(page, chart, x, y));
+  };
+  return time;
+};
 const curated = new Set(['anscombe', 'gapminder', 'german-electricity', 'global-temperature', 'keeling-curve', 'nightingale', 'old-faithful', 'playfair', 'titanic']);
 const chartPages = readdirSync(join(root, 'docs/public/charts')).filter(name => name.endsWith('.md') && !curated.has(name.slice(0, -3)));
 let types = '---\ntitle: Every chart type\n---\n';
@@ -106,14 +229,25 @@ const coincidentKeyboardOnly = (model, panelIndex, observation) => {
 };
 const h = await harness('readout-placement');
 const errors = [], failures = [], occluded = [], coincident = [], notDrawn = [], unavoidable = [];
-// What a readout gives up when nothing clears, from what it keeps longest (P1b). Its own mark sits
-// between the fixed text (title, toolbar, a legend it does not stand in for) and these.
-// From what a readout keeps longest to what it gives up first, after the title, the toolbar,
-// a kept legend or key, and its own mark.
+// What a readout gives up when nothing clears, from what it keeps longest (P1b): after the title,
+// the toolbar, a kept legend or key, its own mark and whole numbers (P1c), these.
 const tiers = ['key', 'subtitle', 'legend', 'note', 'text'];
+// The families whose marks are tiles among tiles (P1c).
+const TILED = new Set(['pivot', 'heatmap', 'calendar', 'treemap', 'bin2d', 'hexbin', 'waffle', 'icicle']);
 const givenUp = Object.fromEntries(tiers.map(tier => [tier, []]));
 const fail = message => { failures.push(message); console.error(message); };
-let observations = 0, fallbacks = 0, dockedOverNote = 0;
+let observations = 0, fallbacks = 0, dockedOverNote = 0, besideTiles = 0;
+// A readout never cuts a number (P1c): a text with a digit is either clear of it or wholly under it.
+// Cuts are counted per readout and by where the number sits; a cut is unavoidable only when no place
+// that keeps the title, the toolbar and the mark as the readout keeps them cuts none.
+const cutReadouts = [], cutUnavoidable = [], cutWhere = {};
+let cutNumbers = 0, textCovered = 0, labelsTouched = 0;
+// A wide chart's readout keeps 6 px from a label it does not cover; a phone's readout covers each
+// entry of a legend it stands in for wholly or not at all, widening its surface where it must; a
+// bar's readout on a wide chart takes a place over no other mark while one stays with the bar,
+// and otherwise lies on bars that stepped back before any at full strength (P1c).
+const LABEL_GAP = 6;
+let labelsAbutted = 0, widened = 0, barsOverMarks = 0, barsOverStrong = 0;
 const pointFor = o => {
   if (o.wedge) {
     const w = o.wedge, angle = (w.start + w.end) / 2, radius = (w.inner + w.radius) / 2;
@@ -140,6 +274,46 @@ const clearPositionExists = (sample, obstacles, accept = () => true) => {
   for (const x of xs.filter(x => x >= minX && x <= maxX)) for (const y of ys.filter(y => y >= minY && y <= maxY)) {
     const candidate = { x, y, w: r.w, h: r.h };
     if (obstacles.every(obstacle => !overlaps(candidate, obstacle)) && accept(candidate)) return candidate;
+  }
+  return null;
+};
+// The painted pixels of the selected mark inside a place, from the mask a sample carries.
+const paintedCount = ({ left, top, w: W, h: H, bits }) => {
+  const bytes = Buffer.from(bits, 'base64'), sums = new Int32Array((W + 1) * (H + 1));
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x;
+    sums[(y + 1) * (W + 1) + x + 1] = ((bytes[i >> 3] >> (i & 7)) & 1) + sums[y * (W + 1) + x + 1] + sums[(y + 1) * (W + 1) + x] - sums[y * (W + 1) + x];
+  }
+  const at = (value, most) => Math.min(most, Math.max(0, Math.round(value)));
+  return place => {
+    const x0 = at(place.x - left, W), x1 = at(place.x + place.w - left, W), y0 = at(place.y - top, H), y1 = at(place.y + place.h - top, H);
+    return sums[y1 * (W + 1) + x1] - sums[y0 * (W + 1) + x1] - sums[y1 * (W + 1) + x0] + sums[y0 * (W + 1) + x0];
+  };
+};
+const contains = (outer, inner) => inner.x >= outer.x - 0.5 && inner.y >= outer.y - 0.5 && inner.x + inner.w <= outer.x + outer.w + 0.5 && inner.y + inner.h <= outer.y + outer.h + 0.5;
+const meetsBox = (a, b) => a.x < b.x + b.w - 0.02 && b.x < a.x + a.w - 0.02 && a.y < b.y + b.h - 0.02 && b.y < a.y + a.h - 0.02;
+// The numbers a place cuts: those it overlaps without holding all of.
+const cutsAt = (sample, place) => sample.numbers.filter(number => meetsBox(place, number) && !contains(place, number));
+// A place in the readout's room, clear of the obstacles and accepted, that cuts no number. Every
+// number adds the four edges at which a readout clears or wholly covers it, so if such a place
+// exists, one lies on these coordinates.
+const uncutPositionExists = (sample, obstacles, accept = () => true) => {
+  const r = sample.readout, f = sample.figure, v = sample.viewport, c = sample.canvas;
+  let minX = Math.max(0, f.x) + 8, maxX = Math.min(v.w, f.x + f.w) - 8 - r.w;
+  let minY = Math.max(0, f.y) + 8, maxY = Math.min(v.h, f.y + f.h) - 8 - r.h;
+  if (c.w >= 480) {
+    minX = Math.max(minX, c.x + 8 * sample.sx); maxX = Math.min(maxX, c.x + c.w - 8 * sample.sx - r.w);
+    minY = Math.max(minY, c.y + 8 * sample.sy); maxY = Math.min(maxY, c.y + c.h - 8 * sample.sy - r.h);
+  }
+  if (maxX < minX || maxY < minY) return null;
+  const xs = [minX, maxX], ys = [minY, maxY];
+  for (const o of obstacles) { xs.push(o.x - r.w, o.x + o.w); ys.push(o.y - r.h, o.y + o.h); }
+  for (const n of sample.numbers) { xs.push(n.x - r.w, n.x + n.w, n.x, n.x + n.w - r.w); ys.push(n.y - r.h, n.y + n.h, n.y, n.y + n.h - r.h); }
+  const overlaps = (a, b) => a.x < b.x + b.w - 1e-6 && b.x < a.x + a.w - 1e-6 && a.y < b.y + b.h - 1e-6 && b.y < a.y + a.h - 1e-6;
+  const inRange = (value, min, max) => value >= min - 1e-9 && value <= max + 1e-9;
+  for (const x of xs.filter(x => inRange(x, minX, maxX))) for (const y of ys.filter(y => inRange(y, minY, maxY))) {
+    const candidate = { x, y, w: r.w, h: r.h };
+    if (obstacles.every(obstacle => !overlaps(candidate, obstacle)) && accept(candidate) && !cutsAt(sample, candidate).length) return candidate;
   }
   return null;
 };
@@ -220,27 +394,110 @@ const check = (sample, label) => {
   const markBoxes = (o.dots?.length ? o.dots.map(dot => ({ x: dot.at[0] - 6, y: dot.at[1] - 6, w: 12, h: 12 }))
     : sample.paintedBoxes ?? sample.markBounds ?? (o.area ? [o.area] : o.radius > 0 ? [{ x: o.at[0] - o.radius, y: o.at[1] - o.radius, w: 2 * o.radius, h: 2 * o.radius }] : [])).map(page);
   const shared = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+  // A gauge's ring, a ribbon, a venn disc or lens has empty space in its boxes, where the runtime
+  // measures the painted mark: there a place hides no more only if it hides fewer painted pixels
+  // by more than the pixels along its own edges, which the two measures can differ by.
+  const paintedIn = sample.painted && paintedCount(sample.painted);
   const hidden = place => markBoxes.reduce((sum, b) => sum + shared(place, b), 0);
   const noMoreHidden = markCovered ? place => hidden(place) <= hidden(r) + 0.5 : undefined;
+  // For the place that would cut no number, the painted measure where there is one: by boxes a
+  // gauge's readout over the end of its ring hides more than one over the middle of a band.
+  const noMorePainted = markCovered && paintedIn ? place => paintedIn(place) + r.w + r.h <= paintedIn(r) : noMoreHidden;
   const kept = [...sample.keep.fixed, ...(markCovered ? [] : halo)];
+  // On a wide chart a readout keeps a gap from a label it does not cover; standing nearer is
+  // the first thing a fallback gives up. The gauge's hollow and a phone's docks stay flush.
+  const gap = c.w >= 480 && sample.placement !== 'hollow' ? LABEL_GAP * sample.sx : 0;
+  // Keeping numbers uncut ranks right after the mark: a place that would clear a text by cutting
+  // more numbers than the readout does is no alternative.
+  const cut = cutsAt(sample, r);
+  const keepsNumbers = place => (!noMoreHidden || noMoreHidden(place)) && cutsAt(sample, place).length <= cut.length;
   const docked = c.w < 480 && (sample.placement === 'dock-below' || sample.placement === 'dock-above');
+  // Among tiles every place covers some number, so the amount of text must not send a tile's
+  // readout away: a place beside the tile, 12 px off either side, that cuts no number wins over
+  // any farther place, and least text decides only between the two sides (P1c, Chart design
+  // 16 Nov 08:00). The other side, where it is a place at all, must give up no less.
+  const tile = TILED.has(sample.kind) && c.w >= 480 && !markCovered && !cut.length && o.area ? page(o.area) : null;
+  const sideGap = 12 * sample.sx;
+  const besideTile = tile && r.y < tile.y + tile.h && tile.y < r.y + r.h
+    && (Math.abs(r.x - (tile.x + tile.w + sideGap)) < 0.6 || Math.abs(r.x + r.w - (tile.x - sideGap)) < 0.6);
+  if (besideTile) {
+    const mirror = { ...r, x: r.x > tile.x ? tile.x - sideGap - r.w : tile.x + tile.w + sideGap };
+    const room = { x: c.x + 8 * sample.sx, y: c.y + 8 * sample.sy, w: c.w - 16 * sample.sx, h: c.h - 16 * sample.sy };
+    // The runtime keeps a place inside its room to the pixel: `contains` allows half a pixel,
+    // which made a side 0.4 px past the room a place the readout should have taken.
+    const inRoom = mirror.x >= room.x - 0.02 && mirror.y >= room.y - 0.02 && mirror.x + mirror.w <= room.x + room.w + 0.02 && mirror.y + mirror.h <= room.y + room.h + 0.02;
+    const place = inRoom && !sample.keep.fixed.some(text => intersects(mirror, text))
+      && !halo.some(box => intersects(mirror, box)) && !cutsAt(sample, mirror).length;
+    const given = at => tiers.map(tier => sample.keep[tier].filter(text => intersects(at, text)).reduce((sum, text) => sum + text.w * text.h, 0));
+    if (place) {
+      const [mine, other] = [given(r), given(mirror)];
+      const first = mine.findIndex((area, i) => Math.abs(area - other[i]) > 0.5);
+      // The message is built only for a real difference: with none, `first` is -1.
+      if (first >= 0) assert.ok(mine[first] < other[first], `${label}: beside its tile on the side that gives up more (${tiers[first]}: ${mine[first].toFixed(0)} against ${other[first].toFixed(0)})`);
+    }
+    besideTiles++;
+  }
   for (const tier of tiers) {
     kept.push(...sample.keep[tier]);
     if (!sample.keep[tier].some(text => intersects(r, text))) continue;
-    // A phone dock may lie over the note, as it did before; it clears every other kept text.
+    if (besideTile) continue;
+    // A phone dock may lie over the note, but only over whole lines of it: one that would end
+    // inside a line widens to the content width (P1c, Chart design 16 Nov 08:00). It clears
+    // every other kept text.
     if (docked) {
       assert.equal(tier, 'note', `${label}: phone dock covers the ${tier}`);
+      const halvedLines = sample.noteLines.filter(line => meetsBox(r, line) && !contains(r, line));
+      assert.ok(!halvedLines.length, `${label}: phone dock ends inside ${halvedLines.length} line(s) of the note (readout ${JSON.stringify(r)}; lines ${JSON.stringify(halvedLines)})`);
       dockedOverNote++;
       continue;
     }
-    const clear = clearPositionExists(sample, kept, noMoreHidden);
+    const clear = clearPositionExists(sample, kept, keepsNumbers);
     assert.ok(!clear, `${label}: covers the ${tier} although a place clears it (${JSON.stringify(clear)}; readout ${JSON.stringify(r)}${markCovered ? ', its mark covered' : ''})`);
     const entry = `${label} (${o.readout.heading}): gave up the ${tier}`;
     givenUp[tier].push(entry); console.log(entry);
   }
   assert.deepEqual(sample.scroll, sample.before, `${label}: moved the page`);
-  if (sample.fallback) fallbacks++;
+  const near = [...sample.keep.key, ...sample.keep.text].filter(text => !intersects(r, text) && intersects(grow(r, gap - 0.05), text));
+  if (gap && near.length) {
+    assert.ok(sample.fallback, `${label}: ${near.length} label(s) nearer than ${LABEL_GAP} px beside a clear place`);
+    labelsAbutted += near.length;
+  }
+  if (sample.widened) widened++;
+  // A cut entry of a legend the readout stands in for is judged with the cut numbers below, which
+  // count it: it fails where a place cuts none, and is listed as unavoidable where none does. A
+  // phone figure can leave no such place: Hand-drawn's legend lies between the axis labels and the
+  // title row, and the toolbar's box reaches half a pixel into its last line.
+  if (sample.bar) {
+    const over = marks => marks.map(page).filter(mark => intersects(r, mark)).length;
+    const [strong, others] = [over(sample.others.filter(mark => mark.strong)), over(sample.others)];
+    // One of the usual places may lie on bars that stepped back when no free place stays with
+    // the bar; never on one at full strength. Only a plain bar chart's series say which those are.
+    if (c.w >= 480 && sample.kind === 'bar') assert.ok(sample.fallback || !strong, `${label}: a bar's readout lies on ${strong} other mark(s) at full strength in one of its usual places`);
+    if (others) barsOverMarks++;
+    if (strong) barsOverStrong++;
+  }
+  if (sample.fallback) {
+    fallbacks++;
+    const texts = tiers.flatMap(tier => sample.keep[tier]);
+    textCovered += texts.reduce((sum, text) => sum + shared(r, text), 0);
+    labelsTouched += texts.filter(text => intersects(r, text)).length;
+  }
   observations++;
+  if (cut.length) {
+    cutNumbers += cut.length;
+    for (const number of cut) cutWhere[`${number.where}${docked ? ' (dock)' : ''}`] = (cutWhere[`${number.where}${docked ? ' (dock)' : ''}`] ?? 0) + 1;
+    // A phone dock lies over the note as it always did. A note is a paragraph: the dock hides
+    // part of it whether or not a digit stands in it, so it is counted here and not judged.
+    if (docked && cut.every(number => number.where === 'note')) return;
+    const where = `${label} (${o.readout.heading}): cuts ${cut.map(number => `'${number.text}' (${number.where})`).join(', ')}`;
+    const place = uncutPositionExists(sample, [...sample.keep.fixed, ...(markCovered ? [] : halo)], noMorePainted);
+    if (place) {
+      cutReadouts.push(where);
+      assert.fail(`${where} although a place cuts none (${JSON.stringify(place)}; readout ${JSON.stringify(r)}${docked ? ', docked' : ''})`);
+    }
+    const entry = `${where}: unavoidable, no place keeping the title, toolbar${markCovered ? ' and as much of its mark' : ', mark and halo'} clear cuts none`;
+    cutUnavoidable.push(entry); console.log(entry);
+  }
 };
 const sample = (page, chart, before) => page.evaluate(({ chart, before }) => {
   const model = window.__richview.charts()[chart], figure = document.getElementById(model.figure);
@@ -273,22 +530,54 @@ const sample = (page, chart, before) => page.evaluate(({ chart, before }) => {
   // the band its readout names, so it gives way after the subtitle, before the gauge itself.
   const keys = drawn.filter(item => item.role === 'key').map(itemBox).filter(Boolean).map(toPage);
   const gauge = model.geometry.kind === 'gauge';
+  // The entries of a legend a phone's readout stands in for, and a bar's other rectangles and
+  // discs, with whether each stays at full strength while the bar is read.
+  const entries = standsIn && canvas.width < 480 ? shown('.rv-chart__legend-entry') : [];
+  // Each line of the note as the browser lays it out, its parts on one line joined.
+  const noteLines = [];
+  for (const note of figure.querySelectorAll('.rv-chart__method')) {
+    const range = document.createRange(); range.selectNodeContents(note);
+    for (const b of range.getClientRects()) {
+      if (b.width <= 0 || b.height <= 0) continue;
+      const line = noteLines.find(l => Math.min(l.y + l.h, b.bottom) - Math.max(l.y, b.top) > 0.5 * Math.min(l.h, b.height));
+      if (!line) { noteLines.push({ x: b.x, y: b.y, w: b.width, h: b.height }); continue; }
+      const [x0, y0, x1, y1] = [Math.min(line.x, b.left), Math.min(line.y, b.top), Math.max(line.x + line.w, b.right), Math.max(line.y + line.h, b.bottom)];
+      Object.assign(line, { x: x0, y: y0, w: x1 - x0, h: y1 - y0 });
+    }
+  }
+  const bar = ['bar', 'combo', 'pareto', 'waterfall', 'histogram', 'lollipop', 'dumbbell', 'bullet', 'gantt', 'interval', 'funnel', 'bar3d'].includes(model.geometry.kind)
+    && panel?.targeting !== 'nearest-x' && !mark?.wedge && !!mark?.area;
+  const series = bar ? panel.items.find(item => item.role === 'mark' && item.obs === t.observation && item.series != null)?.series : undefined;
+  const others = bar ? panel.items.filter(item => item.role === 'mark' && item.obs !== t.observation && ['rect', 'point'].includes(item.kind))
+    .map(item => ({ ...itemBox(item), strong: series == null || item.series == null || item.series === series })) : [];
   const keep = {
     fixed: [...shown('.rv-chart__title, .rv-chart__actions'), ...(standsIn ? [] : legend), ...(gauge ? [] : keys)],
     key: gauge ? keys : [],
     subtitle: shown('.rv-chart__subtitle'), legend: standsIn && canvas.width >= 480 ? legend : [], note: shown('.rv-chart__method'),
     text: drawn.filter(item => item.kind === 'text' && item.role !== 'key').map(item => toPage(item.bounds)),
   };
+  // Every text with a digit, in the chart and in the figure's head and note (P1c).
+  const digit = /\d/;
+  const numbers = [
+    ...drawn.filter(item => item.kind === 'text' && digit.test(item.text ?? '')).map(item => ({ ...toPage(item.bounds), text: item.text, where: item.role === 'key' ? 'key' : 'chart' })),
+    ...[['.rv-chart__title', 'title'], ['.rv-chart__subtitle', 'subtitle'], ['.rv-chart__method', 'note']].flatMap(([selector, where]) =>
+      [...figure.querySelectorAll(selector)].filter(element => digit.test(element.textContent)).map(element => ({ ...rect(element), text: element.textContent.trim().replace(/\s+/g, ' ').slice(0, 40), where }))),
+  ].filter(box => box.w > 0 && box.h > 0);
+  // An entry of a legend the readout stands in for is kept whole like a number: the search
+  // counts both together.
+  numbers.push(...entries.map(entry => ({ ...entry, text: 'legend entry', where: 'legend' })));
   // Axis labels, which a readout of an undrawn observation never covers either.
   const axis = panel ? panel.items.filter(item => item.kind === 'text' && item.role === 'axis-label').map(item => ({ x: canvas.x + item.bounds.x * sx, y: canvas.y + item.bounds.y * sy, w: item.bounds.w * sx, h: item.bounds.h * sy })) : [];
   const figureBox = figure.getBoundingClientRect();
   // A readout's room is where it may sit: the visible figure on a narrow chart, the visible canvas otherwise.
   const roomBox = canvas.width < 480 ? figureBox : canvas;
   const visibleHeight = Math.min(innerHeight, figureBox.bottom, roomBox.bottom) - Math.max(0, figureBox.top, roomBox.top);
-  // A gauge's ring and an alluvial ribbon have empty space in their observation bounds. Test
-  // the painted paths at pixel resolution instead of treating those corners as marks.
-  let gaugeMarkCovered = null, gaugeClear = null, paintedBoxes = null;
-  if (['gauge', 'alluvial'].includes(model.geometry.kind) && box && panel) {
+  // A gauge's ring, an alluvial or chord ribbon, a venn set's disc and an overlap's lens have
+  // empty space in their observation bounds. Test the painted paths at pixel resolution instead
+  // of treating those corners as marks, as the runtime does (readout_place::painted_paths). A
+  // chord's arc keeps the exact wedge test.
+  let gaugeMarkCovered = null, gaugeClear = null, paintedBoxes = null, painted = null;
+  if (['gauge', 'alluvial', 'chord', 'venn'].includes(model.geometry.kind) && !mark?.wedge && box && panel) {
     const selected = panel.items.filter(item => item.role === 'mark' && (model.geometry.kind === 'gauge' || item.obs === t.observation));
     // The selected mark painted over a page region, as an image.
     const paint = (left, top, width, height) => {
@@ -326,6 +615,12 @@ const sample = (page, chart, before) => page.evaluate(({ chart, before }) => {
         for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
           sums[(y + 1) * (W + 1) + x + 1] = (data[(y * W + x) * 4 + 3] > 0 ? 1 : 0) + sums[y * (W + 1) + x + 1] + sums[(y + 1) * (W + 1) + x] - sums[y * (W + 1) + x];
         }
+        // The painted pixels as a bit mask, for the places a covered mark is compared at.
+        const bytes = new Uint8Array(Math.ceil(W * H / 8));
+        for (let i = 0; i < W * H; i++) if (data[i * 4 + 3] > 0) bytes[i >> 3] |= 1 << (i & 7);
+        let binary = '';
+        for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+        painted = { left, top, w: W, h: H, bits: btoa(binary) };
         const rw = Math.ceil(box.width), rh = Math.ceil(box.height), wide = canvas.width >= 480;
         const kept = [...keep.fixed, ...panel.items.filter(item => model.geometry.kind === 'gauge' && item.kind === 'text' && item.role === 'label').map(item => toPage(item.bounds))];
         const meets = (a, b) => a.x < b.x + b.w - 0.02 && b.x < a.x + a.w - 0.02 && a.y < b.y + b.h - 0.02 && b.y < a.y + a.h - 0.02;
@@ -339,7 +634,8 @@ const sample = (page, chart, before) => page.evaluate(({ chart, before }) => {
     }
   }
   return { target: t, mark, kind: model.geometry.kind, items: model.geometry.kind === 'gauge' && panel ? panel.items.filter(item => item.kind === 'text') : [],
-    canvas: { x: canvas.x, y: canvas.y, w: canvas.width, h: canvas.height }, sx, sy, figure: rect(figure), keep, axis, standsIn,
+    canvas: { x: canvas.x, y: canvas.y, w: canvas.width, h: canvas.height }, sx, sy, figure: rect(figure), keep, axis, standsIn, numbers,
+    entries, noteLines, bar, others, painted, widened: readout.hasAttribute('data-rv-surface'),
     content: { scroll: readout.scrollHeight, client: readout.clientHeight, room: visibleHeight - 16 * sy },
     readout: box && { x: box.x, y: box.y, w: box.width, h: box.height },
     plot: panel && { x: canvas.x + panel.plot.x * sx, y: canvas.y + panel.plot.y * sy, w: panel.plot.w * sx, h: panel.plot.h * sy },
@@ -368,7 +664,7 @@ const sample = (page, chart, before) => page.evaluate(({ chart, before }) => {
 }, { chart, before });
 try {
   for (const style of styles) {
-    const inputs = await reports(join(h.dir, style), { style, only: ['openai-vs-anthropic'], extra: { types, 'touch-point': touchPoint } });
+    const inputs = await reports(join(h.dir, style), { style, only: ['openai-vs-anthropic'], extra: { types, 'touch-point': touchPoint, dense }, files: { dense: denseFiles } });
     try {
       for (const width of widths) {
         const page = await h.browser.newPage({ viewport: { width, height: 900 }, reducedMotion: 'reduce', hasTouch: width === 390 });
@@ -376,10 +672,16 @@ try {
         for (const name of pages) {
           await page.goto(`${inputs.base}/${name}/report.html`);
           const models = await settle(page);
+          await installTiming(page);
           for (let chart = 0; chart < models.length; chart++) {
             const figure = page.locator('figure[data-rv-chart]').nth(chart), frame = figure.locator('.rv-chart__frame');
             await frame.scrollIntoViewIfNeeded();
             await frame.focus();
+            const label = `${style} ${width} ${name} chart ${chart} (${models[chart].geometry.kind})`;
+            // The dense charts are timed only: their thousands of observations are covered by the
+            // same placement as the charts checked in full.
+            if (name === 'dense') { await timeDense(page, chart, models[chart], figure, label, width); continue; }
+            const time = timing(label);
             const before = await page.evaluate(() => [scrollX, scrollY]);
             // Find a point actually belonging to each mark before the comparison sweep: nearby
             // ribbons and cells can overlap the centre of an observation's bounding box.
@@ -473,15 +775,16 @@ try {
               if (!canvas) { fail(`${name} chart ${chart}: canvas unavailable`); continue; }
               const x = canvas.x + point[0] * canvas.width / models[chart].geometry.width;
               const y = canvas.y + point[1] * canvas.height / models[chart].geometry.height;
-              await page.mouse.move(x, y);
-              const label = `${style} ${width} ${name} chart ${chart} panel ${panel} observation ${index}`;
+              const where = `${style} ${width} ${name} chart ${chart} panel ${panel} observation ${index}`;
+              try { await time.at(page, chart, x, y); } catch (error) { fail(`${where}: hover timing failed: ${error.message.split('\n')[0]}`); }
               try {
                 const current = await sample(page, chart, before);
-                assert.deepEqual(current.target, expected.target, `${label}: pointer selected a different mark`);
-                check(current, `${label} pointer`);
-                assert.ok(Math.abs(current.readout.x - expected.readout.x) <= 2 && Math.abs(current.readout.y - expected.readout.y) <= 2, `${label}: pointer and keyboard placement differs`);
+                assert.deepEqual(current.target, expected.target, `${where}: pointer selected a different mark`);
+                check(current, `${where} pointer`);
+                assert.ok(Math.abs(current.readout.x - expected.readout.x) <= 2 && Math.abs(current.readout.y - expected.readout.y) <= 2, `${where}: pointer and keyboard placement differs`);
               } catch (error) { fail(error.message); }
             }
+            await retimeUnderLoad(page, chart, time);
             if (width === 390 && name === 'touch-point') {
               try {
                 const o = models[chart].geometry.panels[0].observations[0];
@@ -517,5 +820,15 @@ try {
   }
 } finally { await h.close(); }
 assert.deepEqual(errors, [], 'browser errors');
+for (const entry of timings.filter(entry => entry.ms.length)) {
+  const { sorted, p50, p95, max, first, missed } = hoverStats(entry);
+  console.log(`hover ${entry.label}: p50 ${p50.toFixed(1)} ms, p95 ${p95.toFixed(1)} ms, max ${max.toFixed(1)} ms over ${sorted.length} moves; first frame ${Math.round(first * 100)}%; load ${entry.load.toFixed(1)}${max > HOVER_P50 ? `; slowest at observation ${entry.slowest.observation}: ${entry.slowest.handler.toFixed(1)} ms in the handler, ${entry.slowest.frame.toFixed(1)} ms in the frame${entry.slowest.searched ? ', a searched place' : ''}` : ''}`);
+  // A chart re-timed under load is judged by its re-time, which the next line records.
+  if (missed && !entry.retimed?.ms.length) fail(`${entry.label}: hover p50 ${p50.toFixed(1)} ms (at most ${HOVER_P50}), p95 ${p95.toFixed(1)} ms (at most ${HOVER_P95}), max ${max.toFixed(1)} ms (at most ${HOVER_MAX}), first frame ${Math.round(first * 100)}% (at least ${FIRST_FRAME * 100}%)`);
+}
+const all = timings.flatMap(entry => entry.ms).sort((a, b) => a - b);
+if (all.length) console.log(`hover over ${all.length} moves in ${timings.length} charts: p50 ${quantile(all, 0.5).toFixed(1)} ms, p95 ${quantile(all, 0.95).toFixed(1)} ms, max ${all.at(-1).toFixed(1)} ms`);
 if (failures.length) process.exitCode = 1;
-console.log(`${observations} readouts checked; ${fallbacks} least-coverage fallbacks; ${unavoidable.length} unavoidable mark overlaps; given up: ${tiers.map(tier => `${givenUp[tier].length} ${tier}`).join(', ')}; ${dockedOverNote} phone docks over the note; ${occluded.length} fully occluded observations; ${coincident.length} coincident, keyboard-only observations; ${notDrawn.length} not drawn, keyboard only; ${failures.length} failures`);
+console.log(`labels nearer than ${LABEL_GAP} px beside a fallback: ${labelsAbutted}; phone readouts widened over a legend: ${widened}; bar readouts over other marks: ${barsOverMarks}, ${barsOverStrong} over one of its own series`);
+console.log(`numbers cut: ${cutNumbers} (${Object.entries(cutWhere).map(([where, n]) => `${n} ${where}`).join(', ') || 'none'}) by ${cutReadouts.length + cutUnavoidable.length} readouts, ${cutUnavoidable.length} unavoidable; per fallback readout: ${fallbacks ? (textCovered / fallbacks).toFixed(1) : 0} px² of kept text covered, ${fallbacks ? (labelsTouched / fallbacks).toFixed(2) : 0} texts touched`);
+console.log(`${observations} readouts checked; ${fallbacks} least-coverage fallbacks; ${unavoidable.length} unavoidable mark overlaps; given up: ${tiers.map(tier => `${givenUp[tier].length} ${tier}`).join(', ')}; ${dockedOverNote} phone docks over the note; ${besideTiles} beside their tile; ${occluded.length} fully occluded observations; ${coincident.length} coincident, keyboard-only observations; ${notDrawn.length} not drawn, keyboard only; ${failures.length} failures`);

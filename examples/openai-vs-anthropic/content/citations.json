@@ -1,0 +1,1181 @@
+[
+	{
+		"url": "https://itunes.apple.com/lookup",
+		"text": "App Store ratings",
+		"ids": [
+			"D-ITUNES"
+		]
+	},
+	{
+		"url": "https://devecosystem.jetbrains.com/artificial-intelligence",
+		"text": "JetBrains, 10 November 2026",
+		"ids": [
+			"S097"
+		]
+	},
+	{
+		"url": "https://sql-clickhouse.clickhouse.com/",
+		"text": "Hacker News",
+		"ids": [
+			"D-HN"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-nov-2026",
+		"text": "Ramp, 11 November 2026",
+		"ids": [
+			"C211"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm",
+		"text": "Anthropic, 10 November 2026",
+		"ids": [
+			"C212"
+		]
+	},
+	{
+		"url": "https://dataconomy.com/2026/11/11/openai-revenue-hits-10-billion-as-operating-losses-widen/",
+		"text": "Dataconomy, 11 November 2026",
+		"ids": [
+			"C213"
+		]
+	},
+	{
+		"url": "https://itunes.apple.com/lookup",
+		"text": "App Store ratings",
+		"ids": [
+			"D-ITUNES"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-nov-2026",
+		"text": "Ramp, 11 November 2026",
+		"ids": [
+			"C211"
+		]
+	},
+	{
+		"url": "https://trends.google.com/trends/explore",
+		"text": "Google Trends",
+		"ids": [
+			"D-GT"
+		]
+	},
+	{
+		"url": "https://sql-clickhouse.clickhouse.com/",
+		"text": "Hacker News",
+		"ids": [
+			"D-HN"
+		]
+	},
+	{
+		"url": "https://itunes.apple.com/lookup",
+		"text": "App Store ratings",
+		"ids": [
+			"D-ITUNES"
+		]
+	},
+	{
+		"url": "https://github.com/npm/registry/blob/main/docs/download-counts.md",
+		"text": "npm downloads",
+		"ids": [
+			"D-NPM"
+		]
+	},
+	{
+		"url": "https://clickpy.clickhouse.com/",
+		"text": "PyPI downloads",
+		"ids": [
+			"D-PYPI"
+		]
+	},
+	{
+		"url": "https://ssrs.com/wp-content/uploads/SSRS-AI-User-Metrics-Report-May-2026.pdf",
+		"text": "SSRS / Edison Research, 26 May 2026",
+		"ids": [
+			"S005"
+		]
+	},
+	{
+		"url": "https://devecosystem.jetbrains.com/artificial-intelligence",
+		"text": "JetBrains, 10 November 2026",
+		"ids": [
+			"S097"
+		]
+	},
+	{
+		"url": "https://ssrs.com/wp-content/uploads/SSRS-AI-User-Metrics-Report-May-2026.pdf",
+		"text": "February and May 2026",
+		"ids": [
+			"S006",
+			"S007",
+			"S004",
+			"S005"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm",
+		"text": "26 October",
+		"ids": [
+			"C208"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm",
+		"text": "10",
+		"ids": [
+			"C209"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026074338/anthropicpbc-sx1ax3.htm",
+		"text": "17 November 2026",
+		"ids": [
+			"C220"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/edgar/search/#/q=%22OpenAI%22&forms=S-1,S-1/A,F-1,F-1/A,10-12B&dateRange=custom&startdt=2025-01-01&enddt=2026-11-18",
+		"text": "18 November 2026",
+		"ids": [
+			"C219"
+		]
+	},
+	{
+		"url": "https://sql-clickhouse.clickhouse.com/",
+		"text": "Hacker News",
+		"ids": [
+			"D-HN"
+		]
+	},
+	{
+		"url": "https://github.com/npm/registry/blob/main/docs/download-counts.md",
+		"text": "npm downloads",
+		"ids": [
+			"D-NPM"
+		]
+	},
+	{
+		"url": "https://trends.google.com/trends/explore",
+		"text": "Google Trends",
+		"ids": [
+			"D-GT"
+		]
+	},
+	{
+		"url": "https://wikimedia.org/api/rest_v1/",
+		"text": "Wikipedia pageviews",
+		"ids": [
+			"D-WIKI"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-may-2026",
+		"text": "Ramp, 13 May 2026",
+		"ids": [
+			"C185"
+		]
+	},
+	{
+		"url": "https://www.anthropic.com/news/google-broadcom-partnership-compute",
+		"text": "Anthropic, 6 April 2026",
+		"ids": [
+			"C105"
+		]
+	},
+	{
+		"url": "https://www.cnbc.com/2026/07/29/openai-cfo-sarah-friar-tells-employees-arr-in-july-topped-all-of-q2.html",
+		"text": "CNBC, 29 July 2026",
+		"ids": [
+			"C012"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm",
+		"text": "Anthropic, 10 November 2026",
+		"ids": [
+			"C212"
+		]
+	},
+	{
+		"url": "https://www.wsj.com/tech/ai/openais-second-quarter-sales-show-tepid-growth-compared-with-anthropic-5cb42998",
+		"text": "Wall Street Journal, 18 August 2026",
+		"ids": [
+			"C015"
+		]
+	},
+	{
+		"url": "https://arctic-shift.photon-reddit.com/",
+		"text": "Reddit post counts",
+		"ids": [
+			"D-REDDIT"
+		]
+	},
+	{
+		"url": "https://sql-clickhouse.clickhouse.com/",
+		"text": "Hacker News",
+		"ids": [
+			"D-HN"
+		]
+	},
+	{
+		"url": "https://github.com/npm/registry/blob/main/docs/download-counts.md",
+		"text": "npm downloads",
+		"ids": [
+			"D-NPM"
+		]
+	},
+	{
+		"url": "https://trends.google.com/trends/explore",
+		"text": "Google Trends",
+		"ids": [
+			"D-GT"
+		]
+	},
+	{
+		"url": "https://docs.github.com/en/rest/search/search",
+		"text": "GitHub search",
+		"ids": [
+			"D-GH"
+		]
+	},
+	{
+		"url": "https://devecosystem.jetbrains.com/artificial-intelligence",
+		"text": "JetBrains, 10 November 2026",
+		"ids": [
+			"S097"
+		]
+	},
+	{
+		"url": "https://www.anthropic.com/news/anthropic-raises-series-f-at-usd183b-post-money-valuation",
+		"text": "2 September",
+		"ids": [
+			"C086"
+		]
+	},
+	{
+		"url": "https://www.anthropic.com/news/anthropic-acquires-bun-as-claude-code-reaches-usd1b-milestone",
+		"text": "3 December 2025",
+		"ids": [
+			"C089"
+		]
+	},
+	{
+		"url": "https://www.anthropic.com/news/anthropic-raises-30-billion-series-g-funding-380-billion-post-money-valuation",
+		"text": "12 February 2026",
+		"ids": [
+			"C099"
+		]
+	},
+	{
+		"url": "https://sql-clickhouse.clickhouse.com/",
+		"text": "Hacker News",
+		"ids": [
+			"D-HN"
+		]
+	},
+	{
+		"url": "https://techcrunch.com/2025/07/17/anthropic-tightens-usage-limits-for-claude-code-without-telling-users/",
+		"text": "TechCrunch, 17 July 2025",
+		"ids": [
+			"E035"
+		]
+	},
+	{
+		"url": "https://venturebeat.com/orchestration/anthropic-throttles-claude-rate-limits-devs-call-foul",
+		"text": "VentureBeat, 28 July 2025",
+		"ids": [
+			"E037"
+		]
+	},
+	{
+		"url": "https://www.anthropic.com/engineering/a-postmortem-of-three-recent-issues",
+		"text": "Anthropic, 17 September 2025",
+		"ids": [
+			"E049"
+		]
+	},
+	{
+		"url": "https://arstechnica.com/ai/2026/04/anthropic-tested-removing-claude-code-from-the-pro-plan/",
+		"text": "Ars Technica, 22 April 2026",
+		"ids": [
+			"E141"
+		]
+	},
+	{
+		"url": "https://trends.google.com/trends/explore",
+		"text": "Google Trends",
+		"ids": [
+			"D-GT"
+		]
+	},
+	{
+		"url": "https://techcrunch.com/2026/02/04/sam-altman-got-exceptionally-testy-over-claude-super-bowl-ads/",
+		"text": "TechCrunch, 4 February 2026",
+		"ids": [
+			"E078"
+		]
+	},
+	{
+		"url": "https://apnews.com/article/anthropic-pentagon-ai-dario-amodei-hegseth-0c464a054359b9fdc80cf18b0d4f690c",
+		"text": "AP News, 28 February 2026",
+		"ids": [
+			"E088"
+		]
+	},
+	{
+		"url": "https://techcrunch.com/2026/02/04/sam-altman-got-exceptionally-testy-over-claude-super-bowl-ads/",
+		"text": "TechCrunch, 4 February 2026",
+		"ids": [
+			"E078"
+		]
+	},
+	{
+		"url": "https://apnews.com/article/anthropic-pentagon-ai-dario-amodei-hegseth-0c464a054359b9fdc80cf18b0d4f690c",
+		"text": "AP News, 28 February 2026",
+		"ids": [
+			"E088"
+		]
+	},
+	{
+		"url": "https://techcrunch.com/2026/02/04/sam-altman-got-exceptionally-testy-over-claude-super-bowl-ads/",
+		"text": "TechCrunch, 4 February 2026",
+		"ids": [
+			"E078"
+		]
+	},
+	{
+		"url": "https://apnews.com/article/anthropic-pentagon-ai-dario-amodei-hegseth-0c464a054359b9fdc80cf18b0d4f690c",
+		"text": "AP News, 28 February 2026",
+		"ids": [
+			"E088"
+		]
+	},
+	{
+		"url": "https://www.tomsguide.com/ai/chatgpt/the-quitgpt-movement-gains-steam-as-openais-department-of-war-deal-has-users-saying-cancel-chatgpt",
+		"text": "Tom's Guide, 28 February 2026",
+		"ids": [
+			"E086"
+		]
+	},
+	{
+		"url": "https://www.cnbc.com/2026/02/28/anthropics-claude-apple-apps.html",
+		"text": "CNBC, 28 February 2026",
+		"ids": [
+			"E089"
+		]
+	},
+	{
+		"url": "https://techcrunch.com/2026/03/02/chatgpt-uninstalls-surged-by-295-after-dod-deal/",
+		"text": "TechCrunch, 2 March 2026",
+		"ids": [
+			"E091"
+		]
+	},
+	{
+		"url": "https://yougov.com/en-us/articles/55292-us-ai-brand-rankings-report-2026",
+		"text": "YouGov, 6 August 2026",
+		"ids": [
+			"S031"
+		]
+	},
+	{
+		"url": "https://www.theargumentmag.com/p/chat-whats-the-publics-favorite-ai",
+		"text": "The Argument, 3 August 2026",
+		"ids": [
+			"S028"
+		]
+	},
+	{
+		"url": "https://www.reuters.com/business/openai-begin-testing-ads-chatgpts-free-go-tiers-2026-01-16/",
+		"text": "January 2026",
+		"ids": [
+			"E072"
+		]
+	},
+	{
+		"url": "https://arstechnica.com/ai/2026/07/how-an-openai-benchmark-test-turned-into-a-real-world-cyberattack/",
+		"text": "Ars Technica, 22 July 2026",
+		"ids": [
+			"E120"
+		]
+	},
+	{
+		"url": "https://www.theguardian.com/australia-news/2026/sep/24/anthony-albanese-says-openai-agent-hacked-medicare-extreme-concern-sam-altman",
+		"text": "The Guardian, 23 September 2026",
+		"ids": [
+			"E133"
+		]
+	},
+	{
+		"url": "https://federalnewsnetwork.com/artificial-intelligence/2026/09/openai-pauses-training-of-latest-models-after-agents-probed-us-government-sites-in-unexpected-ways/",
+		"text": "Federal News Network, 28 September 2026",
+		"ids": [
+			"E134"
+		]
+	},
+	{
+		"url": "https://www.cnbc.com/2026/09/30/ftc-ai-probe-openai-anthropic.html",
+		"text": "CNBC, 30 September 2026",
+		"ids": [
+			"E138"
+		]
+	},
+	{
+		"url": "https://www.reuters.com/legal/litigation/california-attorney-general-issues-investigative-subpoena-openai-2026-10-01/",
+		"text": "Reuters, 1 October 2026",
+		"ids": [
+			"E139"
+		]
+	},
+	{
+		"url": "https://econlab.substack.com/p/business-ai-adoption-grew-2-in-july",
+		"text": "15 August",
+		"ids": [
+			"C168"
+		]
+	},
+	{
+		"url": "https://assets.ramp.com/nextjs/files/fall-2025-ramp-business-spending-report.pdf",
+		"text": "8 October",
+		"ids": [
+			"C171"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-business-adoption-accelerates-led-by-anthropic",
+		"text": "19 November",
+		"ids": [
+			"C172"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/business-ai-adoption-flatlines",
+		"text": "10 December 2025",
+		"ids": [
+			"C173"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-february-2026",
+		"text": "11 February",
+		"ids": [
+			"C178"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-march-2026",
+		"text": "11 March",
+		"ids": [
+			"C181"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/april-2026-ai-index",
+		"text": "11 April",
+		"ids": [
+			"C182"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-may-2026",
+		"text": "13 May",
+		"ids": [
+			"C185"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-june-2026",
+		"text": "26 June",
+		"ids": [
+			"C187"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-july-2026",
+		"text": "8 July",
+		"ids": [
+			"C190"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-august-2026",
+		"text": "12 August",
+		"ids": [
+			"C194"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-sept-2026",
+		"text": "9 September",
+		"ids": [
+			"C196"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-oct-2026",
+		"text": "14 October",
+		"ids": [
+			"C210"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-nov-2026",
+		"text": "11 November 2026",
+		"ids": [
+			"C211"
+		]
+	},
+	{
+		"url": "https://www.saastr.com/openai-vs-anthropic-ramp-data-shows-36-vs-12-penetration-but-velocity-curves-tell-a-different-story/",
+		"text": "SaaStr, 11 September 2025",
+		"ids": [
+			"C169"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-june-2026",
+		"text": "Ramp, 26 June 2026",
+		"ids": [
+			"C187"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-june-2026",
+		"text": "Ramp, 26 June 2026",
+		"ids": [
+			"C187"
+		]
+	},
+	{
+		"url": "https://www.wsj.com/tech/ai/openais-second-quarter-sales-show-tepid-growth-compared-with-anthropic-5cb42998",
+		"text": "Wall Street Journal, 18 August 2026",
+		"ids": [
+			"C015"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm",
+		"text": "Anthropic, 10 November 2026",
+		"ids": [
+			"C212"
+		]
+	},
+	{
+		"url": "https://dataconomy.com/2026/11/11/openai-revenue-hits-10-billion-as-operating-losses-widen/",
+		"text": "Dataconomy, 11 November 2026",
+		"ids": [
+			"C213"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm",
+		"text": "Anthropic, 26 October 2026",
+		"ids": [
+			"C208"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm",
+		"text": "Anthropic, 10 November 2026",
+		"ids": [
+			"C209"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026074338/anthropicpbc-sx1ax3.htm",
+		"text": "Anthropic, 17 November 2026",
+		"ids": [
+			"C220"
+		]
+	},
+	{
+		"url": "https://fortune.com/2026/06/16/openai-financials-leaked-losses-revenue-profit/",
+		"text": "Fortune, 16 June 2026",
+		"ids": [
+			"C009"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm",
+		"text": "Anthropic, 10 November 2026",
+		"ids": [
+			"C212"
+		]
+	},
+	{
+		"url": "https://www.theverge.com/ai-artificial-intelligence/911118/openai-memo-cro-ai-competition-anthropic",
+		"text": "The Verge, 13 April 2026",
+		"ids": [
+			"C161"
+		]
+	},
+	{
+		"url": "https://fortune.com/2026/06/16/openai-financials-leaked-losses-revenue-profit/",
+		"text": "Fortune, 16 June 2026",
+		"ids": [
+			"C009"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm",
+		"text": "Anthropic, 10 November 2026",
+		"ids": [
+			"C216"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm",
+		"text": "Anthropic, 10 November 2026",
+		"ids": [
+			"C217"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm",
+		"text": "Anthropic, 10 November 2026",
+		"ids": [
+			"C218"
+		]
+	},
+	{
+		"url": "https://epoch.ai/benchmarks",
+		"text": "Epoch AI benchmarks",
+		"ids": [
+			"D-EPOCH"
+		]
+	},
+	{
+		"url": "https://epoch.ai/benchmarks",
+		"text": "Epoch AI benchmarks",
+		"ids": [
+			"D-EPOCH"
+		]
+	},
+	{
+		"url": "https://epoch.ai/eci?tab=leaderboard",
+		"text": "Epoch AI, 18 November 2026",
+		"ids": [
+			"K116"
+		]
+	},
+	{
+		"url": "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset",
+		"text": "LMArena leaderboard",
+		"ids": [
+			"D-ARENA"
+		]
+	},
+	{
+		"url": "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset",
+		"text": "25",
+		"ids": [
+			"K110"
+		]
+	},
+	{
+		"url": "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset",
+		"text": "30 September 2026",
+		"ids": [
+			"K112"
+		]
+	},
+	{
+		"url": "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset",
+		"text": "LMArena, 30 September 2026",
+		"ids": [
+			"K113"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-february-2026",
+		"text": "Ramp, 11 February 2026",
+		"ids": [
+			"C179"
+		]
+	},
+	{
+		"url": "https://fortune.com/2026/06/16/openai-financials-leaked-losses-revenue-profit/",
+		"text": "",
+		"ids": [
+			"C009"
+		]
+	},
+	{
+		"url": "https://www.cnbc.com/2026/07/29/openai-cfo-sarah-friar-tells-employees-arr-in-july-topped-all-of-q2.html",
+		"text": "",
+		"ids": [
+			"C012"
+		]
+	},
+	{
+		"url": "https://www.wsj.com/tech/ai/openais-second-quarter-sales-show-tepid-growth-compared-with-anthropic-5cb42998",
+		"text": "",
+		"ids": [
+			"C015"
+		]
+	},
+	{
+		"url": "https://www.anthropic.com/news/anthropic-raises-series-f-at-usd183b-post-money-valuation",
+		"text": "",
+		"ids": [
+			"C086"
+		]
+	},
+	{
+		"url": "https://www.anthropic.com/news/anthropic-acquires-bun-as-claude-code-reaches-usd1b-milestone",
+		"text": "",
+		"ids": [
+			"C089"
+		]
+	},
+	{
+		"url": "https://www.anthropic.com/news/anthropic-raises-30-billion-series-g-funding-380-billion-post-money-valuation",
+		"text": "",
+		"ids": [
+			"C099"
+		]
+	},
+	{
+		"url": "https://www.anthropic.com/news/google-broadcom-partnership-compute",
+		"text": "",
+		"ids": [
+			"C105"
+		]
+	},
+	{
+		"url": "https://www.theverge.com/ai-artificial-intelligence/911118/openai-memo-cro-ai-competition-anthropic",
+		"text": "",
+		"ids": [
+			"C161"
+		]
+	},
+	{
+		"url": "https://econlab.substack.com/p/business-ai-adoption-grew-2-in-july",
+		"text": "",
+		"ids": [
+			"C168"
+		]
+	},
+	{
+		"url": "https://www.saastr.com/openai-vs-anthropic-ramp-data-shows-36-vs-12-penetration-but-velocity-curves-tell-a-different-story/",
+		"text": "",
+		"ids": [
+			"C169"
+		]
+	},
+	{
+		"url": "https://assets.ramp.com/nextjs/files/fall-2025-ramp-business-spending-report.pdf",
+		"text": "",
+		"ids": [
+			"C171"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-business-adoption-accelerates-led-by-anthropic",
+		"text": "",
+		"ids": [
+			"C172"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/business-ai-adoption-flatlines",
+		"text": "",
+		"ids": [
+			"C173"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-february-2026",
+		"text": "",
+		"ids": [
+			"C178"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-february-2026",
+		"text": "",
+		"ids": [
+			"C179"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-march-2026",
+		"text": "",
+		"ids": [
+			"C181"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/april-2026-ai-index",
+		"text": "",
+		"ids": [
+			"C182"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-may-2026",
+		"text": "",
+		"ids": [
+			"C185"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-june-2026",
+		"text": "",
+		"ids": [
+			"C187"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-july-2026",
+		"text": "",
+		"ids": [
+			"C190"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-august-2026",
+		"text": "",
+		"ids": [
+			"C194"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-sept-2026",
+		"text": "",
+		"ids": [
+			"C196"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm",
+		"text": "",
+		"ids": [
+			"C208"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm",
+		"text": "",
+		"ids": [
+			"C209"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-oct-2026",
+		"text": "",
+		"ids": [
+			"C210"
+		]
+	},
+	{
+		"url": "https://ramp.com/data/ai-index-nov-2026",
+		"text": "",
+		"ids": [
+			"C211"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm",
+		"text": "",
+		"ids": [
+			"C212"
+		]
+	},
+	{
+		"url": "https://dataconomy.com/2026/11/11/openai-revenue-hits-10-billion-as-operating-losses-widen/",
+		"text": "",
+		"ids": [
+			"C213"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm",
+		"text": "",
+		"ids": [
+			"C216"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm",
+		"text": "",
+		"ids": [
+			"C217"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm",
+		"text": "",
+		"ids": [
+			"C218"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/edgar/search/#/q=%22OpenAI%22&forms=S-1,S-1/A,F-1,F-1/A,10-12B&dateRange=custom&startdt=2025-01-01&enddt=2026-11-18",
+		"text": "",
+		"ids": [
+			"C219"
+		]
+	},
+	{
+		"url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026074338/anthropicpbc-sx1ax3.htm",
+		"text": "",
+		"ids": [
+			"C220"
+		]
+	},
+	{
+		"url": "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset",
+		"text": "",
+		"ids": [
+			"D-ARENA"
+		]
+	},
+	{
+		"url": "https://epoch.ai/benchmarks",
+		"text": "",
+		"ids": [
+			"D-EPOCH"
+		]
+	},
+	{
+		"url": "https://docs.github.com/en/rest/search/search",
+		"text": "",
+		"ids": [
+			"D-GH"
+		]
+	},
+	{
+		"url": "https://trends.google.com/trends/explore",
+		"text": "",
+		"ids": [
+			"D-GT"
+		]
+	},
+	{
+		"url": "https://sql-clickhouse.clickhouse.com/",
+		"text": "",
+		"ids": [
+			"D-HN"
+		]
+	},
+	{
+		"url": "https://itunes.apple.com/lookup",
+		"text": "",
+		"ids": [
+			"D-ITUNES"
+		]
+	},
+	{
+		"url": "https://github.com/npm/registry/blob/main/docs/download-counts.md",
+		"text": "",
+		"ids": [
+			"D-NPM"
+		]
+	},
+	{
+		"url": "https://clickpy.clickhouse.com/",
+		"text": "",
+		"ids": [
+			"D-PYPI"
+		]
+	},
+	{
+		"url": "https://arctic-shift.photon-reddit.com/",
+		"text": "",
+		"ids": [
+			"D-REDDIT"
+		]
+	},
+	{
+		"url": "https://wikimedia.org/api/rest_v1/",
+		"text": "",
+		"ids": [
+			"D-WIKI"
+		]
+	},
+	{
+		"url": "https://techcrunch.com/2025/07/17/anthropic-tightens-usage-limits-for-claude-code-without-telling-users/",
+		"text": "",
+		"ids": [
+			"E035"
+		]
+	},
+	{
+		"url": "https://venturebeat.com/orchestration/anthropic-throttles-claude-rate-limits-devs-call-foul",
+		"text": "",
+		"ids": [
+			"E037"
+		]
+	},
+	{
+		"url": "https://www.anthropic.com/engineering/a-postmortem-of-three-recent-issues",
+		"text": "",
+		"ids": [
+			"E049"
+		]
+	},
+	{
+		"url": "https://www.reuters.com/business/openai-begin-testing-ads-chatgpts-free-go-tiers-2026-01-16/",
+		"text": "",
+		"ids": [
+			"E072"
+		]
+	},
+	{
+		"url": "https://techcrunch.com/2026/02/04/sam-altman-got-exceptionally-testy-over-claude-super-bowl-ads/",
+		"text": "",
+		"ids": [
+			"E078"
+		]
+	},
+	{
+		"url": "https://www.tomsguide.com/ai/chatgpt/the-quitgpt-movement-gains-steam-as-openais-department-of-war-deal-has-users-saying-cancel-chatgpt",
+		"text": "",
+		"ids": [
+			"E086"
+		]
+	},
+	{
+		"url": "https://apnews.com/article/anthropic-pentagon-ai-dario-amodei-hegseth-0c464a054359b9fdc80cf18b0d4f690c",
+		"text": "",
+		"ids": [
+			"E088"
+		]
+	},
+	{
+		"url": "https://www.cnbc.com/2026/02/28/anthropics-claude-apple-apps.html",
+		"text": "",
+		"ids": [
+			"E089"
+		]
+	},
+	{
+		"url": "https://techcrunch.com/2026/03/02/chatgpt-uninstalls-surged-by-295-after-dod-deal/",
+		"text": "",
+		"ids": [
+			"E091"
+		]
+	},
+	{
+		"url": "https://arstechnica.com/ai/2026/07/how-an-openai-benchmark-test-turned-into-a-real-world-cyberattack/",
+		"text": "",
+		"ids": [
+			"E120"
+		]
+	},
+	{
+		"url": "https://www.theguardian.com/australia-news/2026/sep/24/anthony-albanese-says-openai-agent-hacked-medicare-extreme-concern-sam-altman",
+		"text": "",
+		"ids": [
+			"E133"
+		]
+	},
+	{
+		"url": "https://federalnewsnetwork.com/artificial-intelligence/2026/09/openai-pauses-training-of-latest-models-after-agents-probed-us-government-sites-in-unexpected-ways/",
+		"text": "",
+		"ids": [
+			"E134"
+		]
+	},
+	{
+		"url": "https://www.cnbc.com/2026/09/30/ftc-ai-probe-openai-anthropic.html",
+		"text": "",
+		"ids": [
+			"E138"
+		]
+	},
+	{
+		"url": "https://www.reuters.com/legal/litigation/california-attorney-general-issues-investigative-subpoena-openai-2026-10-01/",
+		"text": "",
+		"ids": [
+			"E139"
+		]
+	},
+	{
+		"url": "https://arstechnica.com/ai/2026/04/anthropic-tested-removing-claude-code-from-the-pro-plan/",
+		"text": "",
+		"ids": [
+			"E141"
+		]
+	},
+	{
+		"url": "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset",
+		"text": "",
+		"ids": [
+			"K110"
+		]
+	},
+	{
+		"url": "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset",
+		"text": "",
+		"ids": [
+			"K112"
+		]
+	},
+	{
+		"url": "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset",
+		"text": "",
+		"ids": [
+			"K113"
+		]
+	},
+	{
+		"url": "https://epoch.ai/eci?tab=leaderboard",
+		"text": "",
+		"ids": [
+			"K116"
+		]
+	},
+	{
+		"url": "https://ssrs.com/wp-content/uploads/SSRS-AI-User-Metrics-Report-May-2026.pdf",
+		"text": "",
+		"ids": [
+			"S004"
+		]
+	},
+	{
+		"url": "https://ssrs.com/wp-content/uploads/SSRS-AI-User-Metrics-Report-May-2026.pdf",
+		"text": "",
+		"ids": [
+			"S005"
+		]
+	},
+	{
+		"url": "https://ssrs.com/wp-content/uploads/SSRS-AI-User-Metrics-Report-May-2026.pdf",
+		"text": "",
+		"ids": [
+			"S006"
+		]
+	},
+	{
+		"url": "https://ssrs.com/wp-content/uploads/SSRS-AI-User-Metrics-Report-May-2026.pdf",
+		"text": "",
+		"ids": [
+			"S007"
+		]
+	},
+	{
+		"url": "https://www.theargumentmag.com/p/chat-whats-the-publics-favorite-ai",
+		"text": "",
+		"ids": [
+			"S028"
+		]
+	},
+	{
+		"url": "https://yougov.com/en-us/articles/55292-us-ai-brand-rankings-report-2026",
+		"text": "",
+		"ids": [
+			"S031"
+		]
+	},
+	{
+		"url": "https://devecosystem.jetbrains.com/artificial-intelligence",
+		"text": "",
+		"ids": [
+			"S097"
+		]
+	}
+]

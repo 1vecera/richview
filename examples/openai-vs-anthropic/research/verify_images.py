@@ -38,13 +38,15 @@ def main() -> None:
         if row["id"] in retired:
             assert row["asset"] not in report and "Retired" in row["changes"], row["id"]
         else:
-            assert row["asset"] in report and row["id"] in report, row["id"]
+            # Readers see the image's credit, not its ledger id (launch audit, 18 November 2026).
+            assert row["asset"] in report and f"[{row['id']}]" not in report, row["id"]
         assert digest(row["asset"]) == row["sha256"], row["id"]
         assert row["creator"] and row["license"] and row["source_date"] and row["source_url"]
         assert row["collected_at"][:10] in {"2026-10-15", "2026-10-23", "2026-11-09", "2026-11-18"}, row["id"]
         for notice in row["local_notices"].split(";"):
             assert len((ROOT / notice).read_text()) > 100, notice
-    assert report.count("reproduced unchanged") == 2
+    # The Codex screenshot ships as WebP for page weight; the other screenshot stays byte for byte (18 November 2026).
+    assert report.count("reproduced unchanged") == 1 and report.count("converted to WebP") == 1
     originals = {
         "I-CODEX": (
             "ab753387ccf54aba94ab8c54da3149c743dbe189",
@@ -59,7 +61,10 @@ def main() -> None:
         if row["id"] in originals:
             commit, sha = originals[row["id"]]
             assert commit in row["source_url"] and commit in row["license_url"]
-            assert row["sha256"] == sha, "A source screenshot changed"
+            if row["id"] == "I-CODEX":
+                assert sha in row["changes"] and "WebP" in row["changes"], row["id"]
+            else:
+                assert row["sha256"] == sha, "A source screenshot changed"
     cover = ET.parse(ROOT / "assets/cover-two-publics.svg").getroot()
     cover_metadata = cover.findtext("{http://www.w3.org/2000/svg}metadata") or ""
     for source in ("data/charts/population-shares.csv", "data/facts.json"):

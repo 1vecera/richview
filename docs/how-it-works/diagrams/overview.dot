@@ -1,0 +1,25 @@
+digraph overview {
+  graph [rankdir=TB, bgcolor="transparent", pad=0.12, nodesep=0.30, ranksep=0.40];
+  node [shape=box, style="rounded,filled", color="#474747", fontcolor="#333333", fillcolor="white", fontname="Helvetica", fontsize=12, margin="0.13,0.08"];
+  edge [color="#474747", fontcolor="#333333", fontname="Helvetica", fontsize=11, arrowsize=0.7];
+  folder [label="Report folder"];
+  cli [label="Command-line program\nRead source and files"];
+  core [label="Report renderer\nGenerate HTML", color="#196965", fontcolor="#196965", penwidth=1.6];
+  engine [label="Chart engine\nMeasure figures"];
+  html [label="HTML report file\nSaved by the CLI"];
+  cowork [label="Cowork report server\nPublish source and files"];
+  site [label="RichView website"];
+  play [label="Playground\nPreview a draft"];
+  news [label="News publication\nServe a story"];
+  reader [label="Report reader\nOpen file, version or preview"];
+  folder -> cli;
+  cli -> core;
+  core -> engine;
+  core -> html;
+  cli -> cowork;
+  site -> play;
+  html -> reader;
+  cowork -> reader;
+  play -> reader;
+  news -> reader;
+}

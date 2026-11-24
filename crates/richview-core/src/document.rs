@@ -21,8 +21,8 @@
 //! ```
 
 pub use crate::folder::{
-    ReportFolder, ReportResource, attach_asset_findings, operation_result, report_relative_path,
-    report_resources, validate_report_document, validate_report_folder,
+    ReportFolder, ReportResource, apple_double_sidecar, attach_asset_findings, operation_result,
+    report_relative_path, report_resources, validate_report_document, validate_report_folder,
 };
 pub use crate::knowledge::{LearnSection, learn_bundle, learn_section, learn_sections};
 pub use crate::parser::{parse, validate, validate_publish};
@@ -52,6 +52,9 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const MAX_SOURCE_BYTES: usize = 16 * 1024 * 1024;
 /// One resolved dataset: `data.limit` (TYP-43).
 pub const MAX_DATASET_BYTES: usize = 16 * 1024 * 1024;
+/// The `data` keys that name a file in the report folder (TYP-35). The key decides how its
+/// content is read (TYP-92).
+pub(crate) const DATA_FILE_KEYS: [&str; 3] = ["csv", "json", "parquet"];
 /// Maximum accumulated rich-block HTML and final report HTML, including embedded assets.
 pub const MAX_REPORT_BYTES: usize = 64 * 1024 * 1024;
 

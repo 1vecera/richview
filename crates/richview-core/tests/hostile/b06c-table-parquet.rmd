@@ -1,0 +1,7 @@
+---
+title: Table from Parquet
+---
+
+```table
+data: { parquet: b06c-table-parquet.parquet }
+```

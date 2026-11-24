@@ -1,0 +1,20 @@
+digraph site {
+  graph [rankdir=TB, bgcolor="transparent", pad=0.12, nodesep=0.30, ranksep=0.40];
+  node [shape=box, style="rounded,filled", color="#474747", fontcolor="#333333", fillcolor="white", fontname="Helvetica", fontsize=12, margin="0.13,0.08"];
+  edge [color="#474747", fontcolor="#333333", fontname="Helvetica", fontsize=11, arrowsize=0.7];
+  inputs [label="Templates, reports and Rust source"];
+  build [label="Website build"];
+  assets [label="dist/web"];
+  website [label="RichView website", color="#196965", fontcolor="#196965", penwidth=1.6];
+  play [label="Playground", color="#196965", fontcolor="#196965", penwidth=1.6];
+  reader [label="Report reader\nDisplay the preview in the tab"];
+  signup [label="Updates form"];
+  db [label="Subscribers table\nStore signup consent"];
+  { rank=same; inputs; build; }
+  { rank=same; assets; website; }
+  inputs -> build -> assets -> website;
+  website -> play;
+  play -> reader;
+  website -> signup;
+  signup -> db;
+}

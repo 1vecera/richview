@@ -1,0 +1,19 @@
+digraph server {
+  graph [rankdir=TB, bgcolor="transparent", pad=0.12, nodesep=0.30, ranksep=0.40];
+  node [shape=box, style="rounded,filled", color="#474747", fontcolor="#333333", fillcolor="white", fontname="Helvetica", fontsize=12, margin="0.13,0.08"];
+  edge [color="#474747", fontcolor="#333333", fontname="Helvetica", fontsize=11, arrowsize=0.7];
+  client [label="Command-line program\nSend source and files"];
+  app [label="Cowork app listener\nReceive publication", color="#196965", fontcolor="#196965", penwidth=1.6];
+  render [label="Report renderer\nGenerate HTML"];
+  store [label="Version on disk\nCowork saves HTML and inputs"];
+  report [label="Report listener\nCheck access and read HTML"];
+  browser [label="Report reader\nOpen the version"];
+  { rank=same; client; app; }
+  { rank=same; report; browser; }
+  client -> app;
+  app -> render;
+  render -> store;
+  app -> report;
+  store -> report;
+  report -> browser;
+}

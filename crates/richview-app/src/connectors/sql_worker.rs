@@ -8,6 +8,7 @@ use super::{
         ConnectorError, DatasetSnapshot, Provenance, ProvenanceSource, Query, QueryBody, SqlError,
     },
 };
+pub(super) use protocol::ColumnKind;
 use protocol::{Failure, Reply, Request};
 #[cfg(unix)]
 use std::process::{Child, Command, Stdio};
@@ -74,44 +75,23 @@ pub fn execute(
     worker: Option<&Path>,
     query: &Query<'_>,
 ) -> Result<DatasetSnapshot, ConnectorError> {
-    execute_in(&SourceCopies::default(), source, worker, query)
+    execute_in(&SourceCopies::default(), source, worker, query, false)
 }
 
-/// [`execute`] within a run that keeps its source copies in `copies`.
+/// [`execute`] within a run that keeps its source copies in `copies`. `parquet` says the source
+/// is a Parquet file, which the worker shows the query as one view named after the connector.
 pub(super) fn execute_in(
-    #[cfg_attr(not(windows), allow(unused_variables))] copies: &SourceCopies,
+    copies: &SourceCopies,
     source: &Path,
     worker: Option<&Path>,
     query: &Query<'_>,
+    parquet: bool,
 ) -> Result<DatasetSnapshot, ConnectorError> {
     let run = || -> Result<DatasetSnapshot, Failure> {
-        let worker = worker
-            .map(Path::to_path_buf)
-            .or_else(|| {
-                std::env::current_exe().ok().map(|path| {
-                    path.with_file_name(format!(
-                        "richview-sql-worker{}",
-                        std::env::consts::EXE_SUFFIX
-                    ))
-                })
-            })
-            .ok_or(Failure::Sandbox)?;
-        if !worker.is_absolute() {
-            return Err(Failure::Sandbox);
-        }
         let QueryBody::Sql(sql) = query.body else {
             return Err(Failure::Input);
         };
-        let source = source
-            .canonicalize()
-            .map_err(|_| Failure::Query(SqlError::Database))?;
-        // DuckDB keeps changes it has not yet written into a database in `<database>.wal`. The
-        // worker may read the database file alone, on every platform, so it would miss them.
-        match std::fs::symlink_metadata(wal_of(&source)) {
-            Err(error) if error.kind() == io::ErrorKind::NotFound => {}
-            _ => return Err(Failure::PendingWal),
-        }
-        let request = |source: std::path::PathBuf| {
+        let output = run_worker(copies, source, worker, !parquet, |source| {
             protocol::encode(&Request {
                 version: protocol::VERSION,
                 source,
@@ -119,70 +99,17 @@ pub(super) fn execute_in(
                 connector: query.connector.to_owned(),
                 fingerprint: query.fingerprint.to_owned(),
                 params: query.params.clone(),
+                parquet,
+                table: None,
             })
             .map_err(|_| Failure::Input)
-        };
-        #[cfg(unix)]
-        let output = {
-            let input = request(source)?;
-            let mut child = Command::new(worker)
-                .env_clear()
-                // DuckDB consults cgroup files even with memory_limit set. Its fixed memory
-                // discovery hint avoids those forbidden reads; no host environment is inherited.
-                .env("SLURM_MEM_PER_NODE", "128M")
-                .current_dir("/")
-                .stdin(Stdio::piped())
-                .stdout(Stdio::piped())
-                .stderr(Stdio::null())
-                .spawn()
-                .map_err(|_| Failure::Sandbox)?;
-            let stdin = child.stdin.take().ok_or(Failure::Sandbox)?;
-            let stdout = child.stdout.take().ok_or(Failure::Sandbox)?;
-            supervise(child, stdin, stdout, input, TIMEOUT, MEMORY_BYTES)?
-        };
-        // The host starts the worker already confined and admits it to the run's copy of the
-        // source, which it may read only while it runs (see sandbox.rs); the Windows folder is
-        // the one host value the worker keeps, beside DuckDB's memory hint.
-        #[cfg(windows)]
-        let output = {
-            let copy = copies.of(&source).map_err(|error| match error.kind() {
-                io::ErrorKind::FileTooLarge => Failure::CopyTooLarge,
-                io::ErrorKind::StorageFull => Failure::CopyNoSpace,
-                _ => Failure::Query(SqlError::Database),
-            })?;
-            let windows = std::env::var_os("SystemRoot").unwrap_or_else(|| "C:\\Windows".into());
-            let sandboxed = sandbox::spawn(
-                &worker,
-                &copy,
-                &[
-                    ("SLURM_MEM_PER_NODE", std::ffi::OsStr::new("128M")),
-                    ("SystemRoot", &windows),
-                ],
-            )
-            .map_err(|_| Failure::Sandbox)?;
-            let sandbox::Sandboxed {
-                process,
-                job,
-                stdin,
-                stdout,
-                admitted,
-            } = sandboxed;
-            let input = request(admitted.source().to_path_buf())?;
-            supervise(
-                Confined {
-                    process,
-                    job,
-                    _admitted: admitted,
-                },
-                stdin,
-                stdout,
-                input,
-                TIMEOUT,
-                MEMORY_BYTES,
-            )?
-        };
+        })?;
         match serde_json::from_slice::<Reply>(&output).map_err(|_| Failure::Output)? {
             Reply::Failed { error } => Err(error),
+            // A query's reply is never a table read's.
+            Reply::Table { .. } | Reply::TooLarge { .. } | Reply::Unsupported { .. } => {
+                Err(Failure::Output)
+            }
             Reply::Complete { rows, schema } => {
                 if rows.len() > super::duckdb_adapter::MAX_ROWS {
                     return Err(Failure::Rows);
@@ -204,6 +131,199 @@ pub(super) fn execute_in(
         }
     };
     run().map_err(|failure| connector_error(failure, query.connector))
+}
+
+/// Start the confined worker on `source`, send it the request `request` writes for the path
+/// the worker sees, and return what it wrote. `database` says the source is a DuckDB database,
+/// whose pending changes the worker could not read.
+fn run_worker(
+    #[cfg_attr(not(windows), allow(unused_variables))] copies: &SourceCopies,
+    source: &Path,
+    worker: Option<&Path>,
+    database: bool,
+    request: impl Fn(std::path::PathBuf) -> Result<Vec<u8>, Failure>,
+) -> Result<Vec<u8>, Failure> {
+    let worker = worker
+        .map(Path::to_path_buf)
+        .or_else(|| {
+            std::env::current_exe().ok().map(|path| {
+                path.with_file_name(format!(
+                    "richview-sql-worker{}",
+                    std::env::consts::EXE_SUFFIX
+                ))
+            })
+        })
+        .ok_or(Failure::Sandbox)?;
+    if !worker.is_absolute() {
+        return Err(Failure::Sandbox);
+    }
+    let source = source
+        .canonicalize()
+        .map_err(|_| Failure::Query(SqlError::Database))?;
+    // DuckDB keeps changes it has not yet written into a database in `<database>.wal`. The
+    // worker may read the database file alone, on every platform, so it would miss them.
+    if database {
+        match std::fs::symlink_metadata(wal_of(&source)) {
+            Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+            _ => return Err(Failure::PendingWal),
+        }
+    }
+    #[cfg(unix)]
+    let output = {
+        let input = request(source)?;
+        let mut child = Command::new(worker)
+            .env_clear()
+            // DuckDB consults cgroup files even with memory_limit set. Its fixed memory
+            // discovery hint avoids those forbidden reads; no host environment is inherited.
+            .env("SLURM_MEM_PER_NODE", "128M")
+            .current_dir("/")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null())
+            .spawn()
+            .map_err(|_| Failure::Sandbox)?;
+        let stdin = child.stdin.take().ok_or(Failure::Sandbox)?;
+        let stdout = child.stdout.take().ok_or(Failure::Sandbox)?;
+        supervise(child, stdin, stdout, input, TIMEOUT, MEMORY_BYTES)?
+    };
+    // The host starts the worker already confined and admits it to the run's copy of the
+    // source, which it may read only while it runs (see sandbox.rs); the Windows folder is
+    // the one host value the worker keeps, beside DuckDB's memory hint.
+    #[cfg(windows)]
+    let output = {
+        let copy = copies.of(&source).map_err(|error| match error.kind() {
+            io::ErrorKind::FileTooLarge => Failure::CopyTooLarge,
+            io::ErrorKind::StorageFull => Failure::CopyNoSpace,
+            _ => Failure::Query(SqlError::Database),
+        })?;
+        let windows = std::env::var_os("SystemRoot").unwrap_or_else(|| "C:\\Windows".into());
+        let sandboxed = sandbox::spawn(
+            &worker,
+            &copy,
+            &[
+                (
+                    std::ffi::OsStr::new("SLURM_MEM_PER_NODE"),
+                    std::ffi::OsStr::new("128M"),
+                ),
+                (std::ffi::OsStr::new("SystemRoot"), &windows),
+            ],
+        )
+        .map_err(|_| Failure::Sandbox)?;
+        let sandbox::Sandboxed {
+            process,
+            job,
+            stdin,
+            stdout,
+            admitted,
+        } = sandboxed;
+        let input = request(admitted.source().to_path_buf())?;
+        supervise(
+            Confined {
+                process,
+                job,
+                _admitted: admitted,
+            },
+            stdin,
+            stdout,
+            input,
+            TIMEOUT,
+            MEMORY_BYTES,
+        )?
+    };
+    Ok(output)
+}
+
+/// What a read of a Parquet file's columns gave.
+pub(super) enum TableRead {
+    /// The table as `richview-core` reads it, and the columns whose NaN and infinite values
+    /// were read as missing, with how many.
+    Table {
+        text: String,
+        non_finite: Vec<(String, u64)>,
+    },
+    /// The file has `rows` rows: more than a dataset may (`by_rows`), or the columns read hold
+    /// more bytes than one may.
+    TooLarge { rows: u64, by_rows: bool },
+    /// A column the report reads holds values that are not scalars.
+    Unsupported {
+        column: String,
+        kind: protocol::ColumnKind,
+    },
+}
+
+/// Read the columns of the Parquet file `source` that `names` asks for (see
+/// [`protocol::TableRequest`]) in the restricted worker. No report text reaches SQL.
+pub(super) fn read_table(
+    source: &Path,
+    worker: Option<&Path>,
+    names: Option<&[String]>,
+) -> Result<TableRead, TableFailure> {
+    const CONNECTOR: &str = "parquet";
+    let run = || -> Result<TableRead, Failure> {
+        let output = run_worker(&SourceCopies::default(), source, worker, false, |source| {
+            protocol::encode(&Request {
+                version: protocol::VERSION,
+                source,
+                sql: String::new(),
+                connector: CONNECTOR.to_owned(),
+                fingerprint: String::new(),
+                params: Default::default(),
+                parquet: true,
+                table: Some(protocol::TableRequest {
+                    names: names.map(<[String]>::to_vec),
+                }),
+            })
+            .map_err(|_| Failure::Input)
+        })?;
+        let (reply, table) = protocol::split(&output);
+        match serde_json::from_slice::<Reply>(reply).map_err(|_| Failure::Output)? {
+            Reply::Failed { error } => Err(error),
+            Reply::Complete { .. } => Err(Failure::Output),
+            Reply::Table { non_finite } => Ok(TableRead::Table {
+                text: String::from_utf8(table.to_vec()).map_err(|_| Failure::Output)?,
+                non_finite,
+            }),
+            Reply::TooLarge { rows, by_rows } => Ok(TableRead::TooLarge { rows, by_rows }),
+            Reply::Unsupported { column, kind } => Ok(TableRead::Unsupported { column, kind }),
+        }
+    };
+    run().map_err(|failure| match failure {
+        Failure::Query(_) | Failure::Values | Failure::Metadata => TableFailure::Unreadable,
+        Failure::Terminated => TableFailure::Stopped,
+        Failure::Timeout => TableFailure::Time,
+        Failure::Memory => TableFailure::Memory,
+        Failure::KernelTooOld => TableFailure::KernelTooOld,
+        Failure::Sandbox => TableFailure::Isolation,
+        #[cfg(windows)]
+        Failure::CopyTooLarge => TableFailure::CopyTooLarge,
+        #[cfg(windows)]
+        Failure::CopyNoSpace => TableFailure::CopyNoSpace,
+        Failure::Parameters
+        | Failure::Rows
+        | Failure::Input
+        | Failure::Output
+        | Failure::PendingWal => TableFailure::Protocol,
+    })
+}
+
+/// Why a Parquet file's columns could not be read. It names a cause and never engine text.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum TableFailure {
+    /// Not a Parquet file, or one DuckDB cannot read: truncated, corrupt or encrypted.
+    Unreadable,
+    /// The worker ended while reading it.
+    Stopped,
+    Time,
+    Memory,
+    KernelTooOld,
+    /// The worker is missing or its confinement could not be set up.
+    Isolation,
+    #[cfg_attr(not(windows), allow(dead_code))]
+    CopyTooLarge,
+    #[cfg_attr(not(windows), allow(dead_code))]
+    CopyNoSpace,
+    /// The worker's reply was not one a table read gives.
+    Protocol,
 }
 
 fn connector_error(failure: Failure, connector: &str) -> ConnectorError {
@@ -428,14 +548,15 @@ fn resident_bytes(_pid: u32) -> io::Result<u64> {
 /// The dedicated executable calls this before creating threads or opening DuckDB. It never
 /// accepts executable paths, engine configuration or filesystem grants from report SQL.
 pub fn run_stdio() -> i32 {
-    let reply = match worker_request() {
-        Ok(snapshot) => Reply::Complete {
-            rows: snapshot.rows,
-            schema: snapshot.schema,
-        },
-        Err(error) => Reply::Failed { error },
-    };
-    let output = protocol::encode(&reply).or_else(|_| {
+    let output = match worker_request() {
+        Ok(Done::Snapshot(snapshot)) => {
+            let DatasetSnapshot { rows, schema, .. } = *snapshot;
+            protocol::encode(&Reply::Complete { rows, schema })
+        }
+        Ok(Done::Table(read)) => table_reply(read),
+        Err(error) => protocol::encode(&Reply::Failed { error }),
+    }
+    .or_else(|_| {
         protocol::encode(&Reply::Failed {
             error: Failure::Output,
         })
@@ -443,6 +564,35 @@ pub fn run_stdio() -> i32 {
     match output.and_then(|bytes| std::io::stdout().lock().write_all(&bytes)) {
         Ok(()) => 0,
         Err(_) => 2,
+    }
+}
+
+/// What the worker did: a query's rows, or a table read's result.
+enum Done {
+    Snapshot(Box<DatasetSnapshot>),
+    Table(TableRead),
+}
+
+/// A table read's reply: its line, and after a line feed the table, within the message limit.
+fn table_reply(read: TableRead) -> io::Result<Vec<u8>> {
+    match read {
+        TableRead::Table { text, non_finite } => {
+            let mut output = protocol::encode(&Reply::Table { non_finite })?;
+            if text.len() > protocol::MAX_BYTES.saturating_sub(output.len() + 1) {
+                return Err(io::Error::other(
+                    "SQL worker message exceeds its byte limit",
+                ));
+            }
+            output.push(b'\n');
+            output.extend_from_slice(text.as_bytes());
+            Ok(output)
+        }
+        TableRead::TooLarge { rows, by_rows } => {
+            protocol::encode(&Reply::TooLarge { rows, by_rows })
+        }
+        TableRead::Unsupported { column, kind } => {
+            protocol::encode(&Reply::Unsupported { column, kind })
+        }
     }
 }
 
@@ -457,7 +607,7 @@ fn sandbox_failure(error: io::Error) -> Failure {
     }
 }
 
-fn worker_request() -> Result<DatasetSnapshot, Failure> {
+fn worker_request() -> Result<Done, Failure> {
     close_inherited_descriptors().map_err(|_| Failure::Sandbox)?;
     resource_limits().map_err(|_| Failure::Sandbox)?;
     let input = protocol::read(std::io::stdin().lock()).map_err(|_| Failure::Input)?;
@@ -487,7 +637,29 @@ fn worker_request() -> Result<DatasetSnapshot, Failure> {
     #[cfg(not(windows))]
     let database = source.clone();
     sandbox::restrict(&source).map_err(sandbox_failure)?;
-    let open = || DuckDbConnector::open_read_only(&database, &request.connector);
+    if let Some(read) = &request.table {
+        // A table read is of a Parquet file and carries no SQL.
+        if !request.parquet || !request.sql.is_empty() || !request.params.is_empty() {
+            return Err(Failure::Input);
+        }
+        let connection =
+            super::parquet_source::open(&database, super::parquet_source::TABLE, "parquet")
+                .map_err(failure_of)?;
+        return super::parquet_source::read_table(&connection, read.names.as_deref(), TIMEOUT)
+            .map(Done::Table)
+            .map_err(failure_of);
+    }
+    let open = || {
+        if request.parquet {
+            super::parquet_source::open(
+                &database,
+                &super::parquet_source::quoted(&request.connector),
+                &request.connector,
+            )
+        } else {
+            DuckDbConnector::open_read_only(&database, &request.connector)
+        }
+    };
     DuckDbConnector::execute_read_only_with(
         open,
         &Query {
@@ -499,7 +671,13 @@ fn worker_request() -> Result<DatasetSnapshot, Failure> {
         },
         TIMEOUT,
     )
-    .map_err(|error| match error {
+    .map(|snapshot| Done::Snapshot(Box::new(snapshot)))
+    .map_err(failure_of)
+}
+
+/// The failure a worker reports for an engine error: its category, never its text.
+fn failure_of(error: ConnectorError) -> Failure {
+    match error {
         ConnectorError::Sql { error, .. } => Failure::Query(error),
         ConnectorError::QueryRejected { reason }
             if reason == super::duckdb_adapter::METADATA_REFUSAL =>
@@ -518,7 +696,7 @@ fn worker_request() -> Result<DatasetSnapshot, Failure> {
             Failure::Parameters
         }
         _ => Failure::Query(SqlError::Query),
-    })
+    }
 }
 
 #[cfg(unix)]

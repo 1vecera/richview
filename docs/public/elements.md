@@ -26,7 +26,7 @@ A flow chart shows how a process runs: what happens in which order, where it dec
 
 ## Tables
 
-A table keeps exact values readable, with aligned numbers and named columns. A pivot table sums one measure for every pair of a row field and a column field, with totals. [Blocks & media](https://richview.ai/docs/blocks) documents the table block; the [pivot table page](https://richview.ai/docs/charts/pivot) has the pivot's source, fields and every style.
+A table keeps exact values readable, with aligned numbers and named columns. `heat` shades a numeric column by value in the style's colours, a reader sorts by any heading, and a filter box above the rows keeps the ones that hold the typed text. A pivot table sums one measure for every pair of a row field and a column field, with totals. [Blocks & media](https://richview.ai/docs/blocks) documents the table block; the [pivot table page](https://richview.ai/docs/charts/pivot) has the pivot's source, fields and every style.
 
 ```table
 title: Every region sold more in Q4 than in Q3
@@ -40,7 +40,8 @@ columns:
   - { key: region, label: Region }
   - { key: q3, label: Q3 sales, format: number, align: right }
   - { key: q4, label: Q4 sales, format: number, align: right }
-  - { key: change, label: Change, format: number, align: right }
+  - { key: change, label: Change, format: number, align: right, heat: true }
+filter: true
 ```
 
 {{example:pivot}}
@@ -83,20 +84,47 @@ Every source, with the table of what each one gave.
 
 ## Code blocks
 
-A code block shows code as text: never run, never turned into anything else. It can name its file, number its lines and mark the lines that matter. Rich Markdown, YAML and shell are highlighted in two tones of the style's own text colours; every other language is plain.
+A code block shows code as text and can name its file, number its lines and mark the lines that matter. SQL, YAML, Rich Markdown and shell use the style's own inks to distinguish values from surrounding code, on screen and in print. Other languages appear as plain text.
 
 ```code
 title: orders_by_region.sql
 lang: sql
 lines: true
-mark: [3]
+mark: [4, 5]
 text: |
-  select region, sum(amount) as amount
-  from orders
-  where refunded_within_a_day = false
-  group by region
-  order by amount desc
+  -- Orders in the West region
+  SELECT id, amount, NULL AS note
+  FROM orders
+  WHERE region = 'West'
+    AND amount >= 100
+    AND refunded = FALSE;
 ```
+
+```code
+title: orders.yaml
+lang: yaml
+text: |
+  region: "West"
+  minimum_amount: 100
+  include_refunds: false
+  report_date: 2026-11-23
+```
+
+````code
+title: report.rmd
+lang: rmd
+text: |
+  ---
+  title: "West region orders"
+  date: 2026-11-23
+  ---
+
+  ```expand
+  title: "100 orders"
+  open: true
+  body: See the source data.
+  ```
+````
 
 An ordinary fence, such as ` ```sql `, stays the short way to write code and is highlighted the same way.
 
@@ -104,12 +132,14 @@ An ordinary fence, such as ` ```sql `, stays the short way to write code and is 
 
 Columns put two to four blocks side by side: two charts, a chart beside the sentence that explains it, a row of numbers. Each column holds prose and blocks written as anywhere else, between a `::: column` line and a closing `:::`. On a phone the columns stack in their order, and on paper they stay side by side while each column has room. [The format reference](https://richview.ai/docs/reference#columns) has the options.
 
-::: columns {widths: 2-1, align: center}
+The two **columns** below compare total and mobile orders for the same periods on the same scale.
+
+::: columns
 
 ::: column
 ```chart
 type: bar
-title: Launch week alone outsold March and April together
+title: Total orders
 data:
   inline:
     - {period: January, orders: 1810}
@@ -118,21 +148,33 @@ data:
     - {period: April, orders: 590}
     - {period: Launch week, orders: 1240}
 encoding: {x: period, y: orders}
+axes: {y: {min: 0, max: 2000}}
 ```
 
 *Source: illustrative data.*
 :::
 
 ::: column
-```metric
-value: 1240
-label: Orders in launch week
+```chart
+type: bar
+title: Mobile orders
+data:
+  inline:
+    - {period: January, orders: 840}
+    - {period: February, orders: 865}
+    - {period: March, orders: 290}
+    - {period: April, orders: 280}
+    - {period: Launch week, orders: 710}
+encoding: {x: period, y: orders}
+axes: {y: {min: 0, max: 2000}}
 ```
 
-More than March and April together, most of them on mobile.
+*Source: illustrative data.*
 :::
 
 :::
+
+[See two charts in columns and a method note in an expand](https://richview.ai/docs/gallery/same-numbers/Rendered/report.html#a-second-distribution) in a complete report.
 
 ## Type and fonts
 

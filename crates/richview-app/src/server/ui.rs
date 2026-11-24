@@ -1,12 +1,18 @@
 //! The pages of the report host: sign-in, the report menu and the governance section
 //! (FEA-SF-18, FEA-SF-19). Plain forms and links work without script; hosted pages use the docs
 //! clipboard runtime. Session changes use CSRF-protected POST forms.
+#[path = "hosted_cli.rs"]
+mod hosted_cli;
 #[path = "hosted_pages.rs"]
 mod hosted_pages;
+#[path = "hosted_social.rs"]
+mod hosted_social;
 /// The host bar draws faces as the app does.
 pub(super) use hosted_pages::initials;
 #[path = "hosted_teams.rs"]
 mod hosted_teams;
+pub use hosted_cli::*;
+pub use hosted_social::*;
 pub use hosted_teams::*;
 
 use super::{
@@ -283,9 +289,27 @@ pub(super) fn hosted_error_page(status: StatusCode) -> Response {
     response
 }
 
+/// The providers this server has a client for, as pages offer them; none on a server without.
+fn offers(state: &AppState) -> Vec<hosted_pages::Offer> {
+    state.access.social().map_or_else(Vec::new, |social| {
+        social
+            .providers()
+            .into_iter()
+            .map(|provider| hosted_pages::Offer {
+                slug: provider.slug(),
+                name: provider.name(),
+            })
+            .collect()
+    })
+}
+
 /// The hosted account request takes only an email address.
-pub async fn sign_up_page() -> Response {
-    hosted_page("Create account", &hosted_pages::sign_up())
+pub(super) async fn sign_up_page(state: &AppState) -> Response {
+    let (bytes, reports) = state.storage.hosted_limits();
+    hosted_page(
+        "Create account",
+        &hosted_pages::sign_up(&offers(state), bytes, reports),
+    )
 }
 
 /// The hosted password reset request does not disclose whether an account exists.
@@ -302,15 +326,32 @@ pub async fn link_page(
     match state.access.inspect_link(&token) {
         Some(LinkPurpose::Signup) => hosted_page(
             "Set up your account",
-            &hosted_pages::complete_link(&token, true),
+            &hosted_pages::complete_link(&token, true, &[]),
         ),
         Some(LinkPurpose::Reset) => hosted_page(
             "Choose a new password",
-            &hosted_pages::complete_link(&token, false),
+            &hosted_pages::complete_link(&token, false, &reset_keeps(&state, &token)),
         ),
         Some(LinkPurpose::Invite) => hosted_teams::invitation_page(&state, &token, "", "").await,
         None => expired_link_page(),
     }
+}
+
+/// The providers connected to the account a reset link is for, as the reset page lists them.
+fn reset_keeps(state: &AppState, token: &str) -> Vec<hosted_pages::Keep> {
+    state
+        .access
+        .reset_identities(token)
+        .into_iter()
+        .filter_map(|identity| {
+            let provider = crate::social::Provider::parse(&identity.provider)?;
+            Some(hosted_pages::Keep {
+                slug: provider.slug(),
+                name: provider.name(),
+                label: identity.label,
+            })
+        })
+        .collect()
 }
 
 pub(super) fn link_error_page(
@@ -331,7 +372,17 @@ pub(super) fn link_error_page(
     };
     let mut response = hosted_page(
         title,
-        &hosted_pages::complete_link_with_error(token, signup, name, error),
+        &hosted_pages::complete_link_with_error(
+            token,
+            signup,
+            name,
+            error,
+            &if signup {
+                Vec::new()
+            } else {
+                reset_keeps(state, token)
+            },
+        ),
     );
     *response.status_mut() = StatusCode::BAD_REQUEST;
     response
@@ -495,6 +546,14 @@ pub struct Notice {
 
 /// A return address that is a report path on this host, with its query, and nothing else.
 pub(super) fn safe_next(next: &str) -> Option<&str> {
+    // The page that confirms a command-line sign-in, with or without its short code.
+    if next == "/cli"
+        || next
+            .strip_prefix("/cli?code=")
+            .is_some_and(|code| crate::access::cli_user_code(code).as_deref() == Some(code))
+    {
+        return Some(next);
+    }
     let rest = next.strip_prefix("/r/")?;
     let (path, query) = rest.split_once('?').unwrap_or((rest, ""));
     let plain = |text: &str, extra: &[u8]| {
@@ -769,7 +828,7 @@ async fn hosted_index(
     if session_csrf(state, caller).is_none() {
         return hosted_page(
             "Sign in",
-            &hosted_pages::sign_in(&notice.m, safe_next(&notice.next)),
+            &hosted_pages::sign_in(&notice.m, safe_next(&notice.next), &offers(state)),
         );
     }
     let hosted = match hosted_session(state, caller) {
@@ -1012,6 +1071,13 @@ async fn hosted_index(
     } else {
         None
     };
+    // Join notices that could not be mailed go now if the budget allows; the rest stay shown.
+    retry_unsent_notices(state, &hosted.person.id, &hosted.person.email).await;
+    let unsent = unsent_view(state, &hosted.person.id);
+    let unsent: Vec<(&str, &str)> = unsent
+        .iter()
+        .map(|(name, at)| (*name, at.as_str()))
+        .collect();
     let nav = hosted.nav();
     let body = hosted_pages::reports(&hosted_pages::ReportList {
         nav: &nav,
@@ -1024,6 +1090,7 @@ async fn hosted_index(
         invites: &invites,
         can_publish,
         usage: usage.as_ref(),
+        unsent: &unsent,
     });
     hosted_page("Reports", &body)
 }
@@ -1996,7 +2063,11 @@ pub async fn revoke_personal_token(
     }
 }
 
-pub async fn account_page(State(state): State<AppState>, headers: HeaderMap) -> Response {
+pub async fn account_page(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Query(notice): Query<Notice>,
+) -> Response {
     let caller = auth::caller(&state, &headers);
     let hosted = match hosted_session(&state, &caller) {
         Ok(identity) => identity,
@@ -2016,15 +2087,42 @@ pub async fn account_page(State(state): State<AppState>, headers: HeaderMap) -> 
         }
         _ => None,
     };
+    // Join notices that could not be mailed go now if the budget allows; the rest stay shown.
+    retry_unsent_notices(&state, &hosted.person.id, &hosted.person.email).await;
+    let sign_in = sign_in_options(&state, &hosted.person.id);
     hosted_page(
         "Account",
-        &hosted_pages::account(&hosted.nav(), &hosted.person.email, usage.as_ref()),
+        &hosted_pages::account(
+            &hosted.nav(),
+            &hosted.person.email,
+            usage.as_ref(),
+            sign_in.as_ref().map(SignInView::as_options).as_ref(),
+            // Only the page's own messages: the text comes from a code, never from the address.
+            &account_notice(&notice.m),
+        ),
     )
 }
 
 #[cfg(test)]
 mod hosted_response_tests {
     use super::*;
+
+    #[tokio::test]
+    async fn hosted_hotfix_signup_shows_configured_report_limit() {
+        let dir = tempfile::tempdir().unwrap();
+        let state = AppState {
+            storage: crate::storage::FsStorage::new(dir.path())
+                .unwrap()
+                .with_hosted(true)
+                .with_hosted_limits(7 << 20, 3),
+            access: crate::access::Access::open_hosted(dir.path()).unwrap(),
+            preview: None,
+            public_origin: None,
+            report_origin: None,
+        };
+        let body = body_of(sign_up_page(&state).await).await;
+        assert!(body.contains("7 MiB and 3 reports free"));
+    }
 
     #[test]
     fn hosted_responses_do_not_cache_or_send_referrers() {
@@ -2103,8 +2201,16 @@ mod hosted_response_tests {
     #[tokio::test]
     async fn signed_out_pages_get_the_mark_one_card_and_only_the_legal_links() {
         for body in [
-            body_of(hosted_page("Sign in", &hosted_pages::sign_in("", None))).await,
-            body_of(sign_up_page().await).await,
+            body_of(hosted_page(
+                "Sign in",
+                &hosted_pages::sign_in("", None, &[]),
+            ))
+            .await,
+            body_of(hosted_page(
+                "Create account",
+                &hosted_pages::sign_up(&[], 50 << 20, 50),
+            ))
+            .await,
             body_of(expired_link_page()).await,
             body_of(signups_paused_page()).await,
         ] {
@@ -2140,7 +2246,11 @@ mod hosted_response_tests {
         // The inline stylesheet names both classes, so look for the elements.
         assert!(!body.contains("class=\"auth-show\"") && !body.contains("class=\"auth-facts\""));
         assert!(body.contains("<h1>Not found</h1>"));
-        let sign_in = body_of(hosted_page("Sign in", &hosted_pages::sign_in("", None))).await;
+        let sign_in = body_of(hosted_page(
+            "Sign in",
+            &hosted_pages::sign_in("", None, &[]),
+        ))
+        .await;
         assert!(
             sign_in.contains("class=\"auth-show\"")
                 && !sign_in.contains("class=\"auth-side auth-side--plain\"")
@@ -2159,6 +2269,7 @@ mod hosted_response_tests {
             account_exists: false,
             submitted_name: "",
             error: "",
+            offers: &[],
         };
         let body = body_of(hosted_page(
             "Invitation",
@@ -2213,7 +2324,11 @@ mod hosted_response_tests {
 
     #[tokio::test]
     async fn signed_out_pages_show_what_the_app_makes_beside_the_form() {
-        let body = body_of(hosted_page("Sign in", &hosted_pages::sign_in("", None))).await;
+        let body = body_of(hosted_page(
+            "Sign in",
+            &hosted_pages::sign_in("", None, &[]),
+        ))
+        .await;
         let side = &body
             [body.find("<aside class=\"auth-side\">").unwrap()..body.find("</aside>").unwrap()];
         assert!(side.contains("<img src=\"data:image/png;base64,iVBOR"));
@@ -2227,7 +2342,7 @@ mod hosted_response_tests {
 
     #[test]
     fn sign_in_puts_the_reset_link_beside_the_password_after_its_field() {
-        let form = hosted_pages::sign_in("", None);
+        let form = hosted_pages::sign_in("", None, &[]);
         let field = &form[form.find("field--password").unwrap()..];
         let input = field.find("id=\"password\"").unwrap();
         let reset = field.find("href=\"/forgot\">Forgot password?</a>").unwrap();

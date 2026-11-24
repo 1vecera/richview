@@ -106,7 +106,7 @@ fn runtime_name(name: &str) -> bool {
 }
 
 /// Classes the Markdown renderer itself generates. The sanitizer keeps no others.
-const GENERATED_CLASSES: [&str; 28] = [
+const GENERATED_CLASSES: &[&str] = &[
     "num",
     "rv-code-line",
     // The highlighter's spans in a code fence of a language it knows (FEA-RP-17).
@@ -124,6 +124,9 @@ const GENERATED_CLASSES: [&str; 28] = [
     "hl-cmd",
     "hl-flag",
     "hl-num",
+    "hl-bool",
+    "hl-null",
+    "hl-date",
     "hl-strong",
     "hl-tag",
     "hl-val",
@@ -860,7 +863,7 @@ pub(crate) fn code_lines(text: &str) -> String {
     code_lines_in(text, None, &[])
 }
 
-/// [`code_lines`] in `language`: a language the highlighter knows (Rich Markdown, YAML, shell)
+/// [`code_lines`] in `language`: a language the highlighter knows (Rich Markdown, YAML, shell, SQL)
 /// is set in its `hl-` spans, which a line's end closes and the next line opens again, and any
 /// other is plain. A line whose number (from 1) is in `marked` also has `rv-code-line--mark`.
 pub(crate) fn code_lines_in(text: &str, language: Option<&str>, marked: &[usize]) -> String {

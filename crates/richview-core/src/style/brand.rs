@@ -21,7 +21,7 @@ const NEUTRALS: [&str; 9] = [
 ];
 
 /// Reduce chroma at fixed lightness and hue until the colour fits the sRGB gamut.
-fn fit(mut color: Oklch) -> Oklch {
+pub(super) fn fit(mut color: Oklch) -> Oklch {
     color.l = color.l.clamp(0.0, 1.0);
     if color.in_gamut() {
         return color;
@@ -40,7 +40,7 @@ fn fit(mut color: Oklch) -> Oklch {
 }
 
 /// Move away from the page until every surface reaches the requested contrast.
-fn reach(original: Oklch, surfaces: &[Oklch], floor: f64, dark: bool) -> Oklch {
+pub(super) fn reach(original: Oklch, surfaces: &[Oklch], floor: f64, dark: bool) -> Oklch {
     let mut color = fit(original);
     for _ in 0..200 {
         if surfaces
@@ -89,9 +89,11 @@ fn rgb(color: Oklch) -> Oklch {
 
 const SEPARATION: f64 = 1.03;
 
-fn hue_gap(a: f64, b: f64) -> f64 {
+pub(super) fn hue_gap(a: f64, b: f64) -> f64 {
     ((a - b + 540.0).rem_euclid(360.0) - 180.0).abs()
 }
+
+pub(super) const GOLDEN_ANGLE: f64 = 137.508;
 
 fn safe_pair(candidate: Oklch, palette: &[Oklch]) -> bool {
     let required = if palette.len() < 4 {
@@ -141,7 +143,7 @@ fn palette_from(seed: &[Oklch], chart: &[Oklch], base: &[Oklch], dark: bool) -> 
         if palette.len() == 6 {
             return Some(palette);
         }
-        let hue = (first.h + 137.508 * f64::from(step)).rem_euclid(360.0);
+        let hue = (first.h + GOLDEN_ANGLE * f64::from(step)).rem_euclid(360.0);
         if palette
             .iter()
             .any(|p| p.c >= 0.03 && hue_gap(hue, p.h) < 30.0)
@@ -351,32 +353,14 @@ thread_local! {
     static CACHE: RefCell<VecDeque<(String, Option<Derived>)>> = const { RefCell::new(VecDeque::new()) };
 }
 
-/// The company derivation of STY-71, kept exactly as it was for files that still use
-/// `company.color`: one brand colour and an optional second over `base`.
-pub(super) fn derive(base: &Value, primary: &str, secondary: Option<&str>) -> Option<Derived> {
-    derive_colours(
-        base,
-        Colours {
-            brand: Some(primary),
-            secondary,
-            background: None,
-        },
-        MEDIUM,
-        MEDIUM,
-        true,
-    )
-}
-
 /// Derive every colour of a style from the author's colours over `base`, the merged cascade
 /// (STY-73). `tint` and `gridlines` are five-step indices. With no colours and both steps at
-/// medium nothing changes, and the function returns `None`. `legacy` keeps STY-71's company
-/// derivation exactly: no status colour, wordmark or ramp moves beyond what it moved.
+/// medium nothing changes, and the function returns `None`.
 pub(super) fn derive_colours(
     base: &Value,
     colours: Colours,
     tint: usize,
     gridlines: usize,
-    legacy: bool,
 ) -> Option<Derived> {
     let key = serde_json::to_string(&(
         base.get("tokens"),
@@ -384,7 +368,6 @@ pub(super) fn derive_colours(
         colours,
         tint,
         gridlines,
-        legacy,
     ))
     .ok()?;
     if let Some(hit) = CACHE.with_borrow_mut(|cache| {
@@ -396,7 +379,7 @@ pub(super) fn derive_colours(
     }) {
         return hit;
     }
-    let result = derive_uncached(base, colours, tint, gridlines, legacy);
+    let result = derive_uncached(base, colours, tint, gridlines);
     CACHE.with_borrow_mut(|cache| {
         cache.push_front((key, result.clone()));
         if cache.len() > CACHE_LIMIT {
@@ -509,10 +492,9 @@ fn derive_uncached(
     colours: Colours,
     tint: usize,
     gridlines: usize,
-    legacy: bool,
 ) -> Option<Derived> {
     let Some(text) = colours.background else {
-        return derive_at(base, colours, tint, gridlines, legacy, None);
+        return derive_at(base, colours, tint, gridlines, None);
     };
     // The author's page stays exact unless the scheme's text cannot reach 7:1 on it, or four
     // distinct series cannot reach 3:1; then it moves, keeping its hue, only as far as they need.
@@ -530,7 +512,7 @@ fn derive_uncached(
         } else {
             fit(Oklch::new(l_now, page.c, page.h))
         };
-        let mut derived = derive_at(base, colours, tint, gridlines, legacy, Some(candidate))?;
+        let mut derived = derive_at(base, colours, tint, gridlines, Some(candidate))?;
         let at_edge = if dark { l_now <= 0.0 } else { l_now >= 1.0 };
         if !derived.palette_failed || at_edge {
             if (candidate.l - page.l).abs() > 1e-9 {
@@ -547,14 +529,13 @@ fn derive_at(
     colours: Colours,
     tint: usize,
     gridlines: usize,
-    legacy: bool,
     background: Option<Oklch>,
 ) -> Option<Derived> {
     let brand = match colours.brand {
         Some(text) => Some(fit(color::parse(text)?)),
         None => None,
     };
-    let css = |c: Oklch| if legacy { c.css() } else { fine_css(c) };
+    let css = fine_css;
     let secondary = colours.secondary.and_then(color::parse);
     if brand.is_none()
         && background.is_none()
@@ -707,9 +688,6 @@ fn derive_at(
     // Status colours and the wordmark set text: each one that misses its floor on the new
     // surfaces moves only as far as it must. The company derivation never moved them.
     for (name, floor) in [("up", 4.5), ("down", 4.5), ("hold", 4.5), ("brand", 4.5)] {
-        if legacy {
-            break;
-        }
         if let Some(previous) = token(name)
             && surfaces
                 .iter()
@@ -826,7 +804,7 @@ fn derive_at(
                 Some(ramp) => (Some(ramp), None),
                 // The preset's ramp re-hued fails the diverging rule (a green brand against an
                 // orange arm, say): a brand-hue pair that passes, or the preset's own pair.
-                None if brand.c >= 0.03 && !legacy => match generated(brand.h) {
+                None if brand.c >= 0.03 => match generated(brand.h) {
                     (Some(ramp), Some(arm)) => (Some(ramp), Some(arm)),
                     (Some(ramp), None) if hatch => (Some(ramp), None),
                     _ => (None, None),

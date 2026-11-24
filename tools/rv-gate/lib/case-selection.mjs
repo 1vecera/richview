@@ -5,7 +5,7 @@ import {DOCS_PHASES} from "./docs-shards.mjs";
 import {selection as rustSelection} from "./rust-tests.mjs";
 
 export const RUNTIME_EXTRA = Object.freeze(["forms", "histogram-legend", "wide-chart", "legend-cues", "numeric-series-names"]);
-const excluded = new Set(["sql-report", "metricflow-report"]);
+const excluded = new Set(["sql-report", "parquet-report", "metricflow-report"]);
 
 /** Match the runtime suite's source-derived example inventory and explicit fixtures. */
 export function runtimeInventory(files) {

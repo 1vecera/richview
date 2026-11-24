@@ -42,11 +42,7 @@ pub struct Choice {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Kind {
     /// Frames are the field's distinct values; `None` steps through `x` (FEA-BR-02).
-    Playback {
-        field: Option<String>,
-        speed: f64,
-        looping: bool,
-    },
+    Playback { field: Option<String>, speed: f64 },
     /// One value of a categorical field; with `all`, the first option keeps every row
     /// (FEA-BR-03).
     Filter { field: String, all: bool },
@@ -197,8 +193,7 @@ impl Controls {
                         .and_then(Value::as_f64)
                         .filter(|s| s.is_finite() && *s > 0.0)
                         .unwrap_or(DEFAULT_SPEED);
-                    let looping = dim.get("loop").and_then(Value::as_bool).unwrap_or(true);
-                    (Kind::Playback { field, speed, looping }, options, over)
+                    (Kind::Playback { field, speed }, options, over)
                 }
                 Some("filter") => {
                     let Some(field) = text(dim, "field") else {

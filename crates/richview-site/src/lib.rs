@@ -26,12 +26,21 @@ pub fn company_style_json(input: &str) -> String {
         return failure("Company style input must be a JSON object");
     };
     company.retain(|_, value| !value.is_null());
-    if !company.contains_key("color") {
+    let Some(brand) = company.remove("color") else {
         return failure("Company style needs a color");
+    };
+    let mut source = json!({"colors": {"brand": brand}});
+    if let Some(secondary) = company.remove("secondary") {
+        source["colors"]["secondary"] = secondary;
     }
-    let source = json!({"company": company}).to_string();
+    if let Some(base) = company.remove("base") {
+        source["preset"] = base;
+    }
+    if !company.is_empty() {
+        source["company"] = Value::Object(company);
+    }
     let mut diagnostics = vec![];
-    let style = richview_core::resolve_styles(&[source], &mut diagnostics);
+    let style = richview_core::resolve_styles(&[source.to_string()], &mut diagnostics);
     // The demo needs no embedded font catalog. Its absence must not suppress the palette.
     diagnostics.retain(|d| {
         d.code.starts_with("style.company-")
@@ -228,7 +237,7 @@ mod result_tests {
         let output: serde_json::Value = serde_json::from_str(&company_style_json(input)).unwrap();
         let mut diagnostics = vec![];
         let style = richview_core::resolve_styles(
-            &["company:\n  color: '#0B6E69'\n  base: air\n".into()],
+            &["preset: air\ncolors:\n  brand: '#0B6E69'\n".into()],
             &mut diagnostics,
         );
         assert_eq!(output["palette"], style.chart["palette"]);

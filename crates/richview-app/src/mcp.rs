@@ -11,7 +11,7 @@ use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
 /// Protocol versions the server speaks, newest first (FEA-SF-10).
 const PROTOCOLS: [&str; 3] = ["2025-06-18", "2025-03-26", "2024-11-05"];
 
-const INSTRUCTIONS: &str = "Call richview_learn before drafting. Read data and save or edit the report's .rmd with your host's file tools, in its own report folder. Run richview_validate and richview_check after edits, including the final edit. Inspect structuredContent.status and diagnostics: status clean means no errors or warnings; ok true means no errors, and isError describes whether the call could execute. Repair warnings and errors, check again, then richview_render and inspect the output against the brief. Publish only when asked. The user chooses RichView-hosted Cowork at https://app.richview.ai or their own server, and configures RICHVIEW_SERVER and its RICHVIEW_TOKEN in the MCP host before publishing.";
+const INSTRUCTIONS: &str = "Call richview_learn before drafting. Read data and save or edit the report's .rmd with your host's file tools, in its own report folder. Run richview_validate and richview_check after edits, including the final edit. Inspect structuredContent.status and diagnostics: status clean means no errors or warnings; ok true means no errors, and isError describes whether the call could execute. Repair warnings and errors, check again, then richview_render and inspect the output against the brief. Publish only when asked. The user chooses RichView Cowork, the report server, hosted by RichView at https://app.richview.ai, or their own server, and signs in once with `richview login` in a terminal before publishing; RICHVIEW_SERVER and its RICHVIEW_TOKEN in the MCP host do the same for an unattended host.";
 
 /// The seven tools of D-MCP-SURFACE plus the Unsplash pair (FEA-RP-62), each twin to a command.
 pub fn tool_definitions() -> Vec<Value> {
@@ -67,8 +67,8 @@ pub fn tool_definitions() -> Vec<Value> {
         ),
         tool(
             "richview_publish",
-            "Publishes a version of the report to the named RichView server. The token comes from the host environment (RICHVIEW_TOKEN), never from arguments. Its result has slug, version, url, permalink and, from a hosted server, share: the report's page in the app, where people are named and who can open it is chosen. Same result as `richview publish`.",
-            json!({"inputPath":input_path,"server":{"type":"string","description":"Server URL; defaults to RICHVIEW_SERVER and must equal it when that is set, so the token only goes to the configured server"},"slug":{"type":"string"},"new":{"type":"boolean","description":"Create a report address the server has not stored before"}}),
+            "Creates a report on the user's RichView server or publishes another version at its address. The server and its token come from the host environment (RICHVIEW_SERVER, RICHVIEW_TOKEN) or, when it names none, from the sign-in the user kept with `richview login`; never from arguments. Its result has slug, version, url, permalink and, from a hosted server, share: the report's page in the app, where people are named and who can open it is chosen. Same result as `richview publish`.",
+            json!({"inputPath":input_path,"server":{"type":"string","description":"Server URL; defaults to RICHVIEW_SERVER, else the server the user signed in to, and must equal that one, so the token only goes to the server it belongs to"},"slug":{"type":"string"},"new":{"type":"boolean","description":"Allow this file to create another address on the same server"}}),
             vec!["inputPath"],
             false,
             true,
@@ -139,7 +139,10 @@ async fn dispatch_tool_reporting(
                 .iter()
                 .any(|d| d.code.starts_with("report.root.")) =>
         {
-            let summary = format!("{} diagnostics, the report has errors.", diagnostics.len());
+            let summary = format!(
+                "{}, the report has errors.",
+                cli::counted(diagnostics.len(), "diagnostic", "diagnostics")
+            );
             structured(Failure::Diagnostics(diagnostics).to_json(), summary, false)
         }
         Err(failure) => {
@@ -182,20 +185,20 @@ fn summary_of(what: &str, result: &Value) -> String {
     let count = |key| result[key].as_array().map_or(0, Vec::len);
     if let Some(reports) = result["reports"].as_array() {
         return format!(
-            "{what}: {} reports, {} with errors (status: {}).",
-            reports.len(),
+            "{what}: {}, {} with errors (status: {}).",
+            cli::counted(reports.len(), "report", "reports"),
             reports.iter().filter(|report| !ops::is_ok(report)).count(),
             result["status"].as_str().unwrap_or("issues")
         );
     }
     format!(
-        "{what}: {}, {} diagnostics (status: {}).",
+        "{what}: {}, {} (status: {}).",
         if ops::is_ok(result) {
             "ok"
         } else {
             "has errors"
         },
-        count("diagnostics"),
+        cli::counted(count("diagnostics"), "diagnostic", "diagnostics"),
         result["status"].as_str().unwrap_or("issues")
     )
 }
@@ -271,37 +274,53 @@ async fn report_tool(name: &str, args: &Value, input: ops::Input) -> ops::Outcom
             .await?
         }
         "richview_publish" => {
-            let configured = std::env::var("RICHVIEW_SERVER")
+            // The server is the one the host's environment names, else the one the user chose in
+            // a terminal. An argument can only repeat it: a tool call never chooses where a
+            // token goes (FEA-SF-12, INT-79).
+            let from_host = std::env::var("RICHVIEW_SERVER")
                 .ok()
                 .filter(|s| !s.is_empty());
+            let configured = match &from_host {
+                Some(server) => Some(server.clone()),
+                None => crate::publish_destination::saved()?,
+            };
             let server = match (arg_str(args, "server")?, configured) {
                 (Some(named), Some(configured))
                     if named.trim_end_matches('/') != configured.trim_end_matches('/') =>
                 {
                     return Err(Failure::usage(
-                        "The token is sent only to the configured server: omit server or use RICHVIEW_SERVER.",
+                        "The token is sent only to the configured server: omit server, or name RICHVIEW_SERVER or the server the user signed in to.",
                     ));
                 }
                 (Some(_), None) => {
                     return Err(Failure::usage(
-                        "No server is configured: set RICHVIEW_SERVER in the MCP host's environment; the token is sent only there.",
+                        "No server is configured: the user runs `richview login` once in a terminal, or sets RICHVIEW_SERVER in the MCP host's environment; the token is sent only there.",
                     ));
                 }
                 (Some(named), Some(_)) => named.to_owned(),
                 (None, Some(configured)) => configured,
                 (None, None) => {
                     return Err(Failure::usage(
-                        "No server: set RICHVIEW_SERVER in the MCP host's environment.",
+                        "No server: the user runs `richview login` once in a terminal, or sets RICHVIEW_SERVER in the MCP host's environment.",
                     ));
                 }
             };
             let server = server.as_str();
-            let token = std::env::var("RICHVIEW_TOKEN")
-                .ok()
-                .filter(|t| !t.is_empty())
-                .ok_or_else(|| {
-                    Failure::usage("No token: set RICHVIEW_TOKEN in the MCP host's environment.")
-                })?;
+            // RICHVIEW_TOKEN belongs to RICHVIEW_SERVER and to no other server; without it, the
+            // sign-in kept for exactly this server is used.
+            let from_host = from_host.and_then(|_| {
+                std::env::var("RICHVIEW_TOKEN")
+                    .ok()
+                    .filter(|t| !t.is_empty())
+            });
+            let token = match from_host {
+                Some(token) => token,
+                None => crate::credentials::kept(server)?.ok_or_else(|| {
+                        Failure::usage(format!(
+                            "No token for {server}: the user runs `richview login --server {server}` once in a terminal, or sets RICHVIEW_TOKEN in the MCP host's environment."
+                        ))
+                    })?,
+            };
             ops::publish(
                 &input,
                 server,

@@ -162,6 +162,50 @@ fn hosted_startup_requires_https_origins_limits_mail_and_no_service_token() {
     assert!(!insecure.status.success());
     assert!(String::from_utf8_lossy(&insecure.stderr).contains("HTTPS"));
     assert!(!data.exists());
+    // Plain HTTP at a loopback address passes the origin check, says so at the start, and then
+    // stops at the next missing setting, the operator port. Hosted mode binds loopback anyway.
+    let local = |bind: &str| {
+        Command::new(env!("CARGO_BIN_EXE_richview"))
+            .args(["server", "--hosted", "--data-dir"])
+            .arg(&data)
+            .args([
+                "--bind",
+                bind,
+                "--public-url",
+                "http://localhost:8080",
+                "--report-origin",
+                "http://127.0.0.1:8081",
+                "--quota-bytes",
+                "104857600",
+                "--mail-outbox",
+            ])
+            .arg(&outbox)
+            .env_remove("RICHVIEW_TOKEN")
+            .env_remove("RICHVIEW_ADMIN_EMAIL")
+            .env_remove("RICHVIEW_DEFAULT_VISIBILITY")
+            .env_remove("RICHVIEW_ORG_QUOTA_BYTES")
+            .env_remove("RICHVIEW_ORG_REPORT_LIMIT")
+            .env_remove("RICHVIEW_MAIL_DAILY_LIMIT")
+            .env_remove("RICHVIEW_SMTP_HOST")
+            .env_remove("RICHVIEW_OPERATOR_PORT")
+            .output()
+            .unwrap()
+    };
+    let loopback = local("127.0.0.1");
+    let stderr = String::from_utf8_lossy(&loopback.stderr);
+    assert!(!loopback.status.success());
+    assert!(
+        stderr.contains(
+            "hosted mode on plain HTTP at http://localhost:8080: for local development only"
+        ) && stderr.contains("operator-port")
+            && !stderr.contains("requires HTTPS"),
+        "{stderr}"
+    );
+    assert!(!data.exists());
+    let everywhere = local("0.0.0.0");
+    assert!(!everywhere.status.success());
+    assert!(String::from_utf8_lossy(&everywhere.stderr).contains("loopback"));
+    assert!(!data.exists());
     let _ = std::fs::remove_dir_all(root);
 }
 

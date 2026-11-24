@@ -11,7 +11,7 @@ const file=join(folder,'quarter.rmd');
 const csv='month,value\nJan,100\nFeb,140\n';writeFileSync(join(folder,'data/sales.csv'),csv);
 writeFileSync(join(folder,'media/logo.svg'),'<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" fill="#176430"/></svg>');
 const source=`---\ntitle: Same observations\ndescription: Exact values remain unchanged through style changes.\nstyles: [scientific, report.rstyle.yaml]\n---\n\n![Local logo](media/logo.svg)\n\n[Original observations](data/sales.csv)\n\n\`\`\`chart\ntype: bar\ntitle: Revenue rose in February\ndata: {csv: data/sales.csv}\nencoding: {x: month, y: value}\nstyle: {ratio: '16:9'}\n\`\`\`\n\n\`\`\`table\ndata: {csv: data/sales.csv}\ncolumns:\n  - key: month\n    label: Month\n  - key: value\n    label: Value\n    align: right\n\`\`\`\n`;
-const custom=accent=>`tokens:\n  bg: '#fff4dc'\n  accent: '${accent}'\nchart:\n  palette: ['${accent}', '#167d8d']\n  barRadius: 8\n`;
+const custom=accent=>`colors:\n  background: '#fff4dc'\n  brand: '${accent}'\npalette: ['${accent}', '#167d8d']\ncorners: large\n`;
 writeFileSync(file,source);writeFileSync(join(folder,'report.rstyle.yaml'),custom('#a52a2a'));
 const generate=(name,styles=[])=>{const result=spawnSync(cli,['generate',file,'--output',name+'.html','--format','json',...styles.flatMap(s=>['--style',s])],{encoding:'utf8',timeout:60000});assert.equal(result.status,0,result.stdout+result.stderr);const output=JSON.parse(result.stdout).output;assert.equal(output,join(folder,'Rendered',name+'.html'));return output;};
 const snapshot=async scope=>scope.locator('body').evaluate(async node=>{
@@ -19,7 +19,7 @@ const snapshot=async scope=>scope.locator('body').evaluate(async node=>{
  const get=s=>s==='body'?node:node.querySelector(s);const style=s=>getComputedStyle(get(s));
  const text=get('.rv-report').cloneNode(true);text.querySelectorAll('.rv-chart, script, footer').forEach(n=>n.remove());
  const model=window.__richview?.charts()[0];const c=model?.geometry.series[0]?.color;const bar=c?{fill:`rgb(${c.slice(0,3).map(v=>Math.round(v*255)).join(', ')})`}:null;
- return {content:text.textContent.replace(/\s+/g,' ').trim(),data:[...node.querySelectorAll('script[data-rv-payload]')].map(n=>{const p=JSON.parse(n.textContent);return {columns:p.columns,rows:p.rows};}),bg:style('body').backgroundColor,font:style('.rv-report__body').fontFamily,titleFont:style('h1').fontFamily,width:style('.rv-report').maxWidth,bar,loadedFonts:[...node.ownerDocument.fonts].filter(f=>f.status==='loaded').map(f=>f.family)};
+ return {content:text.textContent.replace(/\s+/g,' ').trim(),data:[...node.querySelectorAll('script[data-rv-payload]')].map(n=>{const p=JSON.parse(n.textContent);return {columns:p.columns,rows:p.rows};}),bg:getComputedStyle(node.ownerDocument.documentElement).getPropertyValue('--rv-bg').trim(),font:style('.rv-report__body').fontFamily,titleFont:style('h1').fontFamily,width:style('.rv-report').maxWidth,bar,loadedFonts:[...node.ownerDocument.fonts].filter(f=>f.status==='loaded').map(f=>f.family)};
 });
 const waitChart=async scope=>{
  const deadline=Date.now()+45000;
