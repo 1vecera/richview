@@ -168,13 +168,37 @@ async fn oversized_publish_reports_the_hosted_limit_and_remedy() {
         data: [("large".into(), "x".repeat(richview_app::MAX_INPUT_BYTES))].into(),
         ..Default::default()
     };
+    // The client names the ceiling and its remedy before it sends anything.
     let error = richview_app::cli::publish(source, &options, &server, "token-a", None, true)
         .await
         .unwrap_err();
-    assert!(error.contains("413"), "{error}");
-    assert!(error.contains("32 MiB"), "{error}");
-    assert!(error.contains("smaller data"), "{error}");
-    assert!(error.contains("link large data"), "{error}");
+    let found: Vec<richview_core::document::Diagnostic> =
+        serde_json::from_str(&error).unwrap_or_else(|_| panic!("{error}"));
+    assert_eq!(found[0].code, "report.input-limit", "{error}");
+    assert!(found[0].message.contains("32 MiB"), "{error}");
+    assert!(
+        found[0]
+            .message
+            .contains("about 25,000,000 bytes of linked files"),
+        "{error}"
+    );
+    // Any other client still meets the hosted server's own limit.
+    let response = host
+        .app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/reports")
+                .header("host", "app.test")
+                .header("content-type", "application/json")
+                .header(header::AUTHORIZATION, "Bearer token-a")
+                .body(Body::from(vec![b'x'; richview_app::MAX_INPUT_BYTES + 1]))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::PAYLOAD_TOO_LARGE);
     worker.abort();
 }
 

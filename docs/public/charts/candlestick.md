@@ -67,6 +67,6 @@ axes:
 ## Interactions
 
 - A candle is hollow when the close is at or above the open, and filled when it is below; with decals on, the two also differ by hatch.
-- Hover or focus a candle to read Open, High, Low, Close and the change from open to close.
+- Hover or focus a candle to read Open, High, Low, Close and the change from open to close. A dark outline marks the candle under the pointer; a hollow candle keeps its own outline inside it.
 - Dense series thin the period names instead of overlapping them.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

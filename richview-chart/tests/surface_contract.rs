@@ -2,7 +2,7 @@
 //! a key, a grid as given or an interpolated one, and the views the author can ask for
 //! (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::Level;

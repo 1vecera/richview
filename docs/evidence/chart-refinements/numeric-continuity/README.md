@@ -22,8 +22,8 @@ The before build is frozen `dad1615876cf05dccd7241da269fbf69cbc1ec31`, whose tra
 Build each checkout with `npm ci` and `CARGO_BUILD_JOBS=3 cargo run --release --locked -p richview-build`. Run this checkout’s helper against each built tree:
 
 ```sh
-node docs/evidence/chart-refinements/numeric-continuity/reproduce.mjs BEFORE_WORKTREE before OUTPUT_DIRECTORY
-node docs/evidence/chart-refinements/numeric-continuity/reproduce.mjs AFTER_WORKTREE after OUTPUT_DIRECTORY
+node docs/evidence/chart-refinements/numeric-continuity/reproduce.ts BEFORE_WORKTREE before OUTPUT_DIRECTORY
+node docs/evidence/chart-refinements/numeric-continuity/reproduce.ts AFTER_WORKTREE after OUTPUT_DIRECTORY
 ```
 
 The helper uses the actual report runtime, bundled fonts, headless Chromium and a 2× capture scale. `CHROMIUM` can select another executable; exact PNG hashes require the recorded browser build. It changes no chart styling.

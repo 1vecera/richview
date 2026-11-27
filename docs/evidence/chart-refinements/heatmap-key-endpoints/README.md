@@ -18,8 +18,8 @@ When both endpoint strings cannot fit, the old collision-safe output is retained
 Build the before and after worktrees using the repository's pinned toolchain and install development dependencies with `npm ci --ignore-scripts`. Run this helper from the after worktree for each built target; it reads the two checked-in `.rmd` sources and uses that target's own renderer, styles and fonts. It opens only a headless browser and a loopback server.
 
 ```sh
-node docs/evidence/chart-refinements/heatmap-key-endpoints/capture.mjs --worktree /path/to/before-worktree --out tmp/heatmap-endpoints-before
-node docs/evidence/chart-refinements/heatmap-key-endpoints/capture.mjs --worktree /path/to/after-worktree --out tmp/heatmap-endpoints-after
+node docs/evidence/chart-refinements/heatmap-key-endpoints/capture.ts --worktree /path/to/before-worktree --out tmp/heatmap-endpoints-before
+node docs/evidence/chart-refinements/heatmap-key-endpoints/capture.ts --worktree /path/to/after-worktree --out tmp/heatmap-endpoints-after
 ```
 
 The output names are `positive-percent.png` and `signed-percent.png`. Their checked-in counterparts add `-before` or `-after`. Pixel equality depends on the recorded Chromium build; source, SVG and artifact hashes make the comparison explicit.

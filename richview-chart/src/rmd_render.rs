@@ -1,7 +1,6 @@
 //! Chart-type options and named palettes that the block contract and the layout read: the
 //! boxplot, histogram and interval option parsers and the categorical palettes. The source-format
-//! painter that once lived here is gone: every chart draws from one geometry model (ARC-18,
-//! S27-703).
+//! painter that once lived here is gone: every chart draws from one geometry model (ARC-18).
 
 use serde_json::Value;
 

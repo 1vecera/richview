@@ -125,7 +125,7 @@ const ANCHORS: [(Anchor, &str); 6] = [
 /// A pose in the scroll timeline; geometry is resolved from live anchors on every frame.
 #[derive(Clone, Copy, PartialEq, Debug)]
 enum Key {
-    /// Off the stage: the first screen belongs to the painting agent's clip (S27-959) and the live
+    /// Off the stage: the first screen belongs to the painting agent's clip and the live
     /// example to its report (W3 scenes 1 and 2).
     Away,
     Mark(Anchor),

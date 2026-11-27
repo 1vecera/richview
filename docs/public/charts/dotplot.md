@@ -74,6 +74,6 @@ axes:
 
 ## Interactions
 
-- Hover or focus a column of dots to read its interval and the number of observations per group.
+- Hover or focus a column of dots to read its interval and the number of observations per group. Dark rings mark the column's dots under the pointer.
 - Click a legend entry to hide a group when the chart has several.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

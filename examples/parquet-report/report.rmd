@@ -7,7 +7,7 @@ slug: parquet-report
 
 ## Every chart asks the file for its own few rows
 
-The report folder holds `data/orders.parquet`: one million synthetic orders of a fictional retailer in sixteen columns, about 6 MB on disk. No chart below embeds those rows. Each names a SQL query in `queries/`, the query aggregates the file, and the chart embeds the result: 24 months, 8 categories, 40 cells.
+The report folder holds `data/orders.parquet`: one million synthetic orders of a fictional retailer in eleven columns, about 3.54 MB on disk. No chart below embeds those rows. Each names a SQL query in `queries/`, the query aggregates the file, and the chart embeds the result: 24 months, 8 categories, 40 cells.
 
 ```callout
 kind: neutral

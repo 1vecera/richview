@@ -53,5 +53,5 @@ axes:
 
 ## Interactions
 
-- Hover or focus a bar to read its value, its share and the share of the causes up to it.
+- Hover or focus a bar to read its value, its share and the share of the causes up to it. A dark outline marks the bar under the pointer.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

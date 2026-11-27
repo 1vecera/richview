@@ -50,5 +50,5 @@ axes: { y: { label: Revenue (CZK m) } }
 
 ## Interactions
 
-- Hover or focus an interval to read its lower and upper bounds separately, with the estimate if given.
+- Hover or focus an interval to read its lower and upper bounds separately, with the estimate if given. A dark outline marks the interval under the pointer.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

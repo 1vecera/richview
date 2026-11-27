@@ -26,7 +26,7 @@ const STARTS_PER_ADDRESS: usize = 10;
 const COLLECTS_PER_ADDRESS: usize = 120;
 /// Codes one person may get wrong in ten minutes before every code is refused for a while.
 const WRONG_CODES_PER_PERSON: usize = 10;
-/// Addresses and people counted at once; beyond it, new ones wait.
+/// Addresses and people counted at once; beyond it, the one counted longest ago is forgotten.
 const MAX_COUNTED: usize = 1024;
 /// Letters of the short code: no vowels, so no words, and nothing that reads like a digit.
 const CODE_LETTERS: &[u8] = b"BCDFGHJKLMNPQRSTVWXZ";
@@ -35,12 +35,21 @@ const MAX_COMPUTER_CHARS: usize = 40;
 
 enum Decision {
     Waiting,
-    Allowed { person: String, org: String },
+    Allowed {
+        person: String,
+        org: String,
+        /// The person's credential number when they said yes (`State::credential_epoch`): a
+        /// reset since then ends the yes.
+        approved_under: u64,
+    },
     Denied,
 }
 
 struct SignIn {
     user_code: String,
+    /// Whether the command line asked for a sign-in it can refresh: a short-lived token and the
+    /// refresh token that renews it, instead of one that never ends.
+    refreshing: bool,
     /// What the command line called its computer: shown to the person and put in the token's
     /// name. It is the caller's own claim, never proof of anything.
     computer: String,
@@ -86,13 +95,16 @@ pub enum CliSignInCollected {
         token_id: String,
         person: String,
         org: String,
+        /// The refresh token and the seconds the token lasts, when the command line asked for a
+        /// sign-in it can refresh.
+        refresh: Option<(String, u64)>,
     },
     /// The person said yes, but the token could not be issued; the sign-in is spent.
     Failed(String),
 }
 
 /// Drops the times older than `window` and says how many are left for `key`.
-fn counted(
+pub(super) fn counted(
     counters: &mut BTreeMap<String, VecDeque<u64>>,
     key: &str,
     at: u64,
@@ -107,9 +119,11 @@ fn counted(
     counters.get(key).map_or(0, VecDeque::len)
 }
 
-/// Counts one more for `key` unless it already has `most` in the window or too many keys are
-/// counted; says whether it was admitted.
-fn admit(
+/// Counts one more for `key` unless it already has `most` in the window; says whether it was
+/// admitted. When too many keys are counted, the one counted longest ago is let go to make room:
+/// a new key is never refused for the number of others, so nobody can lock every other address out
+/// by sending from many of their own (they only make the counts of the oldest forget).
+pub(super) fn admit(
     counters: &mut BTreeMap<String, VecDeque<u64>>,
     key: &str,
     at: u64,
@@ -117,8 +131,17 @@ fn admit(
     most: usize,
 ) -> bool {
     let have = counted(counters, key, at, window);
-    if have >= most || (have == 0 && counters.len() >= MAX_COUNTED) {
+    if have >= most {
         return false;
+    }
+    if have == 0 && counters.len() >= MAX_COUNTED {
+        let stalest = counters
+            .iter()
+            .min_by_key(|(_, times)| times.back().copied().unwrap_or(0))
+            .map(|(key, _)| key.clone());
+        if let Some(stalest) = stalest {
+            counters.remove(&stalest);
+        }
     }
     counters.entry(key.to_owned()).or_default().push_back(at);
     true
@@ -126,7 +149,7 @@ fn admit(
 
 /// What the limits count a client by: as the provider sign-in does, an IPv4 address or the /64
 /// of an IPv6 one, since one IPv6 subscriber has a whole /64 to start from.
-fn address_key(address: Option<std::net::IpAddr>) -> String {
+pub(super) fn address_key(address: Option<std::net::IpAddr>) -> String {
     address.map_or_else(|| "unknown".to_owned(), crate::social::start_key)
 }
 
@@ -164,7 +187,16 @@ pub fn cli_user_code(typed: &str) -> Option<String> {
     })
 }
 
-fn computer_name(claimed: &str) -> String {
+/// What a command-line sign-in is called on the CLI tokens page.
+pub(super) fn token_name(computer: &str) -> String {
+    if computer.is_empty() {
+        "Command line".to_owned()
+    } else {
+        format!("Command line on {computer}")
+    }
+}
+
+pub(super) fn computer_name(claimed: &str) -> String {
     claimed
         .chars()
         .filter(|c| !c.is_control())
@@ -223,14 +255,26 @@ impl Access {
         &self,
         address: Option<std::net::IpAddr>,
         computer: &str,
+        refreshing: bool,
     ) -> Result<CliSignInStarted, AccessError> {
-        self.start_cli_sign_in_at(address, computer, now())
+        self.start_cli_sign_in_with(address, computer, refreshing, now())
     }
 
+    #[cfg(test)]
     fn start_cli_sign_in_at(
         &self,
         address: Option<std::net::IpAddr>,
         computer: &str,
+        at: u64,
+    ) -> Result<CliSignInStarted, AccessError> {
+        self.start_cli_sign_in_with(address, computer, false, at)
+    }
+
+    pub(super) fn start_cli_sign_in_with(
+        &self,
+        address: Option<std::net::IpAddr>,
+        computer: &str,
+        refreshing: bool,
         at: u64,
     ) -> Result<CliSignInStarted, AccessError> {
         if !self.is_hosted() {
@@ -260,6 +304,7 @@ impl Access {
             digest(&code),
             SignIn {
                 user_code: user_code.clone(),
+                refreshing,
                 computer: computer_name(computer),
                 until: at + CLI_SIGN_IN_SECONDS,
                 decision: Decision::Waiting,
@@ -305,7 +350,7 @@ impl Access {
         self.decide_cli_sign_in_at(caller, person, org, user_code, allow, now())
     }
 
-    fn decide_cli_sign_in_at(
+    pub(super) fn decide_cli_sign_in_at(
         &self,
         caller: impl FnOnce() -> Principal,
         person: &str,
@@ -314,34 +359,15 @@ impl Access {
         allow: bool,
         at: u64,
     ) -> Result<(), AccessError> {
+        // Read before the session is checked: a reset that ends the session after this read also
+        // changes the number, so a yes made under the old one is refused when the token is issued.
+        let approved_under = self.read(|state| state.credential_epoch(person));
         if !matches!(caller(), Principal::User(user) if user.id == person && user.token_org.is_none())
         {
             return Err(AccessError::Credentials);
         }
         if allow {
-            self.read(|state| {
-                let member = state
-                    .memberships
-                    .iter()
-                    .any(|m| m.person == person && m.org == org)
-                    && state
-                        .organizations
-                        .iter()
-                        .any(|o| o.id == org && !o.suspended);
-                let record = state.users.iter().find(|r| r.user.id == person);
-                match record {
-                    Some(record) if member && !record.user.disabled => {
-                        if record.tokens.len() >= 20 {
-                            Err(AccessError::Invalid(
-                                "You can have at most 20 active tokens; revoke one first.".into(),
-                            ))
-                        } else {
-                            Ok(())
-                        }
-                    }
-                    _ => Err(AccessError::NotFound),
-                }
-            })?;
+            self.may_hold_cli_token(person, org)?;
         }
         let mut sign_ins = self.cli_sign_ins()?;
         let sign_in = sign_ins.undecided(person, user_code, at)?;
@@ -349,11 +375,41 @@ impl Access {
             Decision::Allowed {
                 person: person.to_owned(),
                 org: org.to_owned(),
+                approved_under,
             }
         } else {
             Decision::Denied
         };
         Ok(())
+    }
+
+    /// Whether `person` may be given a command-line token in `org` now: a member of an active
+    /// organization, not disabled and under the limit. Checked when they say yes, so a yes that
+    /// cannot be kept is refused where they read it, and again when the token is issued.
+    pub(super) fn may_hold_cli_token(&self, person: &str, org: &str) -> Result<(), AccessError> {
+        self.read(|state| {
+            let member = state
+                .memberships
+                .iter()
+                .any(|m| m.person == person && m.org == org)
+                && state
+                    .organizations
+                    .iter()
+                    .any(|o| o.id == org && !o.suspended);
+            let record = state.users.iter().find(|r| r.user.id == person);
+            match record {
+                Some(record) if member && !record.user.disabled => {
+                    if record.tokens.len() >= 20 {
+                        Err(AccessError::Invalid(
+                            "You can have at most 20 active tokens; revoke one first.".into(),
+                        ))
+                    } else {
+                        Ok(())
+                    }
+                }
+                _ => Err(AccessError::NotFound),
+            }
+        })
     }
 
     /// Hands the command line its token if its person said yes. A decided sign-in is spent by
@@ -366,7 +422,7 @@ impl Access {
         self.collect_cli_sign_in_at(address, code, now())
     }
 
-    fn collect_cli_sign_in_at(
+    pub(super) fn collect_cli_sign_in_at(
         &self,
         address: Option<std::net::IpAddr>,
         code: &str,
@@ -393,24 +449,37 @@ impl Access {
         };
         let Some(SignIn {
             computer,
-            decision: Decision::Allowed { person, org },
+            refreshing,
+            decision:
+                Decision::Allowed {
+                    person,
+                    org,
+                    approved_under,
+                },
             ..
         }) = decided
         else {
             return Ok(CliSignInCollected::Denied);
         };
-        let name = if computer.is_empty() {
-            "Command line".to_owned()
-        } else {
-            format!("Command line on {computer}")
-        };
+        let name = token_name(&computer);
         // Issued now, with every check a token made on the CLI tokens page gets: the person may
         // have left the organization or been disabled since they said yes.
         Ok(
-            match self.issue_token(|| None, &person, &org, &name, Some(20)) {
-                Ok((token_id, token)) => CliSignInCollected::Allowed {
-                    token,
-                    token_id,
+            match self.issue_token_for(
+                || None,
+                &person,
+                &org,
+                &name,
+                Some(20),
+                Some(CliIssue {
+                    refreshing,
+                    approved_under,
+                }),
+            ) {
+                Ok(issued) => CliSignInCollected::Allowed {
+                    token: issued.secret,
+                    token_id: issued.id,
+                    refresh: issued.refresh.map(|refresh| (refresh, issued.expires_in)),
                     person,
                     org,
                 },
@@ -422,14 +491,34 @@ impl Access {
         )
     }
 
-    /// Revokes the token a caller presents, so signing out on a computer ends the token too.
+    /// Revokes the token a caller presents, so signing out on a computer ends the token too. A
+    /// sign-in that refreshes can be ended by its access token or by its refresh token, which
+    /// still works when the access token has run out.
     /// The server's own service token is not a person's token and is not found.
     pub fn revoke_presented_token(&self, bearer: &str) -> Result<(String, String), AccessError> {
         let wanted = digest(bearer);
+        let ask = RefreshAsk::new(bearer);
+        // Any token of the sign-in ends it, the ones it has just traded too: a computer that
+        // signs out while another command on it renews holds the token that renewal replaced.
+        let names = |t: &TokenRecord| {
+            t.sha256 == wanted
+                || t.superseded.as_ref().is_some_and(|s| s.sha256 == wanted)
+                || ask.standing(t).is_some()
+        };
+        // A token nobody issued, which anyone can send, costs a lookup and no write.
+        let known = self.read(|state| {
+            state
+                .users
+                .iter()
+                .any(|record| record.tokens.iter().any(names))
+        });
+        if !known {
+            return Err(AccessError::NotFound);
+        }
         let _gate = self.gate()?;
         self.with_gated(|state| {
             for record in &mut state.users {
-                if let Some(at) = record.tokens.iter().position(|t| t.sha256 == wanted) {
+                if let Some(at) = record.tokens.iter().position(names) {
                     let token = record.tokens.remove(at);
                     return Ok((record.user.id.clone(), token.id));
                 }
@@ -516,6 +605,7 @@ mod tests {
             token_id,
             person,
             org,
+            ..
         } = access
             .collect_cli_sign_in_at(address(1), &started.code, 1030)
             .unwrap()
@@ -739,6 +829,38 @@ mod tests {
                 true,
                 20_002
             ),
+            Err(AccessError::Throttled)
+        ));
+    }
+
+    #[test]
+    fn many_addresses_cannot_lock_every_other_address_out() {
+        let (_dir, access) = hosted();
+        // More addresses than the limiter counts, each asking once, as a spread of them would.
+        for n in 0..(MAX_COUNTED + 200) {
+            let sender = Some(std::net::IpAddr::from([
+                10,
+                (n / 65536) as u8,
+                (n / 256 % 256) as u8,
+                (n % 256) as u8,
+            ]));
+            access
+                .collect_cli_sign_in_at(sender, "no-such-code", 1000 + n as u64 / 100)
+                .unwrap();
+        }
+        // An address nobody has seen is still served, and so is a start.
+        access
+            .collect_cli_sign_in_at(address(77), "no-such-code", 1010)
+            .unwrap();
+        // The count of an address that keeps asking is not forgotten by the crowd: it was the
+        // newest, and the oldest went.
+        for _ in 0..COLLECTS_PER_ADDRESS {
+            access
+                .collect_cli_sign_in_at(address(78), "no-such-code", 1011)
+                .unwrap();
+        }
+        assert!(matches!(
+            access.collect_cli_sign_in_at(address(78), "no-such-code", 1011),
             Err(AccessError::Throttled)
         ));
     }

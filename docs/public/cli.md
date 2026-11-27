@@ -47,7 +47,7 @@ richview check reports
 
 `validate`, `check` and `generate` take a folder as well as a file. The folder that holds a report stands for that report, so the first command checks `first-report/report.rmd`. A folder of report folders, such as `reports/q1/` and `reports/q2/`, stands for every report below it: each report's findings and result line start with its own path, the last line counts the reports with errors, and the command exits 1 when any report has one. With `--format json` the one object holds each report's own result under `reports`.
 
-`serve` and `publish` take one report. `richview publish first-report/report.rmd` creates a private report by default and prints its address. Raise the version and run the same command to publish a revision. Use `--new` when you want the same file to create a second address on that server.
+`serve` and `publish` take one report. `richview publish first-report/report.rmd` creates a private report by default and prints its address. An address whose report was deleted is retired: nobody publishes there again, its owner included, and the server says to publish under a different address. An address that has an access record and no report, such as one an interrupted publication left, stays reserved for its owner and its editors: publishing there keeps the audience it had, and nobody else can publish there, with `--new` or without it. When the server answers that it is busy and says for how many seconds, the command waits and sends the request again, up to three times. Raise the version and run the same command to publish a revision. Use `--new` when you want the same file to create a second address on that server.
 
 ## Write another presentation
 

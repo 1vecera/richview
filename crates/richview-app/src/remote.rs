@@ -29,8 +29,14 @@ pub fn server_url(server: &str) -> Result<reqwest::Url, String> {
     Ok(server)
 }
 
+/// What a refusal of the token starts with, so that a caller can tell it from other failures.
+pub(crate) const NOT_ACCEPTED: &str = "The server did not accept this token.";
+
 /// One authenticated request. A success returns the JSON body; a failure returns the server's own
 /// findings as JSON-encoded diagnostics when it sent any (TYP-54), else one sentence.
+///
+/// A token the server does not accept that is this computer's own renewable sign-in is renewed
+/// once and the request goes again: the sign-in's end is a time the server may count otherwise.
 pub async fn send(
     server: &reqwest::Url,
     token: &str,
@@ -38,6 +44,85 @@ pub async fn send(
     path: &str,
     body: Option<&Value>,
 ) -> Result<Value, String> {
+    let first = send_once(server, token, method.clone(), path, body).await;
+    let Err(refused) = &first else {
+        return first;
+    };
+    if !refused.starts_with(NOT_ACCEPTED) {
+        return first;
+    }
+    match crate::credentials::renew_refused(server.as_str(), token).await {
+        Ok(Some(next)) => send_once(server, &next, method, path, body).await,
+        _ => first,
+    }
+}
+
+/// How many times a request the server answered "busy, ask again in a few seconds" goes again.
+const BUSY_RETRIES: usize = 3;
+
+/// The server's own request for a pause: it names the seconds in `Retry-After` when its workers
+/// are busy, and only then, so a limit that does not lift in seconds is never waited out.
+fn busy_pause(response: &reqwest::Response) -> Option<std::time::Duration> {
+    if response.status() != reqwest::StatusCode::TOO_MANY_REQUESTS {
+        return None;
+    }
+    let seconds = response
+        .headers()
+        .get(reqwest::header::RETRY_AFTER)?
+        .to_str()
+        .ok()?
+        .trim()
+        .parse::<u64>()
+        .ok()?;
+    Some(std::time::Duration::from_secs(seconds.clamp(1, 10)))
+}
+
+async fn send_once(
+    server: &reqwest::Url,
+    token: &str,
+    method: reqwest::Method,
+    path: &str,
+    body: Option<&Value>,
+) -> Result<Value, String> {
+    let mut retries = 0;
+    loop {
+        match send_attempt(server, token, method.clone(), path, body).await {
+            Err(Attempt::Busy(pause)) if retries < BUSY_RETRIES => {
+                retries += 1;
+                tokio::time::sleep(pause).await;
+            }
+            Err(Attempt::Busy(_)) => {
+                return Err(
+                    "Request failed: 429 Too Many Requests — RichView is busy; try again in a few seconds."
+                        .into(),
+                );
+            }
+            Err(Attempt::Failed(message)) => return Err(message),
+            Ok(value) => return Ok(value),
+        }
+    }
+}
+
+/// Why one attempt at a request did not return its answer.
+enum Attempt {
+    /// The server asked for a pause and another try.
+    Busy(std::time::Duration),
+    Failed(String),
+}
+
+impl From<String> for Attempt {
+    fn from(message: String) -> Self {
+        Self::Failed(message)
+    }
+}
+
+async fn send_attempt(
+    server: &reqwest::Url,
+    token: &str,
+    method: reqwest::Method,
+    path: &str,
+    body: Option<&Value>,
+) -> Result<Value, Attempt> {
     let endpoint = server.join(path).map_err(|e| e.to_string())?;
     let publish = method == reqwest::Method::POST && path == "/api/reports";
     let client = reqwest::Client::builder()
@@ -50,6 +135,13 @@ pub async fn send(
         .transpose()
         .map_err(|error| error.to_string())?;
     let request_bytes = body.as_ref().map_or(0, Vec::len);
+    // The server would refuse this with a bare 413 after reading it all; say the ceiling first.
+    if publish && request_bytes > crate::input_limits::REQUEST_LIMIT {
+        return Err(
+            crate::input_limits::encoded(crate::input_limits::request_too_large(request_bytes))
+                .into(),
+        );
+    }
     let mut request = client.request(method, endpoint).bearer_auth(token);
     if let Some(body) = body {
         request = request
@@ -61,21 +153,25 @@ pub async fn send(
         .await
         .map_err(|e| e.without_url().to_string())?;
     let status = response.status();
+    if let Some(pause) = busy_pause(&response) {
+        return Err(Attempt::Busy(pause));
+    }
     if publish && status == reqwest::StatusCode::PAYLOAD_TOO_LARGE {
         let request_mib = request_bytes as f64 / (1024.0 * 1024.0);
         return Err(format!(
             "Request failed: {status} — Your report's publish request is {request_mib:.1} MiB. Hosted RichView limits each publish request to 32 MiB. Use smaller data or link large data."
-        ));
+        )
+        .into());
     }
     let mut bytes = Vec::new();
     while let Some(chunk) = response.chunk().await.map_err(|e| e.to_string())? {
         if bytes.len() + chunk.len() > MAX_INPUT_BYTES {
-            return Err("Server response exceeded size limit".into());
+            return Err(String::from("Server response exceeded size limit").into());
         }
         bytes.extend_from_slice(&chunk);
     }
     if status.is_success() {
-        return serde_json::from_slice(&bytes).map_err(|e| e.to_string());
+        return Ok(serde_json::from_slice(&bytes).map_err(|e| e.to_string())?);
     }
     let text = String::from_utf8_lossy(&bytes).replace(token, "[redacted]");
     if let Some(diagnostics) = serde_json::from_str::<Value>(&text)
@@ -83,13 +179,15 @@ pub async fn send(
         .and_then(|v| serde_json::from_value::<Vec<Diagnostic>>(v["diagnostics"].clone()).ok())
         .filter(|d| !d.is_empty())
     {
-        return Err(serde_json::to_string(&diagnostics).unwrap_or_default());
+        return Err(serde_json::to_string(&diagnostics)
+            .unwrap_or_default()
+            .into());
     }
     if status == reqwest::StatusCode::UNAUTHORIZED {
-        return Err(
-            "The server did not accept this token. Run richview login again, or check RICHVIEW_TOKEN or --token; a new token comes from the server's CLI tokens page."
-                .into(),
-        );
+        return Err(format!(
+            "{NOT_ACCEPTED} Run richview login again, or check RICHVIEW_TOKEN or --token; a new token comes from the server's CLI tokens page."
+        )
+        .into());
     }
     // A server's own error object says what went wrong in its `error` field; print the words.
     let said = serde_json::from_str::<Value>(&text)
@@ -99,7 +197,8 @@ pub async fn send(
     Err(format!(
         "Request failed: {status} — {}",
         said.chars().take(200).collect::<String>()
-    ))
+    )
+    .into())
 }
 
 /// One request that may carry no token, answered with the status and the JSON body whatever the
@@ -227,6 +326,116 @@ mod tests {
         );
         assert!(!other.contains("32 MiB"), "{other}");
         worker.abort();
+    }
+
+    #[tokio::test]
+    async fn a_busy_server_is_asked_again_when_it_names_the_seconds_and_only_then() {
+        use axum::{Router, http::StatusCode, response::IntoResponse, routing::post};
+        use std::sync::{
+            Arc,
+            atomic::{AtomicUsize, Ordering},
+        };
+        let busy_calls = Arc::new(AtomicUsize::new(0));
+        let limited_calls = Arc::new(AtomicUsize::new(0));
+        let app = Router::new()
+            .route(
+                "/api/busy",
+                post({
+                    let calls = busy_calls.clone();
+                    move || async move {
+                        if calls.fetch_add(1, Ordering::SeqCst) == 0 {
+                            (
+                                StatusCode::TOO_MANY_REQUESTS,
+                                [("retry-after", "1")],
+                                "busy",
+                            )
+                                .into_response()
+                        } else {
+                            axum::Json(serde_json::json!({"ok": true})).into_response()
+                        }
+                    }
+                }),
+            )
+            .route(
+                "/api/limited",
+                post({
+                    let calls = limited_calls.clone();
+                    move || async move {
+                        calls.fetch_add(1, Ordering::SeqCst);
+                        (StatusCode::TOO_MANY_REQUESTS, "An hour's limit").into_response()
+                    }
+                }),
+            );
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let server = server_url(&format!("http://{}", listener.local_addr().unwrap())).unwrap();
+        let worker = tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+        let answered = send(&server, "tok-9z", reqwest::Method::POST, "/api/busy", None)
+            .await
+            .unwrap();
+        assert_eq!(answered["ok"], true);
+        assert_eq!(busy_calls.load(Ordering::SeqCst), 2);
+        // A limit that does not lift in seconds names no pause, and is reported at once.
+        let limited = send(
+            &server,
+            "tok-9z",
+            reqwest::Method::POST,
+            "/api/limited",
+            None,
+        )
+        .await
+        .unwrap_err();
+        assert!(limited.contains("An hour's limit"), "{limited}");
+        assert_eq!(limited_calls.load(Ordering::SeqCst), 1);
+        worker.abort();
+    }
+
+    #[tokio::test]
+    async fn publish_refuses_a_request_over_the_limit_before_sending_it() {
+        // Nothing listens here: a request that were sent would fail to connect instead.
+        let server = server_url("http://127.0.0.1:1").unwrap();
+        let limit = crate::input_limits::REQUEST_LIMIT;
+        let big = serde_json::json!({"source": "x".repeat(limit)});
+        let refused = send(
+            &server,
+            "t",
+            reqwest::Method::POST,
+            "/api/reports",
+            Some(&big),
+        )
+        .await
+        .unwrap_err();
+        let found: Vec<Diagnostic> = serde_json::from_str(&refused).expect(&refused);
+        assert_eq!(found[0].code, "report.input-limit");
+        assert!(
+            found[0].message.contains("up to 32 MiB (33,554,432 bytes)")
+                && found[0]
+                    .message
+                    .contains("about 25,000,000 bytes of linked files"),
+            "{}",
+            found[0].message
+        );
+        // A small request goes out, and a request to another route is not judged here.
+        let small = serde_json::json!({"source": "x"});
+        let sent = send(
+            &server,
+            "t",
+            reqwest::Method::POST,
+            "/api/reports",
+            Some(&small),
+        )
+        .await
+        .unwrap_err();
+        assert!(!sent.contains("report.input-limit"), "{sent}");
+        let other = send(
+            &server,
+            "t",
+            reqwest::Method::POST,
+            "/api/check",
+            Some(&big),
+        )
+        .await
+        .unwrap_err();
+        assert!(!other.contains("report.input-limit"), "{other}");
     }
 
     #[tokio::test]

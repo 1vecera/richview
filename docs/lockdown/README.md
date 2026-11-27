@@ -6,7 +6,7 @@ This folder holds the lockdown for the RichView rewrite: what RichView is for, w
 
 | Path | Content |
 | --- | --- |
-| `evidence/<source>.md` | Mined evidence, one file per source (code, format, styles, history/PRs, Linear, Notion/site, checks/performance). Each claim cites its source. |
+| `evidence/<source>.md` | Mined evidence, one file per source (code, format, styles, history/PRs, Notion/site, checks/performance; the Linear evidence is not published). Each claim cites its source. |
 | `parts/NN-<slug>.json` | One question batch per part, with proposed answers and IDs prefilled from evidence. The app lists every file here. |
 | `answers/NN-<slug>.json` | Daniel's answers, written only by the app when Daniel answers. |
 | `answers/log.jsonl` | Append-only log of every answer change, written only by the app. |
@@ -41,7 +41,7 @@ The repository is `1vecera/richview` (private; transferred from `richview-univer
       "options": [{ "label": "Short choice", "detail": "Tradeoff" }],
       "recommendation": "Optional: the recommended option label and why.",
       "confidence": "observed | stated | inferred | unknown",
-      "sources": [{ "label": "What it shows", "ref": "repo path[:line] | URL | S27-600 | PR #62 | Notion page title", "date": "YYYY-MM-DD" }],
+      "sources": [{ "label": "What it shows", "ref": "repo path[:line] | URL | PR #62 | Notion page title", "date": "YYYY-MM-DD" }],
       "conflicts": "Optional Markdown: contradicting evidence and the choice it forces.",
       "images": ["docs/lockdown/screenshots/<file>.png"]
     }

@@ -86,4 +86,29 @@ fn main() {
         }
     }
     fs::write(out.join("docs_bytes.rs"), docs_code).unwrap();
+
+    // The online editor runs the site runtime on its page and in a worker, as the playground does:
+    // one Wasm module, the render worker, the font catalogs it provides and the math faces.
+    // Hosted startup fails closed when a custom runtime directory omits them.
+    let editor = [
+        ("SITE_JS", "richview_site.js"),
+        ("SITE_WASM", "richview_site_bg.wasm"),
+        ("SITE_WORKER", "worker.js"),
+        ("SITE_FONTS", "richview-fonts.css"),
+        ("SITE_MATH_FONTS", "fonts-math.css"),
+    ];
+    let mut editor_code = String::new();
+    for (constant, name) in editor {
+        let path = dir.join(name);
+        println!("cargo:rerun-if-changed={}", path.display());
+        if embed && path.is_file() {
+            editor_code.push_str(&format!(
+                "pub const {constant}: Option<&[u8]> = Some(include_bytes!({:?}));\n",
+                path.canonicalize().unwrap()
+            ));
+        } else {
+            editor_code.push_str(&format!("pub const {constant}: Option<&[u8]> = None;\n"));
+        }
+    }
+    fs::write(out.join("editor_bytes.rs"), editor_code).unwrap();
 }

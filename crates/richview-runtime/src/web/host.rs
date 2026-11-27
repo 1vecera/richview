@@ -10,6 +10,7 @@ mod hint_place;
 mod lazy;
 mod overview;
 mod readout_place;
+mod rotate;
 mod slide;
 mod title;
 mod wedge_readout;
@@ -17,6 +18,7 @@ mod wedge_readout;
 use super::atlas;
 use super::gl::{Clock, Renderer, Uploaded};
 use super::{check_settled, document, el, now, on, query_all, window};
+use crate::borrow::take_then;
 use crate::data;
 use crate::mesh::{self, Focus, Mesh, State};
 use crate::payload::Chart;
@@ -87,7 +89,8 @@ pub struct View {
     retired: Option<Geometry>,
     retirement: Option<i32>,
     mesh: Mesh,
-    /// Grid-before-marks op boundaries for the mesh currently cached above.
+    /// Where each panel's marks end in the mesh cached above: a line chart's crosshair goes there,
+    /// and a flow chart's outlines, under its names.
     panel_splits: Vec<Option<usize>>,
     uploaded: Option<Uploaded>,
     hidden: Vec<String>,
@@ -118,6 +121,8 @@ pub struct View {
     touch: Option<(f64, f64, f64)>,
     /// A short, stationary touch that has lifted, waiting for its click to activate.
     tap: Option<[f64; 2]>,
+    /// A three-dimensional chart's turn in progress, and the layout waiting for the next frame.
+    rotation: rotate::Rotation,
     /// The expanded view's copy of this chart, if open.
     expanded: Option<Rc<RefCell<View>>>,
     dialog: Option<web_sys::HtmlDialogElement>,
@@ -171,7 +176,7 @@ pub struct View {
     /// series) or of the fonts forgets it, so a ratio that found no fill is tried again.
     fill: Option<([f64; 4], Option<f64>)>,
     /// The width an expanded chart narrowed to so that it fits its dialog, and the width, room and
-    /// hidden-series count it was found for (S27-871, S27-874). Kept as [`View::fill`] is, so a
+    /// hidden-series count it was found for. Kept as [`View::fill`] is, so a
     /// zoom glide or a playback frame keeps it while the chart still fits there.
     narrowed: Option<([f64; 4], f64)>,
     /// Whether this expanded view is turned on a phone held upright, as of its last layout
@@ -179,14 +184,14 @@ pub struct View {
     turned: bool,
     /// Whether this expanded view is in a short, wide window, as of its last layout: a phone held
     /// sideways or a laptop zoomed in. Its dialog is already the turned one's shape, so it takes
-    /// that layout without the turn (FEA-CH-68, S27-876).
+    /// that layout without the turn (FEA-CH-68).
     short_wide: bool,
     /// The window size this expanded view chose its orientation for on a phone held upright,
     /// and whether it turned (FEA-CH-68). Series shown or hidden, zoom and fonts keep the choice;
     /// a new window size makes it again.
     turn_for: Option<([f64; 2], bool)>,
     /// Whether this expanded view's legend, note and key stand beside its plot, as of its last
-    /// layout: in a short, wide window, a chart narrowed to fit the dialog's height (S27-875).
+    /// layout: in a short, wide window, a chart narrowed to fit the dialog's height.
     aside: bool,
     /// The window size this expanded view chose that for, and its choice. As [`View::turn_for`],
     /// series shown or hidden, zoom and fonts keep it, so a legend entry the reader presses never
@@ -649,7 +654,7 @@ fn mount_as(figure: &Element, asleep: bool) -> Result<Option<Rc<RefCell<View>>>,
             .unwrap_or_default()
     });
     let label = label.trim().trim_end_matches('.');
-    frame.set_attribute("aria-label", &format!("{label}{KEYS_HINT}"))?;
+    frame.set_attribute("aria-label", &format!("{label}{}", keys_hint(&chart)))?;
     let actions = el("div", "rv-chart__actions");
     let geometry = chart.geometry(640.0, &[], None);
     let ring_inks = contour::RingInks::new(&chart.payload.theme, &geometry);
@@ -692,6 +697,7 @@ fn mount_as(figure: &Element, asleep: bool) -> Result<Option<Rc<RefCell<View>>>,
         scroll_rest: 0.0,
         touch: None,
         tap: None,
+        rotation: rotate::Rotation::default(),
         expanded: None,
         dialog: None,
         owner: None,
@@ -729,6 +735,7 @@ fn mount_as(figure: &Element, asleep: bool) -> Result<Option<Rc<RefCell<View>>>,
         asleep,
         painted: false,
     };
+    rotate::prepare(&view);
     let view = Rc::new(RefCell::new(view));
     // Charts on or above the first screen at mount keep their painted state (FEA-CH-51).
     let rect = frame.get_bounding_client_rect();
@@ -877,7 +884,7 @@ fn layout_pass(view: &Rc<RefCell<View>>, fresh: bool, instant: bool) {
         // A turn of the phone resizes the window, which lays every expanded view out again.
         orient(&mut v, &hidden, zoom);
         // In a short, wide window the expanded chart keeps what it chose for this window size:
-        // its legend, note and key beside the plot or above and under it (S27-875). Undecided,
+        // its legend, note and key beside the plot or above and under it. Undecided,
         // it is laid out without them first.
         let size = window_size();
         let aside_chosen = match (&v.owner, v.short_wide) {
@@ -935,7 +942,7 @@ fn layout_pass(view: &Rc<RefCell<View>>, fresh: bool, instant: bool) {
                 Ok(mut sized) => {
                     // Narrowed in a short, wide window, it tries its legend, note and key beside
                     // the plot, once for each window size, and keeps them there when the chart
-                    // fits and shows no less of its plot at once (S27-875). A chart whose height
+                    // fits and shows no less of its plot at once. A chart whose height
                     // does not follow its width (a gantt's rows) would only give width up for
                     // them.
                     if aside_chosen.is_none() && sized.narrowed && has_aside(&v, &sized.geometry) {
@@ -971,13 +978,27 @@ fn layout_pass(view: &Rc<RefCell<View>>, fresh: bool, instant: bool) {
         if let Some(window) = zoom
             && let Some(scale) = g.panels.first().and_then(|p| p.x.as_ref())
         {
+            // The window along y of a chart that zooms each axis on its own stops at the grid
+            // too; a glide passes through windows wider than its settled one.
+            let mut y_moved = false;
+            if v.zoom_glide.is_none()
+                && v.chart.zooms_each_axis(scale)
+                && let Some(y) = scale.y
+                && let Some(w) = v.chart.zoom_y
+            {
+                let kept = v.chart.clamp_zoom_y(w, &y);
+                if kept != Some(w) {
+                    v.chart.zoom_y = kept;
+                    y_moved = true;
+                }
+            }
             let clamped = v.chart.clamp_zoom(window, scale);
             // A glide out of the whole chart starts on the full extent, which is a valid
             // animation frame even though a settled full-extent window means reset.
             let full_glide = v.zoom_glide.is_some()
                 && window[0] <= scale.extent[0]
                 && window[1] >= scale.extent[1];
-            if clamped != Some(window) && !full_glide {
+            if (clamped != Some(window) && !full_glide) || y_moved {
                 v.zoom = clamped;
                 if clamped.is_none() {
                     v.chart.zoom_y = None;
@@ -1023,7 +1044,7 @@ fn layout_pass(view: &Rc<RefCell<View>>, fresh: bool, instant: bool) {
         let label = v.chart.accessible_name(&v.geometry);
         let _ = v
             .frame
-            .set_attribute("aria-label", &format!("{label}{KEYS_HINT}"));
+            .set_attribute("aria-label", &format!("{label}{}", keys_hint(&v.chart)));
         v.target = keep;
         if keep.is_none() {
             v.pinned = false;
@@ -1039,7 +1060,7 @@ fn layout_pass(view: &Rc<RefCell<View>>, fresh: bool, instant: bool) {
         }
         // A series the reader just hid stands out from nothing: the shown ones keep full ink
         // although the pointer still rests on its entry (FEA-CH-52).
-        if let Some(Focus::Series(s)) = v.emphasis
+        if let Some(Focus::Series(s) | Focus::Outline(s)) = v.emphasis
             && v.geometry.series.get(s).is_none_or(|s| s.hidden)
         {
             v.emphasis = None;
@@ -1241,7 +1262,7 @@ fn size_expanded(
 
 /// In a short, wide window, a chart whose x scale shows more with width and that fits the dialog
 /// at no width, with or without its legend beside the plot, is drawn across the dialog at its
-/// flattest rather than narrowed: both scroll, and the wide one reads better (S27-875). A chart
+/// flattest rather than narrowed: both scroll, and the wide one reads better. A chart
 /// that would be taller so keeps its narrowed layout: a splom's square cells grow with the width.
 fn across_at_flattest(
     v: &View,
@@ -1283,7 +1304,7 @@ fn has_aside(v: &View, g: &Geometry) -> bool {
 }
 
 /// The layouts a chart with its legend beside its plot finds are its own: keys of the fill and
-/// narrowing found keep the two apart (S27-875).
+/// narrowing found keep the two apart.
 fn aside_key(v: &View) -> f64 {
     if v.aside { 1.0 } else { 0.0 }
 }
@@ -1296,7 +1317,7 @@ const TURN_KEEPS: f64 = 0.9;
 const TURN_FLATTEST: f64 = 5.0;
 
 /// The flattest panels in a short, wide window, whose dialog has no other orientation to fall
-/// back to, so a time series flattens further before it narrows (S27-871).
+/// back to, so a time series flattens further before it narrows.
 const SHORT_WIDE_FLATTEST: f64 = 8.0;
 
 /// The narrowest width the chart engine lays a chart out at; below it the drawing would only be
@@ -1306,7 +1327,7 @@ const LEAST_WIDTH: f64 = 240.0;
 /// The width and layout of an expanded chart too tall for its dialog (FEA-CH-44): the widest
 /// width, down to [`LEAST_WIDTH`], at which the chart fits. Its height need not shrink in step
 /// with its width (a legend and axes keep theirs, a gauge stops growing at a size of its own), so
-/// one step scaled by the room would leave it too tall; the width is bisected (S27-871, S27-874).
+/// one step scaled by the room would leave it too tall; the width is bisected.
 /// Each width is measured in the dialog it gives, its title and legend wrapped to it, and with
 /// its own note, which can lengthen as the chart narrows (the words a cloud leaves out). The width
 /// found for this window, room and number of hidden series is kept while the chart still fits
@@ -1489,7 +1510,7 @@ fn drawn(g: &Geometry) -> [f64; 2] {
 
 /// The expanded chart's widest width and the height the dialog leaves for its plot, from the
 /// window: the dialog is at most 96% of the window wide, 1400 px, and 92% of it high, or 96% in a
-/// short, wide window (S27-875).
+/// short, wide window.
 fn expanded_room(v: &View) -> Option<(f64, f64)> {
     let figure = &v.figure;
     let dialog = figure.closest("dialog").ok().flatten()?;
@@ -1532,7 +1553,7 @@ fn expanded_room(v: &View) -> Option<(f64, f64)> {
         tall(t.get_bounding_client_rect()) + margin
     });
     // Beside the plot, the column of its legend and note takes its width from the plot's and
-    // shares the plot's row, as tall as the taller of the two (S27-875).
+    // shares the plot's row, as tall as the taller of the two.
     let column = aside_column(figure).map(|c| c.get_bounding_client_rect());
     let full = full
         - column
@@ -1692,7 +1713,7 @@ fn set_note(figure: &Element, note: &str) {
     p.set_text_content(Some(note));
 }
 
-/// The column beside an expanded chart's plot that holds its legend and note (S27-875).
+/// The column beside an expanded chart's plot that holds its legend and note.
 fn aside_column(figure: &Element) -> Option<Element> {
     figure
         .query_selector(":scope > .rv-chart__aside")
@@ -1702,7 +1723,7 @@ fn aside_column(figure: &Element) -> Option<Element> {
 
 /// Stand the expanded chart's legend and note in a column beside its plot, and have the engine
 /// draw a key of its own (a pie's) beside the plot too; or put them back, the legend on its side
-/// of the plot and the note under it (S27-875). The column follows the plot, legend first; the
+/// of the plot and the note under it. The column follows the plot, legend first; the
 /// figure styles set the two side by side. Nothing moves when they already stand where asked,
 /// so a focused legend entry keeps its focus.
 fn set_aside(v: &mut View, on: bool) {
@@ -1753,7 +1774,7 @@ fn plot_area(g: &Geometry) -> f64 {
 }
 
 /// The plot area an expanded layout shows at once: all of it when the chart fits the dialog,
-/// else the share of its height in view (S27-875). A key beside the plot is kept when its layout
+/// else the share of its height in view. A key beside the plot is kept when its layout
 /// fits and shows no less: a gantt narrowed to 58 % of its width for 11 px of scroll is not, a
 /// pie whose key falls 119 px under the fold is.
 fn plot_in_view(sized: &Sized) -> f64 {
@@ -1940,7 +1961,17 @@ fn draw(view: &Rc<RefCell<View>>) {
     );
     let size = [v.width, v.geometry.height];
     let clock = clock_of(v);
-    let overlay = overlay_items(v);
+    let (mut overlay, between) = overlay_items(v);
+    // What goes between a panel's marks and its labels, with where its marks end; a panel that
+    // has no such place takes its layers over everything, as every other overlay does.
+    let mut cuts: Vec<(usize, OverlayLayer)> = Vec::new();
+    for (panel, layer) in between {
+        match v.panel_splits.get(panel).copied().flatten() {
+            Some(split) if split <= v.mesh.ops.len() => cuts.push((split, layer)),
+            _ => overlay.push(layer),
+        }
+    }
+    cuts.sort_by_key(|(split, _)| *split);
     let ring = focus::ring(v);
     let crosshair = crosshair(v);
     // Between two states the chart draws the glide's frame, built afresh (FEA-CH-52).
@@ -1994,6 +2025,19 @@ fn draw(view: &Rc<RefCell<View>>) {
             } else {
                 r.draw(&v.mesh, up, size, v.dpr, clock);
             }
+        } else if !cuts.is_empty() {
+            // A flow chart's outlines go over its marks and under its labels.
+            let mut from = 0;
+            for (split, layer) in &cuts {
+                r.draw_range(&v.mesh, up, size, v.dpr, clock, from..*split);
+                let extra = mesh::overlay_layers([(layer.1.as_slice(), layer.0)], v.dpr);
+                if let Ok(up2) = r.upload(&extra, &[], Vec::new(), None) {
+                    r.draw_overlay(&extra, &up2, size, v.dpr);
+                    r.release(up2);
+                }
+                from = *split;
+            }
+            r.draw_range(&v.mesh, up, size, v.dpr, clock, from..v.mesh.ops.len());
         } else {
             r.draw(&v.mesh, up, size, v.dpr, clock);
         }
@@ -2252,8 +2296,14 @@ pub fn models() -> Vec<String> {
                     "canvas": {"width": v.canvas.width(), "height": v.canvas.height(), "dpr": v.dpr},
                     "hidden": v.hidden,
                     "zoom": v.zoom,
+                    // What a reader turned a three-dimensional chart to, as [azimuth, elevation];
+                    // null while the author's view is on, and for any other chart.
+                    "view": v.chart.view.filter(|_| v.chart.rotates()),
+                    "seenView": v.chart.rotates().then(|| v.chart.seen_view()),
                     "target": v.target.map(|t| serde_json::json!({"panel": t.panel, "observation": t.observation})),
                     "pinned": v.pinned,
+                    // What the chart emphasises now, and how the rest answers (FEA-CH-52).
+                    "emphasis": v.emphasis.as_ref().map(emphasis_model),
                     "settled": !shaders && v.settled && v.glide.is_none(),
                     "state": controls::state_name(&v),
                     "playing": v.playing.is_some(),
@@ -2263,6 +2313,21 @@ pub fn models() -> Vec<String> {
                 .to_string()
             })
         .collect()
+}
+
+/// The emphasis as `window.__richview.charts()` reports it: `dim` where the rest steps back and
+/// `outline` where the series takes the dark outline and nothing dims, with the series where
+/// the emphasis names one.
+fn emphasis_model(focus: &Focus) -> serde_json::Value {
+    match focus {
+        Focus::Series(series) | Focus::SeriesOf { series, .. } => {
+            serde_json::json!({"how": "dim", "series": series})
+        }
+        Focus::Outline(series) => serde_json::json!({"how": "outline", "series": series}),
+        Focus::SeriesSet(_) | Focus::Marks { .. } => {
+            serde_json::json!({"how": "dim", "series": null})
+        }
+    }
 }
 
 pub fn pending() -> Vec<String> {
@@ -2278,6 +2343,7 @@ pub fn pending() -> Vec<String> {
                 || v.zoom_glide.is_some()
                 || v.animating
                 || v.relayout
+                || v.rotation.queued
                 || v.scrolling.is_some()
                 || v.leaving.is_some()
                 || readout_fading(&v)
@@ -2443,18 +2509,51 @@ pub(super) fn glide_frame(
 
 type OverlayLayer = (Option<Rect>, Vec<Item>);
 
-/// Paint the overlays in order, with a separate clip for scatter growth and line dots.
-fn overlay_items(v: &View) -> Vec<OverlayLayer> {
+/// Paint the overlays in order, with a separate clip for scatter growth and line dots. A flow
+/// chart's outlines come apart from the rest, as `(panel, layer)` in the order of the panels:
+/// they are drawn over the panel's marks and under its labels (`mesh::build_for_host`), so a
+/// label stays whole where an outline crosses it.
+fn overlay_items(v: &View) -> (Vec<OverlayLayer>, Vec<(usize, OverlayLayer)>) {
     let mut layers = Vec::new();
+    let mut between: Vec<(usize, OverlayLayer)> = Vec::new();
+    let flow = richview_chart::interaction::outlines_from_legend(v.geometry.kind.as_str());
     if let Some((x0, x1)) = v.drag
         && let Some(panel) = v.geometry.panels.first()
     {
         let accent = &v.chart.payload.theme.accent;
+        let plot = panel.plot;
         let items = match v.drag_y {
-            Some((y0, y1)) => drag_box(accent, panel.plot, [x0, y0], [x1, y1]),
-            None => drag_band(accent, panel.plot, x0, x1),
+            // A drag along one axis shows the band that zooms that axis alone, the whole plot
+            // across (FEA-CH-49).
+            Some((y0, y1))
+                if each_axis(v) && (y1 - y0).abs() <= DRAG_SLOP && (x1 - x0).abs() > DRAG_SLOP =>
+            {
+                drag_box(accent, plot, [x0, plot.y], [x1, plot.bottom()])
+            }
+            Some((y0, y1))
+                if each_axis(v) && (x1 - x0).abs() <= DRAG_SLOP && (y1 - y0).abs() > DRAG_SLOP =>
+            {
+                drag_box(accent, plot, [plot.x, y0], [plot.right(), y1])
+            }
+            Some((y0, y1)) => drag_box(accent, plot, [x0, y0], [x1, y1]),
+            None => drag_band(accent, plot, x0, x1),
         };
         layers.push((Some(panel.plot), items));
+    }
+    // A series the legend outlines, in a chart that outlines instead of dimming.
+    if let Some((series, level)) = v.fade.outlined() {
+        for (index, panel) in v.geometry.panels.iter().enumerate() {
+            let marked = contour::series_outlined(
+                v.geometry.kind.as_str(),
+                panel,
+                series,
+                &v.ring_inks,
+                level,
+            );
+            if let Some(items) = marked.filter(|items| !items.is_empty()) {
+                between.push((index, (Some(panel.plot), items)));
+            }
+        }
     }
     let mut add = |target: Target, level| {
         if let Some(panel) = v.geometry.panels.get(target.panel) {
@@ -2469,11 +2568,19 @@ fn overlay_items(v: &View) -> Vec<OverlayLayer> {
                 layers.push((point_clip, whole_marks));
             }
             if !items.is_empty() {
-                let clip = match kind {
-                    "line" | "scatter" => point_clip,
-                    _ => Some(panel.plot),
+                // A line's dot and ring stay whole at an axis, and so do every line-based
+                // chart's (FEA-CH-53).
+                let clip = if richview_chart::interaction::is_line_based(kind) || kind == "scatter"
+                {
+                    point_clip
+                } else {
+                    Some(panel.plot)
                 };
-                layers.push((clip, items));
+                if flow {
+                    between.push((target.panel, (clip, items)));
+                } else {
+                    layers.push((clip, items));
+                }
             }
         }
     };
@@ -2484,7 +2591,7 @@ fn overlay_items(v: &View) -> Vec<OverlayLayer> {
     if let Some(t) = v.target {
         add(t, feedback::grown(v));
     }
-    layers
+    (layers, between)
 }
 
 /// How far a pointer moves along x before a press becomes a drag-zoom, in CSS pixels.
@@ -2557,14 +2664,35 @@ fn drag_box(accent: &str, plot: Rect, p0: [f64; 2], p1: [f64; 2]) -> Vec<Item> {
     items
 }
 
+/// Whether a mouse or a pen is present, as the `any-pointer: fine` media query says.
+fn has_fine_pointer() -> bool {
+    window()
+        .match_media("(any-pointer: fine)")
+        .ok()
+        .flatten()
+        .is_some_and(|m| m.matches())
+}
+
 /// Show or hide the quiet line that tells a mouse a chart zooms: "Drag to zoom", and once
 /// zoomed "Drag to zoom · Shift-drag to pan", in soft ink (FEA-CH-49). Every chart that zooms
 /// says so, in the first of three places that is free: the right end of the row above the plot,
 /// where the y axis's header sits at the left; the title row, against the action icons; a
-/// corner inside the plot that holds no mark and no text. It stays hidden while a drag or pan
-/// runs and on a turned chart.
+/// corner inside the plot that holds no mark and no text. A chart a reader turns says "Drag to
+/// turn" in the first two only, and nothing when both are taken, since its box fills the plot; it
+/// says it until the reader has turned the chart once. A chart that zooms each axis on its own
+/// window takes the first two places only, as a turning chart does. It stays hidden while a drag or pan runs
+/// and in the expanded view held upright on a phone.
 fn zoom_hint(v: &mut View, on: bool) {
-    let on = on && zoomable(v) && !turned(v) && v.drag.is_none() && v.pan.is_none();
+    let rotates = v.chart.rotates();
+    let on = on
+        && (zoomable(v) || rotates)
+        // The line names a mouse's gestures: a touch screen with no mouse beside it gets none.
+        && has_fine_pointer()
+        && !(rotates && v.rotation.taught)
+        && !turned(v)
+        && v.drag.is_none()
+        && v.pan.is_none()
+        && !v.rotation.pressed();
     v.hint_on = on;
     let hint = match &v.hint {
         Some(hint) => hint.clone(),
@@ -2597,15 +2725,21 @@ fn zoom_hint(v: &mut View, on: bool) {
     };
     let place = on.then(|| {
         let zoomed = v.zoom_glide.as_ref().map_or(v.zoom, |g| g.end()).is_some();
-        let text = if zoomed {
-            "Drag to zoom · Shift-drag to pan"
+        // A chart a reader turns says so, until they have turned it once.
+        let (long_text, text) = if rotates {
+            ("Drag to turn", "Drag to turn")
+        } else if zoomed {
+            (
+                "Drag to zoom · Shift-drag to pan",
+                "Drag to zoom · Shift-drag to pan",
+            )
         } else {
-            "Drag to zoom"
+            ("Drag to zoom · Shift-drag to pan", "Drag to zoom")
         };
         // The place is found for the longer line and kept for both, so the hint does not move
         // when a zoom starts (Chart design, 16 November); the shorter line stands at the end
         // of that place nearer the plot's edge.
-        hint.set_text_content(Some("Drag to zoom · Shift-drag to pan"));
+        hint.set_text_content(Some(long_text));
         let long = f64::from(hint.offset_width());
         hint.set_text_content(Some(text));
         let short = f64::from(hint.offset_width());
@@ -2630,10 +2764,19 @@ fn zoom_hint(v: &mut View, on: bool) {
             && !v.geometry.items().any(
                 |item| matches!(item, Item::Text(t) if t.bounds.overlaps(&rect.inflate(4.0), 0.0)),
             );
-        let (place, plate) = clear
+        let outside = clear
             .then_some((rect, false))
-            .or_else(|| hint_by_actions(v, size).map(|rect| (rect, false)))
-            .or_else(|| hint_place::corner(&v.geometry, plot, size).map(|rect| (rect, true)))?;
+            .or_else(|| hint_by_actions(v, size).map(|rect| (rect, false)));
+        // A chart a reader turns uses the whole plot for its box, so its hint never stands in a
+        // corner of the plot: with no place above it, the grab cursor says it alone.
+        // A chart that zooms each axis on its own window fills the plot with marks to drag over
+        // and keeps the line out of it too.
+        let (place, plate) = if rotates || each_axis(v) {
+            outside?
+        } else {
+            outside
+                .or_else(|| hint_place::corner(&v.geometry, plot, size).map(|rect| (rect, true)))?
+        };
         // Every place but a left corner ends at the right: the shorter line ends there too.
         let x = if plate && place.center()[0] < plot.center()[0] {
             place.x
@@ -2760,6 +2903,14 @@ fn overlay_for(
     if scatter && !panel.plot.inflate(1e-9).contains(o.at) {
         return;
     }
+    // The keyboard's own ring marks its selection (`focus::ring`); the dark outline answers
+    // the pointer.
+    if !v.keyed
+        && let Some(marked) = contour::emphasised(kind, panel, t.observation, &v.ring_inks, grown)
+    {
+        items.extend(marked);
+        return;
+    }
     if let Some(contour) = contour::items(
         kind,
         panel,
@@ -2779,9 +2930,10 @@ fn overlay_for(
                     contour::selection_ring(mark, &v.ring_inks, grown, theme.flat_glow, items);
                 }
             }
-            // The last item is the resized scatter mark above its backing,
-            // or the strengthened flow border. A flow edge has no contour.
-            "scatter" | "flow" => {
+            // The last item is the resized point above its backing, in a scatter and in the
+            // other clouds of points, or the strengthened flow border. A flow edge has no
+            // contour.
+            "scatter" | "strip" | "qq" | "scatter3d" | "flow" => {
                 if let Some(mark) = contour.last() {
                     contour::selection_ring(mark, &v.ring_inks, grown, theme.flat_glow, items);
                 }
@@ -2813,12 +2965,28 @@ fn overlay_for(
         return;
     }
     match panel.targeting {
-        // Filled stream layers keep their crosshair and readout without point markers.
-        Targeting::NearestX if kind == "streamgraph" => {}
+        // A layered chart has no point of its own on a layer: the dot sits on the upper edge
+        // of the layer under the pointer, or of every layer where the pointer is over none.
+        Targeting::NearestX if richview_chart::interaction::layered(kind, v.chart.block.stack) => {
+            let under = v.pointer.and_then(|p| mesh::layer_at(panel, p));
+            for (index, series) in v.geometry.series.iter().enumerate() {
+                if under.is_none_or(|layer| layer == index)
+                    && let Some(y) = mesh::layer_top(panel, index, o.at[0])
+                {
+                    let dot = contour::dot([o.at[0], y], grown, series.color);
+                    contour::selection_ring(&dot, &v.ring_inks, grown, theme.flat_glow, items);
+                    whole_marks.push(dot);
+                }
+            }
+        }
+        // Every line-based chart's dot takes the ring, as a line's does: one rule, the
+        // engine's emphasis policy (FEA-CH-53).
         Targeting::NearestX => {
+            let ringed = richview_chart::interaction::emphasis(kind)
+                == Some(richview_chart::interaction::Emphasis::Ring);
             let mut add_dot = |at, color| {
                 let dot = contour::dot(at, grown, color);
-                if kind == "line" {
+                if ringed {
                     contour::selection_ring(&dot, &v.ring_inks, grown, theme.flat_glow, items);
                 }
                 whole_marks.push(dot);
@@ -2849,7 +3017,7 @@ fn overlay_for(
                 ..
             }) = mark
             {
-                items.push(Item::Point {
+                let grown_mark = Item::Point {
                     center: o.at,
                     radius: radius * scale,
                     shape: *shape,
@@ -2858,7 +3026,18 @@ fn overlay_for(
                     role: Role::Annotation,
                     series: None,
                     obs: None,
-                });
+                };
+                // A scatter matrix's point takes the ring of a scatter's.
+                if contour::crisp_target(kind, panel, t.observation) {
+                    contour::selection_ring(
+                        &grown_mark,
+                        &v.ring_inks,
+                        grown,
+                        theme.flat_glow,
+                        items,
+                    );
+                }
+                items.push(grown_mark);
             }
         }
         // A wedge outside the contoured families keeps its place: nothing moves on hover.
@@ -3673,12 +3852,25 @@ fn update_target(
 /// A legend entry or series name emphasises its series, or none; a hidden series emphasises
 /// nothing, so the shown ones keep full ink (FEA-CH-52).
 fn emphasise_series(view: &Rc<RefCell<View>>, series: Option<usize>) {
-    let series = {
+    let (series, outlines) = {
         let mut v = view.borrow_mut();
         v.mark_focus = false;
-        series.filter(|&s| v.geometry.series.get(s).is_some_and(|s| !s.hidden))
+        let shown = series.filter(|&s| v.geometry.series.get(s).is_some_and(|s| !s.hidden));
+        (
+            shown,
+            richview_chart::interaction::outlines_from_legend(v.chart.block.kind.name()),
+        )
     };
-    feedback::emphasise(view, series.map(|s| (Focus::Series(s), mesh::DIM_FLOOR)));
+    // A Sankey or an alluvial diagram outlines the series' ribbons and nodes and dims nothing;
+    // every other chart dims the rest (FEA-CH-33, FEA-CH-52).
+    let focus = |s| {
+        if outlines {
+            Focus::Outline(s)
+        } else {
+            Focus::Series(s)
+        }
+    };
+    feedback::emphasise(view, series.map(|s| (focus(s), mesh::DIM_FLOOR)));
 }
 
 /// The pointer returned during the readout's hold: the feedback and the dimming come back.
@@ -3712,7 +3904,8 @@ fn keep_reset_place(v: &View) {
         .flatten()
         .is_some_and(|m| m.matches());
     let style = reset.style();
-    if reset.hidden() && zoomable(v) && fine {
+    // A chart a reader turns keeps the place on a touch screen too: a finger turns it there.
+    if reset.hidden() && ((zoomable(v) && fine) || v.chart.rotates()) {
         let _ = style.set_property("display", "inline-flex");
         let _ = style.set_property("visibility", "hidden");
     } else {
@@ -3724,6 +3917,15 @@ fn keep_reset_place(v: &View) {
 /// The y axis of a chart that zooms along both axes (a map); `None` where zoom is along x only.
 fn y_span(v: &View) -> Option<richview_chart::geometry::YSpan> {
     v.geometry.panels.first()?.x.as_ref()?.y
+}
+
+/// Whether the chart zooms each axis on a window of its own (FEA-CH-49): a scatter, not a map.
+fn each_axis(v: &View) -> bool {
+    v.geometry
+        .panels
+        .first()
+        .and_then(|p| p.x.as_ref())
+        .is_some_and(|s| v.chart.zooms_each_axis(s))
 }
 
 /// Pixel y to data y on a chart that zooms along both axes.
@@ -3770,6 +3972,15 @@ fn set_zoom(view: &Rc<RefCell<View>>, zoom: Option<[f64; 2]>) {
             .first()
             .and_then(|p| p.x.as_ref())
             .cloned();
+        // A chart that zooms each axis on its own window keeps the window along y at the grid's
+        // limit as well (TYP-36).
+        if let Some(scale) = &scale
+            && let Some(y) = scale.y
+            && v.chart.zooms_each_axis(scale)
+        {
+            let kept = v.chart.zoom_y.and_then(|w| v.chart.clamp_zoom_y(w, &y));
+            v.chart.zoom_y = kept;
+        }
         let zoom = zoom.and_then(|window| v.chart.clamp_zoom(window, scale.as_ref()?));
         if zoom != v.zoom {
             feedback::names_moved(&mut v, false);
@@ -3802,6 +4013,7 @@ fn set_zoom(view: &Rc<RefCell<View>>, zoom: Option<[f64; 2]>) {
         if v.zoom.is_some()
             && let Some(s) = v.geometry.panels.first().and_then(|p| p.x.clone())
             && let Some(y) = s.y
+            && !v.chart.zooms_each_axis(&s)
         {
             let inside = |d: [f64; 2], e: [f64; 2]| [d[0].max(e[0]), d[1].min(e[1])];
             v.zoom = Some(inside(s.domain, s.extent));
@@ -4055,6 +4267,9 @@ fn bind(view: &Rc<RefCell<View>>) {
             // Resume needs its own borrow of the view.
             resume_feedback(&view);
         }
+        if rotate::drag(&view, &e, p) {
+            return;
+        }
         if e.pointer_type() == "touch" && touch_gesture(&view, &e, p) {
             return;
         }
@@ -4113,7 +4328,7 @@ fn bind(view: &Rc<RefCell<View>>) {
         };
         update_target(&view, t, false, was_keyed);
         // Within one observation of stacked layers the pointer still moves between layers.
-        if t.is_some() && view.borrow().chart.block.kind.name() == "streamgraph" {
+        if t.is_some() && focus::layered(&view.borrow()) {
             let focus = focus::of(&view.borrow(), t);
             view.borrow_mut().mark_focus = focus.is_some();
             feedback::emphasise(&view, focus);
@@ -4162,7 +4377,10 @@ fn bind(view: &Rc<RefCell<View>>) {
         let Some(view) = w.upgrade() else { return };
         let e: web_sys::PointerEvent = e.unchecked_into();
         view.borrow_mut().tap = None;
+        // A pointer or a finger on the chart takes the frame's ring away until a key is pressed.
+        let _ = view.borrow().frame.set_attribute("data-rv-pointed", "");
         let p = local(&view.borrow(), &e);
+        rotate::begin(&view, &e, p);
         if e.pointer_type() == "touch" {
             view.borrow_mut().touch = Some((p[0], p[1], now()));
             finger(&view, e.pointer_id(), Some(p));
@@ -4203,6 +4421,13 @@ fn bind(view: &Rc<RefCell<View>>) {
         let Some(view) = w.upgrade() else { return };
         let e: web_sys::PointerEvent = e.unchecked_into();
         let p = local(&view.borrow(), &e);
+        // A mouse that has turned the chart finds what is under it where it stopped.
+        let touch = e.pointer_type() == "touch";
+        if rotate::end(&view, e.pointer_id(), touch) && !touch {
+            view.borrow_mut().pointer = Some(p);
+            let t = hit::at(&view.borrow().geometry, p);
+            update_target(&view, t, false, false);
+        }
         if e.pointer_type() == "touch" {
             finger(&view, e.pointer_id(), None);
             let tap = view.borrow_mut().touch.take().is_some_and(|(x, y, t)| {
@@ -4229,17 +4454,22 @@ fn bind(view: &Rc<RefCell<View>>) {
             let (a, b, y) = {
                 let v = view.borrow();
                 let wide = if drag_y.is_some() { 1.0 } else { 0.0 };
-                let y = drag_y.and_then(|(y0, y1)| {
-                    Some([
+                // A chart that zooms each axis on its own window keeps the window of an axis
+                // the drag hardly crosses, so a drag along one axis zooms that axis alone.
+                let each = each_axis(&v);
+                let y = drag_y.and_then(|(y0, y1)| match y_span(&v) {
+                    Some(s) if each && (y1 - y0).abs() <= DRAG_SLOP => Some(s.domain),
+                    _ => Some([
                         data_y(&v, y0.max(y1).max(y0.min(y1) + 1.0))?,
                         data_y(&v, y0.min(y1))?,
-                    ])
+                    ]),
                 });
-                (
-                    data_x(&v, x0.min(x1)),
-                    data_x(&v, x0.max(x1).max(x0.min(x1) + wide)),
-                    y,
-                )
+                let x = if each && (x1 - x0).abs() <= DRAG_SLOP {
+                    shown_x(&v).map(|d| (d[0], d[1]))
+                } else {
+                    data_x(&v, x0.min(x1)).zip(data_x(&v, x0.max(x1).max(x0.min(x1) + wide)))
+                };
+                (x.map(|x| x.0), x.map(|x| x.1), y)
             };
             if let (Some(a), Some(b)) = (a, b) {
                 feedback::zoom_to_window(&view, Some([a, b]), y);
@@ -4273,6 +4503,7 @@ fn bind(view: &Rc<RefCell<View>>) {
         let Some(view) = w.upgrade() else { return };
         let e: web_sys::PointerEvent = e.unchecked_into();
         finger(&view, e.pointer_id(), None);
+        rotate::cancel(&view);
         view.borrow_mut().touch = None;
         view.borrow_mut().tap = None;
     });
@@ -4281,6 +4512,7 @@ fn bind(view: &Rc<RefCell<View>>) {
         let w = Rc::downgrade(view);
         on(&canvas, end, move |_| {
             let Some(view) = w.upgrade() else { return };
+            rotate::cancel(&view);
             let had = {
                 let mut v = view.borrow_mut();
                 v.drag_y = None;
@@ -4295,7 +4527,7 @@ fn bind(view: &Rc<RefCell<View>>) {
     let w = Rc::downgrade(view);
     on(&canvas, "dblclick", move |_| {
         if let Some(view) = w.upgrade() {
-            feedback::zoom_to(&view, None);
+            reset_zoom_or_view(&view);
         }
     });
     let w = Rc::downgrade(view);
@@ -4339,8 +4571,18 @@ fn bind(view: &Rc<RefCell<View>>) {
         {
             return;
         }
+        // A key other than a modifier gives the frame's ring back to the keyboard.
+        if !matches!(e.key().as_str(), "Shift" | "Control" | "Alt" | "Meta") {
+            let _ = frame.remove_attribute("data-rv-pointed");
+        }
         // Browser shortcuts (history, zoom) keep their modifiers.
         if e.ctrl_key() || e.meta_key() || e.alt_key() {
+            return;
+        }
+        // A chart a reader turns takes Shift with the arrow keys for the turn, and R for its way
+        // back; arrow keys alone step through the marks on every chart (FEA-CH-56).
+        if rotate::key(&view, &e) {
+            e.prevent_default();
             return;
         }
         let key = e.key();
@@ -4434,6 +4676,7 @@ fn bind(view: &Rc<RefCell<View>>) {
     on(&frame, "blur", move |_| {
         if let Some(view) = w.upgrade() {
             view.borrow_mut().keyed = false;
+            let _ = view.borrow().frame.remove_attribute("data-rv-pointed");
             if !view.borrow().pinned {
                 set_target(&view, None, false);
             }
@@ -4458,9 +4701,8 @@ fn build_legend(view: &Rc<RefCell<View>>, focused: &Option<String>) {
             cues,
         )
     };
-    if let Some(old) = view.borrow_mut().legend.take() {
-        old.remove();
-    }
+    // The old legend leaves the page with the view free: its focused entry fires `blur` as it goes.
+    take_then(view, |v| &mut v.legend, |old| old.remove());
     // Core's static legends, one per reference width when they differ.
     let figure = view.borrow().figure.clone();
     let statics: Vec<Element> = figure
@@ -4528,6 +4770,24 @@ fn build_legend(view: &Rc<RefCell<View>>, focused: &Option<String>) {
                 emphasise_series(&view, None);
             }
         });
+        // Keyboard focus emphasises the series as pointing does (FEA-CH-33); a press with the
+        // pointer focuses the entry too, and the pointer already answered it.
+        let (w, entry) = (Rc::downgrade(view), button.clone());
+        on(&target, "focus", move |_| {
+            if entry.matches(":focus-visible").unwrap_or(false)
+                && let Some(view) = w.upgrade()
+            {
+                emphasise_series(&view, Some(i));
+            }
+        });
+        let (w, entry) = (Rc::downgrade(view), button.clone());
+        on(&target, "blur", move |_| {
+            if !entry.matches(":hover").unwrap_or(false)
+                && let Some(view) = w.upgrade()
+            {
+                emphasise_series(&view, None);
+            }
+        });
         let _ = list.append_child(&button);
     }
     // The static legend on this legend's side has the same entries and size; swap it in place so
@@ -4560,7 +4820,7 @@ fn build_legend(view: &Rc<RefCell<View>>, focused: &Option<String>) {
         }
     }
     // Beside the plot of an expanded chart in a short, wide window, the legend leads the column
-    // there (S27-875).
+    // there.
     if let Some(column) = aside_column(&figure) {
         let _ = column.prepend_with_node_1(&list);
     }
@@ -4838,17 +5098,22 @@ fn build_actions(view: &Rc<RefCell<View>>) -> Result<(), JsValue> {
         b.set_attribute("aria-label", label)?;
     }
     table.set_attribute("aria-pressed", "false")?;
-    // Core reserved Reset zoom's place on a chart that zooms (FEA-CH-43); the runtime takes
-    // that button, or adds one where none was reserved.
+    // Core reserved Reset zoom's place on a chart that zooms (FEA-CH-43), and Reset view's on one
+    // a reader turns; the runtime takes that button, or adds one where none was reserved.
+    let reset_label = if view.borrow().chart.rotates() {
+        "Reset view"
+    } else {
+        "Reset zoom"
+    };
     let reset: HtmlElement = match actions.query_selector(".rv-chart__action--reset")? {
         Some(b) => b.unchecked_into(),
         None => {
-            let b = action_button("Reset zoom", "rv-chart__action--reset");
+            let b = action_button(reset_label, "rv-chart__action--reset");
             actions.append_child(&b)?;
             b
         }
     };
-    reset.set_attribute("aria-label", "Reset zoom")?;
+    reset.set_attribute("aria-label", reset_label)?;
     reset.remove_attribute("data-rv-place")?;
     reset.set_hidden(true);
     actions.remove_attribute("data-rv-pending")?;
@@ -4890,7 +5155,7 @@ fn build_actions(view: &Rc<RefCell<View>>) -> Result<(), JsValue> {
         let t: web_sys::EventTarget = expand.into();
         on(&t, "click", move |e| {
             if let Some(view) = w.upgrade() {
-                // A pointer's click counts at least one; a key's, Enter or Space, none (S27-878).
+                // A pointer's click counts at least one; a key's, Enter or Space, none.
                 let pointer = e
                     .dyn_ref::<web_sys::UiEvent>()
                     .is_some_and(|u| u.detail() > 0);
@@ -4902,10 +5167,20 @@ fn build_actions(view: &Rc<RefCell<View>>) -> Result<(), JsValue> {
     let t: web_sys::EventTarget = reset.into();
     on(&t, "click", move |_| {
         if let Some(view) = w.upgrade() {
-            feedback::zoom_to(&view, None);
+            reset_zoom_or_view(&view);
         }
     });
     Ok(())
+}
+
+/// Double-click and Reset: a chart a reader turns returns to the author's view, any other to its
+/// whole extent.
+fn reset_zoom_or_view(view: &Rc<RefCell<View>>) {
+    if view.borrow().chart.rotates() {
+        rotate::reset(view);
+    } else {
+        feedback::zoom_to(view, None);
+    }
 }
 
 /// The Table view under the chart (FEA-CH-45): source rows, 1,000 at a time.
@@ -5149,7 +5424,7 @@ fn build_table(view: &Rc<RefCell<View>>) -> HtmlElement {
             .then(|| v.chart.kept())
             .flatten()
             .map(<[usize]>::to_vec);
-        // The expanded chart's title is the dialog's (S27-879): its caption read "Data for".
+        // The expanded chart's title is the dialog's: its caption read "Data for".
         let title = v
             .figure
             .query_selector(".rv-chart__title")
@@ -5338,6 +5613,17 @@ fn png_download(view: &Rc<RefCell<View>>) {
 /// What the frame's label adds to core's: how the keyboard reaches the data.
 const KEYS_HINT: &str = ". Arrow keys step through the data; Escape clears.";
 
+/// The same for a chart a reader turns: Shift with the arrow keys turns it, R returns it.
+const TURN_KEYS_HINT: &str = ". Arrow keys step through the data; Shift and the arrow keys turn the chart, R returns it to its first view; Escape clears.";
+
+fn keys_hint(chart: &Chart) -> &'static str {
+    if chart.rotates() {
+        TURN_KEYS_HINT
+    } else {
+        KEYS_HINT
+    }
+}
+
 fn open_expanded(view: &Rc<RefCell<View>>, pointer: bool) {
     if view.borrow().dialog.is_some() {
         return;
@@ -5346,7 +5632,7 @@ fn open_expanded(view: &Rc<RefCell<View>>, pointer: bool) {
     controls::pause(view);
     let dialog: web_sys::HtmlDialogElement = el("dialog", "rv-chart-dialog").unchecked_into();
     // A pointer's open shows the chart's focus without its ring until the reader presses a key
-    // (S27-878): the chart takes focus by script, and WebKit rings that focus even after a click.
+    //: the chart takes focus by script, and WebKit rings that focus even after a click.
     if pointer {
         let _ = dialog.set_attribute("data-rv-pointer", "");
     }
@@ -5398,11 +5684,11 @@ fn open_expanded(view: &Rc<RefCell<View>>, pointer: bool) {
     }
     let frame = el("div", "rv-chart__frame");
     // The expanded chart reads as the inline one: core's title and summary (FEA-CH-55).
-    let label = view
-        .borrow()
-        .frame
-        .get_attribute("aria-label")
-        .map(|l| l.trim_end_matches(KEYS_HINT).to_owned());
+    let label = view.borrow().frame.get_attribute("aria-label").map(|l| {
+        l.trim_end_matches(TURN_KEYS_HINT)
+            .trim_end_matches(KEYS_HINT)
+            .to_owned()
+    });
     if let Some(label) = label {
         let _ = frame.set_attribute("aria-label", &label);
     }
@@ -5430,9 +5716,15 @@ fn open_expanded(view: &Rc<RefCell<View>>, pointer: bool) {
             let v = view.borrow();
             ev.hidden = v.hidden.clone();
             ev.zoom = v.zoom;
+            // A chart that zooms each axis on its own window takes the window along y too.
+            if each_axis(&v) {
+                ev.chart.zoom_y = v.chart.zoom_y;
+            }
+            // A turned chart opens as it is turned.
+            ev.chart.view = v.chart.view;
             // A zoomed chart opens zoomed, with Reset zoom in its group (FEA-CH-43).
             if let Some(reset) = &ev.reset {
-                reset.set_hidden(ev.zoom.is_none());
+                reset.set_hidden(ev.zoom.is_none() && ev.chart.view.is_none());
             }
             keep_reset_place(&ev);
             ev.settled = true;
@@ -5496,14 +5788,17 @@ fn close_expanded(view: &Rc<RefCell<View>>) {
     };
     if let Some(e) = expanded {
         controls::pause(&e);
-        let (hidden, zoom) = {
+        let (hidden, zoom, zoom_y) = {
             let ev = e.borrow();
-            (ev.hidden.clone(), ev.zoom)
+            (ev.hidden.clone(), ev.zoom, ev.chart.zoom_y)
         };
         {
             let mut v = view.borrow_mut();
             v.hidden = hidden;
             v.zoom = zoom;
+            if each_axis(&v) {
+                v.chart.zoom_y = zoom_y;
+            }
             if let Some(reset) = &v.reset {
                 reset.set_hidden(zoom.is_none());
             }

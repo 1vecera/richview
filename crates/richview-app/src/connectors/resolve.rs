@@ -10,7 +10,7 @@ use super::spec::{ConnectorError, DatasetSnapshot, MetricFlowSpec, QueryBody};
 use richview_core::document::{Diagnostic, Document, RenderOptions};
 use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
-use std::{collections::BTreeMap, fs, path::Path};
+use std::{collections::BTreeMap, path::Path};
 
 /// Resolve every connector-backed data block in `doc` and insert the result
 /// rows and capture metadata into the block's inline data. The options argument remains
@@ -20,6 +20,16 @@ pub fn resolve_connector_data(
     root: &Path,
     registry: &Registry,
     _options: &mut RenderOptions,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Result<(), String> {
+    resolve_with_limits(doc, root, registry, &mut Default::default(), diagnostics)
+}
+
+pub(crate) fn resolve_with_limits(
+    doc: &mut Document,
+    root: &Path,
+    registry: &Registry,
+    inputs: &mut crate::input_limits::InputSizes,
     diagnostics: &mut Vec<Diagnostic>,
 ) -> Result<(), String> {
     for block in doc.blocks.iter_mut() {
@@ -74,7 +84,7 @@ pub fn resolve_connector_data(
         let metricflow_spec: MetricFlowSpec;
         let (query_body, fingerprint) = match kind {
             "sql" => {
-                sql_text = load_sql_text(data, root)?;
+                sql_text = load_sql_text(data, root, inputs)?;
                 let fp = fingerprint_sql(connector, &sql_text, &params);
                 (QueryBody::Sql(sql_text.as_str()), fp)
             }
@@ -100,10 +110,37 @@ pub fn resolve_connector_data(
             &fingerprint,
         ) {
             Ok(snapshot) => {
+                if kind != "sql" || !inputs.local_connector(connector) {
+                    let rows = serde_json::to_vec(&snapshot.rows).map_err(|e| e.to_string())?;
+                    let id = format!(
+                        "{}:{}",
+                        snapshot.provenance.fingerprint,
+                        hex_digest(Sha256::new_with_prefix(&rows))
+                    );
+                    if let Err(mut finding) = inputs.result(
+                        id,
+                        &format!("{} result", snapshot.provenance.connector),
+                        rows.len(),
+                    ) {
+                        finding.file = None;
+                        finding.path = format!("{}.data.{kind}", block.tag);
+                        finding.tag = Some(block.tag.clone());
+                        finding.line = Some(block.line);
+                        return Err(crate::input_limits::encoded(finding));
+                    }
+                    inputs.check().map_err(crate::input_limits::encoded)?;
+                }
                 let message = provenance_message(&snapshot, &params);
                 let stale = snapshot.cache.as_ref().is_some_and(|cache| cache.stale);
                 let tag = block.tag.clone();
                 let line = block.line;
+                if tag == "table" {
+                    for field in &snapshot.schema {
+                        if let Some(places) = field.scale {
+                            block.value["_decimalScales"][&field.name] = Value::from(places);
+                        }
+                    }
+                }
                 if let Some(data_mut) = block.value.get_mut("data").and_then(Value::as_object_mut) {
                     data_mut.insert("inline".into(), Value::Array(snapshot.rows));
                     let mut provenance =
@@ -136,7 +173,11 @@ pub fn resolve_connector_data(
     Ok(())
 }
 
-fn load_sql_text(data: &Value, root: &Path) -> Result<String, String> {
+fn load_sql_text(
+    data: &Value,
+    root: &Path,
+    inputs: &mut crate::input_limits::InputSizes,
+) -> Result<String, String> {
     let sql = data
         .get("sql")
         .and_then(Value::as_object)
@@ -163,7 +204,9 @@ fn load_sql_text(data: &Value, root: &Path) -> Result<String, String> {
     if !canonical.starts_with(&canonical_root) {
         return Err(format!("sql query path '{path}' escapes the report folder"));
     }
-    fs::read_to_string(&canonical).map_err(|err| format!("read sql query '{path}': {err}"))
+    let bytes = inputs.read(root, path)?;
+    String::from_utf8(std::sync::Arc::unwrap_or_clone(bytes))
+        .map_err(|err| format!("read sql query '{path}': {err}"))
 }
 
 fn parse_cache_policy(data: &Value) -> Result<Option<CachePolicy>, String> {

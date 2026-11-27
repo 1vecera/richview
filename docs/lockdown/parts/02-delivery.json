@@ -159,7 +159,6 @@
       "sources": [
         {
           "label": "“Agents merge freely into a dev branch; Daniel alone merges dev into prod; there are no releases. He reviews only design-quality and feature decisions, in batches, after the bug fixes, regressions, ideas and visual improvements are done.”",
-          "ref": "S27-677",
           "date": "2026-10-21"
         },
         {
@@ -229,12 +228,10 @@
       "sources": [
         {
           "label": "“Agents merge freely into a dev branch; Daniel alone merges dev into prod; there are no releases. He reviews only design-quality and feature decisions, in batches, after the bug fixes, regressions, ideas and visual improvements are done.”",
-          "ref": "S27-677",
           "date": "2026-10-21"
         },
         {
           "label": "“Daniel wants to rewrite RichView with fast agent development and no per-PR review.”",
-          "ref": "S27-677",
           "date": "2026-10-21"
         },
         {
@@ -249,12 +246,11 @@
         },
         {
           "label": "“Default boundary in almost every brief: preparation only … no merge … without Daniel's explicit authorization”",
-          "ref": "docs/lockdown/evidence/linear.md:343",
+          "ref": "the Linear evidence (not published)",
           "date": "2026-10-21"
         },
         {
           "label": "Git-to-live loop: an approved PR merges to the publication branch and CI publishes it",
-          "ref": "S27-655",
           "date": "2026-10-18"
         },
         {
@@ -263,7 +259,7 @@
           "date": "2026-10-22"
         }
       ],
-      "conflicts": "Almost every brief before 2026-10-21 forbade merging without your explicit authorization, and `.claude/agents/richview.md:29` still makes merging depend on it. The exception was S27-655's Git-to-live loop, which merged PRs #71 and #72 into `publish/news` on 2026-10-18 without per-PR approval. Your general rule that you decide when to merge is overridden for RichView's `dev` only."
+      "conflicts": "Almost every brief before 2026-10-21 forbade merging without your explicit authorization, and `.claude/agents/richview.md:29` still makes merging depend on it. The exception was the RichView Publish brief's Git-to-live loop, which merged PRs #71 and #72 into `publish/news` on 2026-10-18 without per-PR approval. Your general rule that you decide when to merge is overridden for RichView's `dev` only."
     },
     {
       "id": "DEL-04",
@@ -294,7 +290,6 @@
       "sources": [
         {
           "label": "“Agents merge freely into a dev branch; Daniel alone merges dev into prod; there are no releases. He reviews only design-quality and feature decisions, in batches, after the bug fixes, regressions, ideas and visual improvements are done.”",
-          "ref": "S27-677",
           "date": "2026-10-21"
         },
         {
@@ -329,7 +324,7 @@
       "sources": [
         {
           "label": "Earlier default boundary: preparation only; no merge, deploy, publication, visibility change or spending without explicit authorization",
-          "ref": "docs/lockdown/evidence/linear.md",
+          "ref": "the Linear evidence (not published)",
           "date": "2026-10-21"
         },
         {
@@ -348,7 +343,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "From 2026-10-04 to 2026-10-18 individual tasks held scoped deploy authority (S27-647, S27-653, S27-655) and deployed from unmerged branches; this table gives tasks no deploy authority."
+      "conflicts": "From 2026-10-04 to 2026-10-18 individual tasks held scoped deploy authority and deployed from unmerged branches; this table gives tasks no deploy authority."
     },
     {
       "id": "DEL-06",
@@ -384,7 +379,6 @@
         },
         {
           "label": "“Agents merge freely into a dev branch; Daniel alone merges dev into prod; there are no releases. He reviews only design-quality and feature decisions, in batches, after the bug fixes, regressions, ideas and visual improvements are done.”",
-          "ref": "S27-677",
           "date": "2026-10-21"
         },
         {
@@ -394,7 +388,6 @@
         },
         {
           "label": "New tracks opened “despite older August scope locks”",
-          "ref": "S27-647",
           "date": "2026-10-17"
         },
         {
@@ -434,7 +427,6 @@
         },
         {
           "label": "Deliverable: “The lockdown setup for the repository: goals, rules, boundaries, delivery evidence and the dev/prod branch model.”",
-          "ref": "S27-677",
           "date": "2026-10-21"
         },
         {
@@ -504,7 +496,7 @@
         },
         {
           "label": "One source snapshot, one build slot, one retained result",
-          "ref": "origin/feat/s27-652-development-harness:docs/development-harness.md",
+          "ref": "PR #68: docs/development-harness.md",
           "date": "2026-10-18"
         },
         {
@@ -705,12 +697,11 @@
         },
         {
           "label": "“Keep private host/history/credential information out of public documentation”",
-          "ref": "S27-655",
           "date": "2026-10-18"
         },
         {
           "label": "Signup stores email and consent in D1; subscriber data stays private",
-          "ref": "docs/lockdown/evidence/linear.md",
+          "ref": "the Linear evidence (not published)",
           "date": "2026-10-21"
         }
       ]
@@ -794,7 +785,6 @@
         },
         {
           "label": "“An unrelated dev-server preview does not establish that the exported HTML works”",
-          "ref": "S27-581",
           "date": "2026-10-04"
         },
         {
@@ -872,12 +862,11 @@
           "date": "2026-10-21"
         },
         {
-          "label": "S27-650 comment: one isolated pass, then three verify-browser failures (two timeouts, one superseded-edit race assertion) against the same Wasm",
-          "ref": "S27-650",
+          "label": "Comment on the data-connectors brief: one isolated pass, then three verify-browser failures (two timeouts, one superseded-edit race assertion) against the same Wasm",
           "date": "2026-10-18"
         }
       ],
-      "conflicts": "An S27-650 comment of 2026-10-18 reported `verify-browser.mjs` as load-sensitive: after one isolated pass it failed three times, twice on timeouts and once on the superseded-edit race assertion. The hosted runs of 2026-10-13 failed in it on a Playwright timeout. A flaky step fails the release run and is fixed at its cause, never retried until green.\n\nDaniel's INT-31 answer draws charts with WebGL, so the suites that assert on chart SVG in the DOM (`text-measurement`, `chart-readouts`, `bar-paint`, `ink-alignment`, `step-curves`, `line-smoothing`, `histograms`, `boxplots`, `intervals`, `facet-export`) lose their target when the rewrite's renderer replaces the engine's output (DEL-64). Their chart assertions move to the engine's geometry model, which the runtime exposes to tests through its generated declarations (TYP-97), while page, interaction and keyboard assertions stay in the DOM; `text-measurement` waits on FEA-CH-59. Headless Chromium creates WebGL contexts only on a GPU or with `--enable-unsafe-swiftshader`, so the gate pins one of the two (DEL-28)."
+      "conflicts": "A comment on the data-connectors brief of 2026-10-18 reported `verify-browser.mjs` as load-sensitive: after one isolated pass it failed three times, twice on timeouts and once on the superseded-edit race assertion. The hosted runs of 2026-10-13 failed in it on a Playwright timeout. A flaky step fails the release run and is fixed at its cause, never retried until green.\n\nDaniel's INT-31 answer draws charts with WebGL, so the suites that assert on chart SVG in the DOM (`text-measurement`, `chart-readouts`, `bar-paint`, `ink-alignment`, `step-curves`, `line-smoothing`, `histograms`, `boxplots`, `intervals`, `facet-export`) lose their target when the rewrite's renderer replaces the engine's output (DEL-64). Their chart assertions move to the engine's geometry model, which the runtime exposes to tests through its generated declarations (TYP-97), while page, interaction and keyboard assertions stay in the DOM; `text-measurement` waits on FEA-CH-59. Headless Chromium creates WebGL contexts only on a GPU or with `--enable-unsafe-swiftshader`, so the gate pins one of the two (DEL-28)."
     },
     {
       "id": "DEL-16",
@@ -923,7 +912,7 @@
         },
         {
           "label": "Preserve values, units, scales, meaning and provenance across themes, frames, variants and exports",
-          "ref": "docs/lockdown/evidence/linear.md",
+          "ref": "the Linear evidence (not published)",
           "date": "2026-10-21"
         },
         {
@@ -978,7 +967,7 @@
         },
         {
           "label": "Preserve values, units, scales, meaning and provenance across themes, frames, variants and exports",
-          "ref": "docs/lockdown/evidence/linear.md",
+          "ref": "the Linear evidence (not published)",
           "date": "2026-10-21"
         }
       ],
@@ -1173,7 +1162,7 @@
       "group": "Dev merge gate",
       "title": "No-JS reading and the runtime drill",
       "question": "Does the release run prove that reports read without scripts, that a report without WebGL degrades as ARC-05 decides, and that the gate fails on a controlled regression and recovers?",
-      "why": "FEA-RP-39 requires every report to read completely without scripts, and FEA-BR-20 adds PR #68's drill to this gate. S27-652 asked the harness to show “a controlled regression failing then recovery passing”, and the briefs list no-JS reading among expected checks. DEL-08 had no such step.",
+      "why": "FEA-RP-39 requires every report to read completely without scripts, and FEA-BR-20 adds PR #68's drill to this gate. The development-harness brief asked the harness to show “a controlled regression failing then recovery passing”, and the briefs list no-JS reading among expected checks. DEL-08 had no such step.",
       "proposed": "A drill opens every golden input with JavaScript disabled and fails unless all text, every table row and every tab panel are present and readable, and every chart's figure keeps its final box and shows its title, caption, source note and the notice that the chart cannot be displayed (Daniel's ARC-05 answer); no static chart, image or table stands in for it. A second pass opens the same inputs with scripts on and WebGL context creation blocked, and fails on any script error, any layout shift when the notice appears, or a figure without its notice. In the same run the interactive check must fail with one named error for the missing runtime and pass straight after with the runtime present; a different error, a silent pass or missing content fails the drill (FEA-BR-20). It doubles as the gate's own failure-and-recovery check: whenever the gate changes, the drill and the mutation set (DEL-26) rerun to show the gate still fails on a controlled regression and passes again after it. Command: none yet; PR #68's `--drill` covers one example and only the interactive assertion. Duration: not measured.",
       "confidence": "inferred",
       "sources": [
@@ -1204,17 +1193,16 @@
         },
         {
           "label": "`--drill`: JavaScript disabled in an isolated context; the interactive assertion fails with HARNESS_RUNTIME_MISSING; the normal journey follows and must pass",
-          "ref": "origin/feat/s27-652-development-harness:docs/development-harness.md:39",
+          "ref": "PR #68: docs/development-harness.md:39",
           "date": "2026-10-18"
         },
         {
           "label": "“show a controlled regression failing then recovery passing where safe”",
-          "ref": "S27-652",
           "date": "2026-10-18"
         },
         {
           "label": "Coverage expected in briefs includes no-JS reading",
-          "ref": "docs/lockdown/evidence/linear.md:310",
+          "ref": "the Linear evidence (not published)",
           "date": "2026-10-21"
         },
         {
@@ -1447,12 +1435,11 @@
         },
         {
           "label": "Daniel's request of 27 Oct 15:45, relayed by the chief of staff: the gate and the rewrite worktrees share one Rust target folder through CARGO_TARGET_DIR; the gate deletes its temp folders after each run; run folders are kept only for each open PR's latest run and the latest full and prod runs; receipts stay",
-          "ref": "S27-725",
           "date": "2026-10-27"
         },
         {
           "label": "run.json with every command, duration and status; receipts identify source tree and artifact hashes",
-          "ref": "origin/feat/s27-652-development-harness:docs/development-harness.md",
+          "ref": "PR #68: docs/development-harness.md",
           "date": "2026-10-18"
         },
         {
@@ -1496,7 +1483,6 @@
       "sources": [
         {
           "label": "Daniel's request of 27 Oct 15:45, relayed by the chief of staff: the gate and the rewrite worktrees share one Rust target folder through CARGO_TARGET_DIR; the gate deletes its temp folders after each run; run folders are kept only for each open PR's latest run and the latest full and prod runs; receipts stay",
-          "ref": "S27-725",
           "date": "2026-10-27"
         },
         {
@@ -1545,22 +1531,18 @@
         },
         {
           "label": "No parity claim with material gaps",
-          "ref": "S27-582",
           "date": "2026-10-04"
         },
         {
           "label": "Record baseline failures; do not suppress warnings",
-          "ref": "S27-594",
           "date": "2026-10-05"
         },
         {
           "label": "“To Review does not establish that every quality gate passed”",
-          "ref": "S27-652",
           "date": "2026-10-18"
         },
         {
           "label": "“Do not mark completion from a successful build alone”",
-          "ref": "S27-655",
           "date": "2026-10-18"
         },
         {
@@ -1614,7 +1596,6 @@
         },
         {
           "label": "Daniel's request of 27 Oct 15:45, relayed by the chief of staff: the gate and the rewrite worktrees share one Rust target folder through CARGO_TARGET_DIR; the gate deletes its temp folders after each run; run folders are kept only for each open PR's latest run and the latest full and prod runs; receipts stay",
-          "ref": "S27-725",
           "date": "2026-10-27"
         },
         {
@@ -1629,7 +1610,7 @@
         },
         {
           "label": "Shared build helper: one lock, two Cargo jobs, 5 GiB disk floor",
-          "ref": "docs/lockdown/evidence/linear.md",
+          "ref": "the Linear evidence (not published)",
           "date": "2026-10-21"
         },
         {
@@ -2009,7 +1990,7 @@
         },
         {
           "label": "Widths named in briefs: 320, 390, 420 and 1440 px; five themes; reduced motion",
-          "ref": "docs/lockdown/evidence/linear.md",
+          "ref": "the Linear evidence (not published)",
           "date": "2026-10-21"
         },
         {
@@ -2157,7 +2138,7 @@
       "title": "Motion evidence",
       "question": "How is motion checked, given that still screenshots cannot show it?",
       "why": "Motion was rejected repeatedly after static checks passed: an entrance tick (2026-10-13) and jumpy mobile scrolling with visible ticking (2026-10-18). Part 01's G-MOTION-SMOOTH makes smooth-or-absent motion a rule and names this card as its check. Daniel's INT-12 answer adds delight to that rule: motion is delightful and smooth, “the whimsical quality of Studio Ghibli meets the polish of Apple's website animations”.",
-      "proposed": "A release batch that changes motion code, motion tokens or the landing scroll story gets filmstrips and frame pacing from the release run, and a PR may attach its own. Entrances and pointer sequences come from the existing design-review capture (`scripts/design-review/capture.mjs`, Chromium only, not run in this lockdown). Page-scroll sequences of the landing story at 1440 and 390 px in Chromium and WebKit, scrolling slowly and fast in both directions, are new work with no command and no measured duration. The reduced-motion frame must equal the settled frame (the existing 0.5 % per-chart check). The release run already runs two motion checks (DEL-15): `verify-bar-paint` asserts exactly one entrance animation per bar (the S27-634 tick), and `verify-motion-runtime` covers lazy mount, print, facets and reduced motion. Both read CSS animations on chart SVG today; with WebGL charts (Daniel's INT-31 answer) entrances are drawn frames, so their chart assertions move to the geometry model and the runtime's generated test declarations (TYP-97), and are reported unrun until those exist. Motion changes are always design decisions (DEL-32). The prod-candidate gate repeats the filmstrips for the whole site. A review agent on the model Daniel uses at the time judges smoothness and delight against INT-12's direction from the filmstrips, frame strips and real-speed clips (DEL-35, DEL-75), and its verdict goes into each motion entry of the before-and-after report (DEL-69); Daniel adjusts there if he wants, and looks on a real phone only when he chooses (PRF-09).",
+      "proposed": "A release batch that changes motion code, motion tokens or the landing scroll story gets filmstrips and frame pacing from the release run, and a PR may attach its own. Entrances and pointer sequences come from the existing design-review capture (`scripts/design-review/capture.mjs`, Chromium only, not run in this lockdown). Page-scroll sequences of the landing story at 1440 and 390 px in Chromium and WebKit, scrolling slowly and fast in both directions, are new work with no command and no measured duration. The reduced-motion frame must equal the settled frame (the existing 0.5 % per-chart check). The release run already runs two motion checks (DEL-15): `verify-bar-paint` asserts exactly one entrance animation per bar (the tick removal of the bar-rounding request), and `verify-motion-runtime` covers lazy mount, print, facets and reduced motion. Both read CSS animations on chart SVG today; with WebGL charts (Daniel's INT-31 answer) entrances are drawn frames, so their chart assertions move to the geometry model and the runtime's generated test declarations (TYP-97), and are reported unrun until those exist. Motion changes are always design decisions (DEL-32). The prod-candidate gate repeats the filmstrips for the whole site. A review agent on the model Daniel uses at the time judges smoothness and delight against INT-12's direction from the filmstrips, frame strips and real-speed clips (DEL-35, DEL-75), and its verdict goes into each motion entry of the before-and-after report (DEL-69); Daniel adjusts there if he wants, and looks on a real phone only when he chooses (PRF-09).",
       "confidence": "stated",
       "sources": [
         {
@@ -2177,12 +2158,10 @@
         },
         {
           "label": "“A static screenshot or a successful Rust build alone is insufficient”; cover slow and fast scrolling, touch and WebKit",
-          "ref": "S27-653",
           "date": "2026-10-18"
         },
         {
           "label": "No entrance tick",
-          "ref": "S27-634",
           "date": "2026-10-13"
         },
         {
@@ -2216,7 +2195,7 @@
           "date": "2026-10-15"
         }
       ],
-      "conflicts": "S27-653 says static evidence cannot prove motion. Today's automated motion checks assert behaviour in Chromium (one entrance per bar; lazy mount and reduced motion) but measure no scroll smoothness and capture nothing in WebKit. Daniel's DEL-68 answer moves the smoothness judgement from his phone to a review agent; INT-61's bar, smooth on a real phone, then rests on that review and on pacing in Chromium and WebKit (PRF-27)."
+      "conflicts": "The site-round brief says static evidence cannot prove motion. Today's automated motion checks assert behaviour in Chromium (one entrance per bar; lazy mount and reduced motion) but measure no scroll smoothness and capture nothing in WebKit. Daniel's DEL-68 answer moves the smoothness judgement from his phone to a review agent; INT-61's bar, smooth on a real phone, then rests on that review and on pacing in Chromium and WebKit (PRF-27)."
     },
     {
       "id": "DEL-31",
@@ -2336,7 +2315,6 @@
         },
         {
           "label": "“Agents merge freely into a dev branch; Daniel alone merges dev into prod; there are no releases. He reviews only design-quality and feature decisions, in batches, after the bug fixes, regressions, ideas and visual improvements are done.”",
-          "ref": "S27-677",
           "date": "2026-10-21"
         },
         {
@@ -2395,7 +2373,6 @@
         },
         {
           "label": "Daniel reviews “in batches”",
-          "ref": "S27-677",
           "date": "2026-10-21"
         },
         {
@@ -2510,7 +2487,6 @@
         },
         {
           "label": "“Agents merge freely into a dev branch; Daniel alone merges dev into prod; there are no releases. He reviews only design-quality and feature decisions, in batches, after the bug fixes, regressions, ideas and visual improvements are done.”",
-          "ref": "S27-677",
           "date": "2026-10-21"
         },
         {
@@ -2585,7 +2561,6 @@
         },
         {
           "label": "Independent adversarial design critiques; a passing suite does not establish design quality",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -2594,7 +2569,7 @@
           "date": "2026-10-04"
         }
       ],
-      "conflicts": "Partly settled by DEL-68, INT-67, DEL-71 and DEL-81: reviews are required, a review agent judges visual and motion quality, adversarial reviews run per `pre-prod` batch, not at `prod`, and Opus runs the checker and the adversarial reviews. Whether a negative verdict also holds a batch back from `pre-prod`, or a candidate from `prod`, is open; this card makes verdicts advisory everywhere and shows each in the before-and-after report. This card's title predates those answers. S27-616 asked for independent adversarial design critiques with revisions, and the current orchestrator routes changes through `richview_sub_review`. Daniel's DEL-81 answer (later) lets steps, tiers, hooks, reviews and thresholds change when they slow development, while his DEL-68 answer says no agent removes or skips a step of the process. How the two fit is open for Daniel; until he decides, a change to a step is recorded with its reason in the PR that makes it."
+      "conflicts": "Partly settled by DEL-68, INT-67, DEL-71 and DEL-81: reviews are required, a review agent judges visual and motion quality, adversarial reviews run per `pre-prod` batch, not at `prod`, and Opus runs the checker and the adversarial reviews. Whether a negative verdict also holds a batch back from `pre-prod`, or a candidate from `prod`, is open; this card makes verdicts advisory everywhere and shows each in the before-and-after report. This card's title predates those answers. The design-and-hosting brief asked for independent adversarial design critiques with revisions, and the current orchestrator routes changes through `richview_sub_review`. Daniel's DEL-81 answer (later) lets steps, tiers, hooks, reviews and thresholds change when they slow development, while his DEL-68 answer says no agent removes or skips a step of the process. How the two fit is open for Daniel; until he decides, a change to a step is recorded with its reason in the PR that makes it."
     },
     {
       "id": "DEL-36",
@@ -2925,7 +2900,7 @@
         },
         {
           "label": "One source snapshot, one build slot, one retained result; receipts identify source tree and artifact hashes",
-          "ref": "origin/feat/s27-652-development-harness:docs/development-harness.md",
+          "ref": "PR #68: docs/development-harness.md",
           "date": "2026-10-18"
         },
         {
@@ -2975,7 +2950,7 @@
       "sources": [
         {
           "label": "PR #70 merged into `main` as merge commit 97ac0d0 on 2026-10-26; its branch has no commits outside `main`, and `main` now holds `publications/news/`, `cloudflare/publish/` and `publish.yml`",
-          "ref": "git log origin/main; git rev-list --count origin/main..origin/feat/s27-655-richview-publish (0)",
+          "ref": "git log origin/main; git rev-list --count origin/main..3f5c35f (0)",
           "date": "2026-10-26"
         },
         {
@@ -3025,7 +3000,7 @@
         },
         {
           "label": "richview-chart.yml exists only on one stale branch",
-          "ref": "origin/veceda/s27-572-build-a-new-rust-charting-library-and-exceptional-time:.github/workflows/richview-chart.yml:3-9",
+          "ref": ".github/workflows/richview-chart.yml:3-9 (stale branch)",
           "date": "2026-10-03"
         },
         {
@@ -3086,7 +3061,6 @@
         },
         {
           "label": "One deployment owner per batch with a rollback target and an exact source and version receipt",
-          "ref": "S27-653",
           "date": "2026-10-18"
         },
         {
@@ -3120,7 +3094,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "From 2026-10-04 to 2026-10-18 tasks held scoped deploy authority and deployed from unmerged branches (S27-647, S27-653, S27-655); PR #69's own checklist leaves its deploy unchecked while richview.ai serves it. FEA-SF-46 follows this card: its route check runs on the loopback site in the dev gate and on the live routes after each deploy. Daniel's INT-31 answer adds two RichView-run targets this table now lists: managed hosting for large data and media, and News on the rewrite's Publish. OPN-01 leaves deploys after the baseline to this card, under which legacy hotfixes deploy from `main` until the first rewrite deploy."
+      "conflicts": "From 2026-10-04 to 2026-10-18 tasks held scoped deploy authority and deployed from unmerged branches; PR #69's own checklist leaves its deploy unchecked while richview.ai serves it. FEA-SF-46 follows this card: its route check runs on the loopback site in the dev gate and on the live routes after each deploy. Daniel's INT-31 answer adds two RichView-run targets this table now lists: managed hosting for large data and media, and News on the rewrite's Publish. OPN-01 leaves deploys after the baseline to this card, under which legacy hotfixes deploy from `main` until the first rewrite deploy."
     },
     {
       "id": "DEL-41",
@@ -3206,7 +3180,7 @@
         },
         {
           "label": "Worktree isolation, file claims, shared build helper",
-          "ref": "docs/lockdown/evidence/linear.md",
+          "ref": "the Linear evidence (not published)",
           "date": "2026-10-21"
         },
         {
@@ -3290,7 +3264,7 @@
         },
         {
           "label": "Shared build helper: one lock, two Cargo jobs, 5 GiB disk floor",
-          "ref": "docs/lockdown/evidence/linear.md",
+          "ref": "the Linear evidence (not published)",
           "date": "2026-10-21"
         }
       ],
@@ -3304,7 +3278,7 @@
       "group": "Parallel agents and Linear",
       "title": "Linear tracking",
       "question": "How does Linear reflect work that merges without review?",
-      "why": "Linear lagged the code by weeks: eleven issues whose PRs merged still say To Review, and five implemented ones sit in Brain Dump. `Fixes` is a closing word for Linear's GitHub integration; the integration is not linking RichView PRs today (S27-590 and S27-653 carry no PR attachments), but once connected it would close design and feature issues on merge, before your answer.",
+      "why": "Linear lagged the code by weeks: eleven issues whose PRs merged still say To Review, and five implemented ones sit in Brain Dump. `Fixes` is a closing word for Linear's GitHub integration; the integration is not linking RichView PRs today (the coming-soon homepage and site-round issues carry no PR attachments), but once connected it would close design and feature issues on merge, before your answer.",
       "proposed": "Every PR, and every commit that lands in `dev`, names one RichView issue with `Refs S27-<n>`, a non-closing reference (AGENTS.md); the release run reports a merge without one and the audit (DEL-38) fails on it. The release run's tool, not an integration, sets issue states. If Linear's GitHub integration is connected later, its on-merge automation stays off for RichView, because the issue ID in each task branch name links the PR too. Rewrite issues come from accepted lockdown items and packet answers (D-LINEAR-STATE), and agents also open an issue for each bug or regression they find, linked to the accepted item it violates. An issue moves to Working on when an agent starts it. When the release run takes the merge into `pre-prod`, its tool moves the issue to Done for `decision: none`, or to To Review for a design or feature decision. Daniel's packet answer then moves it to Done on accept, back to Que on edit, to Waiting on defer and to Nah on reject, after the revert. Each packet has its own issue listing what the `prod` merge shipped.\n\nOpen: how commits and PRs reference work once the source is public: the Linear board stays private, so `Refs S27-<n>` then points nowhere for outside readers (DEL-03, INT-38).",
       "confidence": "inferred",
       "sources": [
@@ -3325,7 +3299,7 @@
         },
         {
           "label": "Linear lags the code; PRs name their issue",
-          "ref": "docs/lockdown/evidence/linear.md",
+          "ref": "the Linear evidence (not published)",
           "date": "2026-10-21"
         },
         {
@@ -3335,17 +3309,16 @@
         },
         {
           "label": "Closing magic words (fix, fixes, close, resolve, complete, implement…) apply the on-merge status; non-closing ones (ref, refs, references, part of…) do not; an issue ID in the branch name also links a PR",
-          "ref": "https://linear.app/docs/github",
+          "ref": "Linear documentation: GitHub integration",
           "date": "2026-10-22"
         },
         {
-          "label": "No PR attachments on S27-590 or S27-653",
-          "ref": "Linear get_issue S27-590, S27-653",
+          "label": "No PR attachments on the coming-soon homepage or site-round issues",
+          "ref": "Linear get_issue on both issues",
           "date": "2026-10-22"
         },
         {
           "label": "Earlier briefs asked for `Fixes <ISSUE-ID>`",
-          "ref": "S27-652",
           "date": "2026-10-18"
         }
       ]
@@ -3638,7 +3611,7 @@
         },
         {
           "label": "“Use the previous deployed version for an authorized rollback”",
-          "ref": "origin/feat/s27-652-development-harness:docs/development-harness.md",
+          "ref": "PR #68: docs/development-harness.md",
           "date": "2026-10-18"
         }
       ]
@@ -4471,6 +4444,62 @@
         }
       ],
       "conflicts": "During prelaunch only, supersedes the earlier no-rerun/no-skipped-step requirements. No accepted answer is edited. Engine redundancy remains evidence for a later approved rotation decision, never automatic engine retirement. Timing sample completeness for the initial list is being ruled on by the lead; unknown costs cannot silently enable rotation."
+    },
+    {
+      "id": "DEL-83",
+      "kind": "rule",
+      "importance": "key",
+      "refId": "G-RELEASE-ONE-GO",
+      "group": "Prod review",
+      "title": "One go, one release command, checks before deploying, independent parts",
+      "question": "When Daniel gives his go for a candidate, how many gos and commands does the release take, when do the live checks run, and what does one part's failure do to the other parts?",
+      "why": "Release 31 (candidate/33) ran its parts one at a time, each with its own words file, and the first failure stopped every later part. On 26 Nov 2026 at about 01:20 the live comparison of richview.ai failed on one of 1,174 routes: `/docs/example/Rendered/publisher.html`, which Cloudflare answers with a 307 to the page without the extension. app.richview.ai was never updated although nothing was wrong with it. The route was wrong before the deploy, but nothing before the deploy asked the edge's rules about it, and one go and one command per part made every failure cost a restart.",
+      "proposed": "A candidate is released by one go, one command, checks that run before anything is deployed, and parts that stand alone.\n\n- **One go.** A single go of Daniel's for a candidate covers every part it names: the Windows walk, the `prod` merge, richview.ai, app.richview.ai, and the public source with the GitHub release. The release command composes the go as one sentence from the evidence (the candidate, its full receipt, the build manifest, the review packet, the dry run, the versions it replaces and the parts it covers and leaves out); the lead reads it to Daniel, and his dated yes to that sentence is the go. A go can still leave a part out, as Daniel left out the public release for release 31. There is no second go for a part the first names, and no part runs that the go leaves out. The go stays Daniel's own words (DEL-04, DEL-05), and the merge command still refuses any tree but the candidate's.\n- **One command, a fixed order.** One command takes that go and runs the parts in this order: Windows walk, `prod` merge, richview.ai, app.richview.ai, public source and release. Before a part's first outward step the command has that part's rollback ready and prints it: the command, what it restores and whose words it needs.\n- **Checks before deploying.** Every live check that can run before a deploy runs first, against the staged build: the staged site, served the way the edge serves it, and the staged hosted build. A failure refuses the deploy of the part it belongs to with nothing changed. A check that cannot run is reported as not run, never as passed. The refusal of `.html` routes (c6a1d0142) is the first of these checks.\n- **Independent parts.** A failure stops and rolls back only its own part. A later part that does not need the failed one still runs; a part that does need it is skipped and named as skipped. richview.ai and app.richview.ai never need each other. Both need the `prod` merge, and the `prod` merge needs the Windows walk (ARC-67). The public source and release need the `prod` merge and the Windows build of the public archive, and neither of the two hosted parts. The command ends with a report that lists each part's outcome: passed, refused before deploy, failed and rolled back, failed and left in place, skipped and why, or left out by the go.\n- **What does not change.** Safety, data truth and the `prod` gate stay binding (DEL-04, DEL-71, DEL-81): `prod` moves only by `rv-gate merge-prod` on the candidate's full receipt and Daniel's go. No check is weakened: the cost guard and the Windows ceiling, the sign-up pause and reopen, the data snapshot, the checks after a deploy and every existing check stay, and each part keeps its own stop, rollback and journal. A part rolls back to what it replaced when its own checks after the deploy fail, as DEL-48 allows; a rollback DEL-48 does not allow waits for Daniel's words, with its command ready.",
+      "options": [
+        {
+          "label": "One go, one command, early checks, independent parts",
+          "detail": "Daniel's proposal of 26 Nov 2026. A check bug or a failure in one part no longer blocks the others, every check that can run early does, and one sentence of his covers the release; the cost is one larger sentence to read and a tool that tracks a journal for each part."
+        },
+        {
+          "label": "As release 31 ran it",
+          "detail": "One go and one words file for each part, one command for each step, and the first failure stops every later part; every failure costs a restart, and a bug in one part's check holds back parts that are fine."
+        }
+      ],
+      "recommendation": "One go, one command, early checks, independent parts: Daniel's proposal, which he agreed to in full.",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "Daniel, replying to the lead's proposal to restructure the release as one go and one command, checks before deploying, and independent parts: “i agree on all points, note it down in the richview lockdown, also, have agent bringing my richview lockdown decision to the app thanks”",
+          "ref": "Daniel, lead pane",
+          "date": "2026-11-26"
+        },
+        {
+          "label": "Release 31's first failure stopped every later part: the live comparison failed on one route, `/docs/example/Rendered/publisher.html`, a 307 to the page without `.html`",
+          "ref": "tmp/team/launch/d16/launch/release-31/go-record-2c220f59/lead-notes.txt (primary checkout, not committed)",
+          "date": "2026-11-26"
+        },
+        {
+          "label": "The first check that runs before the deploy: `.html` routes are refused by `routes.rs`, `verifySiteBuild` and `verify-site.mjs`",
+          "ref": "c6a1d0142",
+          "date": "2026-11-26"
+        },
+        {
+          "label": "Daniel's DEL-04 answer: only he moves `prod`, on the candidate's tree",
+          "ref": "DEL-04",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "Rollback to the previous deployment when the checks after a deploy fail",
+          "ref": "DEL-48",
+          "date": "2026-10-21"
+        },
+        {
+          "label": "The tests behind his go, and the smoke checks after each deploy",
+          "ref": "DEL-71",
+          "date": "2026-10-27"
+        }
+      ],
+      "conflicts": "DEL-40's answer, \"Deploy on a separate go in the packet\", and DEL-05's \"Daniel's go on a packet's deploy card authorizes exactly the deploy it names\" meant one go for each deploy; here one go names every part it covers and authorizes exactly those parts. DEL-71's smoke checks after each deploy stay, and the checks that can run before are added to them. DEL-04, DEL-48 and DEL-81 stand. No accepted answer is edited."
     }
   ]
 }

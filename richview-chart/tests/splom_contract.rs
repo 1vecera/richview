@@ -1,7 +1,7 @@
 //! Scatterplot matrices: a cell for every pair of fields, points below the diagonal, field names on
 //! it, computed correlations above it, and the failures that name their cause (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::Level;

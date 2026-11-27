@@ -1,7 +1,7 @@
 //! Lollipop charts: stems from zero, dots at the value, groups side by side, signs, orientation
 //! and the contract every type shares (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Item, Role};

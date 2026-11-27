@@ -1,9 +1,9 @@
-//! Pie and donut names beside their slices (FEA-CH-08, S27-1017): each complete name and share
+//! Pie and donut names beside their slices (FEA-CH-08): each complete name and share
 //! stands at its slice's middle just outside the disk, without a leader, a constant 12 px from the
 //! rim; when any name would meet the disk, another name or the panel's edge, or would have to leave
 //! its slice, the whole chart takes the key instead, never a mixed view.
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::block::ChartBlock;

@@ -257,7 +257,7 @@ pub fn build_with_connectors(
         }
         let folder = fs::canonicalize(entry.path()).map_err(|e| e.to_string())?;
         let path = contained(&folder, "report.rmd")?;
-        let source = text(&path)?;
+        let source = richview_app::cli::read_source(&path)?;
         let doc = richview_core::document::parse(&source)
             .map_err(|d| serde_json::to_string(&d).unwrap())?;
         let title = doc.frontmatter["title"]
@@ -315,23 +315,6 @@ pub fn build_with_connectors(
         }
         let mut assets = BTreeMap::new();
         let mut cover_lead = richview_share::Lead::None;
-        // A remote cover is hotlinked by the reader's browser: never read or fetched here.
-        if let Some(cover) = meta.cover.as_ref().filter(|c| !cover::is_remote(c)) {
-            let cover_path = contained(&folder, cover)?;
-            let mime = match cover_path.extension().and_then(|e| e.to_str()) {
-                Some("svg") => "image/svg+xml",
-                Some("png") => "image/png",
-                Some("jpg" | "jpeg") => "image/jpeg",
-                Some("webp") => "image/webp",
-                _ => return Err("Cover must be SVG, PNG, JPEG or WebP".into()),
-            };
-            let bytes = read(&cover_path)?;
-            cover_lead = richview_share::Lead::Cover {
-                bytes: bytes.clone(),
-                mime: mime.into(),
-            };
-            assets.insert("cover".into(), put(bytes, mime, &mut objects, &mut data)?);
-        }
         let mut thumbnail = None;
         let chart_svg: Option<String>;
         let company: richview_core::CompanyBrand;
@@ -357,7 +340,7 @@ pub fn build_with_connectors(
             } else {
                 None
             };
-            let (doc, mut options) = richview_app::resolver::resolve_document_options_full(
+            let (doc, mut options, mut inputs) = richview_app::resolver::resolve_version(
                 &source,
                 &path,
                 &[],
@@ -365,6 +348,26 @@ pub fn build_with_connectors(
                 false,
                 registry.as_ref(),
             )?;
+            // A remote cover is hotlinked by the reader's browser: never read or fetched here.
+            if let Some(cover) = meta.cover.as_ref().filter(|c| !cover::is_remote(c)) {
+                let cover_path = contained(&folder, cover)?;
+                let mime = match cover_path.extension().and_then(|e| e.to_str()) {
+                    Some("svg") => "image/svg+xml",
+                    Some("png") => "image/png",
+                    Some("jpg" | "jpeg") => "image/jpeg",
+                    Some("webp") => "image/webp",
+                    _ => return Err("Cover must be SVG, PNG, JPEG or WebP".into()),
+                };
+                let bytes = inputs.attachment(&folder, cover)?;
+                cover_lead = richview_share::Lead::Cover {
+                    bytes: bytes.as_ref().clone(),
+                    mime: mime.into(),
+                };
+                assets.insert(
+                    "cover".into(),
+                    put(bytes.as_ref().clone(), mime, &mut objects, &mut data)?,
+                );
+            }
             options.source = Some("report.rmd".into());
             if let Some(folder) = options.report_folder.as_mut() {
                 folder.root = meta.id.clone();
@@ -382,14 +385,16 @@ pub fn build_with_connectors(
                 ));
             }
             // Linked downloads retain per-item authorization, just like inline media and data.
-            for resource in richview_core::document::report_resources(&doc)
-                .into_iter()
-                .filter(|r| r.kind == "link")
-            {
-                let bytes = read(&contained(&folder, &resource.path)?)?;
+            for reference in richview_app::resolver::linked_paths(&doc) {
+                let bytes = inputs.attachment(&folder, &reference)?;
                 assets.insert(
-                    resource.path,
-                    put(bytes, "application/octet-stream", &mut objects, &mut data)?,
+                    reference,
+                    put(
+                        bytes.as_ref().clone(),
+                        "application/octet-stream",
+                        &mut objects,
+                        &mut data,
+                    )?,
                 );
             }
             // The first chart doubles as the front-page lead visual: a standalone, self-styled

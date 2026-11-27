@@ -213,6 +213,12 @@ pub(crate) fn markdown_html(
     let mut before: Option<char> = None;
     let mut table = Table::default();
     let newlines: Vec<usize> = source.match_indices('\n').map(|(i, _)| i).collect();
+    // The folder's file names, built when the first link or image asks and then looked up.
+    let inventory = std::cell::OnceCell::new();
+    // Where the last column was counted to: its line's start, the byte reached and the characters
+    // from the start to it. Findings come in source order, so a line with thousands of them is
+    // counted once and not once for each.
+    let counted = std::cell::Cell::new((0usize, 0usize, 0usize));
     // The diagnostic for a position `offset` bytes into the string. Its column counts the
     // characters before it on its line, less the backslashes the currency escape added.
     let at = |diagnostic: Diagnostic, offset: usize| {
@@ -223,14 +229,21 @@ pub(crate) fn markdown_html(
             diagnostic.tag = Some("markdown".into());
             if context.columns {
                 let start = index.checked_sub(1).map_or(0, |i| newlines[i] + 1);
-                let added = escapes
-                    .iter()
-                    .filter(|e| (start..offset).contains(e))
-                    .count();
-                let before = source[start..]
-                    .char_indices()
-                    .take_while(|&(i, _)| start + i < offset)
-                    .count();
+                // The escapes are in rising order.
+                let added = escapes.partition_point(|&e| e < offset)
+                    - escapes.partition_point(|&e| e < start);
+                let (from_line, from, chars) = counted.get();
+                let (from, chars) = if from_line == start && from <= offset {
+                    (from, chars)
+                } else {
+                    (start, 0)
+                };
+                let before = chars
+                    + source[from..]
+                        .char_indices()
+                        .take_while(|&(i, _)| from + i < offset)
+                        .count();
+                counted.set((start, offset, before));
                 diagnostic.column = Some(before - added + 1);
             }
         }
@@ -427,7 +440,11 @@ pub(crate) fn markdown_html(
                 let file_problem = crate::folder::link_file(link_type, &dest_url)
                     .filter(|_| !dest_url.starts_with("//"))
                     .and_then(|path| {
-                        crate::folder::asset_problem(options.report_folder.as_ref(), path)
+                        crate::folder::asset_problem_in(
+                            options.report_folder.as_ref(),
+                            &inventory,
+                            path,
+                        )
                     });
                 if let Some((code, message)) = file_problem {
                     // FEA-RP-30 and FEA-RP-15: a link to a file the folder lacks, or outside it,
@@ -504,9 +521,11 @@ pub(crate) fn markdown_html(
                     ));
                     continue;
                 }
-                if let Some((code, message)) =
-                    crate::folder::asset_problem(options.report_folder.as_ref(), &dest_url)
-                {
+                if let Some((code, message)) = crate::folder::asset_problem_in(
+                    options.report_folder.as_ref(),
+                    &inventory,
+                    &dest_url,
+                ) {
                     // FEA-RP-30: a file the folder lacks or that lies outside it fails only this
                     // image; the alt text stays.
                     kept_images.push(false);

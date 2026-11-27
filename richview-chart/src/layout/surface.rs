@@ -339,7 +339,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
     let (ay, ly) = project3d::linear_axis(ctx, y_range, Zero::None, edge, &label_y, title(&block.y.label, &yf));
     let (az, lz) = project3d::linear_axis(ctx, z_range, Zero::None, edge, &label_z, title(&block.color.label, &zf));
     let axes: [Axis3; 3] = [ax, ay, az];
-    let scene = project3d::fit(ctx, View::of(block), &axes, inner, 0.0);
+    let scene = project3d::fit(ctx, View::of(ctx), &axes, inner, 0.0);
     let boxed = project3d::draw_box(ctx, &scene, &axes, Some(figure));
     for (text, reason, rect) in boxed.dropped {
         ctx.drop_label(&text, reason, "axis label", Some(rect));

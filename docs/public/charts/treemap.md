@@ -59,5 +59,5 @@ axes:
 
 ## Interactions
 
-- Hover or focus a rectangle to read its value and its share of the whole; the pointer picks the rectangle it is inside.
+- Hover or focus a rectangle to read its value and its share of the whole; the pointer picks the rectangle it is inside and a dark outline traces it.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

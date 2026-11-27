@@ -58,6 +58,6 @@ axes:
 
 ## Interactions
 
-- Hover or focus a circle or an overlap to read its size and the share of each set.
+- Hover or focus a circle or an overlap to read its size and the share of each set; a dark outline traces the region under the pointer.
 - Click a legend entry to remove a set and back.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

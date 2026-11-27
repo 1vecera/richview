@@ -13,7 +13,7 @@
       "group": "Identity and brand",
       "title": "One brand, five report voices",
       "question": "Is RichView's look one house identity, or a brand layer over a family of distinct report styles?",
-      "why": "Every other card in this part depends on it. June produced one house identity in two versions: the 2026-06-09 note, \"The Economist meets Linear\" (warm sand at hue 40, one indigo accent, Inter with Geist Mono), and the 2026-06-20 study, which kept warm paper and indigo 277, chose Newsreader with IBM Plex Mono and rejected the phrase as a vibe. Daniel's 2026-06-21 brief then asked for templates that each have a \"different font, main accent\", and S27-616 for five distinct identities. The house identity still lives in the base stylesheet's fallbacks, the legal pages' tokens, the showcase snapshot and the July `CLAUDE.md` in the primary checkout.",
+      "why": "Every other card in this part depends on it. June produced one house identity in two versions: the 2026-06-09 note, \"The Economist meets Linear\" (warm sand at hue 40, one indigo accent, Inter with Geist Mono), and the 2026-06-20 study, which kept warm paper and indigo 277, chose Newsreader with IBM Plex Mono and rejected the phrase as a vibe. Daniel's 2026-06-21 brief then asked for templates that each have a \"different font, main accent\", and the design-and-hosting brief for five distinct identities. The house identity still lives in the base stylesheet's fallbacks, the legal pages' tokens, the showcase snapshot and the July `CLAUDE.md` in the primary checkout.",
       "proposed": "RichView has one brand layer — the name, the mark, the brand blue `#1A6DAC` and the site's paper-and-ink look — over five report styles, each a complete voice with its own faces, colours, type scale and marks. Inside a report the name and mark appear only in the colophon (STY-04); Scientific's accent is the brand blue (STY-02), as that style's colour rather than a brand badge. The June house identity is retired: its warm-sand and indigo fallbacks, legal-page tokens and showcase snapshot are deleted (STY-05, STY-17, STY-46).",
       "options": [
         {
@@ -35,7 +35,6 @@
         },
         {
           "label": "\"Five distinctive, coherent identities with restrained, purposeful detail\"",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -79,7 +78,7 @@
       "group": "Identity and brand",
       "title": "Brand blue and style accents",
       "question": "Which blue is RichView's own, and which accent does each style use?",
-      "why": "S27-404 calls the TypeScript-era indigo a drift from the original `#1A6DAC`. Daniel's June brief asked for three blues, one per template, with Paper (today's Scientific) on the original blue. The builtins took the research digest's blues instead, so Scientific ships `#1B6F9E`, about ΔE×100 2.5 from the brand blue, and no report style uses `#1A6DAC`. Indigo survives in base and chart fallbacks.",
+      "why": "The brand-colour issue calls the TypeScript-era indigo a drift from the original `#1A6DAC`. Daniel's June brief asked for three blues, one per template, with Paper (today's Scientific) on the original blue. The builtins took the research digest's blues instead, so Scientific ships `#1B6F9E`, about ΔE×100 2.5 from the brand blue, and no report style uses `#1A6DAC`. Indigo survives in base and chart fallbacks.",
       "proposed": "| Where | Colour |\n| --- | --- |\n| Mark, site links and buttons, share images | brand blue `#1A6DAC`, `oklch(0.5196 0.1248 247.06)` |\n| Sleek | electric blue `#195BFF`, `oklch(0.5464 0.2508 263.51)`; links in `oklch(0.70 0.16 264)` |\n| Air | a shade of the brand blue distinct from Sleek's, chosen in STY-10's design review (today `#195BFF`, shared with Sleek) |\n| Scientific | the brand blue |\n| Brutalist | deep blue `#124A8C`, `oklch(0.4128 0.1233 255.65)` |\n| Hand-drawn | red pencil `oklch(0.52 0.174 31)` or ink only, decided in STY-55; its wordmark still takes a blue shade |\n\nNo accent is indigo. Clay `#C4613F` stays a data colour on the site, never a brand colour.\n\nEach style carries the brand blue in a shade of its own (Daniel's STY-01 answer), and its wordmark takes that shade (STY-03, STY-04); the blues above are those shades. Sleek and Air share `#195BFF` today, so Air's design review (STY-10) gives it a distinct shade, and Hand-drawn, whose accent is red pencil or ink (STY-55), still takes a blue shade for its wordmark.",
       "options": [
         {
@@ -110,7 +109,6 @@
         },
         {
           "label": "Canonical accent `#1A6DAC` from the original product; v3's indigo called \"a drift\"",
-          "ref": "S27-404",
           "date": "2026-06-20"
         },
         {
@@ -149,7 +147,7 @@
           "date": "2026-10-16"
         }
       ],
-      "conflicts": "The June study chose indigo 277 over `#1A6DAC` on the same day S27-404 reversed it. Hand-drawn's red breaks the June rule that every accent is blue, and S27-616 asked for \"predominantly black and white\" with no accent named; STY-55 decides it.",
+      "conflicts": "The June study chose indigo 277 over `#1A6DAC` on the same day the brand-colour issue reversed it. Hand-drawn's red breaks the June rule that every accent is blue, and the design-and-hosting brief asked for \"predominantly black and white\" with no accent named; STY-55 decides it.",
       "images": [
         "docs/lockdown/screenshots/live/richview-home-desktop-01-hero.jpg",
         "docs/lockdown/screenshots/styles-design/builtin-scientific-1440.png"
@@ -259,7 +257,7 @@
       "group": "Catalogue and default",
       "title": "Exactly five styles",
       "question": "Which styles exist: the five builtins only, or also the 20 studio variants and the showcase's own versions of three of them?",
-      "why": "Three catalogues coexist. Core has five builtins under six names. The flagship showcase offers 23 treatments from a TypeScript-era stylesheet snapshot (\"snapshot c617606\"): Sleek, Scientific and Brutalist drawn differently from core (filled stat cards, callout side bars, mono stats at 2.5 rem, 62–66ch measures) plus 20 June studio variants, and no Sleek Light or Hand-drawn. Recomputed under today's neighbour rule, 16 of the 23 showcase palettes fail; only Sleek, v01, v02, v03, v07, v08 and v20 pass. Daniel's requests on extra styles changed twice: S27-594 (2026-10-05) asked for a dropdown of other themes, the 2026-10-12 feedback applied in PR #58 listed five themes with no dropdown, and S27-654 (2026-10-18) asked again for \"Other styles\".",
+      "why": "Three catalogues coexist. Core has five builtins under six names. The flagship showcase offers 23 treatments from a TypeScript-era stylesheet snapshot (\"snapshot c617606\"): Sleek, Scientific and Brutalist drawn differently from core (filled stat cards, callout side bars, mono stats at 2.5 rem, 62–66ch measures) plus 20 June studio variants, and no Sleek Light or Hand-drawn. Recomputed under today's neighbour rule, 16 of the 23 showcase palettes fail; only Sleek, v01, v02, v03, v07, v08 and v20 pass. Daniel's requests on extra styles changed twice: the homepage-motion brief (2026-10-05) asked for a dropdown of other themes, the 2026-10-12 feedback applied in PR #58 listed five themes with no dropdown, and the chart-polish brief (2026-10-18) asked again for \"Other styles\".",
       "proposed": "RichView has exactly five styles: Sleek Dark, Sleek Light, Scientific, Brutalist and Hand-drawn. Every surface — CLI, MCP, playground, landing demo, docs and the flagship page — offers these five and renders them with the core styles. The 20 studio variants and the showcase's stylesheet snapshot (`assets/showcase/themes.css`, `themes.json`) are deleted; the design-system repository keeps them as history, and its `.rvstyle.yaml` export format is not adopted (TYP-93). The showcase-only chart keys leave with the snapshot: `dashes` and `symbols` (per-series line dashes and marker shapes) come from the decal rule (FEA-CH-57), and `measures` (a second colour set for non-company series) from the one palette. Whether a style pairs light and dark is STY-20's. A sixth style is added through a decision card in the review packet (DEL-06).",
       "options": [
         {
@@ -268,14 +266,14 @@
         },
         {
           "label": "Five plus the studio variants under \"Other styles\"",
-          "detail": "What S27-654 asked for on 2026-10-18; 20 treatments to port into core, retune against the palette rule and maintain."
+          "detail": "What the chart-polish brief asked for on 2026-10-18; 20 treatments to port into core, retune against the palette rule and maintain."
         },
         {
           "label": "Five plus a few rebuilt variants",
           "detail": "Daniel names which (v04 \"Original, Lamplight\" is the only dark one); each becomes a full builtin with its own review."
         }
       ],
-      "recommendation": "Five builtins only. This reverses S27-654's \"Other styles\" dropdown and returns to the 2026-10-12 call for five themes and no dropdown: every other part assumes five, each variant would need the porting, palette retuning and review the five took, and 16 of the 23 showcase palettes fail today's rule.",
+      "recommendation": "Five builtins only. This reverses the chart-polish brief's \"Other styles\" dropdown and returns to the 2026-10-12 call for five themes and no dropdown: every other part assumes five, each variant would need the porting, palette retuning and review the five took, and 16 of the 23 showcase palettes fail today's rule.",
       "confidence": "inferred",
       "sources": [
         {
@@ -295,7 +293,6 @@
         },
         {
           "label": "\"Expose all five basic styles at the top of the style selector; place additional styles behind an Other styles dropdown\"",
-          "ref": "S27-654",
           "date": "2026-10-18"
         },
         {
@@ -314,8 +311,7 @@
           "date": "2026-10-13"
         },
         {
-          "label": "S27-594 asked for Scientific and Brutalist controls and \"an accessible dropdown\" for any additional themes",
-          "ref": "S27-594",
+          "label": "The homepage-motion brief asked for Scientific and Brutalist controls and \"an accessible dropdown\" for any additional themes",
           "date": "2026-10-05"
         },
         {
@@ -324,7 +320,7 @@
           "date": "2026-10-16"
         }
       ],
-      "conflicts": "S27-654 asks for an \"Other styles\" dropdown, which presumes extra treatments, and S27-573 (2026-10-02) left the studio variants' fate to Daniel. If this is accepted, FEA-BR-17's dropdown has nothing to hold.",
+      "conflicts": "The chart-polish brief asks for an \"Other styles\" dropdown, which presumes extra treatments, and the flagship-repair issue (2026-10-02) left the studio variants' fate to Daniel. If this is accepted, FEA-BR-17's dropdown has nothing to hold.",
       "images": [
         "docs/lockdown/screenshots/product/showcase/showcase-style-drawer-desktop.jpg",
         "docs/lockdown/screenshots/product/showcase/showcase-sleek-desktop-viewport.jpg",
@@ -339,7 +335,7 @@
       "group": "Catalogue and default",
       "title": "The default style",
       "question": "Which style does a report get when it names none, and which style do `init`, the playground, the landing demo and the flagship page start in?",
-      "why": "The surfaces disagree. Core renders Brutalist without `styles`, `richview init` writes `styles: [sleek]`, the showcase opens in Scientific, seven of nine examples pin Scientific, and the landing demo opens in Sleek. Daniel's June brief made Brutalist the default (\"it has most of the soul\"); S27-594 (2026-10-05) asked the landing demo to \"Default to the actual Sleek treatment\", and S27-616 (2026-10-10) named Sleek dark the default theme.",
+      "why": "The surfaces disagree. Core renders Brutalist without `styles`, `richview init` writes `styles: [sleek]`, the showcase opens in Scientific, seven of nine examples pin Scientific, and the landing demo opens in Sleek. Daniel's June brief made Brutalist the default (\"it has most of the soul\"); the homepage-motion brief (2026-10-05) asked the landing demo to \"Default to the actual Sleek treatment\", and the design-and-hosting brief (2026-10-10) named Sleek dark the default theme.",
       "proposed": "Sleek Dark is the default everywhere. A report without `styles` renders in it, `init` writes `styles: [sleek-dark]`, and the playground, landing demo and flagship page open in it. Print and PDF use its light counterpart (STY-21).",
       "options": [
         {
@@ -355,7 +351,7 @@
           "detail": "What the showcase and most examples use today; the calmest choice for dense evidence."
         }
       ],
-      "recommendation": "Sleek Dark: S27-616 (2026-10-10) is Daniel's most recent explicit choice for reports, and the landing demo already starts there (S27-594).",
+      "recommendation": "Sleek Dark: the design-and-hosting brief (2026-10-10) is Daniel's most recent explicit choice for reports, and the landing demo already starts there.",
       "confidence": "stated",
       "sources": [
         {
@@ -380,12 +376,10 @@
         },
         {
           "label": "\"Default to the actual Sleek treatment\" for the landing demo's editor, with Scientific and Brutalist as further theme controls",
-          "ref": "S27-594",
           "date": "2026-10-05"
         },
         {
           "label": "Sleek dark, the default: \"Calm, precise, polished dark presentation with disciplined contrast and depth\"",
-          "ref": "S27-616",
           "date": "2026-10-10"
         }
       ],
@@ -444,7 +438,7 @@
           "date": "2026-10-16"
         }
       ],
-      "conflicts": "The live landing labels the pills \"Sleek\" and \"Sleek Light\"; S27-616 says \"Sleek dark\"."
+      "conflicts": "The live landing labels the pills \"Sleek\" and \"Sleek Light\"; the design-and-hosting brief says \"Sleek dark\"."
     },
     {
       "id": "STY-08",
@@ -454,7 +448,7 @@
       "group": "Catalogue and default",
       "title": "How a style choice looks",
       "question": "How do style selectors present the five styles?",
-      "why": "FEA-BR-17 and FEA-SF-36 fix the order and behaviour of the pills; their look is open. The live landing demo sets three of its five labels in their style's display face (Sleek in Space Grotesk, BRUTALIST in Big Shoulders capitals, Scientific in its serif); Sleek Light and Hand-drawn fall back to the UI face. The pills sit in a bar with a 10 px backdrop blur and drop shadows; the showcase sets three faces the same way; the playground uses a plain select. S27-594 asked for \"beautiful floating theme controls\" and S27-647 for \"a prominent selector for all five identities\".",
+      "why": "FEA-BR-17 and FEA-SF-36 fix the order and behaviour of the pills; their look is open. The live landing demo sets three of its five labels in their style's display face (Sleek in Space Grotesk, BRUTALIST in Big Shoulders capitals, Scientific in its serif); Sleek Light and Hand-drawn fall back to the UI face. The pills sit in a bar with a 10 px backdrop blur and drop shadows; the showcase sets three faces the same way; the playground uses a plain select. The homepage-motion brief asked for \"beautiful floating theme controls\" and the galleries brief for \"a prominent selector for all five identities\".",
       "proposed": "Wherever a reader or author picks a style — flagship page, landing demo, playground — the five appear as one row of text pills in the order of STY-07, each label set in its own style's display face and case, Air and Hand-drawn included. The active pill is filled with the page's ink and marked with a check; the row is a keyboard radio group shown on first paint. With no pill chosen, the playground renders the styles its source declares (FEA-SF-34). The extended themes STY-05 keeps never join the row: only the flagship page offers them, in one secondary dropdown after the pills, closed by default (FEA-BR-17, ARC-41); no other surface has a `<select>`. The row is one opaque bar with a hairline and no blur, shadow or motion of its own; switching follows STY-43.",
       "confidence": "inferred",
       "sources": [
@@ -475,16 +469,14 @@
         },
         {
           "label": "A prominent selector for all five identities that restyles typography and charts",
-          "ref": "S27-647",
           "date": "2026-10-17"
         },
         {
           "label": "\"Offer Scientific and Brutalist as beautiful floating theme controls with understandable selected states and keyboard access\"",
-          "ref": "S27-594",
           "date": "2026-10-05"
         }
       ],
-      "conflicts": "S27-594 asked for \"beautiful floating theme controls\"; this card drops the bar's blur and shadows (STY-48), so the row floats only by its position and hairline.",
+      "conflicts": "The homepage-motion brief asked for \"beautiful floating theme controls\"; this card drops the bar's blur and shadows (STY-48), so the row floats only by its position and hairline.",
       "images": [
         "docs/lockdown/screenshots/live/richview-home-desktop-02-demo.jpg",
         "docs/lockdown/screenshots/product/showcase/showcase-brutalist-desktop-viewport.jpg"
@@ -498,7 +490,7 @@
       "group": "The five styles",
       "title": "Sleek",
       "question": "Is this what Sleek (today's Sleek Dark) is for and how it looks: its purpose, colours, faces, type scale, marks and charts?",
-      "why": "S27-616 makes it the default: \"Calm, precise, polished dark presentation with disciplined contrast and depth\". Daniel's June brief: \"based on LampLight - airy, large font, large gaps ... aims to Wow\". Lamplight (the showcase's v04, \"Original, Lamplight\") is a warm dark: surfaces at hue 60, Lora, line 1.85. The shipped Sleek Dark is cool, following the June research's \"blue-black/dark-grey surfaces\"; no Daniel decision chose cool, and S27-616 names no hue. The table is what ships at `b4db233`, with contrast recomputed on its page; the last line lists what other cards change.",
+      "why": "The design-and-hosting brief makes it the default: \"Calm, precise, polished dark presentation with disciplined contrast and depth\". Daniel's June brief: \"based on LampLight - airy, large font, large gaps ... aims to Wow\". Lamplight (the showcase's v04, \"Original, Lamplight\") is a warm dark: surfaces at hue 60, Lora, line 1.85. The shipped Sleek Dark is cool, following the June research's \"blue-black/dark-grey surfaces\"; no Daniel decision chose cool, and the design-and-hosting brief names no hue. The table is what ships at `b4db233`, with contrast recomputed on its page; the last line lists what other cards change.",
       "proposed": "| Part | Value |\n| --- | --- |\n| Purpose | Wow the reader: a calm, precise dark page for screens and presentations |\n| Page | cool grey `oklch(0.16 0.015 260)`, raised `0.205`, chart `0.19`; never pure black |\n| Ink | `oklch(0.95 0.005 260)` (16.8:1); soft `0.72` (7.8:1); faint `0.50` (3.2:1, 2.99:1 on the raised surface; marks only); chart text white |\n| Accent | `#195BFF` (3.7:1, marks only); links `oklch(0.70 0.16 264)` (7.1:1) |\n| Status | up, down, hold at 6.2 to 9.5:1; neutral 6.0:1 |\n| Faces | Space Grotesk 600 display; Geist 400, 400 italic and 600 for text and UI; Geist Mono 400 for data |\n| Scale | 15 / 18 / 22 / 27 / 36 / 44 px; line 1.65; measure 42rem (STY-30) |\n| Marks | metric under one hairline; callouts under a 1 px rule; upright deck; images and embeds rounded 12 px |\n| Charts | Sleek palette; bar ends rounded 3 px |\n\nChanges from other cards: phone `h1` 30 px (STY-26); faint ink raised to 3:1 on the raised surface and never used as text (STY-25); block gap 4 rem by default, about 1.7 times today's 37 px (STY-15, STY-31); readout without blur (STY-41); name `sleek` and label \"Sleek\" (STY-05, STY-07); the default style, printed as Air (STY-06, STY-21); its own design review, which also sets its structure: outlines or shading, legend position and chart-title position (STY-01).",
       "options": [
         {
@@ -510,7 +502,7 @@
           "detail": "Hue 60 surfaces and warm ink as in v04, line 1.85; closer to \"based on LampLight\" and the June study's warm dark; every Sleek token, the palette and the ramp are re-derived and rechecked."
         }
       ],
-      "recommendation": "Cool, as shipped: S27-616 asked to preserve the existing identities while improving them, and the research that chose Sleek's faces and blue chose blue-black surfaces with them.",
+      "recommendation": "Cool, as shipped: the design-and-hosting brief asked to preserve the existing identities while improving them, and the research that chose Sleek's faces and blue chose blue-black surfaces with them.",
       "confidence": "observed",
       "sources": [
         {
@@ -535,7 +527,6 @@
         },
         {
           "label": "\"Calm, precise, polished dark presentation with disciplined contrast and depth\"",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -569,7 +560,7 @@
       "group": "The five styles",
       "title": "Air",
       "question": "Is this what Air (today's Sleek Light) is for and how it looks: its purpose, colours, faces, type scale, marks and charts?",
-      "why": "S27-616 asks for \"an equally considered light treatment with clear hierarchy and comfortable reading\". It shares Sleek Dark's faces, scale and marks and is its paper counterpart. Values as shipped at `b4db233`.",
+      "why": "The design-and-hosting brief asks for \"an equally considered light treatment with clear hierarchy and comfortable reading\". It shares Sleek Dark's faces, scale and marks and is its paper counterpart. Values as shipped at `b4db233`.",
       "proposed": "| Part | Value |\n| --- | --- |\n| Purpose | Daylight reading and paper; the light style Sleek prints as |\n| Page | white; raised `oklch(0.9769 0.0109 274.9)`; chart white |\n| Ink | black; soft `oklch(0.3313 0.0195 260.65)` (12.2:1); faint `oklch(0.5456 0.0327 268.08)` (4.95:1) |\n| Accent and links | `#195BFF` (5.3:1) |\n| Status | up, down, hold at 4.98 to 5.34:1; neutral 3.25:1 |\n| Faces, scale, marks | as Sleek today |\n| Charts | Air palette (Sleek's hues, deepened for white); bar ends rounded 3 px |\n\nSleek prints as Air (STY-06, STY-21).\n\nChanges from other cards: phone `h1` 30 px (STY-26); `neutral` dropped or raised from 3.25:1 (3.03:1 raised) to 4.5:1 (STY-24); `accent-2`, 2.69:1 today, raised to 3:1 if it stays (STY-25, STY-54); block gap 4 rem by default (STY-15); name `air` and label \"Air\" (STY-05, STY-07); a shade of the brand blue distinct from Sleek's (STY-02); its own design review, which makes Air distinct from Sleek beyond colours and sets its structure: outlines or shading, legend position and chart-title position (STY-01).",
       "confidence": "observed",
       "sources": [
@@ -595,7 +586,6 @@
         },
         {
           "label": "\"An equally considered light treatment with clear hierarchy and comfortable reading\"",
-          "ref": "S27-616",
           "date": "2026-10-10"
         }
       ],
@@ -613,7 +603,7 @@
       "group": "The five styles",
       "title": "Scientific",
       "question": "Is this what Scientific is for and how it looks: its purpose, colours, faces, type scale, marks and charts?",
-      "why": "S27-616: \"Precise, restrained presentation that supports dense evidence, units, annotations and citations\". Daniel's June brief: \"based on working paper\", \"Communicate your findings confidently.\" Values as shipped at `b4db233`.",
+      "why": "The design-and-hosting brief: \"Precise, restrained presentation that supports dense evidence, units, annotations and citations\". Daniel's June brief: \"based on working paper\", \"Communicate your findings confidently.\" Values as shipped at `b4db233`.",
       "proposed": "| Part | Value |\n| --- | --- |\n| Purpose | Communicate findings confidently: a working paper for dense evidence, units and citations |\n| Page | warm paper `oklch(0.99 0.004 70)`, raised `0.975`, chart `0.985` |\n| Ink | `oklch(0.18 0.006 70)` (18.3:1); soft `0.42` (8.2:1); faint `0.62` (3.5:1, marks only) |\n| Accent | `#1B6F9E` today; the brand blue `#1A6DAC` under STY-02 (5.3:1) |\n| Status | up, down, hold at 4.84 to 6.83:1; neutral 4.69:1, 4.49:1 on the raised surface |\n| Faces | RichView Serif (Source Serif 4) 400, 400 italic and 600 for text and display; RichView Sans 400 and 600 for UI; RichView Code 400 for data |\n| Scale | 13.75 / 16.5 / 20 / 24.5 / 33 / 40 px; line 1.65; measure 42rem (STY-30) |\n| Marks | metric between two hairlines; italic deck; corners 2 px |\n| Charts | Scientific palette; bar ends rounded 3 px |\n\nChanges from other cards: brand blue accent (STY-02); palette retuned, since its first and third colours differ by only 2.6 under simulation (2.8 with the brand blue) and its second and fourth by 12.3 (STY-22); negative heatmap arm retuned at its middle stop (STY-56); `neutral` dropped or retuned (STY-24); phone `h1` 28 px (STY-26); block gap 4 rem by default (STY-15); chart descriptions set below the chart, sometimes boxed, as in scientific papers (STY-01, STY-39); its own design review, which also sets its outlines or shading, legend position and chart-title position (STY-01).",
       "confidence": "observed",
       "sources": [
@@ -629,7 +619,6 @@
         },
         {
           "label": "\"Precise, restrained presentation that supports dense evidence, units, annotations and citations\"",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -653,7 +642,7 @@
       "group": "The five styles",
       "title": "Brutalist",
       "question": "Is this what Brutalist is for and how it looks: its purpose, colours, faces, type scale, marks and charts?",
-      "why": "Daniel's June brief: \"heavy, opinionated, full of soul\", \"Tell your story in style\". S27-616: \"Deliberate, confident typography and structure with a distinctive visual character.\" Values as shipped at `b4db233`; it embeds four weights (Newsreader 400 and 600, Space Mono 700, Big Shoulders 800) against the three-weight rule.",
+      "why": "Daniel's June brief: \"heavy, opinionated, full of soul\", \"Tell your story in style\". The design-and-hosting brief: \"Deliberate, confident typography and structure with a distinctive visual character.\" Values as shipped at `b4db233`; it embeds four weights (Newsreader 400 and 600, Space Mono 700, Big Shoulders 800) against the three-weight rule.",
       "proposed": "| Part | Value |\n| --- | --- |\n| Purpose | Tell your story in style: heavy, opinionated, full of soul |\n| Page | warm paper `oklch(0.985 0.004 70)`; rules in ink |\n| Ink | `oklch(0.16 0.005 70)` (18.6:1); soft `0.40` (8.8:1); faint `0.62` (3.5:1, marks only) |\n| Accent | `#124A8C` (8.4:1) |\n| Status | up, down, hold at 4.77 to 6.74:1; neutral 4.63:1, 4.43:1 on the raised surface |\n| Faces | Big Shoulders 800 display in capitals, +0.02em; Newsreader 400, 400 italic and 600 for text; Space Mono for UI and data |\n| Scale | 14 / 17 / 21 / 28 / 34 / 52 px; line 1.65; measure 42rem (STY-30) |\n| Marks | 4 px ink bars above and below the header; callouts under a 2 px ink rule; table heads in capitals, +0.06em; italic deck; square corners |\n| Charts | Brutalist palette; bar ends rounded 3 px |\n\nChanges from other cards: Space Mono at 400 only, so three weights remain (STY-27); the knockout metric (STY-33); palette retuned for its first and fourth colours (6.6 under protan simulation, STY-22); `neutral` dropped or retuned (STY-24); square bar ends under STY-36's recommendation; phone `h1` 30 px (STY-26); block gap 4 rem by default (STY-15); its own design review, which also sets its outlines or shading, legend position and chart-title position (STY-01).",
       "confidence": "observed",
       "sources": [
@@ -674,7 +663,6 @@
         },
         {
           "label": "\"Deliberate, confident typography and structure with a distinctive visual character\"",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -702,7 +690,7 @@
       "group": "The five styles",
       "title": "Hand-drawn",
       "question": "Is this what Hand-drawn is for and how it looks: its purpose, colours, faces, type scale, marks and charts?",
-      "why": "S27-616 asked for a new style, \"predominantly black and white, with pencil-like marks, crossed-out elements and expressive annotations inspired by the Scott Galloway chart references\", designed throughout \"rather than applying a handwriting font to the same template\". PR #22 shipped it on 2026-10-11 without the crossed-out elements and annotations. Values as shipped at `b4db233`.",
+      "why": "The design-and-hosting brief asked for a new style, \"predominantly black and white, with pencil-like marks, crossed-out elements and expressive annotations inspired by the Scott Galloway chart references\", designed throughout \"rather than applying a handwriting font to the same template\". PR #22 shipped it on 2026-10-11 without the crossed-out elements and annotations. Values as shipped at `b4db233`.",
       "proposed": "| Part | Value |\n| --- | --- |\n| Purpose | A story told in pencil: black and white, lettered by hand |\n| Page | off-white paper `oklch(0.982 0.007 85)`; paper, ink and greys share hue 85 |\n| Ink | `oklch(0.22 0.004 85)` (16.4:1); soft `0.40` (8.8:1); faint `0.53` (5.0:1) |\n| Accent | red pencil `oklch(0.52 0.174 31)` for the stat underline; shared CSS also paints it on focus rings, point-annotation circles, the zoom brush, pressed chart toggles, wikilinks and the table's row summary (STY-54, STY-55) |\n| Links and status | links, up and down in ink; hold and neutral in ink-soft |\n| Faces | Patrick Hand for the title, section heads, callout titles, table heads and source labels (capitals, +0.02 to +0.04em) and for chart lettering (sentence case); Newsreader for text; RichView Mono for UI and data |\n| Scale | 14 / 18 / 22 / 27 / 36 / 44 px; line 1.6; measure 42rem (STY-30) |\n| Marks | seeded pencil strokes for header, section, footer and table-head rules, a bracket beside callouts and the stat underline; square corners |\n| Charts | six greys with hatches and dashes always on; square bars |\n\nChanges from other cards: the accent's scope (STY-55); chart ticks and readout values in RichView Mono (STY-39); pencil strikes, circles and arrows (STY-35); palette retuned for its first and fourth greys (ΔE×100 13.0) and its second and fourth (11.0) (STY-22); a sign cue for negative heatmap values (STY-56); phone `h1` 30 px (STY-26); block gap 4 rem by default (STY-15); its own design review, which also sets its outlines or shading, legend position and chart-title position (STY-01).",
       "confidence": "observed",
       "sources": [
@@ -718,7 +706,6 @@
         },
         {
           "label": "Hand-drawn brief: black and white, pencil-like marks, crossed-out elements, expressive annotations",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -752,7 +739,7 @@
       "group": "The five styles",
       "title": "Hand-drawn's accent",
       "question": "Does Hand-drawn keep its red pencil, and on which marks?",
-      "why": "S27-616 asked for a style that is \"predominantly black and white\" and named no accent; Daniel's June rule made every accent blue. Hand-drawn ships a red pencil, `oklch(0.52 0.174 31)` (5.7:1 on its page), meant for the stat underline, but shared CSS also paints the accent on focus rings, point-annotation circles, the zoom brush, pressed chart toggles, wikilinks and the table's row summary, and part 04d's proposals add the active tab underline and the active control option (FEA-BR-34, FEA-BR-35).",
+      "why": "The design-and-hosting brief asked for a style that is \"predominantly black and white\" and named no accent; Daniel's June rule made every accent blue. Hand-drawn ships a red pencil, `oklch(0.52 0.174 31)` (5.7:1 on its page), meant for the stat underline, but shared CSS also paints the accent on focus rings, point-annotation circles, the zoom brush, pressed chart toggles, wikilinks and the table's row summary, and part 04d's proposals add the active tab underline and the active control option (FEA-BR-34, FEA-BR-35).",
       "proposed": "Hand-drawn keeps one red pencil, `oklch(0.52 0.174 31)`, for marks that ask the reader to look: the stat underline, point-annotation circles and the pencil strikes of STY-35. Everything else that takes the accent in other styles is ink in Hand-drawn: focus rings, the zoom brush, pressed toggles, the active tab and control option, and links.",
       "options": [
         {
@@ -761,7 +748,7 @@
         },
         {
           "label": "Ink only",
-          "detail": "Strictly black and white, as S27-616 described; metrics and annotations stand out by weight and stroke alone."
+          "detail": "Strictly black and white, as the design-and-hosting brief described; metrics and annotations stand out by weight and stroke alone."
         },
         {
           "label": "Red wherever the accent goes (today)",
@@ -773,7 +760,6 @@
       "sources": [
         {
           "label": "Hand-drawn brief: \"Predominantly black and white, with pencil-like marks, crossed-out elements and expressive annotations\"",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -1139,7 +1125,7 @@
       "group": "Colour",
       "title": "One colour scheme per style",
       "question": "Does a style follow the reader's light or dark setting, or is each style one fixed scheme?",
-      "why": "The base stylesheet swaps fallback tokens under `prefers-color-scheme` and `html[data-theme]`. The second selector outranks style tokens, so `theme: dark` on Scientific or `theme: light` on Sleek Dark replaces seven tokens and leaves chart text unreadable while `check` reports nothing (screenshots). S27-593 recorded near-white chart labels on a light page on 2026-10-05. FEA-RP-33 removes the `theme` option; this card settles the design side.",
+      "why": "The base stylesheet swaps fallback tokens under `prefers-color-scheme` and `html[data-theme]`. The second selector outranks style tokens, so `theme: dark` on Scientific or `theme: light` on Sleek Dark replaces seven tokens and leaves chart text unreadable while `check` reports nothing (screenshots). The coming-soon carousel issue recorded near-white chart labels on a light page on 2026-10-05. FEA-RP-33 removes the `theme` option; this card settles the design side.",
       "proposed": "Each style is one complete colour scheme, and no style pairs light and dark tokens: Sleek and Air are separate styles chosen by name. Removing `theme`, and with it the VS Code setting `richview.previewTheme`, is FEA-RP-33's decision (FEA-SF-23 follows it); this card settles the design side: the base stylesheet has no `prefers-color-scheme` or `data-theme` rules, so reports never follow the reader's system setting. A dark or light version of another style is a new builtin, added through a decision card in the review packet (DEL-06).",
       "options": [
         {
@@ -1171,7 +1157,6 @@
         },
         {
           "label": "Sleek with `--theme light` drew near-white chart labels on a light page",
-          "ref": "S27-593",
           "date": "2026-10-05"
         },
         {
@@ -1830,7 +1815,6 @@
         },
         {
           "label": "\"The flagship report must use one consistent text/content measure throughout, including tables and headings; any deliberately full-width artwork should remain coherent and explicit\"",
-          "ref": "S27-654",
           "date": "2026-10-18"
         },
         {
@@ -1948,10 +1932,10 @@
         },
         {
           "label": "Filled blocks in Brutalist for metrics and callouts",
-          "detail": "Closest to the June look; brings back the cards S27-616 warns against."
+          "detail": "Closest to the June look; brings back the cards the design-and-hosting brief warns against."
         }
       ],
-      "recommendation": "Knockout block in Brutalist only: Daniel's only direct comment on metrics favours it, and one square accent block is not the \"indiscriminate rounded cards\" S27-616 warns against.",
+      "recommendation": "Knockout block in Brutalist only: Daniel's only direct comment on metrics favours it, and one square accent block is not the \"indiscriminate rounded cards\" the design-and-hosting brief warns against.",
       "confidence": "stated",
       "sources": [
         {
@@ -1981,7 +1965,6 @@
         },
         {
           "label": "Avoid \"generic gradient panels, indiscriminate rounded cards, arbitrary shadows\"",
-          "ref": "S27-616",
           "date": "2026-10-10"
         }
       ],
@@ -1998,7 +1981,7 @@
       "group": "Surfaces and marks",
       "title": "Rules mark structure",
       "question": "Are rules, hairline or pencil, the only structural marks in a report?",
-      "why": "Structure is drawn with rules today: 1 px hairlines in `rule` under the header, above the footer, above metrics and callouts, between table rows, under table heads, above a table's total row and above each footnote; block quotes carry a 2 px side rule. Brutalist sets rules in ink with 4 px header bars; Hand-drawn draws the header, section, footer and table-head rules as seeded pencil strokes. S27-616's first round (2026-10-11) shipped \"no filled cards, stripes or fades\".",
+      "why": "Structure is drawn with rules today: 1 px hairlines in `rule` under the header, above the footer, above metrics and callouts, between table rows, under table heads, above a table's total row and above each footnote; block quotes carry a 2 px side rule. Brutalist sets rules in ink with 4 px header bars; Hand-drawn draws the header, section, footer and table-head rules as seeded pencil strokes. The design-and-hosting brief's first round (2026-10-11) shipped \"no filled cards, stripes or fades\".",
       "proposed": "Rules mark structure: under the header, above the footer, above metrics and callouts, between table rows, under table heads, above a table's total row and above the Notes section (STY-61). They are 1 px in `rule`; Brutalist sets them in ink with 4 px bars above and below the header; Hand-drawn draws them as seeded pencil strokes that repeat exactly in every render and print. Reports carry no other dividers, side rules, boxes, stripes, gradients or ornaments; the named exceptions are code panels and the block-quote treatment (STY-61), Brutalist's knockout metric (STY-33), Hand-drawn's callout bracket (STY-13), Scientific's boxed chart descriptions (STY-39), and the outlines or shading a style's design review chooses (STY-01). Pencil strokes never touch gridlines, axes or data.",
       "confidence": "observed",
       "sources": [
@@ -2024,7 +2007,6 @@
         },
         {
           "label": "Round 1: \"Typeset report page: no filled cards, stripes or fades\"",
-          "ref": "S27-616",
           "date": "2026-10-11"
         },
         {
@@ -2093,8 +2075,8 @@
       "refId": "S-PENCIL-MARKS",
       "group": "Surfaces and marks",
       "title": "Pencil strikes, circles and arrows",
-      "question": "Does Hand-drawn draw crossed-out text and annotations in pencil, as S27-616 asked?",
-      "why": "S27-616 asked for \"crossed-out elements and expressive annotations\" in Hand-drawn, and for \"soft callouts, emphasis and pencil-like annotation lines\" that \"also work outside the hand-drawn theme where appropriate\". The pencil module has strike, circle and arrow primitives, but only the rules, the callout bracket and the stat underline use it.",
+      "question": "Does Hand-drawn draw crossed-out text and annotations in pencil, as the design-and-hosting brief asked?",
+      "why": "The design-and-hosting brief asked for \"crossed-out elements and expressive annotations\" in Hand-drawn, and for \"soft callouts, emphasis and pencil-like annotation lines\" that \"also work outside the hand-drawn theme where appropriate\". The pencil module has strike, circle and arrow primitives, but only the rules, the callout bracket and the stat underline use it.",
       "proposed": "Hand-drawn draws three existing marks in pencil, with no new syntax: Markdown strikethrough (`~~text~~`) as a pencil strike, point annotations as a pencil circle around the point, and annotation leaders as pencil arrows. Strokes are seeded, print exactly and never replace data marks. Other styles keep straight strokes for the same marks and get no pencil callouts or emphasis.",
       "options": [
         {
@@ -2107,10 +2089,10 @@
         },
         {
           "label": "Pencil marks in every style",
-          "detail": "S27-616's \"outside hand-drawn\"; a hand-drawn gesture inside Sleek or Scientific breaks their voice."
+          "detail": "The design-and-hosting brief's \"outside hand-drawn\"; a hand-drawn gesture inside Sleek or Scientific breaks their voice."
         }
       ],
-      "recommendation": "Pencil versions of existing marks, Hand-drawn only: it delivers the brief's crossed-out, annotated look without format changes, and it declines S27-616's wish for pencil lines elsewhere because a hand-drawn gesture inside Sleek or Scientific breaks their voice (INT-19).",
+      "recommendation": "Pencil versions of existing marks, Hand-drawn only: it delivers the brief's crossed-out, annotated look without format changes, and it declines the design-and-hosting brief's wish for pencil lines elsewhere because a hand-drawn gesture inside Sleek or Scientific breaks their voice (INT-19).",
       "confidence": "inferred",
       "sources": [
         {
@@ -2125,11 +2107,10 @@
         },
         {
           "label": "\"crossed-out elements and expressive annotations\"; soft callouts and \"pencil-like annotation lines\" also outside hand-drawn",
-          "ref": "S27-616",
           "date": "2026-10-10"
         }
       ],
-      "conflicts": "S27-616 asked for soft callouts, emphasis and pencil-like annotation lines outside Hand-drawn \"where appropriate\", and Daniel's INT-77 answer lists callouts, emphasis and annotations among the tools RichView gives authors; this card declines the pencil part outside Hand-drawn, and FEA-RP-25 keeps callouts to one rule.",
+      "conflicts": "The design-and-hosting brief asked for soft callouts, emphasis and pencil-like annotation lines outside Hand-drawn \"where appropriate\", and Daniel's INT-77 answer lists callouts, emphasis and annotations among the tools RichView gives authors; this card declines the pencil part outside Hand-drawn, and FEA-RP-25 keeps callouts to one rule.",
       "images": [
         "docs/lockdown/screenshots/product/fixture/fixture-hand-drawn-chart-01-line.jpg"
       ]
@@ -2142,7 +2123,7 @@
       "group": "Surfaces and marks",
       "title": "Corners",
       "question": "Which elements may round their corners, and by how much?",
-      "why": "Today Sleek rounds images and embeds by 12 px (code by at most 6 px, the readout by at most 4 px), Scientific by 2 px, Brutalist and Hand-drawn not at all; bar ends round by 3 px in every style except Hand-drawn, Brutalist included. S27-616 warns against \"indiscriminate rounded cards\"; Daniel's 2026-10-12 feedback asked for softly rounded bars, which S27-634 made a style token.",
+      "why": "Today Sleek rounds images and embeds by 12 px (code by at most 6 px, the readout by at most 4 px), Scientific by 2 px, Brutalist and Hand-drawn not at all; bar ends round by 3 px in every style except Hand-drawn, Brutalist included. The design-and-hosting brief warns against \"indiscriminate rounded cards\"; Daniel's 2026-10-12 feedback asked for softly rounded bars, which the bar-rounding request made a style token.",
       "proposed": "Corners round only on images, embeds, code, inline code, the readout panel and bar ends. Sleek and Air: 12 px on images and embeds, up to 6 px on code, up to 4 px on the readout, 3 px on bar ends. Scientific: 2 px throughout, 3 px on bar ends. Hand-drawn: square everywhere, bars included. Brutalist: square everywhere; its bar ends are the choice below. Nothing else has a radius.",
       "options": [
         {
@@ -2154,7 +2135,7 @@
           "detail": "Keeps the soft bars of the 2026-10-12 feedback; one rounded element in an otherwise square style."
         }
       ],
-      "recommendation": "Brutalist bars square: every other Brutalist corner is square, and S27-634 made rounding opt-in per style, with square bars where a style lacks it.",
+      "recommendation": "Brutalist bars square: every other Brutalist corner is square, and the bar-rounding request made rounding opt-in per style, with square bars where a style lacks it.",
       "confidence": "inferred",
       "sources": [
         {
@@ -2179,7 +2160,6 @@
         },
         {
           "label": "Soft top rounding as an opt-in style token; square bars where a style lacks it",
-          "ref": "S27-634",
           "date": "2026-10-12"
         },
         {
@@ -2206,7 +2186,7 @@
       "group": "Surfaces and marks",
       "title": "Header images and illustrations",
       "question": "How does a header image or illustration sit in each style?",
-      "why": "S27-616 made header imagery \"a normal choice for most reports\", and S27-594 asked that images \"distinguish illustration from analytical evidence\". FEA-RP-03 and FEA-RP-52 cover the markup, crop and credit; no card covers the look. Today the header image renders as an image block above the title, at the measure, with the style's image corners; on the Sleek flagship a light, rounded, pre-rendered chart sits on the dark page.",
+      "why": "The design-and-hosting brief made header imagery \"a normal choice for most reports\", and the homepage-motion brief asked that images \"distinguish illustration from analytical evidence\". FEA-RP-03 and FEA-RP-52 cover the markup, crop and credit; no card covers the look. Today the header image renders as an image block above the title, at the measure, with the style's image corners; on the Sleek flagship a light, rounded, pre-rendered chart sits on the dark page.",
       "proposed": "A header image is an image block above the title: at the measure, or the report width with `wide: true` (TYP-89), with the style's image corners (STY-36) and, for an Unsplash photo, the credit line its `credit` field renders (FEA-RP-62, FEA-RP-52). Header imagery is one of the tools RichView gives authors (Daniel's INT-77 answer), and it is the story's cover when its link-preview thumbnail has no chart to show (FEA-SF-55); the thumbnail takes a report-local or pinned cover as supplied and leaves out a hotlinked Unsplash photo (ARC-69). Styles do not filter, tint, frame or shadow images; on Sleek an author picks dark-ready art or a header drawn from the report's data that follows the style (INT-75). An illustration never imitates a chart: anything with axes or figures is a chart block drawn from data, so readers can tell illustration from evidence.",
       "options": [
         {
@@ -2233,12 +2213,10 @@
         },
         {
           "label": "\"Restore illustrative header/hero imagery as a normal choice for most reports\"",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
           "label": "Images must \"distinguish illustration from analytical evidence\"",
-          "ref": "S27-594",
           "date": "2026-10-05"
         },
         {
@@ -2264,7 +2242,7 @@
       "group": "Surfaces and marks",
       "title": "Shadows only on floating elements",
       "question": "Which elements cast shadows, and with which values?",
-      "why": "FEA-CH-53 builds the readout and hover-dot shadows and leaves the values here. `docs/MOTION.md` gives values for the light styles and none for Brutalist and Hand-drawn, but no style token exists and nothing draws them. PR #67 adds a fixed menu shadow; the flagship's citation cards cast `0 4px 16px oklch(0 0 0 / 0.133)`, the docs' mobile menu `0 16px 40px` and the docs' code panels a small shadow; the homepage defines two large warm drop shadows. S27-616 asks for \"well-judged shadows\" and warns against \"arbitrary shadows\"; the June study said \"No shadow on hover\".",
+      "why": "FEA-CH-53 builds the readout and hover-dot shadows and leaves the values here. `docs/MOTION.md` gives values for the light styles and none for Brutalist and Hand-drawn, but no style token exists and nothing draws them. PR #67 adds a fixed menu shadow; the flagship's citation cards cast `0 4px 16px oklch(0 0 0 / 0.133)`, the docs' mobile menu `0 16px 40px` and the docs' code panels a small shadow; the homepage defines two large warm drop shadows. The design-and-hosting brief asks for \"well-judged shadows\" and warns against \"arbitrary shadows\"; the June study said \"No shadow on hover\".",
       "proposed": "Only floating elements cast a shadow: the chart readout, the hover dot, menus (the download menu and the docs' mobile menu), the expanded-chart dialog, the flagship's citation cards and, on the site, the demo's two sheets (STY-48). Each style has one token, `shadow-float`: Air and Scientific `0 2px 8px oklch(0 0 0 / 0.12)`, with `0 1px 3px oklch(0 0 0 / 0.14)` on the hover dot; Sleek, Brutalist and Hand-drawn have none and set floating elements apart with the raised surface and a hairline. Site elements outside reports use the site's one soft shadow (STY-48). Report blocks, buttons, code panels and site sections cast no shadow unless a style's design review gives that style shaded blocks (STY-01), and nothing gains one on hover.",
       "confidence": "stated",
       "sources": [
@@ -2295,7 +2273,6 @@
         },
         {
           "label": "\"restrained hover emphasis with a small 'pop,' well-judged shadows\"; avoid \"arbitrary shadows\"",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -2442,7 +2419,7 @@
       "group": "Chart chrome",
       "title": "Gridlines, axes and fills",
       "question": "Are these the line weights, fills and swatches of chart chrome?",
-      "why": "Gridlines are crisp 1 px lines in `rule-soft`, the zero line and bar baseline 1.5 px in `chart-ink`, ticks and leaders 1 px in `ink-faint`, data lines 2.5 px. Two area opacities coexist in the chart CSS (13% and 18%). S27-616 asked for \"the right number of lines\".",
+      "why": "Gridlines are crisp 1 px lines in `rule-soft`, the zero line and bar baseline 1.5 px in `chart-ink`, ticks and leaders 1 px in `ink-faint`, data lines 2.5 px. Two area opacities coexist in the chart CSS (13% and 18%). The design-and-hosting brief asked for \"the right number of lines\".",
       "proposed": "Chart chrome stays light: gridlines 1 px in `rule-soft`, crisp; the zero line and bar baseline 1.5 px in `chart-ink`; ticks and leaders 1 px in `ink-faint`; data lines 2.5 px; area fills 15%, bands 28%, dimmed series 30%. Legend swatches are 9 px squares, 14 × 2 px lines or 9 px dots; hidden series show at 45% with a strike. Charts have no border, panel or plot background beyond the style's chart surface, unless a style's design review gives its charts outlines or shading (STY-01).",
       "confidence": "observed",
       "sources": [
@@ -2463,7 +2440,6 @@
         },
         {
           "label": "Restrained chart chrome, \"the right number of lines\"",
-          "ref": "S27-616",
           "date": "2026-10-10"
         }
       ],
@@ -2551,7 +2527,6 @@
         },
         {
           "label": "Tooltips \"slightly more transparent and lighter\", moving smoothly",
-          "ref": "S27-654",
           "date": "2026-10-18"
         },
         {
@@ -2560,7 +2535,7 @@
           "date": "2026-10-13"
         }
       ],
-      "conflicts": "S27-654 asked for \"slightly more transparent and lighter\"; 80% meets it through the missing blur more than through opacity.",
+      "conflicts": "The chart-polish brief asked for \"slightly more transparent and lighter\"; 80% meets it through the missing blur more than through opacity.",
       "images": [
         "docs/lockdown/screenshots/delivery/chart-review-standard-sleek-1440-chart01-tooltip.png",
         "docs/lockdown/screenshots/product/interactions/interaction-hover-readout-bar.jpg"
@@ -2574,13 +2549,13 @@
       "group": "Chart chrome",
       "title": "How chart actions look",
       "question": "How do the chart actions look?",
-      "why": "FEA-CH-43 fixes the actions and their visible labels (icons alone under 520 px). On `main` Table, SVG and CSV are 18 px stroked glyphs without words, only Expand has a label, and a pressed Table button gets a filled background. Daniel called the glyphs unclear (S27-654); the rule file asks controls to \"explain useful actions with visible labels\".",
+      "why": "FEA-CH-43 fixes the actions and their visible labels (icons alone under 520 px). On `main` Table, SVG and CSV are 18 px stroked glyphs without words, only Expand has a label, and a pressed Table button gets a filled background. Daniel called the glyphs unclear; the rule file asks controls to \"explain useful actions with visible labels\".",
       "proposed": "Actions are quiet icon buttons in `ink-soft`: 18 px line icons (1.5 px stroke, round caps) with no visible label (Daniel's dictation, 9 Nov 2026). Each label is its button's accessible name and shows as a small name under the icon on hover and on keyboard focus, in the UI face at 12 px on the readout's surface. Hover and focus turn them `ink`; a pressed toggle (Table) is underlined by a bar under its icon, never filled. Hit areas are at least 32 × 32 px. The group sits at the right end of the chart's title row and goes under the title on a figure too narrow for both. Icons come from one drawn set; no filled icons or emoji.",
       "confidence": "stated",
       "sources": [
         {
           "label": "Daniel's dictation of 9 Nov: the chart actions move into the empty space at the right of the title row, as icons alone that name themselves on hover, and the chart heading gets a bit smaller",
-          "ref": "Mluva annotation 1698dbad (screens 02, 03), relayed by the lead; S27-982",
+          "ref": "Mluva annotation 1698dbad (screens 02, 03), relayed by the lead",
           "date": "2026-11-09"
         },
         {
@@ -2590,7 +2565,6 @@
         },
         {
           "label": "Replace unclear SVG/CSV/table glyphs with labelled accessible controls",
-          "ref": "S27-654",
           "date": "2026-10-18"
         },
         {
@@ -2698,7 +2672,6 @@
         },
         {
           "label": "The treatment \"lost the previous site's seamless transitions, expressive background narrative and logo choreography\"",
-          "ref": "S27-594",
           "date": "2026-10-05"
         },
         {
@@ -2713,7 +2686,6 @@
         },
         {
           "label": "Review 16:03: the site \"is not accepted yet\"; mobile scroll animations \"look jumpy/weird with visible ticking\"",
-          "ref": "S27-653",
           "date": "2026-10-18"
         },
         {
@@ -2796,11 +2768,10 @@
         },
         {
           "label": "\"Restore the chart-like loading/reveal treatment ... with coherent transitions rather than disconnected section effects\"",
-          "ref": "S27-594",
           "date": "2026-10-05"
         }
       ],
-      "conflicts": "S27-594 asked to \"restore the chart-like loading/reveal treatment\" and for \"coherent transitions rather than disconnected section effects\"; this card keeps reveals only inside the scroll story. S27-590's 3D deck is STY-58's decision."
+      "conflicts": "The homepage-motion brief asked to \"restore the chart-like loading/reveal treatment\" and for \"coherent transitions rather than disconnected section effects\"; this card keeps reveals only inside the scroll story. The coming-soon homepage brief's 3D deck is STY-58's decision."
     },
     {
       "id": "STY-46",
@@ -2984,7 +2955,7 @@
       "group": "The site",
       "title": "Opaque site surfaces, no glass",
       "question": "Do the homepage's frosted panels, large drop shadows and overshooting buttons stay?",
-      "why": "The homepage defines frosted glass (the source sheet at 66% with a 9 px blur and 125% saturation), a 10 px blurred style bar, two large warm drop shadows and an overshooting curve. On `main` and in production alike, the tokens for the glass panel, both shadows and the curves never apply, because they live under `body[data-homepage]` and no page carries it; what renders on both is the literal CSS: the source sheet's 9 px blur over a transparent background, the style bar's 10 px blur and shadow, the active pill's shadow and the element cards' large shadow. The learn text forbids glass effects and hover lifts. S27-594 asked for \"a floating editor rather than a heavy bordered two-column box\" and for \"the pop and transitions of the original solution\".",
+      "why": "The homepage defines frosted glass (the source sheet at 66% with a 9 px blur and 125% saturation), a 10 px blurred style bar, two large warm drop shadows and an overshooting curve. On `main` and in production alike, the tokens for the glass panel, both shadows and the curves never apply, because they live under `body[data-homepage]` and no page carries it; what renders on both is the literal CSS: the source sheet's 9 px blur over a transparent background, the style bar's 10 px blur and shadow, the active pill's shadow and the element cards' large shadow. The learn text forbids glass effects and hover lifts. The homepage-motion brief asked for \"a floating editor rather than a heavy bordered two-column box\" and for \"the pop and transitions of the original solution\".",
       "proposed": "Site surfaces are opaque. The demo's source and report sheets float over the paper with one soft shadow, `0 2px 8px oklch(0 0 0 / 0.12)`, and no heavy border; nothing has a backdrop blur, saturation filter or overshoot, and the glass, lift and curve tokens are deleted rather than switched on. Other sections are paper on paper, separated by hairlines and space.",
       "options": [
         {
@@ -3000,7 +2971,7 @@
           "detail": "The homepage tokens switched on as written: a 66% frosted source sheet, two large warm shadows and overshooting motion. Daniel's \"float\" and \"pop\" taken literally, against the no-glass rule; never shown on `main` or in production."
         }
       ],
-      "recommendation": "Opaque sheets with one soft shadow: it keeps the floating editor S27-594 asked for and drops the glass that the rules forbid and that neither `main` nor production shows.",
+      "recommendation": "Opaque sheets with one soft shadow: it keeps the floating editor the homepage-motion brief asked for and drops the glass that the rules forbid and that neither `main` nor production shows.",
       "confidence": "inferred",
       "sources": [
         {
@@ -3025,7 +2996,6 @@
         },
         {
           "label": "\"a floating editor rather than a heavy bordered two-column box\"; product cards \"with the pop and transitions of the original solution\"",
-          "ref": "S27-594",
           "date": "2026-10-05"
         },
         {
@@ -3034,7 +3004,7 @@
           "date": "2026-10-22"
         }
       ],
-      "conflicts": "S27-594's \"pop\" may mean the overshooting motion this card removes; STY-38 and STY-45 forbid it. OPN-17's \"Restore the attribute\" option would switch on the 66% glass, both large shadows and the overshoot this card rejects; FEA-SF-30 rules out hotfixing the live page, so they stay off there.",
+      "conflicts": "The homepage-motion brief's \"pop\" may mean the overshooting motion this card removes; STY-38 and STY-45 forbid it. OPN-17's \"Restore the attribute\" option would switch on the 66% glass, both large shadows and the overshoot this card rejects; FEA-SF-30 rules out hotfixing the live page, so they stay off there.",
       "images": [
         "docs/lockdown/screenshots/live/richview-home-desktop-02-demo.jpg",
         "docs/lockdown/screenshots/live/richview-home-desktop-07-flagship.jpg"
@@ -3048,12 +3018,12 @@
       "group": "The site",
       "title": "The five-element deck on the home page",
       "question": "How do the home page's five product elements look and move?",
-      "why": "S27-590 asked to \"start with all five together, then let each grow into focus as the visitor scrolls through an elegant 3D carousel/overview\", and S27-594 for larger cards \"with the pop and transitions of the original solution\". ARC-39 keeps the section; no card decided its look. In production five brand-blue cards with 18 px corners and a large warm shadow fan out in 3D and open one by one as the reader scrolls; on `main`, without the stage, they are a static row. Their transitions use the undefined `--pop` curve, so cards jump between positions instead of easing. The themes card shows three hand-coded tiles (Sleek, Scientific, Brutalist) in hex colours, one in a reserved font name, instead of the five styles.",
+      "why": "The coming-soon homepage brief asked to \"start with all five together, then let each grow into focus as the visitor scrolls through an elegant 3D carousel/overview\", and the homepage-motion brief for larger cards \"with the pop and transitions of the original solution\". ARC-39 keeps the section; no card decided its look. In production five brand-blue cards with 18 px corners and a large warm shadow fan out in 3D and open one by one as the reader scrolls; on `main`, without the stage, they are a static row. Their transitions use the undefined `--pop` curve, so cards jump between positions instead of easing. The themes card shows three hand-coded tiles (Sleek, Scientific, Brutalist) in hex colours, one in a reserved font name, instead of the five styles.",
       "proposed": "The five elements stay together as cards: paper with a hairline and the site's corners (STY-66), each showing a real artifact. The themes card shows the five builtins rendered by core, each label in its own face (STY-08). The 3D focus-on-scroll belongs to the landing's scroll story and ships with it (STY-44, FEA-BR-21); until then, and with reduced motion, the cards are a static row. While they overlap in the deck they take the demo sheets' soft shadow (STY-48); as a row they cast none.",
       "options": [
         {
           "label": "Part of the scroll story",
-          "detail": "Keeps the deck Daniel asked for in S27-590 and S27-594, behind the same phone bar as the rest of the story."
+          "detail": "Keeps the deck Daniel asked for in the coming-soon homepage brief and the homepage-motion brief, behind the same phone bar as the rest of the story."
         },
         {
           "label": "Static row only",
@@ -3069,12 +3039,10 @@
       "sources": [
         {
           "label": "\"Start with all five together, then let each grow into focus as the visitor scrolls through an elegant 3D carousel/overview\"",
-          "ref": "S27-590",
           "date": "2026-10-05"
         },
         {
           "label": "\"Make the cards larger, more legible and more visually compelling, with the pop and transitions of the original solution\"",
-          "ref": "S27-594",
           "date": "2026-10-05"
         },
         {
@@ -3112,7 +3080,7 @@
       "group": "The site",
       "title": "Code highlighting on the site",
       "question": "Which colours highlight code on the site, and do reports stay unhighlighted?",
-      "why": "S27-594 asked for \"readable syntax highlighting throughout the Rich Markdown, chart YAML, styling YAML and displayed code examples\". The docs highlight with syntect's stock base16-ocean.dark theme (two colours brightened for contrast) on dark panels and InspiredGitHub for inline commands, as inline RGB. The landing's own hex `--hl-*` colours live under `body[data-homepage]`, which no page carries, so the live demo's source shows no syntax colours (screenshot). Both break the OKLCH rule (STY-19), and no card sets the palette or its contrast. Reports stay plain (FEA-RP-17).",
+      "why": "The homepage-motion brief asked for \"readable syntax highlighting throughout the Rich Markdown, chart YAML, styling YAML and displayed code examples\". The docs highlight with syntect's stock base16-ocean.dark theme (two colours brightened for contrast) on dark panels and InspiredGitHub for inline commands, as inline RGB. The landing's own hex `--hl-*` colours live under `body[data-homepage]`, which no page carries, so the live demo's source shows no syntax colours (screenshot). Both break the OKLCH rule (STY-19), and no card sets the palette or its contrast. Reports stay plain (FEA-RP-17).",
       "proposed": "One highlighting palette serves the whole site — the landing demo, static examples, docs code blocks and inline commands — in five roles: keys and keywords, strings, numbers, comments and punctuation, and Markdown headings and fences. It is written in OKLCH for the site's light code panel (STY-47), with every role at least 4.5:1 and keys in the brand blue. Code panels are a slightly raised paper with a hairline and the site's corners (STY-66), with no blur or shadow. Reports keep code plain (FEA-RP-17).",
       "options": [
         {
@@ -3129,7 +3097,6 @@
       "sources": [
         {
           "label": "\"readable syntax highlighting throughout the Rich Markdown, chart YAML, styling YAML and displayed code examples\"",
-          "ref": "S27-594",
           "date": "2026-10-05"
         },
         {
@@ -3166,7 +3133,7 @@
       "group": "The site",
       "title": "Paper grain on the site",
       "question": "Does the site keep the grain texture on its paper?",
-      "why": "The landing lays a fixed `grain.webp` texture of light and dark specks over its paper, beneath the content (\"Paper fibre\"); it came with the scrolling site of S27-398, whose look S27-594 asked to recover. Docs, playground and legal pages are flat. STY-46 keeps the original paper without saying whether the grain stays, and the June research for Brutalist warned against \"distressed textures\".",
+      "why": "The landing lays a fixed `grain.webp` texture of light and dark specks over its paper, beneath the content (\"Paper fibre\"); it came with the original scrolling site, whose look the homepage-motion brief asked to recover. Docs, playground and legal pages are flat. STY-46 keeps the original paper without saying whether the grain stays, and the June research for Brutalist warned against \"distressed textures\".",
       "proposed": "The grain stays on the landing only, beneath the content as today; docs, gallery, playground and legal pages use the flat eggshell paper, where long reading and code come first.",
       "options": [
         {
@@ -3192,7 +3159,6 @@
         },
         {
           "label": "Scrolling beta site with a paper grain, the earlier visual benchmark",
-          "ref": "S27-398",
           "date": "2026-10-02"
         },
         {
@@ -3242,7 +3208,7 @@
       "group": "The site",
       "title": "Site sections lead with headings",
       "question": "Do site sections lead with plain headings, and do the current layout defects become fixtures?",
-      "why": "Daniel asked on 2026-10-12 to drop the hero eyebrow, and S27-590 asked to \"Replace the tiny eyebrow-style titles above paragraphs with legible meaningful headings\"; the live home still opens with \"AGENTIC DATA STORIES\" and labels sections with numbered eyebrows (\"05 The flagship report\"), one of which overlaps its heading at 1440 px, and every docs page opens with an uppercase, letter-spaced overline above its title. OPN-22 routes three home defects here: that overlap, a check card that hides the tallest bar's label, and a signup aside that runs to the viewport edge.",
+      "why": "Daniel asked on 2026-10-12 to drop the hero eyebrow, and the coming-soon homepage brief asked to \"Replace the tiny eyebrow-style titles above paragraphs with legible meaningful headings\"; the live home still opens with \"AGENTIC DATA STORIES\" and labels sections with numbered eyebrows (\"05 The flagship report\"), one of which overlaps its heading at 1440 px, and every docs page opens with an uppercase, letter-spaced overline above its title. OPN-22 routes three home defects here: that overlap, a check card that hides the tallest bar's label, and a signup aside that runs to the viewport edge.",
       "proposed": "Site sections and docs pages lead with a meaningful heading in Newsreader; no eyebrow, overline, section number or badge sits above a heading. The three home defects become fixtures: gutters and page width are asserted by the site gate (DEL-59, OPN-17, OPN-18), and overlapping text and clipped labels show in the site captures at 320, 390 and 1440 px (DEL-27).",
       "confidence": "observed",
       "sources": [
@@ -3253,7 +3219,6 @@
         },
         {
           "label": "Legible meaningful headings instead of eyebrow titles",
-          "ref": "S27-590",
           "date": "2026-10-05"
         },
         {
@@ -3321,8 +3286,8 @@
           "date": "2026-10-16"
         },
         {
-          "label": "Anti-generic direction from S27-590, S27-616, S27-647 and S27-655",
-          "ref": "docs/lockdown/evidence/linear.md:284",
+          "label": "Anti-generic direction from the coming-soon homepage brief, the design-and-hosting brief, the galleries brief and the RichView Publish brief",
+          "ref": "the Linear evidence (not published)",
           "date": "2026-10-21"
         }
       ],
@@ -3385,7 +3350,7 @@
       "group": "Rules and review",
       "title": "Impeccable as a review aid",
       "question": "Do design reviews use the Impeccable skill, and with what weight?",
-      "why": "S27-616 asked to \"find and assess\" the \"Impeccable\" anti-generic-design resource, and S27-654 told its agent to \"Read impeccable for visual review\". It is an open-source design skill for coding agents (Apache-2.0), with modes such as audit, critique, polish, distill and quieter. Agents read it on 2026-10-18; no assessment is recorded. STY-50 and STY-51 set RichView's own rules and review questions.",
+      "why": "The design-and-hosting brief asked to \"find and assess\" the \"Impeccable\" anti-generic-design resource, and the chart-polish brief told its agent to \"Read impeccable for visual review\". It is an open-source design skill for coding agents (Apache-2.0), with modes such as audit, critique, polish, distill and quieter. Agents read it on 2026-10-18; no assessment is recorded. STY-50 and STY-51 set RichView's own rules and review questions.",
       "proposed": "Design agents and the visual review agent that Daniel's DEL-68 answer requires may run Impeccable's critique and audit modes on visual changes. Impeccable informs that review but is not the review step itself; its findings are advisory (DEL-35), and where they conflict with this part, this part wins. It is not vendored into the repository and is not a gate.",
       "options": [
         {
@@ -3401,7 +3366,7 @@
           "detail": "Reviews rely on STY-50 and STY-51 alone."
         }
       ],
-      "recommendation": "Advisory review aid: it answers S27-616's request while keeping this part the only design authority.",
+      "recommendation": "Advisory review aid: it answers the design-and-hosting brief's request while keeping this part the only design authority.",
       "confidence": "stated",
       "sources": [
         {
@@ -3411,12 +3376,10 @@
         },
         {
           "label": "Find and assess \"the remembered 'Impeccable' anti-generic-design resource\"",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
           "label": "\"Read impeccable for visual review\"",
-          "ref": "S27-654",
           "date": "2026-10-18"
         },
         {
@@ -3643,7 +3606,6 @@
       "sources": [
         {
           "label": "Daniel’s 9 November 2026 direction: make your company style the first priority; dictated and relayed by the chief of staff",
-          "ref": "S27-989",
           "date": "2026-11-09"
         }
       ],
@@ -3674,7 +3636,6 @@
       "sources": [
         {
           "label": "Daniel’s 9 November 2026 direction: make your company style the first priority; dictated and relayed by the chief of staff",
-          "ref": "S27-989",
           "date": "2026-11-09"
         }
       ]
@@ -3708,7 +3669,6 @@
       "sources": [
         {
           "label": "\"rework the way to style, by default people will wanna use hex colors, explain we autopic rest of the colors. People should not be styling some abstract tokens but instead we have a smart set of xsmall, small, medium, large, xlarge things for each settings and stuff and all nicely works out of conjunction of those\"; relayed by the chief of staff",
-          "ref": "S27-986",
           "date": "2026-11-17"
         },
         {
@@ -3748,7 +3708,7 @@
       "sources": [
         {
           "label": "\"actual background styles are also priority to make it much more personal\"",
-          "ref": "Daniel, relayed by the RichView lead (S27-986)",
+          "ref": "Daniel, relayed by the RichView lead",
           "date": "2026-11-18"
         },
         {

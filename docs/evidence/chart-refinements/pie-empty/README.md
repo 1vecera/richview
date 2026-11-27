@@ -26,17 +26,17 @@ Build both isolated checkouts using the pinned toolchain and locked dependencies
 ```sh
 CARGO_BUILD_JOBS=3 cargo run --release --locked -p richview-build
 mkdir -p tmp/pie-empty
-cp docs/evidence/chart-refinements/pie-empty/fixtures.json docs/evidence/chart-refinements/pie-empty/supplement-fixtures.json docs/evidence/chart-refinements/pie-empty/verify-paths.mjs docs/evidence/chart-refinements/pie-empty/verify-native-cli.mjs tmp/pie-empty/
-node docs/evidence/chart-refinements/pie-empty/capture.mjs --worktree "$pie_base" --out tmp/pie-empty/before --sources tmp/pie-empty/fixtures.json --themes sleek,scientific,brutalist,sleek-light,hand-drawn
-node docs/evidence/chart-refinements/pie-empty/capture.mjs --worktree . --out tmp/pie-empty/after --sources tmp/pie-empty/fixtures.json --themes sleek,scientific,brutalist,sleek-light,hand-drawn
-node docs/evidence/chart-refinements/pie-empty/capture.mjs --worktree "$pie_base" --out tmp/pie-empty/supplement-before --sources tmp/pie-empty/supplement-fixtures.json --themes sleek,scientific,brutalist,sleek-light,hand-drawn --widths 272,320,390,720
-node docs/evidence/chart-refinements/pie-empty/capture.mjs --worktree . --out tmp/pie-empty/supplement-after --sources tmp/pie-empty/supplement-fixtures.json --themes sleek,scientific,brutalist,sleek-light,hand-drawn --widths 272,320,390,720
-node tmp/pie-empty/verify-paths.mjs --worktree "$pie_base" --out tmp/pie-empty/paths-before --phase before
-node tmp/pie-empty/verify-paths.mjs --worktree . --out tmp/pie-empty/paths-after --phase after
-node tmp/pie-empty/verify-native-cli.mjs
+cp docs/evidence/chart-refinements/pie-empty/fixtures.json docs/evidence/chart-refinements/pie-empty/supplement-fixtures.json docs/evidence/chart-refinements/pie-empty/verify-paths.ts docs/evidence/chart-refinements/pie-empty/verify-native-cli.ts tmp/pie-empty/
+node docs/evidence/chart-refinements/pie-empty/capture.ts --worktree "$pie_base" --out tmp/pie-empty/before --sources tmp/pie-empty/fixtures.json --themes sleek,scientific,brutalist,sleek-light,hand-drawn
+node docs/evidence/chart-refinements/pie-empty/capture.ts --worktree . --out tmp/pie-empty/after --sources tmp/pie-empty/fixtures.json --themes sleek,scientific,brutalist,sleek-light,hand-drawn
+node docs/evidence/chart-refinements/pie-empty/capture.ts --worktree "$pie_base" --out tmp/pie-empty/supplement-before --sources tmp/pie-empty/supplement-fixtures.json --themes sleek,scientific,brutalist,sleek-light,hand-drawn --widths 272,320,390,720
+node docs/evidence/chart-refinements/pie-empty/capture.ts --worktree . --out tmp/pie-empty/supplement-after --sources tmp/pie-empty/supplement-fixtures.json --themes sleek,scientific,brutalist,sleek-light,hand-drawn --widths 272,320,390,720
+node tmp/pie-empty/verify-paths.ts --worktree "$pie_base" --out tmp/pie-empty/paths-before --phase before
+node tmp/pie-empty/verify-paths.ts --worktree . --out tmp/pie-empty/paths-after --phase after
+node tmp/pie-empty/verify-native-cli.ts
 ```
 
-`capture.mjs` writes each actual PNG and a source/build/geometry manifest. The two focused verifiers assert visible and exported text, preserved source controls, static/live accessibility and absence of invented marks. The native CLI intentionally returns an error for negative source values while still producing its inspectable report; that behavior is retained and checked.
+`capture.ts` writes each actual PNG and a source/build/geometry manifest. The two focused verifiers assert visible and exported text, preserved source controls, static/live accessibility and absence of invented marks. The native CLI intentionally returns an error for negative source values while still producing its inspectable report; that behavior is retained and checked.
 
 ## Bounds
 

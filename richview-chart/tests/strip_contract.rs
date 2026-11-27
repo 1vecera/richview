@@ -1,7 +1,7 @@
 //! Strip charts: every observation a point, the deterministic beeswarm, categories, groups,
 //! orientation, facets, and the shared contract every type meets (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Geometry, Item, Role};

@@ -44,7 +44,7 @@ Evidence for lockdown part 02 (delivery model and gates, `G-`) and part 07 (perf
 | `richview-bench` | 0 | 0 | 0 | — | O |
 | **Total** | 194 | 243 (46) | 1 | 40.8 s | O |
 
-`cargo test --workspace --locked` runs 438 tests through 63 test executions (58 test executables and 5 doc-test runs), with 0 ignored and 0 failed. No tier markers exist: there are no `#[ignore]` tests, no `[features]` in any crate manifest and no nextest configuration. The runner also sees no wasm-bindgen tests. **O** PR #68 (S27-652, unmerged) also reports "all 438 Rust test executions". **S**
+`cargo test --workspace --locked` runs 438 tests through 63 test executions (58 test executables and 5 doc-test runs), with 0 ignored and 0 failed. No tier markers exist: there are no `#[ignore]` tests, no `[features]` in any crate manifest and no nextest configuration. The runner also sees no wasm-bindgen tests. **O** PR #68 (unmerged) also reports "all 438 Rust test executions". **S**
 
 The slowest tests are `repeated_embedded_assets_and_complete_report_overhead_have_a_bounded_output` at 26.6 s in a debug build (it renders reports up to the 64 MiB output limit, `crates/richview-core/src/lib.rs:56`), `uploads_resume_from_listed_parts_retry_verify_and_abort` at 4.3 s (its retry policy uses 1–4 ms delays, so the cause was not isolated), and the two `installed_assets` tests at 2.0 s and 1.1 s. All other tests take 0.3 s or less. **O**
 
@@ -148,7 +148,7 @@ Not checks: `scripts/chart-appearance.mjs`, `flagship-images.mjs` and `marker-in
 
 ## Hosted CI
 
-**Workflow.** There is one workflow on `main`, "Rust product checks" (`.github/workflows/ci.yml`). It triggers only on `push` and `pull_request` to `main` (`:3-7`), has read-only contents permission (`:9-10`), and runs a single `ubuntu-latest` job with a 60-minute timeout (`:13-14`) through the steps listed under Format, lint and build, Host and package checks, Browser behaviour (Playwright) and Visual and screenshot checks. Two more workflows are registered on the repository: "Publication validation" (`publish.yml`, only on PR #70's branch `feat/s27-655-richview-publish`) and a historical "richview-chart" workflow. **O**
+**Workflow.** There is one workflow on `main`, "Rust product checks" (`.github/workflows/ci.yml`). It triggers only on `push` and `pull_request` to `main` (`:3-7`), has read-only contents permission (`:9-10`), and runs a single `ubuntu-latest` job with a 60-minute timeout (`:13-14`) through the steps listed under Format, lint and build, Host and package checks, Browser behaviour (Playwright) and Visual and screenshot checks. Two more workflows are registered on the repository: "Publication validation" (`publish.yml`, only on PR #70's branch) and a historical "richview-chart" workflow. **O**
 
 **History** (`gh run list -R 1vecera/richview --limit 400`, 298 runs since 2026-05-21). **O**
 

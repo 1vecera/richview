@@ -74,7 +74,7 @@ axes:
 
 ## Interactions
 
-- Hover or focus a node to read its number of links and the total on them.
+- Hover or focus a node to read its number of links and the total on them. A dark ring marks the node under the pointer.
 - Hover or focus the middle of a line to read its value, or the two nodes it joins.
 - Click a legend entry to remove a connected part, and back.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

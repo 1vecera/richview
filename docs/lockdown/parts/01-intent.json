@@ -18,7 +18,7 @@
       "options": [
         {
           "label": "Presentation layer for your agent",
-          "detail": "Daniel’s 2026-10-05 positioning (S27-590), merged with PR #21 on 2026-10-11 and the live H1 since; his most repeated framing. Says little about input and output unless followed by the clause in the proposal."
+          "detail": "Daniel’s 2026-10-05 positioning, merged with PR #21 on 2026-10-11 and the live H1 since; his most repeated framing. Says little about input and output unless followed by the clause in the proposal."
         },
         {
           "label": "Agentic presentation layer for data stories",
@@ -34,7 +34,7 @@
         },
         {
           "label": "Product family: Reports, Dashboards, Charts, Publish",
-          "detail": "Daniel’s latest scope statement (S27-655, 2026-10-18), written for the Publish effort. Broadest; multiplies the rewrite (INT-31)."
+          "detail": "Daniel’s latest scope statement (2026-10-18), written for the Publish effort. Broadest; multiplies the rewrite (INT-31)."
         }
       ],
       "recommendation": "Presentation layer for your agent, followed by the input/output clause: it is Daniel’s latest reviewed wording, and the clause carries the README’s concrete facts.",
@@ -52,7 +52,6 @@
         },
         {
           "label": "Review direction “RichView is a presentation layer for your agent.”",
-          "ref": "S27-590",
           "date": "2026-10-05"
         },
         {
@@ -72,12 +71,11 @@
         },
         {
           "label": "August lock: “curated JSON/data-to-report rendering layer … rather than a sprawling platform”",
-          "ref": "https://linear.app/935/issue/DIR-121",
           "date": "2026-08-08"
         },
         {
           "label": "Ecosystem of Rich Markdown, Charts, Reports, Dashboards, Publish, Server and VS Code (line 39)",
-          "ref": "origin/feat/s27-655-richview-publish:tasks/richview-publish.md",
+          "ref": "PR #70: tasks/richview-publish.md",
           "date": "2026-10-18"
         },
         {
@@ -96,7 +94,7 @@
           "date": "2026-10-11"
         }
       ],
-      "conflicts": "`README.md:3`, `CLAUDE.md:3` and `llms.txt:3` lead with “sourced, editable reports”; S27-655 describes a product family. Accepting means rewriting those openings and keeping siblings out of the definition.",
+      "conflicts": "`README.md:3`, `CLAUDE.md:3` and `llms.txt:3` lead with “sourced, editable reports”; the RichView Publish brief describes a product family. Accepting means rewriting those openings and keeping siblings out of the definition.",
       "images": [
         "docs/lockdown/screenshots/live/richview-home-desktop-01-hero.jpg"
       ]
@@ -150,7 +148,6 @@
         },
         {
           "label": "Tagline direction and “Coming soon”, never “beta”",
-          "ref": "S27-590",
           "date": "2026-10-05"
         },
         {
@@ -252,12 +249,10 @@
         },
         {
           "label": "Server hosts full HTML first; strip or unify repeated runtime later",
-          "ref": "S27-413",
           "date": "2026-06-20"
         },
         {
           "label": "Every report in its own folder; chart-local data",
-          "ref": "S27-581",
           "date": "2026-10-04"
         },
         {
@@ -308,7 +303,7 @@
         },
         {
           "label": "“RichView Publish (the final correction from ‘RichView Publishing’)” (line 7)",
-          "ref": "origin/feat/s27-655-richview-publish:tasks/richview-publish.md",
+          "ref": "PR #70: tasks/richview-publish.md",
           "date": "2026-10-18"
         },
         {
@@ -348,16 +343,14 @@
         },
         {
           "label": "Site brief: “Explain why RichView exists and its JSON-renderer inspiration”",
-          "ref": "S27-398",
           "date": "2026-10-02"
         },
         {
           "label": "Research into spec-to-HTML tools such as json-render",
-          "ref": "S27-402",
           "date": "2026-07-10"
         }
       ],
-      "conflicts": "The June kill-review warns that a 2026 vision model reads overlapping labels fine, so the edge over screenshots is cost and exactness, and that agent runtimes adding their own render-and-look loop are the likeliest threat. S27-398 also asked the site to explain RichView’s JSON-renderer inspiration."
+      "conflicts": "The June kill-review warns that a 2026 vision model reads overlapping labels fine, so the edge over screenshots is cost and exactness, and that agent runtimes adding their own render-and-look loop are the likeliest threat. The scrolling-site issue also asked the site to explain RichView’s JSON-renderer inspiration."
     },
     {
       "id": "INT-06",
@@ -380,7 +373,7 @@
         },
         {
           "label": "Plus business users dictating dashboards",
-          "detail": "The audience the voice demo implies (S27-651 has Daniel dictating a sales dashboard); adds speech, planning and a chat-like surface."
+          "detail": "The audience the voice demo implies (the voice-dashboard brief has Daniel dictating a sales dashboard); adds speech, planning and a chat-like surface."
         }
       ],
       "recommendation": "Authors who work with coding agents: every statement of RichView’s own audience, from June to the 2026-10-04 Rust brief and the 2026-10-10 product brief, names them; the October additions are audiences of sibling products (INT-33 to INT-35), and the agent-native bet (INT-21) depends on this one.",
@@ -403,12 +396,11 @@
         },
         {
           "label": "Audience adds readers and people discovering the work through LinkedIn carousels",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
           "label": "Publish audience: “a small intelligence or specialist news publisher” (line 5)",
-          "ref": "origin/feat/s27-655-richview-publish:tasks/richview-publish.md",
+          "ref": "PR #70: tasks/richview-publish.md",
           "date": "2026-10-18"
         },
         {
@@ -428,11 +420,10 @@
         },
         {
           "label": "“Daniel's 18 October 2026 instruction is the current product scope and supersedes older narrow August launch framing for this new effort.”",
-          "ref": "S27-655",
           "date": "2026-10-18"
         }
       ],
-      "conflicts": "October widened the audience through sibling products: S27-651, a voice-to-dashboard demo that implies business users [inferred], and S27-655, small newsrooms, which says Daniel’s 18 October instruction “is the current product scope and supersedes older narrow August launch framing for this new effort”. The live home says “An engine for humans and agents” (`assets/landing/index.html:150`). Accepting keeps those audiences in the sibling decisions."
+      "conflicts": "October widened the audience through sibling products: the voice dashboard (PR #64), a voice-to-dashboard demo that implies business users [inferred], and RichView Publish (PR #70), small newsrooms, whose brief says Daniel’s 18 October instruction “is the current product scope and supersedes older narrow August launch framing for this new effort”. The live home says “An engine for humans and agents” (`assets/landing/index.html:150`). Accepting keeps those audiences in the sibling decisions."
     },
     {
       "id": "INT-07",
@@ -478,17 +469,14 @@
         },
         {
           "label": "Audience: “their readers on desktop and mobile”",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
           "label": "Review on mobile and desktop: motion, reduced motion, keyboard and focus, and no console, runtime or network errors",
-          "ref": "S27-653",
           "date": "2026-10-18"
         },
         {
           "label": "Desktop and 420 px; a keyboard toggle with `aria-pressed`; no animated width change under reduced motion",
-          "ref": "S27-632",
           "date": "2026-10-13"
         },
         {
@@ -503,7 +491,6 @@
         },
         {
           "label": "“Reduced motion, keyboard navigation, phones and JavaScript-disabled reading must keep the complete story available”",
-          "ref": "S27-594",
           "date": "2026-10-05"
         },
         {
@@ -512,7 +499,7 @@
           "date": "2026-10-11"
         }
       ],
-      "conflicts": "S27-616 adds a LinkedIn carousel PDF as a reading format; Daniel's INT-31 answer drops it (FEA-RP-46).\n\nDaniel's ARC-05 answer settles what this card left open: no static charts without scripts, only the chart's frame and a notice. A reader without JavaScript or WebGL gets the report's text and tables but none of its charts."
+      "conflicts": "The design-and-hosting brief adds a LinkedIn carousel PDF as a reading format; Daniel's INT-31 answer drops it (FEA-RP-46).\n\nDaniel's ARC-05 answer settles what this card left open: no static charts without scripts, only the chart's frame and a notice. A reader without JavaScript or WebGL gets the report's text and tables but none of its charts."
     },
     {
       "id": "INT-08",
@@ -580,7 +567,6 @@
         },
         {
           "label": "Report-folder rule with fail-fast errors",
-          "ref": "S27-581",
           "date": "2026-10-04"
         },
         {
@@ -635,12 +621,10 @@
         },
         {
           "label": "“Analytical substance (80%) and presentation (20%)”; 643-row source ledger",
-          "ref": "S27-399",
           "date": "2026-10-02"
         },
         {
           "label": "Flagship polish brief: “keep its research snapshot intact” (the header graphic is INT-75)",
-          "ref": "S27-654",
           "date": "2026-10-18"
         },
         {
@@ -684,7 +668,6 @@
       "sources": [
         {
           "label": "“Remove the broken header chart and replace it with a compelling finished infographic/header image … (native SVG infographic or image-generation tool as suitable) … avoid inventing new research facts”",
-          "ref": "S27-654",
           "date": "2026-10-18"
         },
         {
@@ -694,7 +677,6 @@
         },
         {
           "label": "“Restore illustrative header/hero imagery as a normal choice for most reports”",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -722,22 +704,18 @@
       "sources": [
         {
           "label": "“Smooth, meaningful motion and strong storytelling while preserving correct data, units, scales and source access”",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
           "label": "“Numerical correctness and honest data presentation are non-negotiable”",
-          "ref": "S27-572",
           "date": "2026-10-02"
         },
         {
           "label": "“never invent findings or change data to flatter a style”",
-          "ref": "S27-573",
           "date": "2026-10-02"
         },
         {
           "label": "“Do not interpolate or fabricate data values while animating the container.”",
-          "ref": "S27-654",
           "date": "2026-10-18"
         },
         {
@@ -760,7 +738,7 @@
       "group": "What RichView maximizes",
       "title": "Storytelling",
       "question": "Does RichView maximize how clearly a story argues, not only how it looks?",
-      "why": "RichView sells data stories, and S27-616 pairs motion with “strong storytelling”, but no target covered narrative quality, so INT-17 could not rank it.",
+      "why": "RichView sells data stories, and the design-and-hosting brief pairs motion with “strong storytelling”, but no target covered narrative quality, so INT-17 could not rank it.",
       "proposed": "RichView maximizes storytelling: a story leads with its claims and carries the reader through the evidence. Headings state evidence-backed claims, every chart carries its interpretation, and callouts, emphasis, annotations and header imagery serve the argument, never decoration. The defaults, `richview learn` and the skill teach this structure, and the flagship (INT-10) demonstrates it. Scrollytelling is built as one element inside a report, not a separate output (FEA-RP-48); the LinkedIn carousel is dropped (FEA-RP-46).",
       "confidence": "stated",
       "sources": [
@@ -771,12 +749,10 @@
         },
         {
           "label": "“Smooth, meaningful motion and strong storytelling while preserving correct data, units, scales and source access”",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
           "label": "“Add reusable storytelling elements such as soft callouts, emphasis and pencil-like annotation lines”",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -790,7 +766,7 @@
           "date": "2026-06-20"
         }
       ],
-      "conflicts": "S27-616 states storytelling and motion in one bullet; this card takes the argument, INT-12 the motion."
+      "conflicts": "The design-and-hosting brief states storytelling and motion in one bullet; this card takes the argument, INT-12 the motion."
     },
     {
       "id": "INT-12",
@@ -816,17 +792,15 @@
         },
         {
           "label": "“Visual craft and readability that withstand comparison with the cited chart references and experienced editorial-design critique, across desktop, mobile and exported pages”",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
           "label": "“Highcharts is a quality benchmark, not source code to copy”",
-          "ref": "S27-572",
           "date": "2026-10-02"
         },
         {
           "label": "Publish ambition: the craft of “a serious publication such as FT.com” (line 5)",
-          "ref": "origin/feat/s27-655-richview-publish:tasks/richview-publish.md",
+          "ref": "PR #70: tasks/richview-publish.md",
           "date": "2026-10-18"
         },
         {
@@ -836,7 +810,6 @@
         },
         {
           "label": "Daniel’s review: the published site is “not accepted yet”; mobile scrolling “jumpy/weird with visible ticking”",
-          "ref": "S27-653",
           "date": "2026-10-18"
         },
         {
@@ -871,12 +844,10 @@
         },
         {
           "label": "“Expressive simplicity: short authoring syntax, excellent defaults”",
-          "ref": "S27-648",
           "date": "2026-10-17"
         },
         {
           "label": "“A short, understandable authoring path from report source to the chosen output and from uploaded asset to working embed”",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -936,7 +907,7 @@
         },
         {
           "label": "Publish: “Small, reusable open-source architecture” (line 49)",
-          "ref": "origin/feat/s27-655-richview-publish:tasks/richview-publish.md",
+          "ref": "PR #70: tasks/richview-publish.md",
           "date": "2026-10-18"
         }
       ]
@@ -980,7 +951,7 @@
         },
         {
           "label": "Publish: “Small, reusable open-source architecture” (line 49)",
-          "ref": "origin/feat/s27-655-richview-publish:tasks/richview-publish.md",
+          "ref": "PR #70: tasks/richview-publish.md",
           "date": "2026-10-18"
         }
       ],
@@ -1020,7 +991,6 @@
         },
         {
           "label": "“Low, explainable operating costs and practical provider portability”",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -1035,7 +1005,7 @@
         },
         {
           "label": "Publish: reuse “ordinary Git/CI/identity infrastructure” (line 49)",
-          "ref": "origin/feat/s27-655-richview-publish:tasks/richview-publish.md",
+          "ref": "PR #70: tasks/richview-publish.md",
           "date": "2026-10-18"
         }
       ],
@@ -1061,7 +1031,7 @@
           "detail": "The Rust brief’s “win a serious Rust/graphics engineering review”; justifies more optimization code and benchmarking."
         }
       ],
-      "recommendation": "Floor: the latest briefs (S27-616, S27-655) maximize craft, authoring, publishing, operation and cost, not raw speed, and Daniel’s recent rejections were about smoothness, which the floor covers; INT-12 sets the aim above it, animation that is delightful as well as smooth.",
+      "recommendation": "Floor: the latest briefs maximize craft, authoring, publishing, operation and cost, not raw speed, and Daniel’s recent rejections were about smoothness, which the floor covers; INT-12 sets the aim above it, animation that is delightful as well as smooth.",
       "confidence": "inferred",
       "sources": [
         {
@@ -1081,12 +1051,10 @@
         },
         {
           "label": "“What to maximize” without raw speed",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
           "label": "Mobile scroll “jumpy/weird with visible ticking”",
-          "ref": "S27-653",
           "date": "2026-10-18"
         },
         {
@@ -1096,7 +1064,6 @@
         },
         {
           "label": "“What to maximize”: a repeatable publishing loop, editorial presentation and ease of operation, a small reusable architecture; no raw speed",
-          "ref": "S27-655",
           "date": "2026-10-18"
         }
       ]
@@ -1135,7 +1102,6 @@
         },
         {
           "label": "“Keep private uploads and credentials private; public delivery must be an explicit choice with bounded write/admin access.”",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -1190,7 +1156,6 @@
         },
         {
           "label": "“What to maximize” lists craft first, then identities, motion, authoring and cost, without ranking them",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -1204,7 +1169,7 @@
           "date": "2026-06-20"
         }
       ],
-      "conflicts": "No source ranks the targets explicitly; the 80/20 split was stated for the flagship research, and applying it to the product is the proposer’s reading. Storytelling (S27-616) and extensibility (the Rust brief) are stated targets; their place in this order is also the proposer’s reading."
+      "conflicts": "No source ranks the targets explicitly; the 80/20 split was stated for the flagship research, and applying it to the product is the proposer’s reading. Storytelling and extensibility (the Rust brief) are stated targets; their place in this order is also the proposer’s reading."
     },
     {
       "id": "INT-18",
@@ -1276,11 +1241,10 @@
         },
         {
           "label": "Diagnostics contract in core “with no-false-clean semantics” (comment)",
-          "ref": "S27-423",
           "date": "2026-06-08"
         }
       ],
-      "conflicts": "June’s decision surface demoted diagnostics (dec-50) while PR #4 kept them on Daniel’s call. Native text bounds are still estimates; only the browser measures glyphs (`llms.txt:17`). Today’s check gives false cleans: a chart whose encoding fields are missing from its data returns `clean`, and `richview check --style sleek --theme light` returns `clean` while its chart text sits at 1.05:1, because no contrast check exists (both re-run 2026-10-22). S27-423 defined the diagnostics contract as never giving a false clean.\n\nDaniel's INT-31 answer moves the page to WebGL, so the browser SVG that today's measurement reads no longer exists by default. If chart text is drawn in WebGL from the bundled fonts, the model's text bounds are what readers see and stop being estimates; if it is laid over the canvas as HTML or SVG, the browser still lays text out and only a browser pass measures it (FEA-CH-30)."
+      "conflicts": "June’s decision surface demoted diagnostics (dec-50) while PR #4 kept them on Daniel’s call. Native text bounds are still estimates; only the browser measures glyphs (`llms.txt:17`). Today’s check gives false cleans: a chart whose encoding fields are missing from its data returns `clean`, and `richview check --style sleek --theme light` returns `clean` while its chart text sits at 1.05:1, because no contrast check exists (both re-run 2026-10-22). An earlier Linear issue defined the diagnostics contract as never giving a false clean.\n\nDaniel's INT-31 answer moves the page to WebGL, so the browser SVG that today's measurement reads no longer exists by default. If chart text is drawn in WebGL from the bundled fonts, the model's text bounds are what readers see and stop being estimates; if it is laid over the canvas as HTML or SVG, the browser still lays text out and only a browser pass measures it (FEA-CH-30)."
     },
     {
       "id": "INT-19",
@@ -1296,7 +1260,6 @@
       "sources": [
         {
           "label": "“Make one report a competition-winning demonstration of RichView's expressive range: a visitor selects a theme or charting style and sees the entire presentation transform coherently while the evidence and analytical meaning stay intact”",
-          "ref": "S27-573",
           "date": "2026-10-02"
         },
         {
@@ -1306,7 +1269,6 @@
         },
         {
           "label": "“Five distinctive, coherent identities with restrained, purposeful detail”",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -1345,17 +1307,14 @@
         },
         {
           "label": "“Highcharts-level visual craft in RichView's own rendering system”",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
           "label": "First showcase “strong enough to win a serious data-visualization competition”",
-          "ref": "S27-572",
           "date": "2026-10-02"
         },
         {
           "label": "“Expressive simplicity: short authoring syntax, excellent defaults”",
-          "ref": "S27-648",
           "date": "2026-10-17"
         },
         {
@@ -1365,7 +1324,6 @@
         },
         {
           "label": "Years printed as 1.70K; scatter labels “much too dense”",
-          "ref": "S27-654",
           "date": "2026-10-18"
         }
       ],
@@ -1446,7 +1404,7 @@
         },
         {
           "label": "PR #70 merged into `main` as merge commit 97ac0d0 on 2026-10-26; its branch has no commits outside `main`, and `main` now holds `publications/news/`, `cloudflare/publish/` and `publish.yml`",
-          "ref": "git log origin/main; git rev-list --count origin/main..origin/feat/s27-655-richview-publish (0)",
+          "ref": "git log origin/main; git rev-list --count origin/main..3f5c35f (0)",
           "date": "2026-10-26"
         },
         {
@@ -1456,12 +1414,11 @@
         },
         {
           "label": "“the publishing experience and editorial control of a serious publication such as FT.com, scaled to a small team and hundreds of items, with Git and coding agents as the natural authoring and approval interface” (line 5)",
-          "ref": "origin/feat/s27-655-richview-publish:tasks/richview-publish.md",
+          "ref": "PR #70: tasks/richview-publish.md",
           "date": "2026-10-18"
         },
         {
           "label": "Git-to-live loop with validation, protected preview and required approval",
-          "ref": "S27-655",
           "date": "2026-10-18"
         },
         {
@@ -1506,7 +1463,7 @@
       "confidence": "inferred",
       "sources": [
         {
-          "label": "Task-spec convention: “frame work as worthy of winning a relevant competition and name the judging criteria” (S27-571)",
+          "label": "Task-spec convention: “frame work as worthy of winning a relevant competition and name the judging criteria”",
           "ref": "Notion: 2026-10-02 — Friday (daily plan)",
           "date": "2026-10-02"
         },
@@ -1517,12 +1474,10 @@
         },
         {
           "label": "“Describe one-click publishing only if it really exists”",
-          "ref": "S27-590",
           "date": "2026-10-05"
         },
         {
           "label": "Competition framing for the chart library",
-          "ref": "S27-572",
           "date": "2026-10-02"
         }
       ]
@@ -1552,7 +1507,6 @@
       "sources": [
         {
           "label": "“Keep the product narrow: data stories for coding-agent users, not dashboards, not generic BI, not a full chat/web-editor product”",
-          "ref": "S27-420",
           "date": "2026-06-20"
         },
         {
@@ -1572,11 +1526,10 @@
         },
         {
           "label": "“fully interactive” clarified to animation quality, not “an unrelated dashboard-feature programme”",
-          "ref": "S27-616",
           "date": "2026-10-10"
         }
       ],
-      "conflicts": "S27-650 (PR #66) built warehouse connectors and S27-651 a dashboard over MetricFlow, both in the 17 October batch opened “despite older August scope locks”; keeping the non-goal reverses that for the rewrite. Cross-part contradiction: answer OPN-63 first; it decides this card's conflict."
+      "conflicts": "PR #66 built warehouse connectors and PR #64 a dashboard over MetricFlow, both in the 17 October batch opened “despite older August scope locks”; keeping the non-goal reverses that for the rewrite. Cross-part contradiction: answer OPN-63 first; it decides this card's conflict."
     },
     {
       "id": "INT-25",
@@ -1592,7 +1545,6 @@
       "sources": [
         {
           "label": "Daniel on the playground: “let's not make any chatting in the face there”",
-          "ref": "S27-416",
           "date": "2026-06-20"
         },
         {
@@ -1611,7 +1563,7 @@
           "date": "2026-10-04"
         }
       ],
-      "conflicts": "S27-651 (PR #64) plans dashboards from voice or text prompts with server-side speech-to-text. S27-616’s LinkedIn carousel PDF is an output format, not a deck generator."
+      "conflicts": "PR #64 plans dashboards from voice or text prompts with server-side speech-to-text. The LinkedIn carousel PDF requested in the design-and-hosting brief is an output format, not a deck generator."
     },
     {
       "id": "INT-26",
@@ -1642,7 +1594,7 @@
         },
         {
           "label": "Publish defers “a full RichView WYSIWYG editor” (line 43)",
-          "ref": "origin/feat/s27-655-richview-publish:tasks/richview-publish.md",
+          "ref": "PR #70: tasks/richview-publish.md",
           "date": "2026-10-18"
         }
       ],
@@ -1687,7 +1639,7 @@
         },
         {
           "label": "Publish: “Billing/paywall payments, ad tech, comments, CRM, enterprise multi-tenancy and a generic CMS extension marketplace are not required” (line 43)",
-          "ref": "origin/feat/s27-655-richview-publish:tasks/richview-publish.md",
+          "ref": "PR #70: tasks/richview-publish.md",
           "date": "2026-10-18"
         },
         {
@@ -1696,7 +1648,7 @@
           "date": "2026-10-05"
         }
       ],
-      "conflicts": "The home page shows “a menu of your finished reports” with “private” badges and “access control” (`assets/landing/index.html:202`, `:237`), which the server does not provide (FEA-SF-19). The native report host, Cowork's first cut (INT-83), has one publish token and open reads: the role set is its target, not its state, and whether it arrives in Cowork's first cut is open (FEA-SF-19). Publish on #70 has Reader, Editor and Super editor roles behind Cloudflare Access (FEA-BR-25); how they map onto reader, author and owner is open. S27-616 asked for RichView-managed and own-storage hosting for large data and media, which INT-31 accepts; the earlier “RichView operates no service” in INT-36, INT-48, ARC-22 and ARC-32 changes with it. INT-30 parks monetization while the hosting service has running costs; whether it is free, limited or paid is open.",
+      "conflicts": "The home page shows “a menu of your finished reports” with “private” badges and “access control” (`assets/landing/index.html:202`, `:237`), which the server does not provide (FEA-SF-19). The native report host, Cowork's first cut (INT-83), has one publish token and open reads: the role set is its target, not its state, and whether it arrives in Cowork's first cut is open (FEA-SF-19). Publish on #70 has Reader, Editor and Super editor roles behind Cloudflare Access (FEA-BR-25); how they map onto reader, author and owner is open. The design-and-hosting brief asked for RichView-managed and own-storage hosting for large data and media, which INT-31 accepts; the earlier “RichView operates no service” in INT-36, INT-48, ARC-22 and ARC-32 changes with it. INT-30 parks monetization while the hosting service has running costs; whether it is free, limited or paid is open.",
       "options": [
         {
           "label": "Roles on servers, RichView hosts data and media",
@@ -1793,7 +1745,6 @@
         },
         {
           "label": "Carousel review: “The report's claims go public … Posting puts your name to them.”",
-          "ref": "S27-593",
           "date": "2026-10-05"
         }
       ]
@@ -1846,7 +1797,7 @@
           "date": "2026-10-04"
         }
       ],
-      "conflicts": "Daniel's 2026-06-08 steer parked monetization to focus on user value; his INT-36 answer replaces that with paid hosted services. S27-616 asked to prepare cloud credit applications and cost scenarios; that is hosting-cost work (INT-48, INT-15). The impressum calls RichView “a personal hobby project”, which paid services change (INT-73, FEA-SF-32)."
+      "conflicts": "Daniel's 2026-06-08 steer parked monetization to focus on user value; his INT-36 answer replaces that with paid hosted services. The design-and-hosting brief asked to prepare cloud credit applications and cost scenarios; that is hosting-cost work (INT-48, INT-15). The impressum calls RichView “a personal hobby project”, which paid services change (INT-73, FEA-SF-32)."
     },
     {
       "id": "INT-80",
@@ -1867,12 +1818,10 @@
         },
         {
           "label": "“Subscriber data remains private”",
-          "ref": "S27-590",
           "date": "2026-10-05"
         },
         {
           "label": "“Keep private uploads and credentials private”",
-          "ref": "S27-616",
           "date": "2026-10-10"
         }
       ]
@@ -1886,7 +1835,7 @@
       "title": "What the rewrite builds",
       "question": "Which products and surfaces does the rewrite build?",
       "why": "This is the largest scope lever: each sibling brings its own stack, hosting and review surface.",
-      "proposed": "The rewrite builds RichView core: the Rich Markdown format and style cascade, the chart engine, the report renderer, the CLI with MCP and `learn`, the VS Code extension, the browser playground and preview, PDF export, the self-hostable report server (INT-36), and richview.ai with its docs and the flagship. Siblings are decided on their own cards: dashboards (INT-33), the voice demo (INT-34), Publish (INT-35), the internal-facing Cowork server (INT-83) and News (INT-74). The core builds no live data connector: reports read data exported into the report folder, and live connections are a secondary path of Publish behind a third-party connector engine (INT-24, OPN-63). The other S27-616 additions are placed elsewhere: the scrollytelling output, the LinkedIn carousel and per-output markers are deferred (FEA-RP-48, FEA-RP-46, FEA-RP-47); RichView-managed hosting for large data and media is out, because RichView operates no service (INT-27, INT-36); author-hosted assets and uploads leave the first cut (FEA-SF-50, TYP-41); raster or WebGL rendering is only an opt-in acceleration inside the engine (ARC-05, ARC-18); AWS credits are INT-48.",
+      "proposed": "The rewrite builds RichView core: the Rich Markdown format and style cascade, the chart engine, the report renderer, the CLI with MCP and `learn`, the VS Code extension, the browser playground and preview, PDF export, the self-hostable report server (INT-36), and richview.ai with its docs and the flagship. Siblings are decided on their own cards: dashboards (INT-33), the voice demo (INT-34), Publish (INT-35), the internal-facing Cowork server (INT-83) and News (INT-74). The core builds no live data connector: reports read data exported into the report folder, and live connections are a secondary path of Publish behind a third-party connector engine (INT-24, OPN-63). The design-and-hosting brief's other additions are placed elsewhere: the scrollytelling output, the LinkedIn carousel and per-output markers are deferred (FEA-RP-48, FEA-RP-46, FEA-RP-47); RichView-managed hosting for large data and media is out, because RichView operates no service (INT-27, INT-36); author-hosted assets and uploads leave the first cut (FEA-SF-50, TYP-41); raster or WebGL rendering is only an opt-in acceleration inside the engine (ARC-05, ARC-18); AWS credits are INT-48.",
       "options": [
         {
           "label": "Core now, siblings later",
@@ -1916,12 +1865,10 @@
         },
         {
           "label": "“Keep the product narrow: data stories for coding-agent users, not dashboards, not generic BI, not a full chat/web-editor product”",
-          "ref": "S27-420",
           "date": "2026-06-20"
         },
         {
           "label": "“rather than a sprawling platform”",
-          "ref": "https://linear.app/935/issue/DIR-121",
           "date": "2026-08-08"
         },
         {
@@ -1931,26 +1878,23 @@
         },
         {
           "label": "Voice dashboard requested “despite older August scope locks”",
-          "ref": "S27-651",
           "date": "2026-10-17"
         },
         {
           "label": "Ecosystem: Rich Markdown, Charts, Reports and Dashboards, Publish, Server, VS Code (line 39)",
-          "ref": "origin/feat/s27-655-richview-publish:tasks/richview-publish.md",
+          "ref": "PR #70: tasks/richview-publish.md",
           "date": "2026-10-18"
         },
         {
           "label": "“Daniel's 18 October 2026 instruction is the current product scope and supersedes older narrow August launch framing for this new effort.”",
-          "ref": "S27-655",
           "date": "2026-10-18"
         },
         {
           "label": "Scrollytelling output, LinkedIn carousel PDF, per-output markers, RichView-managed and own-storage hosting for large data and media, WebGL/WebAssembly raster exploration, AWS credits",
-          "ref": "S27-616",
           "date": "2026-10-10"
         }
       ],
-      "conflicts": "S27-655 says Daniel’s 18 October instruction “is the current product scope and supersedes older narrow August launch framing for this new effort”, and S27-651 asked for the voice demo “despite older August scope locks”; core first reverses that timing for the rewrite. The October briefs (S27-647 to S27-655) also added galleries, playback, tabs and connectors; part 04 lists their features and part 08 their PRs. Daniel's INT-24 answer moves connectors to the Publish track (OPN-63), so they leave the core's scope rather than its timing. S27-616, still open, added the outputs and hosting placed above."
+      "conflicts": "The RichView Publish brief says Daniel’s 18 October instruction “is the current product scope and supersedes older narrow August launch framing for this new effort”, and the voice-dashboard brief asked for the voice demo “despite older August scope locks”; core first reverses that timing for the rewrite. The nine October briefs (PRs #62 to #70) also added galleries, playback, tabs and connectors; part 04 lists their features and part 08 their PRs. Daniel's INT-24 answer moves connectors to the Publish track (OPN-63), so they leave the core's scope rather than its timing. The design-and-hosting brief, still open, added the outputs and hosting placed above."
     },
     {
       "id": "INT-32",
@@ -1977,17 +1921,15 @@
       "sources": [
         {
           "label": "Daniel: charting in its own repository with ECharts as supplier",
-          "ref": "S27-410",
           "date": "2026-06-20"
         },
         {
           "label": "Rust chart library built separately first",
-          "ref": "S27-572",
           "date": "2026-10-02"
         },
         {
           "label": "“Charts is the rendering capability” (line 39)",
-          "ref": "origin/feat/s27-655-richview-publish:tasks/richview-publish.md",
+          "ref": "PR #70: tasks/richview-publish.md",
           "date": "2026-10-18"
         },
         {
@@ -2001,7 +1943,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "S27-410 (June) asked for charting in a separate repository; the Rust engine now lives in this monorepo as `richview-chart`. If this card changes, TYP-22 makes the engine spec that package’s versioned contract."
+      "conflicts": "The charting-repository issue (June) asked for charting in a separate repository; the Rust engine now lives in this monorepo as `richview-chart`. If this card changes, TYP-22 makes the engine spec that package’s versioned contract."
     },
     {
       "id": "INT-33",
@@ -2027,7 +1969,7 @@
           "detail": "The October ecosystem’s “Dashboards”; a second product."
         }
       ],
-      "recommendation": "Out of the rewrite: a dashboard runtime is a second product on top of an unfinished core; this defers the Dashboards that Daniel’s 2026-10-18 scope lists (S27-655) until the core is done.",
+      "recommendation": "Out of the rewrite: a dashboard runtime is a second product on top of an unfinished core; this defers the Dashboards that Daniel’s 2026-10-18 scope lists until the core is done.",
       "confidence": "inferred",
       "sources": [
         {
@@ -2037,7 +1979,6 @@
         },
         {
           "label": "“not dashboards, not generic BI”",
-          "ref": "S27-420",
           "date": "2026-06-20"
         },
         {
@@ -2047,7 +1988,7 @@
         },
         {
           "label": "“Reports and Dashboards are publishable experiences” (line 39)",
-          "ref": "origin/feat/s27-655-richview-publish:tasks/richview-publish.md",
+          "ref": "PR #70: tasks/richview-publish.md",
           "date": "2026-10-18"
         },
         {
@@ -2057,11 +1998,10 @@
         },
         {
           "label": "Voice-to-dashboard brief",
-          "ref": "S27-651",
           "date": "2026-10-17"
         }
       ],
-      "conflicts": "The live News dashboard shows rendering defects: black wedges in two charts and an axis title that shows only the raw lower-bound field name “plan gap lo”. S27-655 lists Reports and Dashboards as publishable experiences in Daniel’s current scope.",
+      "conflicts": "The live News dashboard shows rendering defects: black wedges in two charts and an axis title that shows only the raw lower-bound field name “plan gap lo”. The RichView Publish brief lists Reports and Dashboards as publishable experiences in Daniel’s current scope.",
       "images": [
         "docs/lockdown/screenshots/live/news-dashboard-trading-desk-desktop-full.jpg"
       ]
@@ -2073,7 +2013,7 @@
       "refId": "D-SCOPE-VOICE-DASHBOARD",
       "group": "Product family and scope",
       "title": "Voice-to-dashboard demo",
-      "question": "Does the voice-to-dashboard demo (S27-651, PR #64) belong to RichView?",
+      "question": "Does the voice-to-dashboard demo (PR #64) belong to RichView?",
       "why": "It brings speech-to-text, a planner, live MetricFlow access and a JavaScript app: the speech and planner cross INT-25, and the live data access sits outside RichView Publish, the only place INT-24 allows live connections.",
       "proposed": "The voice-to-dashboard demo is not built in the rewrite. PR #64’s code and evidence are kept as reference (ARC-58), RichView makes no public claim about it, and whether a voice demo is rebuilt on the new core is decided after launch.",
       "options": [
@@ -2100,7 +2040,6 @@
         },
         {
           "label": "Voice-to-dashboard sibling product demo, requested “despite older August scope locks”",
-          "ref": "S27-651",
           "date": "2026-10-17"
         },
         {
@@ -2165,7 +2104,7 @@
         },
         {
           "label": "Publish brief: product for “a small intelligence or specialist news publisher”; demo at news.richview.ai (lines 5, 7)",
-          "ref": "origin/feat/s27-655-richview-publish:tasks/richview-publish.md",
+          "ref": "PR #70: tasks/richview-publish.md",
           "date": "2026-10-18"
         },
         {
@@ -2175,11 +2114,11 @@
         },
         {
           "label": "Publish source stays in the monorepo under its open-source licensing (line 53)",
-          "ref": "origin/feat/s27-655-richview-publish:tasks/richview-publish.md",
+          "ref": "PR #70: tasks/richview-publish.md",
           "date": "2026-10-18"
         }
       ],
-      "conflicts": "Daniel's 2026-10-23 decision keeps News improving on #70 now; with Publish rebuilt in the rewrite, changes to #70's JavaScript code do not carry over, so how much the News session invests there before the cut-over is open (INT-74, OPN-14). S27-655 has Publish “reuse and potentially absorb” Server; ARC-20 and the shared server core reverse that direction. Daniel's INT-06 answer settles roles: Publish has roles and approvals, the core has none. The brief and #70 name Reader, Editor and Super editor roles (FEA-BR-25); how they map onto reader, author and owner is open."
+      "conflicts": "Daniel's 2026-10-23 decision keeps News improving on #70 now; with Publish rebuilt in the rewrite, changes to #70's JavaScript code do not carry over, so how much the News session invests there before the cut-over is open (INT-74, OPN-14). The RichView Publish brief has Publish “reuse and potentially absorb” Server; ARC-20 and the shared server core reverse that direction. Daniel's INT-06 answer settles roles: Publish has roles and approvals, the core has none. The brief and #70 name Reader, Editor and Super editor roles (FEA-BR-25); how they map onto reader, author and owner is open."
     },
     {
       "id": "INT-83",
@@ -2230,11 +2169,10 @@
         },
         {
           "label": "“Support both an external publication and an internal publication using the same product”",
-          "ref": "S27-655",
           "date": "2026-10-18"
         }
       ],
-      "conflicts": "S27-655 asked Publish to serve both an external and an internal publication with the same product, and PR #70 has `mode: internal` (FEA-BR-45); the third option follows that, while Daniel's answers make Cowork its own server sharing Publish's core. Today's host has one publish token and open reads (FEA-SF-19), so the role set is Cowork's target, not its state. Cowork has no brief, ticket or code of its own yet; INT-06's answer calls the name a working name, and INT-31's answer settles it."
+      "conflicts": "The RichView Publish brief asked Publish to serve both an external and an internal publication with the same product, and PR #70 has `mode: internal` (FEA-BR-45); the third option follows that, while Daniel's answers make Cowork its own server sharing Publish's core. Today's host has one publish token and open reads (FEA-SF-19), so the role set is Cowork's target, not its state. Cowork has no brief, ticket or code of its own yet; INT-06's answer calls the name a working name, and INT-31's answer settles it."
     },
     {
       "id": "INT-74",
@@ -2280,7 +2218,7 @@
         },
         {
           "label": "PR #70 merged into `main` as merge commit 97ac0d0 on 2026-10-26; its branch has no commits outside `main`, and `main` now holds `publications/news/`, `cloudflare/publish/` and `publish.yml`",
-          "ref": "git log origin/main; git rev-list --count origin/main..origin/feat/s27-655-richview-publish (0)",
+          "ref": "git log origin/main; git rev-list --count origin/main..3f5c35f (0)",
           "date": "2026-10-26"
         },
         {
@@ -2305,7 +2243,6 @@
         },
         {
           "label": "RichView News, “which Daniel can keep publishing to as the product develops”",
-          "ref": "S27-655",
           "date": "2026-10-18"
         },
         {
@@ -2408,7 +2345,6 @@
         },
         {
           "label": "Server hosts full HTML with a version per report",
-          "ref": "S27-413",
           "date": "2026-06-20"
         },
         {
@@ -2486,7 +2422,6 @@
         },
         {
           "label": "June licence gradient: MIT libraries, Elastic-2.0 server",
-          "ref": "S27-422",
           "date": "2026-06-09"
         },
         {
@@ -2520,7 +2455,7 @@
           "date": "2026-10-11"
         }
       ],
-      "conflicts": "The June decision (S27-422, dec-81) chose Elastic-2.0 for the server and said never to market RichView as open source; the 2026-10-05 copy promises “fully open source”. The landing page declares its web fonts as “Source Serif 4” and “IBM Plex Mono” (`assets/landing/landing.css:26-44`), names that the OFL reserves for unmodified fonts (`scripts/fonts/README.md:71`); if those files are subsets, the names breach the licence [inferred]. INT-38’s pre-public check covers it."
+      "conflicts": "The June decision (dec-81) chose Elastic-2.0 for the server and said never to market RichView as open source; the 2026-10-05 copy promises “fully open source”. The landing page declares its web fonts as “Source Serif 4” and “IBM Plex Mono” (`assets/landing/landing.css:26-44`), names that the OFL reserves for unmodified fonts (`scripts/fonts/README.md:71`); if those files are subsets, the names breach the licence [inferred]. INT-38’s pre-public check covers it."
     },
     {
       "id": "INT-38",
@@ -2556,12 +2491,10 @@
         },
         {
           "label": "“public source availability remains a future release commitment”",
-          "ref": "S27-594",
           "date": "2026-10-05"
         },
         {
           "label": "Repository “set PRIVATE (was public)”; “keep private until ready to limelight” (comment)",
-          "ref": "S27-422",
           "date": "2026-06-10"
         },
         {
@@ -2626,12 +2559,10 @@
         },
         {
           "label": "“‘RichView will be fully open source’ is Daniel’s product direction … do not imply the source is already publicly available”",
-          "ref": "S27-594",
           "date": "2026-10-05"
         },
         {
           "label": "Carousel “Open source · Built with Rust · Coming soon”; review comment “‘Open source’ is still a promise.”",
-          "ref": "S27-593",
           "date": "2026-10-05"
         },
         {
@@ -2704,7 +2635,6 @@
         },
         {
           "label": "Charting in its own repository (superseded)",
-          "ref": "S27-410",
           "date": "2026-06-20"
         },
         {
@@ -2744,7 +2674,6 @@
         },
         {
           "label": "“Agents merge freely into a `dev` branch; Daniel alone merges `dev` into `prod`; there are no releases.”",
-          "ref": "S27-677",
           "date": "2026-10-21"
         },
         {
@@ -2864,7 +2793,6 @@
         },
         {
           "label": "“Coming soon”, never “beta”",
-          "ref": "S27-590",
           "date": "2026-10-05"
         },
         {
@@ -2935,12 +2863,10 @@
         },
         {
           "label": "Focused public launch by 2026-08-31 with one try path",
-          "ref": "https://linear.app/935/issue/DIR-121",
           "date": "2026-08-08"
         },
         {
           "label": "August launch checklist, never closed",
-          "ref": "S27-401",
           "date": "2026-08-08"
         },
         {
@@ -2960,7 +2886,6 @@
         },
         {
           "label": "Seven-slide carousel approved as a teaser; nothing posted",
-          "ref": "S27-593",
           "date": "2026-10-05"
         }
       ],
@@ -2980,17 +2905,14 @@
       "sources": [
         {
           "label": "“Make Richview.ai the strongest proof of how beautiful RichView can be”",
-          "ref": "S27-647",
           "date": "2026-10-17"
         },
         {
           "label": "Navigation cut to Flagship report, Chart gallery, Docs; gallery moved into the docs; review not accepted",
-          "ref": "S27-653",
           "date": "2026-10-18"
         },
         {
           "label": "Docs derived from exercised examples; shipped kept apart from planned",
-          "ref": "S27-591",
           "date": "2026-10-05"
         },
         {
@@ -3005,12 +2927,10 @@
         },
         {
           "label": "Maximize “Immediate comprehension from the paired source/report”",
-          "ref": "S27-590",
           "date": "2026-10-05"
         },
         {
           "label": "Maximize “Immediate comprehension and visual ambition together”",
-          "ref": "S27-594",
           "date": "2026-10-05"
         },
         {
@@ -3083,7 +3003,6 @@
         },
         {
           "label": "“Subscriber data remains private; do not send any campaign or confirmation emails without explicit permission”",
-          "ref": "S27-590",
           "date": "2026-10-05"
         }
       ],
@@ -3117,7 +3036,6 @@
       "sources": [
         {
           "label": "“The report's claims go public … Posting puts your name to them.” (comment)",
-          "ref": "S27-593",
           "date": "2026-10-05"
         },
         {
@@ -3127,7 +3045,6 @@
         },
         {
           "label": "Unaudited commercial figures are labelled in the flagship",
-          "ref": "S27-399",
           "date": "2026-10-02"
         }
       ]
@@ -3140,7 +3057,7 @@
       "group": "Public presence and release",
       "title": "Who RichView presents as its maker",
       "question": "How does RichView present who makes it: Daniel’s personal project, a team project or a company product?",
-      "why": "Public pages call RichView “a hobby project by Daniel Vecera” and the licence names him, while a second person wrote part of the code (PR #1) and S27-616’s credit applications ask for company details. The answer sets the footer, impressum, licence holder and the voice of launch posts.",
+      "why": "Public pages call RichView “a hobby project by Daniel Vecera” and the licence names him, while a second person wrote part of the code (PR #1) and the design-and-hosting brief’s credit applications ask for company details. The answer sets the footer, impressum, licence holder and the voice of launch posts.",
       "proposed": "RichView presents itself as Daniel’s personal project, operated by him as a sole trader registered in the Czech Republic (IČO 00923192): the footer, the About page, the impressum and the licence name Daniel as its maker and contact, and the impressum names him as its operator. Daniel is its only maker: PR #1, authored as `stevenoliver7`, came from “Steven”, an agent persona, not a second person (OPN-48, OPN-24). Any future contributors are credited in the repository history and, once the source is public, in its contributor list. A team or company identity is decided only together with monetization or a hosted service (INT-30, INT-36). Daniel's INT-36 answer brings both: paid hosted Cowork, Publish servers run for customers and hosting for large data and media are RichView's business model. Open: who sells and operates them, Daniel personally or a company, and so whom their terms, privacy text and impressum name (INT-27, FEA-SF-32). No one else gets repository access (OPN-24).",
       "options": [
         {
@@ -3201,7 +3118,6 @@
         },
         {
           "label": "Credit applications: “identify missing company inputs and the submission owner”",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -3331,7 +3247,6 @@
         },
         {
           "label": "richview.ai on Cloudflare is the live product; richview.uk on Fly is treated as legacy",
-          "ref": "S27-577",
           "date": "2026-10-04"
         },
         {
@@ -3350,8 +3265,8 @@
       "group": "Domains and hosting",
       "title": "Hosting provider",
       "question": "Where do RichView’s public sites and its hosted services run, and is a hosting migration or credit application part of the rewrite?",
-      "why": "S27-616 asked to prepare AWS hosting with startup credits while richview.ai runs on Cloudflare and the server configuration targets Fly.io. Daniel's INT-31 answer adds managed hosting for large data and media that RichView runs as a service, so a hosted feature is now accepted, and his INT-36 answer adds hosted Cowork, typically at app.richview.ai, and Publish servers RichView runs for customers under their own DNS.",
-      "proposed": "richview.ai and its docs stay on Cloudflare: one Worker serving static assets plus the email sign-up, whose consent records live in D1 behind a rate limit (ARC-55, INT-72). The site's `dev` preview is the hidden richview-teaser.vecera.workers.dev behind Cloudflare Access (ARC-22). That D1 store is personal data RichView operates; its export, deletion requests and any migration follow INT-72. News, RichView's own Publish server at news.richview.ai and always public (ARC-22), stays on its Cloudflare Worker until it moves onto the rewrite's Publish (INT-74). Cowork and Publish are portable software anyone can run; RichView also runs them as paid hosted services: hosted Cowork at app.richview.ai, and Publish servers for customers under their own DNS, set up only on request (INT-36, ARC-22). Managed hosting for large data and media (INT-27) serves assets from a RichView hostname, so a provider move keeps pinned references valid (TYP-41).\n\nOpen: the providers for hosted Cowork, the customers' Publish servers and the data and media hosting, such as Cloudflare R2 beside richview.ai or AWS S3 with the startup credits S27-616 asked for; the data and media hosting's hostname; whether a credit application is part of the rewrite; and where News runs once it uses the rewrite's Publish. No other migration is part of the rewrite.",
+      "why": "The design-and-hosting brief asked to prepare AWS hosting with startup credits while richview.ai runs on Cloudflare and the server configuration targets Fly.io. Daniel's INT-31 answer adds managed hosting for large data and media that RichView runs as a service, so a hosted feature is now accepted, and his INT-36 answer adds hosted Cowork, typically at app.richview.ai, and Publish servers RichView runs for customers under their own DNS.",
+      "proposed": "richview.ai and its docs stay on Cloudflare: one Worker serving static assets plus the email sign-up, whose consent records live in D1 behind a rate limit (ARC-55, INT-72). The site's `dev` preview is the hidden richview-teaser.vecera.workers.dev behind Cloudflare Access (ARC-22). That D1 store is personal data RichView operates; its export, deletion requests and any migration follow INT-72. News, RichView's own Publish server at news.richview.ai and always public (ARC-22), stays on its Cloudflare Worker until it moves onto the rewrite's Publish (INT-74). Cowork and Publish are portable software anyone can run; RichView also runs them as paid hosted services: hosted Cowork at app.richview.ai, and Publish servers for customers under their own DNS, set up only on request (INT-36, ARC-22). Managed hosting for large data and media (INT-27) serves assets from a RichView hostname, so a provider move keeps pinned references valid (TYP-41).\n\nOpen: the providers for hosted Cowork, the customers' Publish servers and the data and media hosting, such as Cloudflare R2 beside richview.ai or AWS S3 with the startup credits the design-and-hosting brief asked for; the data and media hosting's hostname; whether a credit application is part of the rewrite; and where News runs once it uses the rewrite's Publish. No other migration is part of the rewrite.",
       "options": [
         {
           "label": "Cloudflare for the site, hosted services' providers open",
@@ -3359,7 +3274,7 @@
         },
         {
           "label": "AWS with credits",
-          "detail": "S27-616’s direction; suits large storage and delivery, but credits expire and a second provider joins while the site stays on Cloudflare."
+          "detail": "The design-and-hosting brief’s direction; suits large storage and delivery, but credits expire and a second provider joins while the site stays on Cloudflare."
         },
         {
           "label": "Fly.io server",
@@ -3396,12 +3311,10 @@
         },
         {
           "label": "AWS hosting with credits; Cloudflare “as a preferred possible destination”",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
           "label": "Cloudflare selected; “merge and deploy everything” (comment)",
-          "ref": "S27-577",
           "date": "2026-10-04"
         },
         {
@@ -3420,7 +3333,7 @@
           "date": "2026-10-11"
         }
       ],
-      "conflicts": "ARC-22 (answered) sets the same topology and shuts Fly down; it leaves the hosted services' providers open. S27-616 asked to prepare AWS hosting with startup credits; with managed hosting accepted, that request returns as one provider option."
+      "conflicts": "ARC-22 (answered) sets the same topology and shuts Fly down; it leaves the hosted services' providers open. The design-and-hosting brief asked to prepare AWS hosting with startup credits; with managed hosting accepted, that request returns as one provider option."
     },
     {
       "id": "INT-49",
@@ -3466,11 +3379,10 @@
         },
         {
           "label": "“Older tickets are context, not inherited unfinished scope”",
-          "ref": "S27-647",
           "date": "2026-10-17"
         }
       ],
-      "conflicts": "On 2026-10-05 Daniel chose to clean up the existing repository rather than start fresh (S27-590); the 2026-10-21 brief says rewrite. Part 03 marks each component keep, change or drop; there, keep means the responsibility stays, and whether its code is ported follows this card."
+      "conflicts": "On 2026-10-05 Daniel chose to clean up the existing repository rather than start fresh; the 2026-10-21 brief says rewrite. Part 03 marks each component keep, change or drop; there, keep means the responsibility stays, and whether its code is ported follows this card."
     },
     {
       "id": "INT-50",
@@ -3497,7 +3409,6 @@
       "sources": [
         {
           "label": "Daniel chose “Clean up the existing repo (recommended)” on 5 October",
-          "ref": "S27-590",
           "date": "2026-10-05"
         },
         {
@@ -3507,7 +3418,6 @@
         },
         {
           "label": "Keep one monorepo with packages rather than four repositories",
-          "ref": "S27-422",
           "date": "2026-06-09"
         },
         {
@@ -3516,7 +3426,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "S27-409 and S27-410 (June) wanted the website and charting in separate repositories; the June monorepo decision superseded them but both tickets are still open."
+      "conflicts": "The website-repository and charting-repository issues (June) wanted the website and charting in separate repositories; the June monorepo decision superseded them but both are still open."
     },
     {
       "id": "INT-51",
@@ -3562,7 +3472,6 @@
         },
         {
           "label": "Daniel’s correction overriding the earlier compatibility preference",
-          "ref": "S27-579",
           "date": "2026-10-04"
         },
         {
@@ -3571,7 +3480,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "Compatibility already has one deliberate exception: header data, which S27-579 first asked to preserve. The Rust brief asked to retain the authoring vocabulary (`tasks/richview-rust-migration.md:28`); this card replaces compatibility with migration. Daniel's INT-49 answer (2026-10-26) rules out preservation tests and drops anything the lockdown does not decide, even when today's code has it; whether existing `.rmd` and `.rstyle.yaml` sources (the flagship, News content, Daniel's own reports) must keep working is therefore a product decision Daniel needs to make here: accept to keep them working by migration, or choose “Free to break, documented only” to let them break."
+      "conflicts": "Compatibility already has one deliberate exception: header data, which the inline-data issue first asked to preserve. The Rust brief asked to retain the authoring vocabulary (`tasks/richview-rust-migration.md:28`); this card replaces compatibility with migration. Daniel's INT-49 answer (2026-10-26) rules out preservation tests and drops anything the lockdown does not decide, even when today's code has it; whether existing `.rmd` and `.rstyle.yaml` sources (the flagship, News content, Daniel's own reports) must keep working is therefore a product decision Daniel needs to make here: accept to keep them working by migration, or choose “Free to break, documented only” to let them break."
     },
     {
       "id": "INT-81",
@@ -3662,7 +3571,6 @@
         },
         {
           "label": "A narrow site animation layer may use JavaScript",
-          "ref": "S27-653",
           "date": "2026-10-18"
         }
       ],
@@ -3677,7 +3585,7 @@
       "title": "The chart engine",
       "question": "Does RichView keep its own Rust chart engine, and is `richview-chart` ported or rebuilt?",
       "why": "The engine is the largest crate and the heart of the craft and self-checking bets; switching suppliers or rebuilding resets months of tuning.",
-      "proposed": "RichView keeps its own Rust chart engine; no third-party chart library renders RichView charts. `richview-chart` is rebuilt under INT-49: its contracts (layout, ticks, labels, diagnostics) are evidence, not a base, and its review corpus carries over as INT-55's fixtures. A module is ported only where it meets every accepted chart item in part 04 that it touches and its tests prove that; otherwise it is rewritten, and engine behaviour no accepted item decides is dropped. Highcharts and ECharts remain local quality references only. S27-410 (ECharts as supplier) is closed.",
+      "proposed": "RichView keeps its own Rust chart engine; no third-party chart library renders RichView charts. `richview-chart` is rebuilt under INT-49: its contracts (layout, ticks, labels, diagnostics) are evidence, not a base, and its review corpus carries over as INT-55's fixtures. A module is ported only where it meets every accepted chart item in part 04 that it touches and its tests prove that; otherwise it is rewritten, and engine behaviour no accepted item decides is dropped. Highcharts and ECharts remain local quality references only. The charting-repository issue (ECharts as supplier) is closed.",
       "options": [
         {
           "label": "Own engine, port proven parts",
@@ -3722,16 +3630,14 @@
         },
         {
           "label": "ECharts as supplier in its own repository",
-          "ref": "S27-410",
           "date": "2026-06-20"
         },
         {
           "label": "“Highcharts is a quality benchmark, not source code to copy”",
-          "ref": "S27-572",
           "date": "2026-10-02"
         }
       ],
-      "conflicts": "The engine changed three times (TypeScript SVG, ECharts, Rust); S27-410 still asks for ECharts in its own repository."
+      "conflicts": "The engine changed three times (TypeScript SVG, ECharts, Rust); the charting-repository issue still asks for ECharts in its own repository."
     },
     {
       "id": "INT-54",
@@ -3772,7 +3678,6 @@
         },
         {
           "label": "“Five distinctive, coherent identities with restrained, purposeful detail”",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -3990,7 +3895,6 @@
         },
         {
           "label": "Scatter labels “much too dense”; years “never e.g. 1.70K”; leader lines only for forced highlights",
-          "ref": "S27-654",
           "date": "2026-10-18"
         }
       ]
@@ -4024,12 +3928,10 @@
         },
         {
           "label": "Navigation cut to three links; fewer CTAs",
-          "ref": "S27-653",
           "date": "2026-10-18"
         },
         {
           "label": "Replace unclear SVG/CSV/table glyphs with labelled controls; tooltip “slightly more transparent and visually lighter”",
-          "ref": "S27-654",
           "date": "2026-10-18"
         }
       ]
@@ -4053,7 +3955,6 @@
         },
         {
           "label": "“one consistent text/content measure throughout, including tables and headings”",
-          "ref": "S27-654",
           "date": "2026-10-18"
         },
         {
@@ -4103,7 +4004,6 @@
         },
         {
           "label": "Review: mobile scroll animations “jumpy/weird with visible ticking”; “Proving animated elements exist or checking opacity samples is not proof that motion looks smooth”",
-          "ref": "S27-653",
           "date": "2026-10-18"
         }
       ],
@@ -4133,21 +4033,18 @@
         },
         {
           "label": "“Replace the mistaken chart-gallery-as-report interpretation”",
-          "ref": "S27-653",
           "date": "2026-10-18"
         },
         {
           "label": "“the user's corrected formats are PNG/SVG, not PDF”; “Do not implement the abandoned three-mode expansion request”",
-          "ref": "S27-654",
           "date": "2026-10-18"
         },
         {
           "label": "“He reviews only design-quality and feature decisions, in batches, after the bug fixes, regressions, ideas and visual improvements are done.”",
-          "ref": "S27-677",
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "S27-677 lists ideas among the work done before Daniel’s review; Daniel's DEL-06 answer lets uncovered work merge into `dev` before he accepts it, so this rule binds what reaches `prod`, not what reaches `dev`."
+      "conflicts": "The lockdown issue lists ideas among the work done before Daniel’s review; Daniel's DEL-06 answer lets uncovered work merge into `dev` before he accepts it, so this rule binds what reaches `prod`, not what reaches `dev`."
     },
     {
       "id": "INT-63",
@@ -4163,12 +4060,10 @@
       "sources": [
         {
           "label": "Expand/Contract toggle requested",
-          "ref": "S27-632",
           "date": "2026-10-13"
         },
         {
           "label": "Toggle dropped for one modal view",
-          "ref": "S27-654",
           "date": "2026-10-18"
         },
         {
@@ -4183,12 +4078,10 @@
         },
         {
           "label": "“RichView will be fully open source” as direction",
-          "ref": "S27-594",
           "date": "2026-10-05"
         },
         {
           "label": "“Older tickets are context, not inherited unfinished scope”",
-          "ref": "S27-647",
           "date": "2026-10-17"
         }
       ]
@@ -4272,12 +4165,10 @@
         },
         {
           "label": "“Describe one-click publishing only if it really exists”",
-          "ref": "S27-590",
           "date": "2026-10-05"
         },
         {
           "label": "Demonstrations render through the real engine, not screenshots or copied code",
-          "ref": "S27-647",
           "date": "2026-10-17"
         },
         {
@@ -4357,22 +4248,18 @@
         },
         {
           "label": "The lockdown is “an exact, reviewed description of the product”",
-          "ref": "S27-677",
           "date": "2026-10-21"
         },
         {
           "label": "“A passing test suite or an agent's self-assessment alone does not establish design quality”",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
           "label": "“To Review does not establish that every quality gate passed”",
-          "ref": "S27-653",
           "date": "2026-10-18"
         },
         {
           "label": "“Do not mark completion from a successful build alone”",
-          "ref": "S27-655",
           "date": "2026-10-18"
         }
       ],
@@ -4407,17 +4294,14 @@
         },
         {
           "label": "Flagship as the expressive-range demonstration with evidence intact",
-          "ref": "S27-573",
           "date": "2026-10-02"
         },
         {
           "label": "Flagship measure, header graphic and chart polish requests",
-          "ref": "S27-654",
           "date": "2026-10-18"
         },
         {
           "label": "Review of mobile and desktop motion",
-          "ref": "S27-653",
           "date": "2026-10-18"
         },
         {
@@ -4432,7 +4316,6 @@
         },
         {
           "label": "Desktop and 420 px",
-          "ref": "S27-632",
           "date": "2026-10-13"
         }
       ],
@@ -4461,7 +4344,6 @@
         },
         {
           "label": "Docs derived from exercised examples",
-          "ref": "S27-591",
           "date": "2026-10-05"
         },
         {
@@ -4554,7 +4436,6 @@
         },
         {
           "label": "Site brief: “Generate interest and useful feedback with work people can inspect”",
-          "ref": "S27-398",
           "date": "2026-10-02"
         },
         {

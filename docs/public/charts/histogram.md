@@ -63,6 +63,6 @@ encoding: { x: duration }
 
 ## Interactions
 
-- Hover or focus a bin to read its range and measure.
+- Hover or focus a bin to read its range and measure; a dark outline traces the bin under the pointer.
 - Click a legend entry to toggle a group when colors are used.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

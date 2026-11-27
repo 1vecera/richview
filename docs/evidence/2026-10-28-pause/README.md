@@ -152,17 +152,17 @@ Every stream wrote a handover file in the rewrite's working folder (`streams/`, 
 | Core format | Schema registry, frontmatter, diagnostics with fixes, TYP-36 payload and grids, `payload.derived` per state, idna pin | none | Integer rule in `Quant::on_grid`; derived records at author precision with the chart engine |
 | Renderer | Per-state derivation from shown rows, mark-id readouts, code-block regions, print boxes | none | Adopt core's per-state records; zoom floor; rect.obs after a legend toggle |
 | Chart engine | Derive interfaces, mark ids, per-scale grids, mark-keyed texts, FEA-CH-75 limits for 16 types, bit-exact trig | `feat/s27-chart-types` beeee0d3: box plot summaries and bin edges at author precision (review 1l blocker 2), tests pass, no fast record | Land beeee0d3; golden typography label collision; 320 px line ends; ARC-64 first wave |
-| Styles | Five builtins, part 06 coverage (48 cards), style rule tests | `feat/s27-743-builtins` 995ad45f: Sleek series 2 to amber and visible gridlines (ARC-64), palettes test fails | Fix the palette distinctness; ARC-64 Sleek fixes |
-| App surfaces | CLI, resolver, report server with access control, MCP, VS Code adapter, `learn`, snippets | `feat/s27-745-operation-layer` 062ed5a9: an FEA-SF-27 test, no fast record | Audit list from FEA-SF-26 on |
+| Styles | Five builtins, part 06 coverage (48 cards), style rule tests | `feat/builtins` 995ad45f: Sleek series 2 to amber and visible gridlines (ARC-64), palettes test fails | Fix the palette distinctness; ARC-64 Sleek fixes |
+| App surfaces | CLI, resolver, report server with access control, MCP, VS Code adapter, `learn`, snippets | `feat/operation-layer` 062ed5a9: an FEA-SF-27 test, no fast record | Audit list from FEA-SF-26 on |
 | Site | Static landing with the neutral iris demo, docs, gallery, playground | `feat/site-landing` c138589c: playground `?style=`, docs fence depth, landing surfaces, no fast record | Fast and push c138589c; FEA-SF-41/43/44/46 |
-| Publish port | Publish in Rust, perf step, link-preview thumbnails, export pagination, removals, coverage for 04d/07/03 | `feat/s27-698-coverage` b2dafdae: FEA-BR-23/49 tests, two fail on fixtures | Fix the two fixtures; ARC-01 and ARC-50 tests |
-| Release agent | Gate: one fast run per stack, type evidence, label-truth by mark, geometry per style and width, interaction, motion, perf per type, ARC-64 lab | `fix/s27-725-lab-air` cb68e28a: Air captures and fixed references in the lab | Its STATUS.md lists each failure with its owner |
+| Publish port | Publish in Rust, perf step, link-preview thumbnails, export pagination, removals, coverage for 04d/07/03 | `feat/coverage` b2dafdae: FEA-BR-23/49 tests, two fail on fixtures | Fix the two fixtures; ARC-01 and ARC-50 tests |
+| Release agent | Gate: one fast run per stack, type evidence, label-truth by mark, geometry per style and width, interaction, motion, perf per type, ARC-64 lab | `fix/lab-air` cb68e28a: Air captures and fixed references in the lab | Its STATUS.md lists each failure with its owner |
 
 `origin/wip-limits` is an obsolete copy of the limits work (the chart engine's word). `feat/s27-publish-og` is already on `dev` in other commits. Both can be deleted.
 
 ## Lockdown and evidence
 
-- **Answers.** Daniel answered 78 of 772 cards, 70 of the 134 key ones. Today's answers were INT-07 (link previews) and PRF-31 (report runtime up to 2 MiB gzip). Unanswered cards are built as their proposal; `ASSUMED.md` in the rewrite's working folder lists the 249 places that rely on one, and the lead's rulings are under "Lockdown lead, rulings".
+- **Answers.** Daniel answered 78 of 772 cards, 70 of the 134 key ones. Today's answers were INT-07 (link previews) and PRF-31 (report runtime up to 2 MiB gzip). Unanswered cards are built as their proposal; the maintainers' record of assumptions lists the 249 places that rely on one, and the lead's rulings are under "Lockdown lead, rulings".
 - **Gate coverage** (items with a check, product parts):
 
   | Part | Checked |

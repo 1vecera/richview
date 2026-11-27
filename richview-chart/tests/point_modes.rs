@@ -1,6 +1,6 @@
 //! Every-point geometry and explicit reductions (FEA-CH-17). Readout counts alone cannot prove
 //! this contract: a reduced path already keeps a readout for every observation.
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::block::ChartBlock;

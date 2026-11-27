@@ -55,7 +55,7 @@ Unstacked areas use automatic primary values in complete groups across the shown
 
 ## Interactions
 
-- Hover or focus a point to read the values of every band at that position.
+- Hover or focus a point to read the values of every band at that position. A ring surrounds the filled dot on each band's line, as it does on a line chart. In a stacked chart the band under the pointer keeps its colour, the others fade, and the dot with its ring marks that band's upper edge.
 - Click a legend entry to toggle a band.
 - Zoom and pan on the ordered axis with brush, wheel, pinch, keys or double-click.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

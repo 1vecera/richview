@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# One operator entry point. Record and latch failures, including those preceding a step receipt.
+set -euo pipefail; umask 077
+S=$(cd "$(dirname "$0")" && pwd -P)
+n=${1:-}; if [[ $# -gt 0 ]]; then shift; fi
+sha=${RV_RELEASE_FINAL:-}; D=${RV_RELEASE_DESCRIPTOR:-}
+L=${RV_RELEASE_DIR:-}; if [[ -z $L && -n $D ]]; then L=$(dirname "$D"); fi
+[[ $sha =~ ^[a-f0-9]{40}$ && -n $L ]] || { echo "Set RV_RELEASE_FINAL to the full reviewed SHA and RV_RELEASE_DESCRIPTOR to the release.json. No safe journal without them." >&2; exit 2; }
+H="$L/go-record-${sha:0:8}"; mkdir -p "$H"
+[[ ! -L $H && -O $H && $(stat -f %Lp "$H") = 700 ]] || { echo "Unsafe owner, permissions or link at $H; inspect it before journaling." >&2; exit 2; }
+if [[ -e "$H/steps.tsv" && $(awk -F '\t' '$1=="FINAL"{print $2;exit}' "$H/steps.tsv") != "$sha" ]]; then echo "SHA collision at $H/steps.tsv. Preserve the existing journal." >&2; exit 2; fi
+KITROOT=$(dirname "$S")
+# The part a step belongs to (parts.json); steps outside every part, such as the first two, belong to "shared".
+part_of() { jq -r --arg s "$1" --arg a "${2:-}" '[.parts[] | select(any((.prepare, .checks, .deploy, .closing, .rollback.steps)[]?; .step == $s and (.args | join(" ")) == $a)) | .id] as $exact | if ($exact | length) > 0 then $exact[0] else ([.parts[] | select(any((.prepare, .checks, .deploy, .closing, .rollback.steps)[]?; .step == $s)) | .id] | first // "shared") end' "$KITROOT/parts.json"; }
+needs_of() { jq -r --arg p "$1" '(.parts[] | select(.id == $p) | .needs[]?)' "$KITROOT/parts.json"; }
+failed() {
+  local step=$1 code=$2; shift 2
+  printf '%s\t%s\t%s\t%s\n' "$(date -u +%FT%TZ)" "$sha" "$step" "$code" >> "$H/failures.tsv"
+  (set -C; echo "$step" > "$H/FAILED.$(part_of "$step" "$*")") 2>/dev/null || true
+  echo "Step $step failed ($code). Inspect $H/failures.tsv and the step evidence before retry." >&2
+  exit "$code"
+}
+[[ $n =~ ^[0-9a-z][0-9a-z-]+$ && -f "$S/$n.sh" ]] || { echo "Expected a release step from $S." >&2; failed invalid-step 2; }
+# A latched failure holds its own part, the parts it needs and the shared steps, never a part that does not need it (DEL-83).
+held() { local part need; part=$(part_of "$n" "$*"); for need in shared "$part" $(needs_of "$part"); do if [[ -e "$H/FAILED.$need" ]]; then echo "Release part $part held by the failure of $need: $(cat "$H/FAILED.$need"). Inspect the failed step and destination."; return 0; fi; done; [[ ! -e "$L/STOP" ]] || { echo 'Release stopped by STOP.'; return 0; }; return 1; }
+case "$n" in recover-*|90-rollback|c-rollback|cleanup-snapshots) ;; *) if held; then exit 1; fi;; esac
+case "$n" in 11-windows|32w-public-walk|49-archive|49b-preflight|50-mail-window|reopen-signup-after-privacy|recover-*|cleanup-snapshots) runner=(bash);; *) runner=(env -u AWS_ACCESS_KEY_ID -u AWS_SECRET_ACCESS_KEY -u AWS_SESSION_TOKEN -u RICHVIEW_SMTP_PASSWORD bash);; esac
+if "${runner[@]}" "$S/$n.sh" "$@"; then exit 0; else rc=$?; fi
+failed "$n" "$rc" "$@"

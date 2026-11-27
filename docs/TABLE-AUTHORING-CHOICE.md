@@ -1,6 +1,6 @@
 # Table authoring choice — pending Daniel's decision
 
-S27-580, part of [S27-578](https://linear.app/s27sgwy37/issue/S27-578/richview-feedback). The editor work reuses [S27-412](https://linear.app/s27sgwy37/issue/S27-412/deliver-richview-vs-code-linting-formatting-and-auto-suggestions); chart defaults are [S27-579](https://linear.app/s27sgwy37/issue/S27-579/default-small-chart-data-to-inline-yaml).
+This choice is part of the RichView feedback work. The editor work reuses the VS Code linting, formatting and auto-suggestions delivery; chart defaults are the work to default small chart data to inline YAML.
 
 Recommendation: keep row mappings as the supported table contract, using expanded YAML rows and column settings by default. They retain record identity while inserting, deleting or moving observations. The series alternative below is a source comparison only, outside the parser/schema. Daniel's final choice remains **pending**; no reports migrate and no `series` table schema ships.
 
@@ -98,4 +98,4 @@ Pairing values by position would produce exactly the table above. It puts each c
 | Validation/completion | Existing data fields, column keys and sort contract | New length/index/transpose contract required |
 | Compatibility | Existing row tables remain valid after required folder/data migration | Needs an optional adapter and a decision before adoption |
 
-Confirmed changes implemented: automatic semantic diagnostics with source ranges; optional normal VS Code formatting; schema/value/data-field suggestions; a new installable extension preparation version; readable inline YAML defaults for chart/table insertion. Chart-local CSV/JSON files remain supported within each dedicated report folder. Header registries migrate as described in [the source contract](RMD-SPEC.md). Folder/output/style scope is [S27-581](https://linear.app/s27sgwy37/issue/S27-581); [S27-582](https://linear.app/s27sgwy37/issue/S27-582) owns separate chart visual work.
+Confirmed changes implemented: automatic semantic diagnostics with source ranges; optional normal VS Code formatting; schema/value/data-field suggestions; a new installable extension preparation version; readable inline YAML defaults for chart/table insertion. Chart-local CSV/JSON files remain supported within each dedicated report folder. Header registries migrate as described in [the source contract](RMD-SPEC.md). Folder, output and style scope, and the separate chart visual work, are tracked in their own issues.

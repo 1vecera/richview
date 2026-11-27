@@ -1,7 +1,7 @@
 //! Radar charts: spokes at equal angles from 12 o'clock, values at their true radius, polygons
 //! that break at missing values, and the shared contract every type meets (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Geometry, Item, Observation, Role};

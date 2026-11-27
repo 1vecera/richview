@@ -1097,3 +1097,53 @@ fn the_real_worker_preserves_wide_scalars_and_refuses_lossy_or_structural_fallba
         assert!(!error.contains("NaN") && !error.contains("Infinity"));
     }
 }
+
+#[test]
+fn input_limits_measure_compact_external_rows_when_a_snapshot_is_read() {
+    use connectors::spec::{DatasetSnapshot, Provenance, ProvenanceSource};
+    let root = tempfile::tempdir().unwrap();
+    let registry = connectors::Registry::new(root.path().join("cache"));
+    let key = "a".repeat(64);
+    let source = format!("```table\ndata: {{cache: {{key: '{key}'}}}}\n```\n");
+    let path = root.path().join("report.rmd");
+    fs::write(&path, &source).unwrap();
+    let overhead = serde_json::to_vec(&serde_json::json!([{"v":""}]))
+        .unwrap()
+        .len();
+    for size in [5_000_000, 5_000_001] {
+        let snapshot = DatasetSnapshot {
+            rows: vec![serde_json::json!({"v": "x".repeat(size - overhead)})],
+            schema: vec![],
+            provenance: Provenance {
+                connector: "sales".into(),
+                source: ProvenanceSource::Metricflow,
+                fetched_at: "2026-11-23T00:00:00Z".into(),
+                fingerprint: key.clone(),
+                row_count: 1,
+            },
+            cache: None,
+        };
+        registry.store().save(&key, &snapshot).unwrap();
+        let result = resolver::resolve_document_options_full(
+            &source,
+            &path,
+            &[],
+            false,
+            false,
+            Some(&registry),
+        );
+        if size == 5_000_000 {
+            assert!(result.is_ok());
+        } else {
+            let issues: Value = serde_json::from_str(&result.unwrap_err()).unwrap();
+            assert_eq!(issues[0]["code"], "report.file-limit");
+            assert_eq!(issues[0]["path"], "table.data.cache");
+            assert!(
+                issues[0]["message"]
+                    .as_str()
+                    .unwrap()
+                    .contains("‘sales result’ is 5000001 bytes")
+            );
+        }
+    }
+}

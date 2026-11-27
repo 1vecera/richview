@@ -114,6 +114,23 @@ mod tests {
     }
 
     #[test]
+    fn no_served_route_names_an_html_file() {
+        // Cloudflare answers `/page.html` with a 307 to `/page`, so a route the live check
+        // requests must name the page as the live site serves it.
+        let map: serde_json::Value =
+            serde_json::from_str(include_str!("../../../assets/routes.json")).unwrap();
+        for list in ["serve", "install"] {
+            for route in map[list].as_array().unwrap() {
+                let route = route.as_str().unwrap();
+                assert!(
+                    !route.ends_with(".html"),
+                    "{list} names {route}: the live site redirects it, name the page without .html"
+                );
+            }
+        }
+    }
+
+    #[test]
     fn the_map_names_no_route_twice() {
         let map: serde_json::Value =
             serde_json::from_str(include_str!("../../../assets/routes.json")).unwrap();

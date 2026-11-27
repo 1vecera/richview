@@ -1,7 +1,7 @@
 //! Box plots: R-7 quartiles, whiskers at the last observations inside 1.5 IQR, outliers drawn
 //! as the source rows they are, and the contract every type shares (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use serde_json::{Value, json};

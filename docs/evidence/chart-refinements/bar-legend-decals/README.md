@@ -18,7 +18,7 @@ The six patterns repeat after six categories, and a 9 px swatch cannot represent
 To reproduce the two images, build the chosen revision with `CARGO_BUILD_JOBS=3 npm run build`, install its locked Node dependencies, and run this package's helper against that built worktree. The selected source files, themes, viewport sizes, style tokens and all six source/image hashes are recorded in the adjacent verification file. The after images were reproduced byte-for-byte by this compact helper.
 
 ```sh
-node docs/evidence/chart-refinements/bar-legend-decals/capture.mjs /absolute/built/worktree /absolute/output
+node docs/evidence/chart-refinements/bar-legend-decals/capture.ts /absolute/built/worktree /absolute/output
 ```
 
 Full matrices, first failed scratch oracles and review reports remain under `/home/vecera/tmp/richview-chart-refinement-20261011/bar-legend-craft-*` and `bar-legend-adversary-*`. No hosted CI, deployment or release is claimed by this evidence.

@@ -1,7 +1,7 @@
 //! Chart figures in rendered reports: the title and subtitle once in HTML, a box reserved from
 //! the geometry model before the runtime mounts (FEA-CH-64), one encoding of series identity at
 //! every width, and calendar axes that keep their years.
-mod common;
+use super::common;
 
 use common::{geometry, texts};
 use richview_chart::geometry::{Anchor, Item, Role};
@@ -103,6 +103,73 @@ fn the_caption_names_each_chart_once_and_the_chart_draws_no_heading() {
     assert!(
         html.rfind(".rv-chart__title{") > html.find(".rv-report__body"),
         "figure rules follow the theme rules"
+    );
+}
+
+/// The reserved Reset action of a figure: its label and the kind of place its attribute keeps.
+fn reserved_reset(figure: &str) -> Option<(String, String)> {
+    let at = figure.find("rv-chart__action--reset")?;
+    let button = &figure[figure[..at].rfind("<button")?..];
+    let button = &button[..button.find("</button>")?];
+    let label = button
+        .split("<span>")
+        .nth(1)?
+        .split("</span>")
+        .next()?
+        .to_owned();
+    let place = button
+        .split("data-rv-place=\"")
+        .nth(1)?
+        .split('"')
+        .next()?
+        .to_owned();
+    Some((label, place))
+}
+
+#[test]
+fn a_chart_a_reader_turns_keeps_reset_views_place_as_a_zooming_chart_keeps_reset_zooms() {
+    let solid = |kind: &str| {
+        let points: Vec<Value> = (0..5)
+            .flat_map(|i| {
+                (0..5).map(move |j| {
+                    let group = ["x", "y"][j % 2];
+                    json!({"a": i, "b": j, "c": i * 3 + j * 2 + (i * j) % 3, "g": group})
+                })
+            })
+            .collect();
+        match kind {
+            "bar3d" => {
+                json!({"type": kind, "title": "T", "encoding": {"x": "a", "y": "c", "color": "g"}, "data": {"inline": points}})
+            }
+            _ => {
+                json!({"type": kind, "title": "T", "encoding": {"x": "a", "y": "b", "z": "c"}, "data": {"inline": points}})
+            }
+        }
+    };
+    let report = report(&[
+        solid("surface"),
+        solid("scatter3d"),
+        solid("bar3d"),
+        json!({"type":"line","title":"T","encoding":{"x":"x","y":"y"},"data":{"inline":rows(&["A"], &["2026-01-01", "2026-02-01", "2026-03-01"])}}),
+        json!({"type":"bar","title":"T","encoding":{"x":"x","y":"y"},"data":{"inline":rows(&["A"], &["A", "B"])}}),
+    ]);
+    let all = figures(&report.html);
+    assert_eq!(all.len(), 5);
+    for solid in &all[..3] {
+        assert_eq!(
+            reserved_reset(solid),
+            Some(("Reset view".to_owned(), "view".to_owned())),
+            "{solid}"
+        );
+    }
+    assert_eq!(
+        reserved_reset(all[3]),
+        Some(("Reset zoom".to_owned(), "zoom".to_owned()))
+    );
+    assert_eq!(
+        reserved_reset(all[4]),
+        None,
+        "a chart that neither zooms nor turns reserves none"
     );
 }
 

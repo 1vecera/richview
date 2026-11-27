@@ -4,7 +4,7 @@
 //! CSS (`richview-core` tests/style_rules.rs), and a dimmed series is the runtime's
 //! (`richview-runtime` src/mesh.rs).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::color;

@@ -1,6 +1,6 @@
 //! Source-preserving editor operations. YAML marks locate keys without decoding/re-emitting values.
 //! Pure, like core (ARC-02): the editor service and the site's Wasm share these completions,
-//! diagnostics and outlines, so the page never offers what the checker rejects (S27-931, ARC-09).
+//! diagnostics and outlines, so the page never offers what the checker rejects (ARC-09).
 mod navigation;
 pub use navigation::outline;
 
@@ -534,6 +534,9 @@ pub fn complete(
     let token_end = current[byte..]
         .find(|c: char| !(c.is_alphanumeric() || matches!(c, '_' | '-')))
         .map_or(current.len(), |p| byte + p);
+    // A caret at the end of the region sits before the closing fence, which `---` makes look like
+    // a word: the token stops where the region does.
+    let token_end = token_end.min(byte + (region.end - absolute));
     let line_start = absolute - byte - region.start;
     let local_start = line_start + token_start;
     let local_end = line_start + token_end;
@@ -662,4 +665,28 @@ pub fn complete(
     let start = current[..token_start].encode_utf16().count();
     let end = current[..token_end].encode_utf16().count();
     json!(choices.into_iter().filter(|(label,_)|label.starts_with(fragment)).map(|(label,insert)|json!({"label":label,"insert_text":insert,"kind":if is_value {"value"} else {"key"},"range":{"start":{"line":line,"character":start},"end":{"line":line,"character":end}}})).collect::<Vec<_>>())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_caret_before_the_closing_fence_of_the_front_matter_replaces_nothing_after_it() {
+        let source = "---\ntitle: T\nversion: 0.0.1\n---\n\nBody\n";
+        let document = richview_core::document::parse(source).expect("the source parses");
+        let line = source[..source.find("---\n\nBody").unwrap()]
+            .matches('\n')
+            .count();
+        // The fence is no word to complete: whatever is offered replaces an empty stretch at the
+        // caret and leaves the fence alone.
+        let found = complete(source, line, 0, &document, &RenderOptions::default());
+        for item in found.as_array().expect("a list") {
+            assert_eq!(
+                item["range"]["start"],
+                json!({"line": line, "character": 0})
+            );
+            assert_eq!(item["range"]["end"], json!({"line": line, "character": 0}));
+        }
+    }
 }

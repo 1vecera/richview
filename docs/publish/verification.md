@@ -23,7 +23,7 @@ The Rust builder tests exercise deterministic output, real renderer integration,
 Generate representative content outside the authored tree, build it with the same trusted binary/runtime, and record elapsed time and output size:
 
 ```sh
-node scripts/publish/fixtures.mjs tmp/publication-fixtures 300
+node scripts/publish/fixtures.ts tmp/publication-fixtures 300
 target/release/richview-publish build \
   --site tmp/publication-fixtures/site.yaml \
   --runtime dist/web --source-commit "$(git rev-parse HEAD)" \

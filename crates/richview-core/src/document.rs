@@ -21,12 +21,14 @@
 //! ```
 
 pub use crate::folder::{
-    ReportFolder, ReportResource, apple_double_sidecar, attach_asset_findings, operation_result,
-    report_relative_path, report_resources, validate_report_document, validate_report_folder,
+    ReportFolder, ReportResource, apple_double_sidecar, attach_asset_findings, is_source_file,
+    locate_report_input, operation_result, report_relative_path, report_resources,
+    validate_report_document, validate_report_folder,
 };
 pub use crate::knowledge::{LearnSection, learn_bundle, learn_section, learn_sections};
 pub use crate::parser::{parse, validate, validate_publish};
 pub use crate::render::{check, check_document, render, render_document};
+pub use crate::slides::{SlideSpan, is_deck};
 
 use crate::{PAGE_MARGINS_MM, registry};
 use pulldown_cmark::Options;
@@ -254,6 +256,43 @@ pub struct Document {
     /// Rich fences that failed, in source order; the body holds a marker for each.
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub failed: Vec<FailedBlock>,
+    /// The slides of a `.rslide` deck, whose slots hold the blocks above and the text it keeps;
+    /// the body of a deck is empty (FEA-RP-71).
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub(crate) deck: Option<crate::slides::Deck>,
+}
+
+impl Document {
+    /// The Markdown a deck's slides hold, each text with the source line it starts on: slide
+    /// texts and furniture, where a report has its body. Empty for a report.
+    pub fn deck_markdown(&self) -> Vec<(&str, usize)> {
+        self.deck
+            .as_ref()
+            .map(|deck| {
+                deck.texts()
+                    .into_iter()
+                    .map(|(text, line, _)| (text, line))
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// Each slide of a deck and where it stands in the source, in order; empty for a report.
+    pub fn deck_slides(&self) -> Vec<SlideSpan> {
+        self.deck
+            .as_ref()
+            .map(|deck| deck.spans())
+            .unwrap_or_default()
+    }
+
+    /// The number of the slide the source line belongs to, from 1, or `None` for a line of a
+    /// deck's setup, a line past the last slide and any line of a report.
+    pub fn slide_at_line(&self, line: usize) -> Option<usize> {
+        self.deck_slides()
+            .into_iter()
+            .find(|span| (span.first_line..=span.last_line).contains(&line))
+            .map(|span| span.number)
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -354,6 +393,9 @@ impl Page {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RenderedReport {
+    /// The company identity actually used to render this report, for native publishing adapters.
+    #[serde(skip)]
+    pub company: crate::CompanyBrand,
     pub html: String,
     pub diagnostics: Vec<Diagnostic>,
     /// Frontmatter retained verbatim, with generated `_richview` information.

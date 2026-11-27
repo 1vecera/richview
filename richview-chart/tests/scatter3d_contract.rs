@@ -1,7 +1,7 @@
 //! 3-D scatterplots: depth-sorted dots with the nearer ones larger, size and colour channels,
 //! the views the author can ask for, and the failures that name their cause (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::Level;

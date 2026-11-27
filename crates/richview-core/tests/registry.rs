@@ -417,3 +417,16 @@ fn core_public_exports_match_the_reviewed_snapshot() {
         "Review public exports and their definitions before updating the snapshot"
     );
 }
+
+#[test]
+fn the_chart_types_a_reader_turns_are_the_types_the_schema_draws_from_a_set_angle() {
+    // A new three-dimensional type is drawn from an angle by the same projection, so it turns
+    // with the others; this fails until `ROTATES` names it.
+    let angled: BTreeSet<&str> = registry::CHART_TYPES
+        .iter()
+        .filter(|chart| chart.summary.contains("from a set angle"))
+        .map(|chart| chart.name)
+        .collect();
+    let turning: BTreeSet<&str> = richview_chart::interaction::ROTATES.into_iter().collect();
+    assert_eq!(angled, turning);
+}

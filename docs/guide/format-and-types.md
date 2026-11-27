@@ -167,7 +167,7 @@ Frontmatter is the report's header and identity. Drafts need none of it; publish
 
 > **TYP-06 (T-FRONTMATTER), proposed.** The vocabulary in the right-hand column, with one header-image key and every frontmatter warning at its key's line. Removals that part 04b decides join the migration: `subtitle` (FEA-RP-04), `prolog` (FEA-RP-05) and `theme` (FEA-RP-33). Daniel's FEA-BR-08 answer adds `tabs` (TYP-76), and `publish` (TYP-80) is proposed as an optional namespace.
 >
-> **TYP-07 (D-TYP-DESCRIPTION), proposed.** Publishing requires a non-empty `title`, `description` and `version`, as S27-418 (2026-06-20) and dec-8 state; a missing one is `publish.metadata` and nothing is stored. `validate --publish` and the MCP `publish` flag run the same rules before any upload, and the server runs them again. A published story's link preview (Daniel's INT-07 answer) is built from fields that already exist: `description` feeds `og:description` (FEA-RP-51), and the host sets the `title` and the byline (`author`) over the lead chart or header image in the thumbnail it renders (FEA-SF-55); INT-07 adds no required field. Alternatives: a warning shown everywhere, or optional.
+> **TYP-07 (D-TYP-DESCRIPTION), proposed.** Publishing requires a non-empty `title`, `description` and `version`, as a Linear issue of 2026-06-20 and dec-8 state; a missing one is `publish.metadata` and nothing is stored. `validate --publish` and the MCP `publish` flag run the same rules before any upload, and the server runs them again. A published story's link preview (Daniel's INT-07 answer) is built from fields that already exist: `description` feeds `og:description` (FEA-RP-51), and the host sets the `title` and the byline (`author`) over the lead chart or header image in the thumbnail it renders (FEA-SF-55); INT-07 adds no required field. Alternatives: a warning shown everywhere, or optional.
 >
 > **TYP-08 (T-REPORT-LANG), proposed.** Optional `lang` sets `<html lang>`, the default `axes.x.locale` where one of the five supported locales matches, the smart-quote style and number separators; an unsupported tag still sets `<html lang>` and warns `frontmatter.lang`. Reader UI strings (Table, CSV, Expand) stay English. Alternatives: English only, or full localisation.
 >
@@ -319,7 +319,7 @@ Default ratios are 16:9, except scatter at 4:3 and pie at 1:1 (`richview-chart/s
 
 > **TYP-16 (T-CHART-AXES), proposed.** The axis fields above: `unit` replaces `suffix`, `format` takes the shared vocabulary, and `locale` lives on `axes.x` only. The migration renames `suffix` in the histogram, boxplot and interval examples and in 52 benchmark reports; the card misses seven chart-refinement cases that also use it ([Proposed breaking changes](#proposed-breaking-changes-typ-83)).
 >
-> **TYP-17 (T-CHART-STYLE), proposed.** One interpolation field: `style.curve` with `style.curvature`, set report-wide as `chart.curve` and `chart.curvature` in a style file. `line.smoothing` retires: `straight` becomes `curve: linear`, `monotone` stays monotone, and `current` becomes monotone with `curvature: 0.75`. This goes against S27-635 (2026-10-13, still in Brain Dump), which asks to keep a `style.line.smoothing` enum "so themes can opt in"; themes keep that opt-in through `chart.curve`. The alternative keeps `line.smoothing`, extended with the step forms, and retires `curve`.
+> **TYP-17 (T-CHART-STYLE), proposed.** One interpolation field: `style.curve` with `style.curvature`, set report-wide as `chart.curve` and `chart.curvature` in a style file. `line.smoothing` retires: `straight` becomes `curve: linear`, `monotone` stays monotone, and `current` becomes monotone with `curvature: 0.75`. This goes against a Linear request (2026-10-13, still in Brain Dump) that asks to keep a `style.line.smoothing` enum "so themes can opt in"; themes keep that opt-in through `chart.curve`. The alternative keeps `line.smoothing`, extended with the step forms, and retires `curve`.
 >
 > **TYP-18 (D-TYP-RATIO), proposed.** One default-ratio table for code and spec: line and area 2:1 on a calendar axis and 16:9 otherwise, bar, heatmap, histogram, boxplot and interval 16:9, scatter 4:3, pie 1:1. The alternative, 16:9 for every Cartesian chart, makes every calendar chart 12.5% taller. Each type that Daniel's FEA-CH-01 answer adds gets its default ratio in this table when it is specified (TYP-14).
 >
@@ -414,7 +414,7 @@ Sorted by revenue, descending, with five of eight rows and the rest behind the d
 
 A cell that is one whole http(s) URL renders as a link with the host as its text, and ISO dates and identifier-like tokens do not wrap (`crates/richview-core/src/blocks.rs:577-646`). Column order is alphabetical because `serde_json` is built without `preserve_order` (`crates/richview-core/Cargo.toml:15`; its `Cargo.lock:1897-1907` entry lists no `indexmap`): inline rows `{zeta, alpha, mid}` rendered as `alpha, mid, zeta`, and a CSV with the header `zip,name,flag,amount` as `amount, flag, name, zip` (re-run).
 
-> **TYP-24 (T-BLOCK-TABLE), proposed.** The table vocabulary in the right-hand column with row mappings as the only data shape; the column-oriented series form left open by S27-580 is not adopted. `columns` and `sort` keys must exist (TYP-15).
+> **TYP-24 (T-BLOCK-TABLE), proposed.** The table vocabulary in the right-hand column with row mappings as the only data shape; the column-oriented series form left open by the table authoring choice is not adopted. `columns` and `sort` keys must exist (TYP-15).
 >
 > **TYP-25 (D-TYP-COLUMN-ORDER), proposed.** Source order end to end: the CSV header order, or the first JSON or inline row's key order followed by new keys in first-seen order, drives derived columns, chart Table views, CSV downloads and payloads. Alternatives: alphabetical, as today, or a required `columns` list.
 
@@ -516,7 +516,7 @@ The body is CommonMark plus these extensions (`crates/richview-core/src/markdown
 | `headers`, `cache` beside a valid key | Pass core validation; only the public schema adapter rejects them |
 | Frontmatter `data` | `frontmatter.data`, a hard error (re-run) |
 
-Core does no I/O: hosts read the files and pass their content, and a missing one is `data.unresolved`. Any `data.*` error aborts the whole render (`crates/richview-core/src/render.rs:137-145`). Blocks may share a file. S27-579 (2026-10-04) moved data out of frontmatter into the consuming block.
+Core does no I/O: hosts read the files and pass their content, and a missing one is `data.unresolved`. Any `data.*` error aborts the whole render (`crates/richview-core/src/render.rs:137-145`). Blocks may share a file. On 2026-10-04 the inline YAML work moved data out of frontmatter into the consuming block.
 
 | CSV input | Today at `b4db233` |
 | --- | --- |
@@ -549,7 +549,7 @@ Missing values mean different things per block. The calendar engine treats empty
 
 ## Report folder and output
 
-Every render needs an explicit report folder: one `.rmd` directly inside it, no other `.rmd` anywhere below it (`report.root.shared`), at most 10,000 entries (`report.root.unresolved`), and no symlinked root or source (`report.root.escape`); no host infers a report from its working directory (`crates/richview-core/src/folder.rs:104-181`, `crates/richview-app/src/resolver.rs:315-384`). S27-581 (2026-10-04) records the rule: every report in its own folder, failing fast otherwise, with output in `Rendered/`. Every referenced file (data, styles, header image, media, posters, Markdown images and relative links) must be a report-relative path: non-empty, without a leading `/`, `..`, `\`, `:`, `?`, `#`, `%` or NUL, resolving through symlinks to a regular file inside the folder. An escape is `report.asset.escape` and an absence `report.asset.missing`; both stop the render, and the message names the absolute folder path with no line (re-run). `--allow-network` is accepted and ignored (re-run; `crates/richview-app/src/resolver.rs:201-205`): nothing is ever fetched, so a remote image `src` fails the whole render today.
+Every render needs an explicit report folder: one `.rmd` directly inside it, no other `.rmd` anywhere below it (`report.root.shared`), at most 10,000 entries (`report.root.unresolved`), and no symlinked root or source (`report.root.escape`); no host infers a report from its working directory (`crates/richview-core/src/folder.rs:104-181`, `crates/richview-app/src/resolver.rs:315-384`). A Linear brief of 2026-10-04 records the rule: every report in its own folder, failing fast otherwise, with output in `Rendered/`. Every referenced file (data, styles, header image, media, posters, Markdown images and relative links) must be a report-relative path: non-empty, without a leading `/`, `..`, `\`, `:`, `?`, `#`, `%` or NUL, resolving through symlinks to a regular file inside the folder. An escape is `report.asset.escape` and an absence `report.asset.missing`; both stop the render, and the message names the absolute folder path with no line (re-run). `--allow-network` is accepted and ignored (re-run; `crates/richview-app/src/resolver.rs:201-205`): nothing is ever fetched, so a remote image `src` fails the whole render today.
 
 Native renders write `Rendered/<source basename>.html`, or `.pdf` with `--to pdf`; `-o` must name a file directly in `Rendered/`. Collisions are `report.output.collision`, a symlinked output `report.output.escape`, and charts without a built runtime `report.output.runtime`. The HTML embeds styles, fonts, data, local media and the chart runtime, yet every referenced local file is also copied beside it with the same relative path (a CSV went to `Rendered/data/`, re-run; `crates/richview-app/src/resolver.rs:555-673`).
 
@@ -560,7 +560,7 @@ Native renders write `Rendered/<source basename>.html`, or `.pdf` with `--to pdf
 | Resolved data, media and styles together | 64 MiB in native hosts (`crates/richview-app/src/resolver.rs:12`) | Same; the error names the largest files |
 | Report HTML and accumulated blocks | 64 MiB, `render.output-limit` (`crates/richview-core/src/lib.rs:54-56`) | Same |
 | HTTP and MCP request body, host file read | 32 MiB (`crates/richview-app/src/lib.rs:14`) | Same |
-| Publish request body | 32 MiB, the same host limit, so a report with more than about 23 MiB of files renders but cannot be published | 104 MiB: 64 MiB of files as base64 plus a 16 MiB source |
+| Publish request body | 32 MiB, the same host limit, so a report with more than about 25,000,000 bytes of linked files renders but cannot be published | 104 MiB: 64 MiB of files as base64 plus a 16 MiB source |
 | Editor service request | 24 MiB (`crates/richview-editor/src/main.rs:11`) | Same |
 | Entries in a report folder | 10,000 | Same |
 | Chart width | Core 240 to 8192, else a `render.width` warning and 720; CLI, MCP and server 240 to 4096, else a hard error with `diagnostics: null` (re-run) | 240 to 4096 everywhere; outside is `options.width` (TYP-72) |
@@ -585,7 +585,7 @@ Each retired leaf produces one `style.retired` warning with the file location an
 >
 > **TYP-44 (T-STYLE-FILE).** Validate each author setting independently against the catalogue. Builtins load their design definitions with the internal grammar.
 >
-> **TYP-45 (T-STYLE-REF), proposed.** A `styles` entry or `--style` value is a builtin name or a report-relative path ending in `.rstyle.yaml`; anything else is `style.unknown` (error) listing the builtins. Inline style YAML becomes a typed API option, never parsed from a string, and URLs are not accepted. Every `b4db233` style file already ends in `.rstyle.yaml`. Alternatives: any local `.yaml` or `.yml` file, as the spec allows, or also URLs, as S27-417 asked in June.
+> **TYP-45 (T-STYLE-REF), proposed.** A `styles` entry or `--style` value is a builtin name or a report-relative path ending in `.rstyle.yaml`; anything else is `style.unknown` (error) listing the builtins. Inline style YAML becomes a typed API option, never parsed from a string, and URLs are not accepted. Every `b4db233` style file already ends in `.rstyle.yaml`. Alternatives: any local `.yaml` or `.yml` file, as the spec allows, or also URLs, as a Linear request asked in June.
 >
 > **TYP-46 to TYP-50.** The preset loader validates its token, layout, component, motion and chart values. STY-73 defines the settings an author can use. Font roles can name a bundled family or a WOFF2 file within the report folder. Chart palettes take a builtin palette or a list of colours the engine can draw.
 >
@@ -686,7 +686,7 @@ Publishing sends a report to a RichView server that stores it under a slug and v
 >
 > **TYP-61 (D-TYP-SLUG-FALLBACK), proposed.** Each field is validated on its own, so an unrelated frontmatter problem never changes the slug; there is no `untitled` fallback, and without a valid slug publish fails with `publish.slug`. An authored slug that breaks the grammar is an error, never rewritten. The alternative keeps the fallback, with untitled reports colliding.
 >
-> **TYP-62 (T-REPORT-VERSION), proposed.** `MAJOR.MINOR.PATCH` with an optional pre-release under SemVer 2.0.0 rules: no leading zeros, no build metadata, at most 64 bytes. A YAML number such as `1.0` is `frontmatter.type` with a hint to quote it; new reports start at `0.0.1`, as S27-418 states.
+> **TYP-62 (T-REPORT-VERSION), proposed.** `MAJOR.MINOR.PATCH` with an optional pre-release under SemVer 2.0.0 rules: no leading zeros, no build metadata, at most 64 bytes. A YAML number such as `1.0` is `frontmatter.type` with a hint to quote it; new reports start at `0.0.1`, as a Linear issue of 2026-06-20 states.
 >
 > **TYP-95 (D-TYP-CONTENT-IDENTITY), proposed.** `contentSha256` hashes the whole publish request: the source, the ordered style references and every file by path, length and bytes, without slug, version, rendered HTML or engine version, so a re-render never changes identity. dec-67 counted rendered HTML and metadata as part of a version; including them would turn an unchanged republish after an engine upgrade into a conflict. The other alternative is today's source-only hash.
 >
@@ -783,7 +783,7 @@ Five open draft pull requests would extend the format; none is on `main`. Daniel
 | TYP-76 (T-TABS) | PR #63, `f1cb254` | Frontmatter `tabs: {default, export, panels[{id, label, from}]}`, heading anchors `{#id}`, codes `frontmatter.tabs` and `tabs.anchor-missing` | Adopted (Daniel's FEA-BR-08 answer); panel ids on the slug grammar; panels out of document order warn `tabs.order` |
 | TYP-77 (T-CHART-CONTROLS) | PR #62, `a703897` | Chart `controls` of kinds `playback`, `filter`, `metric` and `variant` | Adopted, all four kinds (Daniel's FEA-BR-01 answer), with named formats instead of d3 strings such as `.0f`, `as` instead of the unrenamed `as_`, and axis fields from TYP-16 |
 | TYP-78 (T-CHART-HIGHLIGHTS) | PR #67, `47d8848` | `encoding.highlight: {by, include, priority}` on scatter charts | A top-level `highlight` field, keeping `encoding` one field per channel; unmatched values warn `chart.unresolved-highlight` |
-| TYP-79 (T-DATA-CONNECTOR) | PR #66, `4ecef05` | `data.sql`, `data.metricflow` and `data.cache`, with named connectors | Adopt as SQL reference keys in the report (Daniel's OPN-63 answer): connectors are standard on every RichView server and RichView builds the connector core, with PR #66's keys as the starting shape; a self-contained file never queries live data; credentials stay in the server's configuration. S27-650 (2026-10-17) opened the connector track |
+| TYP-79 (T-DATA-CONNECTOR) | PR #66, `4ecef05` | `data.sql`, `data.metricflow` and `data.cache`, with named connectors | Adopt as SQL reference keys in the report (Daniel's OPN-63 answer): connectors are standard on every RichView server and RichView builds the connector core, with PR #66's keys as the starting shape; a self-contained file never queries live data; credentials stay in the server's configuration. The data connectors issue (2026-10-17) opened the connector track |
 | TYP-80 (T-PUBLISH-META) | PR #70, `3f5c35f` | A frontmatter `publish:` mapping of 16 fields, with a second slug | Adopt as an optional namespace: INT-31 (D-SCOPE-CORE) builds RichView Publish; core validates the mapping and only Publish acts on it, including `cover_credit` for a hotlinked Unsplash cover (FEA-RP-62) |
 | TYP-81 (T-SITE-CONFIG) | PR #70, `3f5c35f` | A `site.yaml` site configuration, a third YAML file type | Adopt with TYP-80 as one Publish publication's configuration (INT-31, INT-35); `mode: internal` only if FEA-BR-45 keeps it for Publish |
 
@@ -842,20 +842,20 @@ Every card in part 05 is still open, and each quote above names its alternatives
 | Card | Decision | Proposed | Reverses |
 | --- | --- | --- | --- |
 | TYP-05 (D-TYP-FORMAT-VERSION) | Format marker | Optional `format: rmd/1` | dec-4 and dec-9, and the June publish plan's pin outside frontmatter, which OPN-38 (D-DEC-UNBUILT) drops |
-| TYP-07 (D-TYP-DESCRIPTION) | `description` to publish | Required | The spec's warning (`docs/RMD-SPEC.md:9`); matches S27-418 and dec-8 |
+| TYP-07 (D-TYP-DESCRIPTION) | `description` to publish | Required | The spec's warning (`docs/RMD-SPEC.md:9`); matches a Linear issue and dec-8 |
 | TYP-84 (D-TYP-FRONTMATTER-KEYS) | Unknown frontmatter keys | Warning | The spec's silence (`docs/RMD-SPEC.md:50`) |
 | TYP-09 (T-RICH-FENCE) | Tags | Eight, `metric` only | dec-7, which kept `big` and planned one `media` tag |
 | TYP-10 (D-TYP-UNKNOWN-KEYS) | Unknown block keys | Warn and drop | `docs/RMD-SPEC.md:56`; the D-CHART-CONTRACT recommendation to keep them |
 | TYP-89 (D-TYP-BLOCK-WIDTH) | Full-width opt-in | Per-block `wide` | PR #67's report-wide `layout.measure-wide-blocks` |
 | TYP-13 (D-TYP-UNTITLED-CHART) | Chart title | Required | dec-10 as OPN-36 records it, a missing title warns; D-CHART-CONTRACT |
-| TYP-17 (T-CHART-STYLE) | Interpolation field | One `curve` field | S27-635, which keeps `line.smoothing` |
+| TYP-17 (T-CHART-STYLE) | Interpolation field | One `curve` field | A Linear request, which keeps `line.smoothing` |
 | TYP-18 (D-TYP-RATIO) | Calendar default ratio | Keep 2:1 | The spec's 16:9 (`docs/RMD-SPEC.md:100`) |
-| TYP-24 (T-BLOCK-TABLE) | Table data shape | Row mappings only | The series form that S27-580 left open |
+| TYP-24 (T-BLOCK-TABLE) | Table data shape | Row mappings only | The series form that the table authoring choice left open |
 | TYP-40 (D-TYP-REMOTE-MEDIA) | Remote media | Report-local or pinned, error on a plain remote element; credited Unsplash photos excepted | `docs/RMD-SPEC.md:323` |
-| TYP-41 (D-TYP-ASSET-REF) | Pinned remote assets | Accepted into `src` and `data`, with the uploader (INT-31) | Nothing; it answers S27-616 |
+| TYP-41 (D-TYP-ASSET-REF) | Pinned remote assets | Accepted into `src` and `data`, with the uploader (INT-31) | Nothing; it answers a Linear request |
 | TYP-42 (T-RENDERED-OUTPUT) | Files beside the HTML | Linked files only; hosted assets and Unsplash photos are the exceptions to self-contained | Today's copy of every referenced file |
 | TYP-44 (T-STYLE-FILE) | A bad style leaf | Skip the leaf; mechanics keys only in builtins | dec-18, which made unknown leaves errors; also dec-17's shallow merge, which the card does not name; Daniel's 2026-06-21 three-options brief, which his STY-14 answer replaces |
-| TYP-45 (T-STYLE-REF) | Style references | Names and `.rstyle.yaml` paths | S27-417 (URLs); the spec's any `.yaml` or `.yml` file |
+| TYP-45 (T-STYLE-REF) | Style references | Names and `.rstyle.yaml` paths | A Linear request (URLs); the spec's any `.yaml` or `.yml` file |
 | TYP-95 (D-TYP-CONTENT-IDENTITY) | Same content | Whole publish request | dec-67, which counted rendered HTML and metadata |
 | TYP-63 (D-TYP-REPUBLISH) | Changed content, same version | Conflict | dec-73's unconditional idempotency |
 | TYP-96 (D-TYP-LATEST) | Latest version | Highest SemVer, owner can pin | Today's deliberate publication order |

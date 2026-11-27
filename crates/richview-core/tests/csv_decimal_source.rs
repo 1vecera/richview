@@ -1,4 +1,4 @@
-mod common;
+use super::common;
 
 use richview_core::{render_compat, render_table};
 

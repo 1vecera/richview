@@ -5,7 +5,7 @@ Development tooling for FEA-SF-65 (measuring how well agents use RichView) and t
 ## Run a task
 
 ```sh
-node tools/agent-use/run.mjs --product claude --task complaint-themes --richview /path/to/richview [--model sonnet]
+node tools/agent-use/run.mts --product claude --task complaint-themes --richview /path/to/richview [--model sonnet]
 ```
 
 - `--product claude|codex`, `--task <id>` (a folder in `tasks/`), `--richview <binary>` (never built by this tool), optional `--model`, `--timeout-min`, `--build <sha>`, `--no-history`.
@@ -20,7 +20,7 @@ Re-score a kept run with `node tools/agent-use/score.mjs <run-folder> [--write]`
 `~/.local/share/richview-gate/evidence/agent-use/history.jsonl` (override with `RV_AGENT_USE_HISTORY`), one line per run: product, model, build (binary version and commit), task, score, pass, attempts, tool calls, diagnostic codes met, misread and unresolved codes, failed facts, paths.
 
 ```sh
-node tools/agent-use/report.mjs [--task <id>] [--product claude|codex] [--drop 15]
+node tools/agent-use/report.mts [--task <id>] [--product claude|codex] [--drop 15]
 ```
 
 One table per task and product, oldest first. A run is compared with the mean of up to three earlier runs; a fall of `--drop` points or more is flagged `DROP`, and a changed build commit is marked `new build`. A flag asks you to open the transcript, not a verdict.
@@ -28,10 +28,10 @@ One table per task and product, oldest first. A run is compared with the mean of
 ## The gate step and the weekly run
 
 ```sh
-node tools/agent-use/gate.mjs --richview <binary> --out <folder> [--products claude,codex] [--runs 3] [--claude-model sonnet] [--codex-model <m>] [--unrun <product>:<reason>]
+node tools/agent-use/gate.mts --richview <binary> --out <folder> [--products claude,codex] [--runs 3] [--claude-model sonnet] [--codex-model <m>] [--unrun <product>:<reason>]
 ```
 
-`rv-gate`'s candidate run (`prod`) runs this as `fresh-agent` (DEL-78); a full reports it unrun, "DEL-78: candidate and weekly pre-prod only". Since 1 Nov 2026 (Daniel: Codex is no longer used) the candidate and the weekly run pass `--products claude --unrun codex:<reason>`, and the appendix says Codex did not run. The run takes `--runs` runs per product, one at a time, rotating through `tasks/` from where the history stopped, so consecutive runs and candidates differ in task. It writes `fresh-agent.json` (per product: pass rate, runs, scores, attempts, tool calls, codes met, misread and unresolved codes, issue candidates), `appendix.md` (the packet appendix: pass rates, trend from the history through `report.mjs`, confusing diagnostics with transcript paths, issue candidates) and the kept `transcripts/` and `excerpts/`. The step fails only when a run could not execute (it timed out, the CLI is missing or exited before any tool call, or fewer runs finished than asked). Low pass rates and drops are findings in the appendix, because neither INT-69 nor FEA-SF-65 sets a threshold; tighten `exitDecision` in `lib/gate.mjs` once Daniel names one. The tool never files issues: the appendix lists issue candidates (code, message, excerpt path) and the release agent files them.
+`rv-gate`'s candidate run (`prod`) runs this as `fresh-agent` (DEL-78); a full reports it unrun, "DEL-78: candidate and weekly pre-prod only". Since 1 Nov 2026 (Daniel: Codex is no longer used) the candidate and the weekly run pass `--products claude --unrun codex:<reason>`, and the appendix says Codex did not run. The run takes `--runs` runs per product, one at a time, rotating through `tasks/` from where the history stopped, so consecutive runs and candidates differ in task. It writes `fresh-agent.json` (per product: pass rate, runs, scores, attempts, tool calls, codes met, misread and unresolved codes, issue candidates), `appendix.md` (the packet appendix: pass rates, trend from the history through `report.mts`, confusing diagnostics with transcript paths, issue candidates) and the kept `transcripts/` and `excerpts/`. The step fails only when a run could not execute (it timed out, the CLI is missing or exited before any tool call, or fewer runs finished than asked). Low pass rates and drops are findings in the appendix, because neither INT-69 nor FEA-SF-65 sets a threshold; tighten `exitDecision` in `lib/gate.mts` once Daniel names one. The tool never files issues: the appendix lists issue candidates (code, message, excerpt path) and the release agent files them.
 
 `weekly.sh` runs it on the `pre-prod` head in a worktree under `~/.local/share/richview-gate/agent-use-weekly`, with the binary the latest release receipt built, and writes the result to `evidence/agent-use/weekly/<date>-<sha>/`. `launchd/uk.richview.agent-use-weekly.plist` is the template, with `__HOME__` for the host's home; the release agent installs it: copy `weekly.sh` to `~/.local/share/richview-gate/bin/agent-use-weekly.sh`, write the plist with `sed "s#__HOME__#$HOME#g"` into `~/Library/LaunchAgents/`, create `~/.local/share/richview-gate/logs` and `launchctl load` it.
 

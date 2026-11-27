@@ -28,25 +28,24 @@ A flow chart shows how a process runs: what happens in which order, where it dec
 
 A table keeps exact values readable, with aligned numbers and named columns. `heat` shades a numeric column by value in the style's colours, a reader sorts by any heading, and a filter box above the rows keeps the ones that hold the typed text. A pivot table sums one measure for every pair of a row field and a column field, with totals. [Blocks & media](https://richview.ai/docs/blocks) documents the table block; the [pivot table page](https://richview.ai/docs/charts/pivot) has the pivot's source, fields and every style.
 
+A numeric column with a declared scale uses one number of decimal places. Set `decimals` on the column to choose how many; a `year` column ignores it and prints whole years. Otherwise a typed source supplies the scale: a price of `123.45` in a `DECIMAL(12,2)` column keeps both cents digits. Set `digits` to round more coarsely. A column with a declared scale shows every number as a plain number at that scale, with separators and the unit, however large: `$12,345.67`, `$987.50` and `$1,234,567.89` in one column. With neither, each cell keeps the precision of its own value, three significant digits by default, so 9.26, 9 and 8.98 read as they are. `format: number_compact` with `decimals` asks for the words outright. A number the scale would print as zero keeps its own digits, so nothing nonzero reads as zero. In this example, `decimals: 2` makes the price written as `9` read as `$9.00`.
+
 ```table
-title: Every region sold more in Q4 than in Q3
+title: Price per kilogram
 data:
   inline:
-    - { region: North, q3: 150, q4: 190, change: 40 }
-    - { region: South, q3: 105, q4: 140, change: 35 }
-    - { region: East, q3: 120, q4: 135, change: 15 }
-    - { region: West, q3: 160, q4: 210, change: 50 }
+    - { variety: Gala, price: 9.26 }
+    - { variety: Fuji, price: 9 }
+    - { variety: Braeburn, price: 8.98 }
 columns:
-  - { key: region, label: Region }
-  - { key: q3, label: Q3 sales, format: number, align: right }
-  - { key: q4, label: Q4 sales, format: number, align: right }
-  - { key: change, label: Change, format: number, align: right, heat: true }
+  - { key: variety, label: Apple }
+  - { key: price, label: Price per kg, unit: $, decimals: 2, heat: true }
 filter: true
 ```
 
 {{example:pivot}}
 
-*Source: [the Pivot table example](https://richview.ai/docs/charts/pivot), illustrative data; the table above shows two of its quarters.*
+*Source: [the Pivot table example](https://richview.ai/docs/charts/pivot), illustrative data. Apple prices are illustrative.*
 
 ## Expands
 
@@ -174,7 +173,7 @@ axes: {y: {min: 0, max: 2000}}
 
 :::
 
-[See two charts in columns and a method note in an expand](https://richview.ai/docs/gallery/same-numbers/Rendered/report.html#a-second-distribution) in a complete report.
+[See two charts in columns and a method note in an expand](https://richview.ai/docs/gallery/same-numbers/Rendered/report#a-second-distribution) in a complete report.
 
 ## Type and fonts
 

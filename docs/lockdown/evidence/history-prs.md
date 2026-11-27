@@ -1,6 +1,6 @@
 # Evidence: decision history from git and GitHub
 
-Mined 2026-10-21 for the RichView lockdown. Read-only: no commit, push, comment, label, merge, deployment or setting change. Sources are the git history of every branch in this repository, all 75 GitHub pull requests with their bodies, commits, comments, reviews and inline review comments, the GitHub Actions run history, the decision surface `public/architecture.html` in the private `richview-universe/richview-design-system` repository, and the task briefs that the open PRs cite. Linear is covered in [linear.md](linear.md); this file reuses its decision IDs where the decision is the same.
+Mined 2026-10-21 for the RichView lockdown. Read-only: no commit, push, comment, label, merge, deployment or setting change. Sources are the git history of every branch in this repository, all 75 GitHub pull requests with their bodies, commits, comments, reviews and inline review comments, the GitHub Actions run history, the decision surface `public/architecture.html` in the private `richview-universe/richview-design-system` repository, and the task briefs that the open PRs cite. Linear is covered in the Linear evidence (not published); this file reuses its decision IDs where the decision is the same. Branch names are written without their Linear issue key.
 
 Tags: **O** observed (verified now in code, git, the GitHub API or a live GET), **S** stated (written in a PR body, commit message, brief or doc, not verified here), **I** inferred (my reading across sources). PR metadata (number, state, author, dates, branches, merge commits, diff sizes) is observed; a one-line PR summary restates its body and is stated unless tagged otherwise.
 
@@ -19,13 +19,13 @@ Tags: **O** observed (verified now in code, git, the GitHub API or a live GET), 
 | Era | Dates | Defining evidence | Stack and chart engine | What changed and why |
 | --- | --- | --- | --- | --- |
 | Before v3 | to May 2026 | `richview-universe/richview-v2` (private, last push 2026-05-11, "AI-native report creation platform"); older private repos `mvp`, `RichViewSDK`, `RichViewPublicRestAPI`, `user_management`, `mlservice` and the public `richview-docs` ("RichView Platform Documentation"), last pushes 2026-02-25/26; scaffold commit `3c808bd` | v2: 9 packages and a web editor | v3 began as "a clean rewrite that cuts v2's 9 packages down to 4 and drops the web editor entirely" (`3c808bd`). **O** for repos, **S** for v2 content |
-| v3 TypeScript scaffold | 2026-05-21 → 06-09 | `3c808bd`, `ae2a1cb`, `91f2fe6`, `9e33305`, `71c749d`, `52303a8`, `4cab1f5`, `ce68a8d` | pnpm monorepo: `@richview/core`, `cli`, `server` (Hono on Fly.io, `richview-v3.fly.dev`), VS Code extension; ECharts inline; then a D3 self-measuring line engine | 2026-06-08 reposition memo ("charts that check their own work") drove the diagnostics contract, D3 line engine, `richview_diagnose` and the human report card (VEN-1113); 2026-06-09 chart code moved to `@richview/charts` and licences became MIT except the Elastic-2.0 server (VEN-1193). **S** |
+| v3 TypeScript scaffold | 2026-05-21 → 06-09 | `3c808bd`, `ae2a1cb`, `91f2fe6`, `9e33305`, `71c749d`, `52303a8`, `4cab1f5`, `ce68a8d` | pnpm monorepo: `@richview/core`, `cli`, `server` (Hono on Fly.io, `richview-v3.fly.dev`), VS Code extension; ECharts inline; then a D3 self-measuring line engine | 2026-06-08 reposition memo ("charts that check their own work") drove the diagnostics contract, D3 line engine, `richview_diagnose` and the human report card; 2026-06-09 chart code moved to `@richview/charts` and licences became MIT except the Elastic-2.0 server. **S** |
 | vNext architecture | 2026-06-20 → 07-07 | PR #1; `architecture.html` (83 decisions, 2026-06-21); 2026-06-27 feedback; PRs #2, #3 (closed), #4 | Pure-TS SVG engine (PR #1) replaced within 17 days by ECharts 6.1 SSR-to-SVG (PR #4); `richview-charts` split to its own public repo | Daniel's 2026-06-20 lock reverted charting to ECharts in its own repo, kept the scope narrow and MCP-first; the 2026-06-27 feedback restored motion, added `.rstyle.yaml`, `richview learn`, a playground and "agentic" wording; PR #4 merged both. **S** |
 | Simplification | 2026-09-05 | PR #5 (draft) | Same TS/ECharts stack | Render each chart once, source-only publishing, generated assets, retire agent scaffolding; merged only through PR #10 on 10-04. **S** |
 | Rust rewrite | 2026-10-02 → 10-04 | PRs #6–#9 (drafts), PR #10, `tasks/richview-rust-migration.md` (in `2c926b0`, removed in `c53f7b6`) | Rust core, CLI, server, MCP, editor backend; Wasm in browser; `richview-chart` Rust engine for all chart types; ECharts and TS engines removed | "This is Daniel's bet on Rust for the full product, superseding the earlier instruction to keep the Rust charting experiment separate"; hard constraint "Rust owns all first-party product behavior". PR #10: +276,031/−17,155 lines, 529 files. **S**; diff size **O** |
 | Public teaser and release hardening | 2026-10-04 → 10-11 | PRs #11–#22 | Cloudflare Workers Static Assets at `richview.ai` | Teaser launch (Daniel authorized merge and deploy 2026-10-04), Highcharts benchmarks, report folders and VS Code authoring, docs, homepage and signup, report design, OKLCH, hand-drawn style, PDF export. **S** |
 | Chart correctness campaign | 2026-10-11 → 10-12 | PRs #23–#56, integration PRs #28, #33, label/curve PR #40; tag `chart-refinements-2026-10-12` | Rust engine | 34 single-defect PRs, each with matched before/after evidence and independent review, then a fixed 60-page/540-figure review matrix; deployed 2026-10-12. **S**; tag **O** |
-| Feedback rounds and quality sprint | 2026-10-12 → 10-16 | PRs #57–#61 | Rust engine; 9 chart types (histogram, box plot, interval added in #60) | Daniel's 2026-10-12 and 2026-10-13 feedback on landing, showcase, measure, tooltips; S27-632–635 and S27-637 chart and imagery tickets. Hosted CI stops executing from 10-14. **S**; CI **O** |
+| Feedback rounds and quality sprint | 2026-10-12 → 10-16 | PRs #57–#61 | Rust engine; 9 chart types (histogram, box plot, interval added in #60) | Daniel's 2026-10-12 and 2026-10-13 feedback on landing, showcase, measure, tooltips; the Linear chart and imagery issues. Hosted CI stops executing from 10-14. **S**; CI **O** |
 | Parallel product tracks (unmerged) | 2026-10-17 → 10-19 | Draft PRs #62–#70; content PRs #71–#75 | New crates and JS gateways on top of `b4db233` | Daniel's 2026-10-17 and 2026-10-18 batches opened playback controls, tabs, connectors, a voice dashboard, galleries, chart polish, a dev harness, a site repair and RichView Publish "despite older August scope locks"; three were deployed live from unmerged branches. **S**; live state **O** |
 | Lockdown | 2026-10-21 | This branch; repository transfer | — | Repository moved to `1vecera/richview`; rewrite planned from scratch. **O** |
 
@@ -40,7 +40,7 @@ Tags: **O** observed (verified now in code, git, the GitHub API or a live GET), 
 | 2026-07-06 | PR #2 kept the pure-TS engine ("the June 2026 ECharts revert stands") | PR #2 body | Conflicting reading of the same lock; PR #2 closed unmerged. **S** |
 | 2026-07-07 | ECharts 6.1 SSR-to-SVG (`renderToSVGString`), analytic diagnostics layer kept, zero `<script>` in output; `richview-charts` repo split by `git filter-repo` | PR #4 (`82de97f`, `5c40357`); `richview-universe/richview-charts` (public, description still "Apache ECharts SSR-to-SVG renderer", last push 2026-07-07) | dec-38/44/48; diagnostics kept against dec-50 ("your call"). **S**; repo **O** |
 | 2026-09-05 | ECharts kept, only used modules bundled, each chart rendered once | PR #5 | Simplification. **S** |
-| 2026-10-02 | `richview-chart`: separate Rust time-series engine with Wasm runtime (zoom, exact hover, brush, M4 decimation, UTC calendar) | PR #9 (S27-572) | Static ECharts SVG gave no zoom, exact values or stepping. **S** |
+| 2026-10-02 | `richview-chart`: separate Rust time-series engine with Wasm runtime (zoom, exact hover, brush, M4 decimation, UTC calendar) | PR #9 | Static ECharts SVG gave no zoom, exact values or stepping. **S** |
 | 2026-10-04 | Shared Rust/Wasm engine renders every chart type natively and in the browser; ECharts and TS engines removed | PR #10 (`2c926b0`, `c53f7b6`) | Daniel's full-Rust bet. **S**; no `echarts` in `crates/` or `richview-chart/` **O** |
 | 2026-10-04/05 | Highcharts 13.1.1, then ECharts 6.1.0, Plotly 4.1.1 and ggplot2 4.0.3 used as local reference benchmarks only | PRs #14, #16; `benchmarks/` | Quality bar; references stay local and out of production. **S** |
 | 2026-10-15 | Nine source-format types: line, bar, scatter, area, pie, heatmap, histogram, boxplot, interval | PR #60; `CLAUDE.md:70`; `docs/RMD-SPEC.md` | Quality sprint. **S**; nine types in docs **O** |
@@ -51,16 +51,16 @@ The "zero client JavaScript" property followed the same path: introduced as a go
 
 Dates are merge dates. "via #N" means GitHub marked the PR merged because integration PR #N carried its head into `main` while it was still a draft (20 PRs: #5–#9 via #10; #17, #20 via #21; #23–#27, #29, #30 via #28; #31, #32, #34–#37 via #33). Squash merges: #4, #15, #16, #18, #58, #59. **O**
 
-Merge and deployment authority, as PR bodies record it: "Daniel authorized merging and deploying the prepared release on 4 October 2026" (#12, #13); "Daniel authorized merge and publication" (#18); "Daniel authorized merging this reviewed PR batch on 11 October 2026" (#22); "Daniel explicitly authorized merging sensible open PRs and deploying the resulting release" (#33); deployment "following the explicit request to deploy all finished work" (#40); public publication of the galleries and of the 2026-10-18 site repairs from unmerged branches (S27-647, S27-653 briefs). Batch authorizations, integration PRs and deploys from task branches were the working delivery model; there was no `dev`/`prod` split. **S**, model **I**
+Merge and deployment authority, as PR bodies record it: "Daniel authorized merging and deploying the prepared release on 4 October 2026" (#12, #13); "Daniel authorized merge and publication" (#18); "Daniel authorized merging this reviewed PR batch on 11 October 2026" (#22); "Daniel explicitly authorized merging sensible open PRs and deploying the resulting release" (#33); deployment "following the explicit request to deploy all finished work" (#40); public publication of the galleries and of the 2026-10-18 site repairs from unmerged branches (the site-repair briefs). Batch authorizations, integration PRs and deploys from task branches were the working delivery model; there was no `dev`/`prod` split. **S**, model **I**
 
 ### Engine, architecture and native stack
 
 | PR | Merged | Summary | Ticket |
 | --- | --- | --- | --- |
 | #1 | 06-20 | Pure-TS SVG engine for all six chart types; drops ECharts CDN and D3; zero client JS; every chart self-measured. | — |
-| #4 | 07-07 | Merges #2 and #3, then conforms to `architecture.html`: Newsreader and IBM Plex Mono inlined, MCP tools 6→5, `description`/`version` frontmatter, motion section, append-only versioned server, ECharts SSR engine, chart contract slim plus rich, callouts `up/down/neutral/hold`, `richview-charts` split, three builtins (sleek, scientific, brutalist), `editorial` alias. | — (`architecture.html`, VEN-2122) |
+| #4 | 07-07 | Merges #2 and #3, then conforms to `architecture.html`: Newsreader and IBM Plex Mono inlined, MCP tools 6→5, `description`/`version` frontmatter, motion section, append-only versioned server, ECharts SSR engine, chart contract slim plus rich, callouts `up/down/neutral/hold`, `richview-charts` split, three builtins (sleek, scientific, brutalist), `editorial` alias. | — (`architecture.html`) |
 | #5 | 10-04 via #10 | Render each chart once, source-only publishing, assets generated from canonical sources, agent scaffolding retired, 79 behavioral tests. | `tasks/simplify-toolset.md` |
-| #9 | 10-04 via #10 | `richview-chart` Rust time-series engine and interactive showcase (NOAA CO₂, BLS CPI, SMARD quarter-hours). | S27-572 |
+| #9 | 10-04 via #10 | `richview-chart` Rust time-series engine and interactive showcase (NOAA CO₂, BLS CPI, SMARD quarter-hours). | Linear: Rust chart library |
 | #10 | 10-04 | Ports the whole product to shared Rust/Wasm and integrates #5–#9 through one commit per PR; 25 fixed performance budgets. | Rust migration brief |
 | #11 | 10-04 | Installed native commands find packaged web assets (`<prefix>/share/richview/web`). | — |
 
@@ -68,21 +68,21 @@ Merge and deployment authority, as PR bodies record it: "Daniel authorized mergi
 
 | PR | Merged | Summary | Ticket |
 | --- | --- | --- | --- |
-| #6 | 10-04 via #10 | OpenAI-vs-Anthropic flagship: 13 sections, 18 charts, reproducible research pipeline and source ledger, no hand-typed numbers. | S27-399 |
-| #8 | 10-04 via #10 | 23-style theme showcase of the flagship: live switching, comparison, style-file drawer, colour-blind-safe company colours. | S27-573 |
-| #19 | 10-11 | Repairs the 150 px flagship iframe, citation focus and black chart text on dark themes. | S27-573 |
-| #17 | 10-11 via #21 | Polishes and publishes the flagship and docs through a bounded staging tool; deployed to richview.ai. | S27-430 |
+| #6 | 10-04 via #10 | OpenAI-vs-Anthropic flagship: 13 sections, 18 charts, reproducible research pipeline and source ledger, no hand-typed numbers. | Linear: flagship research |
+| #8 | 10-04 via #10 | 23-style theme showcase of the flagship: live switching, comparison, style-file drawer, colour-blind-safe company colours. | Linear: flagship repair |
+| #19 | 10-11 | Repairs the 150 px flagship iframe, citation focus and black chart text on dark themes. | Linear: flagship repair |
+| #17 | 10-11 via #21 | Polishes and publishes the flagship and docs through a bounded staging tool; deployed to richview.ai. | Linear: repository clean-up and flagship publication |
 
 ### Website, docs and deployment
 
 | PR | Merged | Summary | Ticket |
 | --- | --- | --- | --- |
-| #7 | 10-04 via #10 | Scroll-driven beta landing where the RichView mark becomes a chart, plus a 15-second reel; fixes static-file 404s, cropped charts and styles that did not style charts. | S27-398 |
-| #12 | 10-04 | Teaser copy describes the Rust beta; legal pages corrected. "Daniel authorized merging and deploying the prepared release on 4 October 2026." | S27-577 |
-| #13 | 10-04 | Cloudflare Workers Static Assets configuration; richview.ai released. | S27-577 |
-| #18 | 10-05 | Six tested guides and a first-report tutorial; `/docs/` deployed. | S27-591 |
-| #20 | 10-11 via #21 | Coming-soon homepage with a live source-to-report editor and a private D1 email signup. | S27-590 |
-| #21 | 10-11 | Restores the scroll story around the live example; theme buttons rewrite the visible `styles:` line; flagship house-style buttons and captioned photos; copy "RichView will be fully open source." | S27-594 |
+| #7 | 10-04 via #10 | Scroll-driven beta landing where the RichView mark becomes a chart, plus a 15-second reel; fixes static-file 404s, cropped charts and styles that did not style charts. | Linear: scrolling beta website |
+| #12 | 10-04 | Teaser copy describes the Rust beta; legal pages corrected. "Daniel authorized merging and deploying the prepared release on 4 October 2026." | Linear: teaser co-work |
+| #13 | 10-04 | Cloudflare Workers Static Assets configuration; richview.ai released. | Linear: teaser co-work |
+| #18 | 10-05 | Six tested guides and a first-report tutorial; `/docs/` deployed. | Linear: docs publication |
+| #20 | 10-11 via #21 | Coming-soon homepage with a live source-to-report editor and a private D1 email signup. | Linear: coming-soon homepage |
+| #21 | 10-11 | Restores the scroll story around the live example; theme buttons rewrite the visible `styles:` line; flagship house-style buttons and captioned photos; copy "RichView will be fully open source." | Linear: visual motion restore |
 | #57 | 10-12 | Keeps homepage theme controls inside 390 px phones. | — |
 | #58 | 10-13 | Applies the 2026-10-12 voice feedback to the landing (drops Coming soon, background mark animation and playground links; new lede; five themes), drops the showcase header controls and defaults charts to the text measure (2026-10-13). | — |
 
@@ -90,23 +90,23 @@ Merge and deployment authority, as PR bodies record it: "Daniel authorized mergi
 
 | PR | Merged | Summary | Ticket |
 | --- | --- | --- | --- |
-| #15 | 10-05 | Dedicated report folders (`report.rmd`, optional `report.rstyle.yaml`, `Rendered/`), chart-local inline YAML by default, header datasets rejected, Rust linting/formatting/completion, VS Code providers, VSIX 3.0.0-alpha.1; table-versus-series choice left pending. | S27-578, S27-412, S27-579, S27-580, S27-581 |
+| #15 | 10-05 | Dedicated report folders (`report.rmd`, optional `report.rstyle.yaml`, `Rendered/`), chart-local inline YAML by default, header datasets rejected, Rust linting/formatting/completion, VS Code providers, VSIX 3.0.0-alpha.1; table-versus-series choice left pending. | Linear: the feedback issue, its chart-data, table-default and report-folder sub-issues, and VS Code tooling |
 
 ### Report design, motion and export
 
 | PR | Merged | Summary | Ticket |
 | --- | --- | --- | --- |
-| #22 | 10-11 | Report typography and figure frame; honest category labels, gaps and axes; static-first chart mounting with structural entrances; hand-drawn fifth treatment; one shared OKLCH module; `generate --to pdf`; resumable S3-compatible asset uploads in CLI and MCP. | S27-616 |
+| #22 | 10-11 | Report typography and figure frame; honest category labels, gaps and axes; static-first chart mounting with structural entrances; hand-drawn fifth treatment; one shared OKLCH module; `generate --to pdf`; resumable S3-compatible asset uploads in CLI and MCP. | Linear: the product brief |
 | #59 | 10-13 | Translucent tooltip (82% surface, 6 px blur) and source captions tight under their chart. | 2026-10-13 feedback |
-| #60 | 10-16 | Histogram, R-7 box plot and authored interval charts; exact source values; Table/SVG/CSV/Expand on the subtitle row; ink alignment; rounded bar ends; monotone cubic default; flagship stock images replaced. | S27-632, S27-633, S27-634, S27-635, S27-637 |
+| #60 | 10-16 | Histogram, R-7 box plot and authored interval charts; exact source values; Table/SVG/CSV/Expand on the subtitle row; ink alignment; rounded bar ends; monotone cubic default; flagship stock images replaced. | Linear: expand toggle, ink alignment, bar rounding, line curvature and flagship imagery issues |
 | #61 | 10-16 | Caption-aligned titles, distinct Table/SVG/CSV icons, landscape phone expansion dialog, print-settlement fix. | — |
 
 ### Chart craft and benchmarks
 
 | PR | Merged | Summary | Ticket |
 | --- | --- | --- | --- |
-| #14 | 10-05 | Rust layout, tooltip and temporal navigation polish against a local Highcharts 13.1.1 benchmark; browser glyph issues 110 → 45 → 3 → 0. | S27-582 |
-| #16 | 10-05 | "Daniel's chart feedback": clearer axes, attached units, in-chart series filtering, numeric zoom, pie emphasis, stronger zero lines, rounded bars, gapless heatmaps; Sleek Light added; four-engine benchmark and Figma review file. | S27-582 |
+| #14 | 10-05 | Rust layout, tooltip and temporal navigation polish against a local Highcharts 13.1.1 benchmark; browser glyph issues 110 → 45 → 3 → 0. | Linear: Highcharts-quality iteration |
+| #16 | 10-05 | "Daniel's chart feedback": clearer axes, attached units, in-chart series filtering, numeric zoom, pie emphasis, stronger zero lines, rounded bars, gapless heatmaps; Sleek Light added; four-engine benchmark and Figma review file. | Linear: Highcharts-quality iteration |
 | #40 | 10-12 | Collision-aware labels, bounded monotone curves, one calendar-label row, plain zero, direct line names, heatmap colour bars removed, hand-drawn lettering; fixed review matrix glyph findings 115 → 0; deployed to richview.ai "following the explicit request to deploy all finished work". | — |
 
 ### Chart correctness refinements (2026-10-11/12)
@@ -153,7 +153,7 @@ Merge and deployment authority, as PR bodies record it: "Daniel authorized mergi
 | --- | --- | --- |
 | #2 | closed 07-07 | 22-item 2026-06-27 feedback implementation; superseded by #4. Comment: "Superseded by #4, which merges this branch + #3 … into conformance with richview-design-system/public/architecture.html". |
 | #3 | closed 07-07 | Chart design system and a Fraunces display title; superseded by #4. Comment: "The Fraunces/title work from this PR is replaced in #4 by the spec-mandated Newsreader + IBM Plex Mono inlined fonts (dec-23/24) per Daniel's confirmation". |
-| #71, #72 | merged into `publish/news` 10-18 | Browser-desk edits of `publications/news/items/publishing-loop/report.rmd` as RichView Publish acceptance (S27-655). |
+| #71, #72 | merged into `publish/news` 10-18 | Browser-desk edits of `publications/news/items/publishing-loop/report.rmd` as RichView Publish acceptance. |
 | #73–#75 | closed 10-18 | Publish acceptance of edit, hide and restore; closed by design. |
 
 ## Decision records
@@ -177,12 +177,12 @@ Source: `docs/reposition/index.html` added in `6489a06`, removed from `main` in 
 
 ### Architecture decisions dec-1 to dec-83 (2026-06-21)
 
-Source: `richview-universe/richview-design-system@8c6a8e0:public/architecture.html`, table "Consolidated decisions", rows `id="dec-1"` to `id="dec-83"`, synthesized from VEN-2091, ten child tickets and "Daniel's 2026-06-20 voice dump" (tracking VEN-2122). The PR #4 body says "A full-codebase audit (all 83 decisions + all 22 feedback items …) drove this pass". Status is at `b4db233`. **O** for the decision text.
+Source: `richview-universe/richview-design-system@8c6a8e0:public/architecture.html`, table "Consolidated decisions", rows `id="dec-1"` to `id="dec-83"`, synthesized from one parent ticket, ten child tickets and "Daniel's 2026-06-20 voice dump". The PR #4 body says "A full-codebase audit (all 83 decisions + all 22 feedback items …) drove this pass". Status is at `b4db233`. **O** for the decision text.
 
 | ID | Decision (short) | Status at `b4db233` | Evidence | Tag |
 | --- | --- | --- | --- | --- |
 | dec-1 | Lead word "agented"; "The agented presentation layer for data stories" | Superseded: "agentic" (2026-06-27 feedback); landing h1 now "RichView is a presentation layer for your agent." | PR #2; `assets/landing/index.html:64` | O |
-| dec-2 | Single audience: coding-agent drivers | Broadened to analysts, newsrooms, dashboard users | `docs/OVERVIEW.md:3`; S27-655 brief | S |
+| dec-2 | Single audience: coding-agent drivers | Broadened to analysts, newsrooms, dashboard users | `docs/OVERVIEW.md:3`; Publish brief | S |
 | dec-3 | Build→review→improve→share loop | Kept as edit→preview→diagnose→improve | `docs/OVERVIEW.md:3` | S |
 | dec-4 | Keep `.rmd`; optional `format: rmd/0.1`; languageId `richview` | `.rmd` kept; no `rmd/0.1` discriminator anywhere in the crates or spec | `grep rmd/0` over `crates/`, `richview-chart/`, `docs/RMD-SPEC.md` | O |
 | dec-5 | Web surface is a read-only showcase; "no chat in the face" | Partly reversed: live editable homepage demo (#21); chat/voice dashboard open (#64) | PRs #20, #21, #64 | S |
@@ -271,7 +271,7 @@ The same document lists open questions for Daniel by dimension (headline, licens
 
 | Date | Decision | Source | Current status |
 | --- | --- | --- | --- |
-| 2026-06-09 | Keep the monorepo; separate concerns as packages with an MIT-except-server licence gradient (VEN-1193) | `4cab1f5`, `ce68a8d` | Licence file contradicts current crates (see D-OPEN-SOURCE). **O** |
+| 2026-06-09 | Keep the monorepo; separate concerns as packages with an MIT-except-server licence gradient | `4cab1f5`, `ce68a8d` | Licence file contradicts current crates (see D-OPEN-SOURCE). **O** |
 | 2026-06-27 | Motion is required: "we need interactivity and motion — antislop motion — beautiful soft animations of chart and texts" | `5ceb7d4` message (quoting the feedback) | Kept and extended. **S** |
 | 2026-06-27 | Fonts: "Newsreader + IBM Plex Mono, inlined" (Q1); Fraunces dropped "per Daniel's confirmation" | `5ceb7d4`; PR #3 comment | Superseded by per-style faces. **S** |
 | 2026-07-07 | Three builtins distilled 1:1 from studio variants v21-sleek, v22-scientific, v17-brutalist; `editorial` becomes a deprecated alias of brutalist (resolves oq-13) | `5ceb7d4` | Grew to five; `editorial` alias kept (`style.rs:40`). **O** |
@@ -323,15 +323,15 @@ All nine are drafts based on current `main` `b4db233`, 0 commits behind, and eac
 
 | PR | Branch | Ticket | Scope | State and evidence | Last update | Divergence | Live? |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| #62 | `feat/s27-648-playable-charts` | S27-648 | Declarative `controls:` on a chart block (`playback`, `filter`, `metric`, `variant`), button group then dropdowns, `rv:control` / `rv:control-set` events, reduced-motion floor; Gapminder and indicator examples; `docs/CONTROLS.md` | Feature complete per its brief; 20/20 Playwright checks and chart crate tests per body; `cargo test --workspace` skipped | 2026-10-18 09:56Z | +13 commits, 14 files, +2,751/−6 | No |
-| #63 | `feat/s27-649-multi-tab-reports` | S27-649 | `tabs:` frontmatter slicing the body at `## Title {#id}` anchors; static-first (all panels visible without JS); `export: all/active`; deep links and keyboard | WIP; body says no Rust gate run; body is stale (branch already has `scripts/verify-tabs.mjs` and contract tests) | 2026-10-18 03:07Z | +6, 10 files, +781/−2 | No |
-| #64 | `s27-651-voice-dashboard` | S27-651 | Sibling crate `richview-voice-dashboard` (axum server, 347-line `app.js`): voice or text prompt → planner → six tiles over Okurka MetricFlow, cross-selection, local save; ElevenLabs Scribe server-side | Demo complete per body; cloud save returns "Unavailable"; remote MCP OAuth not done | 2026-10-18 04:15Z | +9, 18 files, +3,174 | No |
-| #65 | `s27-647-publish-galleries` | S27-647 | `/typography/`, `/chart-gallery/`, `/famous-charts/` (Gapminder, Playfair, Rosling, Snow, Nightingale) in five styles; landing Gallery link | Deployed 2026-10-17 under explicit authorization, then superseded: all three routes return 404 on 2026-10-21 | 2026-10-17 15:45Z | +4, 8 files, +1,142 | Was; now 404 (O) |
-| #66 | `feat/s27-650-data-connectors` | S27-650 | Chart-local `data.sql`, `data.metricflow`, `data.cache`; DuckDB adapter; MetricFlow via `mf query`; SHA-256 snapshot store; `--connectors` / `connectors.toml` | Live SQL and MetricFlow tests pass per body; `verify-browser` failed three times under load, labelled unrelated | 2026-10-18 08:04Z | +6, 24 files, +2,731/−14 (713 lines `Cargo.lock`) | No |
-| #67 | `task/s27-654-chart-polish` | S27-654 | Integer-year axes (`format: year`), lighter tooltip, labelled action buttons, one Expand modal, Download menu (PNG/SVG), five style pills plus Other, sparse scatter labels with `encoding.highlight` and priorities, opt-in `layout.measure-wide-blocks` | "in progress"; header infographic, tooltip stability, series cues and Playfair density not done per body; one unpushed local commit `ba394dd` in its worktree | 2026-10-19 00:54Z | +12 (13 locally), 9 files, +340/−56 | Unknown |
-| #68 | `feat/s27-652-development-harness` | S27-652 | `scripts/dev-harness/run.py`, build-lock and artifact-ownership checks, deterministic worker gating, `docs/architecture-current.md`, `docs/development-harness.md` | Done per body; original integration receipt FAILED on cleanup, fix then passed | 2026-10-18 13:44Z | +4, 7 files, +946/−8 | No |
-| #69 | `task/s27-653-site` | S27-653 | Restores `#rv-field`/`#rv-stage` landing motion, nav cut to Flagship report · Chart gallery · Docs, `/docs/charts` with all nine types, mobile chapter hysteresis | Live: richview.ai nav and `rv-field`/`rv-stage` match this branch, not `main`; `/docs/charts` serves nine type headings | 2026-10-19 00:45Z | +6, 9 files, +650/−24 | Yes (O) |
-| #70 | `feat/s27-655-richview-publish` | S27-655 | RichView Publish: `crates/richview-publish` (~1,000 Rust lines), Cloudflare gateway and browser editor (~4,000 lines `.mjs`), Access/R2/Durable Object, Git-PR editorial loop, one site YAML, two layouts, `publications/news/` | Live: `news.richview.ai` returns 200 "Latest perspectives — RichView News" without sign-in (O); content branch `publish/news` = 5 PR #70 commits + #71/#72 (O); "a trusted content-only polling worker" publishes approved commits (S) | 2026-10-18 22:11Z | +26, 52 files, +7,243/−8 | Yes (O) |
+| #62 | `feat/playable-charts` | Linear: playable charts | Declarative `controls:` on a chart block (`playback`, `filter`, `metric`, `variant`), button group then dropdowns, `rv:control` / `rv:control-set` events, reduced-motion floor; Gapminder and indicator examples; `docs/CONTROLS.md` | Feature complete per its brief; 20/20 Playwright checks and chart crate tests per body; `cargo test --workspace` skipped | 2026-10-18 09:56Z | +13 commits, 14 files, +2,751/−6 | No |
+| #63 | `feat/multi-tab-reports` | Linear: multi-tab reports | `tabs:` frontmatter slicing the body at `## Title {#id}` anchors; static-first (all panels visible without JS); `export: all/active`; deep links and keyboard | WIP; body says no Rust gate run; body is stale (branch already has `scripts/verify-tabs.mjs` and contract tests) | 2026-10-18 03:07Z | +6, 10 files, +781/−2 | No |
+| #64 | `voice-dashboard` | Linear: voice dashboard | Sibling crate `richview-voice-dashboard` (axum server, 347-line `app.js`): voice or text prompt → planner → six tiles over Okurka MetricFlow, cross-selection, local save; ElevenLabs Scribe server-side | Demo complete per body; cloud save returns "Unavailable"; remote MCP OAuth not done | 2026-10-18 04:15Z | +9, 18 files, +3,174 | No |
+| #65 | `publish-galleries` | Linear: galleries | `/typography/`, `/chart-gallery/`, `/famous-charts/` (Gapminder, Playfair, Rosling, Snow, Nightingale) in five styles; landing Gallery link | Deployed 2026-10-17 under explicit authorization, then superseded: all three routes return 404 on 2026-10-21 | 2026-10-17 15:45Z | +4, 8 files, +1,142 | Was; now 404 (O) |
+| #66 | `feat/data-connectors` | Linear: data connectors | Chart-local `data.sql`, `data.metricflow`, `data.cache`; DuckDB adapter; MetricFlow via `mf query`; SHA-256 snapshot store; `--connectors` / `connectors.toml` | Live SQL and MetricFlow tests pass per body; `verify-browser` failed three times under load, labelled unrelated | 2026-10-18 08:04Z | +6, 24 files, +2,731/−14 (713 lines `Cargo.lock`) | No |
+| #67 | `task/chart-polish` | Linear: flagship and chart polish | Integer-year axes (`format: year`), lighter tooltip, labelled action buttons, one Expand modal, Download menu (PNG/SVG), five style pills plus Other, sparse scatter labels with `encoding.highlight` and priorities, opt-in `layout.measure-wide-blocks` | "in progress"; header infographic, tooltip stability, series cues and Playfair density not done per body; one unpushed local commit `ba394dd` in its worktree | 2026-10-19 00:54Z | +12 (13 locally), 9 files, +340/−56 | Unknown |
+| #68 | `feat/development-harness` | Linear: development harness | `scripts/dev-harness/run.py`, build-lock and artifact-ownership checks, deterministic worker gating, `docs/architecture-current.md`, `docs/development-harness.md` | Done per body; original integration receipt FAILED on cleanup, fix then passed | 2026-10-18 13:44Z | +4, 7 files, +946/−8 | No |
+| #69 | `task/site` | Linear: site motion and navigation | Restores `#rv-field`/`#rv-stage` landing motion, nav cut to Flagship report · Chart gallery · Docs, `/docs/charts` with all nine types, mobile chapter hysteresis | Live: richview.ai nav and `rv-field`/`rv-stage` match this branch, not `main`; `/docs/charts` serves nine type headings | 2026-10-19 00:45Z | +6, 9 files, +650/−24 | Yes (O) |
+| #70 | `feat/richview-publish` | Linear: Publish and News | RichView Publish: `crates/richview-publish` (~1,000 Rust lines), Cloudflare gateway and browser editor (~4,000 lines `.mjs`), Access/R2/Durable Object, Git-PR editorial loop, one site YAML, two layouts, `publications/news/` | Live: `news.richview.ai` returns 200 "Latest perspectives — RichView News" without sign-in (O); content branch `publish/news` = 5 PR #70 commits + #71/#72 (O); "a trusted content-only polling worker" publishes approved commits (S) | 2026-10-18 22:11Z | +26, 52 files, +7,243/−8 | Yes (O) |
 
 Other unmerged refs: `publish/news` (News content; keep while News runs), `review/validation-{main,pr40}-20261012{,-r2}` (four PR #40 validation compositions, conflict with `main`), `synth/vnext-architecture` (points at `18241a1`, no unique commits), `feat/visual-feedback-styling` (closed #3). Head branches of 56 merged PRs also remain on origin (51 contained in `main` by ancestry, 5 squash-merged: #15, #16, #18, #58, #59). **O**
 
@@ -340,12 +340,12 @@ Proposed disposition (each needs Daniel's decision; all **I**):
 - **#62 → fold into the rewrite.** Keep the `controls:` contract, event names, reduced-motion floor and examples as a spec; do not merge code into a codebase being replaced. Decide first whether chart-local playback is in scope (D-CONTROLS-PR62).
 - **#63 → fold or abandon.** Unverified WIP; the `tabs:` design (static-first, export control, h2 anchors) is a small, testable spec if multi-view reports are in scope (D-TABS-PR63).
 - **#64 → abandon in this repo.** It is a sibling product with private-data dependencies (Okurka MetricFlow, ElevenLabs) and a JS front end; keep its evidence as a demo reference and decide dashboards under D-SCOPE-CORE (D-DASHBOARD-PR64).
-- **#65 → abandon the PR, fold the content.** Its routes are already gone from production and the 2026-10-18 brief moved the gallery into the docs; the famous-chart recreations and typography specimen are reusable examples (D-GALLERIES-PR65, linear.md D-GALLERY-ROUTES).
+- **#65 → abandon the PR, fold the content.** Its routes are already gone from production and the 2026-10-18 brief moved the gallery into the docs; the famous-chart recreations and typography specimen are reusable examples (D-GALLERIES-PR65; D-GALLERY-ROUTES of the Linear evidence (not published)).
 - **#66 → fold as a later-phase spec.** The host-resolved, chart-local, snapshot-cached connector contract is coherent, but DuckDB adds heavy builds and live connectors widen scope (D-CONNECTORS-PR66).
 - **#67 → fold.** Its behaviours are Daniel's latest dictated design calls and belong in the rewrite spec; the code is incomplete and conflicts with #69 (D-CHART-POLISH-PR67).
 - **#68 → fold into the delivery gates.** Build-lock, artifact provenance and evidence-outside-worktree rules answer real failures; tooling, not product (D-HARNESS-PR68).
 - **#69 → merge before the rewrite, then fold.** Production already runs it; merging keeps `main` equal to what is live and resolves the `svg.rs` overlap with #67 deliberately (D-SITE-PR69).
-- **#70 → decide the product first.** News is live from an unmerged branch with a polling publisher; merge, freeze or retire depends on whether Publish is part of RichView (linear.md D-PUBLISH-PR70, D-PUBLISH-TARGET). The repository transfer may affect the publisher's fixed repository bridge; verify it still fetches. **I**
+- **#70 → decide the product first.** News is live from an unmerged branch with a polling publisher; merge, freeze or retire depends on whether Publish is part of RichView (D-PUBLISH-PR70 and D-PUBLISH-TARGET of the Linear evidence (not published)). The repository transfer may affect the publisher's fixed repository bridge; verify it still fetches. **I**
 
 ## Repeated corrections (what agents kept getting wrong)
 
@@ -357,7 +357,7 @@ Proposed disposition (each needs Daniel's decision; all **I**):
 - **Tooltip weight, twice.** 2026-10-13 made it translucent (#59); 2026-10-18 asked for "slightly more transparent and visually lighter" (#67 `06d8691`). **S**
 - **Motion.** Per-shape transforms distorted bars and legend swatches (#2 hardening); entrance "ticking" (2026-10-12 follow-up); the landing animation was removed (#58) and then requested back (2026-10-18); the restored scroll story "ticked and flickered" on mobile (2026-10-18 16:03 rejection). **S**
 - **Requests misread or extended.** The chart gallery was built as one long report ("Replace the mistaken chart-gallery-as-report interpretation", 2026-10-18 website brief); an agent raised the tooltip blur as "my own addition … unrelated to Daniel's … request" and reverted it (`1d209a8`); briefs had to carry dictation self-corrections explicitly ("the user's corrected formats are PNG/SVG, not PDF"; "Do not implement the abandoned three-mode expansion request"). **S**
-- **Preferences that changed between rounds (not agent errors).** Expand/Contract toggle (S27-632, shipped in #60) → one modal (2026-10-18); background landing animation dropped (2026-10-12) → restored (2026-10-18); tables full width (2026-10-13) → tables at the text measure (2026-10-18); "source-available" copy (2026-07-07) → "fully open source" (2026-10-05). Each needs one recorded final answer. **S**
+- **Preferences that changed between rounds (not agent errors).** Expand/Contract toggle (shipped in #60) → one modal (2026-10-18); background landing animation dropped (2026-10-12) → restored (2026-10-18); tables full width (2026-10-13) → tables at the text measure (2026-10-18); "source-available" copy (2026-07-07) → "fully open source" (2026-10-05). Each needs one recorded final answer. **S**
 - **Silent no-ops.** Removing DOM nodes that Rust binders skip without error disabled the landing animation (`crates/richview-web/src/browser/landing.rs:2505-2507` returns `Ok(())` when `#rv-field`/`#rv-stage` are missing; `main`'s landing has neither) and hid showcase shortcuts (#58); docs charts stayed static because the Wasm runtime was never loaded (`6ccab91`). **O** for the landing, **S** otherwise.
 - **Claims ahead of evidence.** #2's "closed vocabulary" was false (`.passthrough()`); PR docs claimed publish-required keys the schema lacked (#4); docs claimed a dependency-free self-measuring renderer while code used ECharts (Rust brief); #58 merged with its test plan unchecked and `main` CI then failed at `verify-browser` (2026-10-13); briefs had to say "To Review does not establish that every quality gate passed". **S**, CI **O**
 - **Stale bases.** The primary checkout is 354 commits behind; every 2026-10-17/18 brief repeats "The local checked-out README describes obsolete TypeScript code" / "The primary checkout is stale"; the current `CLAUDE.md:76` still names three canonical styles while code ships five (`style.rs:16-25`). **O**
@@ -376,22 +376,22 @@ Each bullet carries the tag of its evidence; mixed bullets name which part is st
 - **Scope.** `architecture.html` "RichView IS NOT … A BI tool, dashboard builder … A chat product … A full WYSIWYG web editor"; the Rust brief excluded "a full browser editor, chat/BYOK, real-time multi-user collaboration and a marketplace"; the 2026-10-17/18 tracks added a voice/chat dashboard, live data connectors, a newsroom CMS with a browser editor and multi-tab reports. **O**. Forces D-SCOPE-CORE.
 - **Landing motion.** PR #58 removed the background mark animation as 2026-10-12 feedback; PR #69 calls that removal accidental ("silently disabling the scroll choreography") and restores it per 2026-10-18; `main` has no animation, production has it. **O** (PR #69's "accidental" reading **S**). Forces D-LANDING-MOTION.
 - **Measure.** `429e54f` (2026-10-13) keeps tables full-width; the 2026-10-18 brief wants one measure including tables and headings; #67 implements it only as an opt-in `layout.measure-wide-blocks`. **S**. Forces D-MEASURE.
-- **Chart expansion.** S27-632 (#60) shipped an Expand/Contract toggle and #61 a landscape phone dialog; the 2026-10-18 brief drops both for one modal; `main` still has the toggle. **S**. Forces linear.md D-CHART-MODAL.
+- **Chart expansion.** The chart expand issue (#60) shipped an Expand/Contract toggle and #61 a landscape phone dialog; the 2026-10-18 brief drops both for one modal; `main` still has the toggle. **S**. Forces D-CHART-MODAL of the Linear evidence (not published).
 - **Rust-only behaviour.** The Rust brief made Rust own all product behaviour; #70 adds ~4,000 lines of `.mjs` gateway and editor, #64 a JS app, and the 2026-10-18 website brief allows "a narrow site animation layer" in JavaScript. **O**. Forces D-RUNTIME.
-- **Publishing.** The native server keeps immutable slug/version storage with a bearer token (dec-67–74, `storage.rs`, `server.rs`); the CLI publishes to `https://richview.uk` by default; RichView Publish uses Git PRs and Cloudflare Access; the 2026-10-12 copy describes a "menu of finished reports with share / copy link / access control". **O** for the native server and CLI, **S** for Publish and the copy. Forces linear.md D-PUBLISH-TARGET.
+- **Publishing.** The native server keeps immutable slug/version storage with a bearer token (dec-67–74, `storage.rs`, `server.rs`); the CLI publishes to `https://richview.uk` by default; RichView Publish uses Git PRs and Cloudflare Access; the 2026-10-12 copy describes a "menu of finished reports with share / copy link / access control". **O** for the native server and CLI, **S** for Publish and the copy. Forces D-PUBLISH-TARGET of the Linear evidence (not published).
 - **Data binding.** The TypeScript-era `data:` frontmatter map (primary checkout `CLAUDE.md`) is now a hard migration error (`docs/RMD-SPEC.md:46`); #66 adds host-resolved `data.sql`/`data.metricflow`/`data.cache`; the architecture left "where does data binding live" open. **O**. Forces D-DATA-BINDING.
 - **MCP surface.** dec-56 fixed four tools; PR #4 shipped five; `main` defines seven. **O**. Forces D-MCP-SURFACE.
 - **Frontmatter.** dec-8 requires title, description and version; code requires title and version only at publication. **O**. Forces D-FRONTMATTER.
 - **Gates.** `docs/CHART-REVIEW.md:17` says "CI runs this matrix on every PR"; hosted CI has executed no step since 2026-10-14 and branch protection is unavailable on the private repo. **O**. Forces D-CI-HOST.
-- **Production vs `main`.** Live richview.ai matches `task/s27-653-site`, news.richview.ai runs `feat/s27-655-richview-publish`; `main` matches neither. **O** for richview.ai; **I** for News, because only #70 contains its code. Forces D-PROD-BASELINE.
+- **Production vs `main`.** Live richview.ai matches `task/site`, news.richview.ai runs `feat/richview-publish`; `main` matches neither. **O** for richview.ai; **I** for News, because only #70 contains its code. Forces D-PROD-BASELINE.
 
 ## Proposed decision IDs
 
-IDs shared with [linear.md](linear.md) keep its names; the others are new. Recommendations are proposals for Daniel (**I**).
+IDs shared with the Linear evidence (not published) keep its names; the others are new. Recommendations are proposals for Daniel (**I**).
 
 | ID | Decision | Options | History and evidence | Proposed |
 | --- | --- | --- | --- | --- |
-| D-SCOPE-CORE | Which product areas the rewrite includes | Narrow data-story layer / product family (Charts, Reports, Dashboards, Publish) / core now, siblings later in their own repos | dec-5, `architecture.html` IS-NOT box; Rust brief exclusions; 2026-10-17 "despite older August scope locks"; S27-655 ecosystem | Core now (format, charts, reports, authoring, native publish); decide each sibling separately |
+| D-SCOPE-CORE | Which product areas the rewrite includes | Narrow data-story layer / product family (Charts, Reports, Dashboards, Publish) / core now, siblings later in their own repos | dec-5, `architecture.html` IS-NOT box; Rust brief exclusions; 2026-10-17 "despite older August scope locks"; the Publish brief's ecosystem | Core now (format, charts, reports, authoring, native publish); decide each sibling separately |
 | D-POSITIONING | Headline and noun | "agentic presentation layer for data stories" / "a presentation layer for your agent" + "Your agent organizes the text. RichView makes it a story." / README "sourced, editable reports" | dec-1, PR #2, PR #58, `README.md:3` | Latest dictated landing copy (2026-10-12) |
 | D-OPEN-SOURCE | Licence and when source opens | MIT everywhere / MIT + ELv2 server / other; private until release | dec-81, `ce68a8d`, PR #4, PR #21, `Cargo.toml:8`, `LICENSING.md` | Daniel's call; remove the stale gradient doc either way |
 | D-REPO-SPLIT | Repository topology | One private monorepo / split charts or site; archive or update public `richview-charts`; keep `richview-design-system` | dec-33/34, PR #4, PR #10, transfer 2026-10-21 | One monorepo; archive `richview-charts` |
@@ -406,12 +406,12 @@ IDs shared with [linear.md](linear.md) keep its names; the others are new. Recom
 | D-TABLE-SYNTAX | Table authoring | Row mappings / series form | `docs/TABLE-AUTHORING-CHOICE.md` | Row mappings (repo recommendation) |
 | D-DATA-BINDING | Where data comes from | Chart-local inline/CSV/JSON in the report folder / plus host connectors / frontmatter sources | PR #15, `RMD-SPEC.md:46`, PR #66 | Chart-local now; connectors later as snapshots |
 | D-STYLE-CATALOG | Public style catalogue | Five canonical / plus 20 studio variants under "Other styles" | PRs #4, #8, #16, #22, #58, #67 | Five; studio variants Daniel's call |
-| D-DEFAULT-STYLE | Default style | Sleek dark everywhere / Scientific for the flagship | PR #8 pending judgement; linear.md | Daniel's call |
+| D-DEFAULT-STYLE | Default style | Sleek dark everywhere / Scientific for the flagship | PR #8 pending judgement; the Linear evidence (not published) | Daniel's call |
 | D-FONTS | Type system | Per-style bundled OFL faces with `RichView Serif/Sans/Code/Mono` aliases / one house pair | dec-22–24, PR #4, PR #22; "Font selection remains open" (#16) | Per-style faces; size budget explicit |
 | D-MOTION | Chart and text motion policy | Static first frame, calm structural entrances, reduced-motion floor / minimal | dec-27, 2026-06-27 feedback, PRs #22, #60, 2026-10-12 "ticking" | Keep, with a no-ticking acceptance check |
 | D-LANDING-MOTION | Landing scroll story | Restore (2026-10-18) / drop (2026-10-12) | PR #58, PR #69, rejection 2026-10-18 16:03 | Restore, mobile-stable |
 | D-MEASURE | Block widths | One text measure for all blocks incl. tables and headings, explicit full-width opt-in / tables full-width | `429e54f`, 2026-10-18 brief, #67 `4e029af` | One measure by default |
-| D-CHART-ACTIONS | Chart action row | Table, CSV, Download (PNG/SVG), Expand (one modal) / current Table/SVG/CSV/Expand toggle | PRs #60, #61, #67; linear.md D-CHART-MODAL | 2026-10-18 set |
+| D-CHART-ACTIONS | Chart action row | Table, CSV, Download (PNG/SVG), Expand (one modal) / current Table/SVG/CSV/Expand toggle | PRs #60, #61, #67; D-CHART-MODAL of the Linear evidence (not published) | 2026-10-18 set |
 | D-TOOLTIP | Tooltip look and behaviour | Light translucent, stable, exact values only | PR #59, #67 `06d8691`, 2026-10-18 brief | As dictated |
 | D-LABEL-DENSITY | Direct labels | Sparse defaults, author highlights with priority, leaders only when forced | #67 `65cc81d`, `0bb85e9` | As dictated |
 | D-SERIES-CUES | Line/area identification | Name alone unless a cue disambiguates | 2026-10-18 brief | As dictated |
@@ -421,9 +421,9 @@ IDs shared with [linear.md](linear.md) keep its names; the others are new. Recom
 | D-PDF-EXPORT | Report PDF output | Keep `generate --to pdf` / drop | PR #22 (eleven pagination findings open) | Keep only with a pagination gate |
 | D-ASSET-UPLOAD | Remote asset upload commands | Keep / drop until sources consume them | PR #22 ("Report sources do not consume those references yet") | Drop from the rewrite's first cut |
 | D-VSCODE | Editor scope and distribution | Current authoring features, Marketplace later / minimal | dec-66, PRs #15, #60; unpublished | Daniel's call |
-| D-PUBLISH-TARGET | Publishing model | Native immutable server / RichView Publish / both | dec-67–74, PR #70, `cli.rs:122` | See linear.md |
-| D-HOSTING | Hosting | Cloudflare (live) / AWS credits / Fly.io (TS-era `richview-v3.fly.dev`, `packages/server/fly.toml`) | PRs #13, #40, `ae2a1cb`; linear.md | See linear.md |
-| D-SITE-NAV | Site navigation and gallery placement | Flagship report · Chart gallery · Docs with gallery in docs / standalone galleries | PR #69, PR #65; linear.md D-GALLERY-ROUTES | #69 layout |
+| D-PUBLISH-TARGET | Publishing model | Native immutable server / RichView Publish / both | dec-67–74, PR #70, `cli.rs:122` | See the Linear evidence (not published) |
+| D-HOSTING | Hosting | Cloudflare (live) / AWS credits / Fly.io (TS-era `richview-v3.fly.dev`, `packages/server/fly.toml`) | PRs #13, #40, `ae2a1cb`; the Linear evidence (not published) | See the Linear evidence (not published) |
+| D-SITE-NAV | Site navigation and gallery placement | Flagship report · Chart gallery · Docs with gallery in docs / standalone galleries | PR #69, PR #65; D-GALLERY-ROUTES of the Linear evidence (not published) | #69 layout |
 | D-PLAYGROUND | Public playground | Keep `/playground` unlinked / link it / remove | dec-5, dec-77, PR #58 | Daniel's call |
 | D-SHOWCASE-CONTROLS | Showcase compare, style-file, tour, share, embed, source controls | Delete the dormant code / restore some | `9d328b5` (code still binds removed IDs) | Delete unless restored |
 | D-SIGNUP | Email opt-in on the site | Keep D1 signup / drop | PRs #20, #40 | Keep |
@@ -435,19 +435,19 @@ IDs shared with [linear.md](linear.md) keep its names; the others are new. Recom
 | D-BRANCH-CLEANUP | Stale refs | Delete merged and validation branches, `synth/vnext-architecture`; keep or delete the `chart-refinements-2026-10-12` pre-release | Ref inventory above; brief "no releases" | Clean up after the PR decisions |
 | D-CONTROLS-PR62 | Playable charts | Fold / merge / abandon | PR #62 | Fold |
 | D-TABS-PR63 | Multi-tab reports | Fold / abandon | PR #63 | Fold if in scope |
-| D-DASHBOARD-PR64 | Voice dashboard | Separate repo / abandon / merge | PR #64; linear.md D-DASHBOARD-SAVE | Abandon here |
+| D-DASHBOARD-PR64 | Voice dashboard | Separate repo / abandon / merge | PR #64; D-DASHBOARD-SAVE of the Linear evidence (not published) | Abandon here |
 | D-GALLERIES-PR65 | Standalone galleries | Abandon PR, reuse content / merge | PR #65 | Abandon, reuse examples |
 | D-CONNECTORS-PR66 | SQL/MetricFlow/cache connectors | Fold later / merge / abandon | PR #66 | Fold later |
 | D-CHART-POLISH-PR67 | Dictated chart polish | Fold / finish and merge | PR #67 | Fold |
 | D-HARNESS-PR68 | Development harness | Fold into gates / merge | PR #68 | Fold |
 | D-SITE-PR69 | Site repair (live) | Merge / fold | PR #69 | Merge, then fold |
-| D-PUBLISH-PR70 | RichView Publish (live) | Merge / freeze / retire | PR #70; linear.md | After D-SCOPE-CORE |
+| D-PUBLISH-PR70 | RichView Publish (live) | Merge / freeze / retire | PR #70; the Linear evidence (not published) | After D-SCOPE-CORE |
 
 ## Gaps
 
 - The 2026-06-27 review document (`richview-review-2026-06-27.md`) and its screenshots are not in any branch of this repository; its 22 items are known only through PR #2, PR #3 and `5ceb7d4`.
 - The 2026-10-12 and 2026-10-13 feedback exists here only as agent summaries in PR #58, PR #59 and commit messages; the original dictation was not read.
-- Linear tickets and comments, including the "Final review" comment cited by PR #62, are covered by [linear.md](linear.md), not re-read here.
+- Linear tickets and comments, including the "Final review" comment cited by PR #62, are covered by the Linear evidence (not published), not re-read here.
 - Whether live richview.ai also includes PR #67 commits was not checked; only the landing nav and animation nodes were compared.
 - The state of the Fly.io app `richview-v3.fly.dev`, the Cloudflare Workers and the News publisher after the repository transfer was not inspected.
 - The vault and Notion copies of the vNext architecture referenced by the synthesis handoff were not read; `architecture.html` at `8c6a8e0` is the only decision source used.

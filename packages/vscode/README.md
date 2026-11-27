@@ -17,4 +17,4 @@ The extension runs only in trusted workspaces. `richview.binary` (machine scope)
 
 ## Verification
 
-`scripts/verify-editor.cjs` runs the adapter against the real editor service over stdio through a VS Code API double. The service's own protocol, diagnostics and providers are tested in `crates/richview-editor/tests/lsp.rs`.
+`scripts/verify-editor.cts` runs the adapter against the real editor service over stdio through a VS Code API double. The service's own protocol, diagnostics and providers are tested in `crates/richview-editor/tests/lsp.rs`.

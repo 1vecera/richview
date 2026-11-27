@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Record Daniel's own words for a recovery action or the snapshot clean-up (his go for the release itself is the one go of release.mjs, DEL-83).
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+test "$(get FINAL)" = "$FINAL"; scope=${1:?approval scope}
+expected=
+case "$scope" in
+  private-recovery) expected="Restore private origin/prod from $FINAL ($C) to $BASE, receipt $(get R), $(get GO_DATE)."; printf '%s\n' "$expected";;
+  latest-recovery) expected="Restore latest in 1vecera/richview from $TAG at $(get SEED) to $PREV_TAG, $(get GO_DATE)."; printf '%s\n' "$expected";;
+  recovery|cleanup) ;;
+  *) die 'Unknown scope. Use private-recovery, latest-recovery, recovery or cleanup; the release go is given to release.mjs.';;
+esac
+read -r -p "Paste the actual dated approval for $scope: " approval
+[[ ${#approval} -ge 8 && $approval != *$'\r'* && $approval != *'<'* && $approval != *'>'* && $approval != *'«'* && $approval != *'»'* ]] || die 'Invalid approval text.'
+if grep -Eiq 'placeholder|TODO|TBD|\{\{|^ *$' <<<"$approval"; then die 'Approval contains a placeholder.'; fi
+[[ -z $expected || $approval = "$expected" ]] || die 'Approval does not match the selected scope and reviewed evidence.'
+(set -C; printf '%s\n' "$approval" > "$HERE/$scope-go.txt")

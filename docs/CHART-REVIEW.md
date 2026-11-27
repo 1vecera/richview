@@ -9,7 +9,7 @@ cargo run --release --locked -p richview-build
 node scripts/verify-chart-review.mjs --out tmp/chart-before --phase before
 # Apply the chart change, rebuild, then compare the unchanged cases.
 node scripts/verify-chart-review.mjs --out tmp/chart-after --phase after --baseline tmp/chart-before
-node scripts/design-review/figma-plates.mjs tmp/chart-after
+node scripts/design-review/figma-plates.ts tmp/chart-after
 ```
 
 The after check rejects actual SVG glyph overlap/clipping, page overflow, browser errors, extra calendar rows, color bars, misaligned captions/axis titles/legends and overflowing tooltips. A phone keyboard cycle hides both categorical series and restores them, including from the all-hidden state. It runs after font loading and the production `settled()` barrier. Native glyph estimates and browser glyph rectangles remain separate evidence. A fixed matrix establishes those cases; arbitrary custom fonts, arbitrarily long source text and other datasets still need their own checks.

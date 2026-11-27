@@ -193,7 +193,7 @@ body[data-richview-page="landing"] .nav {
 	width: 1.45rem;
 	height: 1.45rem;
 }
-/* The mark is the brand blue, in the shade of the style the page wears (STY-01, S27-926). */
+/* The mark is the brand blue, in the shade of the style the page wears (STY-01). */
 .nav__brand svg g {
 	fill: var(--blue);
 }

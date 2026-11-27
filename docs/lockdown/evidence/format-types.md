@@ -121,7 +121,7 @@ All fields are optional for drafts. Publication requires a non-empty `title` and
 | `prolog` | Markdown string | Optional | Non-string is ignored silently | `<section class="rv-report__prolog">` before the body; its images resolve like body images | `render.rs:228-235` | observed |
 | unknown keys | any | — | None | Preserved in `metadata` and the stored frontmatter | `docs/RMD-SPEC.md:50` | observed (run) |
 
-Stated intent conflict: Linear S27-418 (from Daniel's 2026-06-20 voice dump) names `title`, `description` and `version` as required fields. The code makes `description` a publish warning only, and drafts need none of the three.
+Stated intent conflict: the Linear vNext frontmatter issue (from Daniel's 2026-06-20 voice dump) names `title`, `description` and `version` as required fields. The code makes `description` a publish warning only, and drafts need none of the three.
 
 ## T-RICH-FENCE: shared rich-block rules
 
@@ -274,7 +274,7 @@ Engine-level errors and warnings by type, all surfaced as `chart.<kind>` diagnos
 | `total` | boolean | Default false | Non-boolean → `block.schema` | `<tfoot>` sums columns whose cells are all numeric; the first non-numeric column says `Total` | `parser.rs:594-596`; `blocks.rs:428-450` | observed |
 | (cells) | any | — | — | A cell that is one whole http(s) URL becomes a link with the host as its text; ISO dates and identifier-like tokens get `date`/`id` no-wrap classes | `blocks.rs:577-646` | observed |
 
-Unknown field names in `columns`/`sort` produce no CLI or MCP diagnostic (observed (run)); the VS Code host flags them as `authoring.field` errors. The table payload (`<script data-rv-table>`) embeds the resolved block, including `_csvNumericText` (observed (run)). Row-mapping syntax is the supported contract. The column-oriented `series` proposal is unsupported and Daniel's choice is pending (`docs/TABLE-AUTHORING-CHOICE.md:5,76-99`; Linear S27-580, status `Que` when read on 2026-10-21).
+Unknown field names in `columns`/`sort` produce no CLI or MCP diagnostic (observed (run)); the VS Code host flags them as `authoring.field` errors. The table payload (`<script data-rv-table>`) embeds the resolved block, including `_csvNumericText` (observed (run)). Row-mapping syntax is the supported contract. The column-oriented `series` proposal is unsupported and Daniel's choice is pending (`docs/TABLE-AUTHORING-CHOICE.md:5,76-99`; the Linear table-syntax decision, status `Que` when read on 2026-10-21).
 
 ## T-BLOCK-METRIC: big / metric block
 
@@ -483,7 +483,7 @@ Per-chart object, observed (run) keys: `chartId`, `sourceLine` (both added by co
 | Retention | At most 50 versions per slug; older (lowest-semver) versions are **deleted**, so their permalinks 404 | `storage.rs:13,101-111` | observed (run) |
 | Regeneration | `POST /api/reports/{slug}/v/{version}/regenerate` re-renders retained source/styles/data and returns render JSON without storing | `server.rs:401-424` | observed (code) |
 
-Stated intent: versions exist "to preserve consistency as the format changes", and raw `.rmd`/style sources are kept for regeneration (Linear S27-413). The earlier main-checkout `CLAUDE.md` describes storage as "append-only per-slug … idempotent per `{slug,version}` (dec-67/68/73)"; the code is idempotent but not append-only, because of the 50-version pruning.
+Stated intent: versions exist "to preserve consistency as the format changes", and raw `.rmd`/style sources are kept for regeneration (the Linear publishing and version model issue). The earlier main-checkout `CLAUDE.md` describes storage as "append-only per-slug … idempotent per `{slug,version}` (dec-67/68/73)"; the code is idempotent but not append-only, because of the 50-version pruning.
 
 ## T-CLI-JSON, T-MCP-TOOLS, T-HTTP-API, T-JS-API: output contracts
 
@@ -561,7 +561,7 @@ JS package API (`assets/node/core-api.d.ts`; bindings `crates/richview-web/src/b
 | D-TYP-VERSION-RETENTION | Versions pruned at 50 vs "immutable" permalinks | `storage.rs:13,101-111`; probe p5 | Keep a cap (and document it), or make permalinks permanent |
 | D-TYP-REPUBLISH | Same version with changed content → silent `ok: true, created: false`; latest follows creation order, not semver | `storage.rs:72-74,98-100`; probe p1 | Conflict error on differing content (`content_sha256` already exists), and latest by semver or by creation |
 | D-TYP-SLUG-FALLBACK | Any frontmatter warning makes the slug `untitled`, ignoring an authored slug and the title | `compat.rs:22-31`; probe p2 | Derive the slug from validated fields individually, or fail publication |
-| D-TYP-DESCRIPTION | S27-418 (stated): title, description, version required; code: description only warns | Linear S27-418; `parser.rs:735-747` | Required or recommended `description` |
+| D-TYP-DESCRIPTION | The Linear vNext frontmatter issue (stated): title, description, version required; code: description only warns | Linear; `parser.rs:735-747` | Required or recommended `description` |
 | D-TYP-COLUMN-ORDER | Derived table columns, CSV columns and payload keys are alphabetical | `blocks.rs:385-398`; probe csv1; `Cargo.lock` serde_json 1.0.151 has no `indexmap` dependency, so `preserve_order` is off | Preserve source order (`serde_json/preserve_order` or explicit column lists) |
 | D-TYP-FIELD-CHECKS | Unknown encoding/column fields: CLI/MCP `clean`, VS Code `authoring.field` error; missing `encoding.y` passes `validate` | probes f1 and my; `crates/richview-editor/src/authoring.rs:374-391` | One field-existence rule in core for every host, plus which channels are required per type |
 | D-TYP-RATIO | Calendar line/area default 2:1 vs spec 16:9; bad `style.ratio` strings and out-of-range calendar ratios ignored silently; legacy top-level `ratio` works only on calendar charts | `render.rs:373`; `rmd.rs:246-269`; `rmd_render.rs:571-587`; probes charts/tr | Single default-ratio table, ratio validation with diagnostics, and drop top-level `ratio` |
@@ -578,11 +578,11 @@ JS package API (`assets/node/core-api.d.ts`; bindings `crates/richview-web/src/b
 
 | PR | Branch head | Proposed type change | Source | Conf. |
 | --- | --- | --- | --- | --- |
-| #63 (S27-649, To Review) | `f1cb254`, 2026-10-18 | Frontmatter `tabs {default, export: all\|active, panels[{id, label, from}]}`, heading anchors `{#id}`, codes `frontmatter.tabs`, `tabs.anchor-missing` | `git diff origin/main...origin/feat/s27-649-multi-tab-reports -- docs/RMD-SPEC.md` | stated |
-| #66 (S27-650) | `4ecef05`, 2026-10-18 | `data.sql {connector, query\|inline}`, `data.metricflow {connector, metrics[]}`, `data.cache {key}`; `data.local` widened. This reverses main's "SQL loading is not report-local" error. | `crates/richview-core/src/parser.rs` diff on that branch | stated |
-| #62 (S27-648, To Review) | `a703897`, 2026-10-18 | Chart `controls[]` with `playback`/filter/metric/variant dimensions, engine `ControlsSpec`, `data-rvc-controls` envelope, `rv:control`/`rv:control-set` events | `docs/CONTROLS.md` on that branch | stated |
+| #63 (To Review) | `f1cb254`, 2026-10-18 | Frontmatter `tabs {default, export: all\|active, panels[{id, label, from}]}`, heading anchors `{#id}`, codes `frontmatter.tabs`, `tabs.anchor-missing` | `git diff origin/main...f1cb254 -- docs/RMD-SPEC.md` | stated |
+| #66 | `4ecef05`, 2026-10-18 | `data.sql {connector, query\|inline}`, `data.metricflow {connector, metrics[]}`, `data.cache {key}`; `data.local` widened. This reverses main's "SQL loading is not report-local" error. | `crates/richview-core/src/parser.rs` diff on that branch | stated |
+| #62 (To Review) | `a703897`, 2026-10-18 | Chart `controls[]` with `playback`/filter/metric/variant dimensions, engine `ControlsSpec`, `data-rvc-controls` envelope, `rv:control`/`rv:control-set` events | `docs/CONTROLS.md` on that branch | stated |
 
-Linear also holds older format intents in Brain Dump status: S27-418 (vNext frontmatter, versioning, media blocks), S27-417 (content plus cascading style files) and S27-413 (publishing and version model). The table syntax decision S27-580 and the inline-data default S27-579 are both in `Que` status. S27-581 records Daniel's 2026-10-04 requirement of one dedicated folder per report, failing fast otherwise, with output under `Rendered/`.
+Linear also holds older format intents in Brain Dump status: the vNext frontmatter, versioning and media blocks issue, the content plus cascading style files issue and the publishing and version model issue. The table syntax decision and the inline-data default are both in `Que` status. A further issue records Daniel's 2026-10-04 requirement of one dedicated folder per report, failing fast otherwise, with output under `Rendered/`.
 
 ## Gaps
 
@@ -590,4 +590,4 @@ Linear also holds older format intents in Brain Dump status: S27-418 (vNext fron
 - Spec rules for chart geometry and statistics were not re-verified: bar rounding, label alignment, pie key, heatmap ramp math, percent and scientific axis formatting, R-7 quartiles, palette contrast. Those rows are marked stated.
 - Area stacking from `.rmd` (multiple colour groups) was not probed; stacked areas are documented only for the engine `ChartSpec`.
 - Code-verified facts that were not reproduced with a probe: `_xWindow`/`_csvNumericText` injection, `render.output-limit` behaviour, the 32 MiB host limits, asset upload commands and authenticated failure responses.
-- Linear was sampled only for S27-413, S27-418, S27-579, S27-580, S27-581 and a project query. Notion and richview.ai were not consulted for this file.
+- Linear was sampled only for the publishing and version model, vNext frontmatter, inline-data default, table syntax and report folder issues and a project query. Notion and richview.ai were not consulted for this file.

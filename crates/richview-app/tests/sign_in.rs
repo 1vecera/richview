@@ -11,6 +11,15 @@ use std::{
 
 /// The one token the fake server knows a person for.
 const TOKEN: &str = "rvt_kept-Sign1n-token";
+/// A token the fake server knows a person for, and says no organization of.
+const UNBOUND: &str = "rvt_unbound-Sign1n-token";
+/// The refresh token the fake server renews a sign-in for, and what it renews it to.
+const REFRESH: &str = "rvr_still-good-refresh";
+const RENEWED: &str = "rvt_renewed-access-token";
+const RENEWED_REFRESH: &str = "rvr_renewed-refresh-token";
+/// A token this fake server refuses, though the sign-in that holds it looks good for hours: the
+/// computer's clock or the server's was wrong, or the server ended it early.
+const REFUSED: &str = "rvt_refused-by-the-server";
 const SOURCE: &str = "---\ntitle: T\ndescription: D\nversion: 1.0.0\nslug: t\n---\n\n# T\n";
 
 /// One request a fake server received.
@@ -19,6 +28,8 @@ struct Seen {
     method: String,
     path: String,
     bearer: Option<String>,
+    /// The JSON the request carried, `null` when it carried none.
+    body: Value,
 }
 
 /// A stand-in RichView server on loopback that records what it is sent. It answers the session
@@ -98,14 +109,36 @@ fn answer(
         method: method.clone(),
         path: path.clone(),
         bearer: bearer.clone(),
+        body: serde_json::from_slice(&bytes[head_end..]).unwrap_or_default(),
     });
     let (status, body) = match (method.as_str(), path.as_str()) {
         ("GET", "/api/session") if bearer.as_deref() == Some(TOKEN) => (
             "200 OK",
+            json!({"user": {"id": "u1", "name": "Ada", "email": "ada@example.test", "role": "author"}, "organization": {"id": "aaaa0001", "name": "Ada Analytics"}, "csrf": null}),
+        ),
+        // A server that does not say which organization a token is for.
+        ("GET", "/api/session") if bearer.as_deref() == Some(UNBOUND) => (
+            "200 OK",
             json!({"user": {"id": "u1", "name": "Ada", "email": "ada@example.test", "role": "author"}, "csrf": null}),
         ),
         ("GET", "/api/session") => ("200 OK", json!({"user": null, "csrf": null})),
-        (_, _) if bearer.is_none() => ("401 Unauthorized", json!({"error": "Unauthorized"})),
+        ("POST", "/api/cli/oauth/token") => {
+            let sent: Value = serde_json::from_slice(&bytes[head_end..]).unwrap_or_default();
+            if sent["refreshToken"] == REFRESH {
+                (
+                    "200 OK",
+                    json!({"status": "allowed", "token": RENEWED, "refreshToken": RENEWED_REFRESH, "expiresIn": 3600, "account": {"name": "Ada", "email": "ada@example.test"}, "organization": null}),
+                )
+            } else {
+                (
+                    "401 Unauthorized",
+                    json!({"status": "ended", "error": "This computer's sign-in has ended. Sign in again."}),
+                )
+            }
+        }
+        (_, _) if bearer.is_none() || bearer.as_deref() == Some(REFUSED) => {
+            ("401 Unauthorized", json!({"error": "Unauthorized"}))
+        }
         ("POST", "/api/reports") => {
             let sent: Value = serde_json::from_slice(&bytes[head_end..]).unwrap_or_default();
             let slug = sent["slug"].as_str().unwrap();
@@ -171,9 +204,14 @@ impl Desk {
     }
     /// Signs in to `server` by piping `token`, as a script would.
     fn login(&self, server: &str, token: &str) -> Output {
+        self.login_with(server, token, &[])
+    }
+    /// The same with more arguments to `richview login`.
+    fn login_with(&self, server: &str, token: &str, more: &[&str]) -> Output {
         let mut child = self
             .richview()
             .args(["login", "--server", server, "--with-token"])
+            .args(more)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
@@ -240,6 +278,64 @@ fn publishing_the_same_file_to_a_changed_address_requires_intent_to_create_again
     assert!(scripted.status.success(), "{}", text(&scripted));
 }
 
+#[test]
+fn a_deck_is_published_by_the_command_as_a_report_is() {
+    // FEA-RP-71: a `.rslide` goes through `richview publish` with the same checks, folder and request
+    // a report has; what the server stores is the deck's own text.
+    let (desk, server) = (Desk::new(), Fake::start());
+    let folder = desk.report.parent().unwrap().parent().unwrap().join("deck");
+    std::fs::create_dir_all(&folder).unwrap();
+    let deck = "format: rslide/1\ntitle: Deck\ndescription: A deck\nversion: 1.0.0\n---\ntitle: Cover\n---\nmetric:\n  value: 3\n  label: Things\n";
+    std::fs::write(folder.join("deck.rslide"), deck).unwrap();
+    let published = desk
+        .richview()
+        .arg("publish")
+        .arg(folder.join("deck.rslide"))
+        .args(["--server", &server.base, "--token", TOKEN, "--new"])
+        .output()
+        .unwrap();
+    assert!(published.status.success(), "{}", text(&published));
+    let sent = server
+        .seen()
+        .into_iter()
+        .find(|s| s.method == "POST" && s.path == "/api/reports")
+        .expect("the publication was sent");
+    assert_eq!(sent.body["source"], deck);
+    assert_eq!(sent.body["slug"], "deck");
+    assert_eq!(sent.body["reportFolder"]["source"], "deck.rslide");
+    // The folder also publishes by its name, as a report's folder does.
+    let by_folder = desk
+        .richview()
+        .arg("publish")
+        .arg(&folder)
+        .args(["--server", &server.base, "--token", TOKEN])
+        .output()
+        .unwrap();
+    assert!(by_folder.status.success(), "{}", text(&by_folder));
+    // A deck with a mistake is refused before anything is sent.
+    std::fs::write(
+        folder.join("deck.rslide"),
+        "format: rslide/1\ntitle: Deck\ndescription: A\nversion: 1.0.0\n---\ntitle: One\nleft: a\nbottom: b\n",
+    )
+    .unwrap();
+    let sends = server.seen().len();
+    let refused = desk
+        .richview()
+        .arg("publish")
+        .arg(folder.join("deck.rslide"))
+        .args(["--server", &server.base, "--token", TOKEN])
+        .output()
+        .unwrap();
+    assert_eq!(refused.status.code(), Some(1), "{}", text(&refused));
+    assert!(text(&refused).contains("deck.layout"), "{}", text(&refused));
+    assert!(
+        !server.seen()[sends..]
+            .iter()
+            .any(|s| s.method == "POST" && s.path == "/api/reports"),
+        "a refused deck is not sent"
+    );
+}
+
 /// Nothing a command printed, and no address it asked for, carries a token.
 fn assert_no_token_shown(output: &Output, servers: &[&Fake], tokens: &[&str]) {
     let printed = text(output);
@@ -261,7 +357,7 @@ fn a_kept_sign_in_publishes_without_a_token_and_goes_to_its_own_server_only() {
     assert_eq!(
         String::from_utf8_lossy(&signed_in.stdout).trim(),
         format!(
-            "Signed in to {} as Ada (ada@example.test). This computer stays signed in; `richview logout` ends it.",
+            "Signed in to {} as Ada (ada@example.test), for Ada Analytics. This computer stays signed in; `richview logout` ends it.",
             home.base
         )
     );
@@ -367,6 +463,169 @@ fn a_kept_sign_in_publishes_without_a_token_and_goes_to_its_own_server_only() {
     assert_eq!(home.bearers("POST", "/api/reports").len(), 1);
 }
 
+/// Keeps a sign-in that renews, as signing in through the browser does: `ends` seconds from the
+/// epoch.
+#[cfg(unix)]
+fn keep_renewable(desk: &Desk, server: &str, token: &str, refresh: &str, ends: u64) {
+    use std::os::unix::fs::PermissionsExt;
+    let file = desk.credentials();
+    std::fs::create_dir_all(file.parent().unwrap()).unwrap();
+    std::fs::set_permissions(
+        file.parent().unwrap(),
+        std::fs::Permissions::from_mode(0o700),
+    )
+    .unwrap();
+    std::fs::write(
+        &file,
+        json!({"servers": {server: {"token": token, "refresh": refresh, "expires": ends, "kept": "2026-11-25T10:00:00Z"}}})
+            .to_string(),
+    )
+    .unwrap();
+    std::fs::set_permissions(&file, std::fs::Permissions::from_mode(0o600)).unwrap();
+}
+
+#[cfg(unix)]
+#[test]
+fn a_sign_in_that_is_over_is_renewed_once_before_it_is_used_and_one_that_ended_asks_again() {
+    let (desk, home) = (Desk::new(), Fake::start());
+    keep_renewable(&desk, &home.base, "rvt_stale-access", REFRESH, 1);
+    // Two commands at the same moment find the same sign-in over; one renews it, the other waits
+    // for that and uses the result.
+    let second = desk
+        .report
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("second/report.rmd");
+    std::fs::create_dir_all(second.parent().unwrap()).unwrap();
+    std::fs::write(&second, SOURCE).unwrap();
+    let publish = |report: &PathBuf| {
+        desk.richview()
+            .arg("publish")
+            .arg(report)
+            .args(["--server", &home.base, "--new"])
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap()
+    };
+    let (a, b) = (publish(&desk.report), publish(&second));
+    for output in [a.wait_with_output().unwrap(), b.wait_with_output().unwrap()] {
+        assert_eq!(output.status.code(), Some(0), "{}", text(&output));
+        assert_no_token_shown(
+            &output,
+            &[&home],
+            &[REFRESH, RENEWED, RENEWED_REFRESH, "rvt_stale-access"],
+        );
+    }
+    assert_eq!(home.bearers("POST", "/api/cli/oauth/token").len(), 1);
+    assert_eq!(
+        home.bearers("POST", "/api/reports"),
+        [Some(RENEWED.to_owned()), Some(RENEWED.to_owned())]
+    );
+    // What is kept is the renewed pair, ending in about an hour, in a file only its owner reads.
+    let kept: Value = serde_json::from_slice(&std::fs::read(desk.credentials()).unwrap()).unwrap();
+    let entry = &kept["servers"][&home.base];
+    assert_eq!(
+        (&entry["token"], &entry["refresh"]),
+        (&json!(RENEWED), &json!(RENEWED_REFRESH))
+    );
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+    assert!((now + 3500..=now + 3700).contains(&entry["expires"].as_u64().unwrap()));
+    // A later command finds it good and asks nothing.
+    let third = desk
+        .richview()
+        .arg("publish")
+        .arg(&desk.report)
+        .args(["--server", &home.base, "--new"])
+        .output()
+        .unwrap();
+    assert_eq!(third.status.code(), Some(0), "{}", text(&third));
+    assert_eq!(home.bearers("POST", "/api/cli/oauth/token").len(), 1);
+
+    // A sign-in the server says is over is forgotten, and a command with no terminal says so and
+    // names both ways to sign in again.
+    let ended = Desk::new();
+    keep_renewable(&ended, &home.base, "rvt_stale-access", "rvr_signed-out", 1);
+    let output = ended
+        .richview()
+        .arg("publish")
+        .arg(&ended.report)
+        .args(["--server", &home.base, "--new"])
+        .output()
+        .unwrap();
+    let said = text(&output);
+    assert_eq!(output.status.code(), Some(2), "{said}");
+    assert!(
+        said.contains(&format!(
+            "this computer's sign-in to {} has ended",
+            home.base
+        )) && said.contains("richview login --server")
+            && !said.contains("rvr_signed-out"),
+        "{said}"
+    );
+    assert!(!ended.credentials().exists(), "the ended sign-in was kept");
+}
+
+#[cfg(unix)]
+#[test]
+fn a_token_the_server_refuses_is_renewed_once_and_the_request_goes_again() {
+    let (desk, home) = (Desk::new(), Fake::start());
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+    // The kept sign-in says it has most of an hour left; the server says otherwise.
+    keep_renewable(&desk, &home.base, REFUSED, REFRESH, now + 3000);
+    let output = desk
+        .richview()
+        .arg("publish")
+        .arg(&desk.report)
+        .args(["--server", &home.base, "--new"])
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(0), "{}", text(&output));
+    assert_no_token_shown(
+        &output,
+        &[&home],
+        &[REFRESH, RENEWED, RENEWED_REFRESH, REFUSED],
+    );
+    assert_eq!(
+        home.bearers("POST", "/api/reports"),
+        [Some(REFUSED.to_owned()), Some(RENEWED.to_owned())]
+    );
+    assert_eq!(home.bearers("POST", "/api/cli/oauth/token").len(), 1);
+    let kept: Value = serde_json::from_slice(&std::fs::read(desk.credentials()).unwrap()).unwrap();
+    assert_eq!(kept["servers"][&home.base]["token"], RENEWED);
+
+    // A token the person gave is not theirs to swap for the kept sign-in: it is refused as it is.
+    let (other, away) = (Desk::new(), Fake::start());
+    keep_renewable(
+        &other,
+        &away.base,
+        "rvt_another-computers-own",
+        REFRESH,
+        now + 3000,
+    );
+    let given = other
+        .richview()
+        .arg("publish")
+        .arg(&other.report)
+        .args(["--server", &away.base, "--new", "--token", REFUSED])
+        .output()
+        .unwrap();
+    assert_ne!(given.status.code(), Some(0), "{}", text(&given));
+    assert!(away.bearers("POST", "/api/cli/oauth/token").is_empty());
+    assert_eq!(
+        away.bearers("POST", "/api/reports"),
+        [Some(REFUSED.to_owned())]
+    );
+}
+
 #[test]
 fn a_token_the_server_does_not_know_is_not_kept() {
     let (desk, home) = (Desk::new(), Fake::start());
@@ -392,6 +651,76 @@ fn a_token_the_server_does_not_know_is_not_kept() {
     let empty = desk.login(&home.base, "");
     assert_eq!(empty.status.code(), Some(2), "{}", text(&empty));
     assert_eq!(home.seen().len(), 1);
+}
+
+#[test]
+fn a_token_for_another_account_than_the_one_expected_is_not_kept() {
+    let (desk, home) = (Desk::new(), Fake::start());
+    let refused = desk.login_with(
+        &home.base,
+        TOKEN,
+        &["--expect-account", "grace@example.test"],
+    );
+    assert_eq!(refused.status.code(), Some(2), "{}", text(&refused));
+    assert!(
+        text(&refused)
+            .contains("This token is for ada@example.test, and not for grace@example.test"),
+        "{}",
+        text(&refused)
+    );
+    assert_no_token_shown(&refused, &[&home], &[TOKEN]);
+    assert!(!desk.credentials().exists());
+    // An address that only begins like the expected one is another address.
+    let longer = desk.login_with(
+        &home.base,
+        TOKEN,
+        &["--expect-account", "ada@example.test.evil"],
+    );
+    assert_eq!(longer.status.code(), Some(2), "{}", text(&longer));
+    assert!(!desk.credentials().exists());
+    // A token is bound to an organization, and the server says which: another one, an id given as
+    // a name or a name given as an id, and a server that says none, are all refused.
+    for flags in [
+        ["--expect-organization", "Grace Industries"],
+        ["--expect-organization", "aaaa0001"],
+        ["--expect-organization-id", "Ada Analytics"],
+        ["--expect-organization-id", "bbbb0002"],
+    ] {
+        let org = desk.login_with(&home.base, TOKEN, &flags);
+        assert_eq!(org.status.code(), Some(2), "{flags:?}: {}", text(&org));
+        assert!(
+            text(&org).contains("This token is for Ada Analytics, and not for the organization"),
+            "{flags:?}: {}",
+            text(&org)
+        );
+        assert!(!desk.credentials().exists(), "{flags:?}");
+    }
+    let unbound = desk.login_with(
+        &home.base,
+        UNBOUND,
+        &["--expect-organization", "Ada Analytics"],
+    );
+    assert_eq!(unbound.status.code(), Some(2), "{}", text(&unbound));
+    assert!(
+        text(&unbound).contains("an organization the server did not name"),
+        "{}",
+        text(&unbound)
+    );
+    assert!(!desk.credentials().exists());
+    // The right organization, by its name or by its id, is kept.
+    for flags in [
+        ["--expect-organization", "Ada Analytics"],
+        ["--expect-organization-id", "aaaa0001"],
+    ] {
+        let kept = desk.login_with(&home.base, TOKEN, &flags);
+        assert_eq!(kept.status.code(), Some(0), "{flags:?}: {}", text(&kept));
+        assert!(desk.credentials().exists(), "{flags:?}");
+        let _ = std::fs::remove_file(desk.credentials());
+    }
+    // The right account, in any case, is kept.
+    let kept = desk.login_with(&home.base, TOKEN, &["--expect-account", "Ada@Example.Test"]);
+    assert_eq!(kept.status.code(), Some(0), "{}", text(&kept));
+    assert!(desk.credentials().exists());
 }
 
 #[test]
@@ -498,12 +827,14 @@ fn without_a_terminal_nobody_is_asked_and_both_ways_are_named() {
     // No server named and none chosen: `logout` and an owner action say so.
     let logout = desk.richview().arg("logout").output().unwrap();
     assert_eq!(logout.status.code(), Some(2), "{}", text(&logout));
-    // All the server saw was `login` asking whether it offers a sign-in through the browser:
-    // no token and no publication.
+    // All the server saw was `login` asking how it signs a command line in and whether it offers a
+    // sign-in through the browser: no token and no publication.
     assert!(
-        home.seen()
-            .iter()
-            .all(|seen| seen.bearer.is_none() && seen.path == "/api/cli/sign-in"),
+        home.seen().iter().all(|seen| seen.bearer.is_none()
+            && matches!(
+                seen.path.as_str(),
+                "/api/cli/oauth/metadata" | "/api/cli/sign-in"
+            )),
         "{:?}",
         home.seen()
     );

@@ -77,5 +77,5 @@ style: {shade: true}
 
 ## Interactions
 
-- Hover or focus a cell to read its row, column and value.
+- Hover or focus a cell to read its row, column and value; a dark outline traces the cell under the pointer.
 - Open the Table view, Download CSV, or Expand the chart.

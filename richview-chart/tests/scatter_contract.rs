@@ -2,7 +2,7 @@
 //! channel, colour groups with a legend, radius targeting, excluded rows named, and the contract
 //! every type shares (FEA-CH-75). Label density and highlights are in `scatter_highlight.rs`.
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Geometry, Item, Targeting};
@@ -130,6 +130,140 @@ fn zoom_keeps_source_order_and_boundary_duplicates_for_ordered_and_unordered_row
                 }
             }
         }
+    }
+}
+
+/// A scatter over a grid of points, a window along each axis and the geometry it gives.
+fn zoomed(spec: &Value, rows: &[Value], x: Option<[f64; 2]>, y: Option<[f64; 2]>) -> Geometry {
+    use richview_chart::block::ChartBlock;
+    use richview_chart::layout::{ChartTheme, Options, layout};
+    let block = ChartBlock::from_value(spec).unwrap();
+    let opts = Options {
+        width: 640.0,
+        zoom: x,
+        zoom_y: y,
+        ..Options::default()
+    };
+    layout(&block, rows, &ChartTheme::default(), &opts)
+}
+
+fn grid() -> Vec<Value> {
+    (0..20)
+        .flat_map(|i| (0..20).map(move |j| json!({"a": i, "b": j * 5})))
+        .collect()
+}
+
+fn axis_labels(g: &Geometry) -> Vec<String> {
+    use richview_chart::geometry::Role;
+    g.panels[0]
+        .items
+        .iter()
+        .filter_map(|i| match i {
+            Item::Text(t) if t.role == Role::AxisLabel => Some(t.text.clone()),
+            _ => None,
+        })
+        .collect()
+}
+
+#[test]
+fn a_scatter_gives_the_second_axis_to_zoom_along_and_draws_the_window_asked_for() {
+    let spec = json!({"type":"scatter","encoding":{"x":"a","y":"b"}});
+    let whole = zoomed(&spec, &grid(), None, None);
+    let x = whole.panels[0].x.clone().expect("a scatter zooms");
+    let y = x.y.expect("along y too");
+    assert_eq!(y.domain, y.extent, "the whole view is the zoom limit");
+    assert!(y.range[0] > y.range[1], "bottom first");
+    assert!(richview_chart::interaction::zooms("scatter", &whole));
+
+    // A window inside the axis is drawn exactly, along each axis alone and along both.
+    let both = zoomed(&spec, &grid(), Some([4.0, 9.0]), Some([20.0, 60.0]));
+    let scale = both.panels[0].x.clone().unwrap();
+    assert_eq!(scale.domain, [4.0, 9.0]);
+    assert_eq!(scale.y.unwrap().domain, [20.0, 60.0]);
+    assert_eq!(scale.y.unwrap().extent, y.extent, "the limit does not move");
+    let only_y = zoomed(&spec, &grid(), None, Some([20.0, 60.0]));
+    assert_eq!(only_y.panels[0].x.as_ref().unwrap().domain, x.domain);
+    assert_eq!(only_y.panels[0].x.as_ref().unwrap().y.unwrap().domain, [20.0, 60.0]);
+
+    // Ticks and labels follow the window: a narrower one shows finer steps.
+    let (wide, narrow) = (
+        axis_labels(&whole),
+        axis_labels(&zoomed(&spec, &grid(), None, Some([40.0, 44.0]))),
+    );
+    assert_ne!(wide, narrow);
+    assert!(narrow.iter().any(|l| l.contains("42")), "{narrow:?}");
+
+    // A window as wide as the axis, or wider, is no zoom.
+    for window in [y.extent, [y.extent[0] - 10.0, y.extent[1] + 10.0]] {
+        assert_eq!(zoomed(&spec, &grid(), None, Some(window)), whole, "{window:?}");
+    }
+}
+
+#[test]
+fn a_zoom_along_y_draws_and_reads_the_points_inside_both_windows_and_no_others() {
+    let spec = json!({"type":"scatter","encoding":{"x":"a","y":"b"}});
+    let rows = grid();
+    let g = zoomed(&spec, &rows, Some([4.0, 9.0]), Some([20.0, 60.0]));
+    let read: Vec<usize> = g.panels[0].observations.iter().filter_map(|o| o.row).collect();
+    let expected: Vec<usize> = rows
+        .iter()
+        .enumerate()
+        .filter(|(_, r)| {
+            let (a, b) = (r["a"].as_f64().unwrap(), r["b"].as_f64().unwrap());
+            (4.0..=9.0).contains(&a) && (20.0..=60.0).contains(&b)
+        })
+        .map(|(i, _)| i)
+        .collect();
+    assert_eq!(read, expected);
+    assert_eq!(dots(&g).len(), expected.len(), "every point read is drawn");
+    // Each dot stands inside the plot, where its values put it.
+    let plot = g.panels[0].plot;
+    for (centre, _) in dots(&g) {
+        assert!(
+            centre[0] >= plot.x - 1e-6 && centre[0] <= plot.right() + 1e-6,
+            "{centre:?}"
+        );
+        assert!(
+            centre[1] >= plot.y - 1e-6 && centre[1] <= plot.bottom() + 1e-6,
+            "{centre:?}"
+        );
+    }
+    // A window along y alone keeps every column of the grid.
+    let columns: std::collections::BTreeSet<i64> = zoomed(&spec, &rows, None, Some([20.0, 60.0])).panels[0]
+        .observations
+        .iter()
+        .filter_map(|o| o.row)
+        .map(|i| rows[i]["a"].as_i64().unwrap())
+        .collect();
+    assert_eq!(columns.len(), 20);
+}
+
+#[test]
+fn scatter_panels_with_scales_of_their_own_zoom_along_x_only() {
+    let rows: Vec<Value> = grid()
+        .into_iter()
+        .map(|mut r| {
+            r["g"] = json!(if r["a"].as_i64().unwrap() < 10 { "one" } else { "two" });
+            r
+        })
+        .collect();
+    let free = json!({"type":"scatter","encoding":{"x":"a","y":"b","facet":"g"},"style":{"facet_scale":"free"}});
+    let shared = json!({"type":"scatter","encoding":{"x":"a","y":"b","facet":"g"}});
+    let free_geometry = zoomed(&free, &rows, Some([2.0, 6.0]), Some([20.0, 60.0]));
+    assert!(
+        free_geometry
+            .panels
+            .iter()
+            .all(|p| p.x.as_ref().is_none_or(|x| x.y.is_none()))
+    );
+    assert_eq!(
+        free_geometry,
+        zoomed(&free, &rows, Some([2.0, 6.0]), None),
+        "the window along y is ignored"
+    );
+    let shared_geometry = zoomed(&shared, &rows, None, Some([20.0, 60.0]));
+    for panel in &shared_geometry.panels {
+        assert_eq!(panel.x.as_ref().and_then(|x| x.y).map(|y| y.domain), Some([20.0, 60.0]));
     }
 }
 

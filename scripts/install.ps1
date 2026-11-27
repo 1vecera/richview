@@ -13,7 +13,7 @@ param([string]$Prefix = '', [string]$BaseUrl = '', [string]$Commit = '', [switch
 & {
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
-# Replaced only by scripts/assemble-release.mjs after the archive is checked.
+# Replaced only by scripts/assemble-release.ts after the archive is checked.
 $release_commit='UNSTAMPED'
 $release_base_url='UNSTAMPED'
 $release_windows_sha256='UNSTAMPED'

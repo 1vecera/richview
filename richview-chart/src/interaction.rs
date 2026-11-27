@@ -1,6 +1,6 @@
 //! Chart interaction policy that every host shares: where a measured readout sits beside its
-//! mark (FEA-CH-42), when the expanded chart turns on a phone (FEA-CH-68), and the chart actions'
-//! order, icons and markup (FEA-CH-43).
+//! mark (FEA-CH-42), what a hovered mark takes on each chart type (FEA-CH-53), when the expanded
+//! chart turns on a phone (FEA-CH-68), and the chart actions' order, icons and markup (FEA-CH-43).
 
 /// The side of its observation a tooltip sits on. Remembering it lets the host keep the
 /// tooltip on one side while datum widths vary under the pointer.
@@ -33,7 +33,7 @@ pub const TURN_QUERY: &str = turn_query!();
 /// The media query for a short, wide window, whose expanded dialog is already the shape a turned
 /// one takes (FEA-CH-68): landscape, at most 600 px tall and at most 1024 px wide in CSS pixels,
 /// whatever the pointer, so a phone held sideways and a laptop zoomed to 200 % both match
-/// (S27-871, S27-876). Its dialog takes the turned one's layout without the turn.
+///. Its dialog takes the turned one's layout without the turn.
 pub const SHORT_WIDE_QUERY: &str = "screen and (orientation:landscape) and (max-height:600px) and (max-width:1024px)";
 
 /// Pick the positive (right or below) or negative side along one axis. The previous side is kept
@@ -109,6 +109,19 @@ pub const ZOOMS_ALONG_X: [&str; 10] = [
     "vector",
 ];
 
+/// The chart types that zoom each axis on a window of its own (FEA-CH-49): those whose two axes
+/// both read numbers and whose marks keep their meaning when either window narrows, so a reader
+/// zooms a rectangle, around the pointer and along either axis alone. The plot draws exactly the
+/// two windows asked for, as a window along x alone is drawn. A map zooms along both axes too, but
+/// draws one scale and fits its two windows whole; it is not in this list.
+pub const ZOOMS_EACH_AXIS: [&str; 2] = ["scatter", "vector"];
+
+/// Whether a chart of type `kind` zooms each axis on a window of its own (see
+/// [`ZOOMS_EACH_AXIS`]), when its layout gives a second axis (`XScale::y`).
+pub fn zooms_each_axis(kind: &str) -> bool {
+    ZOOMS_EACH_AXIS.contains(&kind)
+}
+
 /// Whether a chart of type `kind` laid out as `geometry` zooms (FEA-CH-49): one of
 /// [`ZOOMS_ALONG_X`] whose layout gives an x axis to zoom along, or any chart whose layout gives
 /// a second axis, as a map does. Core reserves Reset zoom's place by it and the runtime zooms
@@ -119,6 +132,90 @@ pub fn zooms(kind: &str, geometry: &crate::geometry::Geometry) -> bool {
         .first()
         .and_then(|p| p.x.as_ref())
         .is_some_and(|x| x.y.is_some() || ZOOMS_ALONG_X.contains(&kind))
+}
+
+/// The chart types whose marks are lines, curves or filled layers over x, read at the nearest x
+/// (FEA-CH-53): a guide at the observation and, on each series' own mark, a filled dot with the
+/// crisp ring. They answer the pointer, the keyboard and the legend as a line does; what a fill
+/// adds (an area's, a band's, a density's) stays at its own strength and follows its series
+/// when the legend or a layer picks it out.
+pub const LINE_BASED: [&str; 6] = ["line", "area", "band", "density", "ecdf", "streamgraph"];
+
+/// Whether `kind` is one of [`LINE_BASED`].
+pub fn is_line_based(kind: &str) -> bool {
+    LINE_BASED.contains(&kind)
+}
+
+/// Whether a chart of type `kind` picks out one layer of its stack: a streamgraph and a stacked
+/// area (`stacked`). The pointer's layer keeps full strength while the others recede, and the
+/// dot sits on that layer's upper edge; over no layer, and from the keyboard of a stacked area,
+/// every layer keeps full strength and takes a dot on its edge.
+pub fn layered(kind: &str, stacked: bool) -> bool {
+    kind == "streamgraph" || (kind == "area" && stacked)
+}
+
+/// The chart types a reader turns with the pointer, the touch and Shift with the arrow keys: the
+/// three-dimensional ones, whose author's `style.azimuth` and `style.elevation` are only where
+/// the view starts. A host lays the chart out again with the reader's angles in
+/// [`Options::view`](crate::layout::Options::view); the angles come from
+/// [`turn_by_pixels`](crate::layout::turn_by_pixels) and
+/// [`turn_by_degrees`](crate::layout::turn_by_degrees).
+pub const ROTATES: [&str; 3] = ["surface", "scatter3d", "bar3d"];
+
+/// Whether a chart of type `kind` turns.
+pub fn rotates(kind: &str) -> bool {
+    ROTATES.contains(&kind)
+}
+
+/// What a hovered mark takes on its chart beside the readout (FEA-CH-53). The chart's type
+/// decides it, so every chart of a type answers the pointer alike, whatever its data.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Emphasis {
+    /// The crisp ring, a paper gap and a thin ring in the mark's colour: a mark read by where
+    /// it stands, as a point of a line or a cloud, a bubble or a bar.
+    Ring,
+    /// A dark line over a paper line, inside one flat band of the mark's colour: a filled mark
+    /// with room around it.
+    Line,
+    /// A dark line over a paper line: a filled mark that thin gaps set apart from its
+    /// neighbours.
+    Contour,
+    /// A dark line alone: a filled mark that touches its neighbours.
+    Outline,
+}
+
+/// The emphasis of a hovered mark on a chart of type `kind`: the ring where the mark is read by
+/// its position, a dark outline on every other filled mark. Every [`LINE_BASED`] type takes the
+/// ring on its hover dots, as a line does. None for a type that draws other lines or layers (a
+/// radar's polygons, a parallel plot's lines, a ribbon, a chord), which keep their own answer;
+/// for a flow chart, whose connected marks stay while the rest recede; and for a waffle, whose
+/// series stays while the others recede. A flow chart's nodes take the ring too: its geometry
+/// decides that, not its type. Sankey and alluvial ribbons and nodes take the outline, and the
+/// rest of the chart stays as it is.
+pub fn emphasis(kind: &str) -> Option<Emphasis> {
+    match kind {
+        _ if is_line_based(kind) => Some(Emphasis::Ring),
+        "bar" | "scatter" | "packed-bubble" | "strip" | "qq" | "splom" | "scatter3d" => Some(Emphasis::Ring),
+        "funnel" | "bullet" | "candlestick" | "dumbbell" | "waterfall" | "boxplot" | "interval" | "pareto"
+        | "combo" | "gantt" | "lollipop" | "dotplot" | "tree" | "network" => Some(Emphasis::Line),
+        "treemap" | "sunburst" | "pie" | "rose" | "violin" | "sankey" | "alluvial" => Some(Emphasis::Contour),
+        "icicle" | "map" | "heatmap" | "calendar" | "bin2d" | "hexbin" | "pivot" | "surface" | "histogram" | "venn"
+        | "gauge" | "bar3d" => Some(Emphasis::Outline),
+        _ => None,
+    }
+}
+
+/// The chart types whose legend outlines the series a reader picks instead of dimming the rest:
+/// a flow chart's ribbons and nodes already answer the pointer with the dark outline of
+/// [`emphasis`] while everything else stays as it is, and the legend answers the same way
+/// (FEA-CH-33, FEA-CH-52). Every other type dims the other series to 20%.
+pub const OUTLINES_FROM_LEGEND: [&str; 2] = ["sankey", "alluvial"];
+
+/// Whether the legend of a chart of type `kind` outlines the series a reader picks, where the
+/// legend of every other type dims the rest. This is the one place that decides it: a host
+/// asks here, and draws the outline [`emphasis`] names for the type.
+pub fn outlines_from_legend(kind: &str) -> bool {
+    OUTLINES_FROM_LEGEND.contains(&kind)
 }
 
 /// The chart actions in their order, as `(kind, label)` (FEA-CH-43). Reset zoom joins only while
@@ -282,6 +379,123 @@ pub fn name_target(text: crate::geometry::Rect, dots: &[[f64; 2]]) -> crate::geo
         }
     }
     target
+}
+
+#[cfg(test)]
+mod emphasis_tests {
+    use super::{Emphasis, emphasis};
+    use crate::block::ChartType;
+
+    #[test]
+    fn every_chart_type_is_decided_and_every_decided_type_exists() {
+        // The types that draw other lines or layers, the flow chart and the waffle take no
+        // emphasis of their own; every other type is named in `emphasis`.
+        let plain = [
+            "radar",
+            "ohlc",
+            "waffle",
+            "contour",
+            "wordcloud",
+            "vector",
+            "ribbon",
+            "parallel",
+            "chord",
+            "flow",
+        ];
+        let mut decided = 0;
+        for kind in ChartType::all().map(ChartType::name) {
+            assert_eq!(emphasis(kind).is_none(), plain.contains(&kind), "{kind}");
+            decided += usize::from(emphasis(kind).is_some());
+        }
+        // A renamed type would drop out of `emphasis` and fail above; a name in `emphasis`
+        // that is no type would leave this count short.
+        assert_eq!(decided, 46);
+        assert!(plain.iter().all(|kind| ChartType::parse(kind).is_some()));
+    }
+
+    #[test]
+    fn the_ring_stays_where_it_was_designed_and_filled_marks_take_a_dark_outline() {
+        for kind in ["line", "bar", "scatter", "packed-bubble"] {
+            assert_eq!(emphasis(kind), Some(Emphasis::Ring), "{kind}");
+        }
+        for kind in ["treemap", "sunburst", "pie", "sankey", "alluvial"] {
+            assert_eq!(emphasis(kind), Some(Emphasis::Contour), "{kind}");
+        }
+        for kind in [
+            "funnel",
+            "bullet",
+            "candlestick",
+            "dumbbell",
+            "waterfall",
+            "boxplot",
+            "interval",
+        ] {
+            assert_eq!(emphasis(kind), Some(Emphasis::Line), "{kind}");
+        }
+        for kind in ["icicle", "map", "heatmap", "histogram"] {
+            assert_eq!(emphasis(kind), Some(Emphasis::Outline), "{kind}");
+        }
+    }
+}
+
+#[cfg(test)]
+mod legend_outline_tests {
+    use super::{Emphasis, OUTLINES_FROM_LEGEND, emphasis, outlines_from_legend};
+    use crate::block::ChartType;
+
+    #[test]
+    fn only_the_flow_charts_outline_from_the_legend() {
+        assert_eq!(OUTLINES_FROM_LEGEND, ["sankey", "alluvial"]);
+        for kind in ChartType::all().map(ChartType::name) {
+            assert_eq!(
+                outlines_from_legend(kind),
+                OUTLINES_FROM_LEGEND.contains(&kind),
+                "{kind}"
+            );
+        }
+        // Every other chart, including those whose hover also takes a dark outline, keeps
+        // dimming from the legend (FEA-CH-52).
+        for kind in [
+            "line", "bar", "scatter", "pie", "treemap", "sunburst", "heatmap", "chord", "ribbon", "flow",
+        ] {
+            assert!(!outlines_from_legend(kind), "{kind}");
+        }
+    }
+
+    #[test]
+    fn a_chart_that_outlines_from_the_legend_has_the_outline_to_draw() {
+        for kind in OUTLINES_FROM_LEGEND {
+            assert!(ChartType::parse(kind).is_some(), "{kind} is a chart type");
+            assert_eq!(emphasis(kind), Some(Emphasis::Contour), "{kind}");
+        }
+    }
+}
+
+#[cfg(test)]
+mod line_based_tests {
+    use super::{Emphasis, LINE_BASED, emphasis, is_line_based, layered};
+    use crate::block::ChartType;
+
+    #[test]
+    fn every_line_based_type_answers_as_a_line_does() {
+        for kind in LINE_BASED {
+            assert!(ChartType::parse(kind).is_some(), "{kind} is a chart type");
+            assert_eq!(emphasis(kind), emphasis("line"), "{kind}");
+            assert_eq!(emphasis(kind), Some(Emphasis::Ring), "{kind}");
+        }
+        for kind in ["bar", "scatter", "radar", "parallel", "sankey", "pie", "combo"] {
+            assert!(!is_line_based(kind), "{kind}");
+        }
+    }
+
+    #[test]
+    fn only_a_stacked_area_and_a_streamgraph_pick_a_layer() {
+        assert!(layered("streamgraph", false) && layered("streamgraph", true));
+        assert!(layered("area", true) && !layered("area", false));
+        for kind in ["line", "band", "density", "ecdf", "bar"] {
+            assert!(!layered(kind, true), "{kind}");
+        }
+    }
 }
 
 #[cfg(test)]

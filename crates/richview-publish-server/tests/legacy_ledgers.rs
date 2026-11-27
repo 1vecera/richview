@@ -1,8 +1,8 @@
-//! Every ledger shape PR #70's Worker ever wrote must move over, with every fact kept (S27-655).
+//! Every ledger shape PR #70's Worker ever wrote must move over, with every fact kept.
 //!
 //! `fixtures/pr70-legacy-ledgers.json` holds snapshots taken from the real old Worker, editor, repository and
 //! policy modules at each version that changed what they store, driven through every writer against a fake
-//! GitHub (`cloudflare/publish/test/legacy/generate-ledgers.mjs` regenerates it from Git history). The 30 Oct
+//! GitHub (`cloudflare/publish/test/legacy/generate-ledgers.ts` regenerates it from Git history). The 30 Oct
 //! deploy failed on one hand-missed record, the bootstrap authorization, so no shape here is written by hand.
 use richview_publish_server::wire::migrate_json;
 use serde_json::{Value, json};

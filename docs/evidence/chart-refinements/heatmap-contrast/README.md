@@ -22,8 +22,8 @@ The retained scratch history includes the superseded first stylesheet placement,
 `verification.json` records built-artifact and fixture/image hashes. Run the byte-checking helper from this worktree with the preserved built baseline or candidate:
 
 ```sh
-node docs/evidence/chart-refinements/heatmap-contrast/capture.mjs /path/to/baseline /tmp/contrast-before before
-node docs/evidence/chart-refinements/heatmap-contrast/capture.mjs /path/to/candidate /tmp/contrast-after after
+node docs/evidence/chart-refinements/heatmap-contrast/capture.ts /path/to/baseline /tmp/contrast-before before
+node docs/evidence/chart-refinements/heatmap-contrast/capture.ts /path/to/candidate /tmp/contrast-after after
 ```
 
 The release exit is the `build` record in `tmp/heatmap-contrast/final-checks.json`, with complete output in `final-build.log`. Rust and host inventories are in `tmp/heatmap-contrast/checks/{rust-checks,host-checks}.json`. Full local evidence remains under `/home/vecera/tmp/richview-chart-refinement-20261011/heatmap-contrast-owner-*` and the implementation worktree’s `tmp/heatmap-contrast/`. No remote publication or browser-support emulation is implied by the screenshots.

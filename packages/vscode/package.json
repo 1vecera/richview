@@ -2,7 +2,7 @@
 	"name": "richview-vscode",
 	"displayName": "RichView (.rmd)",
 	"description": "Rich Markdown in VS Code: live diagnostics, formatting, completion, outline and a live preview, from the native RichView editor service.",
-	"version": "3.0.0",
+	"version": "3.1.0",
 	"publisher": "richview",
 	"license": "MIT",
 	"repository": {
@@ -147,7 +147,7 @@
 	},
 	"scripts": {
 		"build": "cargo run --manifest-path ../../Cargo.toml -p richview-build -- --editor-only",
-		"bundle": "esbuild extension.cjs --bundle --platform=node --format=cjs --external:vscode --outfile=dist/extension.js --metafile=dist/bundle-meta.json && node ../../scripts/vscode-notices.cjs dist/bundle-meta.json dist/THIRD-PARTY-NOTICES.txt",
+		"bundle": "esbuild extension.cts --bundle --platform=node --format=cjs --external:vscode --outfile=dist/extension.js --metafile=dist/bundle-meta.json && node ../../scripts/vscode-notices.ts dist/bundle-meta.json dist/THIRD-PARTY-NOTICES.txt",
 		"package": "npm run bundle && vsce package --no-dependencies"
 	},
 	"devDependencies": {

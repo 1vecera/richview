@@ -416,6 +416,8 @@ fn a_parquet_table_that_is_not_one_is_a_data_parquet_error() {
         parquet_table(&["a", "b"], &["a", "b"], json!([[1]])),
         parquet_table(&["a"], &["a"], json!([[{"x": 1}]])),
         parquet_table(&["a"], &["a"], json!([[[1, 2]]])),
+        json!({"columns": ["a"], "fields": ["a"], "scales": {"a": 39}, "rows": [[1]]}).to_string(),
+        json!({"columns": ["a"], "fields": ["a"], "scales": {"b": 2}, "rows": [[1]]}).to_string(),
         "{\"columns\":[\"a\"],\"fields\":[\"a\"],\"rows\":[[1]],\"html\":\"<script>\"}".to_owned(),
     ] {
         let e = only_error(table("parquet", "data/x.parquet", &content));

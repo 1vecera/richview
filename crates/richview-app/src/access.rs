@@ -12,6 +12,8 @@
 //! Argon2id; tokens and session cookies are stored only as SHA-256 digests.
 
 pub use crate::hosted_links::LinkPurpose;
+#[path = "access/cli_oauth.rs"]
+mod cli_oauth;
 #[path = "access/cli_sign_in.rs"]
 mod cli_sign_in;
 #[path = "access/identities.rs"]
@@ -19,6 +21,9 @@ mod identities;
 #[path = "access/teams.rs"]
 mod teams;
 use argon2::{Algorithm, Argon2, Params, Version};
+pub use cli_oauth::{
+    ACCESS_TOKEN_SECONDS, CliAuthRequest, CliGrant, cli_challenge, cli_check_code,
+};
 pub use cli_sign_in::{
     CLI_SIGN_IN_POLL_SECONDS, CLI_SIGN_IN_SECONDS, CliSignInCollected, CliSignInStarted,
     CliSignInWaiting, cli_user_code,
@@ -279,6 +284,188 @@ struct TokenRecord {
     created: String,
     #[serde(default = "default_org")]
     org: String,
+    /// When this token stops working, in seconds; none for a token that never expires. Only a
+    /// command-line sign-in's access token has one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    expires: Option<u64>,
+    /// How a command-line sign-in gets a fresh token without asking its person again.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    refresh: Option<RefreshRecord>,
+    /// The access token the last refresh replaced, which keeps working for two minutes.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    superseded: Option<Superseded>,
+}
+
+/// An access token a refresh replaced, still accepted until `until`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct Superseded {
+    sha256: String,
+    until: u64,
+}
+
+/// The refresh token of a command-line sign-in, kept as a digest like every credential. A token
+/// reads `rvr_<sign-in id>.<grant>.<secret>`: the id names the sign-in, the grant is a secret
+/// every token of the sign-in carries and the record keeps only as a digest (`grant`), and the
+/// secret is new each time. A token whose grant fits is a token the sign-in once gave out, so any
+/// of them that is not the current one, however long ago it was replaced and however many
+/// renewals since, is a copy in other hands and ends the whole sign-in. Nothing about the
+/// replaced tokens is kept, so nothing runs out. There is no grace for an answer that never
+/// arrived: a computer that lost the answer to its renewal signs in again.
+///
+/// A sign-in made before tokens named it has no grant and the list `spent` of the digests of what
+/// it traded; its next renewal gives it a grant, and the list stops growing.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(from = "RefreshWire")]
+struct RefreshRecord {
+    sha256: String,
+    expires: u64,
+    /// The digest of the grant every refresh token of this sign-in carries; none for a sign-in
+    /// made before tokens named it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    grant: Option<String>,
+    /// For a sign-in that began before tokens named it: the refresh tokens it traded before that,
+    /// as the first `SPENT_DIGEST_CHARS` characters of their digests, in order of the digests so
+    /// that a token is looked for by bisection. Nothing is added once the sign-in has a grant, and
+    /// nothing is ever dropped from it.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    spent: Vec<String>,
+}
+
+/// A refresh record as stored. The one predecessor that a store from before `spent` kept as
+/// `previous` is folded into `spent` as the store is read, so that it is written back by whatever
+/// saves the store next.
+#[derive(Deserialize)]
+struct RefreshWire {
+    sha256: String,
+    expires: u64,
+    #[serde(default)]
+    grant: Option<String>,
+    #[serde(default)]
+    spent: Vec<String>,
+    #[serde(default)]
+    previous: Option<String>,
+}
+
+impl From<RefreshWire> for RefreshRecord {
+    fn from(wire: RefreshWire) -> Self {
+        let mut spent = wire.spent;
+        if let Some(previous) = wire.previous {
+            spent.push(short_digest(&previous).to_owned());
+        }
+        spent.sort_unstable();
+        spent.dedup();
+        Self {
+            sha256: wire.sha256,
+            expires: wire.expires,
+            grant: wire.grant,
+            spent,
+        }
+    }
+}
+
+/// How much of a spent refresh token's digest is kept: 128 bits, far more than anyone could guess.
+const SPENT_DIGEST_CHARS: usize = 32;
+
+fn short_digest(digest: &str) -> &str {
+    &digest[..digest.len().min(SPENT_DIGEST_CHARS)]
+}
+
+/// The sign-in id and the grant a refresh token names, or none for one of the older kind.
+fn split_refresh(presented: &str) -> Option<(&str, &str)> {
+    let (id, rest) = presented.strip_prefix("rvr_")?.split_once('.')?;
+    let (grant, secret) = rest.split_once('.')?;
+    (!id.is_empty() && !grant.is_empty() && !secret.is_empty() && !secret.contains('.'))
+        .then_some((id, grant))
+}
+
+/// What a sign-in's refresh record says about a presented token.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Standing {
+    /// The token the sign-in is waiting for.
+    Current,
+    /// A token the sign-in gave out and has since replaced.
+    Spent,
+}
+
+/// A presented refresh token, read once for every sign-in it is asked against.
+struct RefreshAsk {
+    whole: String,
+    /// The sign-in id and the digest of the grant it names.
+    named: Option<(String, String)>,
+}
+
+impl RefreshAsk {
+    fn new(presented: &str) -> Self {
+        Self {
+            whole: digest(presented),
+            named: split_refresh(presented).map(|(id, grant)| (id.to_owned(), digest(grant))),
+        }
+    }
+
+    /// What `token` holds of the presented token: it is its current refresh token, or one it
+    /// replaced, or nothing of it.
+    fn standing(&self, token: &TokenRecord) -> Option<Standing> {
+        let refresh = token.refresh.as_ref()?;
+        if refresh.sha256 == self.whole {
+            return Some(Standing::Current);
+        }
+        let spent = match &self.named {
+            Some((id, grant)) => {
+                token.id == *id && refresh.grant.as_deref() == Some(grant.as_str())
+            }
+            None => refresh.spent_contains(&self.whole),
+        };
+        spent.then_some(Standing::Spent)
+    }
+}
+
+impl RefreshRecord {
+    /// Whether `wanted` (a full digest) is a token a sign-in without a grant has traded.
+    fn spent_contains(&self, wanted: &str) -> bool {
+        let short = short_digest(wanted);
+        self.spent
+            .binary_search_by(|spent| spent.as_str().cmp(short))
+            .is_ok()
+    }
+
+    /// Replaces the current refresh token with `next`. A sign-in that names its tokens keeps
+    /// nothing of the one replaced; one that does not yet remembers it, and `grant` (the digest of
+    /// a grant new to it) makes it one that does. Everything such a sign-in had traded is kept,
+    /// with the token that is replaced now: the oldest of them is as much a copy in other hands
+    /// as the newest, and nothing is added after this, so the list does not grow.
+    fn rotate(&mut self, next: String, expires: u64, grant: Option<String>) {
+        let replaced = std::mem::replace(&mut self.sha256, next);
+        if self.grant.is_none() {
+            let replaced = short_digest(&replaced);
+            if let Err(at) = self
+                .spent
+                .binary_search_by(|spent| spent.as_str().cmp(replaced))
+            {
+                self.spent.insert(at, replaced.to_owned());
+            }
+        }
+        if grant.is_some() {
+            self.grant = grant;
+        }
+        self.expires = expires;
+    }
+}
+
+/// What a command-line sign-in's token is issued under.
+#[derive(Clone, Copy)]
+struct CliIssue {
+    /// A short-lived token and the refresh token that renews it.
+    refreshing: bool,
+    /// The person's credential number when they said yes (`State::credential_epoch`).
+    approved_under: u64,
+}
+
+/// A token just issued: its secrets are shown once, to the caller that asked for it.
+struct Issued {
+    id: String,
+    secret: String,
+    refresh: Option<String>,
+    expires_in: u64,
 }
 
 /// A sign-in provider's account joined to a person: the provider and the provider's own id for the
@@ -380,6 +567,24 @@ struct State {
     /// Pending invitations to an organization or to one report (hosted only).
     #[serde(default)]
     invitations: Vec<Invitation>,
+    /// How many times each person's credentials were reset or ended (a password reset or change, a
+    /// disabled account). A command-line sign-in a person approved before that is not issued
+    /// after it: the approval records the number it was made under and the issue checks it.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    credential_epochs: BTreeMap<String, u64>,
+}
+
+impl State {
+    /// The number a person's pending command-line approvals are made under.
+    fn credential_epoch(&self, person: &str) -> u64 {
+        self.credential_epochs.get(person).copied().unwrap_or(0)
+    }
+
+    /// Ends every command-line approval `person` made and has not yet been issued a token for.
+    fn end_pending_approvals(&mut self, person: &str) {
+        let epoch = self.credential_epochs.entry(person.to_owned()).or_default();
+        *epoch = epoch.saturating_add(1);
+    }
 }
 
 impl Default for State {
@@ -397,6 +602,7 @@ impl Default for State {
             registration_requests: vec![],
             signups_paused: false,
             invitations: vec![],
+            credential_epochs: BTreeMap::new(),
         }
     }
 }
@@ -624,6 +830,28 @@ const MAX_EMAIL_BYTES: usize = 254;
 const MAX_PASSWORD_BYTES: usize = 4096;
 const MAX_FAILURE_KEYS: usize = 1024;
 const MAX_SIGN_IN_WORKERS: usize = 4;
+/// How many requests one person may have open at once on a hosted worker pool, and how many one
+/// organization may when its requests are known to be its own (a token bound to it): a request is
+/// open from its first byte until its work has finished, so a body that arrives slowly counts, but
+/// it holds no worker. A person can publish three reports from one build in parallel.
+const ADMISSIONS_PER_PERSON: usize = 4;
+const ADMISSIONS_PER_ORG: usize = 8;
+/// How many requests one pool has open at all: bodies are read into memory, up to 32 MiB each, so
+/// the count bounds what many accounts can make the server hold together.
+const MAX_OPEN_REQUESTS: usize = 64;
+/// The workers of a hosted pool, and how many of them one organization may hold at once: a
+/// request takes a worker only when its body has arrived, and waits for one this long at most.
+const POOL_WORKERS: usize = 4;
+const WORKERS_PER_ORG: usize = 2;
+const WORKER_WAIT: std::time::Duration = if cfg!(test) {
+    std::time::Duration::from_millis(300)
+} else {
+    std::time::Duration::from_secs(10)
+};
+/// The most attempts one person or one organization makes at publishing in an hour.
+const PUBLISH_ATTEMPTS_PER_HOUR: usize = 60;
+/// The most distinct people and organizations the hourly counters follow at once.
+const MAX_COUNTED_KEYS: usize = 4096;
 const MAX_HOSTED_ACCOUNTS: usize = 500;
 /// Hosted ACLs include retired addresses. Bound both the history and each report's grants.
 const MAX_HOSTED_GRANTS: usize = 32;
@@ -772,6 +1000,105 @@ fn heir(state: &State, org: &str, person: &str) -> Option<String> {
         .map(|m| m.person.clone())
 }
 
+/// A hosted request's admission: a place among the pool's open requests and the shares of them its
+/// person and organization hold, from before its body is read until its work is done. It holds no
+/// worker. The worker is [`Admission::place`], taken once the body has arrived, so a body that
+/// takes its time costs the others nothing.
+pub struct Admission {
+    _request: tokio::sync::OwnedSemaphorePermit,
+    _shares: Vec<Share>,
+    pool: Arc<Pool>,
+    /// The organization the work is counted under unless the request names another.
+    org: Option<String>,
+}
+
+impl Admission {
+    /// A worker of the pool for this request's organization, or of `org` when the body says which
+    /// organization the work is for. Waits a few seconds for one, so a request that arrives while
+    /// the workers are busy is served as they free up, and is refused after that.
+    pub(crate) async fn place(&self, org: Option<&str>) -> Result<Place, AccessError> {
+        self.pool
+            .place(org.or(self.org.as_deref()).unwrap_or_default())
+            .await
+    }
+}
+
+/// A worker of a hosted pool, and the organization's share of it. Dropping it gives both back.
+pub struct Place {
+    _org: tokio::sync::OwnedSemaphorePermit,
+    _worker: tokio::sync::OwnedSemaphorePermit,
+}
+
+/// Workers shared by every organization: the pool has a few, and no one organization may hold
+/// more than its share of them while the others wait.
+struct Pool {
+    workers: Arc<tokio::sync::Semaphore>,
+    requests: Arc<tokio::sync::Semaphore>,
+    orgs: Mutex<BTreeMap<String, Arc<tokio::sync::Semaphore>>>,
+    per_org: usize,
+}
+
+impl Pool {
+    fn new(workers: usize, per_org: usize, requests: usize) -> Arc<Self> {
+        Arc::new(Self {
+            workers: Arc::new(tokio::sync::Semaphore::new(workers)),
+            requests: Arc::new(tokio::sync::Semaphore::new(requests)),
+            orgs: Mutex::default(),
+            per_org,
+        })
+    }
+
+    /// The organization's own semaphore, made on first use and forgotten once nothing holds it.
+    fn org_semaphore(&self, org: &str) -> Result<Arc<tokio::sync::Semaphore>, AccessError> {
+        let mut orgs = self
+            .orgs
+            .lock()
+            .map_err(|_| AccessError::Storage("Worker pool poisoned".into()))?;
+        orgs.retain(|_, held| Arc::strong_count(held) > 1);
+        Ok(orgs
+            .entry(org.to_owned())
+            .or_insert_with(|| Arc::new(tokio::sync::Semaphore::new(self.per_org)))
+            .clone())
+    }
+
+    /// The organization's share first, then a worker: an organization at its share waits among its
+    /// own requests and holds no worker while it does, so the others keep theirs.
+    async fn place(&self, org: &str) -> Result<Place, AccessError> {
+        let deadline = tokio::time::Instant::now() + WORKER_WAIT;
+        let share = tokio::time::timeout_at(deadline, self.org_semaphore(org)?.acquire_owned())
+            .await
+            .map_err(|_| AccessError::Throttled)?
+            .map_err(|_| AccessError::Throttled)?;
+        let worker = tokio::time::timeout_at(deadline, self.workers.clone().acquire_owned())
+            .await
+            .map_err(|_| AccessError::Throttled)?
+            .map_err(|_| AccessError::Throttled)?;
+        Ok(Place {
+            _org: share,
+            _worker: worker,
+        })
+    }
+}
+
+/// One counted place of a person or an organization.
+struct Share {
+    held: Arc<Mutex<BTreeMap<String, usize>>>,
+    key: String,
+}
+
+impl Drop for Share {
+    fn drop(&mut self) {
+        if let Ok(mut held) = self.held.lock()
+            && let Some(count) = held.get_mut(&self.key)
+        {
+            *count = count.saturating_sub(1);
+            if *count == 0 {
+                held.remove(&self.key);
+            }
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct Access {
     dir: Arc<PathBuf>,
@@ -798,9 +1125,12 @@ pub struct Access {
     link_request_workers: Arc<tokio::sync::Semaphore>,
     link_request_ips: Arc<Mutex<BTreeMap<String, std::collections::VecDeque<u64>>>>,
     publish_limits: Arc<Mutex<BTreeMap<String, std::collections::VecDeque<u64>>>>,
-    publish_workers: Arc<tokio::sync::Semaphore>,
+    publish_pool: Arc<Pool>,
+    /// The requests each person and each organization has open on the worker pools now, by
+    /// `<pool>:person:<id>` and `<pool>:org:<id>`.
+    admissions: Arc<Mutex<BTreeMap<String, usize>>>,
     compute_limits: Arc<Mutex<BTreeMap<String, std::collections::VecDeque<u64>>>>,
-    compute_workers: Arc<tokio::sync::Semaphore>,
+    compute_pool: Arc<Pool>,
     signup_account_limit: Arc<std::sync::atomic::AtomicUsize>,
     org_creation_limit: Arc<std::sync::atomic::AtomicUsize>,
     /// Invitation and share mails one person asked for in the last day.
@@ -812,6 +1142,7 @@ pub struct Access {
     report_sessions: Arc<Mutex<BTreeMap<String, ReportSession>>>,
     /// Command-line sign-ins waiting for their person to confirm them in the browser.
     cli_sign_ins: Arc<Mutex<cli_sign_in::CliSignIns>>,
+    cli_codes: Arc<Mutex<cli_oauth::CliCodes>>,
     /// Sign-in with GitHub, Microsoft or Google, when this server has a client for any (hosted only).
     social: Arc<std::sync::OnceLock<Arc<crate::social::Social>>>,
     default_visibility: Visibility,
@@ -1312,9 +1643,10 @@ impl Access {
             link_request_workers: Arc::new(tokio::sync::Semaphore::new(4)),
             link_request_ips: Arc::default(),
             publish_limits: Arc::default(),
-            publish_workers: Arc::new(tokio::sync::Semaphore::new(4)),
+            publish_pool: Pool::new(POOL_WORKERS, WORKERS_PER_ORG, MAX_OPEN_REQUESTS),
+            admissions: Arc::default(),
             compute_limits: Arc::default(),
-            compute_workers: Arc::new(tokio::sync::Semaphore::new(4)),
+            compute_pool: Pool::new(POOL_WORKERS, WORKERS_PER_ORG, MAX_OPEN_REQUESTS),
             signup_account_limit: Arc::new(std::sync::atomic::AtomicUsize::new(
                 MAX_HOSTED_ACCOUNTS,
             )),
@@ -1324,6 +1656,7 @@ impl Access {
             grants: Arc::default(),
             report_sessions: Arc::default(),
             cli_sign_ins: Arc::default(),
+            cli_codes: Arc::default(),
             social: Arc::default(),
             default_visibility,
             service_token: service_token.filter(|t| !t.is_empty()),
@@ -1486,7 +1819,11 @@ impl Access {
         if !self.is_hosted() {
             return Ok(());
         }
-        let org = self.report_org(key);
+        self.count_publish_attempt(self.report_org(key))
+    }
+
+    /// Counts one attempt under `who` (an organization id or `person:<id>`) in a rolling hour.
+    fn count_publish_attempt(&self, who: String) -> Result<(), AccessError> {
         let at = now();
         let mut counters = self
             .publish_limits
@@ -1501,55 +1838,117 @@ impl Access {
             }
             !times.is_empty()
         });
-        if !counters.contains_key(&org) && counters.len() >= 1024 {
+        if !counters.contains_key(&who) && counters.len() >= MAX_COUNTED_KEYS {
             return Err(AccessError::Throttled);
         }
-        let entry = counters.entry(org).or_default();
-        if entry.len() >= 60 {
+        let entry = counters.entry(who).or_default();
+        if entry.len() >= PUBLISH_ATTEMPTS_PER_HOUR {
             return Err(AccessError::Throttled);
         }
         entry.push_back(at);
         Ok(())
     }
 
-    pub(crate) fn admit_hosted_publish_worker(
+    /// Admission for a publish request, asked for before its body is read: the requests one
+    /// person has open are bounded, and so are an organization's when the token names it, and the
+    /// attempt is counted against the person now, so that a body that never parses is counted too.
+    /// The request holds no worker; it takes one with [`Admission::place`] once its body is in.
+    pub(crate) fn admit_hosted_publish_request(
         &self,
-    ) -> Result<tokio::sync::OwnedSemaphorePermit, AccessError> {
-        self.publish_workers
-            .clone()
-            .try_acquire_owned()
-            .map_err(|_| AccessError::Throttled)
+        principal: &Principal,
+    ) -> Result<Admission, AccessError> {
+        let request = self.publish_pool.requests.clone().try_acquire_owned();
+        let request = request.map_err(|_| AccessError::Throttled)?;
+        let shares = self.share_of("publish", principal, false)?;
+        if let Principal::User(user) = principal {
+            self.count_publish_attempt(format!("person:{}", user.id))?;
+        }
+        Ok(Admission {
+            _request: request,
+            _shares: shares,
+            pool: self.publish_pool.clone(),
+            org: None,
+        })
     }
 
-    /// Admit hosted computation before its request body is read, by the caller's organization.
+    /// The organization a person's check or validation is counted under: the one their token is
+    /// bound to, else the first they belong to that is not suspended.
+    fn caller_org(&self, user: &User) -> Option<String> {
+        self.read(|state| {
+            state
+                .memberships
+                .iter()
+                .find(|m| {
+                    m.person == user.id
+                        && user.token_org.as_ref().is_none_or(|bound| bound == &m.org)
+                        && state
+                            .organizations
+                            .iter()
+                            .any(|org| org.id == m.org && !org.suspended)
+                })
+                .map(|m| m.org.clone())
+        })
+    }
+
+    /// Counts a request for the person, and for the organization when `org` is known, or refuses
+    /// when either has its share open already. The counts are given back when the returned shares
+    /// are dropped. A request whose organization the body names is counted under it later, as it
+    /// takes its worker.
+    fn share_of(
+        &self,
+        pool: &str,
+        principal: &Principal,
+        by_membership: bool,
+    ) -> Result<Vec<Share>, AccessError> {
+        let Principal::User(user) = principal else {
+            return Ok(Vec::new());
+        };
+        let mut wanted = vec![(format!("{pool}:person:{}", user.id), ADMISSIONS_PER_PERSON)];
+        let org = if by_membership {
+            self.caller_org(user)
+        } else {
+            user.token_org.clone()
+        };
+        if let Some(org) = org {
+            wanted.push((format!("{pool}:org:{org}"), ADMISSIONS_PER_ORG));
+        }
+        let mut held = self
+            .admissions
+            .lock()
+            .map_err(|_| AccessError::Storage("Admission counter poisoned".into()))?;
+        if wanted
+            .iter()
+            .any(|(key, most)| held.get(key).copied().unwrap_or(0) >= *most)
+        {
+            return Err(AccessError::Throttled);
+        }
+        Ok(wanted
+            .into_iter()
+            .map(|(key, _)| {
+                *held.entry(key.clone()).or_default() += 1;
+                Share {
+                    held: self.admissions.clone(),
+                    key,
+                }
+            })
+            .collect())
+    }
+
+    /// Admit hosted computation before its request body is read, by the caller's organization: the
+    /// requests a person and an organization have open are bounded, and so are the checks an
+    /// organization makes in an hour. The request takes a worker with [`Admission::place`] once its
+    /// body is in, and an organization never holds more than its share of the workers.
     pub(crate) fn admit_hosted_compute(
         &self,
         principal: &Principal,
-    ) -> Result<tokio::sync::OwnedSemaphorePermit, AccessError> {
+    ) -> Result<Admission, AccessError> {
         let Principal::User(user) = principal else {
             return Err(AccessError::Credentials);
         };
-        let org = self
-            .read(|state| {
-                state
-                    .memberships
-                    .iter()
-                    .find(|m| {
-                        m.person == user.id
-                            && user.token_org.as_ref().is_none_or(|bound| bound == &m.org)
-                            && state
-                                .organizations
-                                .iter()
-                                .any(|org| org.id == m.org && !org.suspended)
-                    })
-                    .map(|m| m.org.clone())
-            })
-            .ok_or(AccessError::Credentials)?;
-        let permit = self
-            .compute_workers
-            .clone()
-            .try_acquire_owned()
-            .map_err(|_| AccessError::Throttled)?;
+        let org = self.caller_org(user).ok_or(AccessError::Credentials)?;
+        let request = self.compute_pool.requests.clone().try_acquire_owned();
+        let request = request.map_err(|_| AccessError::Throttled)?;
+        let shares = self.share_of("compute", principal, true)?;
         let at = now();
         let mut counters = self
             .compute_limits
@@ -1567,12 +1966,17 @@ impl Access {
         if !counters.contains_key(&org) && counters.len() >= 1024 {
             return Err(AccessError::Throttled);
         }
-        let entry = counters.entry(org).or_default();
+        let entry = counters.entry(org.clone()).or_default();
         if entry.len() >= 60 {
             return Err(AccessError::Throttled);
         }
         entry.push_back(at);
-        Ok(permit)
+        Ok(Admission {
+            _request: request,
+            _shares: shares,
+            pool: self.compute_pool.clone(),
+            org: Some(org),
+        })
     }
 
     /// Spend a verified link and create an organization or reset an existing password.
@@ -1739,6 +2143,9 @@ impl Access {
                         }
                         let result = user.user.clone();
                         state.sessions.retain(|s| s.user != result.id);
+                        // Whatever the person approved on the command line before the reset is not
+                        // theirs to have approved any more.
+                        state.end_pending_approvals(&result.id);
                         result
                     }
                     LinkPurpose::Invite => return Err(AccessError::Credentials),
@@ -1777,6 +2184,28 @@ impl Access {
         } else {
             default_org()
         }
+    }
+
+    /// Commit one staff release while the report still belongs to the consenting owner.
+    pub(crate) fn while_staff_owner<T>(
+        &self,
+        key: &str,
+        owner: &str,
+        commit: impl FnOnce() -> T,
+    ) -> Option<T> {
+        let _mutation = self.gate().ok()?;
+        let state = self.state.lock().ok()?;
+        let acl = state.acls.get(key)?;
+        if acl.owner != owner
+            || !state
+                .organizations
+                .iter()
+                .any(|org| org.id == acl.org && !org.suspended)
+        {
+            return None;
+        }
+        drop(state);
+        Some(commit())
     }
 
     pub fn report_org_active(&self, key: &str) -> bool {
@@ -1899,6 +2328,7 @@ impl Access {
                 .find(|u| u.user.id == person)
                 .ok_or(AccessError::NotFound)?;
             user.user.disabled = disabled;
+            state.end_pending_approvals(person);
             if disabled {
                 state.sessions.retain(|s| s.user != person);
             }
@@ -1934,6 +2364,7 @@ impl Access {
                 .ok_or(AccessError::NotFound)?;
             user.user.disabled = true;
             user.tokens.clear();
+            state.end_pending_approvals(person);
             state.sessions.retain(|session| session.user != person);
             for org in state
                 .organizations
@@ -2063,6 +2494,7 @@ impl Access {
                 })
                 .collect();
             state.users.retain(|record| record.user.id != person);
+            state.credential_epochs.remove(person);
             state.org_creations.remove(person);
             state.organizations.retain(|org| !gone(&org.id));
             state
@@ -2228,6 +2660,12 @@ impl Access {
         // first write after it expires.
         let at = now();
         next.invitations.retain(|i| i.expires > at);
+        // A command-line sign-in nobody refreshed for 90 days is over.
+        for record in &mut next.users {
+            record
+                .tokens
+                .retain(|t| t.refresh.as_ref().is_none_or(|r| r.expires > at));
+        }
         let result = f(&mut next)?;
         self.save(&next)?;
         *state = next;
@@ -2253,6 +2691,7 @@ impl Access {
                 return Principal::Service;
             }
             let wanted = digest(token);
+            let at = now();
             return self.read(|state| {
                 state
                     .users
@@ -2262,7 +2701,11 @@ impl Access {
                         r.tokens
                             .iter()
                             .find(|t| {
-                                t.sha256 == wanted
+                                ((t.sha256 == wanted
+                                    && t.expires.is_none_or(|expires| expires > at))
+                                    || t.superseded
+                                        .as_ref()
+                                        .is_some_and(|s| s.sha256 == wanted && s.until > at))
                                     && state
                                         .memberships
                                         .iter()
@@ -2765,7 +3208,9 @@ impl Access {
 
     // ---------------------------------------------------------------- rights
 
-    /// Whether the report has an access record of its own.
+    /// Whether the report has an access record of its own: an interrupted publication and a deleted
+    /// report both leave one, with its owner and audience, so it is kept for an address that holds no
+    /// report.
     pub fn has_record(&self, slug: &str) -> bool {
         self.read(|state| state.acls.contains_key(slug))
     }
@@ -3059,7 +3504,11 @@ impl Access {
             return Err(AccessError::Credentials);
         }
         let before = self.read(|state| state.acls.get(slug).cloned());
-        if known {
+        if known || before.is_some() {
+            // A report is stored here, or its address was retired with its record: either way it
+            // has an owner and an audience, and only one who may edit it publishes there. This
+            // is decided here, under the lock every access change takes, whoever asks and
+            // however they asked for a new address.
             if !self.can(who, slug, Right::Edit) {
                 return Err(AccessError::NotFound);
             }
@@ -3077,7 +3526,7 @@ impl Access {
                 _ => "service".to_owned(),
             };
             let visibility = self.default_visibility;
-            // A retired address keeps its record, and with it its owner.
+            // Nobody's record is here (that is the branch above): this address is new.
             self.with_gated(|state| {
                 hosted_claim_capacity(state, &org, slug)?;
                 state.acls.entry(slug.to_owned()).or_insert(ReportAcl {
@@ -3115,7 +3564,7 @@ impl Access {
                         .visibility = wanted;
                     Ok(())
                 })
-            } else if known && !self.can(who, slug, Right::Share) {
+            } else if (known || before.is_some()) && !self.can(who, slug, Right::Share) {
                 Err(AccessError::NotFound)
             } else {
                 let org = self.report_org(slug);
@@ -3512,6 +3961,7 @@ impl Access {
             record.password = Some(hash);
             // A new password ends every sign-in made with the old one.
             state.sessions.retain(|s| s.user != id);
+            state.end_pending_approvals(id);
             Ok(())
         })
     }
@@ -3545,6 +3995,7 @@ impl Access {
                 ));
             }
             state.users.retain(|r| r.user.id != id);
+            state.credential_epochs.remove(id);
             state.memberships.retain(|m| m.person != id);
             state.sessions.retain(|s| s.user != id);
             for acl in state.acls.values_mut() {
@@ -3596,16 +4047,54 @@ impl Access {
         name: &str,
         max: Option<usize>,
     ) -> Result<(String, String), AccessError> {
+        let issued = self.issue_token_for(caller, id, org, name, max, None)?;
+        Ok((issued.id, issued.secret))
+    }
+
+    /// Issues a token. A command-line sign-in's (`cli`) is an access token that ends after
+    /// `ACCESS_TOKEN_SECONDS` and the refresh token that gets the next one; `cli.refreshing` says
+    /// whether it has them, and `cli.approved_under` the credential number its person's yes was made
+    /// under, which must still be the person's current one: a reset in between ended the yes.
+    fn issue_token_for(
+        &self,
+        caller: impl FnOnce() -> Option<Principal>,
+        id: &str,
+        org: &str,
+        name: &str,
+        max: Option<usize>,
+        cli: Option<CliIssue>,
+    ) -> Result<Issued, AccessError> {
+        let refreshing = cli.is_some_and(|cli| cli.refreshing);
         let secret = format!("rvt_{}", random_text(32)?);
+        let at = now();
+        let token_id = format!(
+            "t-{}",
+            random_text(6)?.to_lowercase().replace(['_', '-'], "x")
+        );
+        // The grant is shown once, inside the refresh tokens; the record keeps its digest.
+        let grant = if refreshing {
+            Some(random_text(16)?)
+        } else {
+            None
+        };
+        let refresh = grant
+            .as_ref()
+            .map(|grant| random_text(32).map(|secret| format!("rvr_{token_id}.{grant}.{secret}")))
+            .transpose()?;
         let record = TokenRecord {
-            id: format!(
-                "t-{}",
-                random_text(6)?.to_lowercase().replace(['_', '-'], "x")
-            ),
+            id: token_id,
             name: name.trim().chars().take(80).collect(),
             sha256: digest(&secret),
             created: stamp(),
             org: org.to_owned(),
+            superseded: None,
+            expires: refreshing.then_some(at + ACCESS_TOKEN_SECONDS),
+            refresh: refresh.as_ref().map(|refresh| RefreshRecord {
+                sha256: digest(refresh),
+                expires: at + cli_oauth::REFRESH_TOKEN_SECONDS,
+                grant: grant.as_deref().map(digest),
+                spent: Vec::new(),
+            }),
         };
         let token_id = record.id.clone();
         let _gate = self.gate()?;
@@ -3627,6 +4116,9 @@ impl Access {
             {
                 return Err(AccessError::NotFound);
             }
+            if cli.is_some_and(|cli| cli.approved_under != state.credential_epoch(id)) {
+                return Err(AccessError::NotFound);
+            }
             let user = state
                 .users
                 .iter_mut()
@@ -3643,7 +4135,12 @@ impl Access {
             user.tokens.push(record);
             Ok(())
         })?;
-        Ok((token_id, secret))
+        Ok(Issued {
+            id: token_id,
+            secret,
+            refresh,
+            expires_in: ACCESS_TOKEN_SECONDS,
+        })
     }
 
     pub fn revoke_self_token(
@@ -4480,6 +4977,158 @@ mod tests {
         );
         drop(lane);
         assert_eq!(worker.join().unwrap(), Err(AccessError::Credentials));
+    }
+
+    #[test]
+    fn one_person_or_one_organization_cannot_fill_the_open_publish_requests() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::create_dir_all(dir.path().join(".access")).unwrap();
+        let person = |id: &str| {
+            serde_json::json!({"id": id, "name": id, "email": format!("{id}@example.test"),
+                "created": "now", "verified": "now", "tokens": []})
+        };
+        let state = serde_json::json!({"schema":2,"tenancy":"hosted",
+            "organizations":[
+                {"id":"aaaa0001","name":"A","created":"now","suspended":false,"limits":{}},
+                {"id":"bbbb0002","name":"B","created":"now","suspended":false,"limits":{}}],
+            "memberships":[
+                {"person":"ada","org":"aaaa0001","role":"owner","created":"now"},
+                {"person":"grace","org":"aaaa0001","role":"author","created":"now"},
+                {"person":"linus","org":"bbbb0002","role":"owner","created":"now"}],
+            "users":[person("ada"), person("grace"), person("linus")],
+            "sessions":[],"acls":{}});
+        fs::write(
+            dir.path().join(".access/state.json"),
+            serde_json::to_vec(&state).unwrap(),
+        )
+        .unwrap();
+        let app = Access::open_hosted(dir.path()).unwrap();
+        let who = |id: &str| Principal::User(app.user(id).unwrap());
+        // A token names its organization, a browser session does not.
+        let bound = |id: &str, org: &str| {
+            let mut user = app.user(id).unwrap();
+            user.token_org = Some(org.to_owned());
+            Principal::User(user)
+        };
+        let open: Vec<_> = (0..4)
+            .map(|_| app.admit_hosted_publish_request(&who("ada")).unwrap())
+            .collect();
+        // Ada has her four open: another request of hers is refused, a colleague's is not, since a
+        // session's organization is only known once the body says which, and a refusal took
+        // nothing from anyone.
+        assert!(matches!(
+            app.admit_hosted_publish_request(&who("ada")),
+            Err(AccessError::Throttled)
+        ));
+        let grace = app.admit_hosted_publish_request(&who("grace")).unwrap();
+        drop(grace);
+        drop(open);
+        assert!(app.admissions.lock().unwrap().is_empty());
+        // Tokens that name the organization share the eight of it: two people, four each.
+        let mut tokens: Vec<_> = (0..4)
+            .map(|_| {
+                app.admit_hosted_publish_request(&bound("ada", "aaaa0001"))
+                    .unwrap()
+            })
+            .collect();
+        tokens.extend((0..4).map(|_| {
+            app.admit_hosted_publish_request(&bound("grace", "aaaa0001"))
+                .unwrap()
+        }));
+        assert!(matches!(
+            app.admit_hosted_publish_request(&bound("grace", "aaaa0001")),
+            Err(AccessError::Throttled)
+        ));
+        // Another organization is unaffected, and so is a caller that is no person (the service).
+        let other = app
+            .admit_hosted_publish_request(&bound("linus", "bbbb0002"))
+            .unwrap();
+        drop((tokens, other));
+        assert!(app.admissions.lock().unwrap().is_empty());
+        // The pool's open requests are bounded as a whole.
+        let all: Vec<_> = (0..MAX_OPEN_REQUESTS)
+            .map(|_| {
+                app.admit_hosted_publish_request(&Principal::Service)
+                    .unwrap()
+            })
+            .collect();
+        assert!(matches!(
+            app.admit_hosted_publish_request(&who("linus")),
+            Err(AccessError::Throttled)
+        ));
+        drop(all);
+        assert!(app.admit_hosted_publish_request(&who("linus")).is_ok());
+    }
+
+    #[tokio::test]
+    async fn a_worker_is_taken_after_the_body_and_no_organization_holds_more_than_its_share() {
+        let dir = tempfile::tempdir().unwrap();
+        let access = Access::open_hosted(dir.path()).unwrap();
+        let service = Principal::Service;
+        // Requests open and waiting for their bodies hold no worker.
+        // All but one of the pool's open requests, so that one more can be opened below.
+        let slow: Vec<_> = (0..MAX_OPEN_REQUESTS - 1)
+            .map(|_| access.admit_hosted_publish_request(&service).unwrap())
+            .collect();
+        let mut places = Vec::new();
+        for _ in 0..WORKERS_PER_ORG {
+            places.push(slow[0].place(Some("aaaa0001")).await.unwrap());
+        }
+        // The organization holds its share: the next of its requests waits, then is refused,
+        // while the workers it leaves are open to another organization.
+        let started = std::time::Instant::now();
+        assert!(matches!(
+            slow[1].place(Some("aaaa0001")).await,
+            Err(AccessError::Throttled)
+        ));
+        assert!(started.elapsed() >= WORKER_WAIT);
+        for _ in 0..POOL_WORKERS - WORKERS_PER_ORG {
+            places.push(slow[2].place(Some("bbbb0002")).await.unwrap());
+        }
+        // All four workers are held: a third organization waits and is refused.
+        assert!(matches!(
+            slow[3].place(Some("cccc0003")).await,
+            Err(AccessError::Throttled)
+        ));
+        // A worker given back goes to the one that waits for it.
+        let waiting = tokio::spawn({
+            let admission = access.admit_hosted_publish_request(&service);
+            async move { admission.unwrap().place(Some("cccc0003")).await.is_ok() }
+        });
+        tokio::task::yield_now().await;
+        places.pop();
+        assert!(waiting.await.unwrap());
+        drop(places);
+        // An organization with nothing held is forgotten, so the table does not grow.
+        slow[0].place(Some("dddd0004")).await.unwrap();
+        assert!(access.publish_pool.orgs.lock().unwrap().len() <= 2);
+    }
+
+    #[test]
+    fn a_person_makes_sixty_publish_attempts_an_hour_whether_or_not_the_body_parses() {
+        let dir = tempfile::tempdir().unwrap();
+        let access = Access::open_hosted(dir.path()).unwrap();
+        let user = |id: &str| {
+            Principal::User(User {
+                id: id.into(),
+                name: id.into(),
+                email: format!("{id}@example.test"),
+                role: OrgRole::Author,
+                disabled: false,
+                created: "now".into(),
+                verified: Some("now".into()),
+                operator: false,
+                token_org: None,
+            })
+        };
+        for _ in 0..PUBLISH_ATTEMPTS_PER_HOUR {
+            drop(access.admit_hosted_publish_request(&user("ada")).unwrap());
+        }
+        assert!(matches!(
+            access.admit_hosted_publish_request(&user("ada")),
+            Err(AccessError::Throttled)
+        ));
+        assert!(access.admit_hosted_publish_request(&user("grace")).is_ok());
     }
 
     #[test]

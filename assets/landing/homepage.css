@@ -167,7 +167,7 @@ body[data-homepage] ::selection {
 
 /* ------------------------------------------------------------------ hero */
 
-/* The first screen (W4, S27-959): the headline across the top in one line, and under it the painting
+/* The first screen (W4): the headline across the top in one line, and under it the painting
    agent's scene, a 16:9 frame sized so the line and the scene fill the screen together. The scene's top
    left is calm paper, so the words and the two actions sit there, kept clear of where the agent walks
    (the left two fifths of the frame) and above the chart's painted title (the top two fifths). Where
@@ -611,7 +611,7 @@ body[data-homepage] .prompt__text code {
 	opacity: 0.5;
 	cursor: wait;
 }
-/* Until the engine starts (S27-927), the pending line takes the status line's place in the foot:
+/* Until the engine starts, the pending line takes the status line's place in the foot:
    no report shows yet, so "pre-rendered" would not be true. It says the editor is not ready, then
    that it is starting, with the tiny chart that marks loading, or that it failed. */
 #demo-pending[hidden],
@@ -1114,7 +1114,7 @@ body[data-homepage] .btn--primary:hover {
 	}
 }
 /* On a phone the pills take the bar alone, as STY-08's one row: wrapped under the label, they took three
-   rows of the report's height (lead, S27-930). Set tighter, the row fits from 360 px; on a narrower
+   rows of the report's height (lead). Set tighter, the row fits from 360 px; on a narrower
    screen it scrolls sideways. The padding keeps a pill's focus ring inside the scrolling row. */
 @media (max-width: 480px) {
 	.sheet--report .sheet__bar {
@@ -1153,7 +1153,7 @@ body[data-homepage] .btn--primary:hover {
 	}
 }
 
-/* ------------------------------------------------------------------ voices (scene 3, S27-926) */
+/* ------------------------------------------------------------------ voices (scene 3) */
 
 /* The page's colours cross to the style on screen with a short fade; faces change at once under
    it. The blocks for each style come from core's tokens (/landing/voices.css). */
@@ -1173,7 +1173,7 @@ body[data-homepage] .btn--primary:hover {
 }
 /* Scientific's and brutalist's faint ink is drawn for report furniture and sets text at only 3.5:1 on
    their paper, so under those two voices the page's faint text is the style's soft ink with a fifth of
-   its paper: 4.8:1 or more on both papers (S27-949). The styles themselves, which reports use, keep
+   its paper: 4.8:1 or more on both papers. The styles themselves, which reports use, keep
    their tokens. html: outranks the generated voice blocks, which come later. */
 html:root:is([data-voice="scientific"], [data-voice="brutalist"]) {
 	--faint: color-mix(in oklab, var(--soft) 80%, var(--paper));
@@ -1322,7 +1322,7 @@ html.js .voices__sheet:not([data-ready]) iframe {
 	filter: none;
 }
 /* A moving sheet's filter is drawn again on every frame, and at 1440 it alone made Chromium miss
-   most frames of the scene (S27-930, PRF-27). Pinned, the one soft shadow is a box shadow, painted
+   most frames of the scene (PRF-27). Pinned, the one soft shadow is a box shadow, painted
    once with the sheet, on a box that ends where the page's foot starts to fade, so it fades out
    there as the filter's did. */
 .voices[data-mode="pinned"] .voices__sheet::before {
@@ -1405,7 +1405,7 @@ html.js .voices__sheet:not([data-ready]) iframe {
 	}
 }
 
-/* ------------------------------------------------------------------ scene 2 (W3, S27-931) */
+/* ------------------------------------------------------------------ scene 2 (W3) */
 
 /* Pinned, in story builds only: the stage holds while the reader scrolls the track, and the scroll
    writes the anchor report. The source dims the lines not yet written and lights the block being
@@ -1463,7 +1463,7 @@ html.js .voices__sheet:not([data-ready]) iframe {
 	pointer-events: none;
 }
 /* Under the scene's report the live frames take no pointer either, so a hover or click over the
-   report the reader sees lands in nothing they cannot see; the hand-over clears it (S27-942). */
+   report the reader sees lands in nothing they cannot see; the hand-over clears it. */
 .report-viewport[data-covered] > iframe:not(.demo__reveal) {
 	pointer-events: none;
 }

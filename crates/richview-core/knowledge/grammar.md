@@ -92,7 +92,7 @@ Data typing is one contract for inline, CSV and JSON rows:
 - Any other text in a numeric chart channel, such as 1,234 or 12 kg, is a chart.non-numeric error naming the row and value: write plain numbers.
 - Dates are text, plain in a CSV or JSON cell and quoted in YAML (`"2026-07"`): 2020, 2020-03, 2020-03-31, 2020-03-31T14:05, with :SS and a fraction of 1 to 9 digits (milliseconds kept), optionally ending in Z or an offset such as +02:00; without an offset the time is UTC. A line or area axis is a calendar only when every x qualifies.
 - The year format is applied automatically to integer x columns named year or *_year in 1000-2999.
-- Limits: a .rmd over 16 MiB is source.limit, one data file over 16 MiB is data.limit, and report HTML over 64 MiB is render.output-limit.
+- Native check and generate accept up to 5,000,000 bytes per input and 50,000,000 bytes across the version, and publish accepts the same inputs in a request of at most 32 MiB, which fits about 25,000,000 bytes of linked files. Count each referenced file once and inline rows within the source. The findings are report.file-limit and report.input-limit. The core also bounds source and resolved datasets at 16 MiB (source.limit and data.limit), and report HTML at 64 MiB (render.output-limit).
 
 Statistics and layout use the exact source observations; readouts, Table and CSV carry only the precision the author chose. Readers never get more precision than the author chose.
 
@@ -109,7 +109,7 @@ Local drafts need no metadata. Publishing requires a title, a description (the l
 - **date** is shown under the description.
 - **format** `rmd/1` marks the format version; a newer major is an error.
 - **tabs** `tabs.panels` lists {id, label, from} views that split the body at top-level `## Heading {#from}` anchors, with optional tabs.default and tabs.export: all|active for printed and PDF output. An explicit heading id is kept only when a panel names it; other ids warn and the heading keeps its generated anchor. A generated anchor alone does not start a panel.
-- **slides** `slides: true` turns the source into slides, one for each top-level heading or `---`; `richview learn slides` says how to write for them.
+- Slides are not a frontmatter field. A deck is a `.rslide` file of its own and never combines with a report; `slides: true` is retired (`frontmatter.slides`). `richview learn slides` says how to write one.
 
 An unknown key in a fence or in the frontmatter warns and names the nearest known key (`block.unknown-key`); a retired key or tag fails with its replacement. Unknown fences remain code.
 

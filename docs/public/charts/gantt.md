@@ -57,7 +57,7 @@ encoding: {label: task, start: start, end: end, color: phase}
 
 ## Interactions
 
-- Hover or focus a bar to read the task, its start, end and duration.
+- Hover or focus a bar to read the task, its start, end and duration. A dark outline marks the bar under the pointer.
 - Click a legend entry to remove a group of tasks and back.
 - Zoom the time axis to look at part of the plan.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

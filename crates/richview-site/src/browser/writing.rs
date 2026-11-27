@@ -1,10 +1,10 @@
-//! The live example's scene of the home page (W3 scene 2, S27-931): "Your agent writes one file."
+//! The live example's scene of the home page (W3 scene 2): "Your agent writes one file."
 //! In story builds the scene pins while the reader scrolls, and the scroll writes the anchor report
 //! block by block. In the source, the lines not yet written are dim and the block being written is
 //! lit; at wide layouts a thin wire joins it to the block it makes. In the report, each block rises
 //! into place as its source block completes, and the chart draws along x as its lines are written
 //! (INT-61). Scrolling back unwrites. The report shown is the build's own page of that report
-//! (`landing/anchor.html`) in a same-origin frame, so the scene can reach its blocks; the first
+//! (`landing/anchor`) in a same-origin frame, so the scene can reach its blocks; the first
 //! edit, style or reset hands the example to the sandboxed live frame, the only frame visitor
 //! input ever reaches (FEA-SF-29). With reduced motion, and on the static landing that `prod`
 //! serves until Daniel accepts the scroll story (STY-44), the scene neither pins nor moves.
@@ -17,21 +17,21 @@ use web_sys::{Element, HtmlIFrameElement, HtmlTextAreaElement};
 
 const SVG: &str = "http://www.w3.org/2000/svg";
 /// The page the scene writes: the anchor report as the build renders it.
-const PAGE: &str = "/landing/anchor.html";
+const PAGE: &str = "/landing/anchor";
 /// The earliest the scene's frame is made after the site runtime starts. The first screen is the
-/// painting agent's clip (S27-959), which needs no runtime, so nothing else waits for it.
+/// painting agent's clip, which needs no runtime, so nothing else waits for it.
 const AFTER_START_MS: f64 = 600.0;
 /// How long the page must rest from scrolling before the scene's frame is made. Making it starts its
-/// report, up to 180 ms of main-thread work in Chromium (S27-941), so it waits for a pause instead
-/// of landing mid-scroll (S27-930); until then the live frame shows the report whole. The site
-/// runtime starts on the reader's first gesture, often a scroll (S27-927).
+/// report, up to 180 ms of main-thread work in Chromium, so it waits for a pause instead
+/// of landing mid-scroll; until then the live frame shows the report whole. The site
+/// runtime starts on the reader's first gesture, often a scroll.
 const QUIET_MS: f64 = 250.0;
 /// How long a frame whose runtime has started may take to draw before it shows anyway.
 const DRAW_MS: f64 = 2500.0;
 /// How far a report block rises into place, in the report's pixels.
 const RISE_PX: f64 = 8.0;
 /// How much of the report's head shows before the scroll writes it, as the source shows its lines
-/// not yet written: an empty report page reads as a frame that failed to load (lead, S27-930).
+/// not yet written: an empty report page reads as a frame that failed to load (lead).
 const HEAD_GHOST: f64 = 0.16;
 
 /// One block of the report as the scene shows it: the elements that rise and fade together, and a
@@ -291,7 +291,7 @@ pub(crate) fn hand_over() {
 }
 
 /// While the scene's report covers the live frame, the live frame takes no pointer and is no Tab
-/// stop, so nothing the reader cannot see takes their input (S27-942). It stays readable to assistive
+/// stop, so nothing the reader cannot see takes their input. It stays readable to assistive
 /// technology, which the scene's own frame is hidden from: both hold the same report. The stylesheet
 /// drops the pointer under `data-covered`, and the live example's buffer swap keeps the Tab stop
 /// off while it is set; the hand-over gives both back.

@@ -1,7 +1,7 @@
 //! Ribbon charts: bars with their groups ranked by value, ribbons joining a group to itself in the
 //! next category, and the failures that name their cause (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Geometry, Item, Observation, Rect, Role};

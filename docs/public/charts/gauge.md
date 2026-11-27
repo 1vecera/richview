@@ -59,5 +59,5 @@ style:
 
 ## Interactions
 
-- Hover or focus the chart to read the value, its band and the scale.
+- Hover or focus the chart to read the value, its band and the scale; a dark outline traces the band the needle is in.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

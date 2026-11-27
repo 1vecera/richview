@@ -54,6 +54,44 @@ pub fn is_style_name(reference: &str) -> bool {
     !reference.contains(['/', '.', ':', '\n'])
 }
 
+/// The most styles a report's own list may name. A report names a few.
+pub const MAX_STYLE_REFERENCES: usize = 64;
+
+/// The most bytes the style files a report names may add up to, counting a file as often as the
+/// list names it: each name is a copy the cascade makes and parses, so a short list of one large
+/// file would otherwise cost the file's size many times over.
+pub const MAX_STYLE_BYTES: usize = 10_000_000;
+
+/// Why the report's list of styles is more than the cascade will copy: it names too many, or the
+/// files it names add up to too many bytes. `size` is the byte length of a style file the host
+/// supplied by the name it is referenced under. Read before anything is copied.
+pub fn style_list_problem(
+    frontmatter: &Value,
+    size: impl Fn(&str) -> Option<usize>,
+) -> Option<Diagnostic> {
+    let list = frontmatter.get("styles")?.as_array()?;
+    let refused = |what: String| {
+        Diagnostic::new("error", "style.limit", what, "frontmatter.styles")
+            .fix("Name each style once, and name fewer of them")
+    };
+    if list.len() > MAX_STYLE_REFERENCES {
+        return Some(refused(format!(
+            "The report names more than {MAX_STYLE_REFERENCES} styles; a report may name at most that many."
+        )));
+    }
+    let mut bytes = 0usize;
+    for reference in list.iter().filter_map(Value::as_str) {
+        if !is_style_name(reference) {
+            bytes = bytes.saturating_add(size(reference).unwrap_or(0));
+        }
+    }
+    (bytes > MAX_STYLE_BYTES).then(|| {
+        refused(format!(
+            "The style files the report names add up to {bytes} bytes, counting each as often as it is named; the limit is {MAX_STYLE_BYTES}."
+        ))
+    })
+}
+
 fn builtin(name: &str) -> Option<&'static str> {
     match name {
         "brutalist" => Some(include_str!("../assets/brutalist.rstyle.yaml")),
@@ -1004,7 +1042,7 @@ fn valid_dim(value: &Value) -> bool {
 }
 /// A shadow: `none`, or offsets, blur and one colour in any form [`valid_color`] takes, as in
 /// `0 2px 8px oklch(0 0 0 / 0.12)`. Authors write every other colour in any form (STY-19,
-/// TYP-46), so a shadow does too (S27-931).
+/// TYP-46), so a shadow does too.
 fn valid_shadow(value: &str) -> bool {
     static RE: OnceLock<Regex> = OnceLock::new();
     value == "none"

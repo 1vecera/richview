@@ -1,7 +1,7 @@
 //! Pie charts (FEA-CH-08, FEA-CH-09, FEA-CH-70): slices from 12 o'clock, clockwise in source
 //! order. Each slice is named beside it, without a leader, when every name stands clear of the
 //! disk, of the other names and of the panel; otherwise the whole chart takes a key: wrapped below
-//! the disk, or in a column beside it when the room is wider than tall (S27-875, S27-1017).
+//! the disk, or in a column beside it when the room is wider than tall.
 
 use super::graph;
 use super::{Ctx, Painted, Style};
@@ -377,7 +377,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &[(Option<String>, Vec<usize>)]) -> 
         })
         .collect();
     // In a room wider than tall the key stands in a column beside the disks, which take the width
-    // it leaves (S27-875); otherwise it wraps below them.
+    // it leaves; otherwise it wraps below them.
     let beside = key_needed && ctx.opts.aside;
     let key_w = key_labels
         .iter()
@@ -875,7 +875,7 @@ mod tests {
 
     #[test]
     fn a_key_stands_beside_the_disk_when_the_room_is_wider_than_tall() {
-        // Names this long never fit around the disk, so the pie takes a key (S27-875).
+        // Names this long never fit around the disk, so the pie takes a key.
         use crate::geometry::{Geometry, Item, Rect, Role};
         let block =
             ChartBlock::from_value(&json!({"type": "pie", "title": "T", "encoding": {"x": "c", "y": "v"}})).unwrap();

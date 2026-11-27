@@ -1,7 +1,7 @@
 //! Funnel charts: band widths at their true values, the readouts, and the shared contract
 //! (FEA-CH-01, FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use serde_json::{Value, json};

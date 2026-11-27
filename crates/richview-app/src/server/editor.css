@@ -1,0 +1,921 @@
+/* The online editor (hosted app). A full-window workspace on the app's own tokens: one ink bar with
+   the way back, the title and the save; the source on the left, the real report on the right, a
+   status bar below. Paper and ink, the brand blue for the one primary action, the current place
+   and focus; clay only for what is wrong. Nothing here floats except the save box and the note
+   after a save, and nothing is translucent (STY-48). */
+
+body.app-editor {
+	--danger: var(--hl-tag);
+	--danger-wash: color-mix(in oklch, var(--clay) 8%, var(--panel));
+	--danger-chip: color-mix(in oklch, var(--clay) 13%, var(--panel));
+	--warn: oklch(0.47 0.1 75);
+	--warn-wash: color-mix(in oklch, oklch(0.82 0.13 85) 13%, var(--panel));
+	--warn-chip: color-mix(in oklch, oklch(0.82 0.13 85) 24%, var(--panel));
+	--rail-ink: #1f1c19;
+	--rail-text: #efe9e1;
+	--rail-soft: #b8afa3;
+	--hair: color-mix(in oklch, var(--rule) 60%, var(--panel));
+	position: relative;
+	margin: 0;
+	height: 100vh;
+	height: 100dvh;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	grid-template-rows: auto minmax(0, 1fr) auto;
+	overflow: hidden;
+	background: var(--paper);
+	color: var(--ink);
+	font: 400 0.875rem / 1.45 var(--font-ui);
+}
+body.app-editor *,
+body.app-editor *::before,
+body.app-editor *::after {
+	box-sizing: border-box;
+}
+body.app-editor .sprite {
+	position: absolute;
+	width: 0;
+	height: 0;
+	overflow: hidden;
+}
+body.app-editor .ic {
+	width: 1rem;
+	height: 1rem;
+	flex: none;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.5;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+body.app-editor ::selection {
+	background: color-mix(in oklch, var(--blue) 22%, var(--panel));
+}
+body.app-editor button {
+	font-family: inherit;
+}
+body.app-editor [hidden] {
+	display: none !important;
+}
+
+/* ---- The ink bar ---- */
+.ed-top {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	min-width: 0;
+	min-height: 3rem;
+	padding: 0 0.75rem 0 0.5rem;
+	background: var(--rail-ink);
+	color: var(--rail-text);
+}
+.ed-top :focus-visible {
+	outline-color: color-mix(in oklch, var(--blue) 50%, white);
+}
+.ed-back {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.55rem;
+	min-height: 2.25rem;
+	padding: 0 0.65rem 0 0.5rem;
+	border-radius: var(--r-small);
+	color: var(--rail-text);
+	font: 600 0.875rem / 1 var(--font-ui);
+	text-decoration: none;
+}
+.ed-back:hover {
+	background: oklch(1 0 0 / 0.08);
+	color: #fff;
+}
+.ed-back .ic {
+	color: var(--rail-soft);
+}
+.ed-sep {
+	width: 1px;
+	height: 1.25rem;
+	background: oklch(1 0 0 / 0.14);
+}
+.ed-title {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	flex: 0 1 auto;
+	min-width: 0;
+}
+.ed-title strong {
+	overflow: hidden;
+	color: #fff;
+	font: 600 0.9375rem / 1.3 var(--font-ui);
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.ed-state {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	flex: none;
+	color: var(--rail-soft);
+	font-size: 0.8125rem;
+	white-space: nowrap;
+}
+.ed-state::before {
+	content: "";
+	width: 0.4375rem;
+	height: 0.4375rem;
+	border-radius: 50%;
+	background: color-mix(in oklch, var(--ok) 70%, white);
+}
+.ed-state--dirty::before {
+	background: color-mix(in oklch, var(--clay) 75%, white);
+}
+.ed-tools {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+	margin-left: auto;
+}
+.ed-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	min-height: 2.125rem;
+	padding: 0 0.75rem;
+	border: 1px solid transparent;
+	border-radius: var(--r-small);
+	background: none;
+	color: var(--rail-text);
+	font: 600 0.8125rem / 1 var(--font-ui);
+	text-decoration: none;
+	cursor: pointer;
+	transition: background-color 150ms var(--ease-out);
+}
+.ed-btn:hover {
+	background: oklch(1 0 0 / 0.09);
+	color: #fff;
+}
+.ed-btn .ic {
+	color: var(--rail-soft);
+}
+.ed-btn--line {
+	border-color: oklch(1 0 0 / 0.24);
+}
+.ed-btn--primary {
+	margin-left: 0.35rem;
+	padding: 0 1rem;
+	border-color: var(--blue);
+	background: var(--blue);
+	color: #fff;
+}
+.ed-btn--primary:hover {
+	background: color-mix(in oklch, var(--blue) 82%, white);
+}
+.ed-btn--primary:disabled {
+	border-color: oklch(1 0 0 / 0.2);
+	background: none;
+	color: var(--rail-soft);
+	cursor: default;
+}
+.ed-btn kbd {
+	margin-left: 0.15rem;
+	padding: 0 0.3rem;
+	border-radius: 3px;
+	background: oklch(1 0 0 / 0.16);
+	color: #fff;
+	font: 500 0.6875rem / 1.5 var(--font-ui);
+}
+.ed-short {
+	display: none;
+}
+
+/* ---- The two panes ---- */
+.ed-tabs {
+	display: none;
+}
+.ed-work {
+	display: grid;
+	grid-template-columns: minmax(0, calc(var(--ed-split, 50) * 1%)) 1px minmax(0, 1fr);
+	grid-template-rows: minmax(0, 1fr) auto;
+	min-height: 0;
+}
+.ed-src {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+	background: var(--panel);
+}
+.ed-split {
+	position: relative;
+	z-index: 2;
+	background: var(--rule);
+	cursor: col-resize;
+	touch-action: none;
+}
+.ed-split::after {
+	content: "";
+	position: absolute;
+	inset: 0 -4px;
+}
+.ed-split:hover,
+.ed-split:focus-visible {
+	background: var(--blue);
+}
+.ed-split:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 1px var(--blue);
+}
+.ed-nojs {
+	margin: 0;
+	padding: 0.75rem 1rem;
+	background: var(--danger-wash);
+	color: var(--danger);
+}
+.ed-insert {
+	display: flex;
+	align-items: center;
+	gap: 0.15rem;
+	flex: none;
+	min-height: 2.5rem;
+	padding: 0 0.75rem;
+	border-bottom: 1px solid var(--hair);
+	overflow-x: auto;
+	scrollbar-width: none;
+	background: var(--panel);
+}
+.ed-insert > span {
+	margin-right: 0.5rem;
+	color: var(--faint);
+	font-size: 0.8125rem;
+}
+.ed-add {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	flex: none;
+	min-height: 1.875rem;
+	padding: 0 0.6rem 0 0.45rem;
+	border: 0;
+	border-radius: var(--r-small);
+	background: none;
+	color: var(--ink);
+	font: 600 0.8125rem / 1 var(--font-ui);
+	cursor: pointer;
+	transition: background-color 150ms var(--ease-out);
+}
+.ed-add .ic {
+	width: 0.875rem;
+	height: 0.875rem;
+	color: var(--blue-ink);
+	stroke-width: 1.75;
+}
+.ed-add:hover {
+	background: var(--paper-2);
+}
+
+/* ---- The source ---- */
+/* The text area holds the text, the overlay under it draws the same text in colour, line numbers
+   and marks. Both wrap the same way, so a long line of prose wraps at the pane's edge and its
+   number stays with its first row. */
+body.app-editor .ed-code {
+	--code-font: 400 13px / 22px var(--font-mono);
+	--code-gutter: 3.5rem;
+	--code-pad: 0.75rem;
+	position: relative;
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: hidden;
+	background: var(--panel);
+}
+body.app-editor .ed-code .code__hl,
+body.app-editor .ed-code .code__mirror,
+body.app-editor .ed-code textarea {
+	position: absolute;
+	inset: 0;
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: var(--code-pad) 1rem 3rem var(--code-gutter);
+	border: 0;
+	font: var(--code-font);
+	tab-size: 2;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+	letter-spacing: 0;
+	font-variant-ligatures: none;
+	scrollbar-gutter: stable;
+}
+body.app-editor .ed-code .code__hl {
+	display: none;
+	overflow: hidden;
+	pointer-events: none;
+	color: var(--ink);
+}
+body.app-editor .ed-code.is-live .code__hl {
+	display: block;
+}
+body.app-editor .ed-code .code__mirror {
+	height: auto;
+	visibility: hidden;
+	pointer-events: none;
+	overflow: hidden;
+}
+body.app-editor .ed-code textarea {
+	z-index: 1;
+	display: block;
+	resize: none;
+	overflow: auto;
+	background: transparent;
+	color: var(--ink);
+	caret-color: var(--blue);
+	outline: none;
+	border-radius: 0;
+}
+body.app-editor .ed-code.is-live textarea {
+	color: transparent;
+	-webkit-text-fill-color: transparent;
+}
+body.app-editor .ed-code textarea::selection {
+	background: color-mix(in oklch, var(--blue) 24%, transparent);
+	-webkit-text-fill-color: transparent;
+}
+body.app-editor .ed-code textarea:focus-visible {
+	box-shadow: inset 0 0 0 2px color-mix(in oklch, var(--blue) 40%, transparent);
+}
+body.app-editor .ed-code .code__line::before {
+	content: counter(source-line);
+	position: absolute;
+	right: calc(100% + 12px);
+	color: var(--faint);
+	opacity: 0.85;
+	font-weight: 400;
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+	user-select: none;
+}
+/* A finding on a line: its wash across the gutter too, a dot beside the number, a wave under
+   the words and the message after the line's text. An error outranks a warning. */
+body.app-editor .ed-code .code__line.is-bad {
+	background: var(--danger-wash);
+	box-shadow:
+		calc(-1 * var(--code-gutter)) 0 0 var(--danger-wash),
+		1rem 0 0 var(--danger-wash);
+}
+body.app-editor .ed-code .code__line.is-warn {
+	background: var(--warn-wash);
+	box-shadow:
+		calc(-1 * var(--code-gutter)) 0 0 var(--warn-wash),
+		1rem 0 0 var(--warn-wash);
+}
+body.app-editor .ed-code .code__line.is-bad::before,
+body.app-editor .ed-code .code__line.is-warn::before {
+	opacity: 1;
+	font-weight: 600;
+}
+body.app-editor .ed-code .code__line.is-bad::before {
+	color: var(--danger);
+}
+body.app-editor .ed-code .code__line.is-warn::before {
+	color: var(--warn);
+}
+body.app-editor .ed-code .code__line.is-bad::after,
+body.app-editor .ed-code .code__line.is-warn::after {
+	content: "";
+	position: absolute;
+	left: calc(-1 * var(--code-gutter) + 0.5rem);
+	top: 7.5px;
+	width: 0.4375rem;
+	height: 0.4375rem;
+	border-radius: 50%;
+}
+body.app-editor .ed-code .code__line.is-bad::after {
+	background: var(--danger);
+}
+body.app-editor .ed-code .code__line.is-warn::after {
+	box-shadow: inset 0 0 0 1.5px var(--warn);
+}
+body.app-editor .ed-code .code__wave {
+	text-decoration-line: underline;
+	text-decoration-style: wavy;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 3px;
+	text-decoration-skip-ink: none;
+}
+body.app-editor .ed-code .code__wave--error {
+	text-decoration-color: var(--danger);
+}
+body.app-editor .ed-code .code__wave--warning {
+	text-decoration-color: var(--warn);
+}
+body.app-editor .ed-code .code__say {
+	position: absolute;
+	right: 0;
+	z-index: 2;
+	height: 22px;
+	padding: 0 0.55rem;
+	border-radius: 3px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	background: var(--danger-chip);
+	color: var(--danger);
+	font: 500 0.75rem / 22px var(--font-ui);
+	user-select: none;
+}
+body.app-editor .ed-code .code__say[data-level="warning"] {
+	background: var(--warn-chip);
+	color: var(--warn);
+}
+
+/* ---- The report ---- */
+.ed-view {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+	background: var(--paper-2);
+}
+.ed-view__bar {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	flex: none;
+	min-height: 2.5rem;
+	padding: 0 1rem;
+	color: var(--soft);
+	font-size: 0.8125rem;
+}
+.ed-view__bar strong {
+	color: var(--ink);
+	font-weight: 600;
+}
+/* Style pills (STY-08): one row of text pills, the active one filled with ink and checked. */
+.pills {
+	display: inline-flex;
+	gap: 2px;
+	margin-left: auto;
+	padding: 3px;
+	border-radius: 6px;
+	background: color-mix(in oklch, var(--ink) 5%, var(--paper-2));
+}
+.pills button {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	min-height: 1.75rem;
+	padding: 0 0.65rem;
+	border: 0;
+	border-radius: var(--r-small);
+	background: none;
+	color: var(--soft);
+	font: 600 0.8125rem / 1 var(--font-ui);
+	white-space: nowrap;
+	cursor: pointer;
+	transition:
+		background-color 150ms var(--ease-out),
+		color 150ms var(--ease-out);
+}
+.pills button:hover {
+	color: var(--ink);
+}
+.pills button[aria-checked="true"] {
+	background: var(--ink);
+	color: var(--paper);
+}
+.pills .ic {
+	display: none;
+	width: 0.75rem;
+	height: 0.75rem;
+	stroke-width: 2;
+}
+.pills button[aria-checked="true"] .ic {
+	display: inline-block;
+}
+.ed-banner {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	flex: none;
+	margin: 0 1rem 0.6rem;
+	padding: 0.5rem 0.75rem;
+	border: 1px solid color-mix(in oklch, var(--clay) 35%, var(--panel));
+	border-radius: var(--r-small);
+	background: var(--danger-wash);
+	color: var(--danger);
+	font-size: 0.8125rem;
+	line-height: 1.4;
+}
+.ed-banner .ic {
+	color: var(--danger);
+}
+.ed-banner button {
+	margin-left: auto;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--blue-ink);
+	font: 600 0.8125rem / 1.4 var(--font-ui);
+	text-decoration: underline;
+	text-underline-offset: 2px;
+	white-space: nowrap;
+	cursor: pointer;
+}
+.ed-sheet {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+	margin: 0 1rem;
+	overflow: hidden;
+	border: 1px solid var(--rule);
+	border-bottom: 0;
+	border-radius: 8px 8px 0 0;
+	background: #fff;
+}
+.ed-sheet iframe {
+	display: block;
+	width: 100%;
+	height: 100%;
+	border: 0;
+	background: #fff;
+}
+
+/* ---- The problems ---- */
+.ed-list {
+	grid-column: 1 / -1;
+	max-height: 9rem;
+	overflow: auto;
+	border-top: 1px solid var(--rule);
+	background: var(--panel);
+}
+.ed-list h2 {
+	margin: 0;
+	padding: 0.55rem 1rem 0.25rem;
+	color: var(--faint);
+	font: 600 0.75rem / 1.3 var(--font-ui);
+}
+.ed-list p {
+	margin: 0;
+	padding: 0.25rem 1rem 0.6rem;
+	color: var(--soft);
+}
+.ed-list ul {
+	margin: 0;
+	padding: 0 0.5rem 0.5rem;
+	list-style: none;
+}
+.ed-prob {
+	display: grid;
+	grid-template-columns: auto 4.5rem minmax(0, 1fr);
+	align-items: baseline;
+	gap: 0.75rem;
+	padding: 0.4rem 0.5rem;
+	border-radius: var(--r-small);
+	font-size: 0.8125rem;
+}
+.ed-prob:hover {
+	background: var(--paper-2);
+}
+.ed-prob .ic {
+	align-self: center;
+	color: var(--danger);
+}
+.ed-prob--warning .ic {
+	color: var(--warn);
+}
+.ed-prob--note .ic {
+	color: var(--ok);
+}
+.ed-prob .at {
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--blue-ink);
+	font: 600 0.8125rem / 1.45 var(--font-ui);
+	font-variant-numeric: tabular-nums;
+	text-align: left;
+}
+.ed-prob button.at {
+	cursor: pointer;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+.ed-prob .why b {
+	color: var(--ink);
+	font-weight: 600;
+}
+.ed-prob .why span {
+	color: var(--soft);
+}
+.ed-prob .why em {
+	display: block;
+	color: var(--soft);
+	font-style: normal;
+}
+
+/* ---- The status bar ---- */
+.ed-status {
+	display: flex;
+	align-items: center;
+	gap: 1.25rem;
+	min-height: 1.875rem;
+	padding: 0 0.75rem;
+	border-top: 1px solid var(--rule);
+	background: var(--panel);
+	color: var(--faint);
+	font-size: 0.75rem;
+	white-space: nowrap;
+}
+.ed-count {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	min-height: 1.5rem;
+	padding: 0 0.5rem;
+	border: 0;
+	border-radius: var(--r-small);
+	background: none;
+	color: var(--soft);
+	font: 600 0.75rem / 1 var(--font-ui);
+	cursor: pointer;
+}
+.ed-count:hover {
+	background: var(--paper-2);
+}
+.ed-count .ic {
+	width: 0.875rem;
+	height: 0.875rem;
+}
+.ed-count[data-state="ok"] svg:last-of-type,
+.ed-count[data-state="error"] svg:first-of-type,
+.ed-count[data-state="warning"] svg:first-of-type {
+	display: none;
+}
+.ed-count[data-state="ok"] .ic {
+	color: var(--ok);
+}
+.ed-count[data-state="error"] {
+	color: var(--danger);
+}
+.ed-count[data-state="warning"] {
+	color: var(--warn);
+}
+.ed-push {
+	margin-left: auto;
+}
+
+/* ---- The save box and the note after a save ---- */
+.ed-pop {
+	position: absolute;
+	z-index: 30;
+	top: 3.1rem;
+	right: 0.75rem;
+	width: min(24rem, calc(100vw - 1.5rem));
+	padding: 1rem;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-panel);
+	background: var(--panel);
+	box-shadow: var(--shadow-float);
+}
+.ed-pop h2 {
+	margin: 0 0 0.15rem;
+	font: 600 1rem / 1.35 var(--font-ui);
+}
+.ed-pop p {
+	margin: 0 0 0.85rem;
+	color: var(--soft);
+	font-size: 0.8125rem;
+	line-height: 1.5;
+}
+.ed-pop label {
+	display: block;
+	margin: 0 0 0.3rem;
+	font: 600 0.8125rem / 1.4 var(--font-ui);
+}
+.ed-pop input {
+	width: 100%;
+	min-height: 2.375rem;
+	margin: 0;
+	padding: 0.4rem 0.7rem;
+	border: 1px solid var(--blue);
+	border-radius: var(--r-small);
+	background: var(--panel);
+	color: var(--ink);
+	font: 400 0.875rem / 1.4 var(--font-mono);
+	outline: 2px solid color-mix(in oklch, var(--blue) 30%, transparent);
+}
+.ed-pop #ed-slug-row {
+	margin-bottom: 0.85rem;
+}
+.ed-pop .hint {
+	margin: 0.4rem 0 0;
+	color: var(--faint);
+	font-size: 0.75rem;
+}
+.ed-pop .ed-pop__note {
+	margin: 0.85rem 0 0;
+	padding: 0.5rem 0.65rem;
+	border-radius: var(--r-small);
+	background: var(--warn-wash);
+	color: var(--ink);
+}
+.ed-pop .ed-pop__error {
+	margin: 0.85rem 0 0;
+	padding: 0.5rem 0.65rem;
+	border-radius: var(--r-small);
+	background: var(--danger-wash);
+	color: var(--danger);
+}
+.ed-pop__link {
+	margin: 0.5rem 0 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--blue-ink);
+	font: 600 0.8125rem / 1.4 var(--font-ui);
+	text-decoration: underline;
+	text-underline-offset: 2px;
+	cursor: pointer;
+}
+.ed-pop__acts {
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.5rem;
+	margin-top: 1rem;
+}
+.ed-pop__acts button {
+	min-height: 2.125rem;
+	padding: 0 0.9rem;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-small);
+	background: var(--panel);
+	color: var(--ink);
+	font: 600 0.8125rem / 1 var(--font-ui);
+	cursor: pointer;
+}
+.ed-pop__acts .go {
+	border-color: var(--blue);
+	background: var(--blue);
+	color: #fff;
+}
+.ed-pop__acts button:disabled {
+	opacity: 0.6;
+	cursor: default;
+}
+.ed-toast {
+	position: absolute;
+	z-index: 30;
+	left: 50%;
+	bottom: 2.75rem;
+	translate: -50% 0;
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	max-width: calc(100vw - 1.5rem);
+	padding: 0.6rem 0.9rem;
+	border-radius: var(--r-small);
+	background: var(--rail-ink);
+	color: var(--rail-text);
+	font-size: 0.8125rem;
+	box-shadow: var(--shadow-float);
+}
+.ed-toast a {
+	color: #fff;
+	font-weight: 600;
+	text-underline-offset: 2px;
+}
+
+/* ---- Narrow screens: one pane at a time ---- */
+@media (max-width: 960px) {
+	body.app-editor {
+		grid-template-rows: auto auto minmax(0, 1fr) auto;
+	}
+	.ed-work {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.ed-split {
+		display: none;
+	}
+	.ed-top {
+		gap: 0.5rem;
+		padding-right: 0.5rem;
+	}
+	.ed-sep,
+	.ed-state,
+	.ed-back span,
+	.ed-lab {
+		display: none;
+	}
+	.ed-btn {
+		min-width: 2.5rem;
+		min-height: 2.5rem;
+		justify-content: center;
+		padding: 0 0.5rem;
+	}
+	.ed-btn--line {
+		border-color: transparent;
+	}
+	.ed-btn--primary {
+		margin-left: 0;
+		padding: 0 1rem;
+	}
+	.ed-long {
+		display: none;
+	}
+	.ed-short {
+		display: inline;
+	}
+	.ed-title strong {
+		font-size: 0.875rem;
+	}
+	.ed-tabs {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 3px;
+		margin: 0.6rem 0.75rem;
+		padding: 3px;
+		border-radius: 6px;
+		background: var(--paper-2);
+	}
+	.ed-tabs button {
+		min-height: 2.5rem;
+		border: 0;
+		border-radius: var(--r-small);
+		background: none;
+		color: var(--soft);
+		font: 600 0.875rem / 1 var(--font-ui);
+	}
+	.ed-tabs button[aria-selected="true"] {
+		background: var(--panel);
+		color: var(--ink);
+		box-shadow: inset 0 0 0 1px var(--rule);
+	}
+	body.app-editor[data-pane="source"] .ed-view,
+	body.app-editor[data-pane="report"] .ed-src {
+		display: none;
+	}
+	.ed-insert > span {
+		display: none;
+	}
+	body.app-editor .ed-code {
+		--code-font: 400 12.5px / 20px var(--font-mono);
+		--code-gutter: 2.75rem;
+	}
+	body.app-editor .ed-code .code__line.is-bad::after,
+	body.app-editor .ed-code .code__line.is-warn::after {
+		left: calc(-1 * var(--code-gutter) + 0.15rem);
+		top: 6.5px;
+	}
+	body.app-editor .ed-code .code__say {
+		display: none;
+	}
+	.ed-sheet {
+		margin: 0;
+		border-width: 1px 0 0;
+		border-radius: 0;
+	}
+	.ed-banner {
+		margin: 0 0.75rem 0.6rem;
+	}
+	.ed-view__bar {
+		padding: 0.25rem 0.75rem;
+	}
+	.ed-view__bar > strong {
+		display: none;
+	}
+	/* Every style stays in view: the pills sit close enough to share one row, and a narrower
+	   screen wraps them instead of hiding the last ones behind a scroll. */
+	.pills {
+		flex-wrap: wrap;
+		margin-left: 0;
+		max-width: 100%;
+	}
+	.pills button {
+		padding: 0 0.5rem;
+	}
+	.ed-prob {
+		grid-template-columns: auto minmax(0, 1fr);
+	}
+	.ed-prob .at {
+		display: none;
+	}
+	.ed-list {
+		max-height: 13rem;
+	}
+	.ed-hide {
+		display: none;
+	}
+	.ed-pop {
+		left: 0.75rem;
+		right: 0.75rem;
+		width: auto;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ed-btn,
+	.ed-add,
+	.pills button {
+		transition: none;
+	}
+}

@@ -198,7 +198,7 @@ body {
 .rv-table-scroll { max-width: 100%; overflow-x: auto; margin: calc(var(--rv-block-gap) * .5) 0; }
 .rv-table-scroll > table { margin: 0; min-width: 100%; width: max-content; max-width: none; }
 .rv-table-scroll:focus-visible { outline: 2px solid var(--rv-link); outline-offset: 2px; }
-/* A table box that scrolls sideways shows it (S27-879). While its content is wider, the runtime
+/* A table box that scrolls sideways shows it. While its content is wider, the runtime
    marks the box (data-rv-cues) and the sides that have more (data-rv-more): on each, an edge cue
    fades the content into the surface the box sits on, and it leaves when the reader reaches that
    end, so a value the box cuts is never read as whole. The box is then a grid: its rows in the

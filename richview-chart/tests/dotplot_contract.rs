@@ -1,7 +1,7 @@
 //! Dot plots: one dot for every observation, stacked in equal-width intervals, counted on the
 //! vertical axis, and the contract every type shares (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::Item;

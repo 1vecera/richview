@@ -1,4 +1,4 @@
-//! The live example's completion list (W3 scene 2, S27-931): a small, light list under the caret
+//! The live example's completion list (W3 scene 2): a small, light list under the caret
 //! while the reader types a key, a value, a block's tag or a data field, from `crate::completion`.
 //! Keyboard first: the arrows move, Enter or Tab puts the choice in, Escape closes, and Ctrl+Space
 //! asks where nothing is typed yet. A click puts a choice in too; hovering does nothing (INT-59).

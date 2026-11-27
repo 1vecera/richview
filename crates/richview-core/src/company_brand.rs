@@ -25,6 +25,8 @@ impl CompanyLogo {
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct CompanyBrand {
     pub name: String,
+    /// The page surface on which the resolved mark will appear.
+    pub dark_surface: bool,
     /// The chosen builtin underneath this company style, when explicitly set.
     pub base: Option<String>,
     /// The resolved company accent in sRGB, for outputs that cannot use CSS colour syntax.
@@ -136,6 +138,7 @@ pub fn resolve_company_brand(
     let branded = company.is_object() || style.document.pointer("/settings/colors/brand").is_some();
     CompanyBrand {
         name,
+        dark_surface: style.scheme == "dark",
         base: style
             .document
             .pointer("/settings/preset")
@@ -158,19 +161,27 @@ fn report_style(
     frontmatter: &serde_json::Value,
     options: &RenderOptions,
 ) -> (Vec<String>, ResolvedStyle) {
-    let mut sources: Vec<String> = frontmatter["styles"]
+    // The same bound the render keeps (`style_list_problem`): a report that is stored passed it, one
+    // stored before it was made is read as far as it allows and no further.
+    let mut sources: Vec<String> = Vec::new();
+    let mut expanded = 0usize;
+    for reference in frontmatter["styles"]
         .as_array()
         .into_iter()
         .flatten()
         .filter_map(serde_json::Value::as_str)
-        .filter_map(|reference| {
-            if crate::is_style_name(reference) {
-                Some(reference.to_owned())
-            } else {
-                options.data.get(reference).cloned()
+        .take(crate::MAX_STYLE_REFERENCES)
+    {
+        if crate::is_style_name(reference) {
+            sources.push(reference.to_owned());
+        } else if let Some(text) = options.data.get(reference) {
+            expanded = expanded.saturating_add(text.len());
+            if expanded > crate::MAX_STYLE_BYTES {
+                break;
             }
-        })
-        .collect();
+            sources.push(text.clone());
+        }
+    }
     sources.extend(options.styles.iter().cloned());
     sources.extend(crate::report_background_layer(frontmatter));
     let style = crate::resolve_styles(&sources, &mut Vec::new());

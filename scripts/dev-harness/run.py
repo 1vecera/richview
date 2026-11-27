@@ -28,15 +28,15 @@ NATIVE_ENTRYPOINTS = {
     "richview-editor": "crates/richview-editor/src/main.rs",
 }
 SUITES = {
-    "smoke": ["dev-harness/journey.mjs", "verify-report-runtime.mjs"],
-    "site": ["verify-browser.mjs", "verify-site.mjs", "verify-docs.mjs"],
+    "smoke": ["dev-harness/journey.ts", "verify-report-runtime.ts"],
+    "site": ["verify-browser.ts", "verify-site.ts", "verify-docs.ts"],
     "integration": [
-        "dev-harness/journey.mjs",
-        "verify-native.mjs",
-        "verify-editor.cjs",
-        "verify-browser.mjs",
-        "verify-report-runtime.mjs",
-        "verify-site.mjs",
+        "dev-harness/journey.ts",
+        "verify-native.ts",
+        "verify-editor.cts",
+        "verify-browser.ts",
+        "verify-report-runtime.ts",
+        "verify-site.ts",
     ],
 }
 
@@ -306,9 +306,9 @@ def run_harness(args):
     env["RICHVIEW_VERIFY_BROWSER"] = args.browser
     env["RICHVIEW_DEV_PREVIEW"] = "1"
     scripts = list(dict.fromkeys([*SUITES[args.suite], *args.check]))
-    if args.drill and "dev-harness/journey.mjs" not in scripts:
-        scripts.insert(0, "dev-harness/journey.mjs")
-    needs_fixtures = "verify-browser.mjs" in scripts
+    if args.drill and "dev-harness/journey.ts" not in scripts:
+        scripts.insert(0, "dev-harness/journey.ts")
+    needs_fixtures = "verify-browser.ts" in scripts
 
     def command(name, argv, expected=0, signal=None):
         if shutil.disk_usage(target).free < 15 * 1024**3:
@@ -534,14 +534,14 @@ def run_harness(args):
             verify_inputs()
             command(
                 "regression-missing-runtime",
-                ["node", "scripts/dev-harness/journey.mjs", "--disable-runtime"],
+                ["node", "scripts/dev-harness/journey.ts", "--disable-runtime"],
                 expected=1,
                 signal="HARNESS_RUNTIME_MISSING",
             )
             verify_inputs()
         for index, script in enumerate(scripts):
             path = (ROOT / "scripts" / script).resolve(strict=True)
-            if not path.is_relative_to(ROOT / "scripts") or path.suffix not in (".mjs", ".cjs"):
+            if not path.is_relative_to(ROOT / "scripts") or path.suffix not in (".mjs", ".cjs", ".ts", ".mts", ".cts"):
                 raise RuntimeError("Extra checks must be existing Node verifiers inside scripts/")
             verify_inputs()
             command(f"{index:02d}-{path.stem}", ["node", str(path)])

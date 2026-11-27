@@ -1,6 +1,6 @@
 //! Reader interactions reuse the selected author state's exact-derived structure (TYP-36).
 
-mod common;
+use super::common;
 
 use common::{draw, line, observations};
 use richview_chart::block::ChartBlock;
@@ -551,7 +551,7 @@ fn pie_wedges_replay_the_embedded_boundaries_and_keep_dense_targets_after_hide()
 fn hidden_pie_totals_sum_shown_rows_and_summarize_only_visible_slices() {
     let spec = json!({"type":"pie","title":"T","encoding":{"x":"name","y":"v"},"style":{"ratio":2}});
     // The visible names are too long to stand beside their slices of this narrow disk (names
-    // that fit are drawn there, S27-1017), so the chart takes a key, which also lists the hidden one.
+    // that fit are drawn there), so the chart takes a key, which also lists the hidden one.
     let rows = vec![
         json!({"name":"Hidden","v":100}),
         json!({"name":"Alpha channel","v":1.234}),

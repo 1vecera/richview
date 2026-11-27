@@ -1,6 +1,6 @@
 # Dedicated News gateway. The existing richview.ai Worker is not modified.
 name = "richview-news"
-main = "cloudflare/publish/entry.mjs"
+main = "cloudflare/publish/entry.ts"
 compatibility_date = "2026-10-18"
 workers_dev = false
 preview_urls = false

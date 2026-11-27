@@ -61,6 +61,6 @@ axes:
 
 ## Interactions
 
-- Hover or focus a violin to read its observations, maximum, quartiles, median and minimum.
+- Hover or focus a violin to read its observations, maximum, quartiles, median and minimum. A dark outline traces the violin under the pointer.
 - Click a legend entry to toggle a group when the chart has several.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

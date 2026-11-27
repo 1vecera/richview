@@ -1,7 +1,7 @@
 //! Waffle charts: squares shared out by the largest remainder, column by column from the bottom
 //! left, one observation per category, and the failures that name their cause (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Item, Rect, Role};

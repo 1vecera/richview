@@ -1407,8 +1407,7 @@ async fn a_private_report_is_hidden_from_a_colleague_until_shared_with_the_organ
     let anonymous = host.report_get("/r/aaaa0001/draft").await;
     assert_eq!(anonymous.status, StatusCode::OK);
     assert!(anonymous.body.contains("Report draft"));
-    // Above it, the report host's one bar for a public report: it names nobody, because the
-    // response is cached for everyone.
+    // This version has no publisher credit. Everyone gets the original public bar.
     let bar = anonymous
         .body
         .find("class=\"rv-host-bar\"")
@@ -1444,6 +1443,157 @@ fn publish_body(slug: &str, version: &str, visibility: Option<&str>, new: bool) 
         body["visibility"] = json!(visibility);
     }
     body
+}
+
+#[cfg(feature = "embedded-runtime")]
+#[tokio::test]
+async fn a_version_keeps_its_style_credit_across_readers_and_sharing_changes() {
+    const KEY: &str = "aaaa0001/q3";
+    async fn signed_in(host: &Host, person: &str, path: &str) -> Reply {
+        let login = me(person);
+        let principal = host.access.authenticate(None, Some(&login.cookie));
+        let ticket = host
+            .access
+            .issue_grant(&principal, KEY, Some(&login.cookie))
+            .unwrap();
+        let cookie = host.access.redeem_grant(&ticket, KEY).unwrap();
+        let request = Request::builder()
+            .uri(path)
+            .header(header::HOST, "reports.test")
+            .header(header::COOKIE, format!("rv_report={cookie}"))
+            .body(Body::empty())
+            .unwrap();
+        call(&host.reports, request).await
+    }
+    let host = team()
+        .token("author", A)
+        .report(KEY, "author", "public")
+        .grant(KEY, "outsider", "viewer")
+        .start(Mail::Files);
+    let latest = "/r/aaaa0001/q3";
+    let old = "/r/aaaa0001/q3/v/1.0.0";
+    let first = "/r/aaaa0001/q3/v/1.0.1";
+    let original = host.report_get(old).await;
+    assert_eq!(original.status, StatusCode::OK);
+    assert!(original.body.contains("Published with"));
+    let author = token_of("author", A);
+    for (version, name) in [("1.0.1", "Studio North"), ("1.0.2", "Studio South")] {
+        let mut body = publish_body("q3", version, None, false);
+        body["source"] = json!(format!(
+            "---\ntitle: Q3\ndescription: D\nversion: {version}\nstyles: [publisher.rstyle.yaml]\n---\n\n# Q3\n"
+        ));
+        body["reportFolder"]["files"] = json!(["report.rmd", "publisher.rstyle.yaml"]);
+        body["data"] = json!({"publisher.rstyle.yaml": format!("company:\n  name: {name}\n")});
+        for created in [true, false] {
+            let response = host
+                .api(&author, "POST", "/api/reports", Some(body.clone()))
+                .await;
+            assert_eq!(response.status, StatusCode::OK, "{}", response.body);
+            assert_eq!(response.json()["created"], created);
+        }
+    }
+    assert_eq!(host.report_get(old).await.body, original.body);
+    // The hosted app answers every report path with `private, no-store` (f5192261), so no shared
+    // cache keeps a credit; what this test pins is that all readers get the same bytes.
+    let cache = "private, no-store";
+    for (path, name) in [(latest, "Studio South"), (first, "Studio North")] {
+        let anonymous = host.report_get(path).await;
+        assert_eq!(anonymous.status, StatusCode::OK);
+        assert!(anonymous.body.contains(&format!("<strong>{name}</strong>")));
+        assert!(anonymous.body.contains("anyone with the link can open it"));
+        assert!(anonymous.body.contains(">Sign in</a>"));
+        assert!(!anonymous.body.contains("Aria Author"));
+        assert_eq!(anonymous.headers[header::CACHE_CONTROL], cache);
+        for person in ["author", "reader", "outsider"] {
+            let page = signed_in(&host, person, path).await;
+            assert_eq!(page.status, StatusCode::OK);
+            assert_eq!(page.headers[header::CACHE_CONTROL], cache);
+            assert_eq!(anonymous.body, page.body);
+        }
+    }
+    host.post(
+        &me("author"),
+        "/ui/share/aaaa0001/q3",
+        &[("visibility", "org")],
+    )
+    .await;
+    assert_eq!(host.access.acl(KEY).visibility, Visibility::Org);
+    for (person, message, action) in [
+        ("author", "Your report", ">Share</a>"),
+        ("outsider", "Shared with you", "Find it again"),
+        ("reader", "every member can open it", ">All reports</a>"),
+    ] {
+        let page = signed_in(&host, person, first).await;
+        assert_eq!(page.status, StatusCode::OK);
+        assert_eq!(page.headers[header::CACHE_CONTROL], "private, no-store");
+        assert!(page.body.contains("<strong>Studio North</strong>"));
+        assert!(page.body.contains(message));
+        assert!(page.body.contains(action));
+    }
+    assert!(!host.report_get(first).await.body.contains("Studio North"));
+}
+
+#[cfg(feature = "embedded-runtime")]
+#[tokio::test]
+async fn a_marks_shape_is_decided_when_the_version_is_published() {
+    use base64::{Engine, engine::general_purpose::STANDARD};
+    let host = team()
+        .token("author", A)
+        .report("aaaa0001/q3", "author", "public")
+        .start(Mail::Files);
+    let author = token_of("author", A);
+    // A 1 x 1 mark is squarer than a lockup; the example company's mark is 872 x 144.
+    let square = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12P4DwQACfsD/WMmxY8AAAAASUVORK5CYII=".to_owned();
+    let wide = format!(
+        "data:image/png;base64,{}",
+        STANDARD.encode(include_bytes!("../../../examples/company-style/logo.png"))
+    );
+    for (version, name, logo) in [
+        ("1.0.1", "Studio North", square),
+        ("1.0.2", "Studio South", wide),
+    ] {
+        let mut body = publish_body("q3", version, None, false);
+        body["source"] = json!(format!(
+            "---\ntitle: Q3\ndescription: D\nversion: {version}\nstyles: [publisher.rstyle.yaml]\n---\n\n# Q3\n"
+        ));
+        body["reportFolder"]["files"] = json!(["report.rmd", "publisher.rstyle.yaml", "logo.png"]);
+        body["data"] = json!({
+            "publisher.rstyle.yaml": format!("company:\n  name: {name}\n  logo: logo.png\n"),
+            "logo.png": logo,
+        });
+        let response = host.api(&author, "POST", "/api/reports", Some(body)).await;
+        assert_eq!(response.status, StatusCode::OK, "{}", response.body);
+    }
+    // The squarer mark keeps the name beside it.
+    let square_page = host.report_get("/r/aaaa0001/q3/v/1.0.1").await;
+    assert_eq!(square_page.status, StatusCode::OK);
+    assert!(
+        square_page
+            .body
+            .contains("<span class=\"rv-publisher\" title=\"Studio North\"><img ")
+    );
+    assert!(square_page.body.contains("<strong>Studio North</strong>"));
+    assert!(
+        !square_page
+            .body
+            .contains("<span class=\"rv-publisher rv-publisher--lockup\"")
+    );
+    // The wide lockup stands alone; the name stays as its alt text.
+    let wide_page = host.report_get("/r/aaaa0001/q3/v/1.0.2").await;
+    assert_eq!(wide_page.status, StatusCode::OK);
+    assert!(wide_page.body.contains(
+        "<span class=\"rv-publisher rv-publisher--lockup\" title=\"Studio South\"><img "
+    ));
+    assert!(!wide_page.body.contains("<strong>Studio South</strong>"));
+    let credit = wide_page
+        .body
+        .split_once("<span class=\"rv-publisher")
+        .unwrap()
+        .1
+        .split_once("</span>")
+        .unwrap()
+        .0;
+    assert!(credit.contains("alt=\"Studio South\""));
 }
 
 #[tokio::test]
@@ -1760,13 +1910,22 @@ async fn an_existing_account_sees_a_shared_report_in_its_list_and_nothing_else_o
     let shared = host.get(&known, "/?show=shared").await;
     assert!(shared.body.contains("href=\"/reports/aaaa0001/q3\""));
     assert!(!shared.body.contains("Nobody has shared"));
-    assert!(shared.body.contains("Shared with you"));
-    assert!(shared.body.contains("By Aria Author · Acme"));
-    assert!(shared.body.contains(">Details</a>"));
-    assert!(!shared.body.contains("vis--private"));
+    // The row says it was shared with them and by whom; they may read it, so it leads to the
+    // report's page and never to the editor, and its menu offers details, not sharing.
+    assert!(shared.body.contains("chip chip--you"));
+    assert!(!shared.body.contains("chip chip--org") && !shared.body.contains("chip chip--public"));
+    assert!(shared.body.contains("Shared by Aria Author"));
+    assert!(shared.body.contains("</svg>Details and versions</a>"));
+    assert!(!shared.body.contains("aaaa0001/q3/edit"));
+    assert!(!shared.body.contains("aaaa0001/q3/delete"));
     let owner_list = host.get(&me("author"), "/").await;
     assert!(owner_list.body.contains("Shared with known@example.test"));
-    assert!(owner_list.body.contains(">Share</a>"));
+    assert!(owner_list.body.contains("</svg>Sharing and versions</a>"));
+    assert!(
+        owner_list
+            .body
+            .contains("href=\"/reports/aaaa0001/q3/edit\"")
+    );
     for hidden in ["other", "orgwide"] {
         assert!(!all.body.contains(&format!("aaaa0001/{hidden}")));
         assert_eq!(
@@ -1964,6 +2123,168 @@ async fn removing_a_person_from_a_report_ends_a_pending_invitation_and_an_accept
     let page = host.get(&author, "/reports/aaaa0001/q3").await;
     assert!(!page.body.contains("known@example.test"));
     assert!(!page.body.contains("granted@example.test"));
+}
+
+#[tokio::test]
+async fn a_row_opens_the_editor_for_those_who_may_edit_and_offers_delete_to_those_who_may_delete() {
+    let host = team()
+        .person("ed", "Edith Editor")
+        .member("ed", A, "reader")
+        .report("aaaa0001/q3", "author", "org")
+        .grant("aaaa0001/q3", "ed", "editor")
+        .start(Mail::Files);
+    let edit = "href=\"/reports/aaaa0001/q3/edit\"";
+    let delete = "href=\"/reports/aaaa0001/q3/delete\"";
+    // Its owner and the administrators of the organization hold every right.
+    for who in ["author", "admin", "owner"] {
+        let list = host.get(&me(who), "/").await;
+        assert!(list.body.contains(edit), "{who}");
+        assert!(list.body.contains(delete), "{who}");
+    }
+    // An editor named on it may edit but not delete.
+    let editor = host.get(&me("ed"), "/").await;
+    assert!(editor.body.contains(edit));
+    assert!(!editor.body.contains(delete));
+    // A reader sees the organization's report and may do neither: the row leads to its page.
+    let reader = host.get(&me("reader"), "/").await;
+    assert!(reader.body.contains("href=\"/reports/aaaa0001/q3\""));
+    assert!(!reader.body.contains(edit) && !reader.body.contains(delete));
+}
+
+#[tokio::test]
+async fn the_editor_opens_for_those_who_may_edit_and_for_nobody_else() {
+    let host = team()
+        .person("ed", "Edith Editor")
+        .member("ed", A, "reader")
+        .person("viewer", "Vera Viewer")
+        .member("viewer", A, "reader")
+        .report("aaaa0001/q3", "author", "private")
+        .report("aaaa0001/orgwide", "owner", "org")
+        .grant("aaaa0001/q3", "ed", "editor")
+        .grant("aaaa0001/q3", "viewer", "viewer")
+        .start(Mail::Files);
+    // Its owner, an editor named on it and the administrators open it on the stored report.
+    for who in ["author", "ed", "admin", "owner"] {
+        let page = host.get(&me(who), "/reports/aaaa0001/q3/edit").await;
+        assert_eq!(page.status, StatusCode::OK, "{who}");
+        assert!(page.body.contains("data-richview-page=\"editor\""), "{who}");
+        assert!(page.body.contains("data-org=\"aaaa0001\""), "{who}");
+        assert!(page.body.contains("data-slug=\"q3\""), "{who}");
+        assert!(page.body.contains("data-version=\"1.0.0\""), "{who}");
+        assert!(page.body.contains("data-new=\"false\""), "{who}");
+        assert!(
+            page.body.contains(&format!("data-csrf=\"csrf-{who}\"")),
+            "{who}"
+        );
+        assert!(
+            page.body
+                .contains("<strong id=\"ed-title\">Report q3</strong>")
+        );
+        let policy = page.headers[header::CONTENT_SECURITY_POLICY]
+            .to_str()
+            .unwrap();
+        assert!(policy.contains("worker-src 'self' blob:"), "{policy}");
+        assert!(policy.contains("frame-ancestors 'none'"), "{policy}");
+        assert!(!policy.contains("http"), "{policy}");
+        assert_eq!(page.headers[header::CACHE_CONTROL], "no-store");
+        assert_eq!(page.headers[header::REFERRER_POLICY], "no-referrer");
+    }
+    // Someone who can read it but not edit it is taken to its page, which says so.
+    for (who, path) in [
+        ("viewer", "/reports/aaaa0001/q3"),
+        ("reader", "/reports/aaaa0001/orgwide"),
+    ] {
+        let reply = host.get(&me(who), &format!("{path}/edit")).await;
+        assert_eq!(reply.status, StatusCode::SEE_OTHER, "{who}");
+        assert!(
+            reply.location().starts_with(path),
+            "{who}: {}",
+            reply.location()
+        );
+        assert_eq!(
+            reply.notice(),
+            "You can read this report but not edit it.",
+            "{who}"
+        );
+    }
+    // Anyone else gets the answer a missing report gets, and a signed-out visitor is asked to
+    // sign in first.
+    let missing = host
+        .get(&me("outsider"), "/reports/aaaa0001/nothing/edit")
+        .await;
+    for who in ["outsider", "reader"] {
+        let hidden = host.get(&me(who), "/reports/aaaa0001/q3/edit").await;
+        assert_eq!(hidden.status, StatusCode::NOT_FOUND, "{who}");
+        assert_eq!(
+            hidden.body, missing.body,
+            "{who} learns that the report exists"
+        );
+    }
+    let signed_out = host.get(&nobody(), "/reports/aaaa0001/q3/edit").await;
+    assert_eq!(signed_out.status, StatusCode::SEE_OTHER);
+    assert_eq!(signed_out.notice(), "Sign in first.");
+}
+
+#[tokio::test]
+async fn a_new_report_opens_the_editor_for_a_person_who_may_publish_and_for_nobody_else() {
+    let host = team().person("lone", "Lena Lone").start(Mail::Files);
+    for who in ["author", "admin", "owner"] {
+        let page = host.get(&me(who), "/reports/new").await;
+        assert_eq!(page.status, StatusCode::OK, "{who}");
+        assert!(page.body.contains("data-richview-page=\"editor\""), "{who}");
+        assert!(page.body.contains("data-org=\"aaaa0001\""), "{who}");
+        assert!(page.body.contains("data-slug=\"\""), "{who}");
+        assert!(page.body.contains("data-new=\"true\""), "{who}");
+        assert!(page.body.contains("New report"), "{who}");
+        assert!(
+            page.body
+                .contains("id=\"ed-history\" href=\"/\" aria-label=\"History\" hidden>")
+        );
+    }
+    let reader = host.get(&me("reader"), "/reports/new").await;
+    assert_eq!(reader.status, StatusCode::SEE_OTHER);
+    assert_eq!(
+        reader.notice(),
+        "Readers open reports; authors create them."
+    );
+    let lone = host.get(&me("lone"), "/reports/new").await;
+    assert_eq!(lone.status, StatusCode::SEE_OTHER);
+    assert_eq!(lone.notice(), "Create or join an organization first.");
+    let signed_out = host.get(&nobody(), "/reports/new").await;
+    assert_eq!(signed_out.status, StatusCode::SEE_OTHER);
+    assert_eq!(signed_out.notice(), "Sign in first.");
+}
+
+#[tokio::test]
+async fn the_editors_files_are_served_by_the_app_origin_and_not_by_the_report_origin() {
+    let host = team().start(Mail::Files);
+    for path in [
+        "/richview_site.js",
+        "/richview_site_bg.wasm",
+        "/worker.js",
+        "/richview-fonts.css",
+        "/fonts-math.css",
+        "/richview_runtime.js",
+        "/richview_runtime_bg.wasm",
+    ] {
+        // A build without the staged runtime answers 503; one with it answers 200. Neither
+        // answers 404, which is what a missing route says.
+        let reply = host.get(&nobody(), path).await;
+        assert!(
+            matches!(
+                reply.status,
+                StatusCode::OK | StatusCode::SERVICE_UNAVAILABLE
+            ),
+            "{path}: {}",
+            reply.status
+        );
+        let there = host.report_get(path).await;
+        assert_eq!(
+            there.status,
+            StatusCode::NOT_FOUND,
+            "{path} on the report origin"
+        );
+    }
 }
 
 #[tokio::test]
@@ -2179,6 +2500,7 @@ async fn organization_and_person_names_are_escaped_on_every_page() {
         .person("mallory", "<img src=x>")
         .member("mallory", A, "author")
         .report("aaaa0001/q3", "mallory", "org")
+        .grant("aaaa0001/q3", "outsider", "viewer")
         .start(Mail::Files);
     let renamed = host
         .post(
@@ -2188,16 +2510,27 @@ async fn organization_and_person_names_are_escaped_on_every_page() {
         )
         .await;
     assert_eq!(renamed.notice(), "Name saved.");
-    for page in ["/members", "/", "/reports/aaaa0001/q3"] {
+    for page in ["/members", "/reports/aaaa0001/q3"] {
         let reply = host.get(&me("owner"), page).await;
         assert_eq!(reply.status, StatusCode::OK, "{page}");
         assert_escaped(&reply.body, page);
     }
-    // A colleague who only reads sees them escaped too.
-    for page in ["/members", "/"] {
-        let reply = host.get(&me("reader"), page).await;
-        assert_escaped(&reply.body, page);
+    // The list names the organization in its rail and a person only where a row says who shared
+    // the report with someone, so each is checked where it appears.
+    for who in ["owner", "reader"] {
+        let list = host.get(&me(who), "/").await;
+        assert!(!list.body.contains("<script>alert(1)"), "{who}");
+        assert!(
+            list.body.contains("&lt;script&gt;alert(1)&lt;/script&gt;"),
+            "{who}"
+        );
     }
+    let outside = host.get(&me("outsider"), "/").await;
+    assert!(outside.body.contains("Shared by &lt;img src=x&gt;"));
+    assert!(!outside.body.contains("<img src=x"));
+    // A colleague who only reads sees them escaped too.
+    let reply = host.get(&me("reader"), "/members").await;
+    assert_escaped(&reply.body, "/members");
 }
 
 #[tokio::test]

@@ -4,7 +4,7 @@
 //! 480 px of plot width, and every value is printed or none. A financial chart's last close, high
 //! and low follow their own ruling (chart design, 17 Nov 2026): the close always stays.
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{DropReason, Face, Geometry, Item, Rect, Role, Text};

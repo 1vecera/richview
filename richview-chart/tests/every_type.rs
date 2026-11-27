@@ -3,7 +3,7 @@
 //! entrance, a ratio, and a reason on screen when it has nothing to draw. The nine older types
 //! keep their own suites.
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::block::ChartType;

@@ -60,6 +60,28 @@ fn chart_types() -> String {
         .join("\n")
 }
 
+/// One line per layout of a deck: how it reads, its slots in reading order and what `cols` and
+/// `rows` cut.
+fn deck_layouts() -> String {
+    crate::slides::layout_rows()
+        .into_iter()
+        .map(|row| {
+            let cuts: Vec<String> = [("cols", &row[2]), ("rows", &row[3])]
+                .into_iter()
+                .filter(|(_, parts)| !parts.is_empty())
+                .map(|(key, parts)| format!("`{key}` is {parts}"))
+                .collect();
+            let cuts = if cuts.is_empty() {
+                String::new()
+            } else {
+                format!(" ({})", cuts.join(", "))
+            };
+            format!("- {}: {}{cuts}", row[0], row[1])
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 /// Fills the placeholders of the hand-written guide from the registry, so no list of tags,
 /// fields or types is written twice (ARC-09).
 fn from_registry(text: &str) -> String {
@@ -92,6 +114,15 @@ fn from_registry(text: &str) -> String {
             "@FRONTMATTER@",
             &field_lines(crate::registry::FRONTMATTER, |_| false),
         )
+        .replace(
+            "@DECKSETUP@",
+            &field_lines(crate::registry::DECK_SETUP, |_| false),
+        )
+        .replace(
+            "@DECKSLIDE@",
+            &field_lines(crate::registry::DECK_SLIDE, |_| false),
+        )
+        .replace("@DECKLAYOUTS@", &deck_layouts())
         .replace("@CHARTS@", &chart_types())
         .replace("@POINTLIMITS@", &point_limits())
         .replace("@CHARTFIELDS@", &field_lines(chart, |_| false))

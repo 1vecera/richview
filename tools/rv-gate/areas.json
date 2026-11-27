@@ -7,7 +7,8 @@
         "*"
       ],
       "steps": [
-        "secrets"
+        "secrets",
+        "public-tree"
       ]
     },
     {
@@ -42,21 +43,21 @@
       ],
       "commands": {
         "chromium": [
-          "scripts/verify-browser.mjs",
-          "scripts/verify-flagship.mjs",
-          "scripts/verify-figure-expand.mjs",
-          "scripts/verify-chart-keyboard.mjs",
-          "scripts/verify-facet-text.mjs",
-          "scripts/verify-chart-readouts.mjs",
-          "scripts/verify-readout-placement.mjs",
-          "scripts/verify-wedge-readouts.mjs",
-          "scripts/verify-chord-readouts.mjs",
-          "scripts/verify-funnel-readouts.mjs",
-          "scripts/verify-point-modes.mjs",
-          "scripts/verify-chart-interaction.mjs",
-          "scripts/verify-chart-feedback.mjs",
-          "scripts/verify-report-runtime.mjs",
-          "scripts/verify-docs.mjs"
+          "scripts/verify-browser.ts",
+          "scripts/verify-flagship.ts",
+          "scripts/verify-figure-expand.ts",
+          "scripts/verify-chart-keyboard.ts",
+          "scripts/verify-facet-text.ts",
+          "scripts/verify-chart-readouts.ts",
+          "scripts/verify-readout-placement.ts",
+          "scripts/verify-wedge-readouts.ts",
+          "scripts/verify-chord-readouts.ts",
+          "scripts/verify-funnel-readouts.ts",
+          "scripts/verify-point-modes.ts",
+          "scripts/verify-chart-interaction.ts",
+          "scripts/verify-chart-feedback.ts",
+          "scripts/verify-report-runtime.ts",
+          "scripts/verify-docs.ts"
         ]
       }
     },
@@ -72,9 +73,9 @@
       ],
       "commands": {
         "chromium": [
-          "scripts/verify-browser.mjs",
-          "scripts/verify-flagship.mjs",
-          "scripts/verify-docs.mjs"
+          "scripts/verify-browser.ts",
+          "scripts/verify-flagship.ts",
+          "scripts/verify-docs.ts"
         ]
       }
     },
@@ -82,6 +83,7 @@
       "name": "landing page",
       "paths": [
         "assets/landing/",
+        "assets/browser/landing.ts",
         "crates/richview-site/src/browser/voices.rs"
       ],
       "steps": [
@@ -91,7 +93,7 @@
       ],
       "commands": {
         "chromium": [
-          "scripts/verify-browser.mjs"
+          "scripts/verify-browser.ts"
         ]
       }
     },
@@ -107,23 +109,23 @@
       ],
       "commands": {
         "chromium": [
-          "scripts/verify-browser.mjs",
-          "scripts/verify-flagship.mjs",
-          "scripts/verify-docs.mjs"
+          "scripts/verify-browser.ts",
+          "scripts/verify-flagship.ts",
+          "scripts/verify-docs.ts"
         ]
       }
     },
     {
       "name": "browser verification script",
       "paths": [
-        "scripts/verify-browser.mjs"
+        "scripts/verify-browser.ts"
       ],
       "steps": [
         "chromium"
       ],
       "commands": {
         "chromium": [
-          "scripts/verify-browser.mjs"
+          "scripts/verify-browser.ts"
         ]
       }
     },
@@ -151,7 +153,8 @@
       ],
       "except": [
         "assets/site.css",
-        "assets/landing/"
+        "assets/landing/",
+        "assets/browser/landing.ts"
       ]
     },
     {
@@ -285,7 +288,8 @@
         "tools/lockdown-app/",
         "tools/api-contracts/",
         "tools/dependency-rules/",
-        "tools/agent-use/"
+        "tools/agent-use/",
+        "tools/rv-release/"
       ],
       "steps": [
         "tool-tests",
@@ -349,6 +353,7 @@
         "clippy-wasm",
         "arch",
         "secrets",
+        "public-tree",
         "rust-tests",
         "tool-tests",
         "publish-tests",
@@ -450,6 +455,17 @@
       "steps": [
         "pins",
         "deps"
+      ]
+    },
+    {
+      "name": "TypeScript project",
+      "paths": [
+        "tsconfig.json"
+      ],
+      "steps": [
+        "entrypoints",
+        "tool-tests",
+        "arch"
       ]
     },
     {

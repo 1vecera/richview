@@ -70,6 +70,6 @@ encoding:
 
 ## Interactions
 
-- Hover or focus a point to read the row's values in that cell, or a diagonal or upper cell for the range or the correlation.
+- Hover or focus a point to read the row's values in that cell, or a diagonal or upper cell for the range or the correlation. The point grows and takes a ring in its own colour, as a scatter point does.
 - Click a legend entry to remove a group and back.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

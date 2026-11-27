@@ -10,7 +10,7 @@ The checker is developed separately from the chart and core facades. Producer ow
 node tools/api-contracts/check.mjs snapshot --root . --manifest tools/api-contracts/contracts.json
 node tools/api-contracts/check.mjs snapshot --root . --manifest tools/api-contracts/contracts.json --contract core.document
 node tools/api-contracts/check.mjs check --root . --manifest tools/api-contracts/contracts.json --base origin/dev
-node --test tools/api-contracts/test/*.test.mjs
+node --test tools/api-contracts/test/*.test.mts
 ```
 
 `snapshot` prints `{path, snapshot}` entries for review; `--contract` prints just that contract's canonical snapshot, ready to save to a scratch file. It does not overwrite the accepted snapshot. `check` verifies every current declaration and binding against its snapshot, then reports changes from the Git base when one is supplied. Missing files, unsupported declaration forms and mismatched bindings fail explicitly. `--contract` cannot select a partial check.

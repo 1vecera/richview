@@ -104,7 +104,7 @@ impl Default for Format {
 }
 
 /// The scale words of values and readouts, per locale, after the number (FEA-CH-37 as
-/// amended in ASSUMED.md): the Czech and German abbreviations, English words elsewhere.
+/// amended on assumption): the Czech and German abbreviations, English words elsewhere.
 fn scale_words(locale: Locale) -> [&'static str; 5] {
     match locale {
         Locale::EnUs | Locale::EnGb | Locale::JaJp => ["", "thousand", "million", "billion", "trillion"],
@@ -116,7 +116,7 @@ const SCALE_SUFFIX: [&str; 5] = ["", "K", "M", "B", "T"];
 
 /// An axis's compact suffixes: K and M in every locale, then B and T, except where the
 /// language's own billion is 10^12. Czech and German ticks write their words for 10^9 and
-/// 10^12, so `3B Kč` is never read a thousandfold off (FEA-CH-22 as amended in ASSUMED.md).
+/// 10^12, so `3B Kč` is never read a thousandfold off (FEA-CH-22 as amended on assumption).
 fn axis_suffixes(locale: Locale) -> [&'static str; 5] {
     match locale {
         Locale::CsCz => ["", "K", "M", " mld.", " bil."],
@@ -364,26 +364,359 @@ pub fn value(value: f64, format: &Format) -> String {
     if !value.is_finite() {
         return "n/a".into();
     }
-    let value = shown(value, format);
-    let locale = format.locale;
-    match format.kind {
-        Kind::Year => grouped(value.round(), 0, locale, false),
-        Kind::Percent => {
-            let pct = round_sig(value * 100.0, format.digits);
-            if pct != 0.0 && pct.abs() < 1e-8 {
-                return format!("{}%", scientific(pct, format.digits, locale));
-            }
-            format!("{}%", grouped(pct, decimals_of(pct), locale, true))
+    DisplayNumber::new(value, format).text(format, None)
+}
+
+/// A rounded reader value in its printed unit. A table can set one scale on these
+/// coefficients while its heat and sorting still use the same numbers in source units.
+pub struct DisplayNumber {
+    coefficient: f64,
+    /// Multiplying the printed coefficient by 10^power restores the source units.
+    power: i32,
+    notation: Notation,
+    /// The column's scale would have printed the number as zero, so it keeps its own digits.
+    outside_scale: bool,
+}
+
+enum Notation {
+    Plain,
+    Compact(usize),
+    Scientific(i32),
+}
+
+/// Where a table column's decimal places come from (TYP-104).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ScaleSource {
+    /// The author set `decimals`, or the column is a year: every cell shows them.
+    Author,
+    /// The source declared a scale (a DECIMAL type): every cell shows it, with every digit it has.
+    Declared,
+    /// Neither: the column has no scale, and each cell prints on its own as [`value`] prints it,
+    /// at the author's significant digits and no finer (FEA-CH-37).
+    Undeclared,
+}
+
+/// How a table column prints all of its numbers (TYP-104). A column with a declared scale is
+/// decided once from every cell, so it reads in one notation at one scale. A column with none
+/// has no column scale: its cells print one by one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ColumnScale {
+    source: ScaleSource,
+    explicit_digits: bool,
+    /// The decimal places of every cell; `None` for a column with no declared scale, or no number.
+    places: Option<usize>,
+    /// The thousand-power every cell is written in (`Some(2)` is millions); `None` for plain cells.
+    compact: Option<usize>,
+}
+
+impl ColumnScale {
+    /// The notation and scale of a column from the `values` in it, its format, the author's
+    /// `decimals` and the source's declared scale.
+    ///
+    /// A column with a declared scale, from the author or the source, prints every cell as a plain
+    /// number at that scale, never with a scale word. The one exception is `number_compact` with
+    /// the author's `decimals`: the author asked for words outright, so every cell is in the same
+    /// word at those places. A column with no declared scale has none: each cell prints as
+    /// [`value`] prints it, so no cell shows more digits than the author allows.
+    pub fn of(
+        values: &[f64],
+        format: &Format,
+        author: Option<usize>,
+        declared: Option<usize>,
+        explicit_digits: bool,
+    ) -> Self {
+        let source = if author.is_some() || format.kind == Kind::Year {
+            ScaleSource::Author
+        } else if declared.is_some() && format.kind != Kind::NumberCompact {
+            ScaleSource::Declared
+        } else {
+            ScaleSource::Undeclared
+        };
+        let mut column = Self {
+            source,
+            explicit_digits,
+            places: None,
+            compact: None,
+        };
+        column.compact = column.compact_power(values, format, author);
+        column.places = match source {
+            // A year prints whole whatever `decimals` says.
+            ScaleSource::Author if format.kind == Kind::Year => Some(0),
+            ScaleSource::Author => Some(author.unwrap_or(0)),
+            ScaleSource::Declared => (!values.is_empty()).then(|| {
+                // A declared scale counts places in source units, so a percent prints two fewer.
+                let offset = if format.kind == Kind::Percent { -2 } else { 0 };
+                declared.unwrap_or(0).saturating_add_signed(offset)
+            }),
+            ScaleSource::Undeclared => None,
+        };
+        column
+    }
+
+    /// The thousand-power the whole column is written in: only for `number_compact` with the
+    /// author's `decimals`, whose words every cell shares.
+    fn compact_power(self, values: &[f64], format: &Format, author: Option<usize>) -> Option<usize> {
+        let places = author.filter(|_| format.kind == Kind::NumberCompact)?;
+        let largest = largest_of(values);
+        // The largest cell as it prints, so 999.9 at no decimals is already a thousand.
+        let printed = round_places(largest, places);
+        if printed < 1000.0 {
+            return None;
         }
-        Kind::Number => plain_or_scientific(value, format),
-        Kind::Auto | Kind::NumberCompact => {
-            if value.abs() >= 10_000.0 || (format.kind == Kind::NumberCompact && value.abs() >= 1000.0) {
-                compact_word(value, format)
-            } else {
-                plain_or_scientific(value, format)
+        let (mut k, _) = scale_of(printed, format.digits);
+        // Rounding at the places can carry the largest cell into the next word.
+        while k >= 1 && round_places(shift_decimal(largest, -3 * k as i32), places) >= 1000.0 {
+            k += 1;
+        }
+        (1..SCALE_SUFFIX.len()).contains(&k).then_some(k)
+    }
+
+    /// The places `cell` prints at. A cell in exponents keeps its own digits unless the author
+    /// set the decimals, and so does a number the scale would print as zero.
+    pub fn places_of(self, cell: &DisplayNumber) -> Option<usize> {
+        let own = cell.outside_scale
+            || (matches!(cell.notation, Notation::Scientific(_)) && self.source != ScaleSource::Author);
+        if own { None } else { self.places }
+    }
+}
+
+/// The magnitude of the largest finite number.
+fn largest_of(values: &[f64]) -> f64 {
+    values
+        .iter()
+        .filter(|v| v.is_finite())
+        .fold(0.0_f64, |most, v| most.max(v.abs()))
+}
+
+/// `value` rounded half away from zero at `places` decimals, on its shortest decimal text.
+fn round_places(value: f64, places: usize) -> f64 {
+    let scientific = format!("{:e}", value.abs());
+    let (mantissa, exponent) = scientific.split_once('e').unwrap();
+    let keep = 1 + exponent.parse::<i32>().unwrap() + places as i32;
+    if keep > 0 {
+        round_sig(value, keep.min(17) as u8)
+    } else if keep == 0 && mantissa.as_bytes()[0] >= b'5' {
+        value.signum() * 10f64.powi(-(places as i32))
+    } else {
+        0.0
+    }
+}
+
+impl DisplayNumber {
+    pub fn new(value: f64, format: &Format) -> Self {
+        let value = shown(value, format);
+        let percent = format.kind == Kind::Percent;
+        let n = if percent {
+            round_sig(value * 100.0, format.digits)
+        } else {
+            value
+        };
+        let offset = if percent { -2 } else { 0 };
+        let compact = (format.kind == Kind::Auto && n.abs() >= 10_000.0)
+            || (format.kind == Kind::NumberCompact && n.abs() >= 1000.0);
+        if compact {
+            let (k, coefficient) = scale_of(n, format.digits);
+            if k < SCALE_SUFFIX.len() {
+                return Self {
+                    coefficient,
+                    power: 3 * k as i32,
+                    notation: Notation::Compact(k),
+                    outside_scale: false,
+                };
+            }
+        }
+        if format.kind != Kind::Year && n.is_finite() && n != 0.0 && (n.abs() < 1e-8 || (!percent && n.abs() >= 1e15)) {
+            let scientific = format!("{:.*e}", (format.digits.max(1) - 1) as usize, n);
+            let (mantissa, exponent) = scientific.split_once('e').unwrap();
+            let power: i32 = exponent.parse().unwrap();
+            return Self {
+                coefficient: mantissa.parse().unwrap(),
+                power: power + offset,
+                notation: Notation::Scientific(power),
+                outside_scale: false,
+            };
+        }
+        Self {
+            coefficient: n,
+            power: offset,
+            notation: Notation::Plain,
+            outside_scale: false,
+        }
+    }
+
+    /// One cell of a table column, from its raw value, in the notation and at the places the
+    /// column has. The coarser of significant digits and decimal places wins, always counted
+    /// from the raw value: rounding 1.249 first to 1.25 and then to one place would print 1.3.
+    ///
+    /// A column with no declared scale prints each cell as [`value`] does. A number is never
+    /// printed as zero: one the scale would round to zero keeps its own digits instead, so 0.04
+    /// at one decimal reads 0.04 and 400 beside a column in millions reads 400.
+    pub fn for_column(value: f64, format: &Format, column: ColumnScale) -> Self {
+        let cell = Self::at_scale(value, format, column);
+        if cell.coefficient == 0.0 && value != 0.0 && value.is_finite() && format.kind != Kind::Year {
+            let own = Format {
+                digits: if column.explicit_digits {
+                    format.digits
+                } else {
+                    DEFAULT_DIGITS
+                },
+                ..format.clone()
+            };
+            return Self {
+                outside_scale: true,
+                ..Self::new(value, &own)
+            };
+        }
+        cell
+    }
+
+    fn at_scale(value: f64, format: &Format, column: ColumnScale) -> Self {
+        // The default keeps four-digit counts whole. An authored precision can be coarser.
+        let input = if column.explicit_digits
+            && effective_digits(value, format.digits) > format.digits
+            && matches!(format.kind, Kind::Auto | Kind::Number | Kind::NumberCompact)
+        {
+            round_sig(value, format.digits)
+        } else {
+            value
+        };
+        let shown = Self::column_cell(input, format, column);
+        let Some(places) = column.places else {
+            return shown;
+        };
+        let exponents = matches!(shown.notation, Notation::Scientific(_));
+        if !shown.coefficient.is_finite() || (exponents && column.source != ScaleSource::Author) {
+            return shown;
+        }
+        // A cell that already has the scale's places keeps the significant-digit rule's rounding,
+        // so 1,234,567.89 alone at two places still reads 1,230,000.
+        if decimals_of(shown.coefficient) <= places {
+            return shown;
+        }
+        let coefficient = round_places(shift_decimal(value, -shown.power), places);
+        // Decimal rounding can carry the leading digit into the next unit of a cell in exponents.
+        match shown.notation {
+            Notation::Compact(k) if coefficient.abs() >= 1000.0 => {
+                let power = shown.power + 3;
+                let notation = if k + 1 < SCALE_SUFFIX.len() {
+                    Notation::Compact(k + 1)
+                } else {
+                    Notation::Scientific(power)
+                };
+                Self {
+                    coefficient: coefficient / 1000.0,
+                    power,
+                    notation,
+                    outside_scale: false,
+                }
+            }
+            Notation::Scientific(exp) if coefficient.abs() >= 10.0 => Self {
+                coefficient: coefficient / 10.0,
+                power: shown.power + 1,
+                notation: Notation::Scientific(exp + 1),
+                outside_scale: false,
+            },
+            _ => Self { coefficient, ..shown },
+        }
+    }
+
+    /// The cell before the column's places: in the column's notation, rounded to the significant
+    /// digits. A column with a declared scale never takes a scale word or an exponent, and a
+    /// compact column writes every cell in its one word.
+    fn column_cell(input: f64, format: &Format, column: ColumnScale) -> Self {
+        let plain = Format {
+            kind: match format.kind {
+                Kind::Auto | Kind::NumberCompact => Kind::Number,
+                kind => kind,
+            },
+            ..format.clone()
+        };
+        match column.compact {
+            // A cell too small for the word stays in exponents rather than print a run of zeros.
+            Some(k) if input == 0.0 || input.abs() >= 1e-8 => {
+                let power = 3 * k as i32;
+                Self {
+                    coefficient: round_sig(shift_decimal(input, -power), format.digits),
+                    power,
+                    notation: Notation::Compact(k),
+                    outside_scale: false,
+                }
+            }
+            Some(_) => Self::new(input, &plain),
+            // A column with no declared scale prints cell by cell, and one that asked for compact
+            // words and has none to write goes beyond the last word to exponents, as it would
+            // anywhere.
+            None if column.source == ScaleSource::Undeclared || format.kind == Kind::NumberCompact => {
+                Self::new(input, format)
+            }
+            None => {
+                let value = shown(input, &plain);
+                let percent = plain.kind == Kind::Percent;
+                Self {
+                    coefficient: if percent {
+                        round_sig(value * 100.0, plain.digits)
+                    } else {
+                        value
+                    },
+                    power: if percent { -2 } else { 0 },
+                    notation: Notation::Plain,
+                    outside_scale: false,
+                }
             }
         }
     }
+
+    /// The numeric value for reader sorting and heat, at the precision of the printed cell.
+    pub fn source_value(&self) -> Option<f64> {
+        let value = shift_decimal(self.coefficient, self.power);
+        value.is_finite().then_some(value)
+    }
+
+    pub fn text(&self, format: &Format, places: Option<usize>) -> String {
+        let needed = decimals_of(self.coefficient);
+        let places = places.unwrap_or(needed);
+        let mut number = grouped(
+            self.coefficient,
+            places.min(needed),
+            format.locale,
+            format.kind != Kind::Year,
+        );
+        if places > needed && self.coefficient.is_finite() {
+            if needed == 0 {
+                number.push(format.locale.decimal());
+            }
+            number.extend(std::iter::repeat_n('0', places - needed));
+        }
+        match self.notation {
+            Notation::Plain => {}
+            Notation::Compact(k) => {
+                number.push(' ');
+                number.push_str(scale_words(format.locale)[k]);
+            }
+            Notation::Scientific(power) => number.push_str(&format!(" × 10{}", superscript(power))),
+        }
+        if format.kind == Kind::Percent {
+            format!("{number}%")
+        } else if format.kind == Kind::Year {
+            number
+        } else {
+            with_unit(&number, format.unit.as_deref())
+        }
+    }
+}
+
+/// Shift the decimal point on the shortest number text. Multiplying a rounded
+/// percent or compact label in binary could put a finer value in the sort key.
+fn shift_decimal(value: f64, power: i32) -> f64 {
+    if value == 0.0 {
+        return 0.0;
+    }
+    if power == 0 || !value.is_finite() {
+        return value;
+    }
+    format!("{value}e{power}")
+        .parse()
+        .expect("a finite number and a decimal exponent")
 }
 
 /// One value as a slide's stage prints it on its chart (FEA-RP-65): as [`value`] does, at the
@@ -409,25 +742,6 @@ pub fn compact(value: f64, format: &Format) -> String {
         grouped(mantissa, decimals_of(mantissa), format.locale, true)
     );
     with_unit(&number, unit.as_deref())
-}
-
-fn plain_or_scientific(v: f64, format: &Format) -> String {
-    let unit = format.unit.as_deref();
-    if v != 0.0 && (v.abs() < 1e-8 || v.abs() >= 1e15) {
-        return with_unit(&scientific(v, format.digits, format.locale), unit);
-    }
-    with_unit(&grouped(v, decimals_of(v), format.locale, true), unit)
-}
-
-fn compact_word(v: f64, format: &Format) -> String {
-    let words = scale_words(format.locale);
-    let (k, mantissa) = scale_of(v, format.digits);
-    if k >= words.len() {
-        return with_unit(&scientific(v, format.digits, format.locale), format.unit.as_deref());
-    }
-    let number = grouped(mantissa, decimals_of(mantissa), format.locale, true);
-    let words = format!("{number} {}", words[k]);
-    with_unit(&words, format.unit.as_deref())
 }
 
 /// The thousand-power `k` and rounded mantissa of `v`: 167,500 at three digits → (1, 168).
@@ -721,7 +1035,7 @@ mod tests {
         assert_eq!(axis(Locale::EnUs, None, trillions), ["0", "1.5T", "3.0T"]);
         assert_eq!(axis(Locale::JaJp, None, billions), ["0", "1.5B", "3.0B"]);
         assert_eq!(axis(Locale::CsCz, None, [0.0, 1.5e6, 3e6]), ["0", "1,5M", "3,0M"]);
-        // Japanese keeps the English words for now; myriads are only proposed (ASSUMED.md).
+        // Japanese keeps the English words for now; myriads are only proposed.
         assert_eq!(at(Locale::JaJp, None, 280_512_345.0), "280.5 million");
         assert_eq!(at(Locale::EnGb, None, 4.5e6), "4.5 million");
     }
@@ -742,6 +1056,204 @@ mod tests {
             axis_labels(&[-0.5, 0.0, 0.5], 0.5, &fmt(Kind::Percent, None, 3)),
             ["−50%", "0%", "50%"]
         );
+    }
+
+    #[test]
+    fn column_rounding_promotes_the_magnitude_and_keeps_sort_values_in_source_units() {
+        let format = Format {
+            kind: Kind::NumberCompact,
+            digits: MAX_DIGITS,
+            ..Default::default()
+        };
+        for (input, rounded, label) in [
+            (999.9, 1e3, "1 thousand"),
+            (-999.9, -1e3, "−1 thousand"),
+            (999_900.0, 1e6, "1 million"),
+            (-999_900.0, -1e6, "−1 million"),
+            (999.9e12, 1e15, "1 × 10¹⁵"),
+            (-999.9e12, -1e15, "−1 × 10¹⁵"),
+            (9.9e-14, 1e-13, "1 × 10⁻¹³"),
+            (-9.9e-14, -1e-13, "−1 × 10⁻¹³"),
+        ] {
+            let column = ColumnScale::of(&[input], &format, Some(0), None, false);
+            let number = DisplayNumber::for_column(input, &format, column);
+            assert_eq!(number.text(&format, Some(0)), label);
+            assert_eq!(number.source_value(), Some(rounded));
+        }
+    }
+
+    /// The printed text of every cell of a column with these `values`.
+    fn column_cells(values: &[f64], format: &Format, author: Option<usize>, declared: Option<usize>) -> Vec<String> {
+        let column = ColumnScale::of(values, format, author, declared, false);
+        values
+            .iter()
+            .map(|v| {
+                let cell = DisplayNumber::for_column(*v, format, column);
+                cell.text(format, column.places_of(&cell))
+            })
+            .collect()
+    }
+
+    #[test]
+    fn a_declared_column_is_plain_at_its_scale_and_an_undeclared_one_prints_cell_by_cell() {
+        let auto = Format::default();
+        // No declared scale: each cell as `value` prints it, whatever its neighbours show.
+        let mixed = [1_234_567.89, 500.5, 1.25];
+        assert_eq!(
+            column_cells(&[1_234_567.0, 250_000.0, 98_000.0], &auto, None, None),
+            ["1.23 million", "250 thousand", "98 thousand"]
+        );
+        assert_eq!(column_cells(&mixed, &auto, None, None), mixed.map(|v| value(v, &auto)));
+        assert_eq!(column_cells(&mixed, &auto, None, None), ["1.23 million", "501", "1.25"]);
+        // A declared scale, from the author or the source, is plain at that scale.
+        let all = Format {
+            digits: MAX_DIGITS,
+            ..Default::default()
+        };
+        assert_eq!(
+            column_cells(&[12_345.67, 987.5, 1_234_567.89], &all, None, Some(2)),
+            ["12,345.67", "987.50", "1,234,567.89"]
+        );
+        assert_eq!(
+            column_cells(&[12_345.67, 987.5], &all, Some(0), None),
+            ["12,346", "988"]
+        );
+        // `number_compact` without `decimals` is words cell by cell, whatever the source declared.
+        let words = Format {
+            kind: Kind::NumberCompact,
+            ..Default::default()
+        };
+        assert_eq!(
+            column_cells(&[1500.0, 2500.0, 98.7654321], &words, None, None),
+            ["1.5 thousand", "2.5 thousand", "98.8"]
+        );
+        assert_eq!(
+            column_cells(&[1_234_567.89, 250_000.5, 98.7654321], &words, None, Some(2)),
+            ["1.23 million", "250 thousand", "98.8"]
+        );
+        // With `decimals` it is the author's words for every cell, at those places.
+        let counted = Format {
+            kind: Kind::NumberCompact,
+            digits: MAX_DIGITS,
+            ..Default::default()
+        };
+        assert_eq!(
+            column_cells(&[1_234_567.0, 250_000.0], &counted, Some(2), None),
+            ["1.23 million", "0.25 million"]
+        );
+    }
+
+    #[test]
+    fn a_number_the_scale_would_round_to_zero_keeps_its_own_digits() {
+        let all = Format {
+            digits: MAX_DIGITS,
+            ..Default::default()
+        };
+        assert_eq!(
+            column_cells(&[0.04, 12_345.67], &all, Some(1), None),
+            ["0.04", "12,345.7"]
+        );
+        assert_eq!(column_cells(&[-0.04, 2.0], &all, Some(0), None), ["−0.04", "2"]);
+        // The same cell beside a column in millions: the author asked for words, not for a zero.
+        let counted = Format {
+            kind: Kind::NumberCompact,
+            digits: MAX_DIGITS,
+            ..Default::default()
+        };
+        assert_eq!(
+            column_cells(&[1_234_567.0, 98.77], &counted, Some(2), None),
+            ["1.23 million", "98.8"]
+        );
+        assert_eq!(column_cells(&[9.9e-14, 1.0], &all, Some(0), None), ["9.9 × 10⁻¹⁴", "1"]);
+        // A cell that is zero stays zero, and so does every year.
+        assert_eq!(column_cells(&[0.0, 12.5], &all, Some(1), None), ["0.0", "12.5"]);
+        let year = Format {
+            kind: Kind::Year,
+            ..Default::default()
+        };
+        assert_eq!(column_cells(&[2024.0, 1999.4], &year, Some(2), None), ["2024", "1999"]);
+    }
+
+    /// Whether `text` has a digit other than zero before any exponent: the reader can tell it
+    /// from zero.
+    fn reads_nonzero(text: &str) -> bool {
+        text.split(" × ")
+            .next()
+            .is_some_and(|mantissa| mantissa.chars().any(|c| ('1'..='9').contains(&c)))
+    }
+
+    #[test]
+    fn no_number_prints_as_zero_in_any_notation() {
+        let values = [
+            1e-300,
+            1e-20,
+            1e-12,
+            1.4e-8,
+            9.99e-9,
+            0.00049,
+            0.004,
+            0.0449,
+            0.04,
+            0.4,
+            0.49,
+            0.5,
+            0.999,
+            1.0,
+            98.77,
+            99.95,
+            999.95,
+            4321.98765,
+            98765.4321,
+            167_543.217,
+            1_234_567.891,
+            9.99e14,
+            1.0e15,
+            1.5e21,
+            1.7e300,
+        ];
+        let mut cells = 0;
+        for kind in [Kind::Auto, Kind::Number, Kind::NumberCompact, Kind::Percent] {
+            for digits in 2..=MAX_DIGITS {
+                let format = Format {
+                    kind,
+                    digits,
+                    unit: Some("$".into()),
+                    ..Default::default()
+                };
+                for v in values.iter().flat_map(|v| [*v, -*v]) {
+                    for (surface, text) in [
+                        ("value", value(v, &format)),
+                        ("compact", compact(v, &format)),
+                        ("label", label(v, &format, 2)),
+                    ] {
+                        assert!(
+                            reads_nonzero(&text),
+                            "{surface} prints {v} as {text} in {kind:?} at {digits} digits"
+                        );
+                        cells += 1;
+                    }
+                    for (author, declared) in [
+                        (None, None),
+                        (Some(0), None),
+                        (Some(1), None),
+                        (Some(2), None),
+                        (None, Some(2)),
+                    ] {
+                        // The value among a column of other magnitudes, so a scale or a word is set.
+                        let all = [v, 1_234_567.0, 98.77];
+                        let column = ColumnScale::of(&all, &format, author, declared, false);
+                        let cell = DisplayNumber::for_column(v, &format, column);
+                        let text = cell.text(&format, column.places_of(&cell));
+                        assert!(
+                            reads_nonzero(&text),
+                            "a column ({author:?}, {declared:?}) prints {v} as {text} in {kind:?} at {digits} digits"
+                        );
+                        cells += 1;
+                    }
+                }
+            }
+        }
+        assert!(cells > 10_000);
     }
 
     #[test]

@@ -1,7 +1,7 @@
 //! Candlestick charts: wicks and bodies at their true prices, direction, validation and the
 //! contract every type shares (FEA-CH-01, FEA-CH-57, FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Cmd, Item};

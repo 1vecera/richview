@@ -50,5 +50,5 @@ encoding: {label: unit, parent: reports_to, y: headcount}
 
 ## Interactions
 
-- Hover or focus a node to read its path, its value where given and how many parts sit under it.
+- Hover or focus a node to read its path, its value where given and how many parts sit under it. A dark ring marks the node under the pointer.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

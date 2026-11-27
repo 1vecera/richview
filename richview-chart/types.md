@@ -106,7 +106,7 @@ That is 9 existing plus 47 new, 56 in all; map, flow and pivot are elements rath
 3. Tier 2 free-form layouts, `treemap` first.
 4. Tier 3 and tier 4 one at a time.
 
-## Decisions taken on assumption (also in ASSUMED.md)
+## Decisions taken on assumption
 
 - Variants that only change a setting stay options of the base type.
 - 3-D types draw an orthographic projection into the same 2-D items, so vector output and checks

@@ -1,6 +1,6 @@
 //! Derived geometry preserves source membership and exposes only the chosen precision (TYP-36).
 
-mod common;
+use super::common;
 
 use common::{draw, line, observations};
 use richview_chart::numbers::{self, Format};

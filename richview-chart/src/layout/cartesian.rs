@@ -13,7 +13,7 @@ use crate::curve;
 use crate::diag::Level;
 use crate::geometry::{
     Anchor, Cap, Cmd, Dot, DropReason, Face, Fill, Item, Legend, Observation, Panel, Path, Readout, ReadoutLine, Rect,
-    Role, Shape, Stroke, Swatch, Targeting, XScale,
+    Role, Shape, Stroke, Swatch, Targeting, XScale, YSpan,
 };
 use crate::numbers::{self, Format, Kind};
 use crate::rows::{self, Num, XKind};
@@ -1654,26 +1654,44 @@ fn panel_layout(
     let mut value_room = 0.0;
     // Under an axis the author fixed, the plot starts this much lower instead.
     let mut top_room = 0.0;
+    // A scatter plot zooms along y too, on its own window (FEA-CH-49): the whole axis is the zoom
+    // limit, and a window inside it is drawn exactly. Panels with scales of their own share no
+    // y window, so they zoom along x only.
+    let zooms_y = scatter_zooms_y(ctx);
+    let mut whole_y: Option<[f64; 2]> = None;
     for _ in 0..5 {
         let plot_h = (frame.bottom() - top - top_room - bottom_rows * lh - LABEL_GAP - x_title).max(MIN_PLOT * 0.5);
-        let y = axis::value_axis_room(
-            &ValueSpec {
-                data: y_extent,
-                zero,
-                min: block.y.min,
-                max: block.y.max,
-                length: plot_h,
-                horizontal: false,
-                format: &y_format,
-                font: &ctx.style.figures,
-                size,
-            },
-            if kind == ChartType::Scatter {
-                point_room(ctx)
-            } else {
-                value_room
-            },
-        );
+        let spec = ValueSpec {
+            data: y_extent,
+            zero,
+            min: block.y.min,
+            max: block.y.max,
+            length: plot_h,
+            horizontal: false,
+            format: &y_format,
+            font: &ctx.style.figures,
+            size,
+        };
+        let room = if kind == ChartType::Scatter {
+            point_room(ctx)
+        } else {
+            value_room
+        };
+        let mut y = axis::value_axis_room(&spec, room);
+        if zooms_y {
+            whole_y = Some([y.lo, y.hi]);
+            if let Some(window) = super::kit::zoom_window(ctx.opts.zoom_y, [y.lo, y.hi]) {
+                y = axis::value_axis_room(
+                    &ValueSpec {
+                        data: window,
+                        min: Some(window[0]),
+                        max: Some(window[1]),
+                        ..spec
+                    },
+                    room,
+                );
+            }
+        }
         // On a slide's stage the plot carries two to four gridlines (FEA-RP-65).
         let y = if ctx.style.few_gridlines { y.thinned(3) } else { y };
         let left = frame.x + (y.widest(&ctx.style.figures, size) + LABEL_GAP).max(inset[0]);
@@ -1743,7 +1761,15 @@ fn panel_layout(
             break;
         }
     }
-    let (fr, xl) = layout.expect("laid out");
+    let (fr, mut xl) = layout.expect("laid out");
+    // The y axis the reader zooms along, bottom first (FEA-CH-49).
+    if let (Some(extent), Some(scale)) = (whole_y, xl.scale.as_mut()) {
+        scale.y = Some(YSpan {
+            domain: [fr.y.lo, fr.y.hi],
+            extent,
+            range: [fr.plot.bottom(), fr.plot.y],
+        });
+    }
     PanelLayout {
         fr,
         xl,
@@ -1751,6 +1777,12 @@ fn panel_layout(
         bottom_rows,
         top,
     }
+}
+
+/// Whether this chart zooms along y on a window of its own, beside x (FEA-CH-49): a scatter whose
+/// panels share one y axis.
+fn scatter_zooms_y(ctx: &Ctx) -> bool {
+    ctx.block.kind == ChartType::Scatter && !ctx.block.style.free_scales
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -1975,6 +2007,13 @@ fn paint_panel(
         }
         ChartType::Bar => paint_bars(ctx, p, &obs, plot, &xl, &ymap, &fr.y, &mut items, &mut observations),
         ChartType::Scatter => {
+            // A zoom along y shows the points inside its window and no others (FEA-CH-49).
+            let y_window = xl
+                .scale
+                .as_ref()
+                .and_then(|s| s.y)
+                .filter(|y| y.domain != y.extent)
+                .map(|y| y.domain);
             named_points = paint_points(
                 ctx,
                 read,
@@ -1983,6 +2022,7 @@ fn paint_panel(
                 plot,
                 &xl,
                 &ymap,
+                y_window,
                 &mut items,
                 &mut observations,
                 &mut labels_taken,
@@ -2486,7 +2526,7 @@ fn paint_lines(
         // Outside a zoom window, a line keeps the nearest x on each side, so it continues to the
         // plot edge: the last x before the window when the window holds a point, and the first x
         // after it. The points are in x order, so bisection finds the window and both
-        // neighbours, and a zoomed layout reads only the points it draws (S27-837, PRF-19).
+        // neighbours, and a zoomed layout reads only the points it draws (PRF-19).
         let span = line_span(p, pts, window);
         // Runs split at missing values and calendar gaps (FEA-CH-38).
         let mut runs: Vec<Vec<(f64, f64, f64)>> = vec![Vec::with_capacity(span.len())];
@@ -3495,6 +3535,7 @@ fn paint_points(
     plot: Rect,
     xl: &XLayout,
     ymap: &impl Fn(f64) -> f64,
+    y_window: Option<[f64; 2]>,
     items: &mut Vec<Item>,
     observations: &mut Vec<Observation>,
     taken: &mut Vec<Rect>,
@@ -3542,6 +3583,11 @@ fn paint_points(
         }
         if let Some(w) = window
             && (o.x < w[0] || o.x > w[1])
+        {
+            continue;
+        }
+        if let Some(w) = y_window
+            && (v < w[0] || v > w[1])
         {
             continue;
         }

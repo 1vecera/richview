@@ -25,6 +25,7 @@ use tower_http::compression::{
 pub mod auth;
 pub mod governance;
 mod host_bar;
+pub use host_bar::public_report_example;
 pub mod hosted;
 mod hosted_auth;
 mod hosted_routes;
@@ -32,7 +33,9 @@ pub(crate) mod mail_texts;
 mod operator;
 pub mod origin;
 pub mod reports;
+pub(crate) use reports::received_inputs;
 pub mod routes;
+mod staff_access;
 pub mod ui;
 
 pub use reports::{PublishRequest, RenderRequest};
@@ -263,6 +266,8 @@ fn bound_hosted_request_body(request: Request, duration: std::time::Duration) ->
                 | "/api/session"
                 | "/api/cli/sign-in"
                 | "/api/cli/sign-in/token"
+                | "/api/cli/oauth/token"
+                | "/api/cli/oauth/revoke"
                 | "/ui/sign-in"
                 | "/ui/sign-up"
                 | "/ui/forgot"
@@ -315,7 +320,13 @@ async fn refuse_before_body(
     // anyone and are bounded by address in the access store.
     let cli_signing_in = state.access.is_hosted()
         && request.method() == axum::http::Method::POST
-        && matches!(path, "/api/cli/sign-in" | "/api/cli/sign-in/token");
+        && matches!(
+            path,
+            "/api/cli/sign-in"
+                | "/api/cli/sign-in/token"
+                | "/api/cli/oauth/token"
+                | "/api/cli/oauth/revoke"
+        );
     if writes
         && !signing_in
         && !cli_signing_in
@@ -367,12 +378,26 @@ async fn refuse_before_body(
         request.extensions_mut().insert(Arc::new(permit));
     }
     if hosted_publish {
-        let permit = match state.access.admit_hosted_publish_worker() {
+        // Who may publish, how many requests a person has open and how many attempts they made in
+        // the last hour are decided before the body is read, so that a body that does not parse
+        // counts too. The request holds no worker while its body arrives: the handler takes one
+        // for the report's organization once the body is in.
+        let caller = match auth::mutating(&state, request.headers()) {
+            Ok(caller) => caller,
+            Err(response) => return response,
+        };
+        if !state.access.may_publish_anywhere(&caller.principal) {
+            return api_error(
+                StatusCode::FORBIDDEN,
+                "Your role does not include the right to publish.",
+            );
+        }
+        let permit = match state.access.admit_hosted_publish_request(&caller.principal) {
             Ok(permit) => permit,
             Err(_) => {
                 return api_error(
                     StatusCode::TOO_MANY_REQUESTS,
-                    "Publishing is busy; try again shortly.",
+                    "Too many publish requests are open or were made in the last hour; try again shortly.",
                 );
             }
         };
@@ -419,7 +444,11 @@ async fn security_headers(State(state): State<AppState>, request: Request, next:
     let hosted_personalized = hosted
         && matches!(
             path,
-            "/api/session" | "/api/reports" | "/api/cli/sign-in/token"
+            "/api/session"
+                | "/api/reports"
+                | "/api/cli/sign-in/token"
+                | "/api/cli/oauth/token"
+                | "/api/cli/oauth/revoke"
         );
     let browser_page = !path.starts_with("/api/")
         && request
@@ -1218,51 +1247,171 @@ mod header_tests {
         );
     }
 
-    #[tokio::test]
-    async fn hosted_publish_admission_refuses_before_parsing_the_body() {
+    /// A hosted app with one signed-up person per address, each with a token for their own
+    /// organization.
+    async fn hosted_publishers(
+        emails: &[&str],
+    ) -> (
+        tempfile::TempDir,
+        Access,
+        axum::Router,
+        Vec<(crate::access::User, String, String)>,
+    ) {
         let dir = tempfile::tempdir().unwrap();
         let access = Access::open_hosted(dir.path()).unwrap();
-        let link = access
-            .issue_link("owner@example.test", crate::access::LinkPurpose::Signup)
-            .unwrap()
-            .unwrap();
-        let user = access
-            .complete_hosted_link(&link, "Owner", "long password here")
-            .await
-            .unwrap();
-        let org = access.organizations_for(&user.id)[0].id.clone();
-        let (_, token) = access
-            .create_self_token_for_fixture(&user.id, &org, "test")
-            .unwrap();
-        let permits: Vec<_> = (0..4)
-            .map(|_| access.admit_hosted_publish_worker().unwrap())
-            .collect();
-        let state = AppState {
+        let mut people = Vec::new();
+        for email in emails {
+            let link = access
+                .issue_link(email, crate::access::LinkPurpose::Signup)
+                .unwrap()
+                .unwrap();
+            let user = access
+                .complete_hosted_link(&link, "Person", "long password here")
+                .await
+                .unwrap();
+            let org = access.organizations_for(&user.id)[0].id.clone();
+            let (_, token) = access
+                .create_self_token_for_fixture(&user.id, &org, "test")
+                .unwrap();
+            people.push((user, org, token));
+        }
+        let app = build_app(AppState {
             storage: FsStorage::new(dir.path()).unwrap().with_hosted(true),
-            access,
+            access: access.clone(),
             preview: None,
             public_origin: Some("https://app.test".into()),
             report_origin: Some("https://reports.test".into()),
-        };
-        let app = build_app(state);
-        let request = || {
-            Request::builder()
-                .method("POST")
-                .uri("/api/reports")
-                .header(header::AUTHORIZATION, format!("Bearer {token}"))
-                .header(header::CONTENT_TYPE, "application/json")
-                .body(Body::from("not-json"))
+        });
+        (dir, access, app, people)
+    }
+
+    fn publish_request(token: &str, body: Body) -> Request<Body> {
+        Request::builder()
+            .method("POST")
+            .uri("/api/reports")
+            .header(header::AUTHORIZATION, format!("Bearer {token}"))
+            .header(header::CONTENT_TYPE, "application/json")
+            .body(body)
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn hosted_publish_admission_is_asked_before_the_body_is_read() {
+        let (_dir, access, app, people) = hosted_publishers(&["owner@example.test"]).await;
+        let (user, _, token) = &people[0];
+        let mine: Vec<_> = (0..4)
+            .map(|_| {
+                access
+                    .admit_hosted_publish_request(&crate::access::Principal::User(user.clone()))
+                    .unwrap()
+            })
+            .collect();
+        // A person with four requests open is turned away before the body is read: the body here
+        // is not JSON, and the answer is not that it is not.
+        let refused = app
+            .clone()
+            .oneshot(publish_request(token, Body::from("not-json")))
+            .await
+            .unwrap();
+        assert_eq!(refused.status(), StatusCode::TOO_MANY_REQUESTS);
+        drop(mine);
+        assert_eq!(
+            app.oneshot(publish_request(token, Body::from("not-json")))
+                .await
                 .unwrap()
-        };
-        assert_eq!(
-            app.clone().oneshot(request()).await.unwrap().status(),
-            StatusCode::TOO_MANY_REQUESTS
-        );
-        drop(permits);
-        assert_eq!(
-            app.oneshot(request()).await.unwrap().status(),
+                .status(),
             StatusCode::BAD_REQUEST
         );
+    }
+
+    #[tokio::test]
+    async fn a_publish_body_that_does_not_parse_is_counted_as_an_attempt() {
+        let (_dir, _access, app, people) = hosted_publishers(&["owner@example.test"]).await;
+        let token = &people[0].2;
+        for attempt in 0..60 {
+            let answer = app
+                .clone()
+                .oneshot(publish_request(token, Body::from("not-json")))
+                .await
+                .unwrap();
+            assert_eq!(
+                answer.status(),
+                StatusCode::BAD_REQUEST,
+                "attempt {attempt}"
+            );
+        }
+        assert_eq!(
+            app.oneshot(publish_request(token, Body::from("not-json")))
+                .await
+                .unwrap()
+                .status(),
+            StatusCode::TOO_MANY_REQUESTS
+        );
+    }
+
+    #[tokio::test]
+    async fn a_slow_publish_body_holds_no_worker_and_a_busy_pool_says_to_retry() {
+        let (_dir, access, app, people) =
+            hosted_publishers(&["ada@example.test", "grace@example.test"]).await;
+        let (ada, _, ada_token) = &people[0];
+        let grace_token = &people[1].2;
+        // Ada opens four requests and sends none of their bodies.
+        let slow: Vec<_> = (0..4)
+            .map(|_| {
+                let app = app.clone();
+                let token = ada_token.clone();
+                tokio::spawn(async move {
+                    let body = Body::from_stream(futures_util::stream::pending::<
+                        Result<bytes::Bytes, std::io::Error>,
+                    >());
+                    let _ = app.oneshot(publish_request(&token, body)).await;
+                })
+            })
+            .collect();
+        tokio::time::timeout(std::time::Duration::from_secs(3), async {
+            while access
+                .admit_hosted_publish_request(&crate::access::Principal::User(ada.clone()))
+                .is_ok()
+            {
+                tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+            }
+        })
+        .await
+        .expect("the slow requests were not admitted");
+        // All of the workers are free while they wait: two organizations can take every one.
+        let service = crate::access::Principal::Service;
+        let mut places = Vec::new();
+        for org in ["x1", "x1", "x2"] {
+            let admission = access.admit_hosted_publish_request(&service).unwrap();
+            places.push(admission.place(Some(org)).await.unwrap());
+        }
+        // Grace's report finds one worker left, and is served.
+        let report = r##"{"slug":"quiet-report","source":"# Quiet"}"##;
+        let served = app
+            .clone()
+            .oneshot(publish_request(grace_token, Body::from(report)))
+            .await
+            .unwrap();
+        assert_ne!(served.status(), StatusCode::TOO_MANY_REQUESTS);
+        // With the last one taken, her request waits for a worker and is told to ask again.
+        let admission = access.admit_hosted_publish_request(&service).unwrap();
+        places.push(admission.place(Some("x2")).await.unwrap());
+        let busy = app
+            .clone()
+            .oneshot(publish_request(grace_token, Body::from(report)))
+            .await
+            .unwrap();
+        assert_eq!(busy.status(), StatusCode::TOO_MANY_REQUESTS);
+        assert_eq!(busy.headers().get(header::RETRY_AFTER).unwrap(), "5");
+        drop(places);
+        let served = app
+            .oneshot(publish_request(grace_token, Body::from(report)))
+            .await
+            .unwrap();
+        assert_ne!(served.status(), StatusCode::TOO_MANY_REQUESTS);
+        for task in slow {
+            task.abort();
+        }
     }
 
     #[test]
@@ -1345,7 +1494,7 @@ mod header_tests {
                     .uri("/api/validate")
                     .header(header::AUTHORIZATION, format!("Bearer {token}"))
                     .header(header::CONTENT_TYPE, "application/json")
-                    .body(Body::from("{}"))
+                    .body(Body::from(r##"{"source":"# Test"}"##))
                     .unwrap()
             };
             assert_eq!(

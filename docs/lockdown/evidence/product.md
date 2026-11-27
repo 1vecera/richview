@@ -114,7 +114,7 @@ The branch-only components are indexed in their PR sections: `C-VOICE-DASHBOARD`
 | `F-CORE-CHART-VALIDATION` | Chart fence schema | Checks the nine chart types, a `data` mapping, string channels (`x`, `y`, `lower`, `upper`, `color`, `size`, `label`, `facet`), the axis locale, and the palette, curve, smoothing, curvature, orientation and ratio values. A chart with no title still renders, with a fallback title and a `block.title` warning. | `crates/richview-core/src/parser.rs:139-141,305-400` | observed |
 | `F-CORE-BLOCK-DATA` | Block-local data | Each chart or table `data` must use exactly one of `inline`, `csv` or `json`; otherwise it fails with a `data.local` error. `data.id`, `data.url` and `data.sql` are also errors. Hosts resolve `csv` and `json` files into `RenderOptions.data`. | `crates/richview-core/src/parser.rs:689-693`; `docs/RMD-SPEC.md:198-236` | observed |
 | `F-CORE-STATIC-CHART-FRAMES` | Static phone and desktop frames | Each chart is rendered natively twice: at a 358 px phone column and at the theme's desktop column (`layout.report-max-width`, default 980, minus 48). CSS shows the nearer frame, split at the geometric mean of the two widths. Charts are visible without JavaScript. | `crates/richview-core/src/render.rs:127,714-745` | observed |
-| `F-CORE-TABLE` | Table block | `table` with `data`, `columns`, `sort`, `total` and `max_rows` (default 20). Output has sortable header buttons (`data-rv-sort`), a totals row and overflow rows inside `<details>`. A JSON payload lets the browser re-render, and print shows every row. Cells show the host for URLs, plus date and id classes. Table authoring style (row mappings or alternatives) is still pending under S27-580. | `crates/richview-core/src/blocks.rs:354-471,577+`; `docs/RMD-SPEC.md:269-296`; `docs/TABLE-AUTHORING-CHOICE.md` | observed |
+| `F-CORE-TABLE` | Table block | `table` with `data`, `columns`, `sort`, `total` and `max_rows` (default 20). Output has sortable header buttons (`data-rv-sort`), a totals row and overflow rows inside `<details>`. A JSON payload lets the browser re-render, and print shows every row. Cells show the host for URLs, plus date and id classes. Table authoring style (row mappings or alternatives) is still pending under the Linear table-syntax decision. | `crates/richview-core/src/blocks.rs:354-471,577+`; `docs/RMD-SPEC.md:269-296`; `docs/TABLE-AUTHORING-CHOICE.md` | observed |
 | `F-CORE-BIG-NUMBER` | Big number / metric | `big` or `metric` with `value`, `unit`, `delta` (shown as %), `trend` (`up`, `down` or `flat`) and `format` (`currency`, `currency_compact`, `percent`, `number` or `number_compact`). | `crates/richview-core/src/blocks.rs:241-337`; `crates/richview-core/src/parser.rs:607` | observed |
 | `F-CORE-CALLOUT` | Callout | `callout` requires `title`. `kind` is `up`, `down`, `neutral` (default) or `hold`. | `crates/richview-core/src/parser.rs:296,615-618`; `crates/richview-core/src/blocks.rs:211-232` | observed |
 | `F-CORE-MEDIA` | Image, audio and video | Fields: `src`, `width`, `height`, `fit` (`contain`, `cover` or `fill`), `poster` and `caption`. Unsafe sources are blocked with `security.media`. Network-dependent and external references get `assets.network-dependent` and `assets.external-reference` diagnostics. PDF output prints the poster or a text card. | `crates/richview-core/src/blocks.rs:648-764`; `crates/richview-core/src/parser.rs:640-643` | observed |
@@ -385,7 +385,7 @@ The branch-only components are indexed in their PR sections: `C-VOICE-DASHBOARD`
 
 All nine branches are draft PRs based on `b4db233`, with zero commits behind `main` (observed 2026-10-21 with `git merge-base` and `gh pr list`). Rows marked "observed" were read in the branch code; rows marked "stated" come from the PR body or branch docs and were not built or run.
 
-### PR #62: playable charts (`origin/feat/s27-648-playable-charts` @a703897, +2,751 lines, S27-648)
+### PR #62: playable charts (@a703897, +2,751 lines)
 
 | ID | Feature | Behavior, inputs and outputs | Where | Confidence |
 | --- | --- | --- | --- | --- |
@@ -395,14 +395,14 @@ All nine branches are draft PRs based on `b4db233`, with zero commits behind `ma
 | `F-CHART-CONTROLS-VARIANT` | Chart-version selector | `kind: variant` selects between authored chart versions. | same | observed (branch code); stated |
 | `F-WEB-CONTROL-EVENTS` | Control events and state | `Info.controls`, `render_rmd_chart_with_state`, and the DOM events `rv:control` and `rv:control-set`. Examples are `playable-gapminder` and `playable-line-indicator`. `verify-playable-controls.mjs` reports 20/20. | branch diff; PR #62 body | stated |
 
-### PR #63: multi-tab reports (`origin/feat/s27-649-multi-tab-reports` @f1cb254, +781 lines, marked WIP, S27-649)
+### PR #63: multi-tab reports (@f1cb254, +781 lines, marked WIP)
 
 | ID | Feature | Behavior, inputs and outputs | Where | Confidence |
 | --- | --- | --- | --- | --- |
 | `F-CORE-TABS` | Report tabs | Frontmatter `tabs: {default, export: all or active, panels: [{id, label, from}]}`, with `{#id}` heading anchors. The output stays static-first. New diagnostics: `frontmatter.tabs` and `tabs.anchor-missing`. | `docs/RMD-SPEC.md` Tabs section (branch); `crates/richview-core` (branch) | observed (branch code) |
 | `F-WEB-TABS-NAV` | Tab navigation | `#tab=` deep links, roving tabindex, and the events `rv:panel-hidden` and `rv:panel-shown`. The example is `examples/sales-report-tabs`. The PR states its gates were not run. | `crates/richview-web/src/browser/tabs.rs` (branch); PR #63 body | observed (branch code); stated |
 
-### PR #64: voice dashboard (`origin/s27-651-voice-dashboard` @81110e0, +3,174 lines, S27-651)
+### PR #64: voice dashboard (@81110e0, +3,174 lines)
 
 `C-VOICE-DASHBOARD` is a sibling-product demo crate, `crates/richview-voice-dashboard`.
 
@@ -414,7 +414,7 @@ All nine branches are draft PRs based on `b4db233`, with zero commits behind `ma
 | `F-VOICE-ADAPTERS` | Data adapters | `offline-capture` (labelled as such, `release_authority=false`), `local-metricflow` and `remote-mcp` (OAuth). | branch crate | stated |
 | `F-VOICE-SAVED` | Save and open | Saves a private JSON file with a SHA-256 hash and opens saved dashboards. `CloudStore` is marked Unavailable. | branch crate | stated |
 
-### PR #65: galleries (`origin/s27-647-publish-galleries` @850032b, +1,142 lines, S27-647)
+### PR #65: galleries (@850032b, +1,142 lines)
 
 `C-GALLERIES` consists of `galleries/shell.html` and the `stage_galleries` build step.
 
@@ -426,7 +426,7 @@ All nine branches are draft PRs based on `b4db233`, with zero commits behind `ma
 
 The PR body says these were deployed to richview.ai, but all three routes return 404 live on 2026-10-21 (observed).
 
-### PR #66: data connectors (`origin/feat/s27-650-data-connectors` @4ecef05, +2,731 lines, S27-650)
+### PR #66: data connectors (@4ecef05, +2,731 lines)
 
 `C-APP-CONNECTORS` is `crates/richview-app/src/connectors/` on the branch.
 
@@ -439,7 +439,7 @@ The PR body says these were deployed to richview.ai, but all three routes return
 
 The branch example uses callout `kind: note`, which main's validator rejects (`crates/richview-core/src/parser.rs:615-618`; inferred).
 
-### PR #67: chart and flagship polish (`origin/task/s27-654-chart-polish` @47d8848, +340 lines, in progress, S27-654)
+### PR #67: chart and flagship polish (@47d8848, +340 lines, in progress)
 
 | ID | Feature | Behavior, inputs and outputs | Where | Confidence |
 | --- | --- | --- | --- | --- |
@@ -450,7 +450,7 @@ The branch example uses callout `kind: note`, which main's validator rejects (`c
 | `F-WEB-CHART-DOWNLOAD-MENU` | PNG download and menu | Adds PNG export, then merges PNG and SVG into one Download menu. Also adds labelled action buttons, a lighter tooltip and a rectangle clamp. | branch diff | observed (branch code) |
 | `F-WEB-SHOWCASE-STYLE-PICKER` | Showcase picker | Five primary style pills plus an "Other" dropdown for the studio variants. | branch diff | observed (branch code) |
 
-### PR #68: development harness (`origin/feat/s27-652-development-harness` @bba45ab, +946 lines, S27-652)
+### PR #68: development harness (@bba45ab, +946 lines)
 
 `C-DEV-HARNESS` consists of `scripts/dev-harness/` plus `docs/architecture-current.md` and `docs/development-harness.md`.
 
@@ -460,7 +460,7 @@ The branch example uses callout `kind: note`, which main's validator rejects (`c
 | `F-DEVHARNESS-BUILD-OWNERSHIP` | Shared-target build ownership | Checks which worktree built a shared Cargo target before trusting its output. | `scripts/dev-harness/` (branch); PR #68 body | stated |
 | `F-DEVHARNESS-ARCHITECTURE-MAP` | Current-architecture document | A system map, an npm E404 observation from 18 October and an inventory of the prerelease. | `docs/architecture-current.md` (branch) | stated |
 
-### PR #69: site round (`origin/task/s27-653-site` @5e69843, +650 lines, S27-653)
+### PR #69: site round (@5e69843, +650 lines)
 
 | ID | Feature | Behavior, inputs and outputs | Where | Confidence |
 | --- | --- | --- | --- | --- |
@@ -468,7 +468,7 @@ The branch example uses callout `kind: note`, which main's validator rejects (`c
 | `F-WEB-LANDING-NAV-SIMPLIFIED` | Simplified nav | The nav becomes Flagship report · Chart gallery · Docs. | branch diff; live | observed |
 | `F-DOCS-CHART-GALLERY` | Docs chart gallery | `docs/public/charts.md` becomes `/docs/charts.html`, a "Chart gallery" covering all nine types. Live: `/docs/charts` returns 200 with that title. | branch `docs/public/charts.md`; live | observed |
 
-### PR #70: RichView Publish and RichView News (`origin/feat/s27-655-richview-publish` @3f5c35f, +7,243 lines, S27-655)
+### PR #70: RichView Publish and RichView News (@3f5c35f, +7,243 lines)
 
 `C-RICHVIEW-PUBLISH` includes the `crates/richview-publish` crate, a `cloudflare/publish` gateway (Cloudflare Access, private R2, a Durable Object, the editor UI, policy and repository), `wrangler.publish.toml`, `.github/workflows/publish.yml`, `publications/news/`, `scripts/publish/` and `docs/publish/`. The branches `publish/news` and `publish-edit/*` exist on origin.
 
@@ -503,7 +503,7 @@ The branch example uses callout `kind: note`, which main's validator rejects (`c
 - **frontmatter-data**: `skill/SKILL.md:10` tells agents to bind charts to "named frontmatter data", which is a hard error (`crates/richview-core/src/parser.rs:265`).
 - **canonical-styles**: The code ships five styles plus aliases (`crates/richview-core/src/style.rs:16-45`; `docs/public/styles.md:7`; `docs/FEATURES.md:20`). The worktree `CLAUDE.md:76`, `llms.txt:13`, `skill/SKILL.md:12` and the npm types (`assets/node/core-api.d.ts`) name three. `crates/richview-core/src/knowledge.rs:15` calls `sleek` a "compatibility name" while `style.rs` treats it as the canonical dark style. The showcase manifest has no `sleek-light` or `hand-drawn`. The `/charts/` "Editorial" button duplicates "Brutalist".
 - **default-style**: With no style, core uses `brutalist` (`crates/richview-core/src/render.rs:104`; `docs/public/styles.md:7`). However, `richview init` writes `styles: [sleek]` (`crates/richview-app/src/cli.rs:594`), the frontmatter snippet uses `scientific`, and the showcase defaults to `scientific` (`crates/richview-web/src/browser/showcase.rs:151-197`).
-- **landing-motion**: PR #58 (merged 2026-10-13) applied the 2026-10-12 feedback and explicitly dropped "the background mark-made-of-data canvas/HUD animation". PR #69 (S27-653) treats that removal as incidental, restores the canvas and stage, and is what richview.ai serves. Main's `landing.rs` choreography is dormant, and `crates/richview-app/README.md:43` ("all eight landing stages, the canvas field") is stale. Decision: does the landing page animate?
+- **landing-motion**: PR #58 (merged 2026-10-13) applied the 2026-10-12 feedback and explicitly dropped "the background mark-made-of-data canvas/HUD animation". PR #69 treats that removal as incidental, restores the canvas and stage, and is what richview.ai serves. Main's `landing.rs` choreography is dormant, and `crates/richview-app/README.md:43` ("all eight landing stages, the canvas field") is stale. Decision: does the landing page animate?
 - **live-site-vs-main**: richview.ai serves unmerged PR #69 content, and the PR's own checklist leaves "Public richview.ai/ serves restored landing after wrangler deploy" unchecked. PR #65 claims a richview.ai deployment whose routes are 404. news.richview.ai serves unmerged PR #70. None of these deployments matches `main`.
 - **stale-fly-deployment**: `packages/server/fly.toml` says applying it needs separate authorization, yet `richview-v3.fly.dev` is live with an older build that publicly lists a report. Decision: retire it or redeploy it.
 - **publishing-claims**: The landing page promises "a menu of your reports", `/r/okurka-weekly` marked "private", and "access control" (`assets/landing/index.html:202-203,237`). The native server has public reads (`docs/public/publishing.md:128`), a JSON list only and no access control.
@@ -522,7 +522,7 @@ The branch example uses callout `kind: note`, which main's validator rejects (`c
 
 ## Gaps
 
-- I did not read the Linear tickets (S27-5xx to 65x) or the Notion pages. S27 IDs are cited only from repository and PR text.
+- I did not read the Linear tickets or the Notion pages.
 - I ran no browser automation (Playwright or the `verify-*.mjs` scripts). Browser features (chart chrome, playground, showcase, reel and landing) were verified only by reading code and by HTTP status.
 - I ran no Cargo tests or benchmarks, and did not check the current CI status.
 - PR-branch features come from PR bodies and diffs; none were built or run.

@@ -1,5 +1,5 @@
 name = "richview-teaser"
-main = "cloudflare/interest-worker.mjs"
+main = "cloudflare/interest-worker.ts"
 account_id = "f321662ae21d0592d8b75bd8ddecc241"
 compatibility_date = "2026-10-04"
 workers_dev = true

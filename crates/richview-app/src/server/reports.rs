@@ -19,6 +19,44 @@ use richview_core::document::RenderOptions;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
+use std::sync::Arc;
+
+/// What a hosted request holds while its work runs: its admission, and the worker it took once
+/// its body was in. It travels into the blocking tasks, so the worker is given back when they
+/// finish, and not when a client that disconnected has its handler dropped.
+#[derive(Clone)]
+pub(super) struct Held {
+    _admission: Option<Arc<crate::access::Admission>>,
+    _place: Option<Arc<crate::access::Place>>,
+}
+
+/// Takes the worker of a hosted request whose body has arrived, for `org` when the body names the
+/// organization and else for the one its admission was counted under. A request that waits for one
+/// a few seconds in vain is told to try again; the command line does so by itself.
+pub(super) async fn take_place(
+    admission: Option<Arc<crate::access::Admission>>,
+    org: Option<&str>,
+) -> Result<Held, Response> {
+    let place = match &admission {
+        Some(admission) => match admission.place(org).await {
+            Ok(place) => Some(Arc::new(place)),
+            Err(_) => {
+                let mut busy = api_error(
+                    StatusCode::TOO_MANY_REQUESTS,
+                    "RichView is busy; try again in a few seconds.",
+                );
+                busy.headers_mut()
+                    .insert(header::RETRY_AFTER, header::HeaderValue::from_static("5"));
+                return Err(busy);
+            }
+        },
+        None => None,
+    };
+    Ok(Held {
+        _admission: admission,
+        _place: place,
+    })
+}
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
@@ -39,17 +77,21 @@ pub struct PublishRequest {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub org: Option<String>,
     pub source: String,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "crate::input_limits::bounded::folder")]
     pub report_folder: Option<richview_core::document::ReportFolder>,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "crate::input_limits::bounded::styles")]
     pub styles: Vec<String>,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "crate::input_limits::bounded::files")]
     pub data: BTreeMap<String, String>,
     /// A client revising a previously published file sends false to require an existing address.
     #[serde(default = "allow_new_address")]
     pub new: bool,
+    /// A client that is creating a report, and could never mean a new version of one that is
+    /// there, sends true: an address that is taken is refused, checked under the publication lock.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub create_only: bool,
     /// The files the source links to, base64 by report-relative path (FEA-SF-52).
-    #[serde(default)]
+    #[serde(default, deserialize_with = "crate::input_limits::bounded::files")]
     pub files: BTreeMap<String, String>,
     /// Who can open the report: `private`, `org` or `public`. Left as it is when absent; a new
     /// report starts with the server's default. Changing it needs the `share` right.
@@ -75,23 +117,37 @@ impl PublishRequest {
     }
 }
 
-/// What `validate` and `check` receive over HTTP: the report as the folder holds it, nothing more.
+/// What `check` receives over HTTP: the report as the folder holds it, and the widths figures
+/// occupy for readers.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CheckRequest {
     pub source: String,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "crate::input_limits::bounded::folder")]
     pub report_folder: Option<richview_core::document::ReportFolder>,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "crate::input_limits::bounded::styles")]
     pub styles: Vec<String>,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "crate::input_limits::bounded::files")]
     pub data: BTreeMap<String, String>,
-    /// `validate` only: also apply the publish rules.
+    #[serde(default, deserialize_with = "crate::input_limits::bounded::widths")]
+    pub widths: Vec<f64>,
+}
+
+/// What `validate` receives over HTTP: the same, and whether to apply the publish rules. It takes
+/// no widths: it draws nothing, so a list of them is read past and dropped.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ValidateRequest {
+    pub source: String,
+    #[serde(default, deserialize_with = "crate::input_limits::bounded::folder")]
+    pub report_folder: Option<richview_core::document::ReportFolder>,
+    #[serde(default, deserialize_with = "crate::input_limits::bounded::styles")]
+    pub styles: Vec<String>,
+    #[serde(default, deserialize_with = "crate::input_limits::bounded::files")]
+    pub data: BTreeMap<String, String>,
+    /// Also apply the publish rules.
     #[serde(default)]
     pub publish: bool,
-    /// `check` only: the widths figures occupy for readers.
-    #[serde(default)]
-    pub widths: Vec<f64>,
 }
 
 fn outcome_response(outcome: crate::ops::Outcome) -> Response {
@@ -126,8 +182,8 @@ fn operator(state: &AppState, headers: &HeaderMap) -> Result<Caller, Response> {
 pub async fn validate_api(
     State(state): State<AppState>,
     headers: HeaderMap,
-    admission: Option<Extension<std::sync::Arc<tokio::sync::OwnedSemaphorePermit>>>,
-    payload: Result<Json<CheckRequest>, axum::extract::rejection::JsonRejection>,
+    admission: Option<Extension<Arc<crate::access::Admission>>>,
+    payload: Result<Json<ValidateRequest>, axum::extract::rejection::JsonRejection>,
 ) -> Response {
     if let Err(response) = operator(&state, &headers) {
         return response;
@@ -136,15 +192,34 @@ pub async fn validate_api(
         Ok(p) => p,
         Err(e) => return api_error(e.status(), "Invalid validate JSON"),
     };
-    if request.source.len() > richview_core::document::MAX_SOURCE_BYTES {
-        return api_error(StatusCode::PAYLOAD_TOO_LARGE, "Source exceeds 16 MiB");
+    if let Err(d) = crate::input_limits::request_shape(
+        request.report_folder.as_ref(),
+        &BTreeMap::new(),
+        &request.data,
+        &request.styles,
+    ) {
+        return diagnostic_response(StatusCode::UNPROCESSABLE_ENTITY, *d);
     }
+    if let Err(d) = crate::input_limits::InputSizes::new(
+        request
+            .report_folder
+            .as_ref()
+            .map_or("report.rmd", |f| f.source.as_str()),
+        request.source.len(),
+    ) {
+        return diagnostic_response(StatusCode::UNPROCESSABLE_ENTITY, *d);
+    }
+    let held = match take_place(admission.map(|Extension(a)| a), None).await {
+        Ok(held) => held,
+        Err(busy) => return busy,
+    };
     match tokio::task::spawn_blocking(move || {
-        let _admission = admission;
+        let _held = held;
         crate::ops::validate_text(
             &request.source,
             request.report_folder.as_ref(),
             request.publish,
+            &request.data,
         )
     })
     .await
@@ -161,7 +236,7 @@ pub async fn validate_api(
 pub async fn check_api(
     State(state): State<AppState>,
     headers: HeaderMap,
-    admission: Option<Extension<std::sync::Arc<tokio::sync::OwnedSemaphorePermit>>>,
+    admission: Option<Extension<Arc<crate::access::Admission>>>,
     payload: Result<Json<CheckRequest>, axum::extract::rejection::JsonRejection>,
 ) -> Response {
     if let Err(response) = operator(&state, &headers) {
@@ -171,6 +246,26 @@ pub async fn check_api(
         Ok(p) => p,
         Err(e) => return api_error(e.status(), "Invalid check JSON"),
     };
+    if let Err(d) = crate::input_limits::request_shape(
+        request.report_folder.as_ref(),
+        &BTreeMap::new(),
+        &request.data,
+        &request.styles,
+    ) {
+        return diagnostic_response(StatusCode::UNPROCESSABLE_ENTITY, *d);
+    }
+    if let Err(d) = crate::input_limits::widths_shape(&request.widths) {
+        return diagnostic_response(StatusCode::UNPROCESSABLE_ENTITY, *d);
+    }
+    if let Err(d) = crate::input_limits::InputSizes::new(
+        request
+            .report_folder
+            .as_ref()
+            .map_or("report.rmd", |f| &f.source),
+        request.source.len(),
+    ) {
+        return diagnostic_response(StatusCode::UNPROCESSABLE_ENTITY, *d);
+    }
     let render = RenderRequest {
         source: request.source.clone(),
         report_folder: request.report_folder.clone(),
@@ -180,8 +275,20 @@ pub async fn check_api(
     };
     let widths = request.widths.clone();
     let folder = request.report_folder.clone();
+    let held = match take_place(admission.map(|Extension(a)| a), None).await {
+        Ok(held) => held,
+        Err(busy) => return busy,
+    };
     match tokio::task::spawn_blocking(move || {
-        let _admission = admission;
+        let _held = held;
+        received_inputs(
+            richview_core::document::parse(&render.source).ok().as_ref(),
+            &render.source,
+            render.report_folder.as_ref(),
+            &render.styles,
+            &render.data,
+            &BTreeMap::new(),
+        )?;
         let options = options_for(&state, &render).map_err(|message| {
             // Whatever is wrong with the request's own data or styles is the caller's to fix.
             match crate::ops::Failure::from(message) {
@@ -196,6 +303,98 @@ pub async fn check_api(
         Ok(outcome) => outcome_response(outcome),
         Err(_) => api_error(StatusCode::INTERNAL_SERVER_ERROR, "Check worker failed"),
     }
+}
+
+/// Measure the decoded inputs the receiver actually accepts. Folder inventories carry names only.
+pub(crate) fn received_inputs(
+    doc: Option<&richview_core::document::Document>,
+    source: &str,
+    folder: Option<&richview_core::document::ReportFolder>,
+    styles: &[String],
+    data: &BTreeMap<String, String>,
+    files: &BTreeMap<String, String>,
+) -> Result<(), crate::ops::Failure> {
+    use crate::input_limits::{InputSizes, normalize};
+    use base64::{Engine, engine::general_purpose::STANDARD};
+    use sha2::{Digest, Sha256};
+    use std::borrow::Cow;
+    let name = folder.map_or("report.rmd", |f| f.source.as_str());
+    let sizes_error =
+        |d: Box<richview_core::document::Diagnostic>| crate::ops::Failure::Diagnostics(vec![*d]);
+    let mut sizes = InputSizes::new(name, source.len()).map_err(sizes_error)?;
+
+    let resources: BTreeMap<_, _> = doc
+        .into_iter()
+        .flat_map(richview_core::document::report_resources)
+        .map(|r| (normalize(&r.path), r.kind))
+        .collect();
+    let parquet = doc
+        .map(crate::input_limits::direct_parquet)
+        .unwrap_or_default();
+    let mut hashes = BTreeMap::new();
+    hashes.insert((false, normalize(name)), Sha256::digest(source.as_bytes()));
+    let mut add =
+        |path: &str, bytes: &[u8], materialized: bool| -> Result<(), crate::ops::Failure> {
+            let key = normalize(path);
+            let size = if materialized {
+                sizes.table(path, bytes.len())
+            } else {
+                sizes.record(path, bytes.len() as u64)
+            };
+            size.map_err(|d| {
+                sizes_error(if let Some(doc) = doc {
+                    crate::input_limits::locate(d, doc)
+                } else {
+                    d
+                })
+            })?;
+            let hash = Sha256::digest(bytes);
+            if hashes
+                .insert((materialized, key), hash)
+                .is_some_and(|earlier| earlier != hash)
+            {
+                return Err(crate::ops::Failure::usage(format!(
+                    "The request carries different contents for ‘{path}’."
+                )));
+            }
+            Ok(())
+        };
+    let decode = |path: &str, text: &str| {
+        STANDARD.decode(text).map_err(|_| {
+            crate::ops::Failure::usage(format!("The file ‘{path}’ is not valid base64."))
+        })
+    };
+    for (path, value) in data {
+        let kind = resources.get(&normalize(path)).copied();
+        // A media type and its parameters are short and plain; anything else in front of the
+        // base64 is not a header, so the whole value is measured as the text it is.
+        let media = value
+            .strip_prefix("data:")
+            .and_then(|v| v.split_once(";base64,"))
+            .filter(|(head, _)| {
+                head.len() <= 127
+                    && head
+                        .bytes()
+                        .all(|b| b.is_ascii_alphanumeric() || b"/+-.=;".contains(&b))
+            })
+            .filter(|_| !matches!(kind, Some("data" | "style")));
+        let bytes = match media {
+            Some((_, body)) => Cow::Owned(decode(path, body)?),
+            None => Cow::Borrowed(value.as_bytes()),
+        };
+        // Direct Parquet travels as a materialized table. Its linked download, if present,
+        // carries the original binary file and is a second input at this boundary.
+        add(path, &bytes, parquet.contains(&normalize(path)))?;
+    }
+    for (path, value) in files {
+        add(path, &decode(path, value)?, false)?;
+    }
+    for (index, style) in styles.iter().enumerate() {
+        if !richview_core::builtin_style_names().contains(&style.as_str()) {
+            sizes.style(index, style.len()).map_err(sizes_error)?;
+        }
+    }
+    sizes.check().map_err(sizes_error)
 }
 
 /// A font travels as a `data:font/woff2;base64,` URI that reaches the page's style sheet, so the
@@ -359,7 +558,7 @@ fn audit(state: &AppState, caller: &Caller, action: &str, target: &str) {
 pub async fn publish_api(
     State(state): State<AppState>,
     headers: HeaderMap,
-    admission: Option<Extension<std::sync::Arc<tokio::sync::OwnedSemaphorePermit>>>,
+    admission: Option<Extension<Arc<crate::access::Admission>>>,
     payload: Result<Json<PublishRequest>, axum::extract::rejection::JsonRejection>,
 ) -> Response {
     let admission = admission.map(|Extension(permit)| permit);
@@ -387,6 +586,15 @@ pub async fn publish_api(
     if request.source.is_empty() {
         return api_error(StatusCode::BAD_REQUEST, "Missing slug or source");
     }
+    // How many files and how long their names, before any of it is walked, measured or locked.
+    if let Err(d) = crate::input_limits::request_shape(
+        request.report_folder.as_ref(),
+        &request.files,
+        &request.data,
+        &request.styles,
+    ) {
+        return diagnostic_response(StatusCode::UNPROCESSABLE_ENTITY, *d);
+    }
     request.drop_sidecars();
     if let Err(problem) = validate_slug(&request.slug) {
         return diagnostic_response(
@@ -396,6 +604,7 @@ pub async fn publish_api(
                 .fix("Send a slug that matches the grammar, or omit it from the client so it is derived from the title"),
         );
     }
+    let mut destination: Option<String> = None;
     if state.access.is_hosted() {
         let Principal::User(user) = &caller.principal else {
             return auth::not_found();
@@ -428,6 +637,7 @@ pub async fn publish_api(
             return auth::not_found();
         }
         request.slug = key;
+        destination = Some(org.to_owned());
     }
     if let Err(error) = state.access.admit_hosted_publish(&request.slug) {
         return match error {
@@ -440,6 +650,21 @@ pub async fn publish_api(
                 "Could not check the publish limit.",
             ),
         };
+    }
+    // The body is in: a worker is taken for the report's organization, ahead of everything that
+    // reads or draws it. A request that was slow to arrive held none.
+    let held = match take_place(admission, destination.as_deref()).await {
+        Ok(held) => held,
+        Err(busy) => return busy,
+    };
+    if let Err(d) = crate::input_limits::InputSizes::new(
+        request
+            .report_folder
+            .as_ref()
+            .map_or("report.rmd", |f| &f.source),
+        request.source.len(),
+    ) {
+        return diagnostic_response(StatusCode::UNPROCESSABLE_ENTITY, *d);
     }
     let parsed = match richview_core::document::parse(&request.source) {
         Ok(p) => p,
@@ -475,6 +700,123 @@ pub async fn publish_api(
             "Publish requires frontmatter version (semver, e.g. 0.0.1)",
         );
     }
+    // Only files the source links become public; each one must have been sent. This and the
+    // measuring of the inputs read the request alone, so they happen before the publication lock
+    // is taken: a request that is slow to read must not stop everyone else's publishing.
+    let links: Vec<String> = resolver::linked_paths(&parsed)
+        .into_iter()
+        .filter(|p| !richview_core::document::is_source_file(&p.to_lowercase()))
+        .collect();
+    let sent: std::collections::BTreeSet<&str> = request.files.keys().map(String::as_str).collect();
+    if let Some(missing) = links.iter().find(|p| !sent.contains(p.as_str())) {
+        return diagnostic_response(
+            StatusCode::BAD_REQUEST,
+            richview_core::document::Diagnostic::new(
+                "error",
+                "report.asset.missing",
+                format!(
+                    "The report links to {missing}, but the publication did not carry that file."
+                ),
+                missing.as_str(),
+            )
+            .fix("Add the linked file to the report folder and publish again"),
+        );
+    }
+    drop(sent);
+    let linked: std::collections::BTreeSet<&str> = links.iter().map(String::as_str).collect();
+    request
+        .files
+        .retain(|path, _| linked.contains(path.as_str()));
+    drop(linked);
+    let measured = {
+        let held = held.clone();
+        tokio::task::spawn_blocking(move || {
+            let _held = held;
+            let checked = received_inputs(
+                Some(&parsed),
+                &request.source,
+                request.report_folder.as_ref(),
+                &request.styles,
+                &request.data,
+                &request.files,
+            );
+            (checked, parsed, request)
+        })
+        .await
+    };
+    let (checked, parsed, request) = match measured {
+        Ok(measured) => measured,
+        Err(_) => return api_error(StatusCode::INTERNAL_SERVER_ERROR, "Publish worker failed"),
+    };
+    if let Err(error) = checked {
+        return outcome_response(Err(error));
+    }
+    // Refused before it is drawn when the address or the rights already say no; the lock decides.
+    if let Err(response) = publication_target(&state, &caller, &request, true) {
+        return response;
+    }
+    // The report is drawn before the lock is taken, so that one that is slow to draw delays no one
+    // else's publishing or deleting. What the publisher may do is decided under the lock, and
+    // decided again by the commit, which reads their rights as they are by then.
+    let drawn = {
+        let worker_state = state.clone();
+        let held = held.clone();
+        let stored_slug = request.slug.clone();
+        let stored_version = version.clone();
+        let (source, report_folder) = (request.source.clone(), request.report_folder.clone());
+        let (styles, data) = (request.styles.clone(), request.data.clone());
+        tokio::task::spawn_blocking(move || -> Result<_, Refused> {
+            let _held = held;
+            let mut options = options_for(
+                &worker_state,
+                &RenderRequest {
+                    source,
+                    report_folder,
+                    styles,
+                    data,
+                    ..Default::default()
+                },
+            )?;
+            link_runtime(&worker_state, &mut options)?;
+            // HTML/frontmatter supplied by a client is deliberately not trusted or stored.
+            let frontmatter = parsed.frontmatter.clone();
+            let rendered = richview_core::document::render_document(parsed, &options)
+                .map_err(|d| PublishError::from(serde_json::to_string(&d).unwrap_or_default()))?;
+            if rendered.diagnostics.iter().any(|d| d.level == "error") {
+                return Err(PublishError::from(
+                    serde_json::to_string(&rendered.diagnostics).unwrap_or_default(),
+                )
+                .into());
+            }
+            // Links to report files point at the version's own file route, so they work from the
+            // latest address and the permalink alike (FEA-SF-52).
+            let html = link_files(&rendered.html, &stored_slug, &stored_version, &links);
+            let publisher = if worker_state.access.is_hosted() {
+                super::host_bar::publisher_credit(&rendered.company)
+            } else {
+                None
+            };
+            // What the share card needs of the styles is resolved here, with the render and ahead of
+            // the lock, so that drawing the card later resolves nothing.
+            let card_brand = richview_core::report_company_brand(&frontmatter, &options);
+            #[cfg(test)]
+            crate::test_points::reach("publish.rendered", &stored_slug);
+            Ok((
+                frontmatter,
+                html,
+                publisher,
+                rendered.charts.clone(),
+                rendered.diagnostics.clone(),
+                card_brand,
+            ))
+        })
+        .await
+    };
+    let (frontmatter, html, publisher, charts, findings, card_brand) = match drawn {
+        Ok(Ok(drawn)) => drawn,
+        Ok(Err(refused)) => return refusal_response(refused, &request.slug, &version),
+        Err(_) => return api_error(StatusCode::INTERNAL_SERVER_ERROR, "Publish worker failed"),
+    };
     // A new slug's authorization, storage and ownership claim must be one operation with
     // respect to other publishers. Otherwise two authors can both create the same address.
     let publication = state.access.publication.clone().lock_owned().await;
@@ -491,90 +833,13 @@ pub async fn publish_api(
     } else {
         caller
     };
-    let known = match state.storage.has_slug(&request.slug) {
+    let known = match publication_target(&state, &caller, &request, false) {
         Ok(known) => known,
-        Err(e) => return api_error(StatusCode::INTERNAL_SERVER_ERROR, e),
+        Err(response) => return response,
     };
-    if known {
-        if let Err(response) = authorize(&state, &caller, &request.slug, Right::Edit) {
-            return response;
-        }
-        // An editor publishes versions; who can open the report stays with those who may share it.
-        if request
-            .visibility
-            .is_some_and(|wanted| wanted != state.access.acl(&request.slug).visibility)
-            && let Err(response) = authorize(&state, &caller, &request.slug, Right::Share)
-        {
-            return response;
-        }
-    } else {
-        let may_create = if state.access.is_hosted() {
-            match &caller.principal {
-                Principal::User(user) => request.slug.split_once('/').is_some_and(|(org, _)| {
-                    matches!(
-                        state.access.role_in(&user.id, org),
-                        Some(
-                            crate::access::OrgRole::Owner
-                                | crate::access::OrgRole::Admin
-                                | crate::access::OrgRole::Author
-                        )
-                    )
-                }),
-                _ => false,
-            }
-        } else {
-            state.access.can_create(&caller.principal)
-        };
-        if !may_create {
-            let _ = state
-                .access
-                .audit(&caller.principal, "denied.create", &request.slug, false);
-            return api_error(
-                StatusCode::FORBIDDEN,
-                "Your role cannot publish new reports.",
-            );
-        }
-        if !request.new {
-            return diagnostic_response(
-                StatusCode::CONFLICT,
-                richview_core::document::Diagnostic::new(
-                    "error",
-                    "publish.new-slug",
-                    format!(
-                        "`{}` does not exist on this server and this request expected an existing report. Nothing was stored.",
-                        request.slug
-                    ),
-                    "slug",
-                )
-                .fix("Use the previous slug, or pass --new (MCP: new: true) to create another address intentionally"),
-            );
-        }
-        // Reserve room for the retained access record before writing a first version. Publishing
-        // and claims share the publication lock, so another publisher cannot take this capacity.
-        if let Err(error) = state.access.check_claim_capacity(&request.slug) {
-            return auth::access_error(error);
-        }
-    }
-    // Only files the source links become public; each one must have been sent.
-    let links: Vec<String> = resolver::linked_paths(&parsed)
-        .into_iter()
-        .filter(|p| !p.to_lowercase().ends_with(".rmd"))
-        .collect();
-    if let Some(missing) = links.iter().find(|p| !request.files.contains_key(*p)) {
-        return diagnostic_response(
-            StatusCode::BAD_REQUEST,
-            richview_core::document::Diagnostic::new(
-                "error",
-                "report.asset.missing",
-                format!(
-                    "The report links to {missing}, but the publication did not carry that file."
-                ),
-                missing.as_str(),
-            )
-            .fix("Add the linked file to the report folder and publish again"),
-        );
-    }
-    request.files.retain(|path, _| links.contains(path));
+    // Asked under the lock, so that it is the answer the commit meets: an address with a record
+    // keeps the owner of that record, whether or not a report is stored there now.
+    let recorded = state.access.has_record(&request.slug);
     let origin = request_origin(&state, &headers);
     let slug = request.slug.clone();
     let storage = state.storage.clone();
@@ -585,35 +850,9 @@ pub async fn publish_api(
     let result = tokio::task::spawn_blocking(move || -> Result<_, Refused> {
         // A disconnected client drops its handler, not this blocking task. Keep the lock
         // and the ownership claim with the write until that task actually finishes.
-        let _publication = publication;
-        let _admission = admission;
-        let mut options = options_for(
-            &worker_state,
-            &RenderRequest {
-                source: request.source.clone(),
-                report_folder: request.report_folder.clone(),
-                styles: request.styles.clone(),
-                data: request.data.clone(),
-                ..Default::default()
-            },
-        )?;
-        link_runtime(&worker_state, &mut options)?;
-        // HTML/frontmatter supplied by a client is deliberately not trusted or stored.
-        let frontmatter = parsed.frontmatter.clone();
-        let rendered = richview_core::document::render_document(parsed, &options)
-            .map_err(|d| PublishError::from(serde_json::to_string(&d).unwrap_or_default()))?;
-        if rendered.diagnostics.iter().any(|d| d.level == "error") {
-            return Err(PublishError::from(
-                serde_json::to_string(&rendered.diagnostics).unwrap_or_default(),
-            )
-            .into());
-        }
-        // Links to report files point at the version's own file route, so they work from the
-        // latest address and the permalink alike (FEA-SF-52).
-        let html = link_files(&rendered.html, &request.slug, &stored_version, &links);
-        let charts = rendered.charts.clone();
-        let findings = rendered.diagnostics.clone();
-        let owner = if known {
+        let publication = publication;
+        let _held = held;
+        let owner = if known || recorded {
             worker_state.access.acl(&request.slug).owner
         } else {
             match &principal {
@@ -626,8 +865,6 @@ pub async fn publish_api(
                 }
             }
         };
-        #[cfg(test)]
-        crate::test_points::reach("publish.rendered", &request.slug);
         let owned_slugs = worker_state.access.owned_slugs(&owner);
         let slug = request.slug.clone();
         let card_storage = storage.clone();
@@ -641,7 +878,7 @@ pub async fn publish_api(
             known,
             wanted_visibility,
             || {
-                storage.put_version_for_owner(
+                storage.put_publication(
                     StoredReport {
                         slug: request.slug,
                         version: stored_version,
@@ -665,13 +902,16 @@ pub async fn publish_api(
                         content_sha256: String::new(),
                     },
                     &owned_slugs,
+                    publisher.as_deref(),
                 )
             },
         )??;
         // The card is drawn once, when the version is stored, so a link preview never renders
-        // anything (ARC-69); after the commit, so no access change waits for a drawing. A
-        // failure leaves it to be drawn on first request.
-        if created && let Ok(png) = draw_share_card(&stored, &charts) {
+        // anything (ARC-69); after the commit and with the publication lock let go, so that
+        // neither an access change nor another publisher waits for a drawing. A failure leaves it
+        // to be drawn on first request.
+        drop(publication);
+        if created && let Ok(png) = draw_share_card_with(&stored, &charts, card_brand) {
             let _ = card_storage.put_share_card(&stored.slug, &stored.version, &png);
         }
         let _ = worker_state.access.audit(
@@ -695,10 +935,146 @@ pub async fn publish_api(
             Json(richview_core::document::operation_result(findings, json!({"slug": slug, "version": report.version, "url": format!("{origin}/r/{slug}"), "created": created, "permalink": format!("{origin}/r/{slug}/v/{}", report.version), "contentSha256": report.content_sha256, "visibility": visibility})))
             .into_response()
         }
-        Ok(Err(Refused::Access(error))) => auth::access_error(error),
-        Ok(Err(Refused::Publish(PublishError::Other(e)))) => api_error(StatusCode::BAD_REQUEST, e),
-        Ok(Err(Refused::Publish(e))) => publish_error_response(&e, &slug, &version),
+        Ok(Err(refused)) => refusal_response(refused, &slug, &version),
         Err(_) => api_error(StatusCode::INTERNAL_SERVER_ERROR, "Publish worker failed"),
+    }
+}
+
+/// What the address and the publisher's rights allow a publication to do: `Ok(known)`, whether a
+/// report is stored at the address, or the answer that refuses it. It is asked twice. Before the
+/// report is drawn, with `advisory`, so that a request that will be refused is not drawn at all; and
+/// again under the publication lock, which decides, so that nothing it let through is taken on trust.
+fn publication_target(
+    state: &AppState,
+    caller: &auth::Caller,
+    request: &PublishRequest,
+    advisory: bool,
+) -> Result<bool, Response> {
+    // The right to `right` on the report. The advisory question holds no test point: it asks, and
+    // the one under the lock is the one that is waited on.
+    let right = |right: Right| {
+        if advisory {
+            auth::check_right(state, caller, &request.slug, right)
+        } else {
+            authorize(state, caller, &request.slug, right)
+        }
+    };
+    let known = match state.storage.has_slug(&request.slug) {
+        Ok(known) => known,
+        Err(e) => return Err(api_error(StatusCode::INTERNAL_SERVER_ERROR, e)),
+    };
+    // The one who is making a new report is never asked to publish into one that is there: its
+    // audience is not theirs to inherit. The editor says so with `createOnly`; a browser session
+    // that asks for `new` says the same, so a tab opened before the editor sent it is held to it
+    // too (only the editor publishes from a session; the command line and the tools use tokens).
+    let creating = request.create_only
+        || (state.access.is_hosted() && request.new && caller.session.is_some());
+    // An address is taken by a report stored at it and by an access record kept for it, which an
+    // interrupted publication or a deleted report leaves, with its owner and its audience. It is so
+    // for every caller, the editor, the command line and the tools alike: whoever publishes there
+    // must be able to edit that record, and the address keeps its owner and its audience.
+    let recorded = state.access.has_record(&request.slug);
+    let taken = known || recorded;
+    if taken {
+        right(Right::Edit)?;
+        // After the right to edit is checked, so that an address nobody lets them see is not told
+        // apart from one that is free.
+        if creating {
+            return Err(diagnostic_response(
+                StatusCode::CONFLICT,
+                richview_core::document::Diagnostic::new(
+                    "error",
+                    "publish.slug",
+                    format!(
+                        "`{}` is already taken here, so this new report cannot use its address. Nothing was stored.",
+                        request.slug.split_once('/').map_or(request.slug.as_str(), |(_, slug)| slug)
+                    ),
+                    "slug",
+                )
+                .fix("Choose another address for the new report, or open the existing one to save a new version of it"),
+            ));
+        }
+        // A retired address has a record and no report: a request that expects an existing one
+        // has nothing to revise there.
+        if !known && !request.new {
+            return Err(diagnostic_response(
+                StatusCode::CONFLICT,
+                richview_core::document::Diagnostic::new(
+                    "error",
+                    "publish.new-slug",
+                    format!(
+                        "`{}` does not exist on this server and this request expected an existing report. Nothing was stored.",
+                        request.slug
+                    ),
+                    "slug",
+                )
+                .fix("Use the previous slug, or pass --new (MCP: new: true) to create another address intentionally"),
+            ));
+        }
+        // An editor publishes versions; who can open the report stays with those who may share it.
+        if request
+            .visibility
+            .is_some_and(|wanted| wanted != state.access.acl(&request.slug).visibility)
+        {
+            right(Right::Share)?;
+        }
+    } else {
+        let may_create = if state.access.is_hosted() {
+            match &caller.principal {
+                Principal::User(user) => request.slug.split_once('/').is_some_and(|(org, _)| {
+                    matches!(
+                        state.access.role_in(&user.id, org),
+                        Some(
+                            crate::access::OrgRole::Owner
+                                | crate::access::OrgRole::Admin
+                                | crate::access::OrgRole::Author
+                        )
+                    )
+                }),
+                _ => false,
+            }
+        } else {
+            state.access.can_create(&caller.principal)
+        };
+        if !may_create {
+            let _ = state
+                .access
+                .audit(&caller.principal, "denied.create", &request.slug, false);
+            return Err(api_error(
+                StatusCode::FORBIDDEN,
+                "Your role cannot publish new reports.",
+            ));
+        }
+        if !request.new {
+            return Err(diagnostic_response(
+                StatusCode::CONFLICT,
+                richview_core::document::Diagnostic::new(
+                    "error",
+                    "publish.new-slug",
+                    format!(
+                        "`{}` does not exist on this server and this request expected an existing report. Nothing was stored.",
+                        request.slug
+                    ),
+                    "slug",
+                )
+                .fix("Use the previous slug, or pass --new (MCP: new: true) to create another address intentionally"),
+            ));
+        }
+        // Reserve room for the retained access record before writing a first version. Publishing
+        // and claims share the publication lock, so another publisher cannot take this capacity.
+        if let Err(error) = state.access.check_claim_capacity(&request.slug) {
+            return Err(auth::access_error(error));
+        }
+    }
+    Ok(known)
+}
+
+/// The answer to a publication that stored nothing.
+fn refusal_response(refused: Refused, slug: &str, version: &str) -> Response {
+    match refused {
+        Refused::Access(error) => auth::access_error(error),
+        Refused::Publish(PublishError::Other(e)) => api_error(StatusCode::BAD_REQUEST, e),
+        Refused::Publish(e) => publish_error_response(&e, slug, version),
     }
 }
 
@@ -1055,7 +1431,7 @@ pub async fn report_bundle(
 pub async fn regenerate(
     State(state): State<AppState>,
     headers: HeaderMap,
-    admission: Option<Extension<std::sync::Arc<tokio::sync::OwnedSemaphorePermit>>>,
+    admission: Option<Extension<Arc<crate::access::Admission>>>,
     AxumPath((slug, version)): AxumPath<(String, String)>,
 ) -> Response {
     let caller = match mutating(&state, &headers) {
@@ -1065,6 +1441,10 @@ pub async fn regenerate(
     if let Err(response) = authorize(&state, &caller, &slug, Right::Manage) {
         return response;
     }
+    let held = match take_place(admission.map(|Extension(a)| a), None).await {
+        Ok(held) => held,
+        Err(busy) => return busy,
+    };
     audit(
         &state,
         &caller,
@@ -1073,9 +1453,9 @@ pub async fn regenerate(
     );
     let storage = state.storage.clone();
     let (named_slug, named_version) = (slug.clone(), version.clone());
-    let load_admission = admission.clone();
+    let load_held = held.clone();
     let report = match tokio::task::spawn_blocking(move || {
-        let _admission = load_admission;
+        let _held = load_held;
         storage.get(&slug, Some(&version))
     })
     .await
@@ -1098,7 +1478,7 @@ pub async fn regenerate(
     }
     let stored_html = report.html.clone();
     let rendered = tokio::task::spawn_blocking(move || {
-        let _admission = admission;
+        let _held = held;
         let mut options = options_for(
             &state,
             &RenderRequest {
@@ -1116,7 +1496,7 @@ pub async fn regenerate(
         if let Ok(document) = richview_core::document::parse(&report.source) {
             let links: Vec<String> = resolver::linked_paths(&document)
                 .into_iter()
-                .filter(|p| !p.to_lowercase().ends_with(".rmd"))
+                .filter(|p| !richview_core::document::is_source_file(&p.to_lowercase()))
                 .collect();
             rendered.html = link_files(&rendered.html, &named_slug, &named_version, &links);
         }
@@ -1134,9 +1514,12 @@ pub async fn regenerate(
     }
 }
 
-/// Points every link to a report file at that version's file route.
+/// Points every link to a report file at that version's file route, in one pass over the page: a
+/// report that links thousands of files is not read once for each of them.
 fn link_files(html: &str, slug: &str, version: &str, links: &[String]) -> String {
-    let mut html = html.to_owned();
+    // Each spelling an `href` may have, with the path as the file route names it.
+    let mut spellings: std::collections::HashMap<String, String> =
+        std::collections::HashMap::with_capacity(links.len() * 2);
     for path in links {
         // The rendered href is the file name percent-encoded; a hand-written one may be raw.
         let encoded: String = path
@@ -1153,14 +1536,35 @@ fn link_files(html: &str, slug: &str, version: &str, links: &[String]) -> String
             .replace('<', "&lt;")
             .replace('>', "&gt;")
             .replace('"', "&quot;");
-        for spelling in [raw, encoded.clone()] {
-            html = html.replace(
-                &format!("href=\"{spelling}\""),
-                &format!("href=\"/r/{slug}/v/{version}/files/{encoded}\""),
-            );
-        }
+        spellings.entry(raw).or_insert_with(|| encoded.clone());
+        spellings.entry(encoded.clone()).or_insert(encoded);
     }
-    html
+    const OPEN: &str = "href=\"";
+    let mut out = String::with_capacity(html.len());
+    let mut rest = html;
+    while let Some(at) = rest.find(OPEN) {
+        let (before, after) = rest.split_at(at + OPEN.len());
+        out.push_str(before);
+        let Some(end) = after.find('"') else {
+            rest = after;
+            break;
+        };
+        let (value, tail) = after.split_at(end);
+        match spellings.get(value) {
+            Some(encoded) => {
+                out.push_str("/r/");
+                out.push_str(slug);
+                out.push_str("/v/");
+                out.push_str(version);
+                out.push_str("/files/");
+                out.push_str(encoded);
+            }
+            None => out.push_str(value),
+        }
+        rest = tail;
+    }
+    out.push_str(rest);
+    out
 }
 
 /// Cache headers that never let a shared cache keep a report that is not public.
@@ -1532,18 +1936,17 @@ async fn fetch_report(
         String::new()
     };
     // The bar above a hosted report, on the report host only; a public report's is everyone's.
-    let bar = if raw || !super::origin::on_report_origin(&state, &headers) {
-        None
-    } else {
-        super::host_bar::bar(&state, &caller.principal, &slug, public)
-    };
+    let hosted_bar =
+        !raw && state.access.is_hosted() && super::origin::on_report_origin(&state, &headers);
+    let read_storage = storage.clone();
     match tokio::task::spawn_blocking(move || {
-        let result = state.storage.read_content(&slug, version.as_deref(), raw);
+        let result = read_storage.read_page(&slug, version.as_deref(), raw, hosted_bar);
         (result, permit)
     })
     .await
     {
-        Ok((Ok(Some(body)), permit)) => {
+        Ok((Ok(Some(page)), permit)) => {
+            let body = page.body;
             let mime = if raw {
                 "text/markdown; charset=utf-8"
             } else {
@@ -1556,8 +1959,19 @@ async fn fetch_report(
                 }
                 _ => body,
             };
+            let bar = if hosted_bar {
+                super::host_bar::bar(
+                    &state,
+                    &caller.principal,
+                    &card_slug,
+                    public,
+                    page.publisher.as_deref(),
+                )
+            } else {
+                None
+            };
             let body = match &bar {
-                Some(bar) => super::host_bar::insert(&body, bar),
+                Some(bar) => super::host_bar::insert(&body, bar, page.publisher.is_some()),
                 None => body,
             };
             (
@@ -1612,7 +2026,16 @@ pub(super) fn draw_share_card(
     report: &StoredReport,
     charts: &[serde_json::Value],
 ) -> Result<Vec<u8>, String> {
-    let (title, byline, style, company) = card_text(report);
+    draw_share_card_with(report, charts, report_brand(report))
+}
+
+/// The same with the company brand already resolved, as a publication has it from its render.
+pub(super) fn draw_share_card_with(
+    report: &StoredReport,
+    charts: &[serde_json::Value],
+    brand: richview_core::CompanyBrand,
+) -> Result<Vec<u8>, String> {
+    let (title, byline, style, company) = card_text(report, brand);
     richview_share::card_png_with_company(&title, &byline, &style, charts, company)
 }
 
@@ -1621,13 +2044,25 @@ pub(super) fn share_card_svg(
     report: &StoredReport,
     charts: &[serde_json::Value],
 ) -> Result<String, String> {
-    let (title, byline, style, company) = card_text(report);
+    let (title, byline, style, company) = card_text(report, report_brand(report));
     richview_share::card_svg_with_company(&title, &byline, &style, charts, company)
 }
 
-/// A stored version's card text, style and company brand.
+/// The company brand a stored version's styles resolve to, which a card is drawn in.
+fn report_brand(report: &StoredReport) -> richview_core::CompanyBrand {
+    let options = RenderOptions {
+        styles: report.styles.clone(),
+        report_folder: report.report_folder.clone(),
+        data: report.data.clone(),
+        ..Default::default()
+    };
+    richview_core::report_company_brand(&report.frontmatter, &options)
+}
+
+/// A stored version's card text, style and the company brand, given its resolved brand.
 fn card_text(
     report: &StoredReport,
+    company: richview_core::CompanyBrand,
 ) -> (String, String, String, Option<richview_core::CompanyBrand>) {
     // The text is bounded before it is laid out: a card is 1200 x 630 and holds a few lines.
     let text = |key: &str, cap: usize| {
@@ -1640,13 +2075,6 @@ fn card_text(
         .as_str()
         .unwrap_or_default()
         .to_owned();
-    let options = RenderOptions {
-        styles: report.styles.clone(),
-        report_folder: report.report_folder.clone(),
-        data: report.data.clone(),
-        ..Default::default()
-    };
-    let company = richview_core::report_company_brand(&report.frontmatter, &options);
     let style = company.base.as_deref().unwrap_or(&style).to_owned();
     (
         text("title", 200).unwrap_or_else(|| report.slug.clone()),
@@ -1858,6 +2286,10 @@ pub async fn raw_version(
 mod publish_refusal_tests;
 
 #[cfg(test)]
+#[path = "publish_shape_tests.rs"]
+mod publish_shape_tests;
+
+#[cfg(test)]
 mod tests {
     use super::*;
 
@@ -1873,6 +2305,77 @@ mod tests {
         let diagnostic = &json["diagnostics"][0];
         assert_eq!(diagnostic["code"], "publish.quota");
         assert_eq!(diagnostic["fix"], "Delete a report to free a report slot.");
+    }
+
+    #[test]
+    fn input_limits_measure_decoded_files_and_compare_repeated_contents() {
+        use base64::{Engine, engine::general_purpose::STANDARD};
+        let source = "![Picture](photo.jpg)";
+        let encoded = STANDARD.encode(vec![0; 5_000_000]);
+        let data = BTreeMap::from([(
+            "photo.jpg".into(),
+            format!("data:image/jpeg;base64,{encoded}"),
+        )]);
+        let mut files = BTreeMap::from([("./photo.jpg".into(), encoded)]);
+        assert!(
+            received_inputs(
+                richview_core::document::parse(source).ok().as_ref(),
+                source,
+                None,
+                &[],
+                &data,
+                &files
+            )
+            .is_ok()
+        );
+        files.insert("./photo.jpg".into(), STANDARD.encode(b"different"));
+        assert!(matches!(
+            received_inputs(
+                richview_core::document::parse(source).ok().as_ref(),
+                source,
+                None,
+                &[],
+                &data,
+                &files
+            ),
+            Err(crate::ops::Failure::Usage(_))
+        ));
+    }
+
+    #[test]
+    fn input_limits_count_a_received_version_once_at_the_total_boundary() {
+        use base64::{Engine, engine::general_purpose::STANDARD};
+        let source = "[CSV](file0.csv)";
+        let mut data: BTreeMap<_, _> = (0..10)
+            .map(|i| (format!("file{i}.csv"), "x".repeat(5_000_000)))
+            .collect();
+        data.get_mut("file9.csv")
+            .unwrap()
+            .truncate(5_000_000 - source.len());
+        let files = BTreeMap::from([("file0.csv".into(), STANDARD.encode(&data["file0.csv"]))]);
+        assert!(
+            received_inputs(
+                richview_core::document::parse(source).ok().as_ref(),
+                source,
+                None,
+                &[],
+                &data,
+                &files
+            )
+            .is_ok()
+        );
+        data.get_mut("file9.csv").unwrap().push('x');
+        let failure = received_inputs(
+            richview_core::document::parse(source).ok().as_ref(),
+            source,
+            None,
+            &[],
+            &data,
+            &files,
+        )
+        .unwrap_err();
+        assert_eq!(failure.diagnostics()[0].code, "report.input-limit");
+        assert!(failure.message().contains("50000001"));
     }
 
     #[test]

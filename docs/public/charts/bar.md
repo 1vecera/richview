@@ -50,6 +50,6 @@ Values appear automatically when complete text fits inside its own bar, or besid
 
 ## Interactions
 
-- Point at a bar to read its value. A ring outlines the bar in its own colour and the other bars keep their colour. Use the arrow keys to select a mark and see the same ring and readout.
+- Point at a bar to read its value. A ring outlines the bar in its own colour and the other bars keep their colour. In a stacked chart the segment's series keeps its colour in every stack and the other series fade. Use the arrow keys to select a mark and see the same ring and readout.
 - Click a legend entry to toggle a series when the chart has several.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

@@ -225,7 +225,7 @@ fn mark_scrollers() {
 }
 
 /// A chart's Table, once it is on the page or rebuilt: a named region while it scrolls, with its
-/// edge cues (S27-879).
+/// edge cues.
 pub fn mark_table(node: &Element) {
     mark_scroller(node, table_name());
     watch(node);
@@ -331,7 +331,7 @@ fn mark_scroller(node: &Element, name: &str) {
     }
 }
 
-/// A table box whose content is wider than it shows so (S27-879): on each side that has more, an
+/// A table box whose content is wider than it shows so: on each side that has more, an
 /// edge cue fades the content into the surface the box sits on, and leaves when the reader reaches
 /// that end, so a value the box cuts is never read as whole. The box is marked while it is too
 /// narrow (`data-rv-cues`, which makes it a grid whose cues stick to its sides) and with the sides

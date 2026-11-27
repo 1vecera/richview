@@ -1,7 +1,7 @@
 //! Density charts: the kernel estimate against hand-computed references, the method disclosed,
 //! groups, facets, and the shared contract every type meets (FEA-CH-14, FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Cmd, Item, Role};

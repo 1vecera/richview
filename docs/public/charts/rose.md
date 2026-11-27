@@ -66,5 +66,5 @@ axes:
 
 ## Interactions
 
-- Hover or focus a wedge to read its category and value.
+- Hover or focus a wedge to read its category and value; a dark outline traces the wedge and the others keep their colour.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

@@ -20,6 +20,8 @@ pub enum Ty {
     Integer,
     /// Significant digits, not decimal places: a whole number from 2 to 6 (TYP-23, FEA-CH-37).
     Digits,
+    /// Decimal places in a table column, from 0 to 6 (TYP-104).
+    Decimals,
     Bool,
     /// One of the listed words.
     OneOf(&'static [&'static str]),
@@ -1550,6 +1552,13 @@ pub const TAGS: &[Tag] = &[
                 "Significant digits of the column's numbers, not decimal places."
             ),
             field!(
+                "columns[n].decimals",
+                Ty::Decimals,
+                false,
+                NO,
+                "Decimal places shown in every numeric cell of this column (0 to 6); a year column ignores it."
+            ),
+            field!(
                 "columns[n].align",
                 Ty::OneOf(&["left", "center", "right"]),
                 false,
@@ -2177,6 +2186,198 @@ pub fn layout(name: &str) -> Option<&'static Tag> {
     LAYOUTS.iter().find(|layout| layout.name == name)
 }
 
+/// The keys of a deck's setup, the text before its first `---` line (FEA-RP-71, TYP-106). They
+/// are the frontmatter fields a deck uses, written as the report's are.
+pub static DECK_SETUP: &[Field] = &[
+    field!(
+        "format",
+        Ty::Text,
+        true,
+        NO,
+        "`rslide/1`, the first line of the file; it is what tells a reader of the text that this is a deck."
+    ),
+    field!(
+        "title",
+        Ty::Text,
+        false,
+        NO,
+        "The deck's title, for the page and a shared link; the first slide's title when absent."
+    ),
+    field!(
+        "description",
+        Ty::Text,
+        false,
+        NO,
+        "One sentence for a shared link; publishing requires it."
+    ),
+    field!(
+        "version",
+        Ty::Text,
+        false,
+        NO,
+        "The version a publication carries, `1.0.0`; publishing requires it."
+    ),
+    field!(
+        "slug",
+        Ty::Text,
+        false,
+        NO,
+        "The deck's address when published; derived from the title when absent."
+    ),
+    field!(
+        "lang",
+        Ty::Text,
+        false,
+        Some("en"),
+        "The deck's language, as the report's `lang`."
+    ),
+    field!(
+        "styles",
+        Ty::List(&Ty::Text),
+        false,
+        NO,
+        "The styles of the deck, as the report's `styles`; the style sets the stage every slide stands on."
+    ),
+];
+
+/// The keys of a slide: its furniture, the cuts of its grid, one piece alone or the slots of
+/// one layout (FEA-RP-71, TYP-106). Each slide opens with a `---` line.
+pub static DECK_SLIDE: &[Field] = &[
+    field!(
+        "title",
+        Ty::Markdown,
+        false,
+        NO,
+        "The large line of the slide's head; it may carry the slide's claim."
+    ),
+    field!(
+        "subtitle",
+        Ty::Markdown,
+        false,
+        NO,
+        "The small line under the title."
+    ),
+    field!(
+        "source",
+        Ty::Markdown,
+        false,
+        NO,
+        "The slide's source note, at the left of its foot."
+    ),
+    field!(
+        "footer",
+        Ty::Markdown,
+        false,
+        NO,
+        "A line at the right of the foot."
+    ),
+    field!(
+        "cols",
+        Ty::Text,
+        false,
+        NO,
+        "Parts of 24 across the layout's column tracks, joined by `-` and adding up to 24, such as `9-15`; equal when absent."
+    ),
+    field!(
+        "rows",
+        Ty::Text,
+        false,
+        NO,
+        "Parts of 24 down the layout's row tracks, as `cols`; they are shares of the content region."
+    ),
+    field!(
+        "chart",
+        Ty::Map,
+        false,
+        NO,
+        "The slide's only piece: a `chart` block, its fields indented under the key."
+    ),
+    field!(
+        "metric",
+        Ty::Map,
+        false,
+        NO,
+        "The slide's only piece: a `metric` block, the largest number the format sets."
+    ),
+    field!(
+        "table",
+        Ty::Map,
+        false,
+        NO,
+        "The slide's only piece: a `table` block."
+    ),
+    field!(
+        "text",
+        Ty::Markdown,
+        false,
+        NO,
+        "The slide's only piece: text read as Markdown."
+    ),
+    field!(
+        "left",
+        Ty::Either(&Ty::Markdown, &Ty::Map),
+        false,
+        NO,
+        "A slot: text, or one `chart`, `metric` or `table` mapping."
+    ),
+    field!(
+        "right",
+        Ty::Either(&Ty::Markdown, &Ty::Map),
+        false,
+        NO,
+        "A slot, as `left`."
+    ),
+    field!(
+        "top",
+        Ty::Either(&Ty::Markdown, &Ty::Map),
+        false,
+        NO,
+        "A slot, as `left`."
+    ),
+    field!(
+        "middle",
+        Ty::Either(&Ty::Markdown, &Ty::Map),
+        false,
+        NO,
+        "A slot, as `left`."
+    ),
+    field!(
+        "bottom",
+        Ty::Either(&Ty::Markdown, &Ty::Map),
+        false,
+        NO,
+        "A slot, as `left`."
+    ),
+    field!(
+        "top-left",
+        Ty::Either(&Ty::Markdown, &Ty::Map),
+        false,
+        NO,
+        "A slot of the corner layouts, as `left`."
+    ),
+    field!(
+        "top-right",
+        Ty::Either(&Ty::Markdown, &Ty::Map),
+        false,
+        NO,
+        "A slot of the corner layouts, as `left`."
+    ),
+    field!(
+        "bottom-left",
+        Ty::Either(&Ty::Markdown, &Ty::Map),
+        false,
+        NO,
+        "A slot of the corner layouts, as `left`."
+    ),
+    field!(
+        "bottom-right",
+        Ty::Either(&Ty::Markdown, &Ty::Map),
+        false,
+        NO,
+        "A slot of the corner layouts, as `left`."
+    ),
+];
+
 pub static FRONTMATTER: &[Field] = &[
     field!(
         "title",
@@ -2417,13 +2618,6 @@ pub static FRONTMATTER: &[Field] = &[
         Some("true"),
         "Shows how far the reader has scrolled as a thin bar in the report's colours along the bottom of the window."
     ),
-    field!(
-        "slides",
-        Ty::Bool,
-        false,
-        Some("false"),
-        "`true` turns the source into slides: the title slide, then one slide for each top-level heading or `---` of the body; the style's stage sets the look."
-    ),
 ];
 
 /// What the automatic migration does with a retired name (TYP-83).
@@ -2596,6 +2790,13 @@ pub(crate) static RETIRED: &[Retired] = &[
         "frontmatter.data",
         Migration::Manual,
         "Move each dataset into the `data` mapping of the block that uses it."
+    ),
+    retired!(
+        "frontmatter",
+        "slides",
+        "frontmatter.slides",
+        Migration::Manual,
+        "Slides are a format of their own: write the deck as a `.rslide` file (its first line `format: rslide/1`, each slide after a `---` line); `richview learn slides` is the guide."
     ),
 ];
 
@@ -3469,6 +3670,12 @@ pub static CODES: &[Code] = &[
         false
     ),
     code!(
+        "style.limit",
+        Error,
+        "A report names too many styles, or style files that add up to too many bytes when each is counted as often as it is named.",
+        false
+    ),
+    code!(
         "style.renamed",
         Error,
         "A style names a builtin that was renamed.",
@@ -3729,6 +3936,12 @@ pub static CODES: &[Code] = &[
         false
     ),
     code!(
+        "editor.render",
+        Error,
+        "The hosted editor could not render the report it was given.",
+        false
+    ),
+    code!(
         "block.nested",
         Error,
         "A rich block sits inside a list, quote or note.",
@@ -3933,15 +4146,51 @@ pub static CODES: &[Code] = &[
         true
     ),
     code!(
-        "slides.tabs",
+        "frontmatter.slides",
+        Error,
+        "A report still sets `slides`, which went when slides became a format of their own; the source renders as a report.",
+        true
+    ),
+    code!(
+        "deck.empty",
+        Error,
+        "A deck has no slide, or a slide has nothing in it.",
+        true
+    ),
+    code!(
+        "deck.syntax",
+        Error,
+        "A line of a deck is not `key: value`, a key stands twice on a slide, or an indent holds a tab.",
+        true
+    ),
+    code!(
+        "deck.key",
         Warning,
-        "A slides source has no tabs, so the tabs setting has no effect.",
+        "A deck's setup or a slide holds a key the format does not read; it is ignored.",
+        true
+    ),
+    code!(
+        "deck.layout",
+        Error,
+        "The slots of a slide are not one of the nine layouts, or a slide mixes one piece with slots.",
+        true
+    ),
+    code!(
+        "deck.piece",
+        Error,
+        "A slot holds two pieces, a piece that is not text or a chart, metric or table, nothing, or a fenced block in text.",
+        true
+    ),
+    code!(
+        "deck.span",
+        Error,
+        "`cols` or `rows` does not add up to 24, has the wrong number of parts for the layout, or cuts an axis the layout does not.",
         true
     ),
     code!(
         "slides.density",
         Warning,
-        "A slide holds more than one screen shows well: too many numbers, figures, words or table rows.",
+        "A slide holds more than a slot shows well: too many words, table rows or title characters.",
         true
     ),
     // Charts.
@@ -4222,6 +4471,18 @@ pub static CODES: &[Code] = &[
         Warning,
         "A chart is taller on paper than the share of the page it may take.",
         true
+    ),
+    code!(
+        "report.file-limit",
+        Error,
+        "One report input exceeds the per-file size limit.",
+        false
+    ),
+    code!(
+        "report.input-limit",
+        Error,
+        "The inputs of one report version exceed the combined size limit, or its publish request exceeds what the server accepts.",
+        false
     ),
     code!(
         "report.asset.remote",
@@ -4561,6 +4822,10 @@ pub const FIXES: &[(&str, &str)] = &[
         "Put the styles file inside the report folder and name it correctly.",
     ),
     (
+        "style.limit",
+        "Name each style once, and name fewer of them.",
+    ),
+    (
         "style.renamed",
         "Replace the style name with the one the message names.",
     ),
@@ -4603,6 +4868,10 @@ pub const FIXES: &[(&str, &str)] = &[
     (
         "editor.service",
         "Retry the request; restart the editor service if it keeps failing.",
+    ),
+    (
+        "editor.render",
+        "Fix the errors listed under the source; the last good report stays shown until the source renders again.",
     ),
     (
         "block.nested",
@@ -4695,6 +4964,11 @@ pub const FIXES: &[(&str, &str)] = &[
     (
         "report.root.unresolved",
         "Check that the report folder exists and is readable.",
+    ),
+    ("report.file-limit", "Reduce or split this file."),
+    (
+        "report.input-limit",
+        "Reduce the inputs or split the report.",
     ),
     (
         "report.asset.remote",
@@ -5092,12 +5366,36 @@ pub const FIXES: &[(&str, &str)] = &[
         "Write the options as a mapping, such as `::: columns {widths: 2-1, gap: large}`.",
     ),
     (
-        "slides.tabs",
-        "Remove `tabs`, or remove `slides: true` to render the report with its tabs.",
+        "frontmatter.slides",
+        "Write the deck as a `.rslide` file whose first line is `format: rslide/1`; `richview learn slides` is the guide.",
+    ),
+    (
+        "deck.empty",
+        "Open each slide with a line of `---` and put at least a `title` or a piece in it.",
+    ),
+    (
+        "deck.syntax",
+        "Write each setting as `key: value` at the left edge, indent what belongs to a key with spaces, and write each key once.",
+    ),
+    (
+        "deck.key",
+        "Remove the key, or use one the format reads: `title`, `subtitle`, `source`, `footer`, `cols`, `rows`, a slot, or one piece.",
+    ),
+    (
+        "deck.layout",
+        "Use the slots of one layout: left and right; top and bottom; left, middle and right; top, middle and bottom; top over bottom-left and bottom-right; bottom under top-left and top-right; left beside top-right and bottom-right; or right beside top-left and bottom-left.",
+    ),
+    (
+        "deck.piece",
+        "Put text, or one `chart:`, `metric:` or `table:` mapping with its fields indented under it, in each slot.",
+    ),
+    (
+        "deck.span",
+        "Write `cols` or `rows` as parts of 24 joined by `-`, one part for each track the layout cuts, such as `9-15` or `8-8-8`.",
     ),
     (
         "slides.density",
-        "Start a new slide: put a top-level heading, or a `---` line, before the content that does not fit.",
+        "Start a new slide for the part that does not fit, or cut the text.",
     ),
     (
         "chart.states-unchecked",

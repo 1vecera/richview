@@ -109,11 +109,21 @@ pub enum Focus {
     /// Marks of one panel by observation: its other owned marks dim. Marks that own no
     /// observation, labels and every other panel stay.
     Marks { panel: usize, keep: Vec<usize> },
+    /// One series the host outlines, as it outlines a hovered mark (a Sankey's or alluvial's
+    /// legend, `richview_chart::interaction::outlines_from_legend`): nothing dims, so the mesh
+    /// draws the chart as it stands.
+    Outline(usize),
 }
 
 impl Focus {
+    /// Whether the marks that this focus does not keep step back.
+    pub(crate) fn dims(&self) -> bool {
+        !matches!(self, Focus::Outline(_))
+    }
+
     pub(crate) fn keeps(&self, panel: usize, item: &Item) -> bool {
         match self {
+            Focus::Outline(_) => true,
             Focus::Series(s) => item.series().is_none_or(|k| k == *s),
             Focus::SeriesSet(series) => item.series().is_none_or(|k| series.contains(&k)),
             Focus::SeriesOf {
@@ -180,6 +190,12 @@ impl State {
         }
     }
 
+    /// Whether the marks that are not emphasised step back: some marks are emphasised, and this
+    /// emphasis dims the rest.
+    fn dimming(&self) -> bool {
+        self.emphasis.as_ref().is_some_and(Focus::dims)
+    }
+
     /// How far the emphasis keeps `item` at full strength now, 0 to 1: what has arrived of the
     /// marks emphasised now, or what the marks emphasised before still hold.
     fn light_of(&self, panel: usize, item: &Item) -> f32 {
@@ -201,7 +217,7 @@ impl State {
 
     /// The share of its alpha `item` loses now, 0 to 1.
     fn dim_of(&self, panel: usize, item: &Item) -> f32 {
-        if self.emphasis.is_none() {
+        if !self.dimming() {
             return 0.0;
         }
         // A flow's nodes keep the general floor, so the diagram's skeleton stays readable
@@ -300,6 +316,39 @@ pub fn layer_at(panel: &Panel, [x, y]: [f64; 2]) -> Option<usize> {
         }
         inside.then_some(*series)
     })
+}
+
+/// The y of the upper edge of `series`' filled layer at `x`, or none where the layer is not
+/// drawn. A layer's outline crosses a vertical line at its upper and lower edges, and at the
+/// first and last observation it has a side that runs along the line.
+pub fn layer_top(panel: &Panel, series: usize, x: f64) -> Option<f64> {
+    let mut top: Option<f64> = None;
+    let mut reach = |y: f64| top = Some(top.map_or(y, |t| t.min(y)));
+    for item in &panel.items {
+        let Item::Area {
+            path,
+            role: Role::Mark,
+            series: Some(s),
+            ..
+        } = item
+        else {
+            continue;
+        };
+        if *s != series {
+            continue;
+        }
+        for ring in path.flatten(0.5) {
+            for (k, a) in ring.iter().enumerate() {
+                let b = ring[(k + 1) % ring.len()];
+                if (a[0] - x).abs() < 1e-6 {
+                    reach(a[1]);
+                } else if (a[0] < x) != (b[0] < x) && (b[0] - x).abs() >= 1e-6 {
+                    reach(a[1] + (x - a[0]) / (b[0] - a[0]) * (b[1] - a[1]));
+                }
+            }
+        }
+    }
+    top
 }
 
 /// What a dimmed series, slice or bar keeps of its alpha.
@@ -1150,7 +1199,9 @@ pub fn build(g: &Geometry, state: &State, scale: f64) -> Mesh {
     build_with_analytic_circles(g, state, scale, true)
 }
 
-/// Build the host mesh and record each panel's safe grid-before-marks insertion point.
+/// Build the host mesh and record each panel's safe insertion point: between a line chart's
+/// grid and its marks, where its crosshair goes, and between a flow chart's marks and its names,
+/// where the outlines of its hovered or picked marks go.
 #[cfg(any(target_arch = "wasm32", test))]
 pub(crate) fn build_for_host(
     g: &Geometry,
@@ -1207,6 +1258,20 @@ fn build_inner(
                         .iter()
                         .any(|item| item.role() == Role::Grid)
                 })
+        } else if splits.is_some()
+            && panel_index < g.panels.len()
+            && richview_chart::interaction::outlines_from_legend(&g.kind)
+        {
+            // A flow chart's names stand above what the host draws over its marks: the place
+            // is where its texts begin, when nothing but texts follows.
+            panel_items
+                .iter()
+                .position(|item| matches!(item, Item::Text(_)))
+                .filter(|&first| {
+                    panel_items[first..]
+                        .iter()
+                        .all(|item| matches!(item, Item::Text(_)))
+                })
         } else {
             None
         };
@@ -1225,7 +1290,7 @@ fn build_inner(
             vec![None; panel_items.len()]
         };
         let mut mark_index = 0usize;
-        let mark_boxes: Vec<_> = if state.emphasis.is_some() && state.dim > 0.0 {
+        let mark_boxes: Vec<_> = if state.dimming() && state.dim > 0.0 {
             let labels: Vec<_> = panel_items
                 .iter()
                 .filter_map(|item| match item {
@@ -1261,10 +1326,8 @@ fn build_inner(
         // have stepped back, so it shows in its own colour and nothing changes places: at rest
         // the drawing is the model's, and a bar of the row still hides the bars behind it
         // (FEA-CH-52).
-        let over_rows = g.kind == "bar3d"
-            && panel_index < g.panels.len()
-            && state.emphasis.is_some()
-            && state.dim > 0.0;
+        let over_rows =
+            g.kind == "bar3d" && panel_index < g.panels.len() && state.dimming() && state.dim > 0.0;
         let mut again = Vec::new();
         for (item_index, item) in panel_items.iter().enumerate() {
             if before_marks == Some(item_index) {
@@ -1588,6 +1651,56 @@ mod tests {
         let (_, unordered) = build_for_host(&g, &State::default(), 1.0);
         assert_eq!(unordered[0], None);
         assert!(unordered[1].is_some());
+    }
+
+    #[test]
+    fn a_flow_chart_marks_where_its_names_begin_for_the_outlines_to_go_under_them() {
+        let rows = [
+            json!({"a": "X", "b": "M", "v": 3}),
+            json!({"a": "Y", "b": "M", "v": 2}),
+            json!({"a": "M", "b": "Z", "v": 5}),
+        ];
+        for kind in ["sankey", "alluvial"] {
+            let spec = if kind == "sankey" {
+                json!({"type": "sankey", "title": "T", "encoding": {"source": "a", "target": "b", "y": "v"}})
+            } else {
+                json!({"type": "alluvial", "title": "T", "encoding": {"dimensions": ["a", "b"], "y": "v"}})
+            };
+            let g = chart(spec, &rows);
+            let (mesh, splits) = build_for_host(&g, &State::default(), 1.0);
+            assert_eq!(splits.len(), g.panels.len(), "{kind}");
+            let split = splits[0].unwrap_or_else(|| panic!("{kind} has no place for outlines"));
+            assert!(
+                split > 0 && split < mesh.ops.len(),
+                "{kind}: {split} of {}",
+                mesh.ops.len()
+            );
+            // The ribbons and nodes come before it and every name after it.
+            assert!(
+                mesh.ops[..split]
+                    .iter()
+                    .all(|op| !matches!(op, Op::Text { .. })),
+                "{kind}: a name is drawn before the outlines"
+            );
+            assert!(
+                mesh.ops[split..]
+                    .iter()
+                    .all(|op| matches!(op, Op::Text { .. })),
+                "{kind}: a mark is drawn after the outlines"
+            );
+            // The mesh itself is the one the plain build makes.
+            assert_eq!(
+                mesh.vertices,
+                build(&g, &State::default(), 1.0).vertices,
+                "{kind}"
+            );
+        }
+        // Another chart has no such place in a panel without a crosshair.
+        let bars = chart(
+            json!({"type": "bar", "title": "T", "encoding": {"x": "a", "y": "v"}}),
+            &rows,
+        );
+        assert_eq!(build_for_host(&bars, &State::default(), 1.0).1[0], None);
     }
 
     #[test]
@@ -2074,6 +2187,36 @@ mod tests {
     }
 
     #[test]
+    fn an_outlined_series_dims_nothing() {
+        let rows: Vec<_> = ["A", "B"]
+            .iter()
+            .flat_map(|c| ["x", "y"].map(|s| json!({"c": c, "v": 2, "s": s})))
+            .collect();
+        let g = chart(
+            json!({"type": "bar", "title": "T", "encoding": {"x": "c", "y": "v", "color": "s"}}),
+            &rows,
+        );
+        let at_rest = build(&g, &State::default(), 1.0);
+        let dimmed = build(&g, &State::emphasis(Some(0)), 1.0);
+        assert_ne!(dimmed, at_rest, "the same chart does dim other series");
+        // However far the outline has come in, and when it moved from another series.
+        for (dim, arrive, leaving) in [
+            (1.0, 1.0, None),
+            (0.5, 0.25, Some((Focus::Outline(1), 0.5))),
+        ] {
+            let outlined = State {
+                emphasis: Some(Focus::Outline(0)),
+                dim,
+                floor: DIM_FLOOR,
+                node_floor: DIM_FLOOR,
+                arrive,
+                leaving,
+            };
+            assert_eq!(build(&g, &outlined, 1.0), at_rest);
+        }
+    }
+
+    #[test]
     fn an_emphasised_bar3d_row_is_painted_again_over_the_rows_that_step_back() {
         let input: serde_json::Value = serde_json::from_str(include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
@@ -2197,6 +2340,34 @@ mod tests {
             layer_at(panel, [panel.plot.x + 1.0, panel.plot.y - 20.0]),
             None
         );
+    }
+
+    #[test]
+    fn a_stacked_layer_has_an_upper_edge_at_every_observation() {
+        let rows: Vec<serde_json::Value> = (0..4)
+            .flat_map(|t| ["free", "paid"].map(|s| json!({"t": t, "s": s, "v": 3 + t})))
+            .collect();
+        let g = chart(
+            json!({"type": "area", "title": "T", "stack": true, "encoding": {"x": "t", "y": "v", "color": "s"}}),
+            &rows,
+        );
+        let panel = &g.panels[0];
+        let (first, last) = (panel.observations[0].at[0], panel.observations[3].at[0]);
+        for o in &panel.observations {
+            let tops: Vec<f64> = (0..2)
+                .map(|series| layer_top(panel, series, o.at[0]).expect("the layer's edge"))
+                .collect();
+            assert!((tops[0] - tops[1]).abs() > 10.0, "{tops:?}");
+            // Just under its edge the layer is there; just over it, another layer or none.
+            // The first and last observations lie on the layers' sides, so step inside.
+            let x = o.at[0].clamp(first + 1.0, last - 1.0);
+            for (series, top) in tops.iter().enumerate() {
+                assert_eq!(layer_at(panel, [x, top + 3.0]), Some(series));
+                assert_ne!(layer_at(panel, [x, top - 3.0]), Some(series));
+            }
+        }
+        assert_eq!(layer_top(panel, 0, first - 20.0), None);
+        assert_eq!(layer_top(panel, 2, first), None);
     }
 
     /// The alpha of each wedge of a two-slice pie under `state`, in slice order.

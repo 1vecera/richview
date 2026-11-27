@@ -127,7 +127,8 @@ select
     'batch ' || lpad(cast(i % 50 as varchar), 2, '0') as import_batch
 from delivered;
 
-copy (select * from orders order by order_id)
+copy (select order_id, day, region, city, store, channel, category, revenue, delivery_days, rating, returned
+      from orders order by order_id)
 to 'data/orders.parquet' (format parquet, parquet_version v2, compression zstd, compression_level 19, row_group_size 250000);
 
 copy (select store, city, region, opened, floor_area_m2 from stores order by store)

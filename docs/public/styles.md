@@ -39,7 +39,7 @@ richview generate first-report/report.rmd --style brutalist -o brutalist.html
 richview generate first-report/report.rmd --style hand-drawn -o hand-drawn.html
 ```
 
-Open the files in `first-report/Rendered/`. The observations stay the same; typography, surfaces, palette and chart treatment change. The public tutorial exports also open in [Sleek](https://richview.ai/docs/example/Rendered/sleek.html), [Air](https://richview.ai/docs/example/Rendered/air.html), [Scientific](https://richview.ai/docs/example/Rendered/scientific.html), [Brutalist](https://richview.ai/docs/example/Rendered/brutalist.html) and [Hand-drawn](https://richview.ai/docs/example/Rendered/hand-drawn.html).
+Open the files in `first-report/Rendered/`. The observations stay the same; typography, surfaces, palette and chart treatment change. The public tutorial exports also open in [Sleek](https://richview.ai/docs/example/Rendered/sleek), [Air](https://richview.ai/docs/example/Rendered/air), [Scientific](https://richview.ai/docs/example/Rendered/scientific), [Brutalist](https://richview.ai/docs/example/Rendered/brutalist) and [Hand-drawn](https://richview.ai/docs/example/Rendered/hand-drawn).
 
 ## Give us your colours
 

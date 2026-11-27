@@ -198,7 +198,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
     };
     let (z_axis, lz) = project3d::linear_axis(ctx, [lo, hi], Zero::Include, edge, &label_y, title(&block.y.label, &yf));
     let axes: [Axis3; 3] = [x_axis, depth_axis, z_axis];
-    let view = View::of(block);
+    let view = View::of(ctx);
     let scene = project3d::fit(ctx, view, &axes, inner, 0.0);
     let boxed = project3d::draw_box(ctx, &scene, &axes, Some(figure));
     for (text, reason, rect) in boxed.dropped {

@@ -661,7 +661,7 @@ pub(crate) fn chart(
     };
     // The title row, whose right end holds the action group (FEA-CH-43; Daniel, 9 Nov), then
     // the subtitle. The group is reserved here so the runtime fills it without moving the page.
-    let head = |actions: bool, zooms: bool| {
+    let head = |actions: bool, reset: Option<(&str, &str)>| {
         format!(
             "<figcaption class=\"rv-chart__head\"><div class=\"rv-chart__titlerow\"><p class=\"rv-chart__title\">{}</p>{}</div>{}</figcaption>",
             escape(&block.title),
@@ -676,12 +676,12 @@ pub(crate) fn chart(
                         .collect::<String>()
                         // A chart a mouse can zoom keeps Reset zoom's place from the start, so
                         // the title beside the icons wraps the same with the runtime, without
-                        // it and when a zoom starts (Chart design, 16 November).
-                        + &if zooms {
-                            richview_chart::interaction::action_html("reset", "Reset zoom")
-                                .replacen("<button ", "<button data-rv-place ", 1)
-                        } else {
-                            String::new()
+                        // it and when a zoom starts (Chart design, 16 November). A chart a
+                        // reader turns keeps Reset view's in the same way.
+                        + &match reset {
+                            Some((label, place)) => richview_chart::interaction::action_html("reset", label)
+                                .replacen("<button ", &format!("<button data-rv-place=\"{place}\" "), 1),
+                            None => String::new(),
                         }
                 )
             } else {
@@ -753,7 +753,7 @@ pub(crate) fn chart(
         return Figure {
             html: format!(
                 "<figure class=\"rv-chart{full} rv-chart--print\" id=\"{id}\">{}{state_line}{above}<div class=\"rv-chart__frame\" role=\"img\" aria-label=\"{}\">{svg}</div>{below}{}</figure>",
-                head(false, false),
+                head(false, None),
                 label(&g),
                 method(&g)
             ),
@@ -896,6 +896,9 @@ pub(crate) fn chart(
         head(
             true,
             richview_chart::interaction::zooms(block.kind.name(), &desktop)
+                .then_some(("Reset zoom", "zoom"))
+                .or_else(|| richview_chart::interaction::rotates(block.kind.name())
+                    .then_some(("Reset view", "view")))
         ),
         if controls.is_empty() {
             String::new()
@@ -961,7 +964,7 @@ const MIN_PRINT_WIDTH: f64 = 240.0;
 /// An icon-only action's name under it, in the readout's raised surface, hairline and face
 /// (FEA-CH-42), square and casting no shadow, which STY-36 and STY-37 keep for the readout and
 /// menus; hidden until hover or keyboard focus. Opacity keeps it the button's accessible name,
-/// and it takes no pointer (S27-876).
+/// and it takes no pointer.
 macro_rules! action_name {
     () => {
         "position:absolute;top:calc(100% + 6px);right:0;z-index:5;box-sizing:border-box;padding:4px 8px;white-space:nowrap;font:12px/1.35 var(--rv-font-ui,system-ui);color:var(--rv-ink);background:var(--rv-bg-elev,var(--rv-bg));border:1px solid var(--rv-rule);opacity:0;pointer-events:none"
@@ -975,7 +978,7 @@ pub(crate) const FIGURE_CSS: &str = concat!(
     // is set a tenth under the base size (Daniel, 9 Nov), still above the subtitle's small size.
     // A row wide enough for the group beside 15rem of title keeps the group there, and a long title
     // wraps beside it; a narrower figure on a wide screen sends the group under the title, where the
-    // row gap undoes the group's lift to the title's first line (S27-996; Daniel, 9 Nov: icons in
+    // row gap undoes the group's lift to the title's first line (Daniel, 9 Nov: icons in
     // the title row if they fit, otherwise under the title).
     ".rv-chart__titlerow{display:flex;flex-wrap:wrap;align-items:flex-start;gap:.375rem 1rem}",
     // Shift only the painted title: a negative margin changes its flex width and can rewrap it
@@ -999,15 +1002,18 @@ pub(crate) const FIGURE_CSS: &str = concat!(
     // arrow key has a mark selected, the canvas rings that mark instead (`data-rv-selected`).
     ".rv-chart__frame::after{position:absolute;inset:var(--rv-ring-top,-6px) var(--rv-ring-right,-6px) var(--rv-ring-bottom,-6px) var(--rv-ring-left,-6px);border:2px solid var(--rv-link,var(--rv-accent));pointer-events:none}",
     "figure.rv-chart .rv-chart__frame:focus-visible{outline:none}",
-    "figure.rv-chart .rv-chart__frame:focus-visible:not([data-rv-selected])::after{content:\"\"}",
+    // A pointer or a finger on the chart, Shift or Ctrl held for a pan or a zoom included, leaves
+    // no ring: the runtime marks the frame `data-rv-pointed` until a key other than a modifier is
+    // pressed on it or it loses focus, and only the keyboard's focus is ringed.
+    "figure.rv-chart .rv-chart__frame:focus-visible:not([data-rv-selected]):not([data-rv-pointed])::after{content:\"\"}",
     // In the expanded view the chart's ring follows the reader's input, not each engine's guess:
     // after a pointer opened the dialog the chart holds focus without it, as Chromium and Firefox
     // already show it; once a key is pressed in the dialog, or after a keyboard open, the focused
     // chart shows it in every engine, Firefox included, which keeps a pointer's focus unringed
-    // after keys (S27-878).
+    // after keys.
     ".rv-chart-dialog[data-rv-pointer] figure.rv-chart .rv-chart__frame::after{content:none}",
     ".rv-chart-dialog:not([data-rv-pointer]) .rv-chart__frame:focus{outline:none}",
-    ".rv-chart-dialog:not([data-rv-pointer]) .rv-chart__frame:focus:not([data-rv-selected])::after{content:\"\"}",
+    ".rv-chart-dialog:not([data-rv-pointer]) .rv-chart__frame:focus:not([data-rv-selected]):not([data-rv-pointed])::after{content:\"\"}",
     ".rv-chart__frame>svg{display:block;width:100%;height:auto}",
     // A printed chart keeps the width it was laid out at, centred when it was narrowed.
     // Paper reserves no box: the frame is as tall as the drawing, so a narrowed chart leaves no blank band.
@@ -1051,7 +1057,7 @@ pub(crate) const FIGURE_CSS: &str = concat!(
     // Reset zoom's reserved place: kept where a mouse can zoom, gone on a touch screen, where
     // zoom is in the expanded view; the runtime takes the button over.
     ".rv-chart__action--reset[data-rv-place]{visibility:hidden}",
-    "@media not (any-pointer:fine){.rv-chart__action--reset[data-rv-place]{display:none}}",
+    "@media not (any-pointer:fine){.rv-chart__action--reset[data-rv-place=zoom]{display:none}}",
     ".rv-chart__action{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:.4rem}",
     ".rv-chart__action svg{width:18px;height:18px;flex:none;stroke-width:1.5}",
     // Quiet buttons (STY-42): the UI face in `ink-soft`, turning `ink` on hover and focus; a pressed toggle is underlined, never filled.
@@ -1061,9 +1067,9 @@ pub(crate) const FIGURE_CSS: &str = concat!(
     ".rv-chart__action[aria-pressed=true],.rv-chart__action[aria-expanded=true]{color:var(--rv-ink);text-decoration:underline;text-underline-offset:.25em;text-decoration-thickness:1.5px}",
     ".rv-chart__action[hidden]{display:none}",
     // The actions and Close are icons alone at every width (FEA-CH-43; Daniel, 9 Nov): the label is
-    // the accessible name and shows as the action's name on hover and focus (S27-876). Pressed,
+    // the accessible name and shows as the action's name on hover and focus. Pressed,
     // Table's icon is underlined by a bar under it. Buttons that have words and no icon, as the
-    // Table's "Show all", keep their words (S27-877).
+    // Table's "Show all", keep their words.
     ".rv-chart__actions .rv-chart__action,.rv-chart-dialog__close{font-size:0;gap:0;padding:.3rem}",
     ".rv-chart__actions .rv-chart__action[aria-pressed=true]{background:linear-gradient(currentColor,currentColor) 50% calc(50% + 12px)/18px 1.5px no-repeat}",
     ".rv-chart__legend{display:flex;flex-wrap:wrap;gap:.125rem .875rem;margin:0 0 .375rem}",
@@ -1079,7 +1085,7 @@ pub(crate) const FIGURE_CSS: &str = concat!(
     ".rv-chart__swatch--cue{width:auto;height:auto;background:none;border-radius:0}",
     ".rv-chart__swatch--cue>svg{display:block}",
     ".rv-chart__readout{position:absolute;left:0;top:0;z-index:2;box-sizing:border-box;max-width:min(18rem,calc(100% - 16px));padding:8px;background:color-mix(in oklch,var(--rv-bg-elev,var(--rv-bg)) 100%,transparent);border:1px solid var(--rv-readout-rule,var(--rv-rule));border-radius:min(var(--rv-radius-s,4px),4px);box-shadow:var(--rv-shadow-float,none);font:12px/1.35 var(--rv-font-ui,system-ui);color:var(--rv-ink);font-variant-numeric:tabular-nums lining-nums;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;pointer-events:none}",
-    // One labelled value shares a wrapping row with its heading (S27-900, STY-41 amendment).
+    // One labelled value shares a wrapping row with its heading (STY-41 amendment).
     ".rv-chart__readout--compact{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;padding:6px 8px}",
     ".rv-chart__readout--compact>p{min-width:0}",
     ".rv-chart__readout--compact .rv-chart__readout-line{gap:6px}",
@@ -1128,9 +1134,9 @@ pub(crate) const FIGURE_CSS: &str = concat!(
     // On a phone the report's column keeps a 1rem margin each side (report.css, up to 640 px),
     // and the dialog, 96 % of the window wide with a 1 px border, keeps 2 % of the window, so the
     // expanded figure pads its sides only by what that leaves of 1rem: an upright chart is drawn
-    // as wide as inline, its edges on the column's (S27-873). The title row keeps its padding,
+    // as wide as inline, its edges on the column's. The title row keeps its padding,
     // and so does the figure of a turned or short, wide dialog, whose actions sit in the title row
-    // placed by that padding (S27-871).
+    // placed by that padding.
     "@media (max-width:640px){.rv-chart-dialog:not([data-rv-turned]):not([data-rv-short-wide]) .rv-chart.rv-chart--expanded{padding-left:max(0px,calc(1rem - 2vw - 1px));padding-right:max(0px,calc(1rem - 2vw - 1px))}}",
     // While the dialog scrolls, as to an open Table, its actions stay in reach directly under the
     // title row (FEA-CH-45); the runtime sets --rv-head-h to the title row's height. The band is
@@ -1157,8 +1163,7 @@ pub(crate) const FIGURE_CSS: &str = concat!(
     richview_chart::turn_query!(),
     "{.rv-chart-dialog[data-rv-turned]{inset:auto;top:50%;left:50%;margin:0;width:min(96dvh,1400px);max-height:92dvw;transform:translate(-50%,-50%) rotate(90deg)}}",
     // The turned dialog's short side is the plot's height, as is the dialog's in a short, wide
-    // window, which the runtime marks: a phone held sideways, a laptop zoomed to 200 % (S27-871,
-    // S27-876). Their actions leave their own row and sit in the head row, left of Close, as icons
+    // window, which the runtime marks: a phone held sideways, a laptop zoomed to 200 %. Their actions leave their own row and sit in the head row, left of Close, as icons
     // of the pointer's target size; the DOM order stays as upright. They stay there while the
     // dialog scrolls: a row of no height, lifted by the margins into the head row (the title row's
     // height and the figure's padding) and held there as it sticks. The head row keeps a quarter
@@ -1166,7 +1171,7 @@ pub(crate) const FIGURE_CSS: &str = concat!(
     // the title takes two lines.
     ".rv-chart-dialog[data-rv-turned] .rv-chart--expanded,.rv-chart-dialog[data-rv-short-wide] .rv-chart--expanded{position:static}",
     // A short, wide dialog takes 96 % of the window's height, as of its width: in a window that
-    // short every row of the plot counts (S27-875).
+    // short every row of the plot counts.
     ".rv-chart-dialog[data-rv-short-wide]{max-height:96dvh}",
     ".rv-chart-dialog[data-rv-turned] .rv-chart--expanded>.rv-chart__actions,.rv-chart-dialog[data-rv-short-wide] .rv-chart--expanded>.rv-chart__actions{--rv-actions-top:.25rem;top:var(--rv-actions-top);z-index:4;height:0;min-height:0;margin:calc(var(--rv-actions-top) - var(--rv-head-h,0px) - 1rem) 0 calc(var(--rv-head-h,0px) + 1rem - var(--rv-actions-top));padding:0 calc(1rem + var(--rv-target)) 0 0;background:none;align-items:flex-start;justify-content:flex-end;flex-wrap:nowrap}",
     ".rv-chart-dialog[data-rv-turned] .rv-chart-dialog__head,.rv-chart-dialog[data-rv-short-wide] .rv-chart-dialog__head{padding-top:.25rem;padding-bottom:.25rem}.rv-chart-dialog[data-rv-turned] .rv-chart-dialog__close,.rv-chart-dialog[data-rv-short-wide] .rv-chart-dialog__close{align-self:flex-start}",
@@ -1183,7 +1188,7 @@ pub(crate) const FIGURE_CSS: &str = concat!(
     ".rv-chart-dialog[data-rv-turned] .rv-chart-dialog__title,.rv-chart-dialog[data-rv-short-wide] .rv-chart-dialog__title{flex:0 1 auto;min-width:0}.rv-chart-dialog[data-rv-turned] .rv-chart-dialog__subtitle,.rv-chart-dialog[data-rv-short-wide] .rv-chart-dialog__subtitle{flex:1 1 20ch;min-width:20ch;margin:0 0 -1.3em;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
     // In a short, wide window an expanded chart narrowed to fit the dialog's height leaves width on
     // its sides. Its legend and note then stand in a column beside the plot, legend first, the
-    // pair centred and top-aligned, and the plot takes the height they took (S27-875). The column
+    // pair centred and top-aligned, and the plot takes the height they took. The column
     // is as wide as what it holds, up to 16rem with its gap and two fifths of the figure, so on
     // the smallest phone held sideways the plot keeps the larger share; the legend's entries wrap
     // in it. A zoomed chart's overview strip stays under the plot, the column beside both; all
@@ -1195,7 +1200,7 @@ pub(crate) const FIGURE_CSS: &str = concat!(
     ".rv-chart-dialog .rv-chart__aside>.rv-chart__legend{margin:0 0 .75rem}.rv-chart-dialog .rv-chart__aside>.rv-chart__method{margin:0}",
     // Each icon shows its name on hover and on keyboard focus: the label under the button in the
     // readout's surface, faded in with the readout's motion, and still the button's accessible
-    // name (S27-876). A row at the right aligns each name to its button's right edge, and the
+    // name. A row at the right aligns each name to its button's right edge, and the
     // upright dialog's row, at the left, to its left edge, so no name leaves the figure or the
     // dialog. A tap shows none, since a touch screen keeps hover after the tap.
     ".rv-chart__action>span{",
@@ -1207,7 +1212,7 @@ pub(crate) const FIGURE_CSS: &str = concat!(
     "@media (prefers-reduced-motion:no-preference){.rv-chart__action>span{transition:opacity 120ms cubic-bezier(.22,1,.36,1)}}",
     // Each control row such a dialog wraps to takes its targets' height from the plot's, so the
     // scrubber starts at 5.5rem and takes what its row leaves: the playback and the options share
-    // a row where they fit side by side (S27-870).
+    // a row where they fit side by side.
     ".rv-chart-dialog[data-rv-turned] .rv-chart__playback,.rv-chart-dialog[data-rv-short-wide] .rv-chart__playback{flex:1 1 auto}.rv-chart-dialog[data-rv-turned] .rv-chart__scrubber,.rv-chart-dialog[data-rv-short-wide] .rv-chart__scrubber{width:5.5rem;flex:1 1 5.5rem}",
     ".rv-scroll-locked{overflow:hidden}",
     // Reader controls (FEA-BR-06, FEA-BR-34): one wrapping row above the plot in the UI face,

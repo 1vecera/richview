@@ -1,8 +1,8 @@
-# S27-582 visual and interaction review
+# Highcharts visual and interaction review
 
 **Prepared for review.** The real Rust chart renderer and browser runtime are improved, with a runnable local reference benchmark and retained before/after builds. This does not establish complete Highcharts visual parity. No merge, release, deployment or license purchase is included.
 
-Evidence on Lenovo: `/home/vecera/tmp/s27-582-evidence/`. Run the server described in [README.md](README.md), then browse `/evidence/index.html`, `/reference/index.html` and `/bench/index.html`. Each archived report is runnable through that loopback server. Original source, native outputs, patches, browser diagnostics, screenshots, videos and installation/provenance records remain inspectable locally.
+Evidence on Lenovo: `~/tmp/highcharts-evidence/`. Run the server described in [README.md](README.md), then browse `/evidence/index.html`, `/reference/index.html` and `/bench/index.html`. Each archived report is runnable through that loopback server. Original source, native outputs, patches, browser diagnostics, screenshots, videos and installation/provenance records remain inspectable locally.
 
 ## References actually reviewed
 
@@ -44,4 +44,4 @@ Required local handoff checks: Rust formatting; workspace and Wasm Clippy with w
 
 ## Boundary and publication review
 
-Changes stay in `richview-chart`, existing Rust browser bindings and this local benchmark. They add no report/editor/data schema and do not touch the S27-578 authoring worktree or S27-577 teaser session. The fresh task worktree starts from fetched remote default. Product behavior remains Rust; JavaScript is limited to the reference harness and verification tooling. Repository push/PR automation was inspected: task pushes do not deploy, the PR workflow runs checks only, and repository webhooks were empty. The repository is private; task-branch visibility and ordinary draft-PR notifications are the authorized preparation exception. No reviewers are requested and no merge is performed.
+Changes stay in `richview-chart`, existing Rust browser bindings and this local benchmark. They add no report/editor/data schema and do not touch the authoring worktree or the teaser session. The fresh task worktree starts from fetched remote default. Product behavior remains Rust; JavaScript is limited to the reference harness and verification tooling. Repository push/PR automation was inspected: task pushes do not deploy, the PR workflow runs checks only, and repository webhooks were empty. The repository is private; task-branch visibility and ordinary draft-PR notifications are the authorized preparation exception. No reviewers are requested and no merge is performed.

@@ -37,6 +37,8 @@ pub(crate) fn highlight(area: &HtmlTextAreaElement) {
         .collect();
     classes.push("is-live".into());
     code.set_class_name(&classes.join(" "));
+    // Findings the host has placed are drawn again on the rebuilt lines.
+    super::marks::apply();
     sync_scroll(area);
 }
 

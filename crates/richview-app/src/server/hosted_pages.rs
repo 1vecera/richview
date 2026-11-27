@@ -47,6 +47,14 @@ pub(super) const ICONS: &str = concat!(
     "<symbol id=\"i-chev\" viewBox=\"0 0 16 16\"><path d=\"M4.5 6.25L8 9.75l3.5-3.5\"/></symbol>",
     "<symbol id=\"i-check\" viewBox=\"0 0 16 16\"><path d=\"M3.25 8.5l3 3 6.5-7\"/></symbol>",
     "<symbol id=\"i-mail\" viewBox=\"0 0 16 16\"><rect x=\"2\" y=\"3.5\" width=\"12\" height=\"9\" rx=\"1.5\"/><path d=\"M2.5 4.75L8 9l5.5-4.25\"/></symbol>",
+    "<symbol id=\"i-plus\" viewBox=\"0 0 16 16\"><path d=\"M8 3.25v9.5M3.25 8h9.5\"/></symbol>",
+    "<symbol id=\"i-pencil\" viewBox=\"0 0 16 16\"><path d=\"M2.75 13.25l.6-3.1 7.4-7.4 2.5 2.5-7.4 7.4zM9.25 4.25l2.5 2.5\"/></symbol>",
+    "<symbol id=\"i-ext\" viewBox=\"0 0 16 16\"><path d=\"M9.5 2.75h3.75V6.5M13 3l-5.5 5.5M6.5 3.75H4A1.25 1.25 0 0 0 2.75 5v7A1.25 1.25 0 0 0 4 13.25h7A1.25 1.25 0 0 0 12.25 12V9.5\"/></symbol>",
+    "<symbol id=\"i-link\" viewBox=\"0 0 16 16\"><path d=\"M6.75 9.25a2.5 2.5 0 0 0 3.5 0l2.25-2.25a2.5 2.5 0 0 0-3.5-3.5l-.75.75M9.25 6.75a2.5 2.5 0 0 0-3.5 0L3.5 9a2.5 2.5 0 0 0 3.5 3.5l.75-.75\"/></symbol>",
+    "<symbol id=\"i-trash\" viewBox=\"0 0 16 16\"><path d=\"M2.75 4.5h10.5M6.25 4.5V3a.75.75 0 0 1 .75-.75h2A.75.75 0 0 1 9.75 3v1.5M4.25 4.5l.6 8.1a1 1 0 0 0 1 .9h4.3a1 1 0 0 0 1-.9l.6-8.1\"/></symbol>",
+    "<symbol id=\"i-clock\" viewBox=\"0 0 16 16\"><circle cx=\"8\" cy=\"8\" r=\"5.75\"/><path d=\"M8 4.75V8l2.25 1.5\"/></symbol>",
+    "<symbol id=\"i-back\" viewBox=\"0 0 16 16\"><path d=\"M6.75 3.25L2.5 8l4.25 4.75M3 8h10.5\"/></symbol>",
+    "<symbol id=\"i-alert\" viewBox=\"0 0 16 16\"><path d=\"M8 2.5l5.75 10H2.25z\"/><path d=\"M8 6.75v2.75M8 11.25v.01\"/></symbol>",
     "</svg>"
 );
 
@@ -74,7 +82,7 @@ pub(in crate::server) fn initials(name: &str) -> String {
 
 /// The app's chrome on a signed-in page: the rail (the organization, the pages, the person) and the
 /// top bar (where the page is, and search). The page renderer lifts both out of the page's body.
-fn navigation(nav: &Nav<'_>, current: &str) -> String {
+pub(super) fn navigation(nav: &Nav<'_>, current: &str) -> String {
     app_chrome(nav, current, "all", "", None)
 }
 
@@ -200,7 +208,7 @@ fn app_chrome(
 
 /// Whether an organization carries a person's own name, as one made at sign-up does until it is
 /// renamed: then a page or mail names the person once.
-pub(super) fn same_name(person: &str, organization: &str) -> bool {
+fn same_name(person: &str, organization: &str) -> bool {
     person.trim().to_lowercase() == organization.trim().to_lowercase()
 }
 
@@ -428,15 +436,20 @@ pub(super) struct Report<'a> {
     pub key: &'a str,
     pub title: &'a str,
     pub description: &'a str,
-    /// "You", or the owner's name.
-    pub owner: &'a str,
+    /// Who can open it, as the row marks it: `private` (no mark), `org`, `public` or `you`.
     pub kind: &'a str,
-    pub badge: &'a str,
-    pub who: &'a str,
-    pub size: Option<u64>,
+    /// Whom it is shared with, or who shared it; empty when the row says neither.
+    pub shared: &'a str,
+    /// Whether the person holds the edit right: the row then opens the editor.
+    pub can_edit: bool,
     pub can_share: bool,
+    pub can_delete: bool,
+    /// The day of the last edit, with its year only when that is not this year.
     pub updated: &'a str,
     pub version: &'a str,
+    /// The bytes the version's stored files take; `None` when they could not be measured.
+    pub size: Option<u64>,
+    /// The report's address on the report origin, which Copy link carries.
     pub url: &'a str,
     /// A small copy of the version's share card as a `data:` URL, when one has been drawn.
     pub thumb: Option<&'a str>,
@@ -487,31 +500,162 @@ fn create_organization(csrf: &str) -> String {
     )
 }
 
-/// The one list: the person's own reports, their organization's and those shared with them.
-pub(super) fn reports(list: &ReportList<'_>) -> String {
-    let nav = list.nav;
-    let lede = if list.total == 0 {
-        match nav.org {
-            Some(_) if list.can_publish => "<p class=\"lede\">No reports yet. What you publish is private until you share it.</p>".to_owned(),
-            Some((_, name)) => format!("<p class=\"lede\">No reports yet. Reports that colleagues share with {} or with you appear here.</p>", escape(name)),
-            None => String::new(),
+/// The head of the reports page: its title, how many reports the person can open and, for someone
+/// who may publish, the way to start a new one. The page renderer narrows its column by this
+/// opening (`ui::LIBRARY_OPENING`).
+fn library_head(list: &ReportList<'_>) -> String {
+    let said = match (list.total, list.nav.org) {
+        (0, Some(_)) if list.can_publish => {
+            "No reports yet. What you publish is private until you share it.".to_owned()
         }
+        (0, Some((_, name))) => format!(
+            "No reports yet. Reports that colleagues share with {} or with you appear here.",
+            escape(name)
+        ),
+        (0, None) => String::new(),
+        (1, _) => "1 report".to_owned(),
+        (count, _) => format!("{count} reports"),
+    };
+    let said = if said.is_empty() {
+        said
+    } else {
+        format!("<p>{said}</p>")
+    };
+    let new = if list.can_publish {
+        format!(
+            "<a class=\"lib-new\" href=\"/reports/new\">{}New report</a>",
+            icon("plus")
+        )
     } else {
         String::new()
     };
-    let usage = list.usage.map_or_else(String::new, meters);
-    let lede = if lede.is_empty() && list.total > 0 {
+    format!("<div class=\"lib-head\"><div><h1>Reports</h1>{said}</div>{new}</div>")
+}
+
+/// A report's picture: its small card, or the report icon where none could be drawn.
+fn library_thumb(thumb: Option<&str>) -> String {
+    thumb.map_or_else(
+        || {
+            format!(
+                "<span class=\"lib__thumb lib__thumb--none\">{}</span>",
+                icon("report")
+            )
+        },
+        |src| {
+            format!(
+                "<img class=\"lib__thumb\" src=\"{}\" alt=\"\" width=\"104\">",
+                escape(src)
+            )
+        },
+    )
+}
+
+/// Who can open a report, as a chip. A private report is the default and carries none.
+fn library_chip(kind: &str) -> String {
+    let (class, glyph, label) = match kind {
+        "org" => ("org", "org", "Organization"),
+        "public" => ("public", "globe", "Public link"),
+        "you" => ("you", "users", "Shared with you"),
+        _ => return String::new(),
+    };
+    format!(
+        "<span class=\"chip chip--{class}\">{}{label}</span>",
+        icon(glyph)
+    )
+}
+
+/// The facts under a report's title: the day of its last edit, its version, what it takes of the
+/// organization's storage, and whom it is shared with or who shared it.
+fn library_meta(row: &Report<'_>) -> String {
+    let edited = (!row.updated.is_empty()).then(|| format!("Edited {}", row.updated));
+    let size = row
+        .size
+        .map_or_else(|| "Size unavailable".to_owned(), mebibytes);
+    edited
+        .iter()
+        .map(String::as_str)
+        .chain([row.version, size.as_str(), row.shared])
+        .filter(|fact| !fact.is_empty())
+        .map(|fact| format!("<span>{}</span>", escape(fact)))
+        .collect()
+}
+
+/// A row's menu, a details element so it opens without script. Its copy button is the docs
+/// clipboard runtime's: it finds the link in the figure's hidden code, and the figure goes
+/// without script.
+fn library_menu(row: &Report<'_>) -> String {
+    let (key, title) = (escape(row.key), escape(row.title));
+    let sharing = if row.can_share {
+        "Sharing and versions"
+    } else {
+        "Details and versions"
+    };
+    let delete = if row.can_delete {
         format!(
-            "<p class=\"lede\">{} {} you can open</p>",
-            list.total,
-            if list.total == 1 { "report" } else { "reports" }
+            "<hr><a href=\"/reports/{key}/delete\">{}Delete…</a>",
+            icon("trash")
         )
     } else {
-        lede
+        String::new()
     };
+    format!(
+        "<details class=\"lib__more\"><summary aria-label=\"More for {title}\">{}</summary><div class=\"lib__menu\"><a href=\"/r/{key}\">{}Open report</a><figure class=\"docs-code copy-link\"><code hidden>{}</code>{}<button type=\"button\" data-copy-code aria-label=\"Copy link to {title}\">Copy link</button></figure><a href=\"/reports/{key}\">{}{sharing}</a>{delete}</div></details>",
+        icon("more"),
+        icon("ext"),
+        escape(row.url),
+        icon("link"),
+        icon("share")
+    )
+}
+
+/// One report of the list: the whole row opens the editor for someone who may edit it, else the
+/// report's page; the rest of what it offers sits in its menu.
+fn library_row(row: &Report<'_>) -> String {
+    let key = escape(row.key);
+    let (href, verb) = if row.can_edit {
+        (format!("/reports/{key}/edit"), "Edit")
+    } else {
+        (format!("/reports/{key}"), "Open")
+    };
+    let about = if row.description.is_empty() {
+        String::new()
+    } else {
+        format!("<p class=\"lib__about\">{}</p>", escape(row.description))
+    };
+    format!(
+        "<li class=\"lib__row\">{}<div class=\"lib__text\"><h2 class=\"lib__title\"><a href=\"{href}\">{}</a></h2>{about}<p class=\"lib__meta\">{}</p></div><div class=\"lib__side\">{}<span class=\"lib__edit\" aria-hidden=\"true\">{}{verb}</span>{}</div></li>",
+        library_thumb(row.thumb),
+        escape(row.title),
+        library_meta(row),
+        library_chip(row.kind),
+        icon("pencil"),
+        library_menu(row)
+    )
+}
+
+/// The quiet line at the foot of the list: what the organization has used of its limits.
+fn library_foot(usage: &AccountUsage) -> String {
+    let unit = if usage.report_limit == 1 {
+        "report"
+    } else {
+        "reports"
+    };
+    format!(
+        "<p class=\"lib-foot\"><span><strong>{}</strong> of {} {unit}</span><span><strong>{}</strong> of {}</span></p>",
+        usage.reports,
+        usage.report_limit,
+        escape(&mebibytes(usage.bytes)),
+        escape(&mebibytes(usage.byte_limit))
+    )
+}
+
+/// The one list: the person's own reports, their organization's and those shared with them.
+pub(super) fn reports(list: &ReportList<'_>) -> String {
+    let nav = list.nav;
     let mut body = format!(
-        r#"{}<div class="page-head"><div><h1>Reports</h1>{lede}</div>{usage}</div>{}"#,
+        "{}{}{}",
         app_chrome(nav, "reports", list.show, list.query, None),
+        library_head(list),
         note(list.notice) + &unsent_notes(list.unsent)
     );
     for invite in list.invites {
@@ -581,7 +725,7 @@ pub(super) fn reports(list: &ReportList<'_>) -> String {
         String::new()
     } else {
         format!(
-            "<p class=\"report-searched\">Titles with “{query}” · <a href=\"{}\">Clear search</a></p>",
+            "<p class=\"lib-searched\">Titles with “{query}” · <a href=\"{}\">Clear search</a></p>",
             if list.show == "all" {
                 "/".to_owned()
             } else {
@@ -590,61 +734,31 @@ pub(super) fn reports(list: &ReportList<'_>) -> String {
         )
     };
     body.push_str(&format!(
-        "<div class=\"report-panel\"><div class=\"report-tools\"><nav class=\"report-filter\" aria-label=\"Show\">{}{}{}{}</nav>{searched}<p class=\"report-order\">Newest first</p></div>",
+        "<nav class=\"lib-tabs\" aria-label=\"Show\">{}{}{}{}<p class=\"lib-sort\">Newest first</p></nav>{searched}",
         filter("all", "All"),
         nav.org
             .map_or_else(String::new, |_| filter("mine", "Mine")),
         filter("shared", "Shared with me"),
         nav.org.map_or_else(String::new, |(_, name)| filter("org", name)),
     ));
+    let foot = list.usage.map_or_else(String::new, library_foot);
     if list.rows.is_empty() {
         body.push_str(match (list.query.is_empty(), list.show) {
-            (false, _) => "<p class=\"report-none\">No report title matches your search.</p>",
-            (true, "mine") => {
-                "<p class=\"report-none\">You haven’t published a report here yet.</p>"
-            }
+            (false, _) => "<p class=\"lib-none\">No report title matches your search.</p>",
+            (true, "mine") => "<p class=\"lib-none\">You haven’t published a report here yet.</p>",
             (true, "shared") => {
-                "<p class=\"report-none\">Nobody has shared a report with you by name yet.</p>"
+                "<p class=\"lib-none\">Nobody has shared a report with you by name yet.</p>"
             }
-            _ => "<p class=\"report-none\">Nothing here yet.</p>",
+            _ => "<p class=\"lib-none\">Nothing here yet.</p>",
         });
-        body.push_str("</div>");
-        body.push_str(&start);
-        return body;
+    } else {
+        body.push_str("<ul class=\"lib\">");
+        for row in list.rows {
+            body.push_str(&library_row(row));
+        }
+        body.push_str("</ul>");
     }
-    body.push_str(r#"<table class="report-table"><thead><tr><th scope="col">Name</th><th scope="col">Who can open it</th><th scope="col" class="r-owner">Owner</th><th scope="col">Updated</th><th scope="col"><span class="vh">Actions</span></th></tr></thead><tbody>"#);
-    for row in list.rows {
-        let key = escape(row.key);
-        let title = escape(row.title);
-        let (action, label) = if row.can_share {
-            ("Share", "Sharing and versions")
-        } else {
-            ("Details", "Details and versions")
-        };
-        let thumb = row.thumb.map_or_else(
-            || {
-                format!(
-                    "<span class=\"thumb thumb--none\">{}</span>",
-                    icon("report")
-                )
-            },
-            |src| {
-                format!(
-                    "<img class=\"thumb\" src=\"{}\" alt=\"\" width=\"60\" height=\"32\">",
-                    escape(src)
-                )
-            },
-        );
-        let access = match row.kind {
-            "org" => "org",
-            "public" => "globe",
-            "you" => "inbox",
-            _ => "lock",
-        };
-        let (url, more) = (escape(row.url), icon("more"));
-        body.push_str(&format!(r#"<tr><td class="r-name"><div>{thumb}<div><h2><a href="/reports/{key}">{title}</a><a class="r-open" href="/r/{key}">{title}</a></h2><p class="about">{}</p></div></div></td><td class="r-access"><span class="vis vis--{}">{}{}</span><span class="r-who">{}</span></td><td class="r-owner">{}</td><td class="r-when"><span>{}</span><span>{}</span></td><td class="r-acts"><div class="acts"><a class="act act--open" href="/r/{key}">Open</a><figure class="docs-code copy-link"><code hidden>{}</code><button class="act" type="button" data-copy-code aria-label="Copy link to {title}">Copy link</button></figure><a class="act" href="/reports/{key}" aria-label="{label} of {title}">{action}</a></div><details class="r-more"><summary aria-label="More for {title}">{more}</summary><div class="r-more__menu"><figure class="docs-code copy-link"><code hidden>{url}</code><button type="button" data-copy-code aria-label="Copy link to {title}">Copy link</button></figure><a href="/reports/{key}" aria-label="{label} of {title}">{action}</a></div></details></td></tr>"#, escape(row.description), escape(row.kind), icon(access), escape(row.badge), escape(row.who), escape(row.owner), escape(row.updated), escape(&[row.version.to_owned(), row.size.map_or_else(|| "Size unavailable".to_owned(), mebibytes)].into_iter().filter(|part| !part.is_empty()).collect::<Vec<_>>().join(" · ")), escape(row.url)));
-    }
-    body.push_str("</tbody></table></div>");
+    body.push_str(&foot);
     body.push_str(&start);
     body
 }
@@ -1308,7 +1422,7 @@ fn me_person(page: &MembersPage<'_>) -> String {
         .map_or_else(String::new, |member| member.person.to_owned())
 }
 
-/// Usage as the mark's bars, as the reports list shows it.
+/// Usage as the mark's bars, as the organization's settings show it.
 fn meters(usage: &AccountUsage) -> String {
     let (used, report_limit) = (usage.reports, usage.report_limit);
     let storage = escape(&mebibytes(usage.bytes));
@@ -1583,6 +1697,16 @@ pub(super) enum CliSignIn<'a> {
         computer: &'a str,
     },
     Cancelled,
+    /// A command line on this computer's loopback asks to sign in as the person; the page is
+    /// reached by an address no secret is in. Its fields go back with the answer.
+    Authorize {
+        request: &'a crate::access::CliAuthRequest,
+    },
+    /// The address was not one a command line of this version makes, or the answer could not be
+    /// given. Nothing was sent to the command line.
+    Refused {
+        problem: &'a str,
+    },
 }
 
 /// The page where a signed-in person confirms the code their command line shows. Its address
@@ -1600,6 +1724,9 @@ pub(super) fn cli_sign_in(nav: &Nav<'_>, state: &CliSignIn<'_>) -> String {
         ),
         CliSignIn::Confirm { code, computer } => {
             let code = escape(code);
+            // The organization the person saw is the one that answers; if their session works in
+            // another by the time they press Allow, nothing is signed in.
+            let org = escape(nav.org.map_or("", |(code, _)| code));
             let computer = if computer.is_empty() {
                 String::new()
             } else {
@@ -1609,7 +1736,7 @@ pub(super) fn cli_sign_in(nav: &Nav<'_>, state: &CliSignIn<'_>) -> String {
                 )
             };
             format!(
-                "<div class=\"page-head\"><div><h1>Let this command line publish as you?</h1><p class=\"lede\">Check that your terminal shows this code.</p></div></div><p class=\"cli-code\"><code>{code}</code></p><ul class=\"cli-facts\">{computer}<li>It will publish to <strong>{organization}</strong> with your role there, until you sign it out or revoke it on <a href=\"/tokens\">CLI tokens</a>.</li></ul><p class=\"note note--info\">Allow only if you started this yourself. If someone sent you this link, cancel.</p><div class=\"cli-acts\"><form method=\"post\" action=\"/ui/cli\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><input type=\"hidden\" name=\"code\" value=\"{code}\"><input type=\"hidden\" name=\"decision\" value=\"allow\"><button type=\"submit\">Allow</button></form><form method=\"post\" action=\"/ui/cli\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><input type=\"hidden\" name=\"code\" value=\"{code}\"><input type=\"hidden\" name=\"decision\" value=\"cancel\"><button class=\"docs-button docs-button--secondary\" type=\"submit\">Cancel</button></form></div>"
+                "<div class=\"page-head\"><div><h1>Let this command line publish as you?</h1><p class=\"lede\">Check that your terminal shows this code.</p></div></div><p class=\"cli-code\"><code>{code}</code></p><ul class=\"cli-facts\">{computer}<li>It will publish to <strong>{organization}</strong> with your role there, until you sign it out or revoke it on <a href=\"/tokens\">CLI tokens</a>.</li></ul><p class=\"note note--info\">Allow only if you started this yourself. If someone sent you this link, cancel.</p><div class=\"cli-acts\"><form method=\"post\" action=\"/ui/cli\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><input type=\"hidden\" name=\"code\" value=\"{code}\"><input type=\"hidden\" name=\"org\" value=\"{org}\"><input type=\"hidden\" name=\"decision\" value=\"allow\"><button type=\"submit\">Allow</button></form><form method=\"post\" action=\"/ui/cli\"><input type=\"hidden\" name=\"csrf\" value=\"{csrf}\"><input type=\"hidden\" name=\"code\" value=\"{code}\"><input type=\"hidden\" name=\"org\" value=\"{org}\"><input type=\"hidden\" name=\"decision\" value=\"cancel\"><button class=\"docs-button docs-button--secondary\" type=\"submit\">Cancel</button></form></div>"
             )
         }
         CliSignIn::Allowed { computer } => {
@@ -1623,6 +1750,39 @@ pub(super) fn cli_sign_in(nav: &Nav<'_>, state: &CliSignIn<'_>) -> String {
             )
         }
         CliSignIn::Cancelled => "<div class=\"page-head\"><div><h1>Cancelled</h1><p class=\"lede\">Nothing was signed in.</p></div></div><p><a href=\"/\">Go to your reports</a></p>".to_owned(),
+        CliSignIn::Authorize { request } => {
+            let account = format!("{} ({})", nav.name, nav.email);
+            let computer = if request.computer.is_empty() {
+                "A command line on a computer that did not give its name".to_owned()
+            } else {
+                format!("RichView on <strong>{}</strong>", escape(&request.computer))
+            };
+            let field = |name: &str, value: &str| {
+                format!(
+                    "<input type=\"hidden\" name=\"{name}\" value=\"{}\">",
+                    escape(value)
+                )
+            };
+            // The organization the person saw is the one that answers; if their session works in
+            // another by the time they press Allow, nothing is signed in.
+            let hidden = format!(
+                "<input type=\"hidden\" name=\"csrf\" value=\"{csrf}\">{}{}{}{}{}",
+                field("redirect_uri", &request.redirect_uri),
+                field("state", &request.state),
+                field("code_challenge", &request.challenge),
+                field("computer", &request.computer),
+                field("org", nav.org.map_or("", |(code, _)| code))
+            );
+            let check = escape(&request.check_code());
+            format!(
+                "<div class=\"page-head\"><div><h1>Let this command line publish as you?</h1><p class=\"lede\">{computer} is asking to sign in to your account.</p></div></div><p class=\"cli-code\"><code>{check}</code></p><ul class=\"cli-facts\"><li>You are signed in as <strong>{}</strong>.</li><li>It will publish to <strong>{organization}</strong> with your role there, until you sign it out or revoke it on <a href=\"/tokens\">CLI tokens</a>.</li></ul><p class=\"note note--info\">Allow only if your terminal shows this code. If it does not, or someone sent you this link, cancel.</p><div class=\"cli-acts\"><form method=\"post\" action=\"/ui/cli/authorize\">{hidden}<input type=\"hidden\" name=\"decision\" value=\"allow\"><button type=\"submit\">Allow</button></form><form method=\"post\" action=\"/ui/cli/authorize\">{hidden}<input type=\"hidden\" name=\"decision\" value=\"cancel\"><button class=\"docs-button docs-button--secondary\" type=\"submit\">Cancel</button></form></div>",
+                escape(&account)
+            )
+        }
+        CliSignIn::Refused { problem } => format!(
+            "<div class=\"page-head\"><div><h1>This sign-in cannot be finished</h1><p class=\"lede\">{}</p></div></div><p><a href=\"/\">Go to your reports</a></p>",
+            escape(problem)
+        ),
     };
     format!("{}{body}", navigation(nav, "tokens"))
 }
@@ -1765,7 +1925,13 @@ pub(super) fn account(
     usage: Option<&AccountUsage>,
     sign_in: Option<&SignInOptions<'_>>,
     notice: &str,
+    staff_history: bool,
 ) -> String {
+    let history = if staff_history {
+        "<p><a href=\"/account?view=staff-access\">Staff access history</a></p>"
+    } else {
+        ""
+    };
     let usage = usage.map_or_else(
         || "<p>Usage is temporarily unavailable. Try again later.</p>".to_owned(),
         |usage| {
@@ -1791,7 +1957,7 @@ pub(super) fn account(
     );
     let notice = format!("{}{unsent}", note(notice));
     format!(
-        "{}<div class=\"page-head\"><div><h1>Account</h1></div></div>{notice}<dl class=\"facts narrow\"><dt>Name</dt><dd>{}</dd><dt>Email</dt><dd>{}</dd><dt>Password</dt><dd>{password}</dd></dl>{providers}<section class=\"narrow\"><h2>Usage</h2>{usage}</section><section class=\"danger-zone narrow\"><div><h2>Delete account</h2><p>To delete your account and its reports, write to the address in the <a href=\"https://richview.ai/impressum\">Impressum</a>.</p></div></section>",
+        "{}<div class=\"page-head\"><div><h1>Account</h1></div></div>{notice}<dl class=\"facts narrow\"><dt>Name</dt><dd>{}</dd><dt>Email</dt><dd>{}</dd><dt>Password</dt><dd>{password}</dd></dl>{history}{providers}<section class=\"narrow\"><h2>Usage</h2>{usage}</section><section class=\"danger-zone narrow\"><div><h2>Delete account</h2><p>To delete your account and its reports, write to the address in the <a href=\"https://richview.ai/impressum\">Impressum</a>.</p></div></section>",
         navigation(nav, "account"),
         escape(nav.name),
         escape(email)
@@ -1922,14 +2088,14 @@ mod report_tests {
             key: "ab123456/report",
             title: "Revenue",
             description: "",
-            owner: "Alex",
             kind: "you",
-            badge: "Shared with you",
-            who: "By Alex",
-            size: None,
+            shared: "Shared by Alex",
+            can_edit: false,
             can_share: false,
-            updated: "11 Nov 2026",
+            can_delete: false,
+            updated: "11 Nov",
             version: "v1.0.0",
+            size: None,
             url: "https://example.test/r/ab123456/report",
             thumb: None,
         }];
@@ -1965,7 +2131,9 @@ mod report_tests {
             }),
             None,
             "",
+            true,
         );
+        assert!(html.contains("Staff access history"));
         assert!(html.contains("Usage of Acme: 2 of 50 reports · 1.2 MiB of 50 MiB"));
         assert!(html.contains("<progress max=\"50\" value=\"2\" aria-label=\"Reports used\">"));
         assert!(html.contains("<progress max=\"100\" value=\"2\" aria-label=\"Storage used\">"));
@@ -1974,7 +2142,7 @@ mod report_tests {
         assert_eq!(mebibytes(0), "0 MiB");
         assert_eq!(mebibytes(1), "<0.1 MiB");
         assert!(
-            account(&nav, "a@example.test", None, None, "")
+            account(&nav, "a@example.test", None, None, "", false)
                 .contains("Usage is temporarily unavailable.")
         );
     }
@@ -1994,54 +2162,197 @@ mod report_tests {
         assert!(!manual.contains("accounts@richview.ai"));
     }
 
-    #[test]
-    fn rows_say_owner_visibility_and_date_and_escape_report_content() {
-        let nav = test_nav("<Alex>", "a\"b");
-        let rows = [Report {
+    fn row<'a>() -> Report<'a> {
+        Report {
             key: "ab123456/report",
             title: "<Revenue>",
             description: "A & B",
-            owner: "Jana <N>",
             kind: "org",
-            badge: "Acme",
-            who: "Every member of Acme",
-            size: Some(1_258_291),
+            shared: "",
+            can_edit: true,
             can_share: true,
-            updated: "11 Nov 2026",
+            can_delete: true,
+            updated: "11 Nov",
             version: "v1.0.0",
+            size: Some(1_258_291),
             url: "https://example.test/r/ab123456/report",
             thumb: None,
+        }
+    }
+
+    #[test]
+    fn a_row_escapes_what_it_shows_and_gives_its_facts_on_one_line() {
+        let nav = test_nav("<Alex>", "a\"b");
+        let rows = [Report {
+            shared: "Shared with <Jana>",
+            ..row()
         }];
         let html = reports(&list(&nav, &rows, 1));
         assert!(html.contains("&lt;Alex&gt;"));
         assert!(html.contains("&lt;Revenue&gt;"));
         assert!(html.contains("A &amp; B"));
         assert!(html.contains("value=\"a&quot;b\""));
-        assert!(
-            html.contains("Every member of Acme")
-                && html.contains("<td class=\"r-owner\">Jana &lt;N&gt;</td>")
-                && html.contains("<td class=\"r-when\"><span>11 Nov 2026</span><span>v1.0.0 · 1.2 MiB</span></td>")
-        );
-        assert!(html.contains("href=\"/reports/ab123456/report\""));
-        assert!(html.contains("href=\"/?show=shared\""));
-        // On a phone the title opens the report and the other actions sit behind one menu.
-        assert!(
-            html.contains("<a class=\"r-open\" href=\"/r/ab123456/report\">&lt;Revenue&gt;</a>")
-        );
         assert!(html.contains(
-            "<details class=\"r-more\"><summary aria-label=\"More for &lt;Revenue&gt;\">"
+            "<p class=\"lib__meta\"><span>Edited 11 Nov</span><span>v1.0.0</span><span>1.2 MiB</span><span>Shared with &lt;Jana&gt;</span></p>"
         ));
-        // Without a share card the row shows the report icon; with one, its small copy.
-        assert!(html.contains("<span class=\"thumb thumb--none\">"));
+        assert!(!html.contains("<Revenue>") && !html.contains("<Jana>"));
+        // A report without a description or a date leaves no empty line or "Edited" behind.
+        let bare = [Report {
+            description: "",
+            updated: "",
+            ..row()
+        }];
+        let html = reports(&list(&nav, &bare, 1));
+        assert!(!html.contains("lib__about") && !html.contains("Edited"));
+        assert!(
+            html.contains("<p class=\"lib__meta\"><span>v1.0.0</span><span>1.2 MiB</span></p>")
+        );
+        // A size that could not be measured says so instead of leaving a gap.
+        let unmeasured = [Report {
+            size: None,
+            ..row()
+        }];
+        let html = reports(&list(&nav, &unmeasured, 1));
+        assert!(html.contains("<span>v1.0.0</span><span>Size unavailable</span>"));
+    }
+
+    #[test]
+    fn the_title_opens_the_editor_only_for_someone_who_may_edit() {
+        let nav = test_nav("Alex", "csrf");
+        let html = reports(&list(&nav, &[row()], 1));
+        assert!(html.contains(
+            "<h2 class=\"lib__title\"><a href=\"/reports/ab123456/report/edit\">&lt;Revenue&gt;</a></h2>"
+        ));
+        assert!(html.contains(
+            "<span class=\"lib__edit\" aria-hidden=\"true\"><svg class=\"ic\" aria-hidden=\"true\"><use href=\"#i-pencil\"/></svg>Edit</span>"
+        ));
+        let reader = [Report {
+            can_edit: false,
+            can_share: false,
+            can_delete: false,
+            ..row()
+        }];
+        let html = reports(&list(&nav, &reader, 1));
+        assert!(html.contains(
+            "<h2 class=\"lib__title\"><a href=\"/reports/ab123456/report\">&lt;Revenue&gt;</a></h2>"
+        ));
+        assert!(html.contains("</svg>Open</span>"));
+        assert!(!html.contains("report/edit") && !html.contains("</svg>Edit</span>"));
+    }
+
+    #[test]
+    fn only_the_exceptions_carry_a_mark_and_a_private_report_carries_none() {
+        let nav = test_nav("Alex", "csrf");
+        for (kind, mark) in [
+            (
+                "org",
+                "<span class=\"chip chip--org\"><svg class=\"ic\" aria-hidden=\"true\"><use href=\"#i-org\"/></svg>Organization</span>",
+            ),
+            (
+                "public",
+                "<span class=\"chip chip--public\"><svg class=\"ic\" aria-hidden=\"true\"><use href=\"#i-globe\"/></svg>Public link</span>",
+            ),
+            (
+                "you",
+                "<span class=\"chip chip--you\"><svg class=\"ic\" aria-hidden=\"true\"><use href=\"#i-users\"/></svg>Shared with you</span>",
+            ),
+        ] {
+            let rows = [Report { kind, ..row() }];
+            assert!(reports(&list(&nav, &rows, 1)).contains(mark), "{kind}");
+        }
+        let private = [Report {
+            kind: "private",
+            ..row()
+        }];
+        let html = reports(&list(&nav, &private, 1));
+        assert!(!html.contains("class=\"chip ") && !html.contains(">Private<"));
+    }
+
+    #[test]
+    fn the_row_menu_opens_copies_shares_and_deletes_by_what_the_person_may_do() {
+        let nav = test_nav("Alex", "csrf");
+        let html = reports(&list(&nav, &[row()], 1));
+        assert!(html.contains("<summary aria-label=\"More for &lt;Revenue&gt;\">"));
+        assert!(html.contains(
+            "<a href=\"/r/ab123456/report\"><svg class=\"ic\" aria-hidden=\"true\"><use href=\"#i-ext\"/></svg>Open report</a>"
+        ));
+        // Copy link keeps the docs clipboard runtime's figure, button and hidden link.
+        assert!(html.contains(
+            "<figure class=\"docs-code copy-link\"><code hidden>https://example.test/r/ab123456/report</code>"
+        ));
+        assert!(html.contains(
+            "<button type=\"button\" data-copy-code aria-label=\"Copy link to &lt;Revenue&gt;\">Copy link</button>"
+        ));
+        assert!(html.contains("</svg>Sharing and versions</a>"));
+        assert!(html.contains("<hr><a href=\"/reports/ab123456/report/delete\">"));
+        let reader = [Report {
+            can_edit: false,
+            can_share: false,
+            can_delete: false,
+            ..row()
+        }];
+        let html = reports(&list(&nav, &reader, 1));
+        assert!(html.contains("</svg>Details and versions</a>"));
+        assert!(html.contains("<a href=\"/reports/ab123456/report\">"));
+        assert!(!html.contains("Sharing and versions"));
+        assert!(!html.contains("/delete") && !html.contains("<hr>"));
+    }
+
+    #[test]
+    fn a_row_without_a_card_shows_the_report_icon_and_with_one_its_small_copy() {
+        let nav = test_nav("Alex", "csrf");
+        let html = reports(&list(&nav, &[row()], 1));
+        assert!(html.contains(
+            "<span class=\"lib__thumb lib__thumb--none\"><svg class=\"ic\" aria-hidden=\"true\"><use href=\"#i-report\"/></svg></span>"
+        ));
         let card = [Report {
             thumb: Some("data:image/png;base64,iVBOR\"x"),
-            ..rows[0]
+            ..row()
         }];
         let html = reports(&list(&nav, &card, 1));
         assert!(html.contains(
-            "<img class=\"thumb\" src=\"data:image/png;base64,iVBOR&quot;x\" alt=\"\" width=\"60\" height=\"32\">"
+            "<img class=\"lib__thumb\" src=\"data:image/png;base64,iVBOR&quot;x\" alt=\"\" width=\"104\">"
         ));
-        assert!(!html.contains("thumb--none"));
+        assert!(!html.contains("lib__thumb--none"));
+    }
+
+    #[test]
+    fn the_tabs_are_links_and_the_current_one_is_marked() {
+        let nav = test_nav("Alex", "csrf");
+        let rows = [row()];
+        let mut shown = list(&nav, &rows, 1);
+        shown.show = "shared";
+        shown.query = "q 3";
+        let html = reports(&shown);
+        assert!(html.contains(
+            "<nav class=\"lib-tabs\" aria-label=\"Show\"><a href=\"/?q=q%203\">All</a><a href=\"/?show=mine&amp;q=q%203\">Mine</a><a href=\"/?show=shared&amp;q=q%203\" aria-current=\"true\">Shared with me</a><a href=\"/?show=org&amp;q=q%203\">Acme</a><p class=\"lib-sort\">Newest first</p></nav>"
+        ));
+        assert!(html.contains(
+            "<p class=\"lib-searched\">Titles with “q 3” · <a href=\"/?show=shared\">Clear search</a></p>"
+        ));
+    }
+
+    #[test]
+    fn the_head_counts_the_reports_and_only_a_publisher_gets_new_report_and_the_usage_foot() {
+        let nav = test_nav("Alex", "csrf");
+        let usage = AccountUsage {
+            reports: 6,
+            report_limit: 50,
+            bytes: 3_355_443,
+            byte_limit: 500_000_000,
+        };
+        let rows = [row()];
+        let mut publisher = list(&nav, &rows, 1);
+        publisher.usage = Some(&usage);
+        let html = reports(&publisher);
+        assert!(html.contains("<div class=\"lib-head\"><div><h1>Reports</h1><p>1 report</p></div><a class=\"lib-new\" href=\"/reports/new\">"));
+        assert!(html.contains("<p class=\"lib-foot\"><span><strong>6</strong> of 50 reports</span><span><strong>3.2 MiB</strong> of 476.8 MiB</span></p>"));
+        assert!(!html.contains("<progress"));
+        let mut reader = list(&nav, &rows, 7);
+        reader.can_publish = false;
+        let html = reports(&reader);
+        assert!(html.contains("<h1>Reports</h1><p>7 reports</p></div></div>"));
+        assert!(!html.contains("New report") && !html.contains("lib-foot"));
     }
 
     fn page_for<'a>(

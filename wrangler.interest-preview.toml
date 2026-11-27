@@ -1,6 +1,6 @@
 # Local-only review configuration. It is deliberately not the live richview-teaser config.
-name = "richview-interest-s27-590-local"
-main = "cloudflare/interest-worker.mjs"
+name = "richview-interest-local"
+main = "cloudflare/interest-worker.ts"
 compatibility_date = "2026-10-05"
 workers_dev = false
 preview_urls = false
@@ -14,7 +14,7 @@ run_worker_first = ["/api/*"]
 
 [[d1_databases]]
 binding = "INTEREST_DB"
-database_name = "richview-interest-s27-590-local"
+database_name = "richview-interest-local"
 database_id = "00000000-0000-0000-0000-000000000590"
 migrations_dir = "cloudflare/migrations"
 

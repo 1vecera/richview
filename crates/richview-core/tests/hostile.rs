@@ -883,7 +883,7 @@ fn the_probe_of_opn_16_is_refused_by_the_style_contract() {
     assert!(!report.html.contains("HOSTILE_PALETTE"));
 }
 
-/// `HOSTILE_DUMP=1 cargo test -p richview-core --test hostile dump -- --ignored --nocapture`
+/// `HOSTILE_DUMP=1 cargo test -p richview-core --test integration -- --ignored --nocapture hostile::dump`
 /// prints each case's findings and diagnostic codes, for writing the index.
 #[test]
 #[ignore]

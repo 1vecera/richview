@@ -1,7 +1,7 @@
 //! OHLC charts: a low-to-high line with a tick left at the open and right at the close, coloured
 //! by direction, and the contract every type shares (FEA-CH-01, FEA-CH-57, FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Cmd, Geometry, Item};

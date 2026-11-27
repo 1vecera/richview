@@ -115,7 +115,7 @@ axes:
 
 ## Interactions
 
-- Hover or focus the chart to read every group's value and the total at the nearest x.
+- Hover or focus the chart to read every group's value and the total at the nearest x. The stream under the pointer keeps its colour and the others fade, and a dot with a ring marks that stream's upper edge, as it does on a stacked area.
 - Click a legend entry to remove a stream from the stack and back.
 - Zoom and pan on the x axis with brush, wheel, pinch, keys or double-click; Escape or reset returns to the full range.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

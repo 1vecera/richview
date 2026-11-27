@@ -67,11 +67,22 @@ axes:
 - Bars stand on zero, so a negative value hangs below it; several rows for one pair are added up and the readout marks the sum as derived
 - Each bar shows the three faces that face the viewer, the top lighter and the two sides shaded apart
 - A 3-D bar chart takes at most 24 x categories and 12 groups; above either the chart is not drawn and `check` raises `chart.limit-exceeded` naming the limit and the count
-- `style.azimuth` (default 35) turns the view round the vertical axis and `style.elevation` (default 28) tilts it, both in degrees
+- `style.azimuth` (default 35) turns the view round the vertical axis and `style.elevation` (default 28) tilts it, both in degrees; they are the view the chart opens at, and a reader turns it from there
 - `axes.x`, `axes.y` and `axes.color` name and format the three axes; a category label that does not fit is left out and reported
 
 ## Interactions
 
-- Hover or focus a bar to read its two categories and its value.
+- Hover or focus a bar to read its two categories and its value; a dark outline traces the bar's faces under the pointer.
 - Click a legend entry to remove a group and back.
 - Open the Table view, Download PNG or CSV, or Expand the chart.
+
+## Turn the view
+
+Drag the chart at the top of this page to turn it. The author's `style.azimuth` and `style.elevation` set the view it opens at, and a reader turns it from there.
+
+- Drag with a mouse, a pen or a finger. Dragging right brings the near side to the right and dragging down looks from higher; the elevation stops at 5 and 85 degrees, and the azimuth goes round.
+- Hold Shift and press an arrow key to turn it five degrees from the keyboard. Arrow keys alone still step through the bars.
+- Double-click the chart, press R or choose Reset view to return to the author's view.
+- Hover, focus and the readout work at every angle: the pointer names the bar drawn on top under it.
+- The box keeps one size at every angle, so it does not grow or shrink while it turns, and its labels stay inside the chart; it moves a little to keep them there as they change sides. It is the largest size that fits from every angle, so a chart drawn at one angle is a little smaller than one fitted to that angle alone.
+- Print, PDF, the command line's image export and a page without script always show the author's view. Download PNG saves the picture on the screen.

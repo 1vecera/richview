@@ -1,4 +1,4 @@
-mod common;
+use super::common;
 
 use richview_core::document::{
     RenderOptions, check as core_check, learn_bundle, learn_section, parse, render as core_render,

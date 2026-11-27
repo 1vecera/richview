@@ -1,4 +1,4 @@
-//! The voices scene of the home page (W3 scene 3, S27-926): the anchor report in each builtin
+//! The voices scene of the home page (W3 scene 3): the anchor report in each builtin
 //! style. The build stages one page per style; here the scroll drives them. While the scene's stage
 //! is pinned, each style's page rises from below over the last, which settles back and dims, and
 //! once a rising page passes the middle the page takes that style (`data-voice` on `<html>`, whose
@@ -43,7 +43,7 @@ fn ease(t: f64) -> f64 {
 /// The pages a reader at `position` (in styles, negative before the stage pins, `count - 1` plus the
 /// last hold where it lets go) needs live. Creating a page's frame stalls the page while its report
 /// starts, so a frame is only created as the reader enters a hold, when nothing on screen moves
-/// (S27-930): through style `k`'s hold the page beneath it, it and the next are live, and while the
+///: through style `k`'s hold the page beneath it, it and the next are live, and while the
 /// next rises only it and the next. Going forward the next page loads as the hold begins, a hold
 /// before it rises; going back the page beneath loads as the hold begins, a hold before the page on
 /// it descends. Before the stage pins only the first page shows, so only it loads.
@@ -133,7 +133,7 @@ pub(crate) fn start() {
         let Some(holder) = sheet.query_selector(".voices__page").ok().flatten() else {
             return;
         };
-        // The markup holds no frames (S27-927): the scene creates each page's as the reader comes
+        // The markup holds no frames: the scene creates each page's as the reader comes
         // to it (`wanted`).
         let src = holder.get_attribute("data-src").unwrap_or_default();
         let title = holder.get_attribute("data-title").unwrap_or_default();
@@ -181,7 +181,7 @@ const FACES: &str = "/richview-fonts.css";
 
 /// The voices give the page each style's faces, and only the report-face catalog holds them all;
 /// the page's own faces are site fonts. So the page does not link the catalog, its first paint
-/// does not wait for it, and a first visit does not download it (S27-927, PRF-36). The scene links
+/// does not wait for it, and a first visit does not download it (PRF-36). The scene links
 /// it once the reader comes within a screen of it, which leaves the faces a screen of scrolling to
 /// load before the stage pins and the page takes the first style.
 fn link_faces_near(section: &Element) {
@@ -227,7 +227,7 @@ fn link_faces() {
 }
 
 /// Side by side, each page shows once its report has drawn, as in the pinned scene. The markup holds
-/// no frames (S27-927): each page gets its frame as it comes within two screens, which leaves its
+/// no frames: each page gets its frame as it comes within two screens, which leaves its
 /// report two screens of scrolling to load and draw, since the strip does not pin.
 fn load_strip_near(section: &Element) {
     let mut waiting = all(section, ".voices__sheet");

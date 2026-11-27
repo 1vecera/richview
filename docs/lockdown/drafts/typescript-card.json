@@ -1,0 +1,40 @@
+{
+  "id": "drafts-typescript",
+  "title": "Draft card: TypeScript for RichView's handwritten host code",
+  "status": "draft",
+  "summary": "Proposes an amendment to the source language in ARC-03 and the checks that enforce it, under DEL-06. DRAFT-30 belongs in part 03. Rust keeps the product rules.",
+  "items": [
+    {
+      "id": "DRAFT-30",
+      "part": "03-architecture",
+      "kind": "decision",
+      "importance": "key",
+      "refId": "D-JS-BOUNDARY",
+      "group": "Principles and boundaries",
+      "title": "TypeScript for every handwritten JavaScript source",
+      "question": "Does every handwritten JavaScript source owned by RichView move to strict TypeScript within ARC-03's current host boundaries?",
+      "why": "Daniel asked on 26 November 2026 to rewrite the JavaScript code in TypeScript for type security. The repo needs one language rule for both the product adapters and the tools that verify and release them.",
+      "proposed": "Write RichView-owned host code and development tools in strict TypeScript. Keep ARC-03's host list and the header explaining each product file's host reason. The pinned Node runtime strips erasable types and runs development tools directly. The build compiles browser, Worker, VS Code and embedded host sources to JavaScript with a pinned compiler. Generated JavaScript, vendored code and fixtures used as data keep their source formats. Check the TypeScript project and its consumers in fast whenever a source, dependency or project configuration can change its types. DEL-54 applies its existing architecture allowlist to TypeScript sources; DEL-23 and DEL-24 keep every migrated check in its tier; DEL-49 pins the compiler with the lockfile.",
+      "options": [
+        {
+          "label": "Migrate all RichView-owned handwritten sources",
+          "detail": "Use strict types across the allowed product adapters and the development tools."
+        },
+        {
+          "label": "Keep the existing source-language rule",
+          "detail": "Keep handwritten JavaScript within the current ARC-03 allowlist and leave migration optional."
+        }
+      ],
+      "recommendation": "Migrate all RichView-owned handwritten sources, as Daniel requested, and preserve the runtime behavior at each verified slice.",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "Daniel's 26 November request to rewrite the JavaScript in TypeScript for type security",
+          "ref": "ARC-03",
+          "date": "2026-11-26"
+        }
+      ],
+      "conflicts": "On acceptance, update the current-source wording in ARC-03, INT-52, ARC-35, ARC-55, DEL-01 and DEL-54. Update active check and reproduction paths in DEL-14, DEL-15, DEL-16, DEL-17, DEL-19, DEL-23, DEL-30, DEL-33, FEA-RP-65 and FEA-BR-20 alongside the code rename. OPN-21 and historical evidence keep the historical paths of the commits they describe. Generated glue and bundled JavaScript remain subject to the existing host and security rules."
+    }
+  ]
+}

@@ -17,7 +17,7 @@ use web_sys::{
     HtmlTextAreaElement, KeyboardEvent,
 };
 
-// The live example edits the anchor report (S27-931). Its folder also holds the style file of the
+// The live example edits the anchor report. Its folder also holds the style file of the
 // second tab and the CSV its chart reads; the page has no folder, so the CSV comes with the page.
 const DEMO: &str = include_str!("../../../../assets/landing/anchor/report.rmd");
 const STYLE: &str = include_str!("../../../../assets/landing/anchor/report.rstyle.yaml");
@@ -143,7 +143,7 @@ fn render_now() {
         s.requested
     });
     spawn_local(async move {
-        // The page does not load the report-face catalog; the first render does (S27-927).
+        // The page does not load the report-face catalog; the first render does.
         super::font_catalog_ready().await;
         let wasm = super::preview_wasm().await;
         let js = super::preview_js().await;
@@ -288,7 +288,7 @@ fn swap_buffers(loaded: &HtmlIFrameElement) {
     let _ = loaded.set_attribute("id", "demo-result");
     let _ = loaded.set_attribute("data-buffer", "current");
     let _ = loaded.remove_attribute("aria-hidden");
-    // Under the scene's report the live frame stays out of the Tab order until the hand-over (S27-942).
+    // Under the scene's report the live frame stays out of the Tab order until the hand-over.
     let covered = loaded
         .parent_element()
         .is_some_and(|viewport| viewport.has_attribute("data-covered"));
@@ -475,7 +475,7 @@ fn start_demo() -> Result<(), JsValue> {
             on(&frame.into(), "load", move |_| {
                 swap_buffers(&loaded);
                 if loaded.id() == "demo-result"
-                    && (loaded.get_attribute("src").as_deref() == Some("/landing/demo.html")
+                    && (loaded.get_attribute("src").as_deref() == Some("/landing/demo")
                         || loaded.has_attribute("srcdoc"))
                     && let Some(fallback) = query("#demo-fallback")
                 {
@@ -483,7 +483,7 @@ fn start_demo() -> Result<(), JsValue> {
                 }
             });
         }
-        current.set_attribute("src", "/landing/demo.html")?;
+        current.set_attribute("src", "/landing/demo")?;
         current.remove_attribute("hidden")?;
     }
     super::complete::start(&source, None);
@@ -706,7 +706,7 @@ fn start_prompts() {
 }
 
 /// How far below the screen Vee's small clips load, in screens: none loads with the first screen
-/// (S27-927, PRF-36), and each has its bytes before the reader reaches it.
+/// (PRF-36), and each has its bytes before the reader reaches it.
 const CLIP_AHEAD: f64 = 1.5;
 /// The types of a clip's two files: the HEVC laid on the site's paper first, for Safari, which cannot
 /// draw VP9's alpha; then the transparent VP9 for the browsers without HEVC.

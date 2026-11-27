@@ -1,6 +1,6 @@
 //! The public every-point field survives validation, payload preparation and vector output;
 //! reduction never changes the author's precision or the exported row multiplicity.
-mod common;
+use super::common;
 
 use common::{geometry, payload};
 use richview_chart::geometry::{Item, Role};

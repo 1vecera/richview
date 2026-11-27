@@ -1,7 +1,7 @@
 //! `highlight.mute` (TYP-78): the marks `include` matches keep their colour, names and values;
 //! the rest take the style's quiet ink, lose the names and values the chart adds by itself, and
 //! paint first. On by default for line, area, bar and lollipop charts, off for a scatter.
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::color;

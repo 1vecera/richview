@@ -41,6 +41,9 @@ mod pie;
 mod pivot;
 mod place;
 mod project3d;
+pub use project3d::{
+    KEY_TURN, MAX_ELEVATION, MIN_ELEVATION, authored_view, between_views, turn_by_degrees, turn_by_pixels,
+};
 mod qq;
 mod radar;
 mod ribbon;
@@ -207,9 +210,15 @@ pub struct Options {
     /// `None` shows all data.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub zoom_y: Option<[f64; 2]>,
+    /// The reader's view of a three-dimensional chart as `[azimuth, elevation]` in degrees, in
+    /// place of the author's `style.azimuth` and `style.elevation`; `None` keeps the author's.
+    /// Only a browser host sets it, while a reader turns the chart; print, PDF, image export and
+    /// the page without script never do.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub view: Option<[f64; 2]>,
     /// The room is wider than the chart: a key the chart draws itself stands beside its plot,
     /// not under it. The expanded view asks for it in a short, wide window, where a chart
-    /// narrowed to fit the height leaves width on its sides (S27-875).
+    /// narrowed to fit the height leaves width on its sides.
     #[serde(skip_serializing_if = "std::ops::Not::not")]
     pub aside: bool,
     /// Extents the scales cover beyond the rows drawn: a playback fits every frame (FEA-BR-31).

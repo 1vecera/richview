@@ -11,7 +11,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 richview-core = { path = "../richview-core" }
 richview-chart = { path = "../../richview-chart" }
-# The live example's completion is the editor service's own (S27-931, ARC-09).
+# The live example's completion is the editor service's own (ARC-09).
 richview-authoring = { path = "../richview-authoring" }
 serde_json = "1"
 serde = "1"
@@ -25,4 +25,4 @@ sha2 = "0.10"
 wasm-bindgen = "=0.2.129"
 wasm-bindgen-futures = "0.4"
 js-sys = "0.3"
-web-sys = { version = "0.3", features = ["Window", "Document", "Element", "Node", "NodeList", "HtmlElement", "HtmlDocument", "HtmlHeadElement", "HtmlTextAreaElement", "HtmlSelectElement", "HtmlInputElement", "HtmlIFrameElement", "HtmlAnchorElement", "HtmlCanvasElement", "CanvasRenderingContext2d", "TextMetrics", "CssStyleDeclaration", "Event", "EventTarget", "MouseEvent", "PointerEvent", "KeyboardEvent", "InputEvent", "ClipboardEvent", "DataTransfer", "Performance", "DomRect", "Navigator", "Clipboard", "Blob", "BlobPropertyBag", "Url", "UrlSearchParams", "Location", "Response", "Request", "RequestInit", "AbortController", "AbortSignal", "Headers", "MediaQueryList", "IntersectionObserver", "IntersectionObserverEntry", "CustomEvent", "CustomEventInit", "Worker", "MessageEvent", "Path2d", "FontFaceSet", "IntersectionObserverInit", "History", "console"] }
+web-sys = { version = "0.3", features = ["Window", "Document", "Element", "Node", "NodeList", "HtmlElement", "HtmlDocument", "HtmlHeadElement", "HtmlTextAreaElement", "HtmlSelectElement", "HtmlInputElement", "HtmlIFrameElement", "HtmlAnchorElement", "HtmlCanvasElement", "CanvasRenderingContext2d", "TextMetrics", "CssStyleDeclaration", "Event", "EventTarget", "MouseEvent", "PointerEvent", "KeyboardEvent", "InputEvent", "ClipboardEvent", "DataTransfer", "Performance", "DomRect", "Navigator", "Clipboard", "Blob", "BlobPropertyBag", "Url", "UrlSearchParams", "Location", "Response", "Request", "RequestInit", "AbortController", "AbortSignal", "Headers", "MediaQueryList", "IntersectionObserver", "IntersectionObserverEntry", "CustomEvent", "CustomEventInit", "Worker", "MessageEvent", "Path2d", "FontFaceSet", "IntersectionObserverInit", "History", "console", "Storage", "Text", "CharacterData", "Range", "DomRectList", "DomTokenList", "HtmlCollection"] }

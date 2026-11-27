@@ -1,0 +1,65 @@
+{
+  "id": "drafts-zoom-both-axes",
+  "title": "Draft card: zoom and pan on both axes of a scatter plot",
+  "status": "draft",
+  "summary": "A draft card proposing that a scatter plot zooms and pans along y as well as x, each axis on a window of its own, written under DEL-06 because FEA-CH-49 decides zoom \"along x only\" and \"zoom never rescales y\". DRAFT-31 belongs in part 04a beside FEA-CH-49; it amends that card for scatter and TYP-36's zoom stop for the y channel, and is not in a part file yet.",
+  "items": [
+    {
+      "id": "DRAFT-31",
+      "part": "04a-features-chart",
+      "kind": "feature",
+      "importance": "key",
+      "refId": "F-WEB-CHART-ZOOM-PAN-XY",
+      "component": "C-WEB-CHART-HOST",
+      "group": "Zoom and navigation",
+      "title": "Zoom and pan on both axes of a scatter plot",
+      "question": "Does a scatter plot zoom and pan along y as well as x, each axis on a window of its own, with the same gestures and keys as today and the same zoom stop on both axes?",
+      "why": "FEA-CH-49 zooms line, area and scatter charts along x only. That suits a series over time, whose y follows from x. A scatter plot has no such order: its two axes are both numbers the author chose, and a reader who wants to look into a crowded corner or a cluster at one height cannot, because a window along x alone keeps every point of that range at every height. Daniel asked for zoom on both axes of a scatter plot on 16 November and put it on the ASAP list on 25 November. TYP-36 stops a zoom where one step of the position grid spans about two pixels; it names every channel that places a mark, so the stop belongs to the y channel too.",
+      "proposed": "**A scatter plot zooms and pans along x and along y, each on a window of its own.** The plot draws exactly the two windows chosen, each inside the axis the full chart draws; no axis grows past it.\n\n- **Drag a rectangle** across the plot to zoom to it. A drag that stays within 6 px of level, or of upright, zooms the other axis alone and keeps the window of the axis it hardly crossed, so the horizontal drag FEA-CH-49 describes still zooms along x. The tint and edges show the rectangle, or the band for one axis.\n- **Wheel and pinch.** Ctrl or ⌘ with the wheel zooms around the pointer on both axes, as FEA-CH-49 does on x; a plain wheel scrolls the page. On touch, pinch and one-finger drag zoom and pan both axes only in the expanded view (FEA-CH-44, FEA-CH-49).\n- **Pan.** Shift-drag moves the window along both axes; one finger does in the expanded view.\n- **Keyboard.** + and − zoom around the middle of the plot on both axes; Escape clears a selection, then the zoom (FEA-CH-56). Arrow keys keep stepping through the points inside the windows.\n- **Reset.** Double-click, Escape and Reset zoom return both axes to the full view; the Reset zoom place stays reserved in the title row as today.\n- **What follows the windows.** Ticks, gridlines, labels and their digits follow the range drawn on each axis. Points outside either window are neither drawn nor available to hover, tooltips, highlights, labels or the arrow keys; the Table and CSV keep every row. Hover, tooltips and highlights work in the zoomed view as in the full one.\n- **The zoom stop (TYP-36).** A window stops where one step of the position grid of its own channel spans about two pixels of the axis, on x and on y alike; a channel with no grid keeps a window a millionth of its axis wide, and integers and dates keep their own resolution.\n- **Scatter panels with scales of their own** (`style.facet_scale: free`) have no shared y window; they zoom along x only, as today.\n- Line, area and the other types that zoom along x keep exactly their behaviour and \"zoom never rescales y\" for them. The two-axis rule is for the types whose two axes are both numbers the author encoded and whose marks keep their meaning in a window: `scatter` (bubbles included) now, and `vector` if Daniel agrees; `bin2d` and `hexbin` stay whole because their bins are the data, and `contour` draws x and y to one scale from lines it computes, so it waits for its own decision.",
+      "options": [
+        {
+          "label": "Each axis on its own window, a rectangle drag, as proposed",
+          "detail": "A scatter plot is explored like a map: drag a rectangle, zoom around the pointer, pan both ways. A drag along one axis still zooms that axis alone. The cost is that a slightly slanted horizontal drag no longer zooms x with y whole unless it stays within 6 px."
+        },
+        {
+          "label": "A rectangle only with a modifier key",
+          "detail": "A plain drag stays the x band of FEA-CH-49 and Alt- or Option-drag takes the rectangle. Nothing changes for readers used to the band; a mouse reader has to know the modifier, and touch has no equivalent."
+        },
+        {
+          "label": "Keep x only",
+          "detail": "No runtime work and the zoom stays as FEA-CH-49 decided; Daniel's request of 16 November is not met."
+        }
+      ],
+      "recommendation": "Each axis on its own window, a rectangle drag, as proposed: it is the request, the one-axis drag keeps the x band, and the machinery (drag box, pan, pinch, keys, zoom glide) is the one a map already uses.",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "Daniel's request for zoom on both the x and the y axis of a scatter plot, and its place on the ASAP list",
+          "ref": "tmp/team/launch/d16/launch/next25/brief-scatter-zoom.md",
+          "date": "2026-11-25"
+        },
+        {
+          "label": "Zoom and pan: zoom along x only on line, area and scatter; y never rescales",
+          "ref": "FEA-CH-49",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "The zoom stop at about two pixels a grid step, for every channel that places a mark",
+          "ref": "TYP-36",
+          "date": "2026-10-27"
+        },
+        {
+          "label": "Keyboard zoom keys and Escape order",
+          "ref": "FEA-CH-56",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "The second axis a map already zooms along, with its drag box, pan, pinch and zoom glide",
+          "ref": "richview-chart/src/geometry.rs (YSpan), crates/richview-runtime/src/web/host.rs",
+          "date": "2026-11-26"
+        }
+      ],
+      "conflicts": "FEA-CH-49 says line, area and scatter zoom \"along x only\" and \"zoom never rescales y\"; for a scatter plot the first becomes both axes and the second stays true for the other types. FEA-CH-39 says zoom only on numeric or calendar x; a scatter plot zooms along y on its numeric y whatever its x. FEA-CH-50 gives no overview strip to scatter plots and still gives none: its strip is one-dimensional. FEA-CH-75 lists a chart type's pointer and keyboard tests: the scatter tests add a window along y."
+    }
+  ]
+}

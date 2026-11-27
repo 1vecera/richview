@@ -1,7 +1,7 @@
 //! Word clouds: sizes on a square-root scale, horizontal words packed without overlap inside the
 //! plot, words that find no room reported, and the contract every type shares (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::Level;

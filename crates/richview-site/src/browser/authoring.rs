@@ -8,6 +8,8 @@ use web_sys::{
     KeyboardEvent,
 };
 
+#[path = "hosted_editor.rs"]
+mod hosted;
 #[path = "showcase.rs"]
 mod showcase;
 
@@ -305,6 +307,8 @@ impl SourceArea {
 
 struct Editor {
     source: SourceArea,
+    /// The stored report of the hosted editor page, when this is that page.
+    hosted: Option<hosted::Session>,
     /// The style pill the reader chose; empty renders the styles the source declares.
     style: String,
     preview: HtmlIFrameElement,
@@ -342,6 +346,7 @@ pub(crate) fn start() -> Result<(), JsValue> {
     {
         let editor = Rc::new(RefCell::new(Editor {
             source: SourceArea::new(src.clone().dyn_into::<HtmlTextAreaElement>()?)?,
+            hosted: None,
             style: String::new(),
             preview: preview.dyn_into::<HtmlIFrameElement>()?,
             status: query("#diagnostics, #rv-status"),
@@ -382,7 +387,10 @@ pub(crate) fn start() -> Result<(), JsValue> {
                     return;
                 }
                 if let Some(error) = message["error"].as_str() {
-                    show_failure(&mut e, &failure_text(error));
+                    match serde_json::from_str::<Vec<richview_core::document::Diagnostic>>(error) {
+                        Ok(found) => show_findings(&mut e, &found),
+                        Err(_) => show_failure(&mut e, error),
+                    }
                     drop(e);
                     flush_worker(&editor);
                     return;
@@ -512,6 +520,10 @@ pub(crate) fn start() -> Result<(), JsValue> {
                 });
             }
         }
+        if query("body[data-richview-page='editor']").is_some() {
+            hosted::start(&editor);
+            return Ok(());
+        }
         let ed = editor.clone();
         spawn_local(async move {
             let result = async {
@@ -612,16 +624,20 @@ fn check_summary(diagnostics: &[richview_core::document::Diagnostic]) -> String 
     }
 }
 
-/// A failure as the reader reads it: findings sent as JSON become one line each, other text stays.
-fn failure_text(error: &str) -> String {
-    serde_json::from_str::<Vec<richview_core::document::Diagnostic>>(error)
-        .map(|found| reader_findings(&found).join("\n"))
-        .unwrap_or_else(|_| error.to_owned())
-}
-
 /// A render that produced no report: the preview clears so it never shows stale content, the
 /// reasons go under the source, and a pending Check says the report cannot render.
 fn show_failure(e: &mut Editor, reasons: &str) {
+    if e.hosted.is_some() {
+        // The hosted editor keeps the last good report under a banner (FEA-SF-08).
+        let found = [richview_core::document::Diagnostic::new(
+            "error",
+            "editor.render",
+            reasons,
+            "preview",
+        )];
+        hosted::found(e, &found, None);
+        return;
+    }
     e.html.clear();
     e.preview.set_srcdoc("");
     if let Some(status) = &e.status {
@@ -629,6 +645,15 @@ fn show_failure(e: &mut Editor, reasons: &str) {
     }
     if std::mem::take(&mut e.announce) {
         pg_status("Checked: the report cannot render; the reasons are listed under the source.");
+    }
+}
+
+/// A render that produced findings and no report. The hosted editor places each on its line.
+fn show_findings(e: &mut Editor, found: &[richview_core::document::Diagnostic]) {
+    if e.hosted.is_some() {
+        hosted::found(e, found, None);
+    } else {
+        show_failure(e, &reader_findings(found).join("\n"));
     }
 }
 
@@ -750,9 +775,17 @@ async fn render_editor(editor: Rc<RefCell<Editor>>) {
             e.generation,
         )
     };
+    // A stored report published with styles of its own keeps them in the editor, as the host
+    // renders it again with them.
+    let kept_styles = editor
+        .borrow()
+        .hosted
+        .as_ref()
+        .map(|s| s.styles())
+        .unwrap_or_default();
     let mut options = richview_core::document::RenderOptions {
         styles: if theme.is_empty() {
-            vec![]
+            kept_styles
         } else {
             vec![theme]
         },
@@ -764,10 +797,13 @@ async fn render_editor(editor: Rc<RefCell<Editor>>) {
         runtime_wasm_codec: "raw".into(),
         ..Default::default()
     };
-    let folder = if origin
+    let hosted_folder = editor.borrow().hosted.as_ref().map(|s| s.folder());
+    let folder = if let Some(folder) = hosted_folder {
+        folder
+    } else if origin
         .split('?')
         .next()
-        .is_some_and(|s| s.ends_with(".rmd"))
+        .is_some_and(|s| s.ends_with(".rmd") || s.ends_with(".rslide"))
     {
         let result = async {
             let manifest=web_sys::Url::new_with_base("report-folder.json",&origin)?;
@@ -812,7 +848,7 @@ async fn render_editor(editor: Rc<RefCell<Editor>>) {
             Err(found) => {
                 let mut e = editor.borrow_mut();
                 if e.generation == generation {
-                    show_failure(&mut e, &reader_findings(&found).join("\n"));
+                    show_findings(&mut e, &found);
                 }
                 return;
             }
@@ -822,7 +858,7 @@ async fn render_editor(editor: Rc<RefCell<Editor>>) {
         let mut round = files;
         for styles_read in [false, true] {
             for reference in std::mem::take(&mut round) {
-                match fetch_report_resource(&reference.path, reference.kind, &origin).await {
+                match report_resource(&editor, &reference.path, reference.kind, &origin).await {
                     Ok(bytes) => {
                         options.data.insert(reference.path, bytes);
                     }
@@ -893,7 +929,7 @@ async fn render_editor(editor: Rc<RefCell<Editor>>) {
         Err(errors) => {
             let mut e = editor.borrow_mut();
             if e.generation == generation {
-                show_failure(&mut e, &reader_findings(&errors).join("\n"));
+                show_findings(&mut e, &errors);
             }
         }
     }
@@ -970,9 +1006,13 @@ async fn resolve_worker_references(
     };
     for reference in references {
         let path = reference["path"].as_str().unwrap_or_default();
-        let result =
-            fetch_report_resource(path, reference["kind"].as_str().unwrap_or("data"), &origin)
-                .await;
+        let result = report_resource(
+            &editor,
+            path,
+            reference["kind"].as_str().unwrap_or("data"),
+            &origin,
+        )
+        .await;
         match result {
             Ok(bytes) => {
                 options.data.insert(path.into(), bytes);
@@ -1012,6 +1052,45 @@ async fn resolve_worker_references(
     }
 }
 
+/// The media type a report file's extension stands for.
+fn media_mime(path: &str) -> &'static str {
+    match path
+        .rsplit('.')
+        .next()
+        .unwrap_or("")
+        .to_ascii_lowercase()
+        .as_str()
+    {
+        "png" => "image/png",
+        "jpg" | "jpeg" => "image/jpeg",
+        "svg" => "image/svg+xml",
+        "webp" => "image/webp",
+        "gif" => "image/gif",
+        "mp3" => "audio/mpeg",
+        "wav" => "audio/wav",
+        "ogg" => "audio/ogg",
+        "mp4" => "video/mp4",
+        "webm" => "video/webm",
+        _ => "application/octet-stream",
+    }
+}
+
+/// A file the render asks for: the stored version's own when the hosted editor holds one, else
+/// the page's folder fetched from the network.
+async fn report_resource(
+    editor: &Rc<RefCell<Editor>>,
+    path: &str,
+    kind: &str,
+    origin: &str,
+) -> Result<String, JsValue> {
+    if let Some(session) = &editor.borrow().hosted {
+        return session
+            .resource(path, kind)
+            .ok_or_else(|| js_error("this version of the report holds no such file"));
+    }
+    fetch_report_resource(path, kind, origin).await
+}
+
 async fn fetch_report_resource(path: &str, kind: &str, origin: &str) -> Result<String, JsValue> {
     if !richview_core::document::report_relative_path(path) {
         return Err(js_error("Resource escapes the dedicated report folder"));
@@ -1023,26 +1102,7 @@ async fn fetch_report_resource(path: &str, kind: &str, origin: &str) -> Result<S
     }
     if kind == "media" {
         let bytes = fetch_base64(&url.href()).await?;
-        let mime = match path
-            .rsplit('.')
-            .next()
-            .unwrap_or("")
-            .to_ascii_lowercase()
-            .as_str()
-        {
-            "png" => "image/png",
-            "jpg" | "jpeg" => "image/jpeg",
-            "svg" => "image/svg+xml",
-            "webp" => "image/webp",
-            "gif" => "image/gif",
-            "mp3" => "audio/mpeg",
-            "wav" => "audio/wav",
-            "ogg" => "audio/ogg",
-            "mp4" => "video/mp4",
-            "webm" => "video/webm",
-            _ => "application/octet-stream",
-        };
-        Ok(format!("data:{mime};base64,{bytes}"))
+        Ok(format!("data:{};base64,{bytes}", media_mime(path)))
     } else {
         fetch_text(&url.href()).await
     }
@@ -1077,8 +1137,18 @@ fn set_report(
     if std::mem::take(&mut e.announce) {
         pg_status(&check_summary(found));
     }
+    // The hosted editor does not replace a good report with one that has errors in it: the last
+    // good report stays under a banner until the source is fixed (FEA-SF-08). The first render
+    // has no earlier report to keep, so it shows what it has.
+    if e.hosted.is_some() && !e.html.is_empty() && found.iter().any(|d| d.level == "error") {
+        hosted::found(e, found, None);
+        return;
+    }
     e.preview.set_srcdoc(&report.html);
     e.html = report.html;
+    if e.hosted.is_some() {
+        hosted::found(e, found, Some(elapsed));
+    }
 }
 // Runtime assets are siblings of the trusted host script. Versioned report
 // authoring can then coexist with an unchanged playground at the site root.
@@ -1133,7 +1203,7 @@ fn export_report(editor: Rc<RefCell<Editor>>) {
             let report = richview_core::document::render(&source, &options)
                 .map_err(|errors| js_error(serde_json::to_string(&errors).unwrap_or_default()))?;
             let report = resolve_report_fonts(report).await?;
-            let name=options.report_folder.as_ref().map(|f| f.source.trim_end_matches(".rmd")).unwrap_or("report");
+            let name=options.report_folder.as_ref().map(|f| f.source.trim_end_matches(".rmd").trim_end_matches(".rslide")).unwrap_or("report");
             download(&format!("{name}.html"), &report.html, "text/html")?;
             if let Some(status)=&editor.borrow().status {status.set_text_content(Some("Downloaded self-contained HTML. Save it in the report folder’s Rendered subfolder. Use native/VS Code Export to bundle local document links."));}
             Ok::<_,JsValue>(())

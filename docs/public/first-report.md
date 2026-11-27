@@ -51,7 +51,7 @@ Attach or name your data files and explain the question you want the report to a
 
 ## Take a finished example apart
 
-The [orders example](https://richview.ai/docs/example/Rendered/report.html) uses a different fictional dataset to demonstrate a metric, table, caveat and local styling. Download its [source](https://richview.ai/docs/example/report.rmd), [style YAML](https://richview.ai/docs/example/report.rstyle.yaml) and [CSV](https://richview.ai/docs/example/data/orders.csv) into this layout:
+The [orders example](https://richview.ai/docs/example/Rendered/report) uses a different fictional dataset to demonstrate a metric, table, caveat and local styling. Download its [source](https://richview.ai/docs/example/report.rmd), [style YAML](https://richview.ai/docs/example/report.rstyle.yaml) and [CSV](https://richview.ai/docs/example/data/orders.csv) into this layout:
 
 ```text
 orders/

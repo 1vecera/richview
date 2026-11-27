@@ -1,12 +1,12 @@
 Write the self-contained report, or a PDF, into the report folder's Rendered/
 
-A source with `slides: true` in its frontmatter is written as slides: one screen for the title and one for each top-level heading or `---`, and a PDF of one 16:9 page a slide.
+A deck, a `.rslide` file, is written as slides: one screen for each slide, and a PDF of one 16:9 page a slide.
 
 Usage: richview generate [OPTIONS] <INPUT>
 
 Arguments:
   <INPUT>
-          The report's `.rmd` or the folder holding it; a folder of report folders stands for every report below it
+          The report's `.rmd` or a deck's `.rslide`, or the folder holding it; a folder of report folders stands for every report below it
 
 Options:
       --style <STYLES>

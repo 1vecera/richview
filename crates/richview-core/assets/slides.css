@@ -1,7 +1,7 @@
-/* Slides (FEA-RP-65). Layout first, as report.css: every colour, face and rule comes
-   from the style cascade, and the stages at the end, one world for each builtin style
-   (`components.slides.stage`), take theirs from its tokens too. A slide is a screen. Its
-   regions come in one order from the renderer: title, numbers, figures, text.
+/* Rich Slides (FEA-RP-71). Layout first, as report.css: every colour, face and rule comes from
+   the style cascade, and the stages at the end, one world for each builtin style
+   (`components.slides.stage`), take theirs from its tokens too. A slide is a screen: a head, the
+   slots of its layout, and a foot, set on a grid of 24 columns by 24 rows.
 
    Two layouts. The stack is the base: one column at the style's own sizes, each slide at least a
    screen high, for a phone and any window too small for a stage. The stage is a 16:9 box as large
@@ -18,6 +18,8 @@ html[data-rv-slides] { scroll-snap-type: y proximity; }
 html[data-rv-slides] body > :first-child { scroll-snap-align: start; }
 /* The keys glide from slide to slide; reduced motion jumps. */
 @media (prefers-reduced-motion: no-preference) { html[data-rv-slides] { scroll-behavior: smooth; } }
+/* The deck's title is the page's heading; the stage shows the slides' own. */
+.rv-slides__title { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .rv-report--slides { display: block; max-width: none; margin: 0; padding: 0; }
 .rv-report--slides .rv-report__body > .rv-slide { max-width: none; margin: 0; border-top: 1px solid var(--rv-rule); }
 .rv-slide {
@@ -26,51 +28,56 @@ html[data-rv-slides] body > :first-child { scroll-snap-align: start; }
 }
 .rv-slide__stage { width: 100%; min-width: 0; }
 .rv-slide__body {
-  position: relative; display: flex; flex-direction: column; gap: var(--rv-line);
+  position: relative; box-sizing: border-box; display: flex; flex-direction: column; gap: var(--rv-line);
   max-width: calc(var(--rv-measure-w) + 3rem); margin-inline: auto; padding: 3rem 1.5rem;
   --rv-number-size: calc(var(--rv-size-display) * 1.15);
 }
-.rv-slide__body > h2 { margin: 0; text-wrap: balance; }
-.rv-slide--section .rv-slide__body > h2 { font-size: var(--rv-size-display); line-height: 1.08; }
+.rv-slide__head { display: flex; flex-direction: column; gap: .35em; min-width: 0; }
+/* The report sets a heading's margins from `.rv-report__body h2`; a slide's title is placed by the grid. */
+.rv-report__body .rv-slide__title { margin: 0; text-wrap: balance; }
+.rv-slide__subtitle { margin: 0; color: var(--rv-ink-soft); text-wrap: balance; }
+.rv-slide--section .rv-slide__title, .rv-slide--cover .rv-slide__title { font-size: var(--rv-size-display); line-height: 1.08; }
 .rv-slide--hero .rv-slide__body { --rv-number-size: calc(var(--rv-size-display) * 2.6); }
 
-/* The title slide is the report's header, with its style's rules, in the middle of the screen. */
-.rv-slide--title .rv-report__header { margin: 0; }
-
-/* Numbers: one row of equal columns. A value is as large as its slide sets and never wider than
-   its column: the renderer counts its characters, and the column's width divided by them bounds
-   the size. A value of several words may take two lines. */
-.rv-slide__numbers { display: grid; grid-template-columns: repeat(min(var(--rv-cols, 2), 2), minmax(0, 1fr)); gap: var(--rv-line) 1.25rem; }
-.rv-slide__number { container-type: inline-size; min-width: 0; }
-.rv-slide__number > .rv-metric { margin: 0; }
+/* The content region holds the slots, each in the tracks its layout gives it (the renderer
+   writes the cuts and each slot's place). */
+.rv-slide__content { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--rv-line); min-width: 0; }
+.rv-slot { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+/* On a phone the slots stand in reading order, one under another: the places the renderer writes
+   (--rv-gc and --rv-gr) are for the stage. */
+.rv-slot > * { flex: none; }
+.rv-slot--text > :first-child { margin-top: 0; }
+.rv-slot--text > :last-child { margin-bottom: 0; }
+.rv-slot--text > * { max-width: 34em; }
+.rv-slot--text h3, .rv-slot--text h2 { margin: 0 0 .4em; }
+.rv-slot--text > :is(.rv-callout, .rv-notes) { margin-block: var(--rv-line) 0; }
+.rv-slot > :is(.rv-chart, .rv-table, .rv-table-scroll, .rv-metric) { margin: 0; max-width: none; }
+.rv-slot--metric > .rv-metric { margin: 0; }
+.rv-slide__number { container-type: inline-size; }
 .rv-slide__number .rv-metric__value {
-  font-size: min(calc(var(--rv-number-size) * var(--rv-lead, 1)), calc(100cqw / (var(--rv-chars, 6) * var(--rv-char-w, .62))));
+  font-size: min(var(--rv-number-size), calc(100cqw / (var(--rv-chars, 6) * var(--rv-char-w, .62))));
   line-height: 1.04; letter-spacing: -.02em; text-wrap: balance;
 }
-.rv-slide__number > .rv-source { margin-top: .5em; }
-/* Every number of a row reads the same way: its label on one line, its change on the next. */
 .rv-slide__number :is(.rv-metric__label, .rv-metric__delta) { flex: 0 0 100%; }
-
-.rv-slide__main, .rv-slide__figures { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--rv-line); min-width: 0; }
-.rv-slide__figure { min-width: 0; }
-/* A table takes its box's width. On a phone its cells wrap between words at a tighter padding
+/* A table takes its slot's width. On a phone its cells wrap between words at a tighter padding
    before it scrolls, so a few columns fit whole; one that still does not fit scrolls under the
-   report's edge cue (S27-879). */
-.rv-slide__figure--table .rv-table-scroll > table { width: 100%; }
-.rv-slide__figure--table :is(th, td) { padding-inline: .4em; }
-.rv-slide__figure > :is(.rv-chart, .rv-table, .rv-table-scroll, .rv-image, .rv-video, .rv-embed, .rv-scrolly) { margin: 0; max-width: none; }
-.rv-slide__figure > .rv-source { margin: .5em 0 0; }
+   report's edge cue. */
+.rv-slot--table .rv-table-scroll > table { width: 100%; }
+.rv-slot--table :is(th, td) { padding-inline: .4em; }
 /* A slide shows its chart, not the report's tools around it: the table, downloads and the
-   expanded view belong to the report the same source renders. */
+   expanded view belong to the report. */
 .rv-slide .rv-chart__actions { display: none; }
-.rv-slide__text { min-width: 0; }
-.rv-slide__text > :first-child { margin-top: 0; }
-.rv-slide__text > :last-child { margin-bottom: 0; }
-.rv-slide__text > :is(.rv-callout, .rv-notes) { margin-block: var(--rv-line) 0; }
-.rv-slide__text > :is(.rv-callout, .rv-notes):first-child { margin-top: 0; }
+/* A slide with a head of its own speaks in it; a chart's title, which a chart requires, then stays
+   for screen readers. Without a head the chart's title is the slide's headline. */
+.rv-slide:not(.rv-slide--nohead) .rv-slot--chart .rv-chart__title {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
 
-/* The colophon closes the last slide. */
-.rv-slide .rv-report__footer { margin: var(--rv-line) 0 0; }
+.rv-slide__foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .25em 1.5em; color: var(--rv-ink-faint); font-size: var(--rv-size-small); }
+.rv-slide__foot > p { margin: 0; }
+.rv-slide__note { margin-inline-start: auto; text-align: end; }
+.rv-slide__colophon { margin-top: var(--rv-line); }
+.rv-slide__colophon .rv-report__footer { margin: 0; }
 
 /* The counter, which the runtime adds: where the reader is, out of how many. */
 .rv-slides__count {
@@ -88,6 +95,8 @@ html[data-rv-slides] body > :first-child { scroll-snap-align: start; }
     width: min(100vw, calc(100vh * 16 / 9)); width: min(100vw, calc(100dvh * 16 / 9));
     container-type: inline-size;
   }
+  /* 24 columns by 24 rows. The head holds rows 1 to 4, the foot rows 23 and 24, and the content
+     the rest; without a head or a foot the content takes their rows. */
   .rv-slide__body {
     --rv-su: 1cqw;
     --rv-size-small: max(calc(var(--rv-su) * 1.2), 12px);
@@ -99,72 +108,69 @@ html[data-rv-slides] body > :first-child { scroll-snap-align: start; }
     --rv-line: calc(var(--rv-size-base) * 1.45);
     --rv-block-gap: calc(var(--rv-su) * 2.2);
     --rv-chart-text: max(calc(var(--rv-su) * 1.2), 12px);
-    --rv-number-size: calc(var(--rv-su) * 9);
-    max-width: none; margin: 0; min-height: 56.25cqw; gap: calc(var(--rv-su) * 2.2);
-    padding: calc(var(--rv-su) * 3.6) calc(var(--rv-su) * 5) calc(var(--rv-su) * 4.4);
+    --rv-number-size: calc(var(--rv-su) * 7);
+    display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); grid-template-rows: repeat(24, minmax(0, 1fr));
+    aspect-ratio: 16 / 9; max-width: none; margin: 0; gap: 0;
+    padding: calc(var(--rv-su) * 3.2) calc(var(--rv-su) * 5) calc(var(--rv-su) * 2.6);
     font-size: var(--rv-size-base); line-height: 1.45;
   }
-  .rv-slide__body > h2 { max-width: 30em; }
-  .rv-slide--section .rv-slide__body, .rv-slide--title .rv-slide__body { justify-content: center; }
-  .rv-slide--section .rv-slide__body > h2 { max-width: 14em; }
-  .rv-slide--title .rv-report__header { max-width: calc(var(--rv-su) * 72); }
-  .rv-slide--title .rv-report__lede { font-size: calc(var(--rv-su) * 2.1); line-height: 1.4; max-width: 30em; }
-  .rv-slide--title .rv-report__meta { font-size: var(--rv-size-base); }
-  .rv-slide--title .rv-report__header > .rv-image > img { width: 100%; max-width: 100%; margin-inline: 0; max-height: calc(var(--rv-su) * 20); object-fit: cover; }
+  /* The head is four rows, 8.4 units of the stage: a title of two lines, its gap and a one-line
+     subtitle fit in them at every stage's sizes (a title reads up to 90 characters, `slides.density`),
+     and the head runs the stage's width so a subtitle keeps to its one line. */
+  .rv-slide__head { grid-column: 1 / -1; grid-row: 1 / 5; justify-content: flex-start; max-width: none; }
+  .rv-slide__title { font-size: calc(var(--rv-su) * 2.6); line-height: 1.08; }
+  .rv-slide__subtitle { font-size: calc(var(--rv-su) * 1.5); line-height: 1.25; }
+  .rv-slide__content {
+    grid-column: 1 / -1; grid-row: 5 / 23;
+    grid-template-columns: var(--rv-x, minmax(0, 1fr)); grid-template-rows: var(--rv-y, minmax(0, 1fr));
+    gap: calc(var(--rv-su) * 3);
+  }
+  .rv-slide--nohead .rv-slide__content { grid-row-start: 1; }
+  .rv-slide--nofoot .rv-slide__content { grid-row-end: 25; }
+  .rv-slot { grid-column: var(--rv-gc, auto); grid-row: var(--rv-gr, auto); }
+  .rv-slide__foot { grid-column: 1 / -1; grid-row: 23 / 25; align-self: end; font-size: var(--rv-size-small); }
+  .rv-slide__colophon { position: absolute; inset: auto auto calc(var(--rv-su) * 1) 50%; translate: -50% 0; margin: 0; }
+  .rv-slide--nofoot .rv-slide__colophon { inset-block-end: calc(var(--rv-su) * 1); }
 
-  /* Beside figures the numbers are a band; alone they are the slide. */
-  .rv-slide--figures .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 5.6); }
+  /* A cover and a section have a head and nothing else: the head is the slide. */
+  .rv-slide--cover .rv-slide__head, .rv-slide--section .rv-slide__head { grid-row: 1 / -1; justify-content: center; max-width: none; }
+  .rv-slide--cover .rv-slide__title { max-width: 9em; font-size: calc(var(--rv-su) * 8.6); line-height: .95; }
+  .rv-slide--cover .rv-slide__subtitle { max-width: 26em; margin-top: calc(var(--rv-su) * 2); font-size: calc(var(--rv-su) * 2.1); line-height: 1.35; }
+  .rv-slide--section .rv-slide__title { max-width: 10em; font-size: calc(var(--rv-su) * 7.6); line-height: .95; }
+  .rv-slide--section .rv-slide__subtitle { max-width: 26em; margin-top: calc(var(--rv-su) * 1.6); font-size: calc(var(--rv-su) * 2); }
+
+  /* Slots stand in their tracks. A chart or an image has no height of its own here: its box is
+     its slot, and the runtime lays the chart out to fill it. */
+  .rv-slot--chart { contain: size; min-height: calc(var(--rv-su) * 8); --rv-fit: 1; }
+  .rv-slot--chart > .rv-chart { flex: 1 1 auto; }
+  .rv-slot--chart .rv-chart__legend-entry { font-size: var(--rv-chart-text); }
+  .rv-slot--text { justify-content: center; font-size: calc(var(--rv-su) * 1.9); line-height: 1.4; }
+  .rv-slot--text > :is(p, ul, ol, blockquote) { font-size: inherit; }
+  .rv-slot--text > * + * { margin-top: .7em; }
+  .rv-slot--text li + li { margin-top: .35em; }
+  .rv-slot--metric { justify-content: center; }
+  .rv-slide__number .rv-metric__label, .rv-slide__number .rv-metric__delta { font-size: calc(var(--rv-su) * 1.7); }
+
+  /* A lone number is the slide. */
   .rv-slide--hero .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 20); }
-  .rv-slide__numbers { grid-template-columns: repeat(var(--rv-cols, 1), minmax(0, 1fr)); gap: calc(var(--rv-su) * 2.2) calc(var(--rv-su) * 3); }
-  .rv-slide--numbers .rv-slide__numbers { margin-block: auto; }
-  /* A number's label and change are text, at the text's size beside a figure too; the floor is
-     for lettering (a chart's, a source note). */
-  .rv-slide__number .rv-metric__label, .rv-slide__number .rv-metric__delta { font-size: var(--rv-size-base); }
+  .rv-slide--hero .rv-slot--metric { align-items: flex-start; }
   .rv-slide--hero .rv-slide__number .rv-metric__label, .rv-slide--hero .rv-slide__number .rv-metric__delta { font-size: calc(var(--rv-su) * 2.1); }
+  /* Numbers beside one another are a band of figures, not the slide. */
+  .rv-slide--numbers .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 9); }
+  .rv-slide--figures .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 6.4); }
 
-  /* Figures take the room the title and the numbers leave. A chart or an image has no height of
-     its own here: its box is the room, and the runtime lays the chart out to fill it. */
-  .rv-slide__main { flex: 1 1 auto; min-height: 0; grid-template-rows: minmax(0, 1fr); grid-auto-rows: auto; gap: calc(var(--rv-su) * 2.2) calc(var(--rv-su) * 3); }
-  .rv-slide__main--split { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
-  .rv-slide--text .rv-slide__main, .rv-slide--numbers .rv-slide__main { flex: none; grid-template-rows: auto; }
-  .rv-slide__figures { grid-template-columns: repeat(var(--rv-cols, 1), minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: calc(var(--rv-su) * 2.2) calc(var(--rv-su) * 3); min-height: 0; }
-  .rv-slide__figure { display: flex; flex-direction: column; min-height: 0; }
-  .rv-slide__figure > * { flex: none; }
-  .rv-slide__figure--chart, .rv-slide__figure--image { contain: size; min-height: calc(var(--rv-su) * 13); }
-  .rv-slide__figure--chart { --rv-fit: 1; }
-  /* Figures side by side share one height: each chart's card fills its slot above its source
-     note, so the cards and the notes line up whatever each chart's legend takes. */
-  .rv-slide__figures:has(> .rv-slide__figure + .rv-slide__figure) > .rv-slide__figure--chart > .rv-chart { flex: 1 1 auto; }
-  .rv-slide__figure--chart .rv-chart__legend-entry { font-size: var(--rv-chart-text); }
-  .rv-slide__figure--image > .rv-image { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
-  .rv-slide__figure--image > .rv-image > img { flex: 1 1 0; min-height: 0; width: 100%; height: 100%; object-fit: contain; object-position: left top; }
-
-  /* A table is read from the back of the room too. A short one is set large, up to 2.4su, and
-     up to 3.6su when it is the slide's only figure, as text alone is set larger; a long one no
-     smaller than the text. The size is the room a slide leaves under its title shared by the
-     rows (the renderer counts them, with the head), and no larger than the figure's width over
-     its columns' widest cells, in characters with their padding. The density warning keeps a
-     table to ten rows, which fit at the text's size. A table alone keeps the slide's width, its
-     text under it. */
-  .rv-slide__figure--table { container-type: inline-size; }
-  .rv-slide__figure--table table {
-    font-size: max(var(--rv-size-base), min(calc(var(--rv-su) * var(--rv-table-most, 2.4)), calc(var(--rv-su) * 16 / var(--rv-rows, 6)), calc(100cqi / (var(--rv-row-chars, 40) * .6))));
+  /* A table is read from the back of the room too. A short one is set large, up to 2.4su; a
+     long one no smaller than the text. The size is the room its slot has shared by the rows
+     (the renderer counts them, with the head), and no larger than the slot's width over its
+     columns' widest cells, in characters with their padding. */
+  .rv-slot--table { container-type: size; justify-content: flex-start; }
+  .rv-slot--table table {
+    font-size: max(var(--rv-size-base), min(calc(var(--rv-su) * 2.6), calc(100cqh / (var(--rv-rows, 6) * 1.9)), calc(100cqi / (var(--rv-row-chars, 40) * .6))));
     line-height: 1.4;
   }
-  .rv-slide__main--table { grid-template-rows: auto; align-content: start; }
-  .rv-slide__main--table .rv-slide__figure--table { --rv-table-most: 3.6; }
-  .rv-slide__figure--table :is(th, td) { padding-block: .45em; padding-inline: .6em; }
-  .rv-slide__figure > :is(.rv-table, .rv-table-scroll) { margin: 0; }
+  .rv-slot--table :is(th, td) { padding-block: .45em; padding-inline: .6em; }
+  .rv-slot--notice { overflow: hidden; }
 
-  .rv-slide__text > * { max-width: 34em; }
-  .rv-slide--text .rv-slide__text { font-size: calc(var(--rv-su) * 2.1); line-height: 1.4; }
-  .rv-slide--text .rv-slide__text > :is(p, ul, ol, blockquote) { font-size: inherit; }
-  .rv-slide__text h3 { margin: 0 0 .4em; }
-
-  .rv-slide .rv-report__footer {
-    position: absolute; inset: auto auto calc(var(--rv-su) * 1.5) calc(var(--rv-su) * 5);
-    width: auto; max-width: none; margin: 0; padding: 0; border: 0;
-  }
   /* The counter stands in the stage's corner, not the window's, at the stage's smallest size. */
   .rv-slides__count {
     --rv-stage: min(100vw, 100vh * 16 / 9); --rv-stage: min(100vw, 100dvh * 16 / 9);
@@ -178,19 +184,17 @@ html[data-rv-slides] body > :first-child { scroll-snap-align: start; }
   /* A PowerPoint 16:9 page; the stage takes whatever page the reader prints on instead. */
   @page { size: 13.333in 7.5in; margin: 0; }
   .rv-report--slides > * + * { margin-top: 0; }
-  /* One slide a page. A slide that grew past its stage runs on to a second page rather than lose
-     its end; the stage is a hair under the page, so rounding never adds an empty one. */
+  /* One slide a page; the stage is a hair under the page, so rounding never adds an empty one. */
   .rv-slide { min-height: 0; break-after: page; }
   .rv-slide:last-child { break-after: auto; }
-  .rv-slide__body { min-height: calc(56.25cqw - 1px); }
+  .rv-slide__body { height: calc(56.25cqw - 1px); aspect-ratio: auto; }
   .rv-slides__count { display: none; }
 }
 
 /* ===== Stages ==============================================================================
    Each builtin style sets its slides on a stage of its own (`components.slides.stage`), a world
    built from its tokens and faces rather than one layout recoloured. A stage changes type,
-   colour, framing and how a slide arrives; never what a slide holds or where the renderer put
-   it. Its character holds on a phone too; the sizes in stage units hold on the stage.
+   colour, framing and how a slide arrives; never what a slide holds or where its slots stand.
 
    A field sets a whole slide, edge to edge, on one colour, and its type takes the field's ink.
    The stage reads the style's colours from above the slide, so a field never reads its own
@@ -217,207 +221,15 @@ html[data-rv-stage="poster"]:has(.rv-slide--section[data-rv-current]) :is(.rv-sl
 
 /* A chart stands on the stage, not on a panel of its own; Poster keeps its ink outline. */
 html:is([data-rv-stage="keynote"], [data-rv-stage="gallery"], [data-rv-stage="sketchbook"], [data-rv-stage="paper"]) .rv-slide .rv-chart:not(.rv-chart--expanded) { background: none; padding: 0; border-radius: 0; }
-html[data-rv-stage] .rv-slide__figure { --rv-bg-chart: var(--rv-bg); }
+html[data-rv-stage] .rv-slot { --rv-bg-chart: var(--rv-bg); }
 /* The lone number stands free of the frame a report gives a metric. */
-html[data-rv-stage] .rv-slide--hero .rv-metric { background: none; border: 0; padding: 0; }
-
-/* ---- Keynote (Sleek): a stage at night. Oversized grotesk, charts straight on the dark,
-   colour only where it is a whole field: the lone number and the section. ---- */
-html[data-rv-stage="keynote"] .rv-slide--title .rv-report__header { border: 0; padding: 0; }
-html[data-rv-stage="keynote"] .rv-slide--title .rv-report__meta { font-family: var(--rv-font-mono); text-transform: uppercase; letter-spacing: .08em; }
-html[data-rv-stage="keynote"] :is(.rv-report__title, .rv-slide__body > h2, .rv-metric__value) { letter-spacing: -.035em; }
-html[data-rv-stage="keynote"] .rv-slide--hero .rv-metric { justify-content: center; text-align: center; }
-html[data-rv-stage="keynote"] .rv-slide--hero .rv-metric__label { color: var(--rv-ink); }
-html[data-rv-stage="keynote"] .rv-slide--section .rv-slide__body > h2 { line-height: .94; letter-spacing: -.045em; }
-html[data-rv-stage="keynote"] .rv-slide--text li::marker { color: var(--rv-accent); }
-html[data-rv-stage="keynote"] .rv-slide__figure--table th { color: var(--rv-ink-soft); font-weight: 400; }
-
-/* ---- Gallery (Air): daylight on a Swiss grid. Flush left, colour as type: the lone number
-   in light figures in the accent, under its label. ---- */
-html[data-rv-stage="gallery"] .rv-slide--title .rv-report__header { border: 0; padding: 0; }
-html[data-rv-stage="gallery"] .rv-slide--title .rv-report__meta { color: var(--rv-accent); }
-html[data-rv-stage="gallery"] :is(.rv-report__title, .rv-slide__body > h2) { letter-spacing: -.035em; }
-html[data-rv-stage="gallery"] .rv-slide__number .rv-metric__value { font-family: var(--rv-font-text); font-weight: 400; letter-spacing: -.04em; }
-html[data-rv-stage="gallery"] .rv-slide--hero .rv-slide__body { --rv-char-w: .58; }
-html[data-rv-stage="gallery"] .rv-slide--hero .rv-metric__label { order: -2; color: var(--rv-ink); }
-html[data-rv-stage="gallery"] .rv-slide--hero .rv-metric__delta { order: -1; }
-html[data-rv-stage="gallery"] .rv-slide--hero .rv-metric__value { order: 1; color: var(--rv-accent); line-height: .9; }
-html[data-rv-stage="gallery"] .rv-slide--figures .rv-metric { border-top: 2px solid var(--rv-ink); }
-html[data-rv-stage="gallery"] .rv-slide--section .rv-slide__body > h2 { color: var(--rv-accent); line-height: .92; letter-spacing: -.045em; }
-html[data-rv-stage="gallery"] .rv-slide__figure--table thead th { border-bottom: 2px solid var(--rv-ink); font-weight: 400; }
-
-/* ---- Poster (Brutalist): a wall of posters. Condensed capitals to the edges, the lone
-   number white on an accent field over a heavy bar, the section on ink. ---- */
-html[data-rv-stage="poster"] .rv-slide { --rv-char-w: .5; }
-html[data-rv-stage="poster"] .rv-slide__body { --rv-bar: max(4px, calc(var(--rv-su) * 1.1)); }
-html[data-rv-stage="poster"] .rv-slide--title .rv-report__header { border-top-width: var(--rv-bar); border-bottom-width: var(--rv-bar); }
-html[data-rv-stage="poster"] .rv-slide--title .rv-report__title { line-height: .86; text-wrap: wrap; }
-html[data-rv-stage="poster"] .rv-slide--title .rv-report__meta { font-family: var(--rv-font-mono); text-transform: uppercase; letter-spacing: .06em; }
-html[data-rv-stage="poster"] .rv-slide--hero .rv-metric { display: grid; grid-template-columns: 1fr auto; column-gap: 1em; }
-html[data-rv-stage="poster"] .rv-slide--hero .rv-metric__value { grid-column: 1 / -1; margin-bottom: .1em; padding-bottom: .08em; border-bottom: var(--rv-bar) solid var(--rv-on-field); line-height: .82; letter-spacing: -.01em; }
-html[data-rv-stage="poster"] .rv-slide--hero .rv-slide__number :is(.rv-metric__label, .rv-metric__delta) { flex: none; }
-html[data-rv-stage="poster"] .rv-slide--hero .rv-metric__label { font-style: italic; }
-html[data-rv-stage="poster"] .rv-slide--hero .rv-metric__delta { align-self: baseline; font-family: var(--rv-font-mono); text-transform: uppercase; }
-html[data-rv-stage="poster"] .rv-slide--section .rv-slide__body > h2 { font-size: calc(var(--rv-size-display) * 1.5); line-height: .84; letter-spacing: -.01em; }
-/* A working slide's title carries the accent's tag, a block set before its first letter. */
-html[data-rv-stage="poster"] .rv-slide:not(.rv-slide--section) .rv-slide__body > h2::before { content: ""; display: inline-block; vertical-align: .1em; width: .9em; height: .64em; margin-right: .28em; background: var(--rv-accent); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-html[data-rv-stage="poster"] .rv-slide__figure--table thead th { background: var(--rv-ink); color: var(--rv-bg); font-family: var(--rv-font-display); font-weight: 800; letter-spacing: .02em; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-html[data-rv-stage="poster"] .rv-slide__figure--table td { border-bottom: 2px solid var(--rv-ink); }
-html[data-rv-stage="poster"] .rv-slide__figure--table td.num { font-family: var(--rv-font-mono); }
-html[data-rv-stage="poster"] .rv-slide--text li::marker { content: "\25A0\00A0\00A0"; font-size: .7em; }
-
-/* ---- Sketchbook (Hand-drawn): a talk drawn as it is given. Lettering at a tilt, the
-   red pencil under the lone number. ---- */
-html[data-rv-stage="sketchbook"] .rv-slide__body > h2 { rotate: -.8deg; transform-origin: left center; }
-html[data-rv-stage="sketchbook"] :is(.rv-slide--title, .rv-slide--section, .rv-slide--hero) .rv-slide__body { text-align: center; }
-html[data-rv-stage="sketchbook"] .rv-slide--title .rv-report__header { display: flex; flex-direction: column; align-items: center; background-size: 70% 8px; background-position: center bottom; }
-html[data-rv-stage="sketchbook"] .rv-slide--title .rv-report__title { max-width: 9em; line-height: .98; rotate: -2deg; }
-html[data-rv-stage="sketchbook"] .rv-slide--hero .rv-metric { justify-content: center; }
-html[data-rv-stage="sketchbook"] .rv-slide--hero .rv-metric__value { flex: none; margin-bottom: .25em; line-height: 1; rotate: -3deg; }
-html[data-rv-stage="sketchbook"] .rv-slide--hero .rv-metric__delta { font-family: var(--rv-font-display); font-size: 1.35em; color: var(--rv-ink); }
-html[data-rv-stage="sketchbook"] .rv-slide--figures .rv-slide__number:nth-child(even) .rv-metric__value { rotate: -1.2deg; transform-origin: left top; }
-html[data-rv-stage="sketchbook"] .rv-slide--section .rv-slide__body > h2 { max-width: 8em; margin-inline: auto; line-height: .95; rotate: -3deg; transform-origin: center; }
-
-/* ---- Paper (Scientific): the talk of a good paper. A title page, headings over a rule, the
-   lone number between rules, numbered figures and tables, booktabs. ---- */
-html[data-rv-stage="paper"] .rv-slide__body > h2 { padding-bottom: .3em; border-bottom: 1px solid var(--rv-ink); }
-html[data-rv-stage="paper"] :is(.rv-slide--title, .rv-slide--section) .rv-slide__body { text-align: center; }
-html[data-rv-stage="paper"] .rv-slide--title .rv-report__header { display: flex; flex-direction: column; align-items: center; border: 0; }
-html[data-rv-stage="paper"] .rv-slide--title .rv-report__title { max-width: 14em; font-weight: 600; letter-spacing: -.015em; }
-html[data-rv-stage="paper"] .rv-slide--title .rv-report__meta { order: 2; font-family: var(--rv-font-ui); font-variant-caps: all-small-caps; letter-spacing: .08em; }
-html[data-rv-stage="paper"] .rv-slide--title .rv-report__lede { order: 3; max-width: 34em; padding-top: 1em; border-top: 1px solid var(--rv-rule); text-align: left; hyphens: auto; }
-html[data-rv-stage="paper"] .rv-slide--hero .rv-metric { justify-content: center; text-align: center; padding-block: .8em; border-block: 1px solid var(--rv-ink); }
-html[data-rv-stage="paper"] .rv-slide__number .rv-metric__value { font-weight: 400; }
-html[data-rv-stage="paper"] .rv-slide--hero .rv-metric__label { font-style: italic; color: var(--rv-ink); }
-html[data-rv-stage="paper"] .rv-slide--section .rv-slide__body > h2 { max-width: 12em; margin-inline: auto; border: 0; font-style: italic; font-weight: 400; }
-/* Figures and tables are numbered as a paper numbers them; the renderer counts them. */
-html[data-rv-stage="paper"] .rv-slide__figure .rv-chart__title { counter-reset: rv-n var(--rv-n, 1); }
-html[data-rv-stage="paper"] .rv-slide__figure .rv-chart__title::before { content: "Figure " counter(rv-n) ". "; font-weight: 600; }
-html[data-rv-stage="paper"] .rv-slide__figure--table { counter-reset: rv-n var(--rv-n, 1); }
-html[data-rv-stage="paper"] .rv-slide__figure--table::before { content: "Table " counter(rv-n) "."; display: block; margin-bottom: .4em; font-weight: 600; }
-html[data-rv-stage="paper"] .rv-slide__figure--table table { border-top: 2px solid var(--rv-ink); border-bottom: 2px solid var(--rv-ink); }
-html[data-rv-stage="paper"] .rv-slide__figure--table thead th { border-bottom: 1px solid var(--rv-ink); }
-html[data-rv-stage="paper"] .rv-slide__figure--table tbody td { border-bottom: 0; }
-
-/* ---- The stages at stage size: every size in stage units. ---- */
-@media print, (min-width: 900px) and (min-aspect-ratio: 1/1) {
-  /* Every chart's title is its claim, read from the back of the room, and text beside a figure
-     is set a step above the text's size. */
-  html[data-rv-stage] .rv-slide .rv-chart__title { font-size: calc(var(--rv-su) * 1.9); line-height: 1.2; }
-  html[data-rv-stage="poster"] .rv-slide .rv-chart__title { font-size: calc(var(--rv-su) * 1.7); line-height: 1.25; }
-  html[data-rv-stage] .rv-slide .rv-chart__subtitle { font-size: calc(var(--rv-su) * 1.35); }
-  html[data-rv-stage] .rv-slide__main--split .rv-slide__text { font-size: calc(var(--rv-su) * 1.85); line-height: 1.4; }
-  html[data-rv-stage] .rv-slide--text .rv-slide__text { font-size: calc(var(--rv-su) * 2.4); }
-  html[data-rv-stage] .rv-slide--title .rv-report__header { max-width: none; }
-
-  html[data-rv-stage="keynote"] .rv-slide__body > h2 { font-size: calc(var(--rv-su) * 3.2); line-height: 1.05; }
-  html[data-rv-stage="keynote"] .rv-slide--title .rv-slide__body { justify-content: flex-end; padding-bottom: calc(var(--rv-su) * 6); }
-  html[data-rv-stage="keynote"] .rv-slide--title .rv-report__title { max-width: 9em; font-size: calc(var(--rv-su) * 8.6); line-height: .95; letter-spacing: -.04em; }
-  html[data-rv-stage="keynote"] .rv-slide--title .rv-report__lede { max-width: 26em; margin-top: calc(var(--rv-su) * 2.6); font-size: calc(var(--rv-su) * 2.1); color: var(--rv-ink-soft); }
-  html[data-rv-stage="keynote"] .rv-slide--title .rv-report__meta { position: absolute; top: calc(var(--rv-su) * 3.6); left: calc(var(--rv-su) * 5); margin: 0; color: var(--rv-ink-soft); }
-  html[data-rv-stage="keynote"] .rv-slide--hero .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 34); --rv-char-w: .6; justify-content: center; }
-  html[data-rv-stage="keynote"] .rv-slide--hero .rv-metric__value { letter-spacing: -.04em; line-height: .86; }
-  html[data-rv-stage="keynote"] .rv-slide--hero .rv-slide__number :is(.rv-metric__label, .rv-metric__delta) { font-size: calc(var(--rv-su) * 2.3); }
-  html[data-rv-stage="keynote"] .rv-slide--hero .rv-metric__label { margin-top: calc(var(--rv-su) * 2.4); }
-  html[data-rv-stage="keynote"] .rv-slide--figures .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 6.4); }
-  html[data-rv-stage="keynote"] .rv-slide--figures .rv-metric { padding-top: calc(var(--rv-su) * 1.2); }
-  html[data-rv-stage="keynote"] .rv-slide--section .rv-slide__body { justify-content: flex-end; padding-bottom: calc(var(--rv-su) * 6); }
-  html[data-rv-stage="keynote"] .rv-slide--section .rv-slide__body > h2 { max-width: 8em; font-size: calc(var(--rv-su) * 10); line-height: .92; }
-  html[data-rv-stage="keynote"] .rv-slide--text .rv-slide__text { font-size: calc(var(--rv-su) * 2.8); line-height: 1.3; letter-spacing: -.01em; }
-  html[data-rv-stage="keynote"] .rv-slide--text li + li { margin-top: .45em; }
-
-  html[data-rv-stage="gallery"] .rv-slide__body > h2 { font-size: calc(var(--rv-su) * 3); line-height: 1.05; }
-  html[data-rv-stage="gallery"] .rv-slide--title .rv-report__header { display: grid; grid-template-rows: 1fr auto auto; flex: 1; }
-  html[data-rv-stage="gallery"] .rv-slide--title .rv-report__title { align-self: start; max-width: 8em; font-size: calc(var(--rv-su) * 9); line-height: .94; letter-spacing: -.04em; }
-  html[data-rv-stage="gallery"] .rv-slide--title .rv-report__lede { margin: 0; max-width: 24em; font-size: calc(var(--rv-su) * 2.1); }
-  html[data-rv-stage="gallery"] .rv-slide--title .rv-report__meta { margin-top: calc(var(--rv-su) * 1.2); }
-  /* The lone number: its label at the top of the slide, the figures across its foot. */
-  html[data-rv-stage="gallery"] .rv-slide--hero .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 30); }
-  html[data-rv-stage="gallery"] .rv-slide--hero .rv-slide__numbers { flex: 1; margin: 0; }
-  html[data-rv-stage="gallery"] .rv-slide--hero .rv-slide__number { display: flex; }
-  html[data-rv-stage="gallery"] .rv-slide--hero .rv-metric { display: grid; grid-template-rows: auto auto 1fr auto; width: 100%; }
-  html[data-rv-stage="gallery"] .rv-slide--hero .rv-metric__label { grid-row: 1; max-width: 16em; font-size: calc(var(--rv-su) * 2.6); line-height: 1.2; letter-spacing: -.01em; }
-  html[data-rv-stage="gallery"] .rv-slide--hero .rv-metric__delta { grid-row: 2; margin-top: .2em; font-size: calc(var(--rv-su) * 2.6); }
-  html[data-rv-stage="gallery"] .rv-slide--hero .rv-metric__value { grid-row: 4; align-self: end; margin-bottom: calc(var(--rv-su) * -1); line-height: .78; }
-  html[data-rv-stage="gallery"] .rv-slide--figures .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 7); }
-  html[data-rv-stage="gallery"] .rv-slide--figures .rv-metric { padding-top: calc(var(--rv-su) * .8); }
-  html[data-rv-stage="gallery"] .rv-slide--section .rv-slide__body { justify-content: flex-end; }
-  html[data-rv-stage="gallery"] .rv-slide--section .rv-slide__body > h2 { max-width: 7em; margin-bottom: calc(var(--rv-su) * -.6); font-size: calc(var(--rv-su) * 11); line-height: .9; }
-
-  html[data-rv-stage="poster"] .rv-slide__body > h2 { font-size: calc(var(--rv-su) * 4); line-height: .9; }
-  html[data-rv-stage="poster"] .rv-slide--title .rv-report__header { padding: calc(var(--rv-su) * 2.2) 0 calc(var(--rv-su) * 2.6); }
-  html[data-rv-stage="poster"] .rv-slide--title .rv-report__title { font-size: calc(var(--rv-su) * 12.5); line-height: .84; letter-spacing: -.01em; }
-  html[data-rv-stage="poster"] .rv-slide--title .rv-report__lede { max-width: 30em; margin-top: calc(var(--rv-su) * 2); font-size: calc(var(--rv-su) * 2.2); }
-  html[data-rv-stage="poster"] .rv-slide--hero .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 44); justify-content: flex-end; padding-bottom: calc(var(--rv-su) * 4); }
-  html[data-rv-stage="poster"] .rv-slide--hero .rv-metric { column-gap: calc(var(--rv-su) * 3); }
-  html[data-rv-stage="poster"] .rv-slide--hero .rv-metric__value { margin-bottom: calc(var(--rv-su) * 1.6); padding-bottom: calc(var(--rv-su) * 1.6); line-height: .8; }
-  html[data-rv-stage="poster"] .rv-slide--hero .rv-slide__number :is(.rv-metric__label, .rv-metric__delta) { font-size: calc(var(--rv-su) * 2.4); }
-  /* Beside a figure the numbers stand as one band of knockout blocks, their borders shared, tight
-     enough to leave the figure a plot no flatter than the fit takes (slide.rs, FLATTEST). */
-  html[data-rv-stage="poster"] .rv-slide--figures .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 6.4); }
-  html[data-rv-stage="poster"] .rv-slide--figures .rv-metric { padding: calc(var(--rv-su) * .9) calc(var(--rv-su) * 1.2); }
-  html[data-rv-stage="poster"] .rv-slide--figures .rv-slide__numbers { gap: 0; }
-  html[data-rv-stage="poster"] .rv-slide--figures .rv-slide__number + .rv-slide__number .rv-metric { margin-left: -2px; }
-  html[data-rv-stage="poster"] .rv-slide--figures .rv-metric__value { line-height: .9; }
-  html[data-rv-stage="poster"] .rv-slide .rv-chart:not(.rv-chart--expanded) { padding: calc(var(--rv-su) * .9) calc(var(--rv-su) * 1.1); border-width: max(2px, calc(var(--rv-su) * .22)); }
-  html[data-rv-stage="poster"] .rv-slide--section .rv-slide__body { justify-content: flex-end; padding-bottom: calc(var(--rv-su) * 4); }
-  html[data-rv-stage="poster"] .rv-slide--section .rv-slide__body > h2 { max-width: none; font-size: calc(var(--rv-su) * 17); line-height: .82; }
-
-  html[data-rv-stage="sketchbook"] .rv-slide__body > h2 { font-size: calc(var(--rv-su) * 3.6); line-height: 1; }
-  html[data-rv-stage="sketchbook"] .rv-slide--title .rv-slide__body { justify-content: center; }
-  html[data-rv-stage="sketchbook"] .rv-slide--title .rv-report__header { padding-bottom: calc(var(--rv-su) * 2.4); }
-  html[data-rv-stage="sketchbook"] .rv-slide--title .rv-report__title { font-size: calc(var(--rv-su) * 9); }
-  html[data-rv-stage="sketchbook"] .rv-slide--title .rv-report__lede { max-width: 24em; margin-top: calc(var(--rv-su) * 2.4); font-size: calc(var(--rv-su) * 2.2); }
-  html[data-rv-stage="sketchbook"] .rv-slide--hero .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 26); justify-content: center; }
-  html[data-rv-stage="sketchbook"] .rv-slide--hero .rv-slide__number :is(.rv-metric__label, .rv-metric__delta) { font-size: calc(var(--rv-su) * 2.4); }
-  html[data-rv-stage="sketchbook"] .rv-slide--hero .rv-metric__delta { font-size: calc(var(--rv-su) * 3.2); }
-  html[data-rv-stage="sketchbook"] .rv-slide--figures .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 7); }
-  html[data-rv-stage="sketchbook"] .rv-slide--section .rv-slide__body > h2 { font-size: calc(var(--rv-su) * 11); }
-
-  html[data-rv-stage="paper"] .rv-slide__body > h2 { padding-bottom: calc(var(--rv-su) * 1); font-size: calc(var(--rv-su) * 3); font-weight: 600; line-height: 1.1; }
-  html[data-rv-stage="paper"] .rv-slide--title .rv-report__title { font-size: calc(var(--rv-su) * 6.2); line-height: 1.04; }
-  html[data-rv-stage="paper"] .rv-slide--title .rv-report__meta { margin-top: calc(var(--rv-su) * 1.6); font-size: calc(var(--rv-su) * 1.8); }
-  html[data-rv-stage="paper"] .rv-slide--title .rv-report__lede { margin-top: calc(var(--rv-su) * 3); padding-top: calc(var(--rv-su) * 2.2); font-size: calc(var(--rv-su) * 1.9); text-align: justify; }
-  html[data-rv-stage="paper"] .rv-slide--hero .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 18); justify-content: center; }
-  html[data-rv-stage="paper"] .rv-slide--hero .rv-metric { padding-block: calc(var(--rv-su) * 2.4); }
-  html[data-rv-stage="paper"] .rv-slide--hero .rv-metric__value { letter-spacing: -.02em; line-height: 1; }
-  html[data-rv-stage="paper"] .rv-slide--hero .rv-slide__number :is(.rv-metric__label, .rv-metric__delta) { font-size: calc(var(--rv-su) * 2.2); }
-  html[data-rv-stage="paper"] .rv-slide--hero .rv-metric__label { margin-top: calc(var(--rv-su) * 1.2); }
-  html[data-rv-stage="paper"] .rv-slide--figures .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 6); }
-  html[data-rv-stage="paper"] .rv-slide__figure--table::before { font-size: var(--rv-size-base); }
-  /* A section stands between the title page's two rules, the heavy one over it, so it reads
-     as a part of the same paper. */
-  html[data-rv-stage="paper"] .rv-slide--section .rv-slide__body > h2 {
-    width: calc(var(--rv-su) * 68); max-width: none; padding-block: .32em .4em;
-    border-top: 3px solid var(--rv-ink); border-bottom: 1px solid var(--rv-ink);
-    font-size: calc(var(--rv-su) * 6.4); line-height: 1.08;
-  }
-  html[data-rv-stage="paper"] .rv-slide--text .rv-slide__text { font-size: calc(var(--rv-su) * 2.2); }
-}
-
-/* ===== Every slide a stage moment ==========================================================
-   The title, a row of numbers, a chart, a table and a slide of text take the stage's manner as
-   the lone number and the section do. The renderer marks only what the source tells it: a slide
-   about one chart, a row's first number, a table's changes, the column they compare and its
-   total. What a slide holds and its order never change. */
-
-/* A chart's title is set in the display face, a step under the slide's title. */
-html[data-rv-stage]:not([data-rv-stage="poster"]) .rv-slide .rv-chart__title { font-family: var(--rv-font-display, var(--rv-font-text)); font-weight: 600; letter-spacing: -.01em; }
-/* A slide about one chart says its claim as its headline: the chart's title at display size, and
-   the slide's own title above it as its topic, at the text's size. A style that sets a chart's
-   title under its plot raises it here. */
-html[data-rv-stage] .rv-slide--claim .rv-slide__body > h2 {
-  font-family: var(--rv-font-text); font-size: var(--rv-size-base); font-weight: 500; font-style: normal;
-  line-height: 1.3; letter-spacing: 0; text-transform: none; color: var(--rv-ink-soft); rotate: none; border: 0; padding: 0;
-}
-html[data-rv-stage] .rv-slide--claim .rv-chart .rv-chart__title {
-  order: 0; font-family: var(--rv-font-display, var(--rv-font-text)); font-size: var(--rv-size-h2); font-weight: 600;
-  line-height: 1.08; letter-spacing: -.02em; text-wrap: balance; color: var(--rv-ink);
-}
-/* The grotesk and serif stages letter a legend in the interface face, as the chart itself. */
-html:is([data-rv-stage="keynote"], [data-rv-stage="gallery"], [data-rv-stage="paper"]) .rv-slide .rv-chart__legend-entry { font-family: var(--rv-font-ui, var(--rv-font-text)); color: var(--rv-ink); }
+html[data-rv-stage] .rv-slide .rv-slot--metric .rv-metric { background: none; border: 0; padding: 0; }
 html[data-rv-stage] .rv-slide .rv-chart__swatch--square { width: .72em; height: .72em; }
 html[data-rv-stage] .rv-slide .rv-chart__swatch--line { width: 1.4em; height: .2em; }
+/* The grotesk and serif stages letter a legend in the interface face, as the chart itself. */
+html:is([data-rv-stage="keynote"], [data-rv-stage="gallery"], [data-rv-stage="paper"]) .rv-slide .rv-chart__legend-entry { font-family: var(--rv-font-ui, var(--rv-font-text)); color: var(--rv-ink); }
+/* A chart's own title, on a slide with no head, is the headline, in the display face. */
+html[data-rv-stage]:not([data-rv-stage="poster"]) .rv-slide .rv-chart__title { font-family: var(--rv-font-display, var(--rv-font-text)); font-weight: 600; letter-spacing: -.01em; }
 
 /* A number's change is a chip that names its direction: a mark that points up or down, and the
    change in a tint of its own colour. */
@@ -433,218 +245,213 @@ html[data-rv-stage] .rv-slide__number :is(.rv-metric__delta--up, .rv-metric__del
 }
 html[data-rv-stage] .rv-slide__number .rv-metric__delta--down::before { clip-path: polygon(0 0, 100% 0, 50% 100%); }
 
-/* A table's figures at the stage's size: the column its changes compare leads, the others step
-   back, a total stands under a rule of its own, and each change is a chip. */
-html[data-rv-stage] .rv-slide__figure--table .num { font-variant-numeric: lining-nums tabular-nums; }
-html[data-rv-stage] .rv-slide__figure--table table:has(.rv-slide__latest) td.num:not(.rv-slide__latest, .rv-slide__change) { color: var(--rv-ink-soft); }
-html[data-rv-stage] .rv-slide__figure--table .rv-slide__latest { color: var(--rv-ink); font-weight: 700; }
-html[data-rv-stage] .rv-slide__figure--table td.rv-slide__latest { background: color-mix(in oklch, var(--rv-accent) 11%, transparent); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-html[data-rv-stage] .rv-slide__figure--table th.rv-slide__latest { color: var(--rv-accent); }
-html[data-rv-stage] .rv-slide__figure--table :is(.rv-slide__total, .rv-table__total tr) > td { border-top: 2px solid var(--rv-ink); font-weight: 700; }
-html[data-rv-stage] .rv-slide__chip { display: inline-flex; align-items: center; gap: .32em; font-weight: 600; white-space: nowrap; }
+/* A table at the stage's size: a total stands under a rule of its own. */
+html[data-rv-stage] .rv-slot--table .num { font-variant-numeric: lining-nums tabular-nums; }
+html[data-rv-stage] .rv-slot--table .rv-table__total tr > td { border-top: 2px solid var(--rv-ink); font-weight: 700; }
 
 /* A slide of text sets its callout as a pull quote. */
-html[data-rv-stage] .rv-slide--text .rv-slide__text > .rv-callout {
+html[data-rv-stage] .rv-slide--text .rv-slot--text > .rv-callout {
   padding: 0 0 0 .9em; border: 0; border-left: .14em solid var(--rv-accent); background: none;
   font-family: var(--rv-font-display, var(--rv-font-text)); font-size: 1.22em; line-height: 1.22; letter-spacing: -.012em;
 }
-html[data-rv-stage] .rv-slide--text .rv-slide__text > .rv-callout p { margin: 0; font-size: inherit; }
-html[data-rv-stage] .rv-slide--text .rv-slide__text > .rv-callout .rv-callout__title {
-  display: block; margin: 0 0 .6em; font-family: var(--rv-font-text); font-size: .6em; font-style: normal; letter-spacing: 0; text-transform: none;
-}
+html[data-rv-stage] .rv-slide--text .rv-slot--text > .rv-callout p { margin: 0; font-size: inherit; }
 
-/* Keynote: the fields have depth, light falling from the upper left and the colour deepening to
-   the foot, all from the field's own colour; the title stands on the night stage with the
-   accent's glow rising behind it. */
-html[data-rv-stage="keynote"] :is(.rv-slide--hero, .rv-slide--section) {
-  background:
-    radial-gradient(85% 110% at 10% -12%, color-mix(in oklch, var(--rv-field) 70%, oklch(1 0 0)), transparent 62%),
-    radial-gradient(90% 90% at 100% 118%, color-mix(in oklch, var(--rv-field) 50%, oklch(0 0 0)), transparent 72%),
-    var(--rv-field);
-}
-html[data-rv-stage="keynote"] .rv-slide--title {
+/* ---- Keynote (Sleek): a stage at night. Oversized grotesk, charts straight on the dark,
+   colour only where it is a whole field: the lone number and the section. ---- */
+html[data-rv-stage="keynote"] :is(.rv-slide__title, .rv-metric__value) { letter-spacing: -.035em; }
+html[data-rv-stage="keynote"] .rv-slide--hero .rv-metric { justify-content: center; text-align: center; }
+html[data-rv-stage="keynote"] .rv-slide--hero .rv-metric__label { color: var(--rv-ink); }
+html[data-rv-stage="keynote"] .rv-slide--section .rv-slide__title { line-height: .94; letter-spacing: -.045em; }
+html[data-rv-stage="keynote"] .rv-slide--text li::marker { color: var(--rv-accent); }
+html[data-rv-stage="keynote"] .rv-slot--table th { color: var(--rv-ink-soft); font-weight: 400; }
+html[data-rv-stage="keynote"] .rv-slide--cover {
   background:
     radial-gradient(75% 90% at 85% 112%, color-mix(in oklch, var(--rv-base-accent) 70%, transparent), transparent 70%),
     radial-gradient(50% 60% at 4% -8%, color-mix(in oklch, var(--rv-base-accent) 22%, transparent), transparent 72%),
     var(--rv-bg);
   -webkit-print-color-adjust: exact; print-color-adjust: exact;
 }
-html[data-rv-stage="keynote"] .rv-slide--claim .rv-chart .rv-chart__title { letter-spacing: -.03em; }
-html[data-rv-stage="keynote"] .rv-slide--text .rv-slide__text > .rv-callout { border-left-width: .12em; }
+html[data-rv-stage="keynote"] :is(.rv-slide--hero, .rv-slide--section) {
+  background:
+    radial-gradient(85% 110% at 10% -12%, color-mix(in oklch, var(--rv-field) 70%, oklch(1 0 0)), transparent 62%),
+    radial-gradient(90% 90% at 100% 118%, color-mix(in oklch, var(--rv-field) 50%, oklch(0 0 0)), transparent 72%),
+    var(--rv-field);
+}
+html[data-rv-stage="keynote"] .rv-slide--text .rv-slot--text > .rv-callout { border-left-width: .12em; }
 
-/* Gallery: the title in huge light type; a change, a table's lead and a pull quote are type in
-   the accent, never a box. */
-/* The title and a claim take the light figures of the lone number: the text face at its
-   regular weight, the lightest the style embeds. */
-html[data-rv-stage="gallery"] .rv-slide--title .rv-report__title { font-family: var(--rv-font-text); font-weight: 400; }
-html[data-rv-stage="gallery"] .rv-slide--claim .rv-chart .rv-chart__title { font-family: var(--rv-font-text); font-weight: 400; letter-spacing: -.035em; }
+/* ---- Gallery (Air): daylight on a Swiss grid. Flush left, colour as type: the lone number in
+   light figures in the accent, under its label. ---- */
+html[data-rv-stage="gallery"] :is(.rv-slide__title) { letter-spacing: -.035em; }
+html[data-rv-stage="gallery"] .rv-slide--cover .rv-slide__title { font-family: var(--rv-font-text); font-weight: 400; letter-spacing: -.055em; }
+html[data-rv-stage="gallery"] .rv-slide--cover .rv-slide__subtitle { color: var(--rv-accent); }
+html[data-rv-stage="gallery"] .rv-slide__number .rv-metric__value { font-family: var(--rv-font-text); font-weight: 400; letter-spacing: -.04em; }
+html[data-rv-stage="gallery"] .rv-slide--hero .rv-slide__body { --rv-char-w: .58; }
+html[data-rv-stage="gallery"] .rv-slide--hero .rv-metric__label { order: -2; color: var(--rv-ink); }
+html[data-rv-stage="gallery"] .rv-slide--hero .rv-metric__delta { order: -1; }
+html[data-rv-stage="gallery"] .rv-slide--hero .rv-metric__value { order: 1; color: var(--rv-accent); line-height: .9; }
+html[data-rv-stage="gallery"] .rv-slide:not(.rv-slide--hero) .rv-slot--metric .rv-metric { border-top: 2px solid var(--rv-ink); padding-top: .6em; }
+html[data-rv-stage="gallery"] .rv-slide--section .rv-slide__title { color: var(--rv-accent); line-height: .92; letter-spacing: -.045em; }
+html[data-rv-stage="gallery"] .rv-slot--table thead th { border-bottom: 2px solid var(--rv-ink); font-weight: 400; }
 html:is([data-rv-stage="gallery"], [data-rv-stage="paper"]) .rv-slide__number .rv-metric__delta { padding: 0; border-radius: 0; background: none; }
 html[data-rv-stage="gallery"] .rv-slide__number .rv-metric__delta { font-weight: 500; }
-html[data-rv-stage="gallery"] .rv-slide__figure--table td.rv-slide__latest { background: none; color: var(--rv-accent); }
-html[data-rv-stage="gallery"] .rv-slide--text .rv-slide__text > .rv-callout { padding: .7em 0 0; border-left: 0; border-top: 2px solid var(--rv-ink); color: var(--rv-accent); font-weight: 400; letter-spacing: -.025em; }
-html[data-rv-stage="gallery"] .rv-slide--text .rv-slide__text > .rv-callout .rv-callout__title { color: var(--rv-ink); font-weight: 500; }
+html[data-rv-stage="gallery"] .rv-slide--text .rv-slot--text > .rv-callout { padding: .7em 0 0; border-left: 0; border-top: 2px solid var(--rv-ink); color: var(--rv-accent); font-weight: 400; letter-spacing: -.025em; }
 
-/* Poster: the claim carries the accent's tag, a change is boxed in its ink, the table's lead
-   column heads in the accent, and the pull quote is a knockout. */
-html[data-rv-stage="poster"] .rv-slide.rv-slide--claim .rv-slide__body > h2::before { content: none; }
-html[data-rv-stage="poster"] .rv-slide--claim .rv-slide__body > h2 { font-family: var(--rv-font-ui, var(--rv-font-text)); text-transform: uppercase; letter-spacing: .06em; }
-html[data-rv-stage="poster"] .rv-slide--claim .rv-chart .rv-chart__title { font-weight: 800; line-height: .9; letter-spacing: 0; text-transform: uppercase; }
-html[data-rv-stage="poster"] .rv-slide--claim .rv-chart__title::before { content: ""; display: inline-block; vertical-align: .06em; width: .8em; height: .62em; margin-right: .26em; background: var(--rv-accent); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+/* ---- Poster (Brutalist): a wall of posters. Condensed capitals to the edges, the lone number
+   white on an accent field over a heavy bar, the section on ink. ---- */
+html[data-rv-stage="poster"] .rv-slide { --rv-char-w: .5; }
+html[data-rv-stage="poster"] .rv-slide__body { --rv-bar: max(4px, calc(var(--rv-su) * 1.1)); }
+html[data-rv-stage="poster"] .rv-slide--cover .rv-slide__head { border-block: var(--rv-bar) solid var(--rv-ink); }
+html[data-rv-stage="poster"] .rv-slide--cover .rv-slide__title { line-height: .86; text-wrap: wrap; }
+html[data-rv-stage="poster"] .rv-slide--hero .rv-metric { display: grid; grid-template-columns: 1fr auto; column-gap: 1em; }
+html[data-rv-stage="poster"] .rv-slide--hero .rv-metric__value { grid-column: 1 / -1; margin-bottom: .1em; padding-bottom: .08em; border-bottom: var(--rv-bar) solid var(--rv-on-field); line-height: .82; letter-spacing: -.01em; }
+html[data-rv-stage="poster"] .rv-slide--hero .rv-slide__number :is(.rv-metric__label, .rv-metric__delta) { flex: none; }
+html[data-rv-stage="poster"] .rv-slide--hero .rv-metric__label { font-style: italic; }
+html[data-rv-stage="poster"] .rv-slide--hero .rv-metric__delta { align-self: baseline; font-family: var(--rv-font-mono); text-transform: uppercase; }
+html[data-rv-stage="poster"] .rv-slide--section .rv-slide__title { font-size: calc(var(--rv-size-display) * 1.5); line-height: .84; letter-spacing: -.01em; }
+/* A working slide's title carries the accent's tag, a block set before its first letter. */
+html[data-rv-stage="poster"] .rv-slide:not(.rv-slide--section, .rv-slide--cover) .rv-slide__title::before { content: ""; display: inline-block; vertical-align: .1em; width: .9em; height: .64em; margin-right: .28em; background: var(--rv-accent); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+html[data-rv-stage="poster"] .rv-slot--table thead th { background: var(--rv-ink); color: var(--rv-bg); font-family: var(--rv-font-display); font-weight: 800; letter-spacing: .02em; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+html[data-rv-stage="poster"] .rv-slot--table td { border-bottom: 2px solid var(--rv-ink); }
+html[data-rv-stage="poster"] .rv-slot--table td.num { font-family: var(--rv-font-mono); }
+html[data-rv-stage="poster"] .rv-slide--text li::marker { content: "\25A0\00A0\00A0"; font-size: .7em; }
 html[data-rv-stage="poster"] .rv-slide__number .rv-metric__delta { padding: .08em .45em .1em .38em; border: 2px solid currentColor; border-radius: 0; background: none; }
-html[data-rv-stage="poster"] .rv-slide__figure--table thead th.rv-slide__latest { background: var(--rv-accent); color: oklch(1 0 0); }
-html[data-rv-stage="poster"] .rv-slide__figure--table :is(.rv-slide__total, .rv-table__total tr) > td { border-top-width: max(4px, calc(var(--rv-su) * .3)); }
-html[data-rv-stage="poster"] .rv-slide--text .rv-slide__text > .rv-callout {
+html[data-rv-stage="poster"] .rv-slide .rv-chart:not(.rv-chart--expanded) { padding: calc(var(--rv-su) * .9) calc(var(--rv-su) * 1.1); border-width: max(2px, calc(var(--rv-su) * .22)); }
+html[data-rv-stage="poster"] .rv-slide .rv-chart__title { font-weight: 800; line-height: .9; text-transform: uppercase; }
+html[data-rv-stage="poster"] .rv-slide:not(.rv-slide--hero) .rv-slot--metric .rv-metric { padding: calc(var(--rv-su) * .9) calc(var(--rv-su) * 1.2); border: 2px solid var(--rv-ink); background: var(--rv-accent); }
+html[data-rv-stage="poster"] .rv-slide .rv-slot--table .rv-table__total tr > td { border-top-width: max(4px, calc(var(--rv-su) * .3)); }
+html[data-rv-stage="poster"] .rv-slide--text .rv-slot--text > .rv-callout {
   padding: .8em .9em .85em; border: 2px solid var(--rv-ink); background: var(--rv-accent); color: oklch(1 0 0);
   font-weight: 800; line-height: 1; letter-spacing: 0; text-transform: uppercase; -webkit-print-color-adjust: exact; print-color-adjust: exact;
 }
-html[data-rv-stage="poster"] .rv-slide--text .rv-slide__text > .rv-callout .rv-callout__title { font-family: var(--rv-font-ui, var(--rv-font-text)); color: oklch(1 0 0); font-weight: 400; text-transform: uppercase; letter-spacing: .06em; }
+html[data-rv-stage="poster"] .rv-slide__subtitle { font-family: var(--rv-font-mono); text-transform: uppercase; letter-spacing: .06em; }
 
-/* Sketchbook: the marks a hand adds while it talks. The title lettered over a red swash and
-   its date ringed; the lone number's label points up at it and its change is ringed; a
-   section is a note taped to the page; a table's changes are ringed and its total ruled. */
-html[data-rv-stage="sketchbook"] .rv-slide--claim .rv-chart .rv-chart__title { font-weight: 400; letter-spacing: 0; rotate: -.6deg; }
-html[data-rv-stage="sketchbook"] .rv-slide .rv-chart .rv-chart__title { font-weight: 400; }
-html[data-rv-stage="sketchbook"] .rv-slide--title .rv-report__header { background: none; }
-html[data-rv-stage="sketchbook"] .rv-slide--title .rv-report__title { padding-bottom: .24em; background: var(--rv-pencil-swash) center bottom / 70% .2em no-repeat; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-html[data-rv-stage="sketchbook"] .rv-slide--title .rv-report__meta { order: 3; margin-top: .6em; padding: .5em 1.25em .55em; background: var(--rv-pencil-ring) center / 100% 100% no-repeat; font-family: var(--rv-font-display, var(--rv-font-text)); color: var(--rv-ink); rotate: 2.5deg; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-html[data-rv-stage="sketchbook"] .rv-slide__number .rv-metric__delta { padding: 0; border-radius: 0; background: none; font-family: var(--rv-font-display, var(--rv-font-text)); font-weight: 400; }
+/* ---- Sketchbook (Hand-drawn): a talk drawn as it is given. Lettering at a tilt, the red
+   pencil under the lone number. ---- */
+html[data-rv-stage="sketchbook"] .rv-slide__title { rotate: -.8deg; transform-origin: left center; }
+html[data-rv-stage="sketchbook"] :is(.rv-slide--cover, .rv-slide--section, .rv-slide--hero) .rv-slide__body { text-align: center; }
+html[data-rv-stage="sketchbook"] :is(.rv-slide--cover, .rv-slide--section) .rv-slide__head { align-items: center; }
+html[data-rv-stage="sketchbook"] .rv-slide--cover .rv-slide__title { max-width: 9em; line-height: .98; rotate: -2deg; padding-bottom: .24em; background: var(--rv-pencil-swash) center bottom / 70% .2em no-repeat; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+html[data-rv-stage="sketchbook"] .rv-slide--hero .rv-slot--metric { align-items: center; }
+html[data-rv-stage="sketchbook"] .rv-slide--hero .rv-metric { justify-content: center; }
+html[data-rv-stage="sketchbook"] .rv-slide--hero .rv-metric__value { flex: none; margin-bottom: .25em; line-height: 1; rotate: -3deg; }
+html[data-rv-stage="sketchbook"] .rv-slide--hero .rv-metric__delta { font-family: var(--rv-font-display); font-size: 1.35em; color: var(--rv-ink); }
+html[data-rv-stage="sketchbook"] .rv-slide--section .rv-slide__title { max-width: 8em; margin-inline: auto; line-height: .95; rotate: -3deg; transform-origin: center; position: relative; width: fit-content; padding: .5em .7em .48em; background: color-mix(in oklch, var(--rv-bg) 60%, oklch(0.94 0.1 98)); box-shadow: 0 .45em .8em -.5em color-mix(in oklch, var(--rv-ink) 40%, transparent); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+html[data-rv-stage="sketchbook"] .rv-slide .rv-chart__title { font-weight: 400; }
+html[data-rv-stage="sketchbook"] .rv-slide__number .rv-metric__delta { padding: 0; border-radius: 0; background: none; font-family: var(--rv-font-display); font-weight: 400; }
 html[data-rv-stage="sketchbook"] .rv-slide__number .rv-metric__delta::before { content: none; }
 html[data-rv-stage="sketchbook"] .rv-slide--hero .rv-metric__delta { padding: .45em 1.15em .5em; background: var(--rv-pencil-ring) center / 100% 100% no-repeat; }
 html[data-rv-stage="sketchbook"] .rv-slide--hero .rv-metric__label::after { content: ""; display: inline-block; width: 3.4em; height: 1.8em; margin-left: .3em; vertical-align: .05em; scale: 1 -1; background: var(--rv-pencil-arrow) center / 100% 100% no-repeat; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-html[data-rv-stage="sketchbook"] .rv-slide--section .rv-slide__body > h2 {
-  position: relative; width: fit-content; max-width: 7em; padding: .5em .7em .48em;
-  background: color-mix(in oklch, var(--rv-bg) 60%, oklch(0.94 0.1 98));
-  box-shadow: 0 .45em .8em -.5em color-mix(in oklch, var(--rv-ink) 40%, transparent);
-  -webkit-print-color-adjust: exact; print-color-adjust: exact;
-}
-html[data-rv-stage="sketchbook"] .rv-slide--section .rv-slide__body > h2::before {
-  content: ""; position: absolute; top: -.2em; left: 50%; width: 1.8em; height: .4em; translate: -50% 0; rotate: -4deg;
-  background: color-mix(in oklch, oklch(0.97 0.01 90) 70%, transparent); outline: 1px solid color-mix(in oklch, var(--rv-ink) 12%, transparent);
-}
-html[data-rv-stage="sketchbook"] .rv-slide__figure--table td.rv-slide__latest { background: none; font-family: var(--rv-font-display, var(--rv-font-text)); font-weight: 400; font-size: 1.15em; }
-html[data-rv-stage="sketchbook"] .rv-slide__figure--table th.rv-slide__latest { color: var(--rv-ink); }
-html[data-rv-stage="sketchbook"] .rv-slide__figure--table :is(.rv-slide__total, .rv-table__total tr) { background: var(--rv-pencil-total) left top / 100% .32em no-repeat; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-html[data-rv-stage="sketchbook"] .rv-slide__figure--table :is(.rv-slide__total, .rv-table__total tr) > td { border-top: 0; }
-html[data-rv-stage="sketchbook"] .rv-slide--text .rv-slide__text > .rv-callout {
+html[data-rv-stage="sketchbook"] .rv-slot--table .rv-table__total tr { background: var(--rv-pencil-total) left top / 100% .32em no-repeat; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+html[data-rv-stage="sketchbook"] .rv-slot--table .rv-table__total tr > td { border-top: 0; }
+html[data-rv-stage="sketchbook"] .rv-slide--text .rv-slot--text > .rv-callout {
   position: relative; padding: .7em .8em .75em; border: 0; rotate: 1.2deg;
   background: color-mix(in oklch, var(--rv-bg) 60%, oklch(0.94 0.1 98));
   box-shadow: 0 .45em .8em -.5em color-mix(in oklch, var(--rv-ink) 40%, transparent);
   -webkit-print-color-adjust: exact; print-color-adjust: exact;
 }
-html[data-rv-stage="sketchbook"] .rv-slide--text .rv-slide__text > .rv-callout::before {
-  content: ""; position: absolute; top: -.25em; left: 50%; width: 3em; height: .5em; translate: -50% 0; rotate: 3deg;
-  background: color-mix(in oklch, oklch(0.97 0.01 90) 70%, transparent); outline: 1px solid color-mix(in oklch, var(--rv-ink) 12%, transparent);
-}
 
-/* Paper: a title page between the rules of its tables, a topic in small capitals over the
-   claim, changes as type, the lead column in bold and the total under a rule. */
-html[data-rv-stage="paper"] .rv-slide--title .rv-report__title { align-self: stretch; max-width: none; padding-block: .32em .36em; border-top: 3px solid var(--rv-ink); border-bottom: 1px solid var(--rv-ink); }
-html[data-rv-stage="paper"] .rv-slide--title .rv-report__lede { border-top: 0; padding-top: 0; }
-html[data-rv-stage="paper"] .rv-slide--claim .rv-slide__body > h2 { font-variant-caps: all-small-caps; letter-spacing: .06em; }
+/* ---- Paper (Scientific): the talk of a good paper. A title page, headings over a rule, the
+   lone number between rules, numbered figures and tables, booktabs. ---- */
+html[data-rv-stage="paper"] .rv-slide__title { padding-bottom: .3em; border-bottom: 1px solid var(--rv-ink); font-weight: 600; }
+html[data-rv-stage="paper"] .rv-slide__head { max-width: none; }
+html[data-rv-stage="paper"] :is(.rv-slide--cover, .rv-slide--section) .rv-slide__body { text-align: center; }
+html[data-rv-stage="paper"] :is(.rv-slide--cover, .rv-slide--section) .rv-slide__head { align-items: center; }
+html[data-rv-stage="paper"] .rv-slide--cover .rv-slide__title { align-self: stretch; max-width: none; padding-block: .32em .36em; border-top: 3px solid var(--rv-ink); border-bottom: 1px solid var(--rv-ink); letter-spacing: -.015em; }
+html[data-rv-stage="paper"] .rv-slide--cover .rv-slide__subtitle { font-variant-caps: all-small-caps; letter-spacing: .08em; color: var(--rv-ink-soft); }
+html[data-rv-stage="paper"] .rv-slide--hero .rv-metric { justify-content: center; text-align: center; padding-block: .8em; border-block: 1px solid var(--rv-ink); }
+html[data-rv-stage="paper"] .rv-slide--hero .rv-slot--metric { align-items: stretch; }
+html[data-rv-stage="paper"] .rv-slide__number .rv-metric__value { font-weight: 400; }
 html[data-rv-stage="paper"] .rv-slide__number .rv-metric__delta { font-weight: 400; }
-html[data-rv-stage="paper"] .rv-slide__figure--table td.rv-slide__latest { background: none; }
-html[data-rv-stage="paper"] .rv-slide__figure--table th.rv-slide__latest { color: var(--rv-ink); }
-html[data-rv-stage="paper"] .rv-slide__figure--table :is(.rv-slide__total, .rv-table__total tr) > td { border-top-width: 1px; }
-html[data-rv-stage="paper"] .rv-slide--text .rv-slide__text > .rv-callout { padding: .5em 0; border-left: 0; border-block: 1px solid var(--rv-ink); font-style: italic; font-weight: 400; letter-spacing: 0; }
+html[data-rv-stage="paper"] .rv-slide--hero .rv-metric__label { font-style: italic; color: var(--rv-ink); }
+html[data-rv-stage="paper"] .rv-slide--section .rv-slide__title { max-width: 12em; margin-inline: auto; border-top: 3px solid var(--rv-ink); border-bottom: 1px solid var(--rv-ink); padding-block: .32em .4em; font-style: italic; font-weight: 400; }
+/* Figures and tables are numbered as a paper numbers them: each slot carries its own number (`--rv-n`,
+   counted apart in the order written), because a slide is a style scope a counter does not cross.
+   A figure's caption stands over its chart, out of the flow: the chart's box is its slot, and the
+   room for the caption is the chart's own padding. */
+html[data-rv-stage="paper"] .rv-slot--chart { position: relative; }
+html[data-rv-stage="paper"] .rv-slot--chart::before { counter-reset: rv-n var(--rv-n); content: "Figure " counter(rv-n) "."; position: absolute; inset: 0 auto auto 0; font-weight: 600; line-height: 1.2; }
+html[data-rv-stage="paper"] .rv-slide .rv-slot--chart > .rv-chart:not(.rv-chart--expanded) { padding-top: 1.9em; }
+html[data-rv-stage="paper"] .rv-slot--table::before { counter-reset: rv-n var(--rv-n); content: "Table " counter(rv-n) "."; display: block; margin-bottom: .4em; font-weight: 600; }
+html[data-rv-stage="paper"] .rv-slot--table table { border-top: 2px solid var(--rv-ink); border-bottom: 2px solid var(--rv-ink); }
+html[data-rv-stage="paper"] .rv-slot--table thead th { border-bottom: 1px solid var(--rv-ink); }
+html[data-rv-stage="paper"] .rv-slot--table tbody td { border-bottom: 0; }
+html[data-rv-stage="paper"] .rv-slot--table .rv-table__total tr > td { border-top-width: 1px; }
+html[data-rv-stage="paper"] .rv-slide--text .rv-slot--text > .rv-callout { padding: .5em 0; border-left: 0; border-block: 1px solid var(--rv-ink); font-style: italic; font-weight: 400; letter-spacing: 0; }
 
+/* ---- The stages at stage size: every size in stage units. ---- */
 @media print, (min-width: 900px) and (min-aspect-ratio: 1/1) {
-  /* On a stage a table's chip is Keynote's pill in a tint of the ink, Poster's box and
-     Sketchbook's pencil ring; on a phone it is its mark and its figure, so the table fits whole. */
-  html[data-rv-stage] :is(.rv-slide__chip--up, .rv-slide__chip--down)::before {
-    content: ""; flex: none; width: .62em; height: .54em; background: currentColor; clip-path: polygon(50% 0, 100% 100%, 0 100%);
-  }
-  html[data-rv-stage] .rv-slide__chip--down::before { clip-path: polygon(0 0, 100% 0, 50% 100%); }
-  html[data-rv-stage="keynote"] .rv-slide__chip {
-    padding: .06em .5em .08em .42em; border-radius: 99em; background: color-mix(in oklch, var(--rv-ink) 9%, transparent);
-    -webkit-print-color-adjust: exact; print-color-adjust: exact;
-  }
-  html[data-rv-stage="poster"] .rv-slide__chip { padding: .08em .45em .1em .38em; border: 2px solid currentColor; }
-  html[data-rv-stage="sketchbook"] .rv-slide__chip::before { content: none; }
-  html[data-rv-stage="sketchbook"] .rv-slide__chip { padding: .28em .72em .3em; background: var(--rv-pencil-ring-small) center / 100% 100% no-repeat; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  /* The claim at the stage's headline size; its topic sits close above it. */
-  html[data-rv-stage] .rv-slide--claim .rv-slide__body { gap: calc(var(--rv-su) * 1.4); }
-  html[data-rv-stage] .rv-slide--claim .rv-slide__body > h2 { font-size: calc(var(--rv-su) * 1.6); }
-  html[data-rv-stage] .rv-slide--claim .rv-chart .rv-chart__title { max-width: 24em; font-size: calc(var(--rv-su) * 3.4); line-height: 1.06; }
-  html[data-rv-stage] .rv-slide--claim .rv-slide__main--split .rv-chart .rv-chart__title { font-size: calc(var(--rv-su) * 2.7); }
-  html[data-rv-stage="poster"] .rv-slide--claim .rv-chart .rv-chart__title { font-size: calc(var(--rv-su) * 4.2); line-height: .9; }
-  html[data-rv-stage="poster"] .rv-slide--claim .rv-slide__main--split .rv-chart .rv-chart__title { font-size: calc(var(--rv-su) * 3.4); }
-  html[data-rv-stage="sketchbook"] .rv-slide--claim .rv-chart .rv-chart__title { font-size: calc(var(--rv-su) * 3.8); line-height: 1; }
-  html[data-rv-stage="sketchbook"] .rv-slide--claim .rv-slide__main--split .rv-chart .rv-chart__title { font-size: calc(var(--rv-su) * 3); }
+  html[data-rv-stage="keynote"] .rv-slide__title { font-size: calc(var(--rv-su) * 2.6); line-height: 1.05; }
+  html[data-rv-stage="keynote"] .rv-slide--cover .rv-slide__head { justify-content: flex-end; padding-bottom: calc(var(--rv-su) * 3.4); }
+  html[data-rv-stage="keynote"] .rv-slide--cover .rv-slide__title { max-width: 8.5em; font-size: calc(var(--rv-su) * 9.6); line-height: .92; letter-spacing: -.04em; }
+  html[data-rv-stage="keynote"] .rv-slide--cover .rv-slide__subtitle { max-width: 26em; color: var(--rv-ink-soft); }
+  html[data-rv-stage="keynote"] .rv-slide--hero .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 34); --rv-char-w: .6; }
+  html[data-rv-stage="keynote"] .rv-slide--hero .rv-metric__value { letter-spacing: -.04em; line-height: .86; }
+  html[data-rv-stage="keynote"] .rv-slide--hero .rv-slide__number :is(.rv-metric__label, .rv-metric__delta) { font-size: calc(var(--rv-su) * 2.3); }
+  html[data-rv-stage="keynote"] .rv-slide--hero .rv-metric__label { margin-top: calc(var(--rv-su) * 2.4); }
+  html[data-rv-stage="keynote"] .rv-slide--section .rv-slide__head { justify-content: flex-end; padding-bottom: calc(var(--rv-su) * 3.4); }
+  html[data-rv-stage="keynote"] .rv-slide--section .rv-slide__title { max-width: 8em; font-size: calc(var(--rv-su) * 10); line-height: .92; }
+  html[data-rv-stage="keynote"] .rv-slide--numbers .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 9.6); }
+  html[data-rv-stage="keynote"] .rv-slot--text { font-size: calc(var(--rv-su) * 2.1); }
+  html[data-rv-stage="keynote"] .rv-slide--text .rv-slot--text { font-size: calc(var(--rv-su) * 2.8); line-height: 1.3; letter-spacing: -.01em; }
 
-  /* In a row of several numbers the first leads, wider and larger. The row keeps one top and
-     each number stands on its foot, so labels and changes line up under figures of two sizes.
-     Poster's band of knockout blocks keeps its one size. */
-  html[data-rv-stage]:not([data-rv-stage="poster"]) .rv-slide__numbers--lead { display: flex; align-items: stretch; }
-  html[data-rv-stage]:not([data-rv-stage="poster"]) .rv-slide__numbers--lead > .rv-slide__number { flex: 1 1 0; display: flex; flex-direction: column; }
-  html[data-rv-stage]:not([data-rv-stage="poster"]) .rv-slide__numbers--lead > .rv-slide__number:first-child { flex-grow: 1.6; --rv-lead: 1.45; }
-  html[data-rv-stage]:not([data-rv-stage="poster"]) .rv-slide__numbers--lead .rv-metric { flex: 1 1 auto; align-content: flex-end; }
+  html[data-rv-stage="gallery"] .rv-slide__title { font-size: calc(var(--rv-su) * 2.6); line-height: 1.05; }
+  html[data-rv-stage="gallery"] .rv-slide--cover .rv-slide__head { justify-content: space-between; padding-bottom: calc(var(--rv-su) * 1.4); }
+  html[data-rv-stage="gallery"] .rv-slide--cover .rv-slide__title { max-width: 7.6em; font-size: calc(var(--rv-su) * 11.5); line-height: .9; }
+  html[data-rv-stage="gallery"] .rv-slide--cover .rv-slide__subtitle { max-width: 24em; margin: 0; padding-top: calc(var(--rv-su) * 1.2); border-top: 2px solid var(--rv-ink); font-size: calc(var(--rv-su) * 2.1); }
+  html[data-rv-stage="gallery"] .rv-slide--hero .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 30); }
+  html[data-rv-stage="gallery"] .rv-slide--hero .rv-slot--metric { justify-content: stretch; }
+  html[data-rv-stage="gallery"] .rv-slide--hero .rv-slide__number { display: flex; }
+  html[data-rv-stage="gallery"] .rv-slide--hero .rv-metric { display: grid; grid-template-rows: auto auto 1fr auto; flex: 1 1 auto; width: 100%; }
+  html[data-rv-stage="gallery"] .rv-slide--hero .rv-metric__label { grid-row: 1; max-width: 16em; font-size: calc(var(--rv-su) * 2.6); line-height: 1.2; letter-spacing: -.01em; }
+  html[data-rv-stage="gallery"] .rv-slide--hero .rv-metric__delta { grid-row: 2; margin-top: .2em; font-size: calc(var(--rv-su) * 2.6); }
+  html[data-rv-stage="gallery"] .rv-slide--hero .rv-metric__value { grid-row: 4; align-self: end; margin-bottom: calc(var(--rv-su) * -1); line-height: .78; }
+  html[data-rv-stage="gallery"] .rv-slide--numbers .rv-slide__body, html[data-rv-stage="gallery"] .rv-slide--figures .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 7); }
+  html[data-rv-stage="gallery"] .rv-slide--section .rv-slide__head { justify-content: flex-end; }
+  html[data-rv-stage="gallery"] .rv-slide--section .rv-slide__title { max-width: 7em; margin-bottom: calc(var(--rv-su) * -.6); font-size: calc(var(--rv-su) * 11); line-height: .9; }
+  html[data-rv-stage="gallery"] .rv-slide--text .rv-slot--text { font-size: calc(var(--rv-su) * 2.4); }
 
-  /* A rail: two to four numbers over one chart stand in a column on the left and the chart
-     takes the slide's whole height beside them, instead of the strip a row leaves it. The
-     column shares its height out, the first number taking two fifths of it for four, and
-     each number is a size container: its figure is as large as its share and its width allow,
-     never larger than its stage sets. The first stands over its label and change; each other
-     sets its figure on the left and its label over its change beside it, at the small size.
-     Every number's rule stays at the top of its share, its figure at the foot. */
-  html[data-rv-stage] .rv-slide--rail .rv-slide__body {
-    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.55fr); grid-template-rows: auto minmax(0, 1fr);
-    column-gap: calc(var(--rv-su) * 4);
-  }
-  html[data-rv-stage] .rv-slide--rail .rv-slide__body > * { grid-column: 1 / -1; }
-  html[data-rv-stage] .rv-slide--rail .rv-slide__body > .rv-slide__numbers {
-    grid-column: 1; grid-row: 2; min-height: 0; display: flex; flex-direction: column; gap: calc(var(--rv-su) * 1.2);
-  }
-  html[data-rv-stage] .rv-slide--rail .rv-slide__body > .rv-slide__main { grid-column: 2; grid-row: 2; }
-  html[data-rv-stage] .rv-slide--rail .rv-slide__body .rv-slide__numbers > .rv-slide__number {
-    flex: 1 1 0; min-height: 0; container-type: size; display: flex; flex-direction: column;
-    --rv-lead: 1; --rv-rail-text: 0px; --rv-rail-pad: calc(var(--rv-su) * 1.6); --rv-rail-share: .5;
-  }
-  html[data-rv-stage] .rv-slide--rail .rv-slide__body .rv-slide__numbers > .rv-slide__number:first-child {
-    flex-grow: 2.1; --rv-lead: 1.45; --rv-rail-text: calc(var(--rv-su) * 6.4); --rv-rail-share: 1;
-  }
-  html[data-rv-stage] .rv-slide--rail .rv-slide__number > .rv-metric { flex: 1 1 auto; min-height: 0; align-content: end; }
-  html[data-rv-stage] .rv-slide--rail .rv-slide__number .rv-metric__value {
-    font-size: min(calc(var(--rv-number-size) * var(--rv-lead)), calc((100cqh - var(--rv-rail-text) - var(--rv-rail-pad)) / 1.1), calc(100cqw * var(--rv-rail-share) / (var(--rv-chars, 6) * var(--rv-char-w, .62))));
-  }
-  html[data-rv-stage] .rv-slide--rail .rv-slide__number + .rv-slide__number > .rv-metric {
-    display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: 1fr auto auto; column-gap: calc(var(--rv-su) * 1.6); align-items: end;
-  }
-  html[data-rv-stage] .rv-slide--rail .rv-slide__number + .rv-slide__number .rv-metric__value { grid-column: 1; grid-row: 1 / -1; }
-  html[data-rv-stage] .rv-slide--rail .rv-slide__number + .rv-slide__number .rv-metric__label { grid-column: 2; grid-row: 2; }
-  html[data-rv-stage] .rv-slide--rail .rv-slide__number + .rv-slide__number .rv-metric__delta { grid-column: 2; grid-row: 3; justify-self: start; }
-  html[data-rv-stage] .rv-slide--rail .rv-slide__number + .rv-slide__number :is(.rv-metric__label, .rv-metric__delta) { font-size: var(--rv-size-small); }
-  /* Poster's knockout blocks stack into one column, each filling its share. */
-  html[data-rv-stage="poster"] .rv-slide--rail .rv-slide__body > .rv-slide__numbers { gap: 0; }
-  html[data-rv-stage="poster"] .rv-slide--rail .rv-slide__body .rv-slide__numbers > .rv-slide__number { --rv-rail-pad: calc(var(--rv-su) * 2.6); }
-  html[data-rv-stage="poster"] .rv-slide--rail .rv-slide__number + .rv-slide__number .rv-metric { margin-left: 0; margin-top: -2px; }
+  html[data-rv-stage="poster"] .rv-slide__title { font-size: calc(var(--rv-su) * 3); line-height: .9; }
+  html[data-rv-stage="poster"] .rv-slide--cover .rv-slide__head { padding: calc(var(--rv-su) * 2.2) 0 calc(var(--rv-su) * 2.6); }
+  html[data-rv-stage="poster"] .rv-slide--cover .rv-slide__title { font-size: calc(var(--rv-su) * 12.5); line-height: .84; letter-spacing: -.01em; }
+  html[data-rv-stage="poster"] .rv-slide--cover .rv-slide__subtitle { max-width: 30em; margin-top: calc(var(--rv-su) * 2); font-size: calc(var(--rv-su) * 2.2); }
+  html[data-rv-stage="poster"] .rv-slide--hero .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 44); padding-bottom: calc(var(--rv-su) * 4); }
+  html[data-rv-stage="poster"] .rv-slide--hero .rv-slot--metric { justify-content: flex-end; }
+  html[data-rv-stage="poster"] .rv-slide--hero .rv-metric { column-gap: calc(var(--rv-su) * 3); }
+  html[data-rv-stage="poster"] .rv-slide--hero .rv-metric__value { margin-bottom: calc(var(--rv-su) * 1.6); padding-bottom: calc(var(--rv-su) * 1.6); line-height: .8; }
+  html[data-rv-stage="poster"] .rv-slide--hero .rv-slide__number :is(.rv-metric__label, .rv-metric__delta) { font-size: calc(var(--rv-su) * 2.4); }
+  html[data-rv-stage="poster"] .rv-slide--numbers .rv-slide__body, html[data-rv-stage="poster"] .rv-slide--figures .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 6.4); }
+  html[data-rv-stage="poster"] .rv-slide--section .rv-slide__head { justify-content: flex-end; padding-bottom: calc(var(--rv-su) * 4); }
+  html[data-rv-stage="poster"] .rv-slide--section .rv-slide__title { max-width: none; font-size: calc(var(--rv-su) * 17); line-height: .82; }
+  html[data-rv-stage="poster"] .rv-slide .rv-chart__title { font-size: calc(var(--rv-su) * 1.7); line-height: 1.25; }
+  html[data-rv-stage="poster"] .rv-slide--text .rv-slot--text { font-size: calc(var(--rv-su) * 2.4); }
 
-  /* The text slide: its points on the left, the pull quote beside them. The last row takes
-     what the quote needs beyond the points, so the points keep their own spacing. */
-  html[data-rv-stage] .rv-slide--text .rv-slide__text:has(> .rv-callout) {
-    display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); grid-template-rows: repeat(7, auto) 1fr;
-    column-gap: calc(var(--rv-su) * 5); align-items: start;
-  }
-  html[data-rv-stage] .rv-slide--text .rv-slide__text:has(> .rv-callout) > * { grid-column: 1; max-width: none; margin-block: 0; }
-  html[data-rv-stage] .rv-slide--text .rv-slide__text:has(> .rv-callout) > * + * { margin-top: .7em; }
-  html[data-rv-stage] .rv-slide--text .rv-slide__text:has(> .rv-callout) > .rv-callout { grid-column: 2; grid-row: 1 / -1; margin: 0; }
+  html[data-rv-stage="sketchbook"] .rv-slide__title { font-size: calc(var(--rv-su) * 2.6); line-height: 1; }
+  html[data-rv-stage="sketchbook"] .rv-slide--cover .rv-slide__title { font-size: calc(var(--rv-su) * 9); }
+  html[data-rv-stage="sketchbook"] .rv-slide--cover .rv-slide__subtitle { max-width: 24em; margin-top: calc(var(--rv-su) * 2.4); font-size: calc(var(--rv-su) * 2.2); }
+  html[data-rv-stage="sketchbook"] .rv-slide--hero .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 26); }
+  html[data-rv-stage="sketchbook"] .rv-slide--hero .rv-slide__number :is(.rv-metric__label, .rv-metric__delta) { font-size: calc(var(--rv-su) * 2.4); }
+  html[data-rv-stage="sketchbook"] .rv-slide--hero .rv-metric__delta { font-size: calc(var(--rv-su) * 3.2); }
+  html[data-rv-stage="sketchbook"] .rv-slide--numbers .rv-slide__body, html[data-rv-stage="sketchbook"] .rv-slide--figures .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 7); }
+  html[data-rv-stage="sketchbook"] .rv-slide--section .rv-slide__title { font-size: calc(var(--rv-su) * 7.6); }
+  html[data-rv-stage="sketchbook"] .rv-slide .rv-chart__title { font-size: calc(var(--rv-su) * 1.9); }
 
-  /* Gallery: the title huge and light at the top, the date and the lede side by side at the
-     foot under one rule each, as a Swiss poster's colophon. */
-  html[data-rv-stage="gallery"] .rv-slide--title .rv-report__header { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: 1fr auto; column-gap: calc(var(--rv-su) * 3); }
-  html[data-rv-stage="gallery"] .rv-slide--title .rv-report__header > * { grid-column: 1 / -1; }
-  html[data-rv-stage="gallery"] .rv-slide--title .rv-report__title { grid-row: 1; max-width: 7.6em; font-size: calc(var(--rv-su) * 11.5); line-height: .9; letter-spacing: -.055em; }
-  html[data-rv-stage="gallery"] .rv-slide--title :is(.rv-report__meta, .rv-report__lede) { grid-row: 2; align-self: start; margin: 0; padding-top: calc(var(--rv-su) * 1.2); border-top: 2px solid var(--rv-ink); }
-  html[data-rv-stage="gallery"] .rv-slide--title .rv-report__meta { grid-column: 1; font-size: calc(var(--rv-su) * 2.1); }
-  html[data-rv-stage="gallery"] .rv-slide--title .rv-report__lede { grid-column: 2; }
+  html[data-rv-stage="paper"] .rv-slide__title { padding-bottom: calc(var(--rv-su) * .5); font-size: calc(var(--rv-su) * 2.4); line-height: 1.08; }
+  html[data-rv-stage="paper"] .rv-slide--cover .rv-slide__head { width: calc(var(--rv-su) * 68); margin-inline: auto; }
+  html[data-rv-stage="paper"] .rv-slide--cover .rv-slide__title { font-size: calc(var(--rv-su) * 6.6); line-height: 1.04; }
+  html[data-rv-stage="paper"] .rv-slide--cover .rv-slide__subtitle { margin-top: calc(var(--rv-su) * 1.6); font-size: calc(var(--rv-su) * 1.9); }
+  html[data-rv-stage="paper"] .rv-slide--hero .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 18); }
+  html[data-rv-stage="paper"] .rv-slide--hero .rv-metric { padding-block: calc(var(--rv-su) * 2.4); }
+  html[data-rv-stage="paper"] .rv-slide--hero .rv-metric__value { letter-spacing: -.02em; line-height: 1; }
+  html[data-rv-stage="paper"] .rv-slide--hero .rv-slide__number :is(.rv-metric__label, .rv-metric__delta) { font-size: calc(var(--rv-su) * 2.2); }
+  html[data-rv-stage="paper"] .rv-slide--hero .rv-metric__label { margin-top: calc(var(--rv-su) * 1.2); }
+  html[data-rv-stage="paper"] .rv-slide--numbers .rv-slide__body, html[data-rv-stage="paper"] .rv-slide--figures .rv-slide__body { --rv-number-size: calc(var(--rv-su) * 6); }
+  html[data-rv-stage="paper"] .rv-slot--table::before { font-size: var(--rv-size-base); }
+  html[data-rv-stage="paper"] .rv-slide--section .rv-slide__title { width: calc(var(--rv-su) * 68); max-width: none; font-size: calc(var(--rv-su) * 6.4); line-height: 1.08; }
+  html[data-rv-stage="paper"] .rv-slide--text .rv-slot--text { font-size: calc(var(--rv-su) * 2.2); }
 
-  html[data-rv-stage="keynote"] .rv-slide--title .rv-report__title { max-width: 8.5em; font-size: calc(var(--rv-su) * 9.6); line-height: .92; }
-
-  html[data-rv-stage="sketchbook"] .rv-slide--title .rv-report__meta { font-size: calc(var(--rv-su) * 2.2); }
-  html[data-rv-stage="sketchbook"] .rv-slide--section .rv-slide__body > h2 { font-size: calc(var(--rv-su) * 7.6); }
-
-  html[data-rv-stage="paper"] .rv-slide--title .rv-report__header { width: calc(var(--rv-su) * 68); margin-inline: auto; }
-  html[data-rv-stage="paper"] .rv-slide--title .rv-report__title { font-size: calc(var(--rv-su) * 6.6); }
-  html[data-rv-stage="paper"] .rv-slide--title .rv-report__lede { max-width: 30em; margin-top: calc(var(--rv-su) * 2.4); font-size: calc(var(--rv-su) * 1.75); }
+  /* Every chart's title, when it is the headline, is read from the back of the room. */
+  html[data-rv-stage] .rv-slide--nohead .rv-slot--chart .rv-chart__title { font-size: calc(var(--rv-su) * 3); line-height: 1.1; max-width: 24em; }
+  html[data-rv-stage] .rv-slide .rv-chart__subtitle { font-size: calc(var(--rv-su) * 1.35); }
 }
 
 /* ---- Arrival. A slide that starts below the first screen builds as it comes (the runtime
@@ -668,47 +475,27 @@ html[data-rv-stage="paper"] .rv-slide--text .rv-slide__text > .rv-callout { padd
   html[data-rv-stage="poster"] .rv-slide { --rv-build: rv-build-wipe; }
   html[data-rv-stage="sketchbook"] .rv-slide { --rv-build: rv-build-wobble; }
   html[data-rv-stage] .rv-slide__body > :nth-child(2) { --rv-i: 1; }
-  html[data-rv-stage] .rv-slide__body > :nth-child(3) { --rv-i: 2; }
-  html[data-rv-stage] .rv-slide__body > :nth-child(n+4) { --rv-i: 3; }
-  html[data-rv-stage] .rv-slide__number:nth-child(2) { --rv-j: 1; }
-  html[data-rv-stage] .rv-slide__number:nth-child(3) { --rv-j: 2; }
-  html[data-rv-stage] .rv-slide__number:nth-child(n+4) { --rv-j: 3; }
-  html[data-rv-stage] .rv-slide--enter:not(.rv-slide--entered) :is(.rv-slide__body > :not(.rv-slide__numbers), .rv-slide__number) { opacity: 0; }
-  html[data-rv-stage="poster"] .rv-slide--enter:not(.rv-slide--entered) :is(.rv-slide__body > :not(.rv-slide__numbers), .rv-slide__number) { opacity: 1; clip-path: inset(-50% 100% -50% -2%); }
-  html[data-rv-stage] .rv-slide--entered :is(.rv-slide__body > :not(.rv-slide__numbers), .rv-slide__number) {
+  html[data-rv-stage] .rv-slide__body > :nth-child(n+3) { --rv-i: 2; }
+  html[data-rv-stage] .rv-slot:nth-child(2) { --rv-j: 1; }
+  html[data-rv-stage] .rv-slot:nth-child(n+3) { --rv-j: 2; }
+  html[data-rv-stage] .rv-slide--enter:not(.rv-slide--entered) :is(.rv-slide__body > *, .rv-slot) { opacity: 0; }
+  html[data-rv-stage="poster"] .rv-slide--enter:not(.rv-slide--entered) :is(.rv-slide__body > *, .rv-slot) { opacity: 1; clip-path: inset(-50% 100% -50% -2%); }
+  html[data-rv-stage] .rv-slide--entered :is(.rv-slide__body > *, .rv-slot) {
     animation: var(--rv-build) var(--rv-build-time) var(--rv-build-ease) calc((var(--rv-i, 0) + var(--rv-j, 0) * .5) * var(--rv-build-step)) backwards;
   }
   /* Keynote: the lone number settles from a little larger, as a reveal on a stage does. */
-  html[data-rv-stage="keynote"] .rv-slide--hero.rv-slide--entered .rv-slide__number { animation-name: rv-build-settle; }
+  html[data-rv-stage="keynote"] .rv-slide--hero.rv-slide--entered .rv-slot { animation-name: rv-build-settle; }
   /* Gallery: the lone number rises into place from behind the slide's foot. */
   html[data-rv-stage="gallery"] .rv-slide--hero.rv-slide--entered .rv-metric__value { animation: rv-build-reveal calc(var(--rv-build-time) * 1.2) var(--rv-build-ease) var(--rv-build-step) backwards; }
   /* Sketchbook: lettering lands with a wobble, then the red pencil draws under the number. */
-  html[data-rv-stage="sketchbook"] .rv-slide--entered .rv-metric__value::after { animation: rv-build-draw calc(var(--rv-build-time) * .8) cubic-bezier(.45, 0, .2, 1) calc(var(--rv-build-time) * .6 + var(--rv-j, 0) * var(--rv-build-step)) backwards; }
+  html[data-rv-stage="sketchbook"] .rv-slide--entered .rv-metric__value::after { animation: rv-build-draw calc(var(--rv-build-time) * .8) cubic-bezier(.45, 0, .2, 1) calc(var(--rv-build-time) * .6) backwards; }
 }
 
-/* A picture behind the header (STY-74). In a report it is a band behind the header, whose title
-   stands on a solid panel made of the header's own padding. A stage sets the header's padding
-   and place itself, so on the title slide the picture fills the stage and the header is the
-   panel, with room around the title; a date the stage sets apart joins the panel. A phone
-   keeps the report's band above the title, where no text crosses it and no panel is needed. */
-@media screen {
-  html[data-rv-title-picture] .rv-slide--title .rv-report__header::after { content: none; }
-}
+/* A picture behind the header (STY-74) fills the cover's stage, and the cover's head is the
+   panel, with room around the title. Paper has no background. */
 @media screen and (min-width: 641px) {
-  html[data-rv-title-picture] .rv-slide--title .rv-slide__body { isolation: isolate; }
-  html[data-rv-title-picture] .rv-slide--title .rv-report__header {
-    position: static; isolation: auto;
-    padding: clamp(1.25rem, 2.6cqw, 3.5rem) clamp(1.5rem, 3.2cqw, 4.25rem);
-    border-radius: var(--rv-radius-m, 0); background: var(--rv-bg);
-  }
-  html[data-rv-title-picture] .rv-slide--title .rv-report__header::before {
-    inset: 0; width: auto; height: auto; background-position: 50% 50%;
-  }
-  html[data-rv-title-picture][data-rv-stage="keynote"] .rv-slide--title .rv-report__meta { position: static; margin: 1.4em 0 0; }
-  /* The counter stands in the stage's corner, on the picture, which is not washed: while the
-     title slide is current it takes a patch of the page colour, so its ink keeps its floor
-     (STY-74) and slide 1 still says where the reader is. The negative margin keeps its place. */
-  html[data-rv-title-picture]:has(.rv-slide--title[data-rv-current]) .rv-slides__count {
+  html[data-rv-title-picture] .rv-slide--cover .rv-slide__body { isolation: isolate; }
+  html[data-rv-title-picture]:has(.rv-slide--cover[data-rv-current]) .rv-slides__count {
     margin: -.35em -.6em; padding: .35em .6em; border-radius: var(--rv-radius-s, 0); background: var(--rv-bg);
   }
 }

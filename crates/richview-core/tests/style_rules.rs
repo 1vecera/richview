@@ -150,7 +150,7 @@ fn reports_carry_no_gradients_stripes_or_side_rules() {
         for (selector, body) in rules(style) {
             // Charts paint their own surfaces, and a code panel may hint at its scroll edge. A
             // table box that scrolls fades its cut side into the surface it sits on, the edge cue
-            // the lead required (S27-879, 4 Nov 07:24 CET); only those two pseudo-elements may.
+            // the lead required (4 Nov 07:24 CET); only those two pseudo-elements may.
             if selector.contains("rv-chart")
                 || selector.contains("rv-scrolly")
                 || selector.split(',').all(|part| part.trim().ends_with("pre"))

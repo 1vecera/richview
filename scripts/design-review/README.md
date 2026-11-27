@@ -1,6 +1,6 @@
 # Design review capture
 
-`capture.mjs` records how reports look and move in the build of the worktree it runs in: every case in every theme the build exposes, at desktop and phone widths. It writes full-page screenshots, chart crops, motion filmstrips, frame pacing and layout diagnostics, plus a contact sheet and one composite image per case. With a baseline capture it puts the two builds side by side.
+`capture.ts` records how reports look and move in the build of the worktree it runs in: every case in every theme the build exposes, at desktop and phone widths. It writes full-page screenshots, chart crops, motion filmstrips, frame pacing and layout diagnostics, plus a contact sheet and one composite image per case. With a baseline capture it puts the two builds side by side.
 
 The chart-level parts (crops, glyph checks, filmstrips, reduced-motion and settled-state comparisons, mount continuity, taps, pacing) find charts through the markup of the removed SVG engine (`script[data-rvc-runtime]`, `.rvc`). Reports no longer carry it, so those parts find no charts until they are ported to the WebGL report runtime; the page-level captures and diagnostics still work.
 
@@ -18,9 +18,9 @@ Chromium runs headless with a temporary profile. `/usr/bin/chromium` is used whe
 ## Usage
 
 ```sh
-node scripts/design-review/capture.mjs --out tmp/review/current
-node scripts/design-review/capture.mjs --out tmp/review/quick --quick
-node scripts/design-review/capture.mjs --out tmp/review/after --baseline tmp/review/before --cases openai-vs-anthropic --widths 1440,390,320
+node scripts/design-review/capture.ts --out tmp/review/current
+node scripts/design-review/capture.ts --out tmp/review/quick --quick
+node scripts/design-review/capture.ts --out tmp/review/after --baseline tmp/review/before --cases openai-vs-anthropic --widths 1440,390,320
 ```
 
 | Option | Meaning |
@@ -43,7 +43,7 @@ On a 20-thread laptop a full run of 15 cases, four themes and two widths takes a
 - `report`: the folder of `source` is copied into `DIR/reports/<case>/` (without `research`, caches and earlier renders) and generated once per theme with `richview generate --style <theme>`, which writes only inside the copy's `Rendered/`. The release CLI produces the same offline report a reader receives.
 - `page`: a page the build already serves from `dist/web`, such as `showcase/openai-vs-anthropic/index.html`; `{theme}` in its path is replaced by the theme.
 
-A new output kind is a producer in `outputs.mjs` that returns the URL to capture for a case and theme.
+A new output kind is a producer in `outputs.ts` that returns the URL to capture for a case and theme.
 
 Themes come from the file names of `crates/richview-core/assets/*.rstyle.yaml`, one theme per file. A style file added there is captured without changes here.
 

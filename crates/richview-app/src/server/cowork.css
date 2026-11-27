@@ -83,15 +83,7 @@ body.docs-page .cowork .back { margin: 0 0 .6rem; font-size: .875rem; }
 body.docs-page .cowork .back a::before { content: "← "; }
 body.docs-page .cowork .report-row h2 a { color: inherit; text-decoration: none; }
 body.docs-page .cowork .report-row h2 a:hover { text-decoration: underline; }
-body.docs-page .cowork .report-tools { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin: 0 0 1.2rem; }
-body.docs-page .cowork .report-filter { display: flex; flex-wrap: wrap; gap: .5rem; }
-body.docs-page .cowork .report-filter a { padding: .3rem .85rem; border: 1px solid var(--rule); border-radius: var(--r-pill); color: var(--soft); font-size: .9rem; text-decoration: none; }
-body.docs-page .cowork .report-filter a:hover { color: var(--ink); border-color: var(--soft); }
-body.docs-page .cowork .report-filter a[aria-current="true"] { color: var(--paper); background: var(--ink); border-color: var(--ink); }
-body.docs-page .cowork .report-search { display: flex; gap: .5rem; align-items: center; }
-body.docs-page .cowork .report-search input { width: 15rem; padding: .4rem .8rem; }
-body.docs-page .cowork .report-search .docs-button, body.docs-page .cowork .role-form .docs-button, body.docs-page .cowork .cowork-who .docs-button { min-height: 2.2rem; padding: .35rem .9rem; }
-body.docs-page .cowork .report-open { margin: 1.2rem 0 .5rem; }
+body.docs-page .cowork .role-form .docs-button, body.docs-page .cowork .cowork-who .docs-button { min-height: 2.2rem; padding: .35rem .9rem; }
 body.docs-page .cowork .note.invite { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .8rem; padding: .8rem 1rem; }
 body.docs-page .cowork .inline-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .8rem; margin: .6rem 0; }
 body.docs-page .cowork .inline-form label { color: var(--soft); font-size: .875rem; }
@@ -108,7 +100,6 @@ body.docs-page .cowork .choice strong { color: var(--ink); font-size: 1rem; }
 body.docs-page .cowork table.people td:first-child { font-weight: 600; }
 body.docs-page .cowork table.versions { max-width: 34rem; }
 @media (max-width: 600px) {
-  body.docs-page .cowork .report-search, body.docs-page .cowork .report-search input { width: 100%; }
   body.docs-page .cowork .inline-form label, body.docs-page .cowork .inline-form input:not([type="hidden"]), body.docs-page .cowork .inline-form select { width: 100%; }
 }
 body.docs-page .cowork .choice input[type="radio"] { width: auto; flex: none; padding: 0; }
@@ -260,7 +251,7 @@ body.docs-page .cowork .page-head > div { min-width: 0; flex: 1 1 24rem; }
 body.docs-page .cowork section { margin: 2.5rem 0 0; }
 body.docs-page .cowork section > h2 { margin: 0 0 .35rem; font: 600 1.5rem / 1.15 var(--font-display); letter-spacing: -0.015em; }
 body.docs-page .cowork section > h2 + p { margin: 0 0 1rem; max-width: 42rem; color: var(--soft); font-size: .9375rem; line-height: 1.55; }
-body.docs-page .cowork .usage { flex: 0 1 17rem; margin: 0; color: var(--soft); font-size: .8125rem; line-height: 1.4; }
+body.docs-page .cowork .usage { margin: 0; color: var(--soft); font-size: .8125rem; line-height: 1.4; }
 body.docs-page .cowork .usage span { display: flex; justify-content: space-between; gap: 1rem; }
 body.docs-page .cowork .usage strong { color: var(--ink); font-weight: 600; }
 body.docs-page .cowork progress { display: block; width: 100%; height: .375rem; margin: .3rem 0 .6rem; border: 0; border-radius: var(--r-pill); background: var(--rule); appearance: none; overflow: hidden; }
@@ -295,15 +286,11 @@ body.docs-page .cowork .acts form, body.docs-page .cowork .acts figure { margin:
 body.docs-page .cowork .tag { display: inline-block; padding: 0 .45rem; border: 1px solid var(--rule); border-radius: var(--r-pill); color: var(--soft); font: 500 .75rem / 1.5 var(--font-ui); vertical-align: .08em; }
 
 /* The reports list. */
-body.docs-page .cowork .report-rows > li { grid-template-columns: minmax(0, 1fr) minmax(0, 17rem) minmax(0, 9.5rem) auto; align-items: start; padding: 1.1rem 1.25rem; }
+body.docs-page .cowork .report-rows > li { align-items: start; padding: 1.1rem 1.25rem; }
 body.docs-page .cowork .report-rows h2 { margin: 0; font: 600 1.125rem / 1.3 var(--font-ui); letter-spacing: -0.01em; overflow-wrap: anywhere; }
 body.docs-page .cowork .report-rows h2 a { padding-block: 2px; color: var(--ink); text-decoration: none; }
 body.docs-page .cowork .report-rows h2 a:hover { color: var(--blue-ink); text-decoration: underline; }
 body.docs-page .cowork .report-rows .about { margin: .2rem 0 0; color: var(--soft); font-size: .9375rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-body.docs-page .cowork .report-rows .open-to, body.docs-page .cowork .report-rows .when { margin: 0; color: var(--soft); font-size: .875rem; line-height: 1.5; }
-body.docs-page .cowork .report-rows .open-to .vis { margin: 0 0 .25rem; }
-body.docs-page .cowork .report-rows .open-to span, body.docs-page .cowork .report-rows .when span { display: block; }
-body.docs-page .cowork .report-rows .when strong { color: var(--ink); font-weight: 500; }
 
 /* The first visit: the list's place, then the three steps to a first report as one short list. */
 /* A place, not a report: a dashed hairline on the page's own paper. */
@@ -367,9 +354,6 @@ body.docs-page .cowork .note.invite .docs-button { min-height: 2.4rem; }
   body.docs-page .cowork .cowork-nav { margin-bottom: 1.5rem; }
   body.docs-page .cowork .cowork-nav nav { gap: 0 1.25rem; }
   body.docs-page .cowork .rows > li, body.docs-page .cowork .rows--3 > li { grid-template-columns: minmax(0, 1fr); padding: .9rem 1rem; }
-  body.docs-page .cowork .report-rows .open-to, body.docs-page .cowork .report-rows .when { grid-column: 1 / -1; }
-  body.docs-page .cowork .report-rows .when span { display: inline; }
-  body.docs-page .cowork .report-rows .when span + span::before { content: " · "; }
   body.docs-page .cowork .first ol > li { grid-template-columns: 1.5rem minmax(0, 1fr); align-items: start; }
   body.docs-page .cowork .first ol > li > .act { grid-column: 2; justify-self: start; }
   body.docs-page .cowork .act, body.docs-page .cowork .act--danger { min-height: 2.5rem; padding: .3rem .9rem; }
@@ -398,7 +382,6 @@ body.docs-page .cowork .rows--3 .acts { justify-content: flex-end; }
   body.docs-page .cowork .rows--3 .acts { justify-content: flex-start; }
   body.docs-page .cowork .rows .acts:empty { display: none; }
 }
-body.docs-page .cowork .report-rows .open-to .vis { display: inline-flex; }
 @media (max-width: 600px) {
   body.docs-page .cowork .rows--3 > li { grid-template-columns: minmax(0, 1fr) auto; }
   body.docs-page .cowork .rows--3 .who, body.docs-page .cowork .rows--3 .cells { grid-column: 1; }
@@ -415,7 +398,7 @@ body.docs-page .cowork .rows > li.is-new { background: var(--ok-wash); }
 body.docs-page .cowork .rows .row-said { grid-column: 1 / -1; margin: 0; color: color-mix(in oklch, var(--ok) 80%, var(--ink)); font-size: .875rem; font-weight: 500; line-height: 1.45; }
 body.docs-page .cowork .facts a { display: inline-block; padding: .2rem 0; }
 body.docs-page .cowork .back a { display: inline-block; padding: .25rem 0; }
-@media (scripting: none) { body.docs-page .cowork .copy-link, body.docs-page .cowork .acts .copy-link, body.docs-page.app-page .cowork .r-more__menu .copy-link, body.docs-page .cowork .cowork-copy { display: none; } }
+@media (scripting: none) { body.docs-page .cowork .copy-link, body.docs-page.app-page .cowork .lib__menu .copy-link, body.docs-page .cowork .cowork-copy { display: none; } }
 /* A new token: its notice, its command and the next step share the command's width; the next step is body text. */
 body.docs-page .cowork .token-ready { max-width: 46rem; margin: 1rem 0 2.5rem; }
 body.docs-page .cowork .token-ready .note { margin: 0 0 1rem; }
@@ -441,10 +424,10 @@ body.app-page .app-rail :focus-visible { outline-color: var(--rail-blue); }
 body.app-page .app-brand { display: inline-flex; align-items: center; gap: .6rem; min-height: 2.5rem; padding: 0 .5rem; color: #fff; font: 600 .9375rem / 1 var(--font-ui); letter-spacing: -.01em; text-decoration: none; }
 body.app-page .app-mark { width: 1.3rem; height: 1.3rem; flex: none; }
 body.app-page .app-org { position: relative; }
-body.app-page .app-org > summary, body.app-page div.app-org { display: flex; align-items: center; gap: .65rem; padding: .5rem; border-radius: 6px; background: oklch(1 0 0 / .06); list-style: none; }
+body.app-page .app-org > summary, body.app-page div.app-org { display: flex; align-items: center; gap: .65rem; padding: .5rem .5rem .5rem .35rem; border-radius: 6px; list-style: none; }
 body.app-page .app-org > summary { cursor: pointer; }
 body.app-page .app-org > summary::-webkit-details-marker { display: none; }
-body.app-page .app-org > summary:hover, body.app-page .app-org[open] > summary { background: oklch(1 0 0 / .1); }
+body.app-page .app-org > summary:hover, body.app-page .app-org[open] > summary { background: oklch(1 0 0 / .08); }
 body.app-page .app-org > summary .ic { margin-left: auto; color: var(--rail-soft); }
 body.app-page .app-org__tile { display: inline-grid; place-items: center; width: 1.875rem; height: 1.875rem; flex: none; border-radius: 6px; background: var(--blue); color: #fff; font: 600 .8125rem / 1 var(--font-ui); }
 body.app-page .app-org__name { display: grid; min-width: 0; }
@@ -472,7 +455,7 @@ body.app-page .app-me form { grid-column: 1 / -1; margin: 0; }
 body.app-page .app-me__out { display: inline-flex; align-items: center; gap: .5rem; min-height: 2rem; padding: 0 .4rem; border: 0; border-radius: var(--r-small); background: none; color: var(--rail-soft); font: 400 .8125rem / 1 var(--font-ui); cursor: pointer; }
 body.app-page .app-me__out:hover { background: oklch(1 0 0 / .07); color: #fff; }
 /* The top bar: where you are, and search. */
-body.app-page .app-top { grid-column: 2; grid-row: 1; position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 1rem; min-height: 3.5rem; padding: .5rem 2rem; border-bottom: 1px solid var(--rule); background: var(--paper); }
+body.app-page .app-top { grid-column: 2; grid-row: 1; position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 1rem; min-height: 3.5rem; padding: .5rem 2.5rem; background: var(--paper); }
 body.app-page .app-crumbs { display: flex; gap: .5rem; min-width: 0; margin: 0; color: var(--faint); font-size: .8125rem; white-space: nowrap; }
 body.app-page .app-crumbs span:first-child { overflow: hidden; text-overflow: ellipsis; }
 body.app-page .app-crumbs strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--ink); font-weight: 600; }
@@ -480,13 +463,15 @@ body.app-page .app-crumbs a { flex: none; color: inherit; text-decoration: none;
 body.app-page .app-crumbs a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: .2em; }
 body.app-page .app-crumbs > span { flex: none; }
 body.app-page .app-crumbs > span:first-child { flex: 0 1 auto; min-width: 0; }
-body.app-page .app-search { position: relative; flex: 0 1 22rem; margin: 0 0 0 auto; }
+body.app-page .app-search { position: relative; flex: 0 1 19rem; margin: 0 0 0 auto; }
 body.app-page .app-search .ic { position: absolute; top: 50%; left: .7rem; translate: 0 -50%; color: var(--faint); pointer-events: none; }
 body.app-page .app-search input { width: 100%; min-height: 2.25rem; padding: .35rem .75rem .35rem 2.1rem; border: 1px solid var(--rule); border-radius: var(--r-small); background: var(--panel); color: var(--ink); font: 400 .875rem / 1.4 var(--font-ui); }
 body.app-page .app-search input::placeholder { color: var(--faint); }
 body.app-page .app-search input:focus-visible { border-color: var(--blue); outline: 2px solid color-mix(in oklch, var(--blue) 35%, transparent); outline-offset: 0; }
 /* The page. */
-body.docs-page.app-page main.cowork { grid-column: 2; grid-row: 2; width: 100%; max-width: 92rem; margin: 0; padding: 1.75rem 2rem 4rem; }
+body.docs-page.app-page main.cowork { grid-column: 2; grid-row: 2; width: 100%; max-width: 92rem; margin: 0; padding: 1.75rem 2.5rem 4rem; }
+/* The reports page is a list, one centred column that reads at a glance. */
+body.docs-page.app-page main.cowork.lib-page { max-width: 62rem; margin: 0 auto; padding: 1rem 2.5rem 5rem; }
 body.docs-page.app-page .cowork h1, body.docs-page.app-page .cowork .page-head h1 { margin: 0; font: 600 1.5rem / 1.25 var(--font-ui); letter-spacing: -.015em; }
 body.docs-page.app-page .cowork .page-head { align-items: flex-end; gap: 1rem 2rem; margin: 0 0 1.25rem; }
 body.docs-page.app-page .cowork .page-head .lede { margin: .3rem 0 0; color: var(--soft); font-size: .875rem; }
@@ -504,7 +489,7 @@ body.docs-page.app-page .cowork .act:hover { background: var(--paper-2); }
 body.docs-page.app-page .cowork .rows > li { padding: .75rem 1rem; font-size: .875rem; }
 body.docs-page.app-page .cowork .tag { border-radius: var(--r-small); }
 body.docs-page.app-page .cowork .note { padding: .6rem .85rem; font-size: .875rem; }
-body.docs-page.app-page .cowork .usage { flex: 0 1 15rem; font-size: .75rem; }
+body.docs-page.app-page .cowork .usage { font-size: .75rem; }
 /* Usage drawn as the mark's bars: a square start and a rounded end. */
 body.docs-page.app-page .cowork progress { height: .375rem; margin: .25rem 0 .55rem; border-radius: 0 3px 3px 0; background: var(--hair); }
 body.docs-page.app-page .cowork progress::-webkit-progress-bar { background: var(--hair); }
@@ -514,43 +499,64 @@ body.docs-page.app-page .cowork progress::-moz-progress-bar { border-radius: 0 3
 body.docs-page.app-page .cowork .vis { gap: .35rem; min-height: 1.375rem; padding: .05rem .55rem .05rem .45rem; border: 0; font-size: .75rem; }
 body.docs-page.app-page .cowork .vis .ic { width: .8125rem; height: .8125rem; }
 body.docs-page.app-page .cowork .vis:has(.ic)::before { content: none; }
-/* The reports: one panel, the filters in its head, a table with fixed columns. */
-body.docs-page.app-page .cowork .report-panel { overflow: hidden; border: 1px solid var(--rule); border-radius: var(--r-panel); background: var(--panel); }
-body.docs-page.app-page .cowork .report-tools { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; margin: 0; padding: .65rem .75rem; border-bottom: 1px solid var(--rule); }
-body.docs-page.app-page .cowork .report-filter { display: inline-flex; flex-wrap: nowrap; gap: 2px; max-width: 100%; padding: 3px; overflow-x: auto; border-radius: 6px; background: var(--paper-2); scrollbar-width: none; }
-body.docs-page.app-page .cowork .report-filter a { display: inline-flex; align-items: center; min-height: 1.75rem; padding: 0 .75rem; border: 0; border-radius: var(--r-small); color: var(--soft); font: 600 .8125rem / 1 var(--font-ui); white-space: nowrap; }
-body.docs-page.app-page .cowork .report-filter a:hover { color: var(--ink); }
-body.docs-page.app-page .cowork .report-filter a[aria-current="true"] { background: var(--panel); color: var(--ink); box-shadow: inset 0 0 0 1px var(--rule); }
-body.docs-page.app-page .cowork .report-searched { margin: 0; color: var(--soft); font-size: .8125rem; }
-body.docs-page.app-page .cowork .report-order { margin: 0 0 0 auto; color: var(--faint); font-size: .75rem; }
-body.docs-page.app-page .cowork .report-none { margin: 0; padding: 2rem 1rem; color: var(--soft); text-align: center; }
-body.docs-page.app-page .cowork .report-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: .875rem; }
-body.docs-page.app-page .cowork .report-table th { padding: .5rem .75rem; border-bottom: 1px solid var(--rule); background: var(--paper); color: var(--faint); font: 600 .75rem / 1.3 var(--font-ui); text-align: left; white-space: nowrap; }
-body.docs-page.app-page .cowork .report-table th:nth-child(2) { width: 12rem; }
-body.docs-page.app-page .cowork .report-table th.r-owner { width: 8.5rem; }
-body.docs-page.app-page .cowork .report-table th:nth-child(4) { width: 7.25rem; }
-body.docs-page.app-page .cowork .report-table th:nth-child(5) { width: 14rem; }
-body.docs-page.app-page .cowork .report-table td { padding: .55rem .75rem; border: 0; border-bottom: 1px solid var(--hair); color: var(--soft); vertical-align: middle; }
-body.docs-page.app-page .cowork .report-table tr:last-child td { border-bottom: 0; }
-body.docs-page.app-page .cowork .report-table tbody tr:hover td { background: color-mix(in oklch, var(--ink) 2.5%, var(--panel)); }
-body.docs-page.app-page .cowork .report-table th:first-child, body.docs-page.app-page .cowork .report-table td:first-child { padding-left: 1rem; }
-body.docs-page.app-page .cowork .r-name > div { display: flex; align-items: center; gap: .8rem; min-width: 0; }
-body.docs-page.app-page .cowork .r-name > div > div { min-width: 0; }
-body.docs-page.app-page .cowork .thumb { display: block; width: 60px; height: 32px; flex: none; border-radius: var(--r-small); object-fit: cover; background: var(--paper-2); outline: 1px solid color-mix(in oklch, var(--ink) 12%, transparent); outline-offset: -1px; }
-body.docs-page.app-page .cowork .thumb--none { display: grid; place-items: center; color: var(--faint); }
-body.docs-page.app-page .cowork .report-table h2 { margin: 0; overflow: hidden; font: 600 .875rem / 1.35 var(--font-ui); letter-spacing: 0; white-space: nowrap; text-overflow: ellipsis; }
-body.docs-page.app-page .cowork .report-table h2 a { color: var(--ink); text-decoration: none; }
-body.docs-page.app-page .cowork .report-table h2 a:hover { color: var(--blue-ink); text-decoration: underline; text-underline-offset: .2em; }
-body.docs-page.app-page .cowork .report-table .about { margin: .1rem 0 0; overflow: hidden; color: var(--faint); font-size: .8125rem; line-height: 1.35; white-space: nowrap; text-overflow: ellipsis; }
-body.docs-page.app-page .cowork .r-who { display: block; margin: .2rem 0 0; overflow: hidden; color: var(--faint); font-size: .75rem; white-space: nowrap; text-overflow: ellipsis; }
-body.docs-page.app-page .cowork :is(.r-owner, .r-when) { overflow: hidden; font-size: .8125rem; white-space: nowrap; text-overflow: ellipsis; }
-body.docs-page.app-page .cowork td.r-owner { color: var(--ink); }
-body.docs-page.app-page .cowork .r-when span { display: block; }
-body.docs-page.app-page .cowork .r-when span + span { color: var(--faint); font-size: .75rem; }
-body.docs-page.app-page .cowork .r-acts .acts { flex-wrap: nowrap; justify-content: flex-end; gap: .15rem; }
-body.docs-page.app-page .cowork .report-table .r-open, body.docs-page.app-page .cowork .r-more { display: none; }
-body.docs-page.app-page .cowork .r-acts .act:not(.act--open), body.docs-page.app-page .cowork .r-acts .copy-link button.act { border-color: transparent; background: none; color: var(--soft); }
-body.docs-page.app-page .cowork .r-acts .act:not(.act--open):hover, body.docs-page.app-page .cowork .r-acts .copy-link button.act:hover { background: var(--paper-2); color: var(--ink); }
+/* The reports: no panel and no table, a list. Text tabs on one hairline, then a row for each report: its
+   picture, its title, one line about it and one line of facts. A row is one link (the title's ::after
+   covers it), Edit shows on hover, and the rest sits in one menu, a details element that opens without
+   script. Private is the default and carries no mark; only the exceptions are named. */
+body.docs-page.app-page .cowork .lib-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem 2rem; margin: .75rem 0 1.5rem; }
+body.docs-page.app-page .cowork .lib-head h1 { margin: 0; font: 600 1.75rem / 1.2 var(--font-ui); letter-spacing: -.02em; }
+body.docs-page.app-page .cowork .lib-head p { margin: .25rem 0 0; color: var(--soft); font-size: .875rem; }
+body.docs-page.app-page .cowork .lib-new { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.375rem; padding: 0 1rem 0 .8rem; border: 1px solid var(--blue); border-radius: var(--r-small); background: var(--blue); color: #fff; font: 600 .875rem / 1 var(--font-ui); text-decoration: none; transition: background-color 150ms var(--ease-out); }
+body.docs-page.app-page .cowork .lib-new:hover { background: var(--blue-ink); border-color: var(--blue-ink); }
+body.docs-page.app-page .cowork .lib-new .ic { width: .9375rem; height: .9375rem; stroke-width: 1.75; }
+body.docs-page.app-page .cowork .lib-tabs { display: flex; align-items: flex-end; gap: 1.5rem; border-bottom: 1px solid var(--hair); }
+body.docs-page.app-page .cowork .lib-tabs a { margin-bottom: -1px; padding: .6rem 0 .65rem; border-bottom: 2px solid transparent; color: var(--soft); font: 600 .875rem / 1.2 var(--font-ui); text-decoration: none; white-space: nowrap; }
+body.docs-page.app-page .cowork .lib-tabs a:hover { color: var(--ink); }
+body.docs-page.app-page .cowork .lib-tabs a[aria-current="true"] { border-bottom-color: var(--ink); color: var(--ink); }
+body.docs-page.app-page .cowork .lib-sort { margin: 0 0 0 auto; padding-bottom: .65rem; color: var(--faint); font-size: .8125rem; white-space: nowrap; }
+body.docs-page.app-page .cowork .lib { margin: 0; padding: 0; list-style: none; }
+body.docs-page.app-page .cowork .lib__row { position: relative; display: grid; grid-template-columns: 6.5rem minmax(0, 1fr) auto; align-items: center; gap: 1.25rem; margin: 0 -.75rem; padding: .9rem .75rem; border-radius: 8px; transition: background-color 150ms var(--ease-out); }
+body.docs-page.app-page .cowork .lib__row + .lib__row::before { content: ""; position: absolute; top: 0; left: .75rem; right: .75rem; border-top: 1px solid var(--hair); }
+body.docs-page.app-page .cowork .lib__row:hover, body.docs-page.app-page .cowork .lib__row:focus-within { background: color-mix(in oklch, var(--ink) 3%, var(--paper)); }
+body.docs-page.app-page .cowork .lib__row:hover::before, body.docs-page.app-page .cowork .lib__row:hover + .lib__row::before { border-color: transparent; }
+body.docs-page.app-page .cowork .lib__thumb { display: block; width: 6.5rem; height: auto; aspect-ratio: 1.9; border-radius: 6px; object-fit: cover; background: var(--paper-2); outline: 1px solid color-mix(in oklch, var(--ink) 11%, transparent); outline-offset: -1px; }
+body.docs-page.app-page .cowork .lib__text { min-width: 0; }
+body.docs-page.app-page .cowork .lib__title { margin: 0; font: 600 1rem / 1.35 var(--font-ui); letter-spacing: -.005em; }
+body.docs-page.app-page .cowork .lib__title a { color: var(--ink); text-decoration: none; }
+body.docs-page.app-page .cowork .lib__title a::after { content: ""; position: absolute; inset: 0; border-radius: 8px; }
+body.docs-page.app-page .cowork .lib__title a:focus-visible { outline: none; }
+body.docs-page.app-page .cowork .lib__title a:focus-visible::after { outline: 2px solid var(--blue); outline-offset: -2px; }
+body.docs-page.app-page .cowork .lib__about { margin: .15rem 0 0; overflow: hidden; color: var(--soft); font-size: .875rem; line-height: 1.45; white-space: nowrap; text-overflow: ellipsis; }
+body.docs-page.app-page .cowork .lib__meta { display: flex; flex-wrap: wrap; gap: 0 .5rem; margin: .35rem 0 0; color: var(--faint); font-size: .8125rem; line-height: 1.4; }
+body.docs-page.app-page .cowork .lib__meta span + span::before { content: "·"; margin-right: .5rem; }
+body.docs-page.app-page .cowork .lib__side { display: flex; align-items: center; gap: .5rem; }
+body.docs-page.app-page .cowork .chip { display: inline-flex; align-items: center; gap: .35rem; min-height: 1.5rem; padding: 0 .6rem 0 .5rem; border-radius: var(--r-small); font: 600 .75rem / 1 var(--font-ui); white-space: nowrap; }
+body.docs-page.app-page .cowork .chip .ic { width: .8125rem; height: .8125rem; }
+body.docs-page.app-page .cowork .chip--org { background: color-mix(in oklch, var(--wash) 80%, var(--panel)); color: var(--blue-ink); }
+body.docs-page.app-page .cowork .chip--public { background: var(--danger-wash); color: var(--danger); }
+body.docs-page.app-page .cowork .chip--you { background: var(--ok-wash); color: color-mix(in oklch, var(--ok) 80%, var(--ink)); }
+body.docs-page.app-page .cowork .lib__edit { display: inline-flex; align-items: center; gap: .4rem; min-height: 2rem; padding: 0 .7rem; border-radius: var(--r-small); color: var(--ink); font: 600 .8125rem / 1 var(--font-ui); opacity: 0; transition: opacity 150ms var(--ease-out); }
+body.docs-page.app-page .cowork .lib__edit .ic { width: .875rem; height: .875rem; color: var(--soft); }
+body.docs-page.app-page .cowork .lib__row:hover .lib__edit, body.docs-page.app-page .cowork .lib__row:focus-within .lib__edit { opacity: 1; }
+body.docs-page.app-page .cowork .lib__more { position: relative; z-index: 1; }
+body.docs-page.app-page .cowork .lib__more > summary { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: var(--r-small); color: var(--faint); list-style: none; cursor: pointer; }
+body.docs-page.app-page .cowork .lib__more > summary::-webkit-details-marker { display: none; }
+body.docs-page.app-page .cowork .lib__more > summary:hover, body.docs-page.app-page .cowork .lib__more[open] > summary { background: color-mix(in oklch, var(--ink) 6%, transparent); color: var(--ink); }
+body.docs-page.app-page .cowork .lib__more > summary:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+body.docs-page.app-page .cowork .lib__menu { position: absolute; z-index: 20; top: calc(100% + .2rem); right: 0; display: grid; gap: 1px; min-width: 13rem; padding: .35rem; border: 1px solid var(--rule); border-radius: var(--r-panel); background: var(--panel); box-shadow: var(--shadow-float); }
+body.docs-page.app-page .cowork .lib__menu a, body.docs-page.app-page .cowork .lib__menu button { display: flex; align-items: center; justify-content: flex-start; gap: .65rem; min-height: 2.25rem; padding: 0 .65rem; border: 0; border-radius: var(--r-small); background: none; color: var(--ink); font: 400 .875rem / 1.2 var(--font-ui); letter-spacing: normal; text-align: left; text-decoration: none; cursor: pointer; }
+body.docs-page.app-page .cowork .lib__menu a:hover, body.docs-page.app-page .cowork .lib__menu button:hover { background: var(--paper-2); }
+body.docs-page.app-page .cowork .lib__menu .ic { color: var(--soft); }
+body.docs-page.app-page .cowork .lib__menu hr { margin: .25rem .35rem; border: 0; border-top: 1px solid var(--hair); }
+body.docs-page.app-page .cowork .lib-foot { display: flex; flex-wrap: wrap; gap: .25rem 1.5rem; margin: 1.75rem 0 0; color: var(--faint); font-size: .8125rem; }
+body.docs-page.app-page .cowork .lib-foot strong { color: var(--soft); font-weight: 600; }
+body.docs-page.app-page .cowork .lib__more[open] { z-index: 5; }
+body.docs-page.app-page .cowork .lib__thumb--none { display: grid; place-items: center; color: var(--faint); }
+body.docs-page.app-page .cowork .lib__menu figure { position: relative; display: grid; margin: 0; }
+body.docs-page.app-page .cowork .lib__menu figure .ic { position: absolute; top: 50%; left: .65rem; translate: 0 -50%; pointer-events: none; }
+body.docs-page.app-page .cowork .lib__menu figure button { padding-left: 2.3rem; }
+body.docs-page.app-page .cowork .lib-searched { margin: .9rem 0 0; color: var(--soft); font-size: .8125rem; }
+body.docs-page.app-page .cowork .lib-none { margin: 0; padding: 3rem 0; color: var(--soft); text-align: center; }
 /* The first visit and the set-up steps, inside the same panel language. */
 body.docs-page.app-page .cowork .report-rows--none { border-style: dashed; }
 body.docs-page.app-page .cowork .report-rows--none h2 { margin: 0; font: 600 .9375rem / 1.35 var(--font-ui); }
@@ -590,16 +596,13 @@ body.docs-page.app-page .docs-button:focus-visible { border-radius: var(--r-smal
 @media (max-width: 600px) {
   body.docs-page.app-page .cowork .share-form .docs-button, body.docs-page.app-page .cowork .share-form select, body.docs-page.app-page .cowork .open-way .docs-button { min-height: 2.75rem; }
 }
-@media (max-width: 1240px) {
-  body.docs-page.app-page .cowork .report-table .r-owner { display: none; }
-}
-/* Narrow screens: the rail becomes a band with the pages as tabs; the table becomes one row per report. */
+/* Narrow screens: the rail becomes a band with the pages as tabs; a report is a row of its picture, title and facts. */
 @media (max-width: 960px) {
   body.docs-page.app-page { display: block; }
   body.app-page .app-rail__in { position: static; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "brand org me" "nav nav nav"; align-items: center; gap: .25rem .5rem; height: auto; padding: .5rem .75rem 0; overflow: visible; }
   body.app-page .app-brand { grid-area: brand; padding: 0 .25rem; }
   body.app-page .app-org { grid-area: org; min-width: 0; }
-  body.app-page .app-org > summary, body.app-page div.app-org { padding: .3rem .5rem; background: none; }
+  body.app-page .app-org > summary, body.app-page div.app-org { padding: .3rem .5rem; }
   body.app-page .app-org__menu { right: auto; width: min(20rem, calc(100vw - 2rem)); }
   body.app-page .app-me { grid-area: me; display: block; margin: 0; padding: 0; border: 0; }
   body.app-page .app-me__avatar, body.app-page .app-me__who { display: none; }
@@ -608,58 +611,36 @@ body.docs-page.app-page .docs-button:focus-visible { border-radius: var(--r-smal
   body.app-page .app-nav a { flex: none; min-height: 2.25rem; font-weight: 600; }
   body.app-page .app-nav .app-nav__docs { margin: 0; }
   body.app-page .app-nav .app-nav__docs::before { content: none; }
-  body.app-page .app-top { position: static; padding: .75rem 1rem; }
+  body.app-page .app-top { position: static; padding: .5rem 1rem; }
   body.app-page .app-crumbs { display: none; }
   body.app-page .app-search { flex: 1 1 auto; margin: 0; }
   body.app-page .app-search input { min-height: 2.5rem; font-size: 1rem; }
   body.docs-page.app-page main.cowork { padding: 1.25rem 1rem 3rem; }
   body.docs-page.app-page .cowork .page-head { margin-bottom: 1rem; }
-  body.docs-page.app-page .cowork .usage { flex-basis: 100%; }
-  body.docs-page.app-page .cowork .report-panel { margin: 0 -1rem; border-right: 0; border-left: 0; border-radius: 0; }
-  body.docs-page.app-page .cowork .report-tools { padding: .65rem 1rem; }
-  body.docs-page.app-page .cowork .report-order { display: none; }
-  body.docs-page.app-page .cowork .report-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  body.docs-page.app-page .cowork .report-table, body.docs-page.app-page .cowork .report-table tbody { display: block; }
-  body.docs-page.app-page .cowork .report-table tr { display: grid; grid-template-columns: 60px minmax(0, 1fr); gap: .4rem .8rem; margin: 0; padding: .85rem 1rem; border: 0; border-bottom: 1px solid var(--hair); border-radius: 0; background: none; }
-  body.docs-page.app-page .cowork .report-table td::before { content: none; }
-  body.docs-page.app-page .cowork .report-table tr:last-child { border-bottom: 0; }
-  body.docs-page.app-page .cowork .report-table td { display: block; padding: 0; border: 0; }
-  body.docs-page.app-page .cowork .report-table tbody tr:hover td { background: none; }
-  body.docs-page.app-page .cowork .report-table td.r-name { grid-column: 1 / -1; }
-  body.docs-page.app-page .cowork .report-table h2, body.docs-page.app-page .cowork .report-table .about { white-space: normal; }
-  body.docs-page.app-page .cowork .report-table .about { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
-  body.docs-page.app-page .cowork .r-name > div { align-items: flex-start; }
-  body.docs-page.app-page .cowork td.r-access { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .6rem; }
-  body.docs-page.app-page .cowork .r-who { margin: 0; white-space: normal; }
-  body.docs-page.app-page .cowork td.r-when { grid-column: 2; }
-  body.docs-page.app-page .cowork .r-when span { display: inline; }
-  body.docs-page.app-page .cowork .r-when span + span::before { content: " · "; }
-  body.docs-page.app-page .cowork .report-table td.r-owner { display: none; }
-  body.docs-page.app-page .cowork .report-table tr { position: relative; }
-  body.docs-page.app-page .cowork .report-table h2 a { display: none; }
-  body.docs-page.app-page .cowork .report-table h2 a.r-open { display: inline; }
-  body.docs-page.app-page .cowork .report-table .r-open::after { content: ""; position: absolute; inset: 0; }
-  body.docs-page.app-page .cowork .report-table .r-open:focus-visible { outline: none; }
-  body.docs-page.app-page .cowork .report-table .r-open:focus-visible::after { outline: 2px solid var(--blue); outline-offset: -2px; }
-  body.docs-page.app-page .cowork .report-table td.r-name { padding-right: 2.25rem; }
-  body.docs-page.app-page .cowork .report-table td.r-acts { position: absolute; z-index: 2; top: .4rem; right: .35rem; width: auto; }
-  body.docs-page.app-page .cowork .r-acts .acts { display: none; }
-  body.docs-page.app-page .cowork .report-table td.r-acts:has(.r-more[open]) { z-index: 3; }
-  body.docs-page.app-page .cowork .r-more { display: block; position: relative; }
-  body.docs-page.app-page .cowork .r-more > summary { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: var(--r-small); color: var(--soft); list-style: none; cursor: pointer; }
-  body.docs-page.app-page .cowork .r-more > summary::-webkit-details-marker { display: none; }
-  body.docs-page.app-page .cowork .r-more > summary .ic { width: 1.25rem; height: 1.25rem; stroke-width: 2.25; }
-  body.docs-page.app-page .cowork .r-more > summary:hover, body.docs-page.app-page .cowork .r-more[open] > summary { background: var(--paper-2); color: var(--ink); }
-  body.docs-page.app-page .cowork .r-more__menu { position: absolute; z-index: 20; top: calc(100% + .2rem); right: 0; display: grid; gap: 2px; min-width: 12rem; padding: .35rem; border: 1px solid var(--rule); border-radius: var(--r-panel); background: var(--panel); box-shadow: var(--shadow-float); }
-  body.docs-page.app-page .cowork .r-more__menu figure { display: contents; }
-  body.docs-page.app-page .cowork .r-more__menu a, body.docs-page.app-page .cowork .r-more__menu button { display: flex; align-items: center; justify-content: flex-start; width: 100%; min-height: 2.75rem; padding: 0 .75rem; border: 0; border-radius: var(--r-small); background: none; color: var(--ink); font: 500 .9375rem / 1.2 var(--font-ui); text-align: left; text-decoration: none; cursor: pointer; }
-  body.docs-page.app-page .cowork .r-more__menu a:hover, body.docs-page.app-page .cowork .r-more__menu button:hover { background: var(--paper-2); }
+  body.docs-page.app-page main.cowork.lib-page { padding: 1rem 1rem 3rem; }
+  body.docs-page.app-page .cowork .lib-head { align-items: center; margin: .25rem 0 1rem; }
+  body.docs-page.app-page .cowork .lib-head h1 { font-size: 1.5rem; }
+  body.docs-page.app-page .cowork .lib-tabs { gap: 1.25rem; margin: 0 -1rem; padding: 0 1rem; overflow-x: auto; scrollbar-width: none; }
+  body.docs-page.app-page .cowork .lib-sort { display: none; }
+  body.docs-page.app-page .cowork .lib__row { grid-template-columns: 4.75rem minmax(0, 1fr) auto; align-items: start; gap: .85rem; margin: 0 -1rem; padding: .85rem 1rem; border-radius: 0; }
+  body.docs-page.app-page .cowork .lib__row + .lib__row::before { left: 1rem; right: 1rem; }
+  body.docs-page.app-page .cowork .lib__thumb { width: 4.75rem; margin-top: .15rem; }
+  body.docs-page.app-page .cowork .lib__title { font-size: .9375rem; }
+  body.docs-page.app-page .cowork .lib__about { display: none; }
+  body.docs-page.app-page .cowork .lib__meta { margin-top: .15rem; }
+  body.docs-page.app-page .cowork .lib__meta span:nth-child(n+3) { display: none; }
+  body.docs-page.app-page .cowork .lib__edit { display: none; }
+  body.docs-page.app-page .cowork .lib__side { align-self: start; margin-right: -.5rem; }
+  body.docs-page.app-page .cowork .lib__side .chip { display: none; }
+  body.docs-page.app-page .cowork .lib__more > summary { width: 2.75rem; height: 2.75rem; margin-top: -.45rem; }
+  body.docs-page.app-page .cowork .lib__menu a, body.docs-page.app-page .cowork .lib__menu button { min-height: 2.75rem; }
+  body.docs-page.app-page .cowork .lib-foot { margin-top: 1.25rem; }
 }
 @media (max-width: 479px) {
   body.app-page .app-brand span, body.app-page .app-nav .ic, body.app-page .app-nav .app-nav__docs { display: none; }
   body.app-page .app-nav a { padding: 0 .6rem; }
 }
-/* Members (S27-986): one panel in the reports list's language, the invite bar in its head and a
+/* Members: one panel in the reports list's language, the invite bar in its head and a
    table of people under it, then the organization's settings. A role is a chip whose menu saves on
    one click; removal waits in the ⋯ menu behind a confirmation that says what happens. Every menu
    is a details element, so the page works without script: while one is open its summary's backdrop

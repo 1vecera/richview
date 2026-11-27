@@ -1,7 +1,7 @@
 //! 2-D bin charts: counts in a grid of rectangles coloured by count and printing it, a key that decodes the
 //! colour, plain empty cells, and the contract every type shares (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Item, Role};

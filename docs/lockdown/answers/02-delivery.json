@@ -83,6 +83,12 @@
       "note": "Dictated by Daniel in the review chat on 2026-10-29: \"we have codex now as well, we use codex tui, codex 6.1 sol, only for things that have nothing to do with design quality. Final reviewer: always opus on xhigh, design devs --> sonnet on xhihg, all other stuff, codex 6.1 sol xhigh--> might hcnagei n the future but this is now\". Recorded by the lockdown agent at his request.\n\nEarlier: Dictated by Daniel in the review chat on 2026-10-27: \"Daniel, 2026-10-27, live: 'I would go up to 20 PRs at once in a batch… anything that can be changed can be changed… if we have the broad set of end-to-end tests, then we can build the short stuff much faster… switch most of the agents to Sonnet… the checker and adversarial reviews… have to be Opus… at max two Opus agents running'\". Recorded by the lockdown agent at his request.",
       "proposedHash": "02942db99566e97c",
       "updatedAt": "2026-10-29T09:35:53.883Z"
+    },
+    "DEL-83": {
+      "decision": "accept",
+      "note": "Dictated by Daniel in the review chat on 2026-11-26: \"i agree on all points, note it down in the richview lockdown, also, have agent bringing my richview lockdown decision to the app thanks\". Recorded by the lockdown agent at his request.\n\nHe agreed to the lead's four points: one go and one command, checks before deploying, independent parts, each part still stopping and rolling back on its own failure. The part order and the shared prerequisites in the proposal were worked out by the implementer from release 31's records and are the card's assumptions.",
+      "proposedHash": "77dfd90a01a93c55",
+      "updatedAt": "2026-11-26T12:57:03.062Z"
     }
   }
 }

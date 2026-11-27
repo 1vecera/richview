@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail; umask 077
+L=$(cd "$(dirname "$0")/.." && pwd -P); E="$HOME/.local/share/richview-gate/evidence"
+id=${1:?use the exact full receipt ID}; [[ $id =~ ^full-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{10}$ ]]
+sha=$(jq -er --arg id "$id" 'select(.kind=="full" and .id==$id and .result=="pass" and .cancelled!=true)|.commit' "$E/receipts/$id.json")
+[[ $sha =~ ^[0-9a-f]{40}$ && ${sha:0:10} = "${id##*-}" ]]
+dir="$L/retained-full/$id"; mkdir -p "$dir"; dst="$dir/build-manifest.json"; src="$E/runs/$id/build-manifest.json"
+if [[ -f $src ]]; then
+ tmp=$(mktemp "$dir/original.XXXXXX"); trap 'rm -f "$tmp"' EXIT; cp "$src" "$tmp"; cmp "$tmp" "$src"
+ if [[ ! -e $dst ]]; then ln "$tmp" "$dst"; fi; cmp "$src" "$dst"
+fi
+[[ -f $dst ]] || { echo "Missing original manifest for $id. Retrieve a byte-authenticated original from this run, or use another full." >&2; exit 1; }
+jq -e --arg sha "$sha" '.inputs.commit==$sha and .mode=="full" and .inputs.dirty==false' "$dst" >/dev/null
+case ${2:-verify} in
+  --capture) ;;
+  verify) cmp "$dst" "$HOME/tmp/richview-rewrite/bin-release/${sha:0:10}/build-manifest.json";;
+  *) echo 'Use --capture or omit the second argument to require kept-byte equality.' >&2; exit 2;;
+esac
+shasum -a 256 "$dst"; printf 'Retained %s at %s\n' "$id" "$sha"

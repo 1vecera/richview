@@ -1,7 +1,7 @@
 //! Combo charts: bars and a line on two axes, each at its true coordinates, gaps in the line,
 //! readouts of both values and the shared contract (FEA-CH-01, FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Geometry, Item, Role};

@@ -76,6 +76,18 @@ pub fn from_str(text: &str) -> Result<Value, YamlError> {
 /// keeps hostile input from growing the stack of values that later code walks recursively.
 const MAX_DEPTH: usize = 64;
 
+/// How many fields a document may have, counting every mapping key and every list item. Loading
+/// records where each of them starts, under its whole path, so the cost of a document is not its
+/// size: a list of a million items under keys that are ten kilobytes each keeps a million paths of
+/// hundreds of kilobytes. Nothing a report says needs this many fields; a table that large is a
+/// data file.
+const MAX_FIELDS: usize = 250_000;
+
+/// How many bytes of field paths loading may build in all, those it keeps and those of the
+/// containers it is inside of. The count is made before each path is built, so a document that is
+/// over it is refused having allocated at most this much, and takes a moment to be refused.
+const MAX_PATH_BYTES: usize = 16 * 1024 * 1024;
+
 enum Frame {
     Seq {
         path: String,
@@ -94,6 +106,19 @@ struct Loader {
     root: Option<Value>,
     positions: BTreeMap<String, Pos>,
     documents: usize,
+    /// The bytes of field paths built so far (`MAX_PATH_BYTES`).
+    path_bytes: usize,
+}
+
+fn too_many_fields(mark: Marker) -> YamlError {
+    YamlError {
+        code: "yaml.unsupported",
+        message: format!(
+            "This YAML has more fields than RichView reads from one document (at most {MAX_FIELDS} mapping keys and list items, and {} MiB of field names); put a large table in a CSV file",
+            MAX_PATH_BYTES >> 20
+        ),
+        pos: Pos::of(mark),
+    }
 }
 
 fn unsupported(what: &str, mark: Marker) -> YamlError {
@@ -144,7 +169,7 @@ impl Loader {
                             message: message.into(),
                             pos: Pos::of(mark),
                         })?;
-                        self.open_item(mark);
+                        self.open_item(mark)?;
                         self.push(value);
                     }
                 }
@@ -167,7 +192,9 @@ impl Loader {
                             pos: Pos::of(mark),
                         });
                     }
-                    self.open_item(mark);
+                    self.open_item(mark)?;
+                    // The container keeps its own copy of its path while it is open.
+                    self.charge(self.child_path_len(), mark)?;
                     let path = self.child_path();
                     let sequence = matches!(event, Event::SequenceStart(..));
                     self.stack.push(if sequence {
@@ -207,6 +234,14 @@ impl Loader {
     }
 
     fn key(&mut self, name: String, mark: Marker) -> Result<(), YamlError> {
+        let Some(Frame::Map { path, .. }) = self.stack.last() else {
+            return Ok(());
+        };
+        let cost = join_len(path, &name);
+        if self.positions.len() >= MAX_FIELDS {
+            return Err(too_many_fields(mark));
+        }
+        self.charge(cost, mark)?;
         let Some(Frame::Map { path, entries, key }) = self.stack.last_mut() else {
             return Ok(());
         };
@@ -240,10 +275,35 @@ impl Loader {
         }
     }
 
+    /// How long `child_path` is, without building it.
+    fn child_path_len(&self) -> usize {
+        match self.stack.last() {
+            None => 0,
+            Some(Frame::Seq { path, items }) => {
+                path.len() + 2 + items.len().checked_ilog10().map_or(1, |d| d as usize + 1)
+            }
+            Some(Frame::Map { path, key, .. }) => join_len(path, key.as_deref().unwrap_or("")),
+        }
+    }
+
+    /// Counts `bytes` of a field path that is about to be built, and refuses the document that
+    /// would build more than `MAX_PATH_BYTES` of them.
+    fn charge(&mut self, bytes: usize, mark: Marker) -> Result<(), YamlError> {
+        self.path_bytes = self.path_bytes.saturating_add(bytes);
+        if self.path_bytes > MAX_PATH_BYTES {
+            return Err(too_many_fields(mark));
+        }
+        Ok(())
+    }
+
     /// A sequence item starts here; mapping values are positioned by their key.
-    fn open_item(&mut self, mark: Marker) {
+    fn open_item(&mut self, mark: Marker) -> Result<(), YamlError> {
         match self.stack.last() {
             Some(Frame::Seq { .. }) => {
+                if self.positions.len() >= MAX_FIELDS {
+                    return Err(too_many_fields(mark));
+                }
+                self.charge(self.child_path_len(), mark)?;
                 let at = self.child_path();
                 self.positions.insert(at, Pos::of(mark));
             }
@@ -252,6 +312,7 @@ impl Loader {
             }
             Some(Frame::Map { .. }) => {}
         }
+        Ok(())
     }
 
     fn push(&mut self, value: Value) {
@@ -336,6 +397,15 @@ fn skip(next: &mut impl FnMut() -> Option<Event>) -> Option<()> {
         if depth == 0 {
             return Some(());
         }
+    }
+}
+
+/// How long `join(path, key)` is.
+fn join_len(path: &str, key: &str) -> usize {
+    if path.is_empty() {
+        key.len()
+    } else {
+        path.len() + 1 + key.len()
     }
 }
 
@@ -728,6 +798,54 @@ mod tests {
         assert_eq!(value("# only a comment\n"), Value::Null);
         assert_eq!(value("- 1\n- two\n"), json!([1, "two"]));
         assert_eq!(value("just text"), json!("just text"));
+    }
+
+    #[test]
+    fn a_list_under_long_keys_is_refused_before_its_paths_are_built() {
+        // Sixty keys of a thousand characters (the longest a simple key may be), each inside the
+        // last, and a list at the bottom: every item is a field whose path is the sixty kilobytes
+        // above it. A million of them are two megabytes of text and sixty gigabytes of paths.
+        let mut text = String::new();
+        for level in 0..60 {
+            text.push_str(&" ".repeat(level));
+            text.push_str(&"k".repeat(1_000));
+            text.push_str(":\n");
+        }
+        text.push_str(&" ".repeat(60));
+        text.push_str(&format!("[{}]\n", "1,".repeat(1_000_000)));
+        assert!(text.len() < 5_000_000, "{}", text.len());
+        let started = std::time::Instant::now();
+        let error = load(&text).unwrap_err();
+        assert_eq!(error.code, "yaml.unsupported");
+        assert!(error.message.contains("more fields"), "{}", error.message);
+        assert!(
+            started.elapsed() < std::time::Duration::from_secs(5),
+            "{:?}",
+            started.elapsed()
+        );
+    }
+
+    #[test]
+    fn a_document_with_more_fields_than_a_report_has_is_refused_and_one_with_a_great_many_is_read()
+    {
+        let flow = |items: usize| format!("[{}]", vec!["1"; items].join(","));
+        let many = load(&flow(MAX_FIELDS - 1)).unwrap();
+        assert_eq!(many.value.as_array().unwrap().len(), MAX_FIELDS - 1);
+        let error = load(&flow(MAX_FIELDS + 1)).unwrap_err();
+        assert_eq!(error.code, "yaml.unsupported");
+        // A table of twenty thousand rows of three fields, as inline data may be, is read.
+        let rows: String = (0..20_000)
+            .map(|n| format!("  - {{a: {n}, b: 2, c: x}}\n"))
+            .collect();
+        let table = load(&format!("data:\n  inline:\n{rows}")).unwrap();
+        assert_eq!(
+            table.value["data"]["inline"].as_array().unwrap().len(),
+            20_000
+        );
+        assert!(table.positions.contains_key("data.inline[19999].c"));
+        // Mapping keys count as fields as list items do.
+        let keys: String = (0..=MAX_FIELDS).map(|n| format!("k{n}: 1\n")).collect();
+        assert_eq!(load(&keys).unwrap_err().code, "yaml.unsupported");
     }
 
     #[test]

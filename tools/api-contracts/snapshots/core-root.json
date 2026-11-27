@@ -308,6 +308,11 @@
         "declaration": "pub use style : : checks as style_checks ;"
       },
       {
+        "name": "style_list_problem",
+        "kind": "use",
+        "declaration": "pub use style : : style_list_problem ;"
+      },
+      {
         "name": "style_vocabulary",
         "kind": "use",
         "declaration": "pub use style : : style_vocabulary ;"
@@ -525,6 +530,7 @@
             "declaration": "# [ derive ( Clone , Debug , Default , Eq , PartialEq ) ] pub struct CompanyBrand",
             "publicFields": [
               "pub name : String",
+              "pub dark_surface : bool",
               "pub base : Option < String >",
               "pub accent : Option < String >",
               "pub logo : Option < CompanyLogo >",

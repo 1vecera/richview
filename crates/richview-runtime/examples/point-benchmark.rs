@@ -1,6 +1,6 @@
 //! FEA-CH-17 scale measurements: layout, nearest hover, WebGL mesh and vector bytes are timed
 //! separately. Run in release with --samples 100; browser paint and upload are measured by
-//! scripts/verify-point-modes.mjs --perf. No budget is inferred for a new fixture size.
+//! scripts/verify-point-modes.ts --perf. No budget is inferred for a new fixture size.
 use richview_chart::block::ChartBlock;
 use richview_chart::geometry::{Geometry, Item, Role};
 use richview_chart::layout::{ChartTheme, Options, Prepared, layout_prepared};

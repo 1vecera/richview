@@ -1,0 +1,48 @@
+{
+	"schema": 1,
+	"name": "release-31",
+	"tag": "v3.1.0",
+	"previousTag": "v3.0.0",
+	"binaryVersion": "3.0.0",
+	"final": "2c220f5929aca0cc0b59cdae0a11d5b77b9a2db2",
+	"candidate": "candidate/33",
+	"full": "full-20261125T152308Z-2c220f5929",
+	"old": "3d62257a3bf5983d82cec8f4649b501c9d9254c1",
+	"oldCandidate": "candidate/32",
+	"oldWorker": "ffbd972b-952c-4deb-a8c9-aea3e5ad80b0",
+	"publicBefore": "091eac49953a50aa3f5b0cfc62c2594f6490ce77",
+	"route": "B",
+	"windowsScope": "combined",
+	"windows": {
+		"ask": "windows-ceiling-25nov",
+		"ceilingUsd": 3,
+		"yes": "Yes: Windows build and checks for v3.1.0 may spend up to 3 USD in total",
+		"no": "No, no Windows spend for v3.1.0"
+	},
+	"notes": "release-notes-3.1.0.md",
+	"assets": "release-assets-eight.tsv",
+	"previous": {
+		"release": "release-30",
+		"journal": "go-record-3d62257a",
+		"retainedFull": "retained-full/full-20261124T093145Z-3d62257a3b",
+		"siteDeploy": "tmp/team/launch/restage/site-deploy-32/deploy.json",
+		"updateSnapshot": "snap-09f5977bc25daba66"
+	},
+	"worker": {
+		"baselineDeployment": "14bcb9b1-5e5d-4df2-8f11-9e87f3f4b4bc",
+		"firstWorker": "e742a801-7cad-45c1-9e58-e82660dc7996",
+		"firstDeployment": "46d7631b-a08b-405f-a338-d38bb06af1ad",
+		"manifestSha256": "867765c19c80a6c1d49cac79916a8ca7102fbf1d73033395bd4a3cadc542b079"
+	},
+	"hosted": {
+		"stack": "richview-cowork-production",
+		"volume": "vol-0aeba7675a653a751"
+	},
+	"hosts": {
+		"lenovoHome": "/home/user"
+	},
+	"pins": {
+		"dockerSha256": "087e379629dcbbec30807ac26ddd373aaa7c0c9964725fe9b27cfb1d342fc38e",
+		"controllerHashes": "controller-31.sha256"
+	}
+}

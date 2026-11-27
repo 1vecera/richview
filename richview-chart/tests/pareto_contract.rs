@@ -1,7 +1,7 @@
 //! Pareto charts: sorting, the running share on its own axis, the readouts and the shared
 //! contract (FEA-CH-01, FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Geometry, Item, Role};

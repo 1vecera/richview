@@ -1,7 +1,7 @@
 //! Interval charts: authored bounds and an optional estimate, never an inferred distribution or
 //! confidence, and the contract every type shares (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Cmd, Geometry, Item, Role};

@@ -29,7 +29,7 @@
 		<link rel="preload" href="/fonts/caveat-500.woff2" as="font" type="font/woff2" crossorigin />
 		<link rel="preload" href="/fonts/caveat-brush-400.woff2" as="font" type="font/woff2" crossorigin />
 		<!-- The page's faces are site fonts. The report-face catalog is not linked here: the scroll story's
-		     styles link it as the reader nears them, and the live example's renders fetch it (S27-927). -->
+		     styles link it as the reader nears them, and the live example's renders fetch it. -->
 		<link rel="stylesheet" href="/site.css" />
 		<link rel="stylesheet" href="/landing/landing.css" />
 		<link rel="stylesheet" href="/landing/editor.css" />
@@ -45,7 +45,7 @@
 		<!-- rv-site-header -->
 
 		<main id="main">
-			<!-- The first screen (W4, S27-959): the line across the top, and under it RichView's painting agent at
+			<!-- The first screen (W4): the line across the top, and under it RichView's painting agent at
 			     work on the anchor report's chart from its real data, rendered in Blender and baked into a short
 			     clip. The clip plays once and holds on its last frame. The still under it is the clip's first
 			     frame, so the clip's arrival never shows and a reader without video sees the same scene, standing
@@ -285,9 +285,9 @@
 									</div>
 								</div>
 								<div class="report-viewport">
-									<p id="demo-fallback"><a href="/landing/demo.html">Open the example report</a></p>
+									<p id="demo-fallback"><a href="/landing/demo">Open the example report</a></p>
 									<iframe id="demo-result" title="RichView report rendered from the Rich Markdown source" sandbox="allow-scripts" hidden></iframe>
-									<noscript><iframe title="RichView report rendered from the Rich Markdown source" src="/landing/demo.html" sandbox="allow-scripts"></iframe></noscript>
+									<noscript><iframe title="RichView report rendered from the Rich Markdown source" src="/landing/demo" sandbox="allow-scripts"></iframe></noscript>
 									<div class="report-veil" id="demo-veil" hidden><span>Not updated: this is the last report that rendered. Fix the source or reset the example.</span></div>
 								</div>
 							</div>
@@ -299,7 +299,7 @@
 			<!-- Your brand: an example company's style file and the report it makes, then the anchor report in each
 			     prebuilt style, as the build renders it, standing still. The company report is the page's example
 			     report, without its photo, rendered by the CLI with assets/landing/brand/company.rstyle.yaml over Air
-			     and captured as an image by scripts/capture-brand-report.mjs; the company, its name and its logo
+			     and captured as an image by scripts/capture-brand-report.ts; the company, its name and its logo
 			     are placeholders. -->
 			<section class="voices" id="styles" aria-labelledby="h-voices">
 				<div class="voices__head">

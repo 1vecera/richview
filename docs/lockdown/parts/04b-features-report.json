@@ -3,7 +3,7 @@
   "order": 5,
   "title": "Features: report rendering",
   "status": "ready",
-  "summary": "This part settles what authors and readers get when RichView renders a report: the document shell, header and link-preview tags, Markdown prose, every block except charts (table, metric, callout, image, audio, video, embed), how failures show in drafts, styles and the `theme` option as authors meet them, motion and the readiness hook, the self-contained file and `Rendered/` folder, data and media embedding, supported browsers, browser print, PDF and other outputs, accessibility and language. Charts are part 04a, CLI, server, MCP and editor surfaces 04c, branch-only features 04d, field types 05 and style tokens 06; items here point to them instead of repeating them. Behaviour was read at `b4db233` (2026-10-16) and checked with the release build and headless Chromium on 2026-10-21 and 2026-10-22; new captures are in `docs/lockdown/screenshots/report-rendering/`. Fixture figures come from `docs/lockdown/screenshots/product/fixture/source/` rendered with its four media files (image, tone, clip and poster), which are not kept beside it; without them `generate` stops with four `report.asset.missing` errors.\n\nThe decisions that change the most:\n\n- **`theme` (FEA-RP-33)**: the light/dark override goes. Today it breaks chart contrast while `check` reports clean, and on a server that also hosts the showcase it silently restyles the report. ARC-06, INT-56 and TYP-69 still assume it.\n- **Failures in drafts (FEA-RP-29 to FEA-RP-31, FEA-RP-57, FEA-RP-58)**: a broken block, missing file or broken link fails only its element with a notice in place, misspelled tags and unreadable frontmatter are flagged, and the in-report report card goes, which part 04c already follows. Today one missing image or linked file aborts the whole render.\n- **PDF (FEA-RP-43, FEA-RP-44)**: PDF export stays, enters `dev` only with its pagination fixtures passing, and refuses reports with errors. Today’s fixture PDF splits its metrics across two pages and ends with a page holding only the colophon.\n- **Leaner Markdown (FEA-RP-05, FEA-RP-12 to FEA-RP-14, FEA-RP-53)**: prolog, wikilinks, pull quotes and raw HTML leave, HTML comments, which today ship in the published file, are dropped, and rich blocks sit only at the top level.\n- **Weight (FEA-RP-38)**: the 2.1 MB runtime is embedded only when a report has a chart or table block; a one-paragraph report weighs 2.37 MB today.\n- **Against Daniel’s own requests**: FEA-RP-35 keeps report text still, reversing his 2026-06-27 request for “beautiful soft animations of chart and texts”.\n- **S27-616’s outputs (FEA-RP-42, FEA-RP-46 to FEA-RP-48)**: following Daniel’s INT-31 answer, hosted media arrive through pinned asset references, scrollytelling is built as an element inside a report, and the carousel PDF and per-output markers are dropped.\n- **Accessibility and privacy (FEA-RP-49, FEA-RP-55, FEA-RP-56)**: WCAG 2.2 AA becomes the standard, checked by the dev gate’s accessibility audit (DEL-58), audio and video gain captions and transcripts, and embeds load only when the reader asks.\n\nAnswer each card: **accept** keeps the proposal as the rewrite’s rule (where options are listed, the proposal is the recommended option; FEA-RP-24 keeps today’s layout because no evidence settles it), **edit** replaces it with your text, **reject** drops the feature or rule from the rewrite, and **defer** leaves it open. A card that removes or adds a format field names the part 05 item it changes under conflicts; answer both the same way. Part 08's cross-part contradiction cards (OPN-50 to OPN-68) decide conflicts involving this part's cards and should be answered first.",
+  "summary": "This part settles what authors and readers get when RichView renders a report: the document shell, header and link-preview tags, Markdown prose, every block except charts (table, metric, callout, image, audio, video, embed), how failures show in drafts, styles and the `theme` option as authors meet them, motion and the readiness hook, the self-contained file and `Rendered/` folder, data and media embedding, supported browsers, browser print, PDF and other outputs, accessibility and language. Charts are part 04a, CLI, server, MCP and editor surfaces 04c, branch-only features 04d, field types 05 and style tokens 06; items here point to them instead of repeating them. Behaviour was read at `b4db233` (2026-10-16) and checked with the release build and headless Chromium on 2026-10-21 and 2026-10-22; new captures are in `docs/lockdown/screenshots/report-rendering/`. Fixture figures come from `docs/lockdown/screenshots/product/fixture/source/` rendered with its four media files (image, tone, clip and poster), which are not kept beside it; without them `generate` stops with four `report.asset.missing` errors.\n\nThe decisions that change the most:\n\n- **`theme` (FEA-RP-33)**: the light/dark override goes. Today it breaks chart contrast while `check` reports clean, and on a server that also hosts the showcase it silently restyles the report. ARC-06, INT-56 and TYP-69 still assume it.\n- **Failures in drafts (FEA-RP-29 to FEA-RP-31, FEA-RP-57, FEA-RP-58)**: a broken block, missing file or broken link fails only its element with a notice in place, misspelled tags and unreadable frontmatter are flagged, and the in-report report card goes, which part 04c already follows. Today one missing image or linked file aborts the whole render.\n- **PDF (FEA-RP-43, FEA-RP-44)**: PDF export stays, enters `dev` only with its pagination fixtures passing, and refuses reports with errors. Today’s fixture PDF splits its metrics across two pages and ends with a page holding only the colophon.\n- **Leaner Markdown (FEA-RP-05, FEA-RP-12 to FEA-RP-14, FEA-RP-53)**: prolog, wikilinks, pull quotes and raw HTML leave, HTML comments, which today ship in the published file, are dropped, and rich blocks sit only at the top level.\n- **Weight (FEA-RP-38)**: the 2.1 MB runtime is embedded only when a report has a chart or table block; a one-paragraph report weighs 2.37 MB today.\n- **Against Daniel’s own requests**: FEA-RP-35 keeps report text still, reversing his 2026-06-27 request for “beautiful soft animations of chart and texts”.\n- **The design-and-hosting brief’s outputs (FEA-RP-42, FEA-RP-46 to FEA-RP-48)**: following Daniel’s INT-31 answer, hosted media arrive through pinned asset references, scrollytelling is built as an element inside a report, and the carousel PDF and per-output markers are dropped.\n- **Accessibility and privacy (FEA-RP-49, FEA-RP-55, FEA-RP-56)**: WCAG 2.2 AA becomes the standard, checked by the dev gate’s accessibility audit (DEL-58), audio and video gain captions and transcripts, and embeds load only when the reader asks.\n\nAnswer each card: **accept** keeps the proposal as the rewrite’s rule (where options are listed, the proposal is the recommended option; FEA-RP-24 keeps today’s layout because no evidence settles it), **edit** replaces it with your text, **reject** drops the feature or rule from the rewrite, and **defer** leaves it open. A card that removes or adds a format field names the part 05 item it changes under conflicts; answer both the same way. Part 08's cross-part contradiction cards (OPN-50 to OPN-68) decide conflicts involving this part's cards and should be answered first.",
   "items": [
     {
       "id": "FEA-RP-01",
@@ -167,7 +167,7 @@
       "group": "Document and header",
       "title": "Header imagery: choice, crop and credit",
       "question": "How do authors choose, crop and credit a header image, and what may it claim?",
-      "why": "S27-616 asks for illustrative header imagery “as a normal choice for most reports, with author control over selection, replacement, crop and omission”, and S27-637 for a visible attribution that matches each image’s licence. FEA-RP-03 fixes only the header’s order and alt text, and INT-75 only the flagship’s graphic. Today `title_image` takes the image fields, cropping does not work (`fit` has no visible effect, FEA-RP-26), the credit sits in the caption by convention, and nothing checks that a header graphic’s figures are sourced in the report (the flagship’s header is a chart image whose figures the body repeats with sources).",
+      "why": "The design-and-hosting brief asks for illustrative header imagery “as a normal choice for most reports, with author control over selection, replacement, crop and omission”, and the flagship-imagery request for a visible attribution that matches each image’s licence. FEA-RP-03 fixes only the header’s order and alt text, and INT-75 only the flagship’s graphic. Today `title_image` takes the image fields, cropping does not work (`fit` has no visible effect, FEA-RP-26), the credit sits in the caption by convention, and nothing checks that a header graphic’s figures are sourced in the report (the flagship’s header is a chart image whose figures the body repeats with sources).",
       "proposed": "A header image stays optional and is chosen, replaced or removed through `title_image` alone; `richview learn` presents a credited header image as a normal choice for most reports. It crops like an image block: `width` and `height` set its aspect ratio and `fit: cover` fills that box (FEA-RP-26). Its credit goes in the `credit` field that Daniel's FEA-RP-62 answer gives image blocks and `title_image` (author, author_url, source, source_url), printed under the image in small type, and `caption` describes the image; `richview check` notes (`info`) a header image with neither credit nor caption and warns on an `images.unsplash.com` photo without a credit (FEA-RP-62). `richview image search` and `richview image use` find a photo. Header imagery is one of the tools RichView gives authors (Daniel's INT-77 answer); RichView does not judge whether an image suits the story. A header image may illustrate or summarise, but it states no figure the report does not source; a header graphic that must follow the active style is drawn by the renderer from the report’s data (INT-75), not supplied as an image file.",
       "options": [
         {
@@ -194,12 +194,10 @@
         },
         {
           "label": "“Restore illustrative header/hero imagery as a normal choice for most reports, with author control over selection, replacement, crop and omission”",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
           "label": "“All new images carry a visible attribution + a row in the sources ledger”",
-          "ref": "S27-637",
           "date": "2026-10-13"
         },
         {
@@ -1378,6 +1376,167 @@
       ]
     },
     {
+      "id": "FEA-RP-71",
+      "kind": "decision",
+      "importance": "key",
+      "refId": "F-SLIDE-FORMAT",
+      "component": "C-RICHVIEW-CORE",
+      "group": "PDF and other outputs",
+      "title": "Rich Slides: the format, its grid and its furniture",
+      "question": "Is this the shape of a `.rslide` deck: 24 columns by 24 rows, a head, a content region and a foot, nine layouts from named slots, and a setup before the first slide?",
+      "why": "FEA-RP-65 settled that slides are a format of their own with named slots on a 24-column grid, and left the rows, margins, name, extension and combination open. Daniel answered the rows, the extension and the combination on 24 November. What remains is the geometry an agent writes against: where the title and the foot stand, how `rows` reads when the content's height changes, and what a deck says about itself. Without these a deck cannot be built, and an author cannot reason about a chart's proportions.",
+      "proposed": "**One name.** The format is *Rich Slides*; its file extension is `.rslide`, and a deck is one file. `richview generate deck.rslide` writes `Rendered/deck.html`, one self-contained HTML deck; `richview check`, `validate`, `serve` and `publish` read it too. A deck and a report do not combine: a `.rslide` is never part of an `.rmd`, and there is no frontmatter switch (Daniel, 24 November 2026).\n\n**The stage is 24 columns by 24 rows**, edge to edge, 16:9, so one column is as wide as a row is tall (a box *n* columns by *n* rows has the stage's own shape). The style keeps a margin of 5% of the stage's width at the sides and a gutter of 3% between neighbouring slots; an author never writes a gap, and leaves air by leaving a slot out.\n\n| Part of the stage | Rows | Present when |\n| --- | --- | --- |\n| Head | 1–4 | the slide has a `title` or a `subtitle` |\n| Content | 5–22 (18 rows) | always; it takes rows 1–4 too without a head, and rows 23–24 without a foot |\n| Foot | 23–24 | the slide has a `source` or a `footer` |\n\nSo a slide with a head and a foot has 18 content rows, which halve, third and split at the golden ratio; a slide with neither has all 24. The head keeps its four rows whether it holds one line or two, so the content's top edge does not jump from slide to slide.\n\n**`cols` and `rows` are parts of 24** that add up to 24: `cols: 9-15` is the golden split, `cols: 8-8-8` the thirds. Columns are exactly those cells. Rows are the same proportion of the content region, whatever its height (18, 20, 22 or 24 rows), so `rows: 9-15` means the same on every slide. Equal shares are the default. The number of parts is the number of cuts the layout has on that axis: a layout with no cut on an axis has no setting for it, and `richview check` reports each slide's resolved spans.\n\n**Furniture.** `title` is the large line and `subtitle` the small one, under it; either may carry the slide's claim, and a subtitle alone is a warning. `source` stands at the foot's left, in the style's note size, and `footer` at its right; both are printed as written, so a source note says \"Source: ...\" itself. A chart's own `title` is required, as in a report, because it is the chart's accessible name; on a slide with a head the head speaks and the chart's title is not drawn, and on a slide with no head it is the headline. Slide numbers are the runtime's counter. A slide with no `source` and no `footer` has no foot, and its content takes rows 23–24.\n\n**Furniture-only slides.** A slide with a title and no pieces is the cover when it is first and a section slide anywhere else; each style sets the cover and the section in its own way (a stage of its own, STY-58's world). A slide of one `metric` is the hero number, the largest the format sets. These are read from what the slide holds, never named.\n\n**The first line is `format: rslide/1`.** It is how a deck names itself, as a report names itself with `format: rmd/1`: every tool that holds only the text (the command line, the editor, a publish server, the browser) reads a source that starts so as a deck, with no file name or flag to pass along. A newer major version than the build reads is the error `frontmatter.format`.\n\n**The deck's setup** is the text from that line to the first `---`: `title` (the page title and the shared link's title; the first slide's title when absent), `description`, `version`, `slug`, `lang` and `styles`, all optional, with the meaning they have in a report's frontmatter. A deck to be published needs the `title`, `description` and `version` a report needs. Every slide opens with a `---` line; the line after the last slide is optional.\n\n**Styles.** The five builtin styles keep the stages they have: Sleek a stage at night, Air daylight on a grid, Brutalist posters, Hand-drawn a talk drawn as it is given, Scientific the talk of a good paper. A style file chooses its stage with `components.slides.stage`; a style that sets none gets the plain layout. Nothing in a deck's source changes with the style.\n\n**What a slot holds.** One piece: text, or a `chart`, `metric` or `table`. A chart, metric or table is written in that block's own vocabulary, indented under its name, exactly as its fence is written in a report: the same fields, checks and diagnostics, now with the deck's line numbers. Text is Markdown as written (bold, italics, code, links, lists, short paragraphs) and is taken as it stands, with no quoting. A slot never holds two pieces; the way to two numbers is `left` and `right`.\n\n**The layouts** are the slots a slide uses, and there are nine: one piece alone (`chart`, `metric`, `table` or `text` as the slide's own key); `left` and `right`; `top` and `bottom`; `left`, `middle` and `right`; `top`, `middle` and `bottom`; `top` over `bottom-left` and `bottom-right`; `bottom` under `top-left` and `top-right`; `left` beside `top-right` and `bottom-right`; `right` beside `top-left` and `bottom-left`. Any other set of slots is the error `deck.layout`, which names the slots found and the nearest layout.",
+      "options": [
+        {
+          "label": "Build as proposed",
+          "detail": "The first line `format: rslide/1`, head rows 1–4, foot rows 23–24, `rows` as proportions of the content region, a setup before the first `---`."
+        },
+        {
+          "label": "Rows as literal stage rows",
+          "detail": "`rows` counts real stage rows (18 in the content region), so `rows: 9-9` replaces `9-15`; an author must know how many rows the furniture left, and the numbers change on a slide without a foot."
+        },
+        {
+          "label": "Setup in a first `---` part",
+          "detail": "Deck settings stand in a slide-shaped first part instead of before the first `---`; one rule fewer to say, but a part that is not a slide."
+        },
+        {
+          "label": "Decide a deck by its file name",
+          "detail": "No marker line; every host that holds only text (the publish server, the editor, the browser runtime) would need the name passed along, and a deck pasted as text would be read as a report."
+        }
+      ],
+      "recommendation": "Build as proposed: one set of numbers in both directions (12 : 12, 9 : 15, 8 : 8 : 8), and the furniture comes out even; a footer line with its margin is about 8% of the height, which is 2 rows, and a head about 17%, which is 4.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Daniel, 23 November 2026: slides are a separate format with named slots on a 24-column grid, written as a YAML-like file (FEA-RP-65, TYP-100)",
+          "ref": "docs/lockdown/answers/04b-features-report.json",
+          "date": "2026-11-23"
+        },
+        {
+          "label": "Daniel, 24 November 2026: “how they can report combine: they don't, basically. How many rows? 24. The extension should be just .rslide.”",
+          "ref": "Daniel's message of 24 November 2026, relayed by the lead",
+          "date": "2026-11-24"
+        },
+        {
+          "label": "Four format studies and two surveys of slide tools (24 columns by 24 rows, head and footer rows, the named slots)",
+          "ref": "tmp/interview/slides-research/ in the primary checkout on Claw Mini",
+          "date": "2026-11-23"
+        }
+      ],
+      "conflicts": "FEA-RP-65 lists margins and gutters as open; this card fixes them as shares of the stage's width (5% and 3%), the values the built slides already use."
+    },
+    {
+      "id": "FEA-RP-72",
+      "kind": "decision",
+      "importance": "important",
+      "refId": "F-SLIDES-RETIRED",
+      "component": "C-RICHVIEW-CORE",
+      "group": "PDF and other outputs",
+      "title": "What happens to `slides: true`",
+      "question": "What should a Rich Markdown report that still says `slides: true` do once slides are a format of their own?",
+      "why": "FEA-RP-65 retires the `slides: true` switch and its automatic layout. Decks written under it exist: the monthly review, anything an agent made from `richview learn slides` since 17 November. The old layout placed content by itself, so a conversion would have to invent the author's choices, which is what the new format removes.",
+      "proposed": "**A diagnostic and no conversion.** `slides` leaves the frontmatter's fields and joins the retired names (TYP-83): a report that still holds `slides: true` renders as the ordinary report it always was, and carries the error `frontmatter.slides`, whose message says in one line what to write instead: the deck as a `.rslide` file, its first line `format: rslide/1`, each slide after a `---` line, and `richview learn slides` as the guide. The key is dropped from the rendered metadata. The text of the diagnostic does not promise a converter: placing a slide's content in slots is the author's decision, and an agent makes it in one pass from the old source and the guide.\n\nThe old rendition's automatic layout, its `slides.tabs` diagnostic and its regions (title, numbers, figures, text) are removed; its density limits move to the new format's `slides.density`, now per slot. **The five stages stay**: each builtin style keeps its world, and a style file's `components.slides.stage` keeps its name and values, so no style source changes (STY-58 and the style guide describe them as before). The demo deck of the docs is new, written in the new format from real data (FEA-RP-74), and the gallery lists it as a deck; the old monthly review is not carried over.\n\nNo `.rmd` is migrated by a tool: v3.0.0 shipped without slides on the home page, and the format never left its experimental period for users beyond Daniel's reviews.",
+      "options": [
+        {
+          "label": "Diagnostic only",
+          "detail": "The report renders as a report with the error `frontmatter.slides` and a fix naming `.rslide`; no converter."
+        },
+        {
+          "label": "Converter command",
+          "detail": "`richview slides convert report.rmd` writes a `.rslide` with a layout guessed from each slide's contents; the guess is the automatic layout that was retired."
+        },
+        {
+          "label": "Keep both for a release",
+          "detail": "`slides: true` keeps rendering, flagged deprecated; two slide engines to maintain and test against one set of styles."
+        }
+      ],
+      "recommendation": "Diagnostic only: a converter keeps the automatic layout alive as a guess, and a second engine for one release costs more than the decks it would save.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Daniel, 23 November 2026: slides are a separate format with named slots on a 24-column grid, written as a YAML-like file (FEA-RP-65, TYP-100)",
+          "ref": "docs/lockdown/answers/04b-features-report.json",
+          "date": "2026-11-23"
+        }
+      ]
+    },
+    {
+      "id": "FEA-RP-73",
+      "kind": "decision",
+      "importance": "important",
+      "refId": "F-SLIDES-PRESENTING",
+      "component": "C-RICHVIEW-CORE",
+      "group": "PDF and other outputs",
+      "title": "Presenting a deck: keys, phone, print, notes and reveals",
+      "question": "How is a deck presented, read on a phone, printed and taught, and are speaker notes and step-by-step reveals part of the first build?",
+      "why": "FEA-RP-65 names the phone, print, notes and reveals as open and says notes and reveals were never discussed. The old rendition's behaviour is a base, not an answer: its layout is gone, so the phone and paper readings have to be said again for named slots.",
+      "proposed": "**Presenting.** Keys, the counter, full screen (`F`) and the address (`#slide=4`, counted from 1) stay as the built slides have them (FEA-RP-65); a chart, table or control that has focus keeps the arrows and Space. A chart opens on the whole stage while presenting: a click on it or Enter on it when focused, Escape to close; it is laid out again for the stage and gives back what a slide withholds, the readout and the zoom along its x axis.\n\n**Phone.** Below a landscape window of 900 px there is no stage: a 16:9 stage at 390 px would set text near 6 px. Each slide becomes a card as wide as the screen and at least a screen high: its head first, then its slots in reading order, top row first and then left to right, then its foot. `cols`, `rows` and the layout drop out; text is set at the style's phone sizes, a chart is laid out again for the phone's column, a table wraps and then scrolls. Nothing is clipped and no text shrinks to fit: a slide that needs more grows.\n\n**Print.** One slide per 16:9 landscape page, 13.333 × 7.5 in, the stage at rest: the same grid and slots, the style's print colours, no motion. The browser prints it, and `richview generate deck.rslide --to pdf` writes the same pages.\n\n**Density.** `slides.density` (warning) names the slide, its line and the slot when a slot holds more than its box shows well: about 40 words of text in a slot under 12 columns wide and 80 in a wider one, more than ten rows of a table, a title over 90 characters. The fix is always a new slide.\n\n**Speaker notes and reveals are not in the first build.** A `notes` key would need a presenter view, a second window that keeps time with the first, which is a product of its own; reveals multiply the syntax a slide can say before the layouts have been used. An agent that writes `notes` or `reveal` gets the warning `deck.key` naming the key as not read, so a later answer can add one without a deck changing meaning. The slide's own arrival animation, one pass at the style's pace as the built slides have it, stays; reduced motion and print show every slide at rest.\n\n**Publishing works.** A deck is self-contained HTML like a report, so it publishes through the same path, hosted and Publish alike: `richview publish deck.rslide` sends the deck's text, the server reads it as a deck by its first line and renders what it receives, and the setup's `title`, `description` and `version` are what publication requires. The editor's launch includes slides (Daniel, 25 November, relayed by the lead), so refusing a deck was not an option. **`richview learn slides`** stays as the sixth section, rewritten for `.rslide` only and short enough to fit one tool output, and the `richview_learn` MCP tool returns the same text.",
+      "options": [
+        {
+          "label": "Without notes and reveals",
+          "detail": "The first build presents, prints, reads on a phone and publishes; `notes` and `reveal` are warned as not read."
+        },
+        {
+          "label": "Notes in the first build",
+          "detail": "A `notes` key, shown in a presenter window; a second window, a channel between the two and a timer to build and test."
+        },
+        {
+          "label": "Notes and reveals",
+          "detail": "Both, with a `reveal` count on a text slot; the launch waits for them."
+        }
+      ],
+      "recommendation": "Without notes and reveals: Daniel launches slides first (25 November) and the layouts are the new part; a presenter view is a separate thing to judge after the format is in use.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Daniel, 23 November 2026: slides are a separate format with named slots on a 24-column grid, written as a YAML-like file (FEA-RP-65, TYP-100)",
+          "ref": "docs/lockdown/answers/04b-features-report.json",
+          "date": "2026-11-23"
+        },
+        {
+          "label": "Daniel, 24 November 2026: “how they can report combine: they don't, basically. How many rows? 24. The extension should be just .rslide.”",
+          "ref": "Daniel's message of 24 November 2026, relayed by the lead",
+          "date": "2026-11-24"
+        },
+        {
+          "label": "The lead, 25 November 2026: publishing a deck must work in this build; the retired `slides` error says exactly what to write instead",
+          "ref": "The lead's message to the implementer, 25 November 2026",
+          "date": "2026-11-25"
+        }
+      ]
+    },
+    {
+      "id": "FEA-RP-74",
+      "kind": "decision",
+      "importance": "important",
+      "refId": "F-SLIDES-DOCS",
+      "component": "C-DOCS-SITE",
+      "group": "PDF and other outputs",
+      "title": "How the docs and the home page show a deck",
+      "question": "Where does a reader meet a deck: a docs page with a live deck, the gallery, the home page?",
+      "why": "FEA-SF-56 records that the home page has no slide card, deck preview or guide link since 23 November, and the docs' slides page says a new format is coming. A format that is launched needs a page that teaches it and a deck a reader can open, and the home page is a decision of its own (INT-43).",
+      "proposed": "**The docs** carry one Slides guide page: the format in a screen of text, the nine layouts in one picture, one complete small deck to copy, and the live demo deck in a frame that shows the export itself, since a slide is a screen. The deck's source is downloadable beside it, as a gallery report's is. The page replaces the notice that a format is coming. The gallery's report list names the demo deck as a deck and links to it.\n\n**The demo deck** is built from real data, not from made-up rows: NASA's annual global temperature index, 1880 to 2025, the data of the gallery's report *A warmer world*. It has ten slides: a cover, one number, a line chart, a chart beside its note at the golden split, a table beside its note, a section, a chart over two numbers, three numbers side by side, how to read the index and the sources. Every figure on it is worked out from the data file that sits in its folder and is offered for download with the source, and the foot of each slide names NASA. It is the live demo and the one example deck at once, it shows the format at its best, and it is built in every style. The guide's own small deck, the one to copy, keeps made-up rows and says so.\n\n**The home page** keeps FEA-SF-56 as it is: slides are named in the sentence about the ecosystem and nothing else, until Daniel chooses the launch (INT-43). When he does, the first thing to add is a link to the demo deck, not a card or a preview.",
+      "options": [
+        {
+          "label": "Docs page and demo deck; home page unchanged",
+          "detail": "The page and the live deck in the docs; the home page names slides once, as FEA-SF-56 says."
+        },
+        {
+          "label": "Also a home-page deck preview",
+          "detail": "A slide-shaped card on the home page now; contradicts FEA-SF-56 until Daniel's launch go."
+        }
+      ],
+      "recommendation": "Docs page and demo deck; home page unchanged: FEA-SF-56 and Daniel's 23 November ruling keep slides off the home page until the launch is chosen.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Daniel, 23 November 2026: slides are a separate format with named slots on a 24-column grid, written as a YAML-like file (FEA-RP-65, TYP-100)",
+          "ref": "docs/lockdown/answers/04b-features-report.json",
+          "date": "2026-11-23"
+        }
+      ]
+    },
+    {
       "id": "FEA-RP-54",
       "kind": "decision",
       "importance": "detail",
@@ -1917,7 +2076,7 @@
           "date": "2026-10-16"
         }
       ],
-      "conflicts": "TYP-39 puts escape and absence errors at the referencing line, and TYP-40 already fails a remote media file on its own element. S27-578 asks for hard failures with “no silent fallback or partial successful render” for missing, shared or escaping report roots; those still stop the render, and a draft with errors exits 1, so it never counts as a successful render."
+      "conflicts": "TYP-39 puts escape and absence errors at the referencing line, and TYP-40 already fails a remote media file on its own element. The authoring-feedback issue asks for hard failures with “no silent fallback or partial successful render” for missing, shared or escaping report roots; those still stop the render, and a draft with errors exits 1, so it never counts as a successful render."
     },
     {
       "id": "FEA-RP-31",
@@ -1996,7 +2155,7 @@
       "group": "Styles, theme and print",
       "title": "Styles as the author meets them",
       "question": "Is this the author’s experience of styling: a finished default with no file, builtins by name, and local style files layered in order?",
-      "why": "S27-578 requires a finished report with no style file (STY-06, STY-17), and the theme-switch proof (DEL-17) requires every element to follow the active style; styles failing to reach charts took seven rounds of fixes in 2026 (INT-56).",
+      "why": "The authoring-feedback issue requires a finished report with no style file (STY-06, STY-17), and the theme-switch proof (DEL-17) requires every element to follow the active style; styles failing to reach charts took seven rounds of fixes in 2026 (INT-56).",
       "proposed": "Without `styles` or `--style`, a report renders in the default builtin (STY-06). Authors list builtins or report-relative `.rstyle.yaml` files in `styles` (TYP-45); `--style` appends to that list, and later entries win value by value (TYP-44). Every element follows the resulting style: text, charts, tables, metrics, callouts, media, print and PDF. Switching style never changes content, data or order. What a bad value does is TYP-44’s.",
       "confidence": "observed",
       "sources": [
@@ -2012,7 +2171,6 @@
         },
         {
           "label": "“Styling YAML must remain optional: a report without it still renders using the default style”",
-          "ref": "S27-578",
           "date": "2026-10-04"
         },
         {
@@ -2159,7 +2317,7 @@
       "group": "Motion and readiness",
       "title": "What moves in a report",
       "question": "Which parts of a report move: chart data only, or also the blocks of text as they enter?",
-      "why": "On 2026-06-27 Daniel asked for “beautiful soft animations of chart and texts”, and the TypeScript renderer of July faded text and charts up. Commit `4167940` (2026-10-11, merged with PR #22 for S27-616) removed “the load-time text and chart fades”; charts keep their own entrances (FEA-CH-51), and MOTION.md now says report text never animates. The lockdown evidence records no later statement from Daniel asking for still text. The vNext study proposed one text motion, a staggered fade-up. Daniel's INT-12 answer (2026-10-27) now sets the bar for all motion: delightful and smooth, the whimsical quality of Studio Ghibli meeting the polish of Apple's website animations, with motion that explains structure or change and gives pleasure counted as craft.",
+      "why": "On 2026-06-27 Daniel asked for “beautiful soft animations of chart and texts”, and the TypeScript renderer of July faded text and charts up. Commit `4167940` (2026-10-11, merged with PR #22 for the design-and-hosting brief) removed “the load-time text and chart fades”; charts keep their own entrances (FEA-CH-51), and MOTION.md now says report text never animates. The lockdown evidence records no later statement from Daniel asking for still text. The vNext study proposed one text motion, a staggered fade-up. Daniel's INT-12 answer (2026-10-27) now sets the bar for all motion: delightful and smooth, the whimsical quality of Studio Ghibli meeting the polish of Apple's website animations, with motion that explains structure or change and gives pleasure counted as craft.",
       "proposed": "Report motion serves the bar of Daniel's INT-12 answer: delightful and smooth, in the spirit of Studio Ghibli's whimsy and Apple's website polish. Chart data moves as FEA-CH-51 and FEA-CH-52 specify. Blocks below the first screen (titles, prose, metrics, callouts, tables, media) enter once with one soft fade-up of about 300 ms as they come into view. Blocks that come into view together stagger by at most four steps, so a long run of blocks never waits on its own entrance. The runtime applies it, so the first screen, print, PDF and a report without scripts show every word at rest (FEA-RP-39); an entrance never delays reading and never repeats when the reader scrolls back. Under reduced motion nothing animates (FEA-RP-36). Scrollytelling figures move as FEA-RP-48 says. All of it passes INT-61's phone-smoothness floor and the filmstrip evidence (DEL-30); a style that switches motion off (TYP-49, STY-15) renders everything settled. Any further motion a style adds is part of that style's design review (STY-01), judged by a review agent (INT-12, DEL-68).",
       "options": [
         {
@@ -2175,7 +2333,7 @@
           "detail": "Charts also render settled; drops the chart entrances of FEA-CH-51."
         }
       ],
-      "recommendation": "Charts plus soft block entrances: Daniel's INT-12 answer asks for delightful, smooth motion and counts motion that gives pleasure as craft, and his 2026-06-27 request asked for soft text entrances. The jumpy phone scroll he reported on 2026-10-18 (S27-653) is what INT-61's floor and the filmstrip evidence guard against, so an entrance ships only when it passes them.",
+      "recommendation": "Charts plus soft block entrances: Daniel's INT-12 answer asks for delightful, smooth motion and counts motion that gives pleasure as craft, and his 2026-06-27 request asked for soft text entrances. The jumpy phone scroll he reported on 2026-10-18 is what INT-61's floor and the filmstrip evidence guard against, so an entrance ships only when it passes them.",
       "confidence": "observed",
       "sources": [
         {
@@ -2209,7 +2367,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "The 2026-06-27 feedback asked for text animation; MOTION.md (October) forbids it, and the change came with the S27-616 work (`4167940`) without a recorded statement by Daniel asking for it. The showcase still declares `rv-fade-up` animations with no keyframes (dead CSS, `assets/showcase/themes.css:182-201`). STY-45 leaves motion inside reports to this card. The earlier recommendation (charts only, because a text fade “explains neither” structure nor change) read INT-12 more narrowly than Daniel's 2026-10-27 wording, which also counts motion that gives pleasure; FEA-CH-51 points here for how text enters."
+      "conflicts": "The 2026-06-27 feedback asked for text animation; MOTION.md (October) forbids it, and the change came with the design-and-hosting work (`4167940`) without a recorded statement by Daniel asking for it. The showcase still declares `rv-fade-up` animations with no keyframes (dead CSS, `assets/showcase/themes.css:182-201`). STY-45 leaves motion inside reports to this card. The earlier recommendation (charts only, because a text fade “explains neither” structure nor change) read INT-12 more narrowly than Daniel's 2026-10-27 wording, which also counts motion that gives pleasure; FEA-CH-51 points here for how text enters."
     },
     {
       "id": "FEA-RP-36",
@@ -2495,7 +2653,6 @@
         },
         {
           "label": "“Generated output belongs in a subfolder named `Rendered`”; “Verify the generated artifact itself”",
-          "ref": "S27-578",
           "date": "2026-10-04"
         }
       ],
@@ -2510,7 +2667,7 @@
       "group": "Output, data and media",
       "title": "Data next to the block that uses it",
       "question": "Is block-local data, inline or one CSV or JSON file in the report folder, the only way data reaches a report?",
-      "why": "Daniel decided on 2026-10-04 that data lives in the chart or table that consumes it (S27-579). This item records the author’s experience; the types are TYP-35 to TYP-38.",
+      "why": "Daniel decided on 2026-10-04 that data lives in the chart or table that consumes it. This item records the author’s experience; the types are TYP-35 to TYP-38.",
       "proposed": "Each chart or table names its own data: a few rows inline in the block, one CSV or JSON file in the report folder, a URL, or SQL against a connector on a RichView server (OPN-63); exported data in the report folder stays the default (INT-24). Several blocks may read the same file. The rendered report embeds only the fields each block uses (TYP-36), and the reader’s Table and CSV views show those fields for every row. The core never queries data (INT-08). A SQL source runs on a RichView server, Cowork or Publish, local or hosted, through a connector the author has been granted; the server holds the credentials and stores the result as a snapshot (ARC-23, FEA-BR-16). A self-contained HTML file never queries live data; a URL source is the one exception: the file downloads the data from that address when it opens, so it follows what the URL serves, with no warning (OPN-63). There is no header data.",
       "confidence": "observed",
       "sources": [
@@ -2541,11 +2698,10 @@
         },
         {
           "label": "Data lives in the consuming block",
-          "ref": "S27-579",
           "date": "2026-10-04"
         }
       ],
-      "conflicts": "Settled by OPN-63: SQL and URL sources join inline, CSV and JSON data, and data still lives in the block that uses it (S27-579). Whether the CLI asks a local RichView server to resolve a SQL source or declines it is the agents' choice; neither makes the core query data (INT-08)."
+      "conflicts": "Settled by OPN-63: SQL and URL sources join inline, CSV and JSON data, and data still lives in the block that uses it. Whether the CLI asks a local RichView server to resolve a SQL source or declines it is the agents' choice; neither makes the core query data (INT-08)."
     },
     {
       "id": "FEA-RP-42",
@@ -2581,7 +2737,7 @@
           "date": "2026-10-16"
         }
       ],
-      "conflicts": "S27-616 (2026-10-10) asks for externally hosted video, pictures and audio “so authors do not have to embed large payloads inside reports”; Daniel's INT-31 answer brings that in through pinned asset references (TYP-41); TYP-40 and TYP-42 follow TYP-41."
+      "conflicts": "The design-and-hosting brief (2026-10-10) asks for externally hosted video, pictures and audio “so authors do not have to embed large payloads inside reports”; Daniel's INT-31 answer brings that in through pinned asset references (TYP-41); TYP-40 and TYP-42 follow TYP-41."
     },
     {
       "id": "FEA-RP-43",
@@ -2592,7 +2748,7 @@
       "group": "PDF and other outputs",
       "title": "PDF export",
       "question": "Does RichView keep exporting reports to PDF (`generate --to pdf`), and what must every PDF get right on the page?",
-      "why": "Daniel’s 2026-10-10 product brief asks for a readable report PDF (S27-616), and INT-04 names it the print output. The export works (fixture: 9 A4 pages, about 490 KB, 0.8 to 3.1 s, tagged with an outline) but misses the bar: the colophon sits alone on page 9, the metrics split across pages 6 and 7, keep-together rules leave pages half empty, and code prints in a system font. PR #22 left eleven pagination findings open, and `verify-exports.mjs` did not run in the lockdown checks. ARC-30 leaves both the keep decision and this bar to this card.",
+      "why": "Daniel’s 2026-10-10 product brief asks for a readable report PDF, and INT-04 names it the print output. The export works (fixture: 9 A4 pages, about 490 KB, 0.8 to 3.1 s, tagged with an outline) but misses the bar: the colophon sits alone on page 9, the metrics split across pages 6 and 7, keep-together rules leave pages half empty, and code prints in a system font. PR #22 left eleven pagination findings open, and `verify-exports.mjs` did not run in the lockdown checks. ARC-30 leaves both the keep decision and this bar to this card.",
       "proposed": "Keep. `richview generate <report> --to pdf` prints through a local Chromium-family browser (ARC-30) to A4 or Letter: charts settled, network blocked, light paper, running title and page numbers from page 2, tags and an outline. Charts reach the PDF as vector output (Daniel's INT-31 answer): the report is rendered for PDF (`output: pdf`, TYP-71) with every chart drawn by the engine's vector renderer from its geometry model at its print width, so printing needs no WebGL. The conversion may take time; the export does not have to be instant (PRF-16). This card is the only definition of the pagination bar: no chart, figure, metric, callout or table row split (a table may break between rows and repeats its header); no heading last on a page; no page holding only the colophon or a source note; no bottom gap over a quarter page: when the next chart or figure does not fit in the space left, the text that follows it flows up to fill the page and the figure floats to the top of the next page, as LaTeX floats figures, so reading order may change around a figure (Daniel's choice, 2026-10-27); a gap over a quarter page is accepted only where the next block opens a new section and does not fit in the space left (Daniel, 2026-10-27, option 3 for the section-boundary cases). Floats keep their order, as in LaTeX: when several figures follow one another and the first does not fit, they float together, in order, and the text after them in the same section flows up to fill the page. Sections are float barriers: a figure never floats past the start of the next section, so when an unbreakable figure, or a run of figures, ends its section and does not fit, the page ends with that gap, as at any section boundary; every glyph in an embedded face; every chart drawn as vector paths and text, never as a raster image. The bar is a set of fixture tests: PDF export is accepted into `pre-prod` only with them passing, and the release run (DEL-81) runs them for every batch that touches PDF, page layout, styles, fonts or charts, and again on each prod candidate (DEL-71). The fast gate in `dev` does not run them.",
       "options": [
         {
@@ -2617,7 +2773,7 @@
           "date": "2026-10-27"
         },
         {
-          "label": "Daniel chose option 3 for S27-732: keep the quarter-page bar and let text after a chart flow up before it, as LaTeX floats figures",
+          "label": "Daniel chose option 3 for chart placement: keep the quarter-page bar and let text after a chart flow up before it, as LaTeX floats figures",
           "ref": "Daniel, review chat",
           "date": "2026-10-27"
         },
@@ -2658,7 +2814,6 @@
         },
         {
           "label": "Daniel’s product brief, readable report PDF: “A well-composed document with comfortable text, intentional page breaks, … and no clipping or accidental blank gaps”",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -2758,7 +2913,7 @@
       "group": "PDF and other outputs",
       "title": "LinkedIn carousel PDF",
       "question": "Should RichView compose a separate portrait carousel PDF from a report?",
-      "why": "S27-616 asked for one; Daniel's INT-31 answer drops it and his INT-77 answer repeats the drop. Nothing exists: the spec states no carousel output is implemented. A carousel needs slide boundaries, phone-legible charts and author control, which is a second layout system.",
+      "why": "The design-and-hosting brief asked for one; Daniel's INT-31 answer drops it and his INT-77 answer repeats the drop. Nothing exists: the spec states no carousel output is implemented. A carousel needs slide boundaries, phone-legible charts and author control, which is a second layout system.",
       "proposed": "Dropped (Daniel's INT-31 and INT-77 answers). RichView composes no carousel PDF: the outputs are the report HTML and its A4 or Letter PDF. Per-output markers leave with it (FEA-RP-47). A carousel returns only as a new request with its own lockdown item.",
       "options": [
         {
@@ -2789,7 +2944,6 @@
         },
         {
           "label": "Carousel PDF requested",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -2798,7 +2952,7 @@
           "date": "2026-10-16"
         }
       ],
-      "conflicts": "S27-616 (2026-10-10) asked for a carousel PDF; Daniel's INT-31 answer closes that request. INT-77 records the drop."
+      "conflicts": "The design-and-hosting brief (2026-10-10) asked for a carousel PDF; Daniel's INT-31 answer closes that request. INT-77 records the drop."
     },
     {
       "id": "FEA-RP-47",
@@ -2809,7 +2963,7 @@
       "group": "PDF and other outputs",
       "title": "Per-output markers",
       "question": "Should source markers choose what appears in each output and hide chosen metadata?",
-      "why": "S27-616 asks for documented markers; they only matter once outputs differ in content, and none do.",
+      "why": "The design-and-hosting brief asks for documented markers; they only matter once outputs differ in content, and none do.",
       "proposed": "Dropped with the carousel (FEA-RP-46). Every output shows the same content and differs only in rendition (FEA-RP-45): the report HTML and its PDF are the only outputs, and scrollytelling is an element inside a report, not an output (FEA-RP-48), so there is nothing to select between. Markers return only with a future output that needs different content, as part of that output's own card.",
       "options": [
         {
@@ -2835,7 +2989,6 @@
         },
         {
           "label": "Output markers requested",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -2844,7 +2997,7 @@
           "date": "2026-10-16"
         }
       ],
-      "conflicts": "S27-616 asked for documented markers beside the carousel. Daniel's INT-31 answer drops the carousel and does not mention markers, so this card proposes dropping them rather than deferring them."
+      "conflicts": "The design-and-hosting brief asked for documented markers beside the carousel. Daniel's INT-31 answer drops the carousel and does not mention markers, so this card proposes dropping them rather than deferring them."
     },
     {
       "id": "FEA-RP-48",
@@ -2855,7 +3008,7 @@
       "group": "PDF and other outputs",
       "title": "Scrollytelling element",
       "question": "Is scrollytelling one element inside a report, a sticky figure beside narrative steps that move it, readable without its runtime, in print and in PDF?",
-      "why": "S27-616 asked for a scroll-driven story (one large chart, narrative steps, zoom and annotation), and MOTION.md already times story steps, but nothing renders it. Daniel's INT-31 answer builds it as one more element inside a broader report, not as a separate output. It is the most motion-heavy element and has to pass INT-61 on real phones.",
+      "why": "The design-and-hosting brief asked for a scroll-driven story (one large chart, narrative steps, zoom and annotation), and MOTION.md already times story steps, but nothing renders it. Daniel's INT-31 answer builds it as one more element inside a broader report, not as a separate output. It is the most motion-heavy element and has to pass INT-61 on real phones.",
       "proposed": "Built in the rewrite as one element inside a report, not a separate output (INT-31). A scrollytelling block holds one figure, a chart or an image, and an ordered list of narrative steps. On wide screens the figure stays in view beside the steps; on phones it stays above them. As a step scrolls into view, the figure moves to that step's state: for a chart a filter, highlighted series, zoom range or annotation; for an image a crop or highlight. The rest of the report flows around the block as usual, and a report may hold several. Only the figure moves; step text stays at rest, and transitions pass INT-61's motion floor on real phones. With reduced motion the figure changes state without transitions. In print and in PDF the block renders as a sequence of figures, one per step, each with its step text (FEA-RP-45), so nothing in it needs scrolling to be read. Without JavaScript or WebGL the step text still reads in order and the figure's frame shows ARC-05's notice; no static figures are built for it (FEA-RP-39). Every step state is rendered and checked like any chart (FEA-BR-33). A step names its chart state in the state model of the authored chart controls that Daniel's FEA-BR-01 answer brings into the first cut (TYP-77): a playback frame and a filter, metric or variant option, plus highlighted series, zoom range or annotation. Open: the fence tag and its fields (a part 05 type follows, OPN-67).",
       "options": [
         {
@@ -2864,7 +3017,7 @@
         },
         {
           "label": "Separate story output",
-          "detail": "S27-616's framing: a scroll-driven story as its own output; a second layout system beside the report, which Daniel's answer does not ask for."
+          "detail": "The design-and-hosting brief's framing: a scroll-driven story as its own output; a second layout system beside the report, which Daniel's answer does not ask for."
         },
         {
           "label": "Defer",
@@ -2896,7 +3049,6 @@
         },
         {
           "label": "Scrollytelling output requested",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -2910,7 +3062,7 @@
           "date": "2026-10-16"
         }
       ],
-      "conflicts": "S27-616 asked for a separate optional output; Daniel's INT-31 answer makes it an element inside a report instead. INT-77 now records it as an element and as one of the tools RichView gives authors: RichView checks a step's syntax and state (FEA-BR-33), not whether the story argues well. The element adds a rich fence tag beyond today's six (TYP-09), so part 05 gains its type. Its steps share the chart-state model of the authored chart controls (FEA-BR-01, TYP-77), which are now in the first cut. Daniel's ARC-05 answer drops the static figures this card promised readers without scripts; they get the frame's notice instead."
+      "conflicts": "The design-and-hosting brief asked for a separate optional output; Daniel's INT-31 answer makes it an element inside a report instead. INT-77 now records it as an element and as one of the tools RichView gives authors: RichView checks a step's syntax and state (FEA-BR-33), not whether the story argues well. The element adds a rich fence tag beyond today's six (TYP-09), so part 05 gains its type. Its steps share the chart-state model of the authored chart controls (FEA-BR-01, TYP-77), which are now in the first cut. Daniel's ARC-05 answer drops the static figures this card promised readers without scripts; they get the frame's notice instead."
     },
     {
       "id": "FEA-RP-49",

@@ -1,7 +1,7 @@
 //! Waterfall charts: running sums, totals, restarts, signs and the contract every type shares
 //! (FEA-CH-01, FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use serde_json::{Value, json};

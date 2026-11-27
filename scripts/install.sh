@@ -3,7 +3,7 @@
 main() {
 set -eu
 umask 077
-# Replaced only by scripts/assemble-release.mjs after both archives are checked.
+# Replaced only by scripts/assemble-release.ts after both archives are checked.
 release_commit='UNSTAMPED'
 release_base_url='UNSTAMPED'
 release_macos_sha256='UNSTAMPED'

@@ -2,7 +2,7 @@
 //! (`digits`, three by default), and only its readout carries the author's `readout_digits`.
 //! A chart with one precision prints exactly what its readout says.
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Face, Geometry, Item, Role};

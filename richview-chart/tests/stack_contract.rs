@@ -1,7 +1,7 @@
 //! Stacked bars and areas: the runtime's layout from grid rows takes the axis extent and the
 //! stack totals from the exact rows (TYP-36).
 
-mod common;
+use super::common;
 
 use common::*;
 use serde_json::{Value, json};

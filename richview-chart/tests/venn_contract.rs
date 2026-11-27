@@ -1,7 +1,7 @@
 //! Venn diagrams: circle areas from the totals, pairs at the distance that gives their overlap,
 //! regions found by outline, and the contract every type shares (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Geometry, Item};

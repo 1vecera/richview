@@ -1,7 +1,7 @@
 //! Vector fields: arrows centred on their positions, pointing the way their angle says, as long
 //! as their value, a colour key, and the contract every type shares (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::Level;
@@ -86,6 +86,45 @@ fn arrows_are_centred_on_their_positions_and_inside_the_plot() {
             }
         }
     }
+}
+
+#[test]
+fn a_vector_field_zooms_along_each_axis_on_a_window_of_its_own() {
+    use richview_chart::block::ChartBlock;
+    use richview_chart::layout::{ChartTheme, Options, layout};
+    let rows: Vec<Value> = (0..8)
+        .flat_map(|i| (0..8).map(move |j| json!({"a": i, "b": j * 10, "t": 45})))
+        .collect();
+    let block = ChartBlock::from_value(&spec()).unwrap();
+    let draw = |zoom: Option<[f64; 2]>, zoom_y: Option<[f64; 2]>| {
+        layout(
+            &block,
+            &rows,
+            &ChartTheme::default(),
+            &Options {
+                width: 640.0,
+                zoom,
+                zoom_y,
+                ..Options::default()
+            },
+        )
+    };
+    let whole = draw(None, None);
+    let x = whole.panels[0].x.clone().expect("a vector field zooms");
+    let y = x.y.expect("along y too");
+    assert_eq!(y.domain, y.extent);
+    let zoomed = draw(Some([0.5, 4.5]), Some([5.0, 45.0]));
+    let scale = zoomed.panels[0].x.clone().unwrap();
+    assert_eq!(scale.domain, [0.5, 4.5]);
+    assert_eq!(scale.y.unwrap().domain, [5.0, 45.0]);
+    // An arrow outside either window is not drawn: 4 columns by 4 rows stand inside.
+    assert_eq!(shafts(&zoomed).len(), 16);
+    assert_eq!(shafts(&draw(None, Some([5.0, 45.0]))).len(), 8 * 4);
+    assert_eq!(
+        draw(None, Some(y.extent)),
+        whole,
+        "a window as wide as the axis is no zoom"
+    );
 }
 
 #[test]

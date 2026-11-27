@@ -1,7 +1,7 @@
 //! Rose charts: wedges at equal angles whose radius (or area) follows the value from a zero
 //! centre, and the shared contract every type meets (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Geometry, Item, Targeting};

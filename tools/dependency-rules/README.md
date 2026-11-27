@@ -23,7 +23,7 @@ The CLI reads current Cargo metadata and a fresh API report file supplied by the
 
 ```sh
 node tools/dependency-rules/check.mjs check --root . --api-report tmp/api-current.json
-node --test tools/dependency-rules/test/*.test.mjs
+node --test tools/dependency-rules/test/*.test.mts
 ```
 
-The optional `--rules <json>` path selects a policy file. Gate integrations use this checkout's reviewed `rules.json`. `graph.mjs` supplies the one graph engine; the existing rv-gate layer-check entry point delegates to it. Gate registry, fast selection and coverage mappings remain organizer-owned.
+The optional `--rules <json>` path selects a policy file. Gate integrations use this checkout's reviewed `rules.json`. `graph.mts` supplies the one graph engine; the existing rv-gate layer-check entry point delegates to it. Gate registry, fast selection and coverage mappings remain organizer-owned.

@@ -1,8 +1,8 @@
 # Performance budgets
 
-The release and full gates run [the perf step](../tools/rv-gate/perf.mjs) and its [budget definitions](../tools/rv-gate/lib/perf.mjs). Measurements identify the source and runtime hashes; an older capture does not establish a new build's performance. Historical captures remain in [merged baseline `3c07128`](https://github.com/richview-universe/richview-v3/tree/3c07128b7139687b754f6e1b5848c2a46c31cfe5/docs/evidence).
+The release and full gates run [the perf step](../tools/rv-gate/perf.mts) and its [budget definitions](../tools/rv-gate/lib/perf.mts). Measurements identify the source and runtime hashes; an older capture does not establish a new build's performance. Historical captures remain in [merged baseline `3c07128`](https://github.com/richview-universe/richview-v3/tree/3c07128b7139687b754f6e1b5848c2a46c31cfe5/docs/evidence).
 
-Until launch, Daniel’s 9 November ruling makes all size limits advisory: the perf step records measurements and original limits and reports overages without failing. Missing or invalid measurements still fail; timing, instructions and memory remain binding. S27-980 tracks trimming and restoring the size gates.
+Until launch, Daniel’s 9 November ruling makes all size limits advisory: the perf step records measurements and original limits and reports overages without failing. Missing or invalid measurements still fail; timing, instructions and memory remain binding. Trimming and restoring the size gates is tracked in Linear.
 
 Daniel changed these limits on 29 October 2026: “regression margins loosen, per chart type timing do not care, cli render time care, but double, cli memory peak 5x, layout 100ms, keep the rest thanks.” His measurement direction was “max 10 runs or sth”. This supersedes the earlier 8 ms control-layout limit and absolute-byte regression margins. His earlier “Rebase + quiet + 2 MB” decision still sets the site payload and accepts the size and memory growth since 28 October.
 
@@ -51,7 +51,7 @@ Build with the pinned toolchain and `cargo run --release --locked -p richview-bu
 For a standalone capture against a coherent build:
 
 ```sh
-node tools/rv-gate/perf.mjs --bin target/release/richview --dist dist/web --out tmp/performance
+node tools/rv-gate/perf.mts --bin target/release/richview --dist dist/web --out tmp/performance
 ```
 
 This measures sizes, CLI costs and timing. `--stages types` requests optional per-type disclosures. Do not use an old capture, a partial cohort or an unapproved baseline update to claim the current full passed.

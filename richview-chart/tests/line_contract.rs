@@ -1,7 +1,7 @@
 //! Line charts: one path per series through the author's values, one readout per x, nearest-x
 //! targeting, missing values as gaps, and the contract every type shares (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Cmd, Item, Targeting};

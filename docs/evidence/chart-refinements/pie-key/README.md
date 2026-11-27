@@ -18,8 +18,8 @@ The change adds no focus stops, new tooltip policy or targets to radial/empty pi
 To reproduce, build isolated baseline/current worktrees using [the pinned build instructions](../../../../CLAUDE.md), with npm dependencies and `/usr/bin/chromium` available. From the current checkout run:
 
 ```sh
-node docs/evidence/chart-refinements/pie-key/capture.mjs /absolute/built/baseline tmp/pie-key-before
-node docs/evidence/chart-refinements/pie-key/capture.mjs /absolute/built/current tmp/pie-key-after
+node docs/evidence/chart-refinements/pie-key/capture.ts /absolute/built/baseline tmp/pie-key-before
+node docs/evidence/chart-refinements/pie-key/capture.ts /absolute/built/current tmp/pie-key-after
 ```
 
 The helper uses bundled fonts, device scale 2 and reduced motion, and writes both images plus pointer/readout/build provenance. Full matrices and first rejected source/harness logs remain in the campaign's local scratch record; they are not duplicated in this small evidence bundle.

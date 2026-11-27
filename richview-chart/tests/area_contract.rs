@@ -2,7 +2,7 @@
 //! (FEA-CH-05), a total in the stacked readout, nearest-x targeting, gaps for missing values and the
 //! contract every type shares (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Cmd, Geometry, Item, Targeting};

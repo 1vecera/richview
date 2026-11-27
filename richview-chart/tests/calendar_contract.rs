@@ -2,7 +2,7 @@
 //! empty outlines for days without a row, a colour key, and the failures that name their cause
 //! (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Geometry, Item, Observation, Role};

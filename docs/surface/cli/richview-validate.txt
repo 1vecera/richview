@@ -3,7 +3,7 @@ Check the structure of a report without rendering it
 Usage: richview validate [OPTIONS] <INPUT>
 
 Arguments:
-  <INPUT>  The report's `.rmd` or the folder holding it; a folder of report folders stands for every report below it
+  <INPUT>  The report's `.rmd` or a deck's `.rslide`, or the folder holding it; a folder of report folders stands for every report below it
 
 Options:
       --publish          Also apply the publish rules: title, description, version and a valid slug

@@ -16,7 +16,7 @@ use sha2::{Digest, Sha256};
 use std::{collections::BTreeMap, fs, path::Path};
 
 #[derive(Debug, Deserialize)]
-struct ReportConnectors {
+pub(crate) struct ReportConnectors {
     connectors: BTreeMap<String, ReportConnectorEntry>,
 }
 
@@ -58,6 +58,35 @@ struct TrustedMetricFlowRuntime {
     env: BTreeMap<String, String>,
 }
 
+impl ReportConnectors {
+    pub(crate) fn names(&self) -> std::collections::BTreeSet<String> {
+        self.connectors.keys().cloned().collect()
+    }
+
+    pub(crate) fn local_source(&self, name: &str) -> Option<&str> {
+        let entry = self.connectors.get(name)?;
+        match entry.kind.as_str() {
+            "duckdb" => entry.database.as_deref(),
+            "parquet" => entry.file.as_deref(),
+            _ => None,
+        }
+    }
+}
+
+pub(crate) fn declaration(root: &Path) -> Result<Option<ReportConnectors>, String> {
+    let name = "report.connectors.yaml";
+    if !root.join(name).exists() {
+        return Ok(None);
+    }
+    let bytes = crate::input_limits::read_input_beneath(root, name)?;
+    let text = std::str::from_utf8(&bytes).map_err(|err| err.to_string())?;
+    richview_core::yaml::from_str(text)
+        .map_err(|err| err.to_string())
+        .and_then(|value| serde_json::from_value(value).map_err(|err| err.to_string()))
+        .map(Some)
+        .map_err(|err| format!("parse {name}: {err}"))
+}
+
 /// Build a [`Registry`] by reading the report-local `report.connectors.yaml`
 /// (if present), binding each entry against the trusted `connectors.toml`
 /// (if supplied). Snapshot-only reports can use a trusted store without an active connector.
@@ -66,14 +95,15 @@ pub fn load_registry(
     report_root: &Path,
     trusted_toml: Option<&Path>,
 ) -> Result<Option<Registry>, String> {
-    let report_yaml = report_root.join("report.connectors.yaml");
-    let report = if report_yaml.exists() {
-        let text = fs::read_to_string(&report_yaml)
-            .map_err(|err| format!("read {}: {err}", report_yaml.display()))?;
-        let report: ReportConnectors = richview_core::yaml::from_str(&text)
-            .map_err(|err| err.to_string())
-            .and_then(|value| serde_json::from_value(value).map_err(|err| err.to_string()))
-            .map_err(|err| format!("parse {}: {err}", report_yaml.display()))?;
+    bind_registry(report_root, trusted_toml, declaration(report_root)?)
+}
+
+pub(crate) fn bind_registry(
+    report_root: &Path,
+    trusted_toml: Option<&Path>,
+    declaration: Option<ReportConnectors>,
+) -> Result<Option<Registry>, String> {
+    let report = if let Some(report) = declaration {
         report
     } else if trusted_toml.is_some() {
         ReportConnectors {

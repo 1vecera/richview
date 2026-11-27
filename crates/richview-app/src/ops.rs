@@ -208,42 +208,32 @@ pub struct Input {
 fn resolve(
     input: &Input,
     include_runtime: bool,
-) -> Result<(richview_core::document::Document, RenderOptions), Failure> {
-    let source = crate::cli::read_source(&input.path)?;
-    let root = input
-        .path
-        .canonicalize()
-        .map_err(|e| Failure::host(format!("{}: {e}", input.path.display())))?
-        .parent()
-        .ok_or_else(|| Failure::host("The report has no parent directory."))?
-        .to_path_buf();
-    // A connector the report names but the host does not define is a finding on the report, not a
-    // bare host error: every surface shows it with a code.
-    let registry = crate::connectors::load_registry(&root, input.connectors.as_deref()).map_err(
-        |message| {
-            Failure::Diagnostics(vec![Diagnostic::new(
-                "error",
-                "resource.resolve",
-                message,
-                "connectors",
-            )])
-        },
-    )?;
-    Ok(resolver::resolve_document_options_full(
-        &source,
-        &input.path,
-        &input.styles,
-        false,
-        include_runtime,
-        registry.as_ref(),
-    )?)
+) -> Result<
+    (
+        richview_core::document::Document,
+        RenderOptions,
+        crate::input_limits::InputSizes,
+    ),
+    Failure,
+> {
+    // The source and everything the report names are read from one opening of its folder.
+    resolver::pinned(&input.path, || -> Result<_, Failure> {
+        let source = crate::cli::read_source(&input.path)?;
+        Ok(resolver::resolve_configured(
+            &source,
+            input,
+            include_runtime,
+        )?)
+    })
 }
 
 /// `validate`: structure and report folder, without rendering (FEA-SF-03). With `publish` it adds
 /// the publish rules (TYP-94).
 pub fn validate(input: &Input, publish: bool) -> Outcome {
-    let source = crate::cli::read_source(&input.path)?;
-    validate_source(&source, input, publish)
+    resolver::pinned(&input.path, || {
+        let source = crate::cli::read_source(&input.path)?;
+        validate_source(&source, input, publish)
+    })
 }
 
 /// `validate` on source text that may differ from the saved file, as the editor sends it. The
@@ -281,9 +271,19 @@ pub fn validate_text(
     source: &str,
     folder: Option<&richview_core::document::ReportFolder>,
     publish: bool,
+    data: &std::collections::BTreeMap<String, String>,
 ) -> Outcome {
     let (blocks, mut diagnostics) = match richview_core::document::parse(source) {
         Ok(mut document) => {
+            // The list of styles is bounded as `check` and the render bound it: by how many it
+            // names and by the bytes of the files it names that were sent.
+            if let Some(problem) =
+                richview_core::style_list_problem(&document.frontmatter, |name| {
+                    data.get(name).map(String::len)
+                })
+            {
+                return Ok(envelope(vec![problem], None, json!({"blocks": 0})));
+            }
             match richview_core::document::attach_asset_findings(&mut document, folder) {
                 Ok(()) => (document.blocks.len(), document.diagnostics),
                 Err(found) => {
@@ -362,7 +362,7 @@ pub fn check(input: &Input, widths: &[f64]) -> Outcome {
             ));
         }
     }
-    let (document, mut options) = resolve(input, false)?;
+    let (document, mut options, _) = resolve(input, false)?;
     options.chart_widths = widths.to_vec();
     let report = richview_core::document::check_document(document, &options)?;
     Ok(envelope(
@@ -387,7 +387,7 @@ pub struct GenerateRequest {
 /// `generate`: the self-contained HTML report, or a PDF printed by a local browser
 /// (FEA-SF-05, FEA-SF-06). A report with block errors is still written; the result says `ok: false`.
 pub async fn generate(request: &GenerateRequest) -> Outcome {
-    let (document, mut options) = resolve(&request.input, true)?;
+    let (document, mut options, mut inputs) = resolve(&request.input, true)?;
     if request.pdf {
         options.output = richview_core::document::Output::Pdf;
         options.page = request.page;
@@ -437,6 +437,7 @@ pub async fn generate(request: &GenerateRequest) -> Outcome {
         request.output.as_deref(),
         &report,
         &options,
+        &mut inputs,
     ) {
         Ok(output) => output,
         // Writing failed after rendering: the author gets every finding, not only the last one.
@@ -541,23 +542,22 @@ pub async fn publish_as(
     new: bool,
     visibility: Option<&str>,
 ) -> Outcome {
-    let source = crate::cli::read_source(&input.path)?;
-    let (_, options) = resolver::resolve_document_options_policy(
-        &source,
-        &input.path,
-        &input.styles,
-        false,
-        false,
-    )?;
+    // Read before anything is awaited: the folder is pinned to this thread while it is read.
+    let (source, options, mut inputs) = resolver::pinned(&input.path, || -> Result<_, Failure> {
+        let source = crate::cli::read_source(&input.path)?;
+        let (_, options, inputs) =
+            resolver::resolve_version(&source, &input.path, &input.styles, false, false, None)?;
+        Ok((source, options, inputs))
+    })?;
     // Existing scripts can explicitly allow creation even on machines without writable config.
     let first = match crate::publish_destination::first_publication(&input.path, server) {
         Ok(first) => first,
         Err(_) if new => None,
         Err(error) => return Err(error),
     };
-    let mut result = crate::cli::publish_as(
+    let mut result = crate::cli::send_publication(
         &source,
-        &options,
+        (&options, Some(&mut inputs)),
         server,
         token,
         slug,
@@ -693,6 +693,41 @@ mod tests {
             2
         );
         assert_eq!(host.exit_code(), 1);
+    }
+
+    #[test]
+    fn validating_text_bounds_the_list_of_styles_as_checking_it_does() {
+        let named = |count: usize| {
+            let list: Vec<String> = (0..count)
+                .map(|at| format!("  - style-{at}.rstyle.yaml"))
+                .collect();
+            format!("---\ntitle: T\nstyles:\n{}\n---\n\n# T\n", list.join("\n"))
+        };
+        let none = std::collections::BTreeMap::new();
+        let codes = |outcome: Outcome| -> Vec<String> {
+            outcome.unwrap()["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter_map(|d| d["code"].as_str().map(str::to_owned))
+                .collect()
+        };
+        assert!(
+            !codes(validate_text(&named(64), None, false, &none))
+                .contains(&"style.limit".to_owned())
+        );
+        assert!(
+            codes(validate_text(&named(65), None, false, &none))
+                .contains(&"style.limit".to_owned())
+        );
+        // The files that were sent count by their bytes, each as often as it is named.
+        let big = std::collections::BTreeMap::from([(
+            "style-0.rstyle.yaml".to_owned(),
+            "x".repeat(10_000_001),
+        )]);
+        assert!(
+            codes(validate_text(&named(1), None, false, &big)).contains(&"style.limit".to_owned())
+        );
     }
 
     #[test]

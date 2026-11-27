@@ -54,6 +54,9 @@ pub struct DatasetSnapshot {
 pub struct SchemaField {
     pub name: String,
     pub kind: FieldKind,
+    /// The decimal places the source declared (a DECIMAL type), in source units.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scale: Option<u8>,
     #[serde(default)]
     pub nullable: bool,
 }

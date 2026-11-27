@@ -59,6 +59,6 @@ axes:
 
 ## Interactions
 
-- Hover or focus a dot to read its value; the pointer picks the stem or dot it is over.
+- Hover or focus a dot to read its value; the pointer picks the stem or dot it is over, and a dark ring marks the dot.
 - Click a legend entry to toggle a series when the chart has several.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

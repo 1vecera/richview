@@ -8,10 +8,61 @@ use std::sync::OnceLock;
 
 include!(concat!(env!("OUT_DIR"), "/runtime_bytes.rs"));
 include!(concat!(env!("OUT_DIR"), "/docs_bytes.rs"));
+include!(concat!(env!("OUT_DIR"), "/editor_bytes.rs"));
 
 /// Whether this binary contains the generated docs runtime used by hosted app pages.
 pub fn docs_available() -> bool {
     DOCS_JS.is_some() && DOCS_WASM.is_some() && DOCS_BOOTSTRAP.is_some()
+}
+
+/// Whether this binary contains what the online editor loads: the site runtime, its render
+/// worker, the font catalogs and the report runtime its preview frame runs.
+pub fn editor_available() -> bool {
+    SITE_JS.is_some()
+        && SITE_WASM.is_some()
+        && SITE_WORKER.is_some()
+        && SITE_FONTS.is_some()
+        && SITE_MATH_FONTS.is_some()
+        && embedded().is_some()
+}
+
+/// The report runtime's Wasm module as the editor's preview frame is given it: the raw bytes,
+/// decompressed once.
+pub fn raw_wasm() -> Option<&'static [u8]> {
+    static WASM: OnceLock<Option<Vec<u8>>> = OnceLock::new();
+    WASM.get_or_init(|| wasm_bytes().ok()).as_deref()
+}
+
+/// The source of a script-src entry that lets an editor page's sandboxed preview frame start the
+/// report runtime. A frame made from `srcdoc` inherits its parent's policy, and the preview's one
+/// inline module is the report runtime with its Wasm in base64: the same module, whatever the
+/// report, so one hash names it. Computed as `richview-build` pins it for the site's pages.
+pub fn preview_script_hash() -> Option<&'static str> {
+    use base64::Engine as _;
+    static HASH: OnceLock<Option<String>> = OnceLock::new();
+    HASH.get_or_init(|| {
+        let runtime = embedded()?;
+        let wasm = raw_wasm()?;
+        let options = richview_core::document::RenderOptions {
+            runtime_js: Some(runtime.js.clone()),
+            runtime_wasm: Some(base64::engine::general_purpose::STANDARD.encode(wasm)),
+            runtime_wasm_codec: "raw".into(),
+            report_folder: Some(richview_core::document::ReportFolder {
+                root: "preview-policy".into(),
+                source: "report.rmd".into(),
+                files: vec!["report.rmd".into()],
+            }),
+            ..Default::default()
+        };
+        let report = richview_core::document::render("# Preview policy", &options).ok()?;
+        let (_, rest) = report.html.split_once("<script type=\"module\">")?;
+        let (module, _) = rest.split_once("</script>")?;
+        Some(format!(
+            "'sha256-{}'",
+            base64::engine::general_purpose::STANDARD.encode(Sha256::digest(module.as_bytes()))
+        ))
+    })
+    .as_deref()
 }
 
 /// The runtime as render options carry it: script text and gzip-compressed Wasm in base64.

@@ -157,6 +157,20 @@ pub fn authorize(
     slug: &str,
     right: Right,
 ) -> Result<(), Response> {
+    check_right(state, caller, slug, right)?;
+    #[cfg(test)]
+    crate::test_points::reach(&format!("authorized.{right:?}").to_lowercase(), slug);
+    Ok(())
+}
+
+/// `authorize` without the point a test can hold: for a question asked ahead of the one that
+/// decides.
+pub fn check_right(
+    state: &AppState,
+    caller: &Caller,
+    slug: &str,
+    right: Right,
+) -> Result<(), Response> {
     // An organization administrator's rights apply only to reports that actually have an ACL.
     // Otherwise a guessed, uncreated address would look accessible and could be pre-shared.
     if state.access.is_hosted() && !state.access.has_record(slug) {
@@ -164,8 +178,6 @@ pub fn authorize(
     }
     let rights = state.access.rights(&caller.principal, slug);
     if rights.contains(&right) {
-        #[cfg(test)]
-        crate::test_points::reach(&format!("authorized.{right:?}").to_lowercase(), slug);
         return Ok(());
     }
     // Anonymous probes of reports they cannot see are not worth a line each.
@@ -308,6 +320,15 @@ pub async fn sign_in(
 }
 
 /// `DELETE /api/session`: sign out.
+/// Tells the browser to forget what this app's pages kept in it, such as an editor's unsaved
+/// drafts, which belong to the person who is signing out.
+pub(super) fn clear_browser_storage(response: &mut Response) {
+    response.headers_mut().insert(
+        header::HeaderName::from_static("clear-site-data"),
+        header::HeaderValue::from_static("\"storage\""),
+    );
+}
+
 pub async fn sign_out(State(state): State<AppState>, headers: HeaderMap) -> Response {
     let caller = match mutating(&state, &headers) {
         Ok(caller) => caller,
@@ -326,6 +347,7 @@ pub async fn sign_out(State(state): State<AppState>, headers: HeaderMap) -> Resp
         header::SET_COOKIE,
         session_cookie(&state, "", 0).parse().unwrap(),
     );
+    clear_browser_storage(&mut response);
     response
 }
 
@@ -336,7 +358,24 @@ pub async fn whoami(State(state): State<AppState>, headers: HeaderMap) -> Respon
         .session
         .as_deref()
         .and_then(|s| state.access.csrf_for(s));
-    Json(json!({"user": user_json(&caller.principal), "csrf": csrf})).into_response()
+    // A token is bound to one organization, and says which, so that a command line that was told
+    // which organization it must be signed in for can check it.
+    let organization = match &caller.principal {
+        Principal::User(user) => user
+            .token_org
+            .as_ref()
+            .and_then(|bound| {
+                state
+                    .access
+                    .organizations_for(&user.id)
+                    .into_iter()
+                    .find(|org| &org.id == bound)
+            })
+            .map(|org| json!({"id": org.id, "name": org.name})),
+        _ => None,
+    };
+    Json(json!({"user": user_json(&caller.principal), "organization": organization, "csrf": csrf}))
+        .into_response()
 }
 
 fn user_json(principal: &Principal) -> serde_json::Value {

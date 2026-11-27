@@ -5,13 +5,16 @@
 //! between them with [`fragment`]`(NAME)`, so a reference table can only say what the registry
 //! says. Prose around the markers may explain the vocabulary but does not enumerate it.
 
-use crate::registry::{CHART_TYPES, CODES, FRONTMATTER, Field, LAYOUTS, TAGS, Ty};
+use crate::registry::{
+    CHART_TYPES, CODES, DECK_SETUP, DECK_SLIDE, FRONTMATTER, Field, LAYOUTS, TAGS, Ty,
+};
 
 const BEGIN: &str = "<!-- registry:begin ";
 const END: &str = "<!-- registry:end -->";
 
-/// The names of every fragment: `tags`, `frontmatter`, `chart-types`, `styles`, `retired`, `codes`, and
-/// `fields/<tag>` for each tag that has its own fields.
+/// The names of every fragment: `tags`, `frontmatter`, `chart-types`, `styles`, `retired`, `codes`,
+/// the deck's `deck-setup`, `deck-slide` and `deck-layouts`, and `fields/<tag>` for each tag that
+/// has its own fields.
 pub fn fragment_names() -> Vec<String> {
     let mut names = vec![
         "tags".to_string(),
@@ -20,6 +23,9 @@ pub fn fragment_names() -> Vec<String> {
         "styles".into(),
         "retired".into(),
         "codes".into(),
+        "deck-setup".into(),
+        "deck-slide".into(),
+        "deck-layouts".into(),
     ];
     names.extend(
         TAGS.iter()
@@ -38,6 +44,17 @@ pub fn fragment(name: &str) -> Option<String> {
                 .map(|tag| vec![code(tag.name), tag.summary.to_string()]),
         )),
         "frontmatter" => Some(fields(FRONTMATTER)),
+        "deck-setup" => Some(fields(DECK_SETUP)),
+        "deck-slide" => Some(fields(DECK_SLIDE)),
+        "deck-layouts" => Some(table(
+            &[
+                "Layout",
+                "Slots in reading order",
+                "`cols` cuts",
+                "`rows` cuts",
+            ],
+            crate::slides::layout_rows().into_iter(),
+        )),
         "styles" => Some(table(
             &["Style", "Default", "Menu"],
             crate::style::presets::preset_names()
@@ -213,6 +230,7 @@ fn ty(value: &Ty) -> String {
         Ty::Markdown => "inline Markdown".into(),
         Ty::Number => "number".into(),
         Ty::Integer => "whole number".into(),
+        Ty::Decimals => "whole number of decimal places from 0 to 6".into(),
         Ty::Digits => "whole number of significant digits from 2 to 6".into(),
         Ty::Bool => "`true` or `false`".into(),
         Ty::OneOf(words) => format!("one of {}", listed(words, "or")),

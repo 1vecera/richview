@@ -1,4 +1,4 @@
-//! Editor completion offers the schema registry's vocabulary and nothing else (ARC-09, TYP-03, S27-749).
+//! Editor completion offers the schema registry's vocabulary and nothing else (ARC-09, TYP-03).
 //!
 //! The registry is the one definition of tags, fields and chart types; a hand-kept list in the editor would drift
 //! from it the first time a field is added, so these tests compare the completion lists with the registry itself.

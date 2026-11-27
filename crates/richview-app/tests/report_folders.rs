@@ -25,6 +25,22 @@ fn report_folder_resolves_the_company_logo_into_the_exported_header() {
     let (document, options) =
         resolver::resolve_document_options_policy(source, &path, &[], false, false).unwrap();
     let report = richview_core::document::render_document(document, &options).unwrap();
+    assert_eq!(report.company.name, "Example Co");
+    assert_eq!(report.company.logo.as_ref().unwrap().mime, "image/png");
+    let hosted = richview_app::server::public_report_example(&report);
+    let credit = hosted
+        .split_once("<span class=\"rv-publisher")
+        .unwrap()
+        .1
+        .split_once("</span>")
+        .unwrap()
+        .0;
+    assert!(credit.contains("data:image/png;base64,"));
+    // This 2 x 2 mark is squarer than a lockup: it is decorative and the name stays beside it.
+    assert!(!credit.contains("rv-publisher--lockup"));
+    assert!(credit.contains("alt=\"\""));
+    assert!(credit.contains("<strong>Example Co</strong>"));
+    assert!(!report.html.contains("<span class=\"rv-publisher"));
     assert!(report.html.contains("class=\"rv-report__logo"));
     assert!(report.html.contains("alt=\"Example Co\""));
     assert!(report.html.contains("src=\"data:image/png;base64,"));
@@ -175,6 +191,49 @@ fn cli_refuses_missing_shared_header_and_escaping_reports_with_corrections() {
 }
 
 #[test]
+fn growing_download_checks_the_resolved_version_before_replacing_any_output() {
+    let f = Folder::new();
+    let path = f.0.join("report.rmd");
+    let mut source = String::from("# Download the records\n\n");
+    for index in 0..10 {
+        let name = format!("file-{index}.bin");
+        source.push_str(&format!("[Download]({name})\n\n"));
+        fs::File::create(f.0.join(name))
+            .unwrap()
+            .set_len(4_990_000)
+            .unwrap();
+    }
+    fs::write(&path, &source).unwrap();
+    // The caller's style belongs to this version even though it is absent from the Markdown.
+    let style = format!("# {}\n", " ".repeat(95_000));
+    let (doc, options, mut inputs) =
+        resolver::resolve_version(&source, &path, &[style], false, false, None).unwrap();
+    let report = richview_core::document::render_document(doc, &options).unwrap();
+    let rendered = f.0.join("Rendered");
+    fs::create_dir_all(&rendered).unwrap();
+    fs::write(rendered.join("report.html"), "previous report").unwrap();
+    fs::write(rendered.join("file-0.bin"), "previous download").unwrap();
+    fs::OpenOptions::new()
+        .write(true)
+        .open(f.0.join("file-9.bin"))
+        .unwrap()
+        .set_len(5_000_000)
+        .unwrap();
+    let error = resolver::export_report(&path, None, &report, &options, &mut inputs).unwrap_err();
+    let diagnostics: serde_json::Value = serde_json::from_str(&error).unwrap();
+    assert_eq!(diagnostics[0]["code"], "report.input-limit");
+    assert_eq!(
+        fs::read(rendered.join("report.html")).unwrap(),
+        b"previous report"
+    );
+    assert_eq!(
+        fs::read(rendered.join("file-0.bin")).unwrap(),
+        b"previous download"
+    );
+    assert!(!rendered.join("file-9.bin").exists());
+}
+
+#[test]
 fn portable_export_keeps_source_style_and_data_and_places_required_links_inside_rendered() {
     let f = Folder::new();
     fs::create_dir(f.0.join("data")).unwrap();
@@ -188,10 +247,11 @@ fn portable_export_keeps_source_style_and_data_and_places_required_links_inside_
     let source = "---\nstyles: [scientific, report.rstyle.yaml]\n---\n\n[Original observations](data/sales.csv)\n\n```table\ndata: {csv: data/sales.csv}\n```\n";
     let path = f.0.join("quarter.rmd");
     fs::write(&path, source).unwrap();
-    let (document, options) =
-        resolver::resolve_document_options_policy(source, &path, &[], false, false).unwrap();
+    let (document, options, mut inputs) =
+        resolver::resolve_version(source, &path, &[], false, false, None).unwrap();
     let report = richview_core::document::render_document(document, &options).unwrap();
-    let output = resolver::export_report(&path, None, &report, &options).unwrap();
+    fs::write(f.0.join("data/sales.csv"), "replacement").unwrap();
+    let output = resolver::export_report(&path, None, &report, &options, &mut inputs).unwrap();
     assert_eq!(output, f.0.join("Rendered/quarter.html"));
     let html = fs::read_to_string(output).unwrap();
     assert!(html.contains("href=\"data/sales.csv\""));
@@ -203,6 +263,7 @@ fn portable_export_keeps_source_style_and_data_and_places_required_links_inside_
         csv
     );
     assert_eq!(fs::read_to_string(&path).unwrap(), source);
+    fs::write(f.0.join("data/sales.csv"), csv).unwrap();
     let no_style = source.replace("styles: [scientific, report.rstyle.yaml]\n", "");
     fs::write(&path, &no_style).unwrap();
     fs::remove_file(f.0.join("report.rstyle.yaml")).unwrap();
@@ -246,7 +307,7 @@ fn source_and_resource_symlinks_cannot_escape_the_dedicated_root() {
             .contains("report.root.escape")
     );
     // An escaping report root is refused whole: unlike a draft with errors, nothing is written
-    // (FEA-RP-30, S27-578).
+    // (FEA-RP-30).
     let generated = report.cli("generate", &path);
     assert!(!generated.status.success());
     assert!(String::from_utf8_lossy(&generated.stdout).contains("report.root.escape"));

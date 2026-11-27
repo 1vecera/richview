@@ -1,7 +1,7 @@
 //! Maps: shipped boundaries, projected positions at known coordinates, values at the author's
 //! precision, unmatched names, points, and the shared contract (FEA-CH-76, ARC-11).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::Item;

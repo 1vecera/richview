@@ -3,6 +3,8 @@
 //! clipboard runtime. Session changes use CSRF-protected POST forms.
 #[path = "hosted_cli.rs"]
 mod hosted_cli;
+#[path = "hosted_editor.rs"]
+mod hosted_editor;
 #[path = "hosted_pages.rs"]
 mod hosted_pages;
 #[path = "hosted_social.rs"]
@@ -12,6 +14,7 @@ pub(super) use hosted_pages::initials;
 #[path = "hosted_teams.rs"]
 mod hosted_teams;
 pub use hosted_cli::*;
+pub use hosted_editor::*;
 pub use hosted_social::*;
 pub use hosted_teams::*;
 
@@ -19,7 +22,7 @@ use super::{
     AppState, api_error,
     auth::{self, Caller, access_error},
 };
-use crate::access::{OrgRole, Principal, Right, User, Visibility};
+use crate::access::{OrgRole, Principal, Relation, Right, User, Visibility, VisibleReport};
 use axum::{
     Form,
     extract::{Path as AxumPath, Query, State},
@@ -144,7 +147,7 @@ fn display_fonts() -> &'static str {
     })
 }
 
-fn escape(text: &str) -> String {
+pub(super) fn escape(text: &str) -> String {
     text.replace('&', "&amp;")
         .replace('<', "&lt;")
         .replace('>', "&gt;")
@@ -164,6 +167,9 @@ fn hosted_page(title: &str, body: &str) -> Response {
 /// A signed-in page opens with the app's rail; its chrome ends with the top bar.
 const APP_OPENING: &str = "<aside class=\"app-rail\"";
 const APP_CHROME_END: &str = "</header>";
+/// The reports page opens its content with this head (`hosted_pages::library_head`); the page
+/// renderer gives such a page the narrower, centred column of a list.
+const LIBRARY_OPENING: &str = "<div class=\"lib-head\">";
 
 fn render_page(title: &str, body: &str, hosted: bool) -> Response {
     let body = body.replace("<button type=", "<button class=\"docs-button\" type=");
@@ -214,7 +220,11 @@ fn render_page(title: &str, body: &str, hosted: bool) -> Response {
         ("docs-page", HEADER.to_owned(), body, FOOTER)
     };
     let main = if classes == "docs-page app-page" {
-        "<main class=\"cowork\" id=\"content\">"
+        if content.contains(LIBRARY_OPENING) {
+            "<main class=\"cowork lib-page\" id=\"content\">"
+        } else {
+            "<main class=\"cowork\" id=\"content\">"
+        }
     } else {
         "<main class=\"cowork\">"
     };
@@ -554,6 +564,10 @@ pub(super) fn safe_next(next: &str) -> Option<&str> {
     {
         return Some(next);
     }
+    // The page a command line on this person's computer sent them to, exactly as it wrote it.
+    if next.starts_with("/cli/authorize?") {
+        return crate::access::CliAuthRequest::from_path(next).map(|_| next);
+    }
     let rest = next.strip_prefix("/r/")?;
     let (path, query) = rest.split_once('?').unwrap_or((rest, ""));
     let plain = |text: &str, extra: &[u8]| {
@@ -824,7 +838,6 @@ async fn hosted_index(
     caller: &Caller,
     notice: &Notice,
 ) -> Response {
-    use crate::access::Relation;
     if session_csrf(state, caller).is_none() {
         return hosted_page(
             "Sign in",
@@ -884,110 +897,16 @@ async fn hosted_index(
     else {
         return hosted_error_page(StatusCode::INTERNAL_SERVER_ERROR);
     };
-    struct Row {
-        key: String,
-        title: String,
-        description: String,
-        owner: String,
-        kind: String,
-        badge: String,
-        who: String,
-        size: Option<u64>,
-        can_share: bool,
-        stamp: String,
-        updated: String,
-        version: String,
-        stored_version: String,
-        url: String,
-        relation: Relation,
-    }
+    let today = crate::time::Instant::now().utc_day().unwrap_or_default();
     // A retired address keeps its access record and has no report behind it.
     let mut rows: Vec<Row> = visible
         .into_iter()
         .zip(summaries)
         .filter_map(|(report, summary)| {
             let (summary, size) = summary?;
-            let can_share = state
-                .access
-                .can(&caller.principal, &report.key, Right::Share);
-            let kind = if !can_share && report.relation == Relation::Shared {
-                "you"
-            } else {
-                match report.visibility {
-                    Visibility::Private => "private",
-                    Visibility::Org => "org",
-                    Visibility::Public => "public",
-                }
-            };
-            let badge = match kind {
-                "you" => "Shared with you".to_owned(),
-                "private" => "Private".to_owned(),
-                "org" => report.org_name.clone(),
-                _ => "Public link".to_owned(),
-            };
-            let who = if can_share {
-                match report.visibility {
-                    Visibility::Org => format!("Every member of {}", report.org_name),
-                    Visibility::Public => "Anyone with the link".to_owned(),
-                    Visibility::Private => {
-                        let named = state
-                            .access
-                            .report_access(&report.key)
-                            .map(|access| access.named)
-                            .unwrap_or_default();
-                        if let Some(first) = named.first() {
-                            let person = first.name.as_deref().unwrap_or(&first.email);
-                            match named.len() {
-                                1 => format!("Shared with {person}"),
-                                n => format!("Shared with {person} and {} more", n - 1),
-                            }
-                        } else {
-                            "Not shared with anyone".to_owned()
-                        }
-                    }
-                }
-            } else {
-                let owner = if report.owner_name.is_empty() {
-                    "A former member"
-                } else {
-                    &report.owner_name
-                };
-                if hosted_pages::same_name(owner, &report.org_name) {
-                    format!("By {owner}")
-                } else {
-                    format!("By {owner} · {}", report.org_name)
-                }
-            };
-            let slug = report.key.split_once('/').map_or("", |(_, slug)| slug);
-            let version = summary["version"].as_str().unwrap_or("");
-            let stamp = summary["updatedAt"].as_str().unwrap_or("").to_owned();
-            Some(Row {
-                title: summary["frontmatter"]["title"]
-                    .as_str()
-                    .unwrap_or(slug)
-                    .to_owned(),
-                description: summary["frontmatter"]["description"]
-                    .as_str()
-                    .unwrap_or("")
-                    .to_owned(),
-                owner: owner_label(report.relation, &report.owner_name),
-                kind: kind.to_owned(),
-                badge,
-                who,
-                size,
-                can_share,
-                updated: report_date(&stamp),
-                stamp,
-                version: if version.is_empty() || version.starts_with('v') {
-                    version.to_owned()
-                } else {
-                    format!("v{version}")
-                },
-                stored_version: version.to_owned(),
-                url: format!("{}/r/{}", origin.trim_end_matches('/'), report.key),
-                relation: report.relation,
-                key: report.key,
-            })
+            Some(list_row(
+                state, caller, origin, &today, report, &summary, size,
+            ))
         })
         .collect();
     let total = rows.len();
@@ -1026,14 +945,14 @@ async fn hosted_index(
             key: &row.key,
             title: &row.title,
             description: &row.description,
-            owner: &row.owner,
-            kind: &row.kind,
-            badge: &row.badge,
-            who: &row.who,
-            size: row.size,
+            kind: row.kind,
+            shared: &row.shared,
+            can_edit: row.can_edit,
             can_share: row.can_share,
+            can_delete: row.can_delete,
             updated: &row.updated,
             version: &row.version,
+            size: row.size,
             url: &row.url,
             thumb,
         })
@@ -1095,8 +1014,133 @@ async fn hosted_index(
     hosted_page("Reports", &body)
 }
 
-/// The width in pixels of a report's small card in the list: twice the 60 CSS pixels it is shown at.
-const THUMB_WIDTH: u32 = 120;
+/// One listed report: what its row shows, and the rights that decide where the row leads and what
+/// its menu offers.
+struct Row {
+    key: String,
+    title: String,
+    description: String,
+    /// How it reaches the person, as the row marks it: `private`, `org`, `public` or `you`.
+    kind: &'static str,
+    /// Whom it is shared with, or who shared it; empty when the row says neither.
+    shared: String,
+    can_edit: bool,
+    can_share: bool,
+    can_delete: bool,
+    stamp: String,
+    updated: String,
+    version: String,
+    stored_version: String,
+    /// The bytes the version's stored files take; `None` when they could not be measured.
+    size: Option<u64>,
+    url: String,
+    relation: Relation,
+}
+
+/// The row of one report the person may open, from its stored summary. `today` is a date written
+/// as [`report_date`] writes it.
+fn list_row(
+    state: &AppState,
+    caller: &Caller,
+    origin: &str,
+    today: &str,
+    report: VisibleReport,
+    summary: &Value,
+    size: Option<u64>,
+) -> Row {
+    let rights = state.access.rights(&caller.principal, &report.key);
+    let can_share = rights.contains(&Right::Share);
+    let kind = row_kind(&report, can_share);
+    let slug = report.key.split_once('/').map_or("", |(_, slug)| slug);
+    let version = summary["version"].as_str().unwrap_or("");
+    let stamp = summary["updatedAt"].as_str().unwrap_or("").to_owned();
+    Row {
+        title: summary["frontmatter"]["title"]
+            .as_str()
+            .unwrap_or(slug)
+            .to_owned(),
+        description: summary["frontmatter"]["description"]
+            .as_str()
+            .unwrap_or("")
+            .to_owned(),
+        kind,
+        shared: row_shared(state, &report, kind),
+        can_edit: rights.contains(&Right::Edit),
+        can_share,
+        can_delete: rights.contains(&Right::Delete),
+        updated: edited_day(&stamp, today),
+        stamp,
+        version: if version.is_empty() || version.starts_with('v') {
+            version.to_owned()
+        } else {
+            format!("v{version}")
+        },
+        stored_version: version.to_owned(),
+        size,
+        url: format!("{}/r/{}", origin.trim_end_matches('/'), report.key),
+        relation: report.relation,
+        key: report.key,
+    }
+}
+
+/// How a report reaches the person, as its row marks it: by who can open it, except that a
+/// report they cannot share, and reach by name or as someone else's private one, is shared with
+/// them.
+fn row_kind(report: &VisibleReport, can_share: bool) -> &'static str {
+    if !can_share
+        && (report.relation == Relation::Shared || report.visibility == Visibility::Private)
+    {
+        "you"
+    } else {
+        visibility_name(report.visibility)
+    }
+}
+
+/// What a row says about sharing: for someone who may share a private report, whom it is shared
+/// with; for a report shared with the person, who shared it. Nothing for the rest.
+fn row_shared(state: &AppState, report: &VisibleReport, kind: &str) -> String {
+    match kind {
+        "you" => {
+            let owner = if report.owner_name.is_empty() {
+                "a former member"
+            } else {
+                &report.owner_name
+            };
+            format!("Shared by {owner}")
+        }
+        "private" => {
+            let named = state
+                .access
+                .report_access(&report.key)
+                .map(|access| access.named)
+                .unwrap_or_default();
+            let Some(first) = named.first() else {
+                return String::new();
+            };
+            let person = first.name.as_deref().unwrap_or(&first.email);
+            match named.len() {
+                1 => format!("Shared with {person}"),
+                n => format!("Shared with {person} and {} more", n - 1),
+            }
+        }
+        _ => String::new(),
+    }
+}
+
+/// The day of a report's last edit for the list: day and month, with the year only when it is not
+/// the year of `today`, a date written as [`report_date`] writes it.
+fn edited_day(timestamp: &str, today: &str) -> String {
+    let mut date = report_date(timestamp);
+    let this_year = format!(" {}", today.rsplit(' ').next().unwrap_or_default());
+    if date.ends_with(&this_year) {
+        date.truncate(date.len() - this_year.len());
+    }
+    date
+}
+
+/// The width in pixels of a report's small card in the list: more than twice the 104 CSS pixels it
+/// is shown at, so it stays sharp on a screen of twice the density.
+const THUMB_WIDTH: u32 = 240;
 /// The most small cards the server keeps; past it the oldest go first.
 const THUMB_CACHE: usize = 1024;
 /// How long a list waits for small cards not drawn before. The rest show the placeholder and are
@@ -1245,14 +1289,6 @@ fn small_card(
     )))
 }
 
-fn owner_label(relation: crate::access::Relation, owner: &str) -> String {
-    match (relation, owner) {
-        (crate::access::Relation::Mine, _) => "You".to_owned(),
-        (_, "") => "A former member".to_owned(),
-        (_, name) => name.to_owned(),
-    }
-}
-
 fn visibility_name(visibility: Visibility) -> &'static str {
     match visibility {
         Visibility::Private => "private",
@@ -1382,6 +1418,7 @@ pub async fn sign_out(
         header::SET_COOKIE,
         auth::session_cookie(&state, "", 0).parse().unwrap(),
     );
+    auth::clear_browser_storage(&mut response);
     response
 }
 
@@ -2063,16 +2100,56 @@ pub async fn revoke_personal_token(
     }
 }
 
+#[derive(Deserialize)]
+pub struct AccountQuery {
+    #[serde(default)]
+    m: String,
+    #[serde(default)]
+    view: String,
+}
+
 pub async fn account_page(
     State(state): State<AppState>,
     headers: HeaderMap,
-    Query(notice): Query<Notice>,
+    Query(notice): Query<AccountQuery>,
+) -> Response {
+    account_response(state, headers, notice, super::staff_access::directory()).await
+}
+
+pub(super) async fn account_response(
+    state: AppState,
+    headers: HeaderMap,
+    notice: AccountQuery,
+    staff_dir: Option<std::path::PathBuf>,
 ) -> Response {
     let caller = auth::caller(&state, &headers);
     let hosted = match hosted_session(&state, &caller) {
         Ok(identity) => identity,
         Err(response) => return response,
     };
+    if notice.view == "staff-access" {
+        let Some(root) = staff_dir else {
+            return auth::not_found();
+        };
+        let owner = hosted.person.id.clone();
+        let result =
+            tokio::task::spawn_blocking(move || super::staff_access::history(&root, &owner)).await;
+        let mut response = match result {
+            Ok(Ok(page)) => hosted_page(
+                "Staff access history",
+                &(hosted_pages::navigation(&hosted.nav(), "account") + &page),
+            ),
+            _ => (
+                StatusCode::SERVICE_UNAVAILABLE,
+                "Staff access history is unavailable.",
+            )
+                .into_response(),
+        };
+        response
+            .headers_mut()
+            .insert(header::CACHE_CONTROL, "private, no-store".parse().unwrap());
+        return response;
+    }
     let usage = match &hosted.org {
         Some(org) if !org.suspended => {
             super::hosted::account_usage(&state, &caller.principal, &org.id)
@@ -2090,17 +2167,16 @@ pub async fn account_page(
     // Join notices that could not be mailed go now if the budget allows; the rest stay shown.
     retry_unsent_notices(&state, &hosted.person.id, &hosted.person.email).await;
     let sign_in = sign_in_options(&state, &hosted.person.id);
-    hosted_page(
-        "Account",
-        &hosted_pages::account(
-            &hosted.nav(),
-            &hosted.person.email,
-            usage.as_ref(),
-            sign_in.as_ref().map(SignInView::as_options).as_ref(),
-            // Only the page's own messages: the text comes from a code, never from the address.
-            &account_notice(&notice.m),
-        ),
-    )
+    let account = hosted_pages::account(
+        &hosted.nav(),
+        &hosted.person.email,
+        usage.as_ref(),
+        sign_in.as_ref().map(SignInView::as_options).as_ref(),
+        // Only the page's own messages: the text comes from a code, never from the address.
+        &account_notice(&notice.m),
+        staff_dir.is_some(),
+    );
+    hosted_page("Account", &account)
 }
 
 #[cfg(test)]
@@ -2189,6 +2265,49 @@ mod hosted_response_tests {
         assert_eq!(report_date("2026-11-11T19:00:00Z"), "11 Nov 2026");
         assert_eq!(report_date("2026-01-02"), "2 Jan 2026");
         assert_eq!(report_date("unknown"), "unknown");
+    }
+
+    #[test]
+    fn the_list_leaves_out_the_year_only_when_it_is_this_year() {
+        let today = "25 Nov 2026";
+        assert_eq!(edited_day("2026-11-24T19:00:00Z", today), "24 Nov");
+        assert_eq!(edited_day("2025-12-31T23:00:00Z", today), "31 Dec 2025");
+        assert_eq!(edited_day("unknown", today), "unknown");
+        assert_eq!(edited_day("2026-11-24", ""), "24 Nov 2026");
+    }
+
+    fn visible(visibility: Visibility, relation: Relation) -> VisibleReport {
+        VisibleReport {
+            key: "ab123456/report".to_owned(),
+            org: "ab123456".to_owned(),
+            org_name: "Acme".to_owned(),
+            owner_name: "Ada".to_owned(),
+            visibility,
+            relation,
+            named: false,
+        }
+    }
+
+    #[test]
+    fn a_row_is_marked_by_who_can_open_it_unless_the_report_was_shared_with_the_person() {
+        use Relation::{Mine, Organization, Shared};
+        for (visibility, relation, can_share, kind) in [
+            (Visibility::Private, Mine, true, "private"),
+            (Visibility::Private, Organization, true, "private"),
+            // A colleague named on a private report did not make it and may not share it.
+            (Visibility::Private, Organization, false, "you"),
+            (Visibility::Private, Shared, false, "you"),
+            (Visibility::Org, Organization, false, "org"),
+            (Visibility::Org, Shared, false, "you"),
+            (Visibility::Public, Mine, true, "public"),
+            (Visibility::Public, Organization, false, "public"),
+        ] {
+            assert_eq!(
+                row_kind(&visible(visibility, relation), can_share),
+                kind,
+                "{visibility:?} {relation:?} {can_share}"
+            );
+        }
     }
 
     async fn body_of(response: Response) -> String {
@@ -2320,6 +2439,37 @@ mod hosted_response_tests {
         assert!(!body.contains("class=\"nav__links\""));
         assert!(!body.contains(">Third-party notices</a>"));
         assert!(!body.contains("<footer"));
+    }
+
+    #[tokio::test]
+    async fn the_reports_page_alone_gets_the_narrow_column_of_a_list() {
+        let nav = hosted_pages::Nav {
+            name: "Alex",
+            email: "alex@example.test",
+            csrf: "csrf",
+            org: Some(("ab123456", "Acme")),
+            role: Some("Owner"),
+            orgs: &[],
+        };
+        let list = hosted_pages::reports(&hosted_pages::ReportList {
+            nav: &nav,
+            server: "https://app.example",
+            rows: &[],
+            total: 0,
+            show: "all",
+            query: "",
+            notice: "",
+            invites: &[],
+            can_publish: true,
+            usage: None,
+            unsent: &[],
+        });
+        let body = body_of(hosted_page("Reports", &list)).await;
+        assert!(body.contains("<main class=\"cowork lib-page\" id=\"content\">"));
+        let other = hosted_pages::delete_confirmation(&nav, "org/report", "Q3");
+        let body = body_of(hosted_page("Delete report", &other)).await;
+        assert!(body.contains("<main class=\"cowork\" id=\"content\">"));
+        assert!(!body.contains("<main class=\"cowork lib-page\""));
     }
 
     #[tokio::test]

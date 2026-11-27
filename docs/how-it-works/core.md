@@ -26,7 +26,7 @@ The Report renderer ([`richview-core`](../../crates/richview-core/Cargo.toml)) i
   - [`blocks.rs`](../../crates/richview-core/src/blocks.rs) resolves dataset values and renders report elements such as tables and images.
   - [`figure.rs`](../../crates/richview-core/src/figure.rs) calls the [Chart engine](chart-engine.md) and packages each chart for screen or paper.
   - [`columns.rs`](../../crates/richview-core/src/columns.rs) assigns blocks to the columns the author describes.
-  - [`slides.rs`](../../crates/richview-core/src/slides.rs) divides the report into slides and measures the space available to each figure.
+  - [`slides.rs`](../../crates/richview-core/src/slides.rs) reads a `.rslide` deck into slides and slots, places each slot on the 24 by 24 stage and measures the space available to each figure.
   - [`reading.rs`](../../crates/richview-core/src/reading.rs) derives the table of contents and reading-progress markup from the document.
   - [`shell.rs`](../../crates/richview-core/src/shell.rs) writes page elements shared by reports, including the document head and content security policy.
   - [`knowledge.rs`](../../crates/richview-core/src/knowledge.rs) supplies the authoring guide returned by `richview learn`.
@@ -134,7 +134,7 @@ The [document types](../../crates/richview-core/src/document.rs#L212) describe w
 
 **Columns, 2 through 4.** The column grammar accepts a row in that range. The [column parser](../../crates/richview-core/src/columns.rs) checks the column declaration and how the body is divided.
 
-**Slides.** The slide checker allows up to two figures, and up to four numbers beside a figure. With no figure, two rows can hold eight numbers. The text budget is 50 words alongside figures or numbers and 80 for text alone. A table can show up to ten data rows. The slide checker reports content that exceeds the budget. [Slide budgets](../../crates/richview-core/src/slides.rs#L28) · [Slide checks](../../crates/richview-core/src/slides.rs#L644)
+**Slides.** A deck names itself in its first line, `format: rslide/1`, so every host that holds only the text reads it as a deck. A slide's slots share a 24 by 24 stage: a head in rows 1 to 4 and a foot in rows 23 and 24 when the slide has furniture for them. The slide checker reports a slot of text that holds more than 40 words (80 when it is at least half the stage wide), a title of more than 90 characters and a table of more than ten data rows. [Slide budgets](../../crates/richview-core/src/slides.rs#L50) · [Slide checks](../../crates/richview-core/src/slides.rs#L1574)
 
 **Print figures.** The renderer tries to fit a chart within 60% of the printable page height. The renderer can narrow the figure toward a 240-pixel minimum. If the resulting figure is still too tall, the author receives a warning. [Print layout](../../crates/richview-core/src/figure.rs#L712) · [Print thresholds](../../crates/richview-core/src/figure.rs#L957)
 

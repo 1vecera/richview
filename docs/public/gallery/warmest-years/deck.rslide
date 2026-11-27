@@ -1,0 +1,164 @@
+format: rslide/1
+title: The warmest years on record
+description: The eleven warmest years in NASA's record of 146 are the last eleven, 2015 to 2025.
+version: 1.0.0
+styles: [sleek]
+---
+title: The warmest years on record
+subtitle: NASA's global temperature index, 1880 to 2025
+---
+metric:
+  value: "1976"
+  format: year
+  label: The last year with a global temperature below the 1951–1980 average
+source: NASA GISS GISTEMP v4, annual land–ocean temperature index
+---
+title: The index has risen since the late nineteenth century
+subtitle: Annual global temperature anomaly, 1880 to 2025, against the 1951–1980 average
+chart:
+  type: line
+  title: Global temperature has risen since the late nineteenth century
+  data: { csv: data/global-temperature.csv }
+  encoding: { x: year, y: anomaly_c }
+  axes:
+    x: { format: year }
+    y: { label: Temperature anomaly, unit: °C }
+source: NASA GISS GISTEMP v4, annual land–ocean temperature index
+---
+title: Since 1980 each twenty-year period is at least 0.3 °C warmer than the last
+subtitle: Mean anomaly by twenty-year period; the last bar holds 2020 to 2025
+left:
+  - Weather moves single years: El Niño years stand above their neighbours, La Niña years below.
+  - Twenty-year means smooth that out.
+  - The forty years from 1940 to 1979 average zero.
+right:
+  chart:
+    type: bar
+    title: Mean anomaly by twenty-year period against the 1951–1980 average
+    data:
+      inline:
+        - { period: "1880–99", mean: -0.22 }
+        - { period: "1900–19", mean: -0.32 }
+        - { period: "1920–39", mean: -0.18 }
+        - { period: "1940–59", mean: 0.00 }
+        - { period: "1960–79", mean: 0.00 }
+        - { period: "1980–99", mean: 0.32 }
+        - { period: "2000–19", mean: 0.70 }
+        - { period: "2020–25", mean: 1.06 }
+    encoding: { x: period, y: mean }
+    axes:
+      y: { label: "Mean anomaly, °C", min: -0.6, max: 1.4 }
+cols: 9-15
+source: NASA GISS GISTEMP v4, annual land–ocean temperature index; the means are worked out from its annual values
+---
+title: Every decade since the 1960s has been warmer than the one before
+subtitle: Mean, coldest and warmest year of each decade, °C against 1951–1980
+left:
+  table:
+    data:
+      inline:
+        - { decade: 1950s, mean: "−0.05", low: "−0.19", high: "0.08" }
+        - { decade: 1960s, mean: "−0.03", low: "−0.20", high: "0.06" }
+        - { decade: 1970s, mean: "0.04", low: "−0.10", high: "0.18" }
+        - { decade: 1980s, mean: "0.25", low: "0.12", high: "0.39" }
+        - { decade: 1990s, mean: "0.39", low: "0.22", high: "0.61" }
+        - { decade: 2000s, mean: "0.59", low: "0.39", high: "0.68" }
+        - { decade: 2010s, mean: "0.80", low: "0.61", high: "1.01" }
+        - { decade: 2020–25, mean: "1.06", low: "0.85", high: "1.28" }
+    columns:
+      - { key: decade, label: Decade }
+      - { key: mean, label: Mean, align: right }
+      - { key: low, label: Coldest year, align: right }
+      - { key: high, label: Warmest year, align: right }
+right:
+  - Since the 1980s even a decade's coldest year is above the baseline.
+  - 2011, the coldest year of the 2010s, matched 1998, the warmest of the 1990s.
+cols: 14-10
+source: NASA GISS GISTEMP v4, annual land–ocean temperature index; the means are worked out from its annual values
+---
+title: The last eleven years
+subtitle: 2015 to 2025
+---
+title: Every year since 2015 has been at least 0.85 °C above the average
+subtitle: Annual anomaly against the 1951–1980 average, 2001 to 2025
+top:
+  chart:
+    type: bar
+    title: Annual global temperature anomaly, 2001 to 2025
+    data:
+      inline:
+        - { year: "2001", anomaly: 0.53 }
+        - { year: "2002", anomaly: 0.63 }
+        - { year: "2003", anomaly: 0.62 }
+        - { year: "2004", anomaly: 0.53 }
+        - { year: "2005", anomaly: 0.68 }
+        - { year: "2006", anomaly: 0.64 }
+        - { year: "2007", anomaly: 0.66 }
+        - { year: "2008", anomaly: 0.54 }
+        - { year: "2009", anomaly: 0.66 }
+        - { year: "2010", anomaly: 0.72 }
+        - { year: "2011", anomaly: 0.61 }
+        - { year: "2012", anomaly: 0.65 }
+        - { year: "2013", anomaly: 0.67 }
+        - { year: "2014", anomaly: 0.75 }
+        - { year: "2015", anomaly: 0.89 }
+        - { year: "2016", anomaly: 1.01 }
+        - { year: "2017", anomaly: 0.91 }
+        - { year: "2018", anomaly: 0.85 }
+        - { year: "2019", anomaly: 0.98 }
+        - { year: "2020", anomaly: 1.01 }
+        - { year: "2021", anomaly: 0.85 }
+        - { year: "2022", anomaly: 0.89 }
+        - { year: "2023", anomaly: 1.17 }
+        - { year: "2024", anomaly: 1.28 }
+        - { year: "2025", anomaly: 1.18 }
+    encoding: { x: year, y: anomaly }
+    axes:
+      y: { label: Temperature anomaly, unit: °C }
+    auto_annotations: false
+    annotations:
+      - { kind: line, at: { y: 0.85 }, text: 0.85 °C }
+      - { kind: point, at: { x: "2024", y: 1.28 }, text: "2024: 1.28 °C" }
+bottom-left:
+  metric:
+    value: "11"
+    label: of the 11 warmest years on record fall in 2015 to 2025
+bottom-right:
+  metric:
+    value: "0.21"
+    unit: °C
+    label: warming per decade from 1975 to 2025, as a straight line through the annual values
+rows: 15-9
+source: NASA GISS GISTEMP v4, annual land–ocean temperature index
+---
+title: The three warmest years are the last three
+subtitle: Annual anomaly against the 1951–1980 average
+left:
+  metric:
+    value: "1.28"
+    unit: °C
+    label: 2024, the warmest year of the record
+middle:
+  metric:
+    value: "1.18"
+    unit: °C
+    label: 2025, the second warmest
+right:
+  metric:
+    value: "1.17"
+    unit: °C
+    label: 2023, the third warmest
+source: NASA GISS GISTEMP v4, annual land–ocean temperature index
+---
+title: How to read the index
+text:
+  - It is an anomaly: each year's departure from the 1951–1980 average, in °C. It is not an absolute temperature.
+  - It is NASA's land–ocean series, one value for the whole globe for each year.
+  - The record starts in 1880 and holds 146 years, to 2025.
+  - Values are rounded to 0.01 °C, as NASA publishes them.
+---
+title: Sources
+text:
+  - **Data.** NASA GISS Surface Temperature Analysis, GISTEMP v4, global annual land–ocean temperature index ([data.giss.nasa.gov/gistemp](https://data.giss.nasa.gov/gistemp/)), downloaded 9 November 2026. Credit: NASA GISS GISTEMP Team.
+  - **Derived.** The twenty-year and decade means, the trend and the counts are worked out from the annual values in `data/global-temperature.csv`.
+  - **Baseline.** Every anomaly is against the 1951–1980 average.

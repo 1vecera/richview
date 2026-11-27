@@ -103,7 +103,7 @@ class HarnessTests(unittest.TestCase):
             self.assertTrue(any("wasm-release" in argv for argv in commands))
             self.assertTrue(
                 any(
-                    argv[:2] == ["node", str(root / "scripts/verify-site.mjs")] and env["RICHVIEW_DEV_PREVIEW"] == "1"
+                    argv[:2] == ["node", str(root / "scripts/verify-site.ts")] and env["RICHVIEW_DEV_PREVIEW"] == "1"
                     for argv, env in calls
                 )
             )

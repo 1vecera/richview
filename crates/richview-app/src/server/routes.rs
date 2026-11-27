@@ -483,6 +483,39 @@ fn hosted_table() -> Vec<Entry> {
             Session,
             delete(ui::revoke_cli_token),
         ),
+        // The same sign-in through a redirect to the command line's own loopback port: how a
+        // server signs in, a trade of the one-time code or a refresh token for the sign-in, and
+        // the page and form where a signed-in person answers.
+        entry(
+            "GET",
+            "/api/cli/oauth/metadata",
+            Public,
+            get(ui::cli_oauth_metadata),
+        ),
+        entry(
+            "POST",
+            "/api/cli/oauth/token",
+            Public,
+            post(ui::cli_oauth_token).layer(sign_in_limit()),
+        ),
+        entry(
+            "POST",
+            "/api/cli/oauth/revoke",
+            Public,
+            post(ui::cli_oauth_revoke).layer(sign_in_limit()),
+        ),
+        entry(
+            "GET",
+            "/cli/authorize",
+            Session,
+            get(ui::cli_authorize_page),
+        ),
+        entry(
+            "POST",
+            "/ui/cli/authorize",
+            Session,
+            post(ui::decide_cli_authorize).layer(sign_in_limit()),
+        ),
         entry("GET", "/cli", Session, get(ui::cli_sign_in_page)),
         entry(
             "POST",
@@ -621,6 +654,16 @@ fn hosted_table() -> Vec<Entry> {
             Share,
             post(ui::unshare_person).layer(sign_in_limit()),
         ),
+        // The online editor: a stored report's source beside its rendering, and a new report
+        // on a starter. The `edit` right is checked in the handler, which sends someone who can
+        // only read the report to its page.
+        entry("GET", "/reports/new", Session, get(ui::editor_new_page)),
+        entry(
+            "GET",
+            "/reports/{org}/{slug}/edit",
+            Edit,
+            get(ui::editor_page),
+        ),
         entry(
             "GET",
             "/reports/{org}/{slug}/delete",
@@ -652,6 +695,19 @@ fn hosted_table() -> Vec<Entry> {
         Public,
         get(hosted::docs_bootstrap),
     ));
+    // What the online editor's page loads from the app origin: the site runtime and its render
+    // worker, the font catalogs the worker provides, and the report runtime its preview runs.
+    for (path, handler) in [
+        ("/richview_site.js", get(ui::editor_site_js)),
+        ("/richview_site_bg.wasm", get(ui::editor_site_wasm)),
+        ("/worker.js", get(ui::editor_worker)),
+        ("/richview-fonts.css", get(ui::editor_fonts)),
+        ("/fonts-math.css", get(ui::editor_math_fonts)),
+        ("/richview_runtime.js", get(ui::editor_runtime_js)),
+        ("/richview_runtime_bg.wasm", get(ui::editor_runtime_wasm)),
+    ] {
+        entries.push(entry("GET", path, Public, handler));
+    }
     entries
 }
 

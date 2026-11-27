@@ -56,7 +56,7 @@ axes:
 
 ## Interactions
 
-- Hover or focus the chart to read the bounds at the nearest x value; the crosshair snaps to the nearest observation.
+- Hover or focus the chart to read the bounds at the nearest x value; the crosshair snaps to the nearest observation, and a ring surrounds the filled dot on each band's centre line, as it does on a line chart.
 - Click a legend entry to toggle a series when the chart has several.
 - Zoom and pan on the x axis with brush, wheel, pinch, keys or double-click; Escape or reset returns to the full range.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

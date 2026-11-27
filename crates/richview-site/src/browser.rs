@@ -10,6 +10,7 @@ mod complete;
 mod docs;
 mod homepage;
 mod landing;
+mod marks;
 mod tabs;
 mod toolbar;
 mod voices;
@@ -391,7 +392,7 @@ pub fn start() -> Result<(), JsValue> {
     if landing_page {
         voices::start();
         // The live example's renders load the report-face catalog when they first need it, so a
-        // first visit that never edits the example does not download it (S27-927, PRF-36).
+        // first visit that never edits the example does not download it (PRF-36).
         if let Err(error) = homepage::start() {
             self::error(&error);
         }

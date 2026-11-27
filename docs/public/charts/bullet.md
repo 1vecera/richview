@@ -55,5 +55,5 @@ style:
 
 ## Interactions
 
-- Hover or focus a bar to read the actual value, the target and the ranges.
+- Hover or focus a bar to read the actual value, the target and the ranges. A dark outline marks the bar under the pointer.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

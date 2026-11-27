@@ -3,7 +3,7 @@
   "order": 3,
   "title": "Architecture and components",
   "status": "ready",
-  "summary": "This part settles RichView's architecture for the rewrite: layers and dependency direction, where product behaviour lives, safety boundaries, workspace topology, publishing and deployment, and one keep/change/drop card for every component on `main`, on the open draft PRs and in the lockdown tooling. Feature behaviour (04), field types (05), styles (06) and budgets (07) are out of scope; cards point there when a detail belongs elsewhere.\n\nKey decisions:\n\n- **Pure core, Rust everywhere** (ARC-02, ARC-03, ARC-68): core and engine never touch I/O; handwritten JavaScript only in named adapters, a narrow landing animation layer and development tooling that never ships; every dependency passes a licence gate.\n- **Two Wasm runtimes; reports embed theirs** (ARC-06, ARC-07, ARC-17): 87% of a small chart report is the shared runtime, which also carries the site, and outside the checkout the CLI cannot export chart reports. ARC-06 also answers PRF-31's shared hosted runtime.\n- **Safety boundaries** (ARC-10 to ARC-15, ARC-23, ARC-66): with sleek or sleek-dark in the cascade a style file injects `<script>` into reports today, no host on `main` sends a Content Security Policy, the MCP publish tool takes the token as an argument, and the playground loads sources from any CORS-enabled URL.\n- **Publishing and deployment** (ARC-20 to ARC-22, ARC-57): one publish contract with server-side rendering, immutable versions, richview.ai as a static site with a `dev` preview behind Cloudflare Access, and RichView's paid hosted services: hosted Cowork at app.richview.ai, Publish servers for customers and hosting for large data and media; Publish rebuilt in the rewrite on a server core shared with Cowork, and News on #70's code, merged into `main`, until it moves onto it.\n- **One workspace** (ARC-16 to ARC-19): INT-50 keeps one repository; publication content gets its own repository, `richview-web` splits into report and site crates, chart geometry stays inside `richview-chart`, and `.rmd` blocks are the only chart contract.\n\nWhere another part owns a decision, the card here states the component consequence and cites the owner instead of asking again: INT-50 (repository), INT-52 (Rust), INT-53 (chart supplier), INT-71 (installation), INT-74 (News), TYP-32 (embed diagnostic level), TYP-51 (style sinks), TYP-63, TYP-64, TYP-95 and TYP-96 (republish, retention, content identity, latest), FEA-RP-14 (raw HTML), FEA-RP-43 (PDF bar), FEA-SF-01, FEA-SF-09, FEA-SF-15, FEA-SF-17, FEA-SF-20, FEA-SF-21 and FEA-SF-45 (commands, MCP tools, report list, render API, server binary, extension delivery, reel), DEL-39 (hosted CI), DEL-46 (agent instructions) and OPN-08, OPN-09, OPN-10, OPN-12 and OPN-14 (PR dispositions). Changing one of those answers changes the cards that cite it; pairs that still disagree are recorded under each card's conflicts.\n\nOn component cards, keep means the component and its responsibility stay in the architecture; whether its code is ported or rewritten follows INT-49. ARC-25 to ARC-56 and ARC-62 to ARC-64 cover `main`; ARC-65 covers the lockdown tooling that DEL-45 merges first into `dev`; ARC-57 covers #70, merged into `main` on 2026-10-26, and ARC-58 to ARC-61 cover components that exist only on open draft PRs. Linear's component labels in `evidence/linear.md` are aliases, not lockdown IDs: C-RICH-MARKDOWN, C-THEMES and C-RENDERER are ARC-26; C-CHART-ENGINE is ARC-25; C-SERVER is ARC-31 with ARC-32; C-CLI-MCP is ARC-28 with ARC-33; C-VSCODE is ARC-45; C-PUBLISH is ARC-57; C-DASHBOARDS is ARC-58; C-WEBSITE is ARC-38 to ARC-43 and ARC-55, with ARC-64 for the chart-review pages.\n\nHow to answer: **accept** keeps the proposal as written; **edit** replaces it with your text; **reject** drops the proposal from the rewrite (add a note with what you want instead); **defer** leaves it open. Part 08's cross-part contradiction cards (OPN-50 to OPN-68) decide conflicts involving this part's cards and should be answered first.",
+  "summary": "This part settles RichView's architecture for the rewrite: layers and dependency direction, where product behaviour lives, safety boundaries, workspace topology, publishing and deployment, and one keep/change/drop card for every component on `main`, on the open draft PRs and in the lockdown tooling. Feature behaviour (04), field types (05), styles (06) and budgets (07) are out of scope; cards point there when a detail belongs elsewhere.\n\nKey decisions:\n\n- **Pure core, Rust everywhere** (ARC-02, ARC-03, ARC-68): core and engine never touch I/O; handwritten JavaScript only in named adapters, a narrow landing animation layer and development tooling that never ships; every dependency passes a licence gate.\n- **Two Wasm runtimes; reports embed theirs** (ARC-06, ARC-07, ARC-17): 87% of a small chart report is the shared runtime, which also carries the site, and outside the checkout the CLI cannot export chart reports. ARC-06 also answers PRF-31's shared hosted runtime.\n- **Safety boundaries** (ARC-10 to ARC-15, ARC-23, ARC-66): with sleek or sleek-dark in the cascade a style file injects `<script>` into reports today, no host on `main` sends a Content Security Policy, the MCP publish tool takes the token as an argument, and the playground loads sources from any CORS-enabled URL.\n- **Publishing and deployment** (ARC-20 to ARC-22, ARC-57): one publish contract with server-side rendering, immutable versions, richview.ai as a static site with a `dev` preview behind Cloudflare Access, and RichView's paid hosted services: hosted Cowork at app.richview.ai, Publish servers for customers and hosting for large data and media; Publish rebuilt in the rewrite on a server core shared with Cowork, and News on #70's code, merged into `main`, until it moves onto it.\n- **One workspace** (ARC-16 to ARC-19): INT-50 keeps one repository; publication content gets its own repository, `richview-web` splits into report and site crates, chart geometry stays inside `richview-chart`, and `.rmd` blocks are the only chart contract.\n\nWhere another part owns a decision, the card here states the component consequence and cites the owner instead of asking again: INT-50 (repository), INT-52 (Rust), INT-53 (chart supplier), INT-71 (installation), INT-74 (News), TYP-32 (embed diagnostic level), TYP-51 (style sinks), TYP-63, TYP-64, TYP-95 and TYP-96 (republish, retention, content identity, latest), FEA-RP-14 (raw HTML), FEA-RP-43 (PDF bar), FEA-SF-01, FEA-SF-09, FEA-SF-15, FEA-SF-17, FEA-SF-20, FEA-SF-21 and FEA-SF-45 (commands, MCP tools, report list, render API, server binary, extension delivery, reel), DEL-39 (hosted CI), DEL-46 (agent instructions) and OPN-08, OPN-09, OPN-10, OPN-12 and OPN-14 (PR dispositions). Changing one of those answers changes the cards that cite it; pairs that still disagree are recorded under each card's conflicts.\n\nOn component cards, keep means the component and its responsibility stay in the architecture; whether its code is ported or rewritten follows INT-49. ARC-25 to ARC-56 and ARC-62 to ARC-64 cover `main`; ARC-65 covers the lockdown tooling that DEL-45 merges first into `dev`; ARC-57 covers #70, merged into `main` on 2026-10-26, and ARC-58 to ARC-61 cover components that exist only on open draft PRs. Linear's component labels (in the Linear evidence, not published) are aliases, not lockdown IDs: C-RICH-MARKDOWN, C-THEMES and C-RENDERER are ARC-26; C-CHART-ENGINE is ARC-25; C-SERVER is ARC-31 with ARC-32; C-CLI-MCP is ARC-28 with ARC-33; C-VSCODE is ARC-45; C-PUBLISH is ARC-57; C-DASHBOARDS is ARC-58; C-WEBSITE is ARC-38 to ARC-43 and ARC-55, with ARC-64 for the chart-review pages.\n\nHow to answer: **accept** keeps the proposal as written; **edit** replaces it with your text; **reject** drops the proposal from the rewrite (add a note with what you want instead); **defer** leaves it open. Part 08's cross-part contradiction cards (OPN-50 to OPN-68) decide conflicts involving this part's cards and should be answered first.",
   "items": [
     {
       "id": "ARC-01",
@@ -60,7 +60,7 @@
         },
         {
           "label": "Linear component aliases (five elements, Publish, Dashboards, Website)",
-          "ref": "docs/lockdown/evidence/linear.md",
+          "ref": "the Linear evidence (not published)",
           "date": "2026-10-21"
         },
         {
@@ -123,7 +123,7 @@
       "title": "Where JavaScript is allowed",
       "question": "Where exactly may handwritten JavaScript exist, given that Rust owns all product behaviour?",
       "why": "INT-52 (part 01) keeps RichView in Rust and leaves the exact JavaScript boundary to this part. The answer decides whether siblings such as Publish and Dashboards may keep product logic in JavaScript, what reviews must reject and what counts as tooling. On `main`, product JavaScript is the 326-line VS Code adapter and the 65-line signup Worker, whose consent and validation rules exist only in JavaScript; tooling adds 60 Node and TypeScript files and eight Python scripts in `scripts/`, Node, Python and R harnesses in `benchmarks/` and 29 evidence scripts in `docs/evidence/`. PR #70, merged into `main` as it is on 2026-10-26 (97ac0d0, INT-52), added about 4,000 lines of JavaScript.",
-      "proposed": "Rust owns parsing, validation, rendering, diagnostics, interaction state, authoring logic, storage, access, publication and signup rules. Handwritten JavaScript is allowed only in:\n\n- the VS Code adapter: activation, commands, webview wiring; behaviour comes from the editor service;\n- Cloudflare Worker adapters: routing, bindings and identity hand-off; rules, including the signup endpoint's consent and validation (ARC-55), run in Rust compiled to Wasm;\n- an embedded VS Code-style source editor on RichView server pages (Publish, Cowork), loaded only for a signed-in author editing their own item (INT-26, FEA-BR-27): a third-party editor library, such as Monaco or CodeMirror (the choice is open), with handwritten mounting glue. It edits and highlights source only; validation and rendering before save run on the server in Rust. No report or report runtime ever loads it;\n- generated wasm-bindgen glue and worker bootstraps;\n- a narrow landing-page animation layer, where JavaScript is the correct repair (S27-653); it never re-implements shared Rust behaviour;\n- development tooling that never ships with the product: tests, verification, benchmarks, evidence and review tools such as the lockdown app (ARC-63 to ARC-65), which may also use Python, R or shell.\n\n#70's JavaScript, merged as it is (INT-52), stays outside this allowlist until the rewrite reaches Publish and ports it to Rust; how the gate's check treats it until then is open. Tooling reaches the product only through its binaries and generated APIs and holds no product rule. Each handwritten JavaScript file in a product path names its host reason in its header, and a gate checks product paths against this allowlist. Custom TypeScript components embedded in a report are a possible later extension (INT-28) that would come with their own validation, sandboxing and skills; they are not part of the rewrite, and this allowlist gains an entry for them only when that extension is decided.",
+      "proposed": "Rust owns parsing, validation, rendering, diagnostics, interaction state, authoring logic, storage, access, publication and signup rules. Handwritten JavaScript is allowed only in:\n\n- the VS Code adapter: activation, commands, webview wiring; behaviour comes from the editor service;\n- Cloudflare Worker adapters: routing, bindings and identity hand-off; rules, including the signup endpoint's consent and validation (ARC-55), run in Rust compiled to Wasm;\n- an embedded VS Code-style source editor on RichView server pages (Publish, Cowork), loaded only for a signed-in author editing their own item (INT-26, FEA-BR-27): a third-party editor library, such as Monaco or CodeMirror (the choice is open), with handwritten mounting glue. It edits and highlights source only; validation and rendering before save run on the server in Rust. No report or report runtime ever loads it;\n- generated wasm-bindgen glue and worker bootstraps;\n- a narrow landing-page animation layer, where JavaScript is the correct repair; it never re-implements shared Rust behaviour;\n- development tooling that never ships with the product: tests, verification, benchmarks, evidence and review tools such as the lockdown app (ARC-63 to ARC-65), which may also use Python, R or shell.\n\n#70's JavaScript, merged as it is (INT-52), stays outside this allowlist until the rewrite reaches Publish and ports it to Rust; how the gate's check treats it until then is open. Tooling reaches the product only through its binaries and generated APIs and holds no product rule. Each handwritten JavaScript file in a product path names its host reason in its header, and a gate checks product paths against this allowlist. Custom TypeScript components embedded in a report are a possible later extension (INT-28) that would come with their own validation, sandboxing and skills; they are not part of the rewrite, and this allowlist gains an entry for them only when that extension is decided.",
       "options": [
         {
           "label": "Rust plus thin adapters",
@@ -153,7 +153,7 @@
         },
         {
           "label": "PR #70 merged into `main` as merge commit 97ac0d0 on 2026-10-26; its branch has no commits outside `main`, and `main` now holds `publications/news/`, `cloudflare/publish/` and `publish.yml`",
-          "ref": "git log origin/main; git rev-list --count origin/main..origin/feat/s27-655-richview-publish (0)",
+          "ref": "git log origin/main; git rev-list --count origin/main..3f5c35f (0)",
           "date": "2026-10-26"
         },
         {
@@ -178,7 +178,6 @@
         },
         {
           "label": "Website brief: \"A narrow site animation layer may use JavaScript if that is the correct repair\"; \"Do not blindly reimplement working shared Rust product behavior in JavaScript\"",
-          "ref": "S27-653",
           "date": "2026-10-18"
         },
         {
@@ -188,7 +187,7 @@
         },
         {
           "label": "Publish gateway: roles, sections and audiences decided in JavaScript",
-          "ref": "https://github.com/1vecera/richview/blob/feat/s27-655-richview-publish/cloudflare/publish/policy.mjs",
+          "ref": "PR #70: cloudflare/publish/policy.mjs",
           "date": "2026-10-19"
         },
         {
@@ -263,7 +262,7 @@
         },
         {
           "label": "Publish builds the runtime at `opt-level = 3` and notes different bytes",
-          "ref": "https://github.com/1vecera/richview/blob/feat/s27-655-richview-publish/docs/publish/operations.md?plain=1#L5-L7",
+          "ref": "PR #70: docs/publish/operations.md:5-7",
           "date": "2026-10-19"
         },
         {
@@ -337,7 +336,6 @@
         },
         {
           "label": "Asks to explore WebGL and Wasm raster rendering",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -441,7 +439,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "Following INT-04, a stored report references a runtime the host must keep forever (ARC-21), ARC-15 allows that script by origin and integrity hash, ARC-24, FEA-SF-20 and TYP-70 add the runtime route, and served HTML differs from the exported file. PRF-30 budgets a full authoring runtime for the playground and the editor preview; the editor preview renders natively and needs only the report runtime. The budget was already exceeded once when fonts were compiled into Wasm (S27-616 comment, 2026-10-11). Cross-part contradiction: answer OPN-53 first; it decides this card's conflict.\n\nDaniel's INT-31 answer puts a WebGL renderer, its shaders and the text rendering it needs into the report runtime; what that adds is unmeasured, and PRF-31 holds the open question."
+      "conflicts": "Following INT-04, a stored report references a runtime the host must keep forever (ARC-21), ARC-15 allows that script by origin and integrity hash, ARC-24, FEA-SF-20 and TYP-70 add the runtime route, and served HTML differs from the exported file. PRF-30 budgets a full authoring runtime for the playground and the editor preview; the editor preview renders natively and needs only the report runtime. The budget was already exceeded once when fonts were compiled into Wasm (a comment on the design-and-hosting brief, 2026-10-11). Cross-part contradiction: answer OPN-53 first; it decides this card's conflict.\n\nDaniel's INT-31 answer puts a WebGL renderer, its shaders and the text rendering it needs into the report runtime; what that adds is unmeasured, and PRF-31 holds the open question."
     },
     {
       "id": "ARC-07",
@@ -741,12 +739,12 @@
         },
         {
           "label": "Publish Worker dependencies `jose` and `yaml`",
-          "ref": "https://github.com/1vecera/richview/blob/feat/s27-655-richview-publish/cloudflare/publish/package.json",
+          "ref": "PR #70: cloudflare/publish/package.json",
           "date": "2026-10-19"
         },
         {
           "label": "PR #66 adds bundled DuckDB to `richview-app`",
-          "ref": "https://github.com/1vecera/richview/blob/feat/s27-650-data-connectors/crates/richview-app/Cargo.toml#L44",
+          "ref": "PR #66: crates/richview-app/Cargo.toml:44",
           "date": "2026-10-18"
         },
         {
@@ -1230,8 +1228,8 @@
       "group": "Repository, workspace and chart supply",
       "title": "Workspace and publication content",
       "question": "Within the one repository INT-50 keeps, is the product one Cargo workspace with siblings as crates, and does publication content live in its own content repository?",
-      "why": "INT-50 (part 01) keeps the site, the engine and any accepted sibling in `1vecera/richview` with its history; this card fixes the consequence inside that repository and where publication content lives. OPN-39 routes the June topology decisions (dec-33, dec-34, dec-35) here and to INT-50. S27-409 (website repository) and S27-410 (charting repository) are still open.",
-      "proposed": "The product is one Cargo workspace in `1vecera/richview`: engine, core, hosts, adapters, site, docs and examples. Accepted siblings join as crates on the shared core. S27-409 and S27-410 close as superseded by INT-50. Publication content, such as News items, lives in a separate content repository that consumes a RichView build; the product repository holds product code, docs, examples and fixtures only. Legacy public repositories follow INT-40 and OPN-25; repository URLs follow OPN-27.",
+      "why": "INT-50 (part 01) keeps the site, the engine and any accepted sibling in `1vecera/richview` with its history; this card fixes the consequence inside that repository and where publication content lives. OPN-39 routes the June topology decisions (dec-33, dec-34, dec-35) here and to INT-50. The issues for a separate website repository and a separate charting repository are still open.",
+      "proposed": "The product is one Cargo workspace in `1vecera/richview`: engine, core, hosts, adapters, site, docs and examples. Accepted siblings join as crates on the shared core. The separate-repository issues for the website and for charting close as superseded by INT-50. Publication content, such as News items, lives in a separate content repository that consumes a RichView build; the product repository holds product code, docs, examples and fixtures only. Legacy public repositories follow INT-40 and OPN-25; repository URLs follow OPN-27.",
       "options": [
         {
           "label": "Content in its own repository",
@@ -1242,7 +1240,7 @@
           "detail": "One checkout for Publish and its content; content commits and long-lived branches such as `publish/news` mix with product history."
         }
       ],
-      "recommendation": "Content in its own repository: S27-655 allows it, and publication content then cannot bloat or leak through the product repository.",
+      "recommendation": "Content in its own repository: the RichView Publish brief allows it, and publication content then cannot bloat or leak through the product repository.",
       "confidence": "observed",
       "sources": [
         {
@@ -1252,7 +1250,7 @@
         },
         {
           "label": "PR #70 merged into `main` as merge commit 97ac0d0 on 2026-10-26; its branch has no commits outside `main`, and `main` now holds `publications/news/`, `cloudflare/publish/` and `publish.yml`",
-          "ref": "git log origin/main; git rev-list --count origin/main..origin/feat/s27-655-richview-publish (0)",
+          "ref": "git log origin/main; git rev-list --count origin/main..3f5c35f (0)",
           "date": "2026-10-26"
         },
         {
@@ -1262,17 +1260,14 @@
         },
         {
           "label": "Separate charting repository with ECharts as supplier",
-          "ref": "S27-410",
           "date": "2026-06-20"
         },
         {
           "label": "Website in its own repository",
-          "ref": "S27-409",
           "date": "2026-06-20"
         },
         {
           "label": "Publish brief: all platform source in the monorepo; \"a maintained example content repository or tracked content directory\"; \"A tracked content repository is canonical for publication content\"",
-          "ref": "S27-655",
           "date": "2026-10-18"
         },
         {
@@ -1296,7 +1291,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "PR #70 keeps News content inside the product repository (`publications/news/`) and serves it from the long-lived `publish/news` branch (`7e7d9f8`); since #70's merge on 2026-10-26 (97ac0d0) `main` itself holds `publications/news/`, and when it moves to a content repository is open. S27-655 keeps all platform source in the monorepo and allows \"a maintained example content repository or tracked content directory\", with \"a tracked content repository\" canonical for content; this card picks the separate repository. `LICENSING.md` and `packages/server/LICENSE` describe a TypeScript-era MIT/Elastic-2.0 split while every crate is MIT; licence and visibility are D-OPEN-SOURCE (INT-37)."
+      "conflicts": "PR #70 keeps News content inside the product repository (`publications/news/`) and serves it from the long-lived `publish/news` branch (`7e7d9f8`); since #70's merge on 2026-10-26 (97ac0d0) `main` itself holds `publications/news/`, and when it moves to a content repository is open. The RichView Publish brief keeps all platform source in the monorepo and allows \"a maintained example content repository or tracked content directory\", with \"a tracked content repository\" canonical for content; this card picks the separate repository. `LICENSING.md` and `packages/server/LICENSE` describe a TypeScript-era MIT/Elastic-2.0 split while every crate is MIT; licence and visibility are D-OPEN-SOURCE (INT-37)."
     },
     {
       "id": "ARC-17",
@@ -1361,7 +1356,7 @@
       "group": "Repository, workspace and chart supply",
       "title": "Chart rendering stays inside the engine",
       "question": "Is `richview-chart` the only code that computes chart geometry, with one geometry model drawn by a WebGL renderer on the page and a vector renderer for PDF, and Highcharts and ECharts only as local benchmarks?",
-      "why": "INT-53 (part 01) keeps RichView's own engine, rules out third-party renderers and closes S27-410; this card fixes the architectural consequence of ending the project's longest-running reversal (history under conflicts).",
+      "why": "INT-53 (part 01) keeps RichView's own engine, rules out third-party renderers and closes the charting-repository issue; this card fixes the architectural consequence of ending the project's longest-running reversal (history under conflicts).",
       "proposed": "`richview-chart` is the only code that computes chart geometry: from a validated chart, resolved rows, width and style it produces one geometry model per chart (scales, marks, labels, annotations and their boxes), which every renderer draws and every check measures (INT-18, FEA-CH-58). Two renderers draw that model: a WebGL renderer, the default on every page (Daniel's INT-31 answer), and a vector renderer that PDF export and the server's link-preview thumbnails use (FEA-RP-43, ARC-69) and that may be slow. The engine stays pure (ARC-02): the model and the vector renderer live in the engine crate, and the WebGL calls live in the report runtime (ARC-35), which draws the model it is given and adds no geometry of its own. Because browsers cap live WebGL contexts per page (ARC-05), the renderer shares contexts across charts or releases off-screen ones, and redraws from the model after a lost context; a chart it cannot draw shows ARC-05's notice in its frame. No third-party chart library is shipped, vendored or loaded at runtime; Highcharts and ECharts run only locally, outside the product build, as visual and behavioural benchmarks (ARC-64).\n\nOpen question for Daniel: the WebGL stack. Daniel's ARC-05 answer sets the bar it is judged on: very high performance with many points, in recent Safari, Firefox and Chrome. Options, none measured here: raw WebGL2 calls from Rust through `web-sys`, the thinnest layer, with shaders written by hand; `wgpu`, a portable GPU layer with a WebGL2 backend today and WebGPU later, which brings its own abstraction and shader translation into the runtime; or a JavaScript WebGL library, which Daniel's INT-52 answer (Rust and WebAssembly for speed; JavaScript only where ARC-03 allows) argues against and which would need an entry in ARC-03's allowlist. PRF-31 measures what each adds to the report runtime.",
       "confidence": "observed",
       "sources": [
@@ -1396,18 +1391,16 @@
           "date": "2026-06-08"
         },
         {
-          "label": "INT-53 (D-CHART-SUPPLIER): own engine; no third-party renderer; Highcharts and ECharts local references only; S27-410 closed",
+          "label": "INT-53 (D-CHART-SUPPLIER): own engine; no third-party renderer; Highcharts and ECharts local references only; the charting-repository issue closed",
           "ref": "docs/lockdown/parts/01-intent.json",
           "date": "2026-10-21"
         },
         {
           "label": "Daniel: move charting to a separate repo and revert to ECharts",
-          "ref": "S27-410",
           "date": "2026-06-20"
         },
         {
           "label": "New Rust charting library judged against Highcharts; \"Keep the new library separate; do not switch the current RichView package to it\"",
-          "ref": "S27-572",
           "date": "2026-10-02"
         },
         {
@@ -1422,11 +1415,10 @@
         },
         {
           "label": "Explore WebGL and Wasm raster rendering",
-          "ref": "S27-616",
           "date": "2026-10-10"
         }
       ],
-      "conflicts": "S27-410 is still open. June dec-49 kept canvas out of v1, and S27-616 asked only to explore WebGL; Daniel's INT-31 answer makes WebGL the default renderer instead (ARC-05). Daniel's INT-31 answer says only PDF export converts charts to vector output, and the thumbnail is a second use of the vector renderer; ARC-69 explains. History of the supplier:\n\n| Date | Supplier | Source |\n| --- | --- | --- |\n| 2026-05-21 | ECharts from a CDN | `3c808bd` |\n| 2026-06-08 | D3 for line charts, ECharts for the rest | `9e33305` |\n| 2026-06-20 | Pure-TypeScript SVG engine | PR #1 |\n| 2026-06-21 | Decision to return to ECharts in a separate repo | dec-38/43/44, S27-410 |\n| 2026-07-07 | ECharts 6.1 server-side SVG; `richview-charts` split out | PR #4 |\n| 2026-10-04 | Rust engine for every chart type; ECharts removed | PR #10 |\n\nPR #9 built the Rust time-series engine as a separate library under S27-572 (\"do not switch the current RichView package to it\") and merged together with PR #10 on 2026-10-04."
+      "conflicts": "The charting-repository issue is still open. June dec-49 kept canvas out of v1, and the design-and-hosting brief asked only to explore WebGL; Daniel's INT-31 answer makes WebGL the default renderer instead (ARC-05). Daniel's INT-31 answer says only PDF export converts charts to vector output, and the thumbnail is a second use of the vector renderer; ARC-69 explains. History of the supplier:\n\n| Date | Supplier | Source |\n| --- | --- | --- |\n| 2026-05-21 | ECharts from a CDN | `3c808bd` |\n| 2026-06-08 | D3 for line charts, ECharts for the rest | `9e33305` |\n| 2026-06-20 | Pure-TypeScript SVG engine | PR #1 |\n| 2026-06-21 | Decision to return to ECharts in a separate repo | dec-38/43/44, the charting-repository issue |\n| 2026-07-07 | ECharts 6.1 server-side SVG; `richview-charts` split out | PR #4 |\n| 2026-10-04 | Rust engine for every chart type; ECharts removed | PR #10 |\n\nPR #9 built the Rust time-series engine as a separate library under the Rust chart library brief (\"do not switch the current RichView package to it\") and merged together with PR #10 on 2026-10-04."
     },
     {
       "id": "ARC-19",
@@ -1486,7 +1478,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "DIR-121 (2026-08-08) described RichView as \"a curated JSON/data-to-report rendering layer\", and `/charts/` promotes the JSON spec. Accepting this item makes JSON an internal detail. TYP-22 and FEA-CH-16 defer to this card; FEA-CH-16's last sentence (\"rebuilt from `.rmd` sources or retired\") follows ARC-40. Cross-part contradiction: answer OPN-68 first; it decides this card's conflict."
+      "conflicts": "Daniel's 2026-08-08 life-review voice note described RichView as \"a curated JSON/data-to-report rendering layer\", and `/charts/` promotes the JSON spec. Accepting this item makes JSON an internal detail. TYP-22 and FEA-CH-16 defer to this card; FEA-CH-16's last sentence (\"rebuilt from `.rmd` sources or retired\") follows ARC-40. Cross-part contradiction: answer OPN-68 first; it decides this card's conflict."
     },
     {
       "id": "ARC-20",
@@ -1567,7 +1559,7 @@
         },
         {
           "label": "Publish: Git content tree, trusted builder, private releases, Access gateway",
-          "ref": "https://github.com/1vecera/richview/blob/feat/s27-655-richview-publish/docs/publish/README.md?plain=1#L1-L30",
+          "ref": "PR #70: docs/publish/README.md:1-30",
           "date": "2026-10-19"
         },
         {
@@ -1587,7 +1579,6 @@
         },
         {
           "label": "Ecosystem: Server is \"existing hosting/runtime functionality to reuse and potentially absorb later\"",
-          "ref": "S27-655",
           "date": "2026-10-18"
         },
         {
@@ -1596,7 +1587,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "The home page promises \"a menu of your finished reports\" that can be locked down \"with access control\"; hosts protect writes only today; FEA-SF-19 gives every RichView server enterprise-grade roles and private reads, and FEA-SF-18 builds the menu with protect (FEA-SF-30). PR #70 publishes through Git pull requests and its own builder, a second path the rewrite's Publish replaces with this contract (INT-35). S27-655 calls Server \"existing hosting/runtime functionality to reuse and potentially absorb later\" into Publish; this card reverses the direction, and Publish adopts the server's publish contract.",
+      "conflicts": "The home page promises \"a menu of your finished reports\" that can be locked down \"with access control\"; hosts protect writes only today; FEA-SF-19 gives every RichView server enterprise-grade roles and private reads, and FEA-SF-18 builds the menu with protect (FEA-SF-30). PR #70 publishes through Git pull requests and its own builder, a second path the rewrite's Publish replaces with this contract (INT-35). The RichView Publish brief calls Server \"existing hosting/runtime functionality to reuse and potentially absorb later\" into Publish; this card reverses the direction, and Publish adopts the server's publish contract.",
       "images": [
         "docs/lockdown/screenshots/live/richview-home-desktop-04d-element-server.jpg",
         "docs/lockdown/screenshots/live/news-home-desktop-full.jpg"
@@ -1753,7 +1744,7 @@
         },
         {
           "label": "Move to AWS with startup credits",
-          "detail": "Credits and familiar storage services; a second provider while the site stays on Cloudflare (S27-616); now one provider option for the managed hosting (INT-48)."
+          "detail": "Credits and familiar storage services; a second provider while the site stays on Cloudflare; now one provider option for the managed hosting (INT-48)."
         }
       ],
       "recommendation": "Static site plus RichView's paid hosted services: it is Daniel's INT-36 answer and what runs today, minus the stale hosts.",
@@ -1771,7 +1762,7 @@
         },
         {
           "label": "PR #70 merged into `main` as merge commit 97ac0d0 on 2026-10-26; its branch has no commits outside `main`, and `main` now holds `publications/news/`, `cloudflare/publish/` and `publish.yml`",
-          "ref": "git log origin/main; git rev-list --count origin/main..origin/feat/s27-655-richview-publish (0)",
+          "ref": "git log origin/main; git rev-list --count origin/main..3f5c35f (0)",
           "date": "2026-10-26"
         },
         {
@@ -1786,7 +1777,7 @@
         },
         {
           "label": "News Worker: private R2, Durable Object, news.richview.ai route",
-          "ref": "https://github.com/1vecera/richview/blob/feat/s27-655-richview-publish/wrangler.publish.toml",
+          "ref": "PR #70: wrangler.publish.toml",
           "date": "2026-10-19"
         },
         {
@@ -1811,12 +1802,10 @@
         },
         {
           "label": "Daniel selects Cloudflare",
-          "ref": "S27-577",
           "date": "2026-10-04"
         },
         {
           "label": "AWS credits versus Cloudflare as preferred host",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -1826,16 +1815,15 @@
         },
         {
           "label": "News Worker sets `workers_dev = false`",
-          "ref": "https://github.com/1vecera/richview/blob/feat/s27-655-richview-publish/wrangler.publish.toml#L5",
+          "ref": "PR #70: wrangler.publish.toml:5",
           "date": "2026-10-19"
         },
         {
           "label": "Delivery comment records the workers.dev URL as the platform URL",
-          "ref": "S27-577",
           "date": "2026-10-04"
         }
       ],
-      "conflicts": "S27-616 asks to prepare AWS hosting with startup credits; INT-48 keeps it as one provider option for the hosted services. Hosted Cowork and the customers' Publish servers bring accounts, abuse handling, privacy duties and running costs (INT-15, INT-73, FEA-SF-32); their pricing and limits are open (INT-36)."
+      "conflicts": "The design-and-hosting brief asks to prepare AWS hosting with startup credits; INT-48 keeps it as one provider option for the hosted services. Hosted Cowork and the customers' Publish servers bring accounts, abuse handling, privacy duties and running costs (INT-15, INT-73, FEA-SF-32); their pricing and limits are open (INT-36)."
     },
     {
       "id": "ARC-23",
@@ -2097,7 +2085,7 @@
         },
         {
           "label": "PR #66 adds `duckdb` with the `bundled` feature to `richview-app`",
-          "ref": "https://github.com/1vecera/richview/blob/feat/s27-650-data-connectors/crates/richview-app/Cargo.toml#L44",
+          "ref": "PR #66: crates/richview-app/Cargo.toml:44",
           "date": "2026-10-18"
         },
         {
@@ -2225,7 +2213,6 @@
         },
         {
           "label": "Readable PDF and LinkedIn carousel PDF",
-          "ref": "S27-616",
           "date": "2026-10-10"
         },
         {
@@ -2456,11 +2443,10 @@
         },
         {
           "label": "Data and media hosting with limits and lifecycle rules",
-          "ref": "S27-616",
           "date": "2026-10-10"
         }
       ],
-      "conflicts": "S27-616 asks for data and media hosting, which INT-31 accepts. Daniel's INT-24 answer has reports read exported data by default; a pinned reference points to an exported, hash-checked copy, not a live source. Report sources do not consume references today (PR #22), so the source side is new work (TYP-41)."
+      "conflicts": "The design-and-hosting brief asks for data and media hosting, which INT-31 accepts. Daniel's INT-24 answer has reports read exported data by default; a pinned reference points to an exported, hash-checked copy, not a live source. Report sources do not consume references today (PR #22), so the source side is new work (TYP-41)."
     },
     {
       "id": "ARC-35",
@@ -2674,7 +2660,6 @@
         },
         {
           "label": "Move the chart gallery into the docs",
-          "ref": "S27-653",
           "date": "2026-10-18"
         },
         {
@@ -2683,7 +2668,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "S27-572 (2026-10-02) asked for an \"exceptional time-series showcase\", which this page is. PRF-33 (P-COLD-MOUNT) sets its cold-mount budget on this page; if this card is accepted, that budget moves to the docs gallery page.",
+      "conflicts": "The Rust chart library brief (2026-10-02) asked for an \"exceptional time-series showcase\", which this page is. PRF-33 (P-COLD-MOUNT) sets its cold-mount budget on this page; if this card is accepted, that budget moves to the docs gallery page.",
       "images": [
         "docs/lockdown/screenshots/product/charts/charts-desktop-viewport.jpg"
       ]
@@ -2786,12 +2771,11 @@
         },
         {
           "label": "Docs gallery must render real charts for all nine types",
-          "ref": "S27-653",
           "date": "2026-10-18"
         },
         {
           "label": "Gallery page added only on PR #69 (`docs/public/charts.md`, +332 lines)",
-          "ref": "https://github.com/1vecera/richview/blob/task/s27-653-site/docs/public/charts.md",
+          "ref": "PR #69: docs/public/charts.md",
           "date": "2026-10-19"
         },
         {
@@ -2815,7 +2799,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "`docs/public/index.md:77` lists six chart types and `:26` clones the old repository; `docs/public/tools.md:82` says \"all six types\". The chart gallery (`origin/task/s27-653-site:docs/public/charts.md`, 332 lines) exists only on unmerged PR #69 (`task/s27-653-site` at `5e69843`) and on live `/docs/charts`; `main` has six guides and no gallery. The builder edits rendered HTML with `replacen` and re-highlights code with `syntect` beside core's own highlighter (`documentation.rs:112-123`).",
+      "conflicts": "`docs/public/index.md:77` lists six chart types and `:26` clones the old repository; `docs/public/tools.md:82` says \"all six types\". The chart gallery (PR #69's `docs/public/charts.md`, 332 lines) exists only on unmerged PR #69 (at `5e69843`) and on live `/docs/charts`; `main` has six guides and no gallery. The builder edits rendered HTML with `replacen` and re-highlights code with `syntect` beside core's own highlighter (`documentation.rs:112-123`).",
       "images": [
         "docs/lockdown/screenshots/product/docs/docs-index-desktop-full.jpg"
       ]
@@ -3639,7 +3623,7 @@
         },
         {
           "label": "PR #70 merged into `main` as merge commit 97ac0d0 on 2026-10-26; its branch has no commits outside `main`, and `main` now holds `publications/news/`, `cloudflare/publish/` and `publish.yml`",
-          "ref": "git log origin/main; git rev-list --count origin/main..origin/feat/s27-655-richview-publish (0)",
+          "ref": "git log origin/main; git rev-list --count origin/main..3f5c35f (0)",
           "date": "2026-10-26"
         },
         {
@@ -3679,22 +3663,22 @@
         },
         {
           "label": "Publish architecture and boundaries",
-          "ref": "https://github.com/1vecera/richview/blob/feat/s27-655-richview-publish/docs/publish/README.md?plain=1#L1-L47",
+          "ref": "PR #70: docs/publish/README.md:1-47",
           "date": "2026-10-19"
         },
         {
           "label": "Operator side: `publisher.mjs --watch`, `access-runner.py` token rotation, `GITHUB_TOKEN` Worker secret",
-          "ref": "https://github.com/1vecera/richview/blob/feat/s27-655-richview-publish/docs/publish/operations.md?plain=1#L45-L92",
+          "ref": "PR #70: docs/publish/operations.md:45-92",
           "date": "2026-10-19"
         },
         {
           "label": "Validation workflow for publication PRs, without production credentials",
-          "ref": "https://github.com/1vecera/richview/blob/feat/s27-655-richview-publish/.github/workflows/publish.yml",
+          "ref": "PR #70: .github/workflows/publish.yml",
           "date": "2026-10-19"
         },
         {
           "label": "Worker config: private R2, Durable Object, news.richview.ai",
-          "ref": "https://github.com/1vecera/richview/blob/feat/s27-655-richview-publish/wrangler.publish.toml",
+          "ref": "PR #70: wrangler.publish.toml",
           "date": "2026-10-19"
         },
         {
@@ -3704,7 +3688,6 @@
         },
         {
           "label": "RichView Publish and News brief",
-          "ref": "S27-655",
           "date": "2026-10-18"
         },
         {
@@ -3718,7 +3701,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "S27-655 keeps platform source in the monorepo and allows a content repository or a tracked content directory; PR #70 chose `publications/news/` on the `publish/news` branch, while ARC-16 proposes a separate content repository. S27-655 also has Publish \"reuse and potentially absorb\" Server; ARC-20 and the shared server core have Publish adopt the server's contract instead. Changes to #70's JavaScript code before the cut-over carry over as behaviour, not code (INT-52, INT-74). OPN-03 infers that the transfer broke the News GitHub bridge: the gateway pins `GITHUB_REPOSITORY`, refuses GitHub's redirect and compares `full_name`, and the publisher's launchd job is not loaded. The access, withdrawal and editorial rules named above are the recorded spec; Daniel's INT-06 answer settles that Publish has roles and approvals and the core has none, while the mapping of #70's Reader, Editor and Super editor onto FEA-SF-19's enterprise-grade roles is open (FEA-BR-25). INT-35's answer says Publish carries \"the basic roles\"; FEA-SF-19, answered later, makes them enterprise-grade. ARC-22's amended answer keeps News always public, matching its `mode: external` today (FEA-BR-45). Daniel's INT-83 answer keeps stored SQL credentials out of Cowork's first cut, while OPN-63, answered later, makes connectors standard on every server; when they reach each server is open.",
+      "conflicts": "The RichView Publish brief keeps platform source in the monorepo and allows a content repository or a tracked content directory; PR #70 chose `publications/news/` on the `publish/news` branch, while ARC-16 proposes a separate content repository. The RichView Publish brief also has Publish \"reuse and potentially absorb\" Server; ARC-20 and the shared server core have Publish adopt the server's contract instead. Changes to #70's JavaScript code before the cut-over carry over as behaviour, not code (INT-52, INT-74). OPN-03 infers that the transfer broke the News GitHub bridge: the gateway pins `GITHUB_REPOSITORY`, refuses GitHub's redirect and compares `full_name`, and the publisher's launchd job is not loaded. The access, withdrawal and editorial rules named above are the recorded spec; Daniel's INT-06 answer settles that Publish has roles and approvals and the core has none, while the mapping of #70's Reader, Editor and Super editor onto FEA-SF-19's enterprise-grade roles is open (FEA-BR-25). INT-35's answer says Publish carries \"the basic roles\"; FEA-SF-19, answered later, makes them enterprise-grade. ARC-22's amended answer keeps News always public, matching its `mode: external` today (FEA-BR-45). Daniel's INT-83 answer keeps stored SQL credentials out of Cowork's first cut, while OPN-63, answered later, makes connectors standard on every server; when they reach each server is open.",
       "images": [
         "docs/lockdown/screenshots/live/news-home-desktop-full.jpg"
       ]
@@ -3732,7 +3715,7 @@
       "title": "Voice-to-dashboard demo (PR #64)",
       "question": "Is the voice-to-dashboard demo left out of the rewrite as a component, its branch kept as reference?",
       "why": "Decides whether a dashboard product joins the rewrite. It is a sibling product: an axum server whose planner, semantic adapters, selection, rendering and saves are about 2,000 lines of Rust, plus a 347-line handwritten browser UI, turning a voice or text prompt into six tiles over a MetricFlow demo with server-side transcription. Scope is INT-33 and INT-34, PR #64's disposition is D-DASHBOARD-PR64 (OPN-08), and FEA-BR-11 records its features.",
-      "proposed": "**Not in RichView.** The voice-to-dashboard demo lives outside this repository, possibly in a repository of its own (Daniel's INT-34 answer). Nothing from `origin/s27-651-voice-dashboard:crates/richview-voice-dashboard` joins `dev`, and its branch leaves this repository once the demo has its home (OPN-08, OPN-29). Dashboards in RichView are a separate question (INT-33): if they ever join, they get their own lockdown, run on the new core, keep UI logic in Rust/Wasm (ARC-03) and decide where saves go (D-DASHBOARD-SAVE). Linear name: C-DASHBOARDS.",
+      "proposed": "**Not in RichView.** The voice-to-dashboard demo lives outside this repository, possibly in a repository of its own (Daniel's INT-34 answer). Nothing from PR #64's `crates/richview-voice-dashboard` joins `dev`, and its branch leaves this repository once the demo has its home (OPN-08, OPN-29). Dashboards in RichView are a separate question (INT-33): if they ever join, they get their own lockdown, run on the new core, keep UI logic in Rust/Wasm (ARC-03) and decide where saves go (D-DASHBOARD-SAVE). Linear name: C-DASHBOARDS.",
       "confidence": "observed",
       "sources": [
         {
@@ -3742,17 +3725,16 @@
         },
         {
           "label": "Crate `richview-voice-dashboard` with `assets/app.js`",
-          "ref": "https://github.com/1vecera/richview/blob/s27-651-voice-dashboard/crates/richview-voice-dashboard/README.md",
+          "ref": "PR #64: crates/richview-voice-dashboard/README.md",
           "date": "2026-10-18"
         },
         {
           "label": "Diff: Rust `src/` about 1,960 lines (semantic 595, planner 366, server 272, render 243); `app.js` 347 lines",
-          "ref": "git diff --numstat b4db233...origin/s27-651-voice-dashboard",
+          "ref": "git diff --numstat b4db233...81110e0",
           "date": "2026-10-22"
         },
         {
           "label": "Voice-to-dashboard sibling demo",
-          "ref": "S27-651",
           "date": "2026-10-17"
         },
         {
@@ -3807,12 +3789,11 @@
         },
         {
           "label": "`duckdb` with `bundled` added to `richview-app` dependencies",
-          "ref": "https://github.com/1vecera/richview/blob/feat/s27-650-data-connectors/crates/richview-app/Cargo.toml#L44",
+          "ref": "PR #66: crates/richview-app/Cargo.toml:44",
           "date": "2026-10-18"
         },
         {
           "label": "Connectors behind `--connectors`",
-          "ref": "S27-650",
           "date": "2026-10-17"
         },
         {
@@ -3836,7 +3817,7 @@
       "group": "Branch-only components (open draft PRs)",
       "title": "Standalone galleries (PR #65)",
       "question": "Are standalone gallery pages dropped as a component, with their content reused?",
-      "why": "`/typography/`, `/chart-gallery/` and `/famous-charts/` were deployed from the unmerged branch on 2026-10-17 and later removed; they return 404 while S27-653 moved the chart gallery into the docs. PR #65's disposition is D-GALLERIES-PR65 (OPN-09).",
+      "why": "`/typography/`, `/chart-gallery/` and `/famous-charts/` were deployed from the unmerged branch on 2026-10-17 and later removed; they return 404 while the site-round brief moved the chart gallery into the docs. PR #65's disposition is D-GALLERIES-PR65 (OPN-09).",
       "proposed": "**Drop.** No standalone gallery pages. Chart content moves into the docs gallery (ARC-43, FEA-SF-43); famous-chart recreations become examples only if D-FAMOUS-SIMPLIFICATIONS (FEA-BR-12) keeps them; the typography page informs part 06 (FEA-BR-13). Old gallery URLs follow D-GALLERY-ROUTES (OPN-19).",
       "confidence": "observed",
       "sources": [
@@ -3847,12 +3828,10 @@
         },
         {
           "label": "Galleries published from the branch",
-          "ref": "S27-647",
           "date": "2026-10-17"
         },
         {
           "label": "Gallery moved into the docs",
-          "ref": "S27-653",
           "date": "2026-10-18"
         },
         {
@@ -3870,8 +3849,8 @@
       "group": "Branch-only components (open draft PRs)",
       "title": "Development harness (PR #68)",
       "question": "Is the development harness input to part 02's gates rather than a product component?",
-      "why": "It adds a Python runner, build-lock and artifact-ownership checks and deterministic worker gating, plus `origin/feat/s27-652-development-harness:docs/architecture-current.md`, which this lockdown supersedes.",
-      "proposed": "**Fold into gates.** PR #68 is not merged (D-HARNESS-PR68, OPN-12). Its useful checks (build lock, artifact ownership, provenance of staged output, deterministic worker gating) become gates in part 02 and inputs to the build manifest (ARC-46). `origin/feat/s27-652-development-harness:docs/architecture-current.md` and `origin/feat/s27-652-development-harness:docs/development-harness.md` are superseded by the lockdown and the guide (OPN-34).",
+      "why": "It adds a Python runner, build-lock and artifact-ownership checks and deterministic worker gating, plus PR #68's `docs/architecture-current.md`, which this lockdown supersedes.",
+      "proposed": "**Fold into gates.** PR #68 is not merged (D-HARNESS-PR68, OPN-12). Its useful checks (build lock, artifact ownership, provenance of staged output, deterministic worker gating) become gates in part 02 and inputs to the build manifest (ARC-46). PR #68's `docs/architecture-current.md` and `docs/development-harness.md` are superseded by the lockdown and the guide (OPN-34).",
       "confidence": "stated",
       "sources": [
         {
@@ -3881,7 +3860,6 @@
         },
         {
           "label": "History audit and development harness",
-          "ref": "S27-652",
           "date": "2026-10-18"
         },
         {

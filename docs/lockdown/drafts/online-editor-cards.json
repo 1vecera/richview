@@ -1,0 +1,446 @@
+{
+	"id": "drafts-online-editor",
+	"title": "Draft cards: online editor and private area",
+	"status": "draft",
+	"summary": "Draft cards proposing the hosted app's online editor and the redesigned private area, written under DEL-06 because the lockdown does not cover them. Each carries a suggested `part`; none is in a part file yet: DRAFT-22 to DRAFT-27 belong in part 04c (editor feature, limits, versions and drafts, New report, the library, decks) and DRAFT-28 in part 03 (safety boundaries). Key cards are the ones only Daniel can decide: DRAFT-22 widens INT-26's quick source edit into a two-pane editor, DRAFT-24 keeps drafts out of the server, and DRAFT-28 is the safety floor. DRAFT-26 changes the \"private\" badge Daniel kept in FEA-SF-30. A build that relies on a card names it under `assumed:` and builds the proposal and the recommended option until Daniel answers.",
+	"items": [
+		{
+			"id": "DRAFT-22",
+			"part": "04c-features-surfaces",
+			"kind": "feature",
+			"importance": "key",
+			"refId": "F-WEB-ONLINE-EDITOR",
+			"group": "Hosted editor",
+			"title": "The online editor for hosted reports",
+			"question": "Does the hosted app get an online editor for a report's Rich Markdown source, with a live preview drawn by the playground's own renderer, and does that replace INT-26's \"quick source edit\"?",
+			"why": "INT-26 allows two browser actions on a RichView server: approving a pending change, and an author's quick source edit in an embedded editor that the server checks before it saves. It rules out a full browser editor. Daniel's request of 25 November is larger: the playground becomes an editor in the private area where a report is adjusted online, with the feeling of Overleaf. INT-49 drops what no card tracks, so without this card the build has no scope and the docs and the launch have nothing to describe. This card says what the editor is, what it is not and what it does to INT-26. Suggested part 04c, beside the report host's other browser features (FEA-SF-18, FEA-SF-19).",
+			"proposed": "**RichView Cowork's hosted app has an online editor for a report's Rich Markdown source.** A signed-in person with the Edit right opens a report at `/reports/{org}/{slug}/edit`, changes its source, sees the real report beside it and saves the result as a new version.\n\nWhat it is:\n\n- **Two panes.** The source on the left, with line numbers, highlighting and an Insert strip (Chart, Table, Metric and Callout: the playground's plus buttons; Image and a chart-type picker at the caret are the next step). The rendered report on the right, with STY-08's style pills, which write the `styles` line (FEA-SF-34). A draggable divider sets the widths. On a phone one pane shows at a time, Source or Report, and Save stays in reach.\n- **One renderer.** The browser draws the report with the site runtime's Wasm authoring module, the one the playground uses, inside a sandboxed frame (ARC-06, ARC-38; the safety card). There is no second renderer and no preview service. The host still validates and renders the source again when it is saved (ARC-20).\n- **Diagnostics on the line.** The core's diagnostics, unchanged (ARC-08, TYP-53): a wave under the token, a dot in the gutter, the message on the line. A diagnostic carries its fix as a sentence, not as an edit, so the full problem list gives the fix in words and there is no Apply fix button until the core carries an edit. A count in the status bar opens the full problem list.\n- **An error never blanks the preview.** The last good render stays under a banner that says so and offers Go to line.\n- **Keyboard first.** Cmd or Ctrl+S opens Save version; F8 and Shift+F8 go to the next and previous problem; Escape closes a popover. The source pane keeps the playground's other keys.\n- **The whole window.** The editor drops the app's rail. One bar holds Reports (back), the title, the draft state, History, Share and Save version.\n\nWhat it is not:\n\n- Not WYSIWYG: people edit and see the Rich Markdown source (INT-26).\n- Not real-time collaboration: there are no shared cursors and no live merging, and two people who save from the same version meet the version rule of the versions card (INT-27).\n- Not an offline mode: opening and saving need the hosted app. A draft is kept in the browser, nothing more.\n- Not a second authoring format and not a second place where reports are rendered or stored: Save version is the existing publish.\n\nThe playground stays as it is, with no account (FEA-SF-33, FEA-SF-34); it is the way to try the same editing before signing in. Reports open in the editor now; decks open in it once the slide format lands (the decks card).\n\nAssumes: INT-26 as this card amends it; FEA-SF-19 and FEA-SF-20 (the roles and the hosted app); ARC-06 and ARC-38 (one site runtime for the playground and the editor); ARC-20 (the host renders again at save).",
+			"options": [
+				{
+					"label": "A two-pane editor with live preview, as proposed",
+					"detail": "What Daniel asked for on 25 November, and it reuses the playground's renderer. INT-26's text changes from a quick edit in an embedded editor to a source editor with a live preview, and ARC-03 and ARC-15 each gain a line for the editor's script, worker and frame."
+				},
+				{
+					"label": "A minimal source edit, as INT-26 is worded",
+					"detail": "A source box with highlighting and Save; diagnostics arrive from the host's check, with no preview, insert strip or style pills. The smallest change and no browser Wasm on the app page, but people still leave the app to see what they edit, which is what the request set out to fix."
+				},
+				{
+					"label": "Defer the editor",
+					"detail": "No new browser JavaScript and no policy change yet. The playground and the CLI stay the only ways to change a report, and the private area is redesigned without an Edit action."
+				}
+			],
+			"recommendation": "A two-pane editor with live preview: it is the request, it shows people the source they own and the report it makes, and INT-26's reason, that people see and touch what is underneath, still holds.",
+			"confidence": "stated",
+			"sources": [
+				{
+					"label": "Design sheet and notes of the online editor and private area, 25 Nov 2026 (primary checkout, not committed)",
+					"ref": "tmp/team/launch/d16/launch/next25/editor/design-notes.md",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "Daniel's request, as the lead briefed it: the playground becomes an editor in the private area, with the feeling of Overleaf (primary checkout, not committed)",
+					"ref": "tmp/team/launch/d16/launch/next25/brief-editor.md",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "Daniel's INT-26 answer: no full browser editor; an author's quick source edit, checked before it saves",
+					"ref": "docs/lockdown/answers/01-intent.json INT-26",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "FEA-BR-27 card",
+					"ref": "docs/lockdown/parts/04d-features-branches.json FEA-BR-27",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "ARC-03 card",
+					"ref": "docs/lockdown/parts/03-architecture.json ARC-03",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "ARC-38 card",
+					"ref": "docs/lockdown/parts/03-architecture.json ARC-38",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "The playground's own page",
+					"ref": "docs/public/playground.md",
+					"date": "2026-11-25"
+				}
+			],
+			"conflicts": "INT-26 says RichView \"never will\" have a full browser editor, and its answer limits the browser to approval and a quick rewrite of the source in an embedded editor. A two-pane editor with insertion, style pills and a problem list is bigger than a quick rewrite. Daniel's 25 November request is the later word and names the Overleaf feel, so this card reads it as widening INT-26; accepting the card edits INT-26's second bullet, and rejecting it keeps INT-26 as answered.\n\nARC-03 allows handwritten JavaScript for an embedded third-party source editor and says validation and rendering before a save run on the server in Rust. The editor here validates and renders in the browser as feedback only; the server still validates and renders at save (ARC-20, TYP-66), so it stays the authority, but ARC-03's list and ARC-15's script and worker sources each need an entry. FEA-BR-27 describes the same edit for Publish as an attributed pull request that goes through approval; the hosted app saves a version (the versions card).\n\nINT-26 and FEA-SF-19 speak of the page's author and of the roles reader, author and owner; this card uses the Edit right, which FEA-SF-51 already names. The full-window layout without the rail is a design choice for Daniel to judge on the design sheet; keeping the rail changes only that line."
+		},
+		{
+			"id": "DRAFT-23",
+			"part": "04c-features-surfaces",
+			"kind": "rule",
+			"importance": "important",
+			"refId": "D-EDITOR-LIMITS",
+			"group": "Hosted editor",
+			"title": "Who can edit, and what the editor can change",
+			"question": "Who gets the editor, what may a save change, and what does the editor do with a source that is too large or a browser that is too old?",
+			"why": "A browser editor over stored reports is only as safe as its edges. This card fixes them so the build refuses the same things the CLI does and the docs can state them without hedging. Suggested part 04c, with FEA-SF-51 and FEA-SF-52, which already set who may revise a report and what a publish carries.",
+			"proposed": "- **Who.** The editor opens only for a person with the Edit right on the report (FEA-SF-19; FEA-SF-51: creation needs the right to create, revision needs the right to edit). A person who may only read the report goes from `/reports/{org}/{slug}/edit` to the report page. A person who may not see the report gets the answer a missing report gets (FEA-SF-64). The Edit action, Save version and New report show only to people whose rights allow them.\n- **What a save changes.** The source, the `.rmd` text, and nothing else. The report's data and media files are those of the stored version, and the new version carries them unchanged. Adding, replacing or removing a file is done with `richview publish` for now. Uploading an image from the editor is a later step and needs its own card. An Image block names a file the stored version already holds; naming a file it does not hold is a diagnostic, as it is when publishing (FEA-SF-52, `report.asset.missing`).\n- **Size.** The publish limits are the editor's limits: the input limits of `richview check` and `richview publish`, and the publish request's cap (TYP-43, TYP-66, FEA-SF-12). The core's own limit diagnostic shows as a problem while the source is over the limit, and the host's answer to a save is the one that counts: its refusal is shown unchanged. A refused save stores nothing and keeps the draft.\n- **A very large source.** It edits in bounded windows of the source buffer, as the playground's does (FEA-SF-34); the preview and Save use the whole source, never a window. A source the browser cannot render in the time or memory it has shows that in the banner and keeps the last good render; the source stays editable and Save still works, because the host renders it again.\n- **Browsers.** The editor supports the browsers reports support: recent Chrome, Edge, Firefox and Safari (INT-07, FEA-RP-59). It needs WebAssembly, Web Workers and local storage. A browser without WebAssembly or workers gets one plain page that says editing needs a newer browser and links to the report page; it never shows a half-working editor. Without WebGL the preview shows a report's own chart notice (ARC-05) and editing continues. With local storage blocked the editor opens and says \"Draft not kept in this browser\".\n\nAssumes: FEA-SF-19, FEA-SF-51, FEA-SF-52 and FEA-SF-64 (rights, creation and revision, linked files, refusals); TYP-43 and TYP-66 (limits and the publish request); INT-07 and FEA-RP-59 (browsers); FEA-SF-34 (bounded windows).",
+			"options": [
+				{
+					"label": "Edit right, source only, publish limits, reports' browsers (as proposed)",
+					"detail": "One set of limits for the CLI and the editor, so a save that fits one fits the other. Adding files stays a CLI step until a card decides uploads."
+				},
+				{
+					"label": "Also let the editor add or replace files",
+					"detail": "Complete in one place, but it needs upload limits, a malware and type policy for files, quota messages and a way to remove a file again; each is a card of its own, and the editor would wait for them."
+				},
+				{
+					"label": "A smaller editor limit than publishing",
+					"detail": "Keeps the browser fast on big sources, but a source the CLI publishes could not be opened for a fix, and two limits would have to be explained."
+				}
+			],
+			"recommendation": "Edit right, source only, publish limits and reports' browsers: it adds nothing to what publishing already decides, and file uploads wait for their own card.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Design sheet and notes of the online editor and private area, 25 Nov 2026 (primary checkout, not committed)",
+					"ref": "tmp/team/launch/d16/launch/next25/editor/design-notes.md",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "FEA-SF-51 card",
+					"ref": "docs/lockdown/parts/04c-features-surfaces.json FEA-SF-51",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "FEA-SF-52 card",
+					"ref": "docs/lockdown/parts/04c-features-surfaces.json FEA-SF-52",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "FEA-SF-34 card",
+					"ref": "docs/lockdown/parts/04c-features-surfaces.json FEA-SF-34",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "TYP-43 card",
+					"ref": "docs/lockdown/parts/05-types.json TYP-43",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "FEA-RP-59 card",
+					"ref": "docs/lockdown/parts/04b-features-report.json FEA-RP-59",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "Report input limits and the publish request cap",
+					"ref": "docs/public/publishing.md",
+					"date": "2026-11-25"
+				}
+			],
+			"conflicts": "FEA-SF-19's roles are reader, author and owner, and its enterprise-grade roles and governance section are not specified further, so which role carries the Edit right is left to them. TYP-70 names the author or owner role for publishing; the editor follows whatever the role set grants for revising a report. The \"Draft not kept\" case relies on the versions card."
+		},
+		{
+			"id": "DRAFT-24",
+			"part": "04c-features-surfaces",
+			"kind": "rule",
+			"importance": "key",
+			"refId": "D-EDITOR-VERSIONS",
+			"group": "Hosted editor",
+			"title": "Drafts stay in the browser; Save version publishes",
+			"question": "Where does an unsaved edit live, what does Save version do, and what happens when a newer version was saved elsewhere first?",
+			"why": "Versions are immutable (ARC-21), and a second copy of unsaved work on the server would be a new kind of state with its own privacy, quota and conflict rules. This card keeps the editor on the one path that already exists and says what the person sees at each step. Suggested part 04c, with FEA-SF-51 and FEA-SF-54, which hold the publish and storage rules.",
+			"proposed": "- **A draft is local.** Unsaved text is kept in the browser's local storage, per account, per report and per base version, the version the editor opened. The server keeps no draft: no draft route, no autosave to the host and no draft state of a report, so nothing unsaved can be read or shared by anyone else (INT-79). The editor says \"Draft kept in this browser\". Clearing site data or changing browser loses a draft.\n- **Reopening offers the draft.** When a kept draft exists for the report, the editor opens on the saved text and offers to continue the draft or discard it; it never replaces saved text silently. A draft started on an older version is offered too, named by that version.\n- **Save version is publish.** It sends the same publish request as `richview publish` through the existing path (ARC-20, TYP-66). The host validates and renders the source again and stores a new immutable version of the same report under the same slug, with the stored version's data and media files unchanged (the limits card). It adds no route or state: nothing is overwritten (ARC-21, TYP-63).\n- **The next patch.** The Save popover proposes the next patch after the version the editor opened (0.0.1 gives 0.0.2, 1.4.2 gives 1.4.3). The person may type another valid higher version (TYP-62). The editor writes the number into the source's `version` line before it sends, because the request carries no version of its own (TYP-66), so the source and the stored version cannot disagree. If the host refuses the save, the line goes back, the draft stays and the host's diagnostics show unchanged.\n- **A newer version exists.** The editor asks the host for the latest version when Save opens and again when the request is answered. If a version newer than the editor's base was saved elsewhere (the CLI, another person, another tab), Save says so, names that version and when it was saved, and offers two actions. Save on top saves the person's text as the next version after the newest one; the other version stays in History. Reload opens the newest version and keeps the draft in this browser. The editor never merges and never overwrites. When two saves race for one number, the host's `publish.version-exists` refusal (TYP-63) is the backstop and the same two actions follow.\n- **History.** Every earlier version stays in History, the report page's versions. The editor deletes, pins and renames nothing. If the owner pinned `latest` to an older version, a saved version does not move it (TYP-96), and Save says which version the report address still serves.\n- **Who sees it.** People the report is shared with see the new version at its address at once; the Save popover says so.\n\nAssumes: ARC-20, ARC-21, TYP-62, TYP-63, TYP-66, TYP-96 and FEA-SF-54 (the publish contract and the version rules); INT-79 (nothing unsaved leaves the browser).",
+			"options": [
+				{
+					"label": "Browser-only draft; Save version publishes (as proposed)",
+					"detail": "No new server state; a version is the only thing the server holds. Cost: a draft does not follow the person to another browser or device."
+				},
+				{
+					"label": "Server-side drafts, saved as the person types",
+					"detail": "A draft survives a browser change and a crash. It adds draft state, routes, quota and a privacy duty beside immutable versions, and a second source of truth that FEA-SF-54 and ARC-21 do not have."
+				},
+				{
+					"label": "No kept draft",
+					"detail": "Nothing stored in the browser; the simplest page. A closed tab or a crash loses the text, which is the failure an editor must not have."
+				}
+			],
+			"recommendation": "Browser-only draft; Save version publishes: it keeps one path to a stored version and keeps unsaved text private by construction.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Design sheet and notes of the online editor and private area, 25 Nov 2026 (primary checkout, not committed)",
+					"ref": "tmp/team/launch/d16/launch/next25/editor/design-notes.md",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "ARC-20 card",
+					"ref": "docs/lockdown/parts/03-architecture.json ARC-20",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "ARC-21 card",
+					"ref": "docs/lockdown/parts/03-architecture.json ARC-21",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "TYP-62 card",
+					"ref": "docs/lockdown/parts/05-types.json TYP-62",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "TYP-63 card",
+					"ref": "docs/lockdown/parts/05-types.json TYP-63",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "TYP-66 card",
+					"ref": "docs/lockdown/parts/05-types.json TYP-66",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "TYP-96 card",
+					"ref": "docs/lockdown/parts/05-types.json TYP-96",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "FEA-SF-54 card",
+					"ref": "docs/lockdown/parts/04c-features-surfaces.json FEA-SF-54",
+					"date": "2026-11-25"
+				}
+			],
+			"conflicts": "FEA-BR-27 saves a browser edit as an attributed pull request that goes through approval. Cowork has no pull-request layer, so the hosted editor publishes a version, the act `richview publish` performs. Whether a hosted version needs an approval before people see it is open: INT-26 allows approving a pending change, and FEA-BR-26 owns the Publish workflow. This card assumes no approval step on Cowork.\n\nTYP-62 names no rule for counting a patch from a pre-release. The default here is the release it precedes (1.0.0-rc.1 proposes 1.0.0); this is open for the agents. Keying a draft by account stops a second account on a shared browser being offered it, and whether sign-out clears a draft is open for the agents."
+		},
+		{
+			"id": "DRAFT-25",
+			"part": "04c-features-surfaces",
+			"kind": "feature",
+			"importance": "important",
+			"refId": "F-WEB-EDITOR-NEW-REPORT",
+			"group": "Hosted editor",
+			"title": "New report starts in the editor on a starter",
+			"question": "Does New report open the editor on a starter and publish privately at the first save, with the address taken from the title?",
+			"why": "The library has no way to start. People who do not use the CLI cannot make a first report, and the editor needs a first-save story. This card keeps that story to rules the CLI already has: a first save creates a report, the address comes from the title, and the report starts private. Suggested part 04c, with FEA-SF-13 and FEA-SF-51, which set how an address is chosen and how a first publish behaves.",
+			"proposed": "- **The action.** New report is the library's one primary action, at `/reports/new`. It opens the editor on a starter source. Nothing is stored until the first save; until then the starter and the person's changes are a draft in the browser (the versions card).\n- **The starter.** One starter, a small finished report and not a blank page: a title, a description, `version: 0.0.1`, one declared style, a paragraph of prose, a metric, a chart on inline values and a callout. It renders with no diagnostic in every builtin style. Its numbers are invented and say so in the report. It names no real person, company or dataset. It uses the blocks the Insert strip offers, so the first edit is a change to something that works. The build renders it in every builtin style, as it renders the first report (FEA-SF-42, DEL-60).\n- **The address.** The first save derives the address from the title with the one slug function (TYP-60, TYP-61) and writes it into the source's `slug` line, so a later change of the title keeps the address (FEA-SF-13). The save popover shows the address and lets the person change it before the first save. A first save never turns into a revision of another report: when the address is already in use, the editor says so and offers the next free one (`first-quarter-2`) or lets the person edit it.\n- **Private by default.** The first save creates a private report: the server's visibility default, private unless the server is configured otherwise (FEA-SF-51). The popover says so and names who can open it. Sharing is set afterwards from Share, as for any report.\n- **The role needed.** Creating a report needs the right to create in the organization (FEA-SF-51). A person without it does not see New report.\n\nAssumes: FEA-SF-13, FEA-SF-51 and FEA-SF-42 (address, first publish, the example's release check); TYP-60 to TYP-62 (slug and version grammar, first version 0.0.1); FEA-SF-19 (the roles).",
+			"options": [
+				{
+					"label": "One finished starter, private at the first save (as proposed)",
+					"detail": "People start from something that works and replace it; one starter to keep valid in every style."
+				},
+				{
+					"label": "A blank source with only the frontmatter",
+					"detail": "Nothing to delete, but a first-time author sees an empty pane and must know the blocks; it teaches nothing the docs do not."
+				},
+				{
+					"label": "A choice among several starters",
+					"detail": "A better fit for each kind of report, but every starter must stay valid in every style and each is a design to maintain; better after one starter has proved itself."
+				}
+			],
+			"recommendation": "One finished starter, private at the first save: it follows the first-report principle and uses the CLI's own first-publish rules.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Design sheet and notes of the online editor and private area, 25 Nov 2026 (primary checkout, not committed)",
+					"ref": "tmp/team/launch/d16/launch/next25/editor/design-notes.md",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "FEA-SF-13 card",
+					"ref": "docs/lockdown/parts/04c-features-surfaces.json FEA-SF-13",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "FEA-SF-42 card",
+					"ref": "docs/lockdown/parts/04c-features-surfaces.json FEA-SF-42",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "FEA-SF-51 card",
+					"ref": "docs/lockdown/parts/04c-features-surfaces.json FEA-SF-51",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "TYP-60 card",
+					"ref": "docs/lockdown/parts/05-types.json TYP-60",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "TYP-62 card",
+					"ref": "docs/lockdown/parts/05-types.json TYP-62",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "DEL-60 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-60",
+					"date": "2026-11-25"
+				}
+			],
+			"conflicts": "FEA-SF-51's `new` flag still applies the edit and version checks at an existing address, so it does not by itself stop a first save from becoming a revision of an existing report. The editor therefore checks that the address is unused before the first save; the exact refusal code for a taken address is the agents' call. FEA-SF-18 and Daniel's FEA-SF-30 answer place a menu of reports at the host's home but give it no creation action; this card adds one. The starter's content is a proposal for Daniel to see in the design sheet."
+		},
+		{
+			"id": "DRAFT-26",
+			"part": "04c-features-surfaces",
+			"kind": "rule",
+			"importance": "important",
+			"refId": "D-LIBRARY-LAYOUT",
+			"group": "Private area",
+			"title": "The private area is a calm library",
+			"question": "Does the signed-in area read like a library, with private reports unmarked, one primary action per screen and no table?",
+			"why": "Daniel called the old private area tense: a bordered panel, a table header, five columns, a badge on every private row, three buttons per row and usage meters on every visit. The rules below say what to remove, so each later screen is judged by one standard and not by taste. This card changes FEA-SF-18 and the \"private\" badge that Daniel kept in his FEA-SF-30 answer, so it is his to decide. Suggested part 04c, beside FEA-SF-18, the card it amends.",
+			"proposed": "The report library of the hosted app and the screens around it follow these rules:\n\n- **Private is the default and is unmarked.** Only the exceptions are named: Organization, Public link and Shared with you. A private report that is shared with named people says so in its facts line.\n- **One list, no table.** Reports are one list, with text tabs on one hairline (All, Mine, Shared with me and the organization) and no panel, header row or column. Each row has a thumbnail, the title, one line of description and one line of facts: when it was edited, its version and who it is shared with. The thumbnail is the link-preview thumbnail the host already renders for each version (FEA-SF-55, ARC-69).\n- **The row is the link.** It opens the report. Edit appears on hover for people with the Edit right and opens the editor. One ⋯ menu holds the rest: Open report, Copy link, Sharing and versions, Delete.\n- **One primary action per screen.** One filled button: New report in the library, Save version in the editor. Every other action is text or an outline.\n- **Usage is one quiet line** at the foot of the list, and no meters on every visit.\n- **No decoration.** No rule under the top bar and no tinted block for the organization in the rail; the organization is a flat row. Surfaces are the site's, opaque (STY-46, STY-48), and the screen answers STY-51's three questions.\n- **Phone.** The same list in one column, the rail folded into the top bar, and the primary action still on screen.\n\nAssumes: STY-46, STY-48, STY-50 and STY-51 (the site's look and review questions); FEA-SF-19 (what Share and Delete offer); FEA-SF-55 and ARC-69 (thumbnails).",
+			"options": [
+				{
+					"label": "Private unmarked; one list; one primary action (as proposed)",
+					"detail": "What is different is what is said. Removes the badge on every private row, which was most of the tension. It overrides the \"private\" badge Daniel kept in FEA-SF-30."
+				},
+				{
+					"label": "One list, but a quiet \"Private\" word in the facts line",
+					"detail": "Keeps the answered badge's information in plain text with no badge shape; every private row still says the same word."
+				},
+				{
+					"label": "Keep the table and the badges, restyled",
+					"detail": "Matches FEA-SF-18 and FEA-SF-30 as answered and is the smallest change. It keeps the density the redesign set out to remove."
+				}
+			],
+			"recommendation": "Private unmarked; one list; one primary action: most reports are private, so a mark on each tells the reader nothing, and the design sheet shows the list calm.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Design sheet and notes of the online editor and private area, 25 Nov 2026 (primary checkout, not committed)",
+					"ref": "tmp/team/launch/d16/launch/next25/editor/design-notes.md",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "The old library, for comparison (primary checkout, not committed)",
+					"ref": "tmp/team/launch/d16/launch/next25/editor/baseline-reports-desktop.png",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "FEA-SF-18 card",
+					"ref": "docs/lockdown/parts/04c-features-surfaces.json FEA-SF-18",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "STY-46 card",
+					"ref": "docs/lockdown/parts/06-styles.json STY-46",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "STY-50 card",
+					"ref": "docs/lockdown/parts/06-styles.json STY-50",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "Daniel's FEA-SF-30 answer: the report menu and its \"private\" badge are kept",
+					"ref": "docs/lockdown/answers/04c-features-surfaces.json FEA-SF-30",
+					"date": "2026-10-26"
+				}
+			],
+			"conflicts": "FEA-SF-18 gives each report in the menu Open, Copy link, its versions and raw source, Share and Protect, and a \"private\" badge; Daniel kept that badge in his FEA-SF-30 answer. The proposal removes the badge and names the exceptions instead, so accepting the card changes both. STY-50 asks for no decorative badges in RichView's chrome; the three named exceptions are status marks that carry information, which is why they stay. The design sheet's caption says the whole row opens the editor, while its notes say the row is the link and Edit shows on hover; this card follows the notes, so the report page and its editor are reached by different, named acts. The sheet also shows no way to reach Edit on a touch screen, which has no hover and whose row menu lacks it; that is open for the design. The thumbnail width is a build detail (the design notes name it)."
+		},
+		{
+			"id": "DRAFT-27",
+			"part": "04c-features-surfaces",
+			"kind": "feature",
+			"importance": "important",
+			"refId": "F-WEB-EDITOR-DECKS",
+			"group": "Hosted editor",
+			"title": "Decks open in the same editor",
+			"question": "When the slide format lands, do `.rslide` decks open in the same editor, with the preview showing the slide under the cursor?",
+			"why": "Daniel wants slides in the launch. The editor is the place a deck would be adjusted online, and two editors would double the surfaces to build, test and review. This card sets the one rule that would need a decision before the format's cards are answered: what the preview shows. It depends on the slide format cards and does not decide them. Suggested part 04c, with the editor cards.",
+			"proposed": "A deck opens in the editor at the same address, `/reports/{org}/{slug}/edit`. The editor is the same: source on the left, the preview on the right, the same diagnostics on the line, the same draft in the browser, the same Save version and keys.\n\n- **The preview shows the slide under the cursor.** The slide holding the caret is drawn on the deck's own 16:9 stage, in the deck's style, as the deck renders it. A slide is what stands between two `---` lines (FEA-RP-65). Moving the caret into another slide changes the preview. The preview does not scroll through the deck.\n- **An error in a slide** keeps the last good render of that slide under the same banner, with Go to line.\n- **The Insert strip** offers what a slide can hold, text, Chart, Table and Metric, and a new slide; the exact set follows the format's vocabulary from the registry (ARC-09). The style pills show only if the format has a style line.\n- **A report and a deck do not combine**, as Daniel said on 24 November: one stored report is a report or a deck, and the editor edits one kind.\n- **Until the format ships** the editor opens reports only.\n\nAssumes: FEA-RP-65 as Daniel edited it (slides are a format of their own); the editor cards of this file; and that a deck is stored and published like a report, with a slug, immutable versions and a version line. Where decks are stored, shown and hosted is for the slide format's cards, and the editor follows them.",
+			"options": [
+				{
+					"label": "The same editor; the preview follows the cursor (as proposed)",
+					"detail": "One editor to build and keep consistent; the slide being edited is always the one shown. Needs the editor to know which slide holds the caret."
+				},
+				{
+					"label": "The same editor; the preview shows the whole deck",
+					"detail": "No cursor tracking, but a long deck needs scrolling to find the slide being edited, which is what the preview is for."
+				},
+				{
+					"label": "A separate deck editor",
+					"detail": "Free to differ, with a slide grid or slot picker, but it doubles the editor surfaces, tests and reviews."
+				}
+			],
+			"recommendation": "The same editor; the preview follows the cursor: it keeps one editor and shows exactly what is being edited.",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Design sheet and notes of the online editor and private area, 25 Nov 2026 (primary checkout, not committed)",
+					"ref": "tmp/team/launch/d16/launch/next25/editor/design-notes.md",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "FEA-RP-65 card",
+					"ref": "docs/lockdown/parts/04b-features-report.json FEA-RP-65",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "Daniel: a deck and a report do not combine; the extension is .rslide (24 Nov, in the slide stream's brief; primary checkout, not committed)",
+					"ref": "tmp/team/launch/d16/launch/next25/brief-slides.md",
+					"date": "2026-11-24"
+				}
+			],
+			"conflicts": "FEA-RP-65's answer leaves open the format's name and extension, how a deck is stored and hosted, how it reads on a phone, and how a deck and a report combine; Daniel's 24 November words settle the extension and that they do not combine. The card cannot be built before the format exists, and if the slide cards decide that decks are stored differently, only the assumption above changes."
+		},
+		{
+			"id": "DRAFT-28",
+			"part": "03-architecture",
+			"kind": "rule",
+			"importance": "key",
+			"refId": "D-EDITOR-SAFETY",
+			"group": "Safety boundaries",
+			"title": "What the editor page must always guarantee",
+			"question": "Which rules keep a hostile report, or a hostile edit, from reaching the signed-in app through the editor?",
+			"why": "The editor puts the report renderer, and a stranger's source, on a page that holds the person's session. INT-79 makes safety a floor that is never traded, so the rules are written first and a check enforces them. Suggested part 03, with ARC-13 to ARC-15, which set the rules for source, frames and policy.",
+			"proposed": "- **A sandboxed preview.** The preview renders in an iframe with `allow-scripts` and no `allow-same-origin`, an opaque origin, as the playground's does, and nothing the playground's frame does not already allow (ARC-14). Report script and content cannot reach the app origin, its cookies, its storage (the drafts included) or its API.\n- **Frame messages are data.** The page treats a message from the frame as untrusted. It acts on a fixed set of message kinds and never inserts a message as markup or evaluates it.\n- **No report HTML in the app page.** No HTML, script, style or SVG that a report produces is inserted into the app page. The source pane highlights by escaping text; diagnostics, banners and the problem list print the core's message as text; thumbnails are images (ARC-13, INT-28).\n- **The page's policy pins the runtime.** The editor page's content security policy names the one preview runtime and the one authoring module by content hash or hashed address with an integrity value: scripts only from the app's own hashed bundle and those, `wasm-unsafe-eval` for the Wasm and no `unsafe-eval` or inline script, workers only from the same hashed worker, frames only for the preview document, requests only to the app's own origin, `base-uri 'none'` (ARC-06, ARC-15). A check reads the headers of the edit page.\n- **The host is the authority.** The browser's validation and preview are feedback. At save the host validates and renders the source again with its own engine and applies the same quota, size limits and refusals as publishing (ARC-20, TYP-66, FEA-SF-12). The editor trusts neither its own check nor the preview.\n- **Rights on every request.** The edit page and the save route check the Edit right each time, refuse cross-site requests like every state-changing route, and answer a person who may not see the report as a missing report would (FEA-SF-64).\n- **Drafts hold source text only.** No token, key or file is kept in local storage. Nothing leaves the browser until Save version, and a draft is keyed by account so it is never offered to another account.\n- **The corpus covers the editor.** The hostile-input corpus (DEL-56) runs through the editor in a headless browser on a loopback host: a source or data file that tries script, HTML or a frame escape renders inert, and the app page's DOM, storage and requests are unchanged. The roles matrix (FEA-SF-64) gains the edit route.\n\nAssumes: INT-79, INT-28, ARC-06, ARC-13, ARC-14, ARC-15, ARC-20, FEA-SF-64 and DEL-56.",
+			"options": [
+				{
+					"label": "Sandboxed frame, pinned runtime, the host as authority (as proposed)",
+					"detail": "The preview is as fast as the playground's and the report stays out of the page. Cost: the page needs a worker, a frame and a hashed Wasm module in its policy, and a check that the headers stay exact."
+				},
+				{
+					"label": "Render the preview on the server",
+					"detail": "A smaller page policy and no Wasm on the app page. Each edit costs a round trip, PRF-28's budget for edit-to-preview is hard to meet, and the host renders far more than it does today."
+				}
+			],
+			"recommendation": "Sandboxed frame, pinned runtime, the host as authority: the safe shape the playground already proves, with the page's policy as the second layer. Same-origin frames are not offered (ARC-14).",
+			"confidence": "inferred",
+			"sources": [
+				{
+					"label": "Design sheet and notes of the online editor and private area, 25 Nov 2026 (primary checkout, not committed)",
+					"ref": "tmp/team/launch/d16/launch/next25/editor/design-notes.md",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "Daniel's INT-79 answer: safety is a floor that is never traded",
+					"ref": "docs/lockdown/answers/01-intent.json INT-79",
+					"date": "2026-10-26"
+				},
+				{
+					"label": "ARC-13 card",
+					"ref": "docs/lockdown/parts/03-architecture.json ARC-13",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "ARC-14 card",
+					"ref": "docs/lockdown/parts/03-architecture.json ARC-14",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "ARC-15 card",
+					"ref": "docs/lockdown/parts/03-architecture.json ARC-15",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "DEL-56 card",
+					"ref": "docs/lockdown/parts/02-delivery.json DEL-56",
+					"date": "2026-11-25"
+				},
+				{
+					"label": "FEA-SF-64 card",
+					"ref": "docs/lockdown/parts/04c-features-surfaces.json FEA-SF-64",
+					"date": "2026-11-25"
+				}
+			],
+			"conflicts": "ARC-15's policy lists frames only from the embed allowlist and scripts by the report runtime's hash or host URL; the editor page needs its own authoring module, a worker and a preview frame, so ARC-15 gains an entry for the editor page. ARC-06 says site pages load the site runtime and reports never do: the hosted editor is an app page that loads it, and it must never load into a stored report. The same-origin frames ARC-14 allows only for fixed first-party pages are not used for previews. PRF-28 has no budget for the hosted editor's edit-to-preview time; it needs one."
+		}
+	]
+}

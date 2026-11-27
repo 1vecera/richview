@@ -8,6 +8,8 @@ mod browser;
 #[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
 mod completion;
 #[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
+mod editing;
+#[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
 mod reveal;
 pub mod share;
 pub mod source_buffer;

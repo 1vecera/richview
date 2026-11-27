@@ -53,5 +53,5 @@ axes:
 
 ## Interactions
 
-- Hover or focus a category to read its bar value and its line value together.
+- Hover or focus a category to read its bar value and its line value together. A dark outline marks the bar and the line's point under the pointer.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

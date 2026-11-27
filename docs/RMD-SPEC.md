@@ -1,8 +1,8 @@
 # Rich Markdown source contract
 
-The reference tables in this spec (tags, frontmatter fields, each block's fields, chart types and diagnostic codes) are generated from the schema registry in `crates/richview-core/src/registry.rs` and checked by the gate; edit the registry, then run `RICHVIEW_BLESS=1 cargo test -p richview-core --test spec_docs` to refresh them. The prose explains the rules but does not list the vocabulary.
+The reference tables in this spec (tags, frontmatter fields, each block's fields, chart types and diagnostic codes) are generated from the schema registry in `crates/richview-core/src/registry.rs` and checked by the gate; edit the registry, then run `RICHVIEW_BLESS=1 cargo test -p richview-core --test integration -- spec_docs::` to refresh them. The prose explains the rules but does not list the vocabulary.
 
-This document describes the Rust implementation in RichView 3.0.0. Rich Markdown (`.rmd`) is CommonMark with YAML frontmatter and tagged YAML fences. An ordinary Markdown renderer displays the rich fences as code. RichView decodes supported fences into report elements; unknown fences remain ordinary code, and invalid rich fences remain visible with source diagnostics.
+This document describes the Rust implementation in RichView 3.1.0. Rich Markdown (`.rmd`) is CommonMark with YAML frontmatter and tagged YAML fences. An ordinary Markdown renderer displays the rich fences as code. RichView decodes supported fences into report elements; unknown fences remain ordinary code, and invalid rich fences remain visible with source diagnostics.
 
 The content source, resolved data and ordered `.rstyle.yaml` sources remain editable and are retained for report regeneration. The core performs no filesystem or network I/O; native/browser hosts resolve resources before calling it.
 
@@ -100,7 +100,6 @@ encoding: {x: month, y: revenue}
 | `tabs.panels[n].from` | text | yes |  | The explicit heading anchor where the panel starts. |
 | `toc` | `true` or `false` |  | `true` | Lists the report's sections beside the body, following the scroll, or under the header on a narrow screen; a report with fewer than three sections, or with tabs, has none. |
 | `progress` | `true` or `false` |  | `true` | Shows how far the reader has scrolled as a thin bar in the report's colours along the bottom of the window. |
-| `slides` | `true` or `false` |  | `false` | `true` turns the source into slides: the title slide, then one slide for each top-level heading or `---` of the body; the style's stage sets the look. |
 <!-- registry:end -->
 
 | Field | Accepted value | Behavior |
@@ -175,64 +174,6 @@ The sources and any rich blocks in this section.
 ````
 
 The heading is the disclosure control. A section includes its lower-level headings and ends at the next heading of the same or a higher level, at a tab boundary, before the report's notes, or at the end of the report. In a PDF nothing folds: the report is laid out as if no section were listed. An anchor that does not name a top-level heading warns and leaves the content visible. A heading with a link also warns and stays unfolded, so its link does not become an interactive control inside another control. Move the link into the section to fold it. The generated frontmatter reference defines the field.
-### Slides
-
-`slides: true` in the frontmatter turns the source into slides. Each top-level heading or `---` starts a slide. The style's stage sets the look. The title slide comes first, from the frontmatter. Nothing else is new. The prose, the rich fences, the styles and the checks are the report's, and removing the line gives the report back.
-
-````rmd
----
-title: September business review
-slides: true
----
-
-```metric
-value: 630000
-label: Monthly recurring revenue
-format: number_compact
-unit: $
-delta: 0.26
-delta_label: vs August
-```
-
-# September at a glance
-
-```chart
-type: bar
-title: MRR rose $110K in August and $130K in September
-data:
-  inline:
-    - { month: Jul, mrr: 280000, segment: Enterprise }
-    - { month: Jul, mrr: 110000, segment: Mid-market }
-    - { month: Aug, mrr: 340000, segment: Enterprise }
-    - { month: Aug, mrr: 160000, segment: Mid-market }
-    - { month: Sep, mrr: 420000, segment: Enterprise }
-    - { month: Sep, mrr: 210000, segment: Mid-market }
-encoding: { x: month, y: mrr, color: segment }
-axes:
-  y: { label: MRR, format: number_compact, unit: $ }
-```
-
-*Source: billing export, 1 October.*
-
----
-
-One closing line.
-````
-
-**Where a slide starts.** The title, description, author and date make the title slide. Each top-level heading of the body starts a slide and is its title: the level a report's contents list, `#` when the body uses it and `##` otherwise. A thematic break (`---`) starts a slide without a title, for a screen that is only a number or a chart. Content before the first heading is a slide of its own, and a heading with nothing under it is a section slide. A heading inside a quote, a list or the notes starts nothing.
-
-**Layout is automatic.** The author chooses what is on a slide, never where it sits. A slide shows its title, then its `metric` blocks as a row of big numbers, then its figures (charts, tables, images and players), then its text. A slide whose only content is one metric shows it as large as the format goes. One figure takes the room left and two stand side by side. A chart on a slide prints none of the values it would add by itself unless its author sets `auto_annotations: true`, and shows no action buttons: the table, downloads and the expanded view belong to the report. Its bars take their category's share of the plot, without the width a report's column caps them at, and two charts side by side share one card height. A table is set as large as its rows and its columns' widest cells allow; a table that is its slide's only figure keeps the slide's width, with its text under it, and is set larger. On a phone a table's cells wrap between words before the table scrolls. Text beside one figure is a column a third of the slide wide; alone it is set larger. A source note stays under its figure. A big number is fitted to its column by its character count, so a long value never leaves its box.
-
-**Density.** A slide that holds more than one screen shows well warns `slides.density`, naming the slide and its line: more than four numbers beside a figure or more than eight in all, more than two figures, more than 50 words beside a figure or a number (80 alone), or a table of more than ten rows. Nothing is dropped, and the fix is always a new slide.
-
-**Fit.** On a landscape window at least 900 px wide a slide is a 16:9 stage, as large as the window allows. Every text size and gap is a share of the stage, so a laptop and a meeting-room screen show the same composition, and a chart is laid out by the chart engine for the box it gets, its lettering sized to the stage. On a narrower or portrait window a slide is the window's width and at least its height: numbers stand two to a row, and figures and text one under another, at the style's own sizes. Nothing is clipped and no text shrinks to fit: a slide that needs more than a screen grows and scrolls.
-
-**Moving through them.** The slides are one vertical sequence that snaps to each slide, so the wheel, a trackpad and a swipe work as on any page. The interactive report adds the presenter's keys: Space, Page Down, `→` and `↓` go on; Shift+Space, Page Up, `←` and `↑` go back; Home and End go to the ends; `F` toggles full screen. Arrow keys and Space stay with a chart, table or control while it has focus. A counter shows the slide and the total, the report's progress bar fills as the slides pass, and the address carries the slide as `#slide=4`, counted from 1, without adding history entries. Without JavaScript the sequence and the snapping remain. Reduced motion jumps instead of gliding.
-
-**Paper.** Printing from the browser and `richview generate --to pdf` give one slide a page on a 16:9 landscape page (13.33 × 7.5 in), without the counter; a PDF's `--page` size does not apply.
-
-`tabs` has no effect in slides and warns `slides.tabs`; the contents list is not shown, since every top-level heading is a slide. `collapsed_sections` has no effect in slides either: a slide shows everything it holds. Columns lay out nothing in slides: their markers drop out, and what the columns hold takes its place in the slide's numbers, figures and text.
-
 ## Rich fences
 
 The fence tags:
@@ -561,6 +502,8 @@ Numeric X zoom accepts the same finite numbers and numeric strings as chart geom
 
 Numeric line and area zoom selects an X viewport through their existing paths. Crossing segments remain visible between observations, while missing values still break the path. Automatic Y limits use all currently visible source rows; X zoom and pan do not rescale Y, and authored Y limits still apply. Only original observations inside the inclusive X window are available to readouts and keyboard traversal, including missing-value rows; outside path context never creates an interpolated observation. Scatter keeps point selection within the window.
 
+A scatter zooms along Y as well, on a window of its own: the plot draws exactly the X window and the Y window the reader chose, each inside the axis the full chart draws, and its ticks, gridlines and labels follow them. Only the points inside both windows are drawn and available to readouts and keyboard traversal. Each axis stops where one step of its position grid spans about two pixels (TYP-36), so the range a reader can reach on either axis shows no more digits than the author chose. A scatter whose facets set `style.facet_scale: free` has a value scale for each panel and zooms along X only. Tables and CSV keep every row.
+
 Bar and scatter facets retain the parent chart's category colors through interaction and PNG downloads. Nonempty categories reserve their existing first-seen palette slots before value eligibility is considered; unavailable categories can reserve a slot without appearing in another panel. Monochrome bars retain the same parent hatch identity. Each panel keeps its own grouping positions, source rows, Table and CSV. Rendering a changed source derives the category slots again from that source's order.
 
 When explicit chart decals are enabled, bar legend swatches show the same hatch as their bars in native reports, live views and PNG downloads. The existing six hatch shapes repeat in original category order; legend names, dimensions and controls stay unchanged.
@@ -727,6 +670,7 @@ These names are no longer accepted. The table is generated from the same definit
 | field | `frontmatter` | `prolog` | Move the text to the top of the body; the opening text is the first paragraph. |
 | field | `frontmatter` | `theme` | Remove `theme`; a style is one colour scheme, so choose `sleek` (dark) or `air` (light) in `styles`. |
 | field | `frontmatter` | `data` | Move each dataset into the `data` mapping of the block that uses it. |
+| field | `frontmatter` | `slides` | Slides are a format of their own: write the deck as a `.rslide` file (its first line `format: rslide/1`, each slide after a `---` line); `richview learn slides` is the guide. |
 | tag | fence | `big` | `metric` |
 | value | `chart.axes.x.format` | `currency` | `number` with unit `$` |
 | value | `chart.axes.x.format` | `currency_compact` | `number_compact` with unit `$` |
@@ -821,6 +765,7 @@ A reader sorts the rows by any column heading; `sortable: false` keeps the headi
 | `columns[n].format` | one of `number`, `number_compact`, `percent` or `year` |  |  | The number format of the column's values. |
 | `columns[n].unit` | text |  |  | A unit printed with each value, by the unit rule. |
 | `columns[n].digits` | whole number of significant digits from 2 to 6 |  |  | Significant digits of the column's numbers, not decimal places. |
+| `columns[n].decimals` | whole number of decimal places from 0 to 6 |  |  | Decimal places shown in every numeric cell of this column (0 to 6); a year column ignores it. |
 | `columns[n].align` | one of `left`, `center` or `right` |  |  | The alignment of the column's cells. |
 | `columns[n].heat` | `true` or `false` or one of `sequential` or `diverging` |  | `false` | Shade a numeric column's cells by value in the style's colours: true or sequential from lowest to highest, diverging around zero. |
 | `heat_scale` | one of `column` or `table` |  | `column` | One scale for each heat column, or one for the table. |
@@ -1083,6 +1028,107 @@ A column holds prose, headings of level 3 and below, and rich blocks, each with 
 
 The columns keep source order for reading: screen readers, find in page, copied text and the page without scripts read the first column, then the second. Each column's share of the width follows `widths`. The columns stand side by side while the narrowest column is at least its floor, a phone's column for a chart, table, frame or video and 11rem for anything else, and otherwise stack, all of them, in source order; the same rule applies on paper, where a column stays on one page. On a phone the columns always stack. Inside a column, the column is its blocks' measure: a chart is laid out for the column's width, with its readout, zoom and labels inside it, a table scrolls inside the column, and an image keeps its ratio.
 
+## Rich Slides
+
+A deck is a file of its own, `.rslide`, and it never combines with a report: slides are for presenting live, full screen in the browser, and a deck is not a second rendition of a report (FEA-RP-65, FEA-RP-71). A source is a deck when its first line is `format: rslide/1`, so every host that holds only the text (the command line, the publish server, the editor, the browser) reads it as one. `richview generate deck.rslide` writes one self-contained HTML deck and `--to pdf` one 16:9 page for each slide; `check`, `validate`, `serve` and `publish` take a deck as they take a report. `slides: true` in a report is a retired spelling: it fails with `frontmatter.slides` and the file renders as a report.
+
+The text before the first `---` line is the setup, written as a report's frontmatter is. Every slide opens with a `---` line; the line after the last slide is optional. A slide is a mapping of keys at the left edge, in any order: the furniture, the cuts of its grid, and either one piece alone or the pieces of the slots of one layout. A piece is text, or a `chart`, `metric` or `table` written in that block's own vocabulary and indented under its key, with the report parser's checks and the deck's line numbers. Text is taken as written, as Markdown, with no quoting.
+
+````rslide
+format: rslide/1
+title: September business review
+description: Monthly recurring revenue reached $630K.
+version: 1.0.0
+styles: [sleek]
+---
+title: Enterprise added $80K in September; mid-market held at $50K
+subtitle: Where the growth came from
+
+left:
+  - **Enterprise** added $80K, up from $60K in August.
+  - **Mid-market** added $50K, the same as in August.
+right:
+  chart:
+    type: bar
+    title: Revenue added each month, by segment
+    data:
+      inline:
+        - { month: Aug, added: 60000, segment: Enterprise }
+        - { month: Aug, added: 50000, segment: Mid-market }
+        - { month: Sep, added: 80000, segment: Enterprise }
+        - { month: Sep, added: 50000, segment: Mid-market }
+    encoding: { x: month, y: added, color: segment }
+
+source: Synthetic monthly rows
+cols: 9-15
+---
+metric:
+  value: $630K
+  label: MRR at the end of September
+````
+
+**The setup's keys:**
+
+<!-- registry:begin deck-setup -->
+| Field | Type | Required | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `format` | text | yes |  | `rslide/1`, the first line of the file; it is what tells a reader of the text that this is a deck. |
+| `title` | text |  |  | The deck's title, for the page and a shared link; the first slide's title when absent. |
+| `description` | text |  |  | One sentence for a shared link; publishing requires it. |
+| `version` | text |  |  | The version a publication carries, `1.0.0`; publishing requires it. |
+| `slug` | text |  |  | The deck's address when published; derived from the title when absent. |
+| `lang` | text |  | `en` | The deck's language, as the report's `lang`. |
+| `styles` | list of text |  |  | The styles of the deck, as the report's `styles`; the style sets the stage every slide stands on. |
+<!-- registry:end -->
+
+**A slide's keys:**
+
+<!-- registry:begin deck-slide -->
+| Field | Type | Required | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `title` | inline Markdown |  |  | The large line of the slide's head; it may carry the slide's claim. |
+| `subtitle` | inline Markdown |  |  | The small line under the title. |
+| `source` | inline Markdown |  |  | The slide's source note, at the left of its foot. |
+| `footer` | inline Markdown |  |  | A line at the right of the foot. |
+| `cols` | text |  |  | Parts of 24 across the layout's column tracks, joined by `-` and adding up to 24, such as `9-15`; equal when absent. |
+| `rows` | text |  |  | Parts of 24 down the layout's row tracks, as `cols`; they are shares of the content region. |
+| `chart` | mapping |  |  | The slide's only piece: a `chart` block, its fields indented under the key. |
+| `metric` | mapping |  |  | The slide's only piece: a `metric` block, the largest number the format sets. |
+| `table` | mapping |  |  | The slide's only piece: a `table` block. |
+| `text` | inline Markdown |  |  | The slide's only piece: text read as Markdown. |
+| `left` | inline Markdown or mapping |  |  | A slot: text, or one `chart`, `metric` or `table` mapping. |
+| `right` | inline Markdown or mapping |  |  | A slot, as `left`. |
+| `top` | inline Markdown or mapping |  |  | A slot, as `left`. |
+| `middle` | inline Markdown or mapping |  |  | A slot, as `left`. |
+| `bottom` | inline Markdown or mapping |  |  | A slot, as `left`. |
+| `top-left` | inline Markdown or mapping |  |  | A slot of the corner layouts, as `left`. |
+| `top-right` | inline Markdown or mapping |  |  | A slot of the corner layouts, as `left`. |
+| `bottom-left` | inline Markdown or mapping |  |  | A slot of the corner layouts, as `left`. |
+| `bottom-right` | inline Markdown or mapping |  |  | A slot of the corner layouts, as `left`. |
+<!-- registry:end -->
+
+**The layouts** are the slots a slide uses; there are no layout names to learn. Any other set of slots is the error `deck.layout`, which names the nearest layout:
+
+<!-- registry:begin deck-layouts -->
+| Layout | Slots in reading order | `cols` cuts | `rows` cuts |
+| --- | --- | --- | --- |
+| One piece alone | `chart`, `metric`, `table` or `text` as the slide's own key |  |  |
+| Two side by side | `left`, `right` | 2 parts |  |
+| Two stacked | `top`, `bottom` |  | 2 parts |
+| Three side by side | `left`, `middle`, `right` | 3 parts |  |
+| Three stacked | `top`, `middle`, `bottom` |  | 3 parts |
+| One across two below it | `top`, `bottom-left`, `bottom-right` | 2 parts | 2 parts |
+| One across two above it | `top-left`, `top-right`, `bottom` | 2 parts | 2 parts |
+| One beside two stacked | `left`, `top-right`, `bottom-right` | 2 parts | 2 parts |
+| Two stacked beside one | `top-left`, `right`, `bottom-left` | 2 parts | 2 parts |
+<!-- registry:end -->
+
+**The stage** is 16:9, cut into 24 columns and 24 rows. The head, which a slide has when it has a `title` or a `subtitle`, takes rows 1 to 4; the foot, which it has when it has a `source` or a `footer`, takes rows 23 and 24; the content takes the rest, and takes the rows of a head or foot the slide does not have. `cols` and `rows` are parts of 24: columns are exactly those cells, and rows are the same proportion of the content region, so `rows: 9-15` means the same on every slide. A slot is as large as its tracks leave it after the gutters between them. A slide with a title and no pieces is the cover when it is first and a section slide elsewhere; a slide of one `metric` is the hero number.
+
+**Density.** A slide warns `slides.density`, naming the slide, its line and the slot, when a text slot holds more words than its width shows well, a table more rows than a slide shows, or a title more characters than a headline holds. The fix is a new slide.
+
+**Reading.** On a landscape window at least 900 px wide a slide is the stage, as large as the window allows, and every size is a share of it. Below that, each slide is a card as wide as the screen and at least a screen high: its head, then its slots in reading order, then its foot; nothing is clipped. Space, Page Down and the arrows move through the slides, `F` fills the screen, and `#slide=4` opens the fourth. Printing gives one slide a page on a 16:9 landscape page. The style sets the stage each slide stands on.
+
 ## Markdown extensions
 
 CommonMark prose supports GFM tables, strikethrough, disabled task-list checkboxes and definition lists. Footnote references link to numbered endnotes at the end of the body, with links back to their references. A wikilink renders as its label and warns; links between reports use ordinary Markdown links. Quotations use a Markdown block quote with attribution on its last line. The `[!quote]` marker stays text and warns.
@@ -1153,7 +1199,7 @@ A message names a file by its report-relative path and a folder by its name, nev
 
 The core provides `parse`, `render`, `validate`, `validate_publish`, `check`, and owned-AST `render_document`/`check_document`. The site runtime exposes rendering, validation, checking and page boot through generated wasm-bindgen bindings; schema objects and the retired learn, style and chart compatibility exports are absent. The site loader initializes Wasm before synchronous calls. Parsed body placeholders belong to the parser: literal source comments remain inert, and the AST carries an optional collision-free marker prefix when needed. `richview learn` supplies grammar, chart, style, workflow and design context for coding agents.
 
-Core source (`source.limit`) and resolved-dataset (`data.limit`) limits are 16 MiB; native request/file boundaries add their own limits. `MAX_REPORT_BYTES` caps accumulated rich-block and complete HTML at 64 MiB, including embedded media, fonts and runtime. Repeated resolved media is checked before copying payloads; exceeding the budget returns a source-centered `render.output-limit` error, with a block line when available, rather than truncating the report. Recoverable errors stay visible; publication rejects hard source errors. Generated HTML carries the actual `richview/<package-version>` generator, and `_richview` metadata records block/chart counts, offline/runtime presence and chart diagnostics.
+Core source (`source.limit`) and resolved-dataset (`data.limit`) limits are 16 MiB; native report inputs are also limited to 5,000,000 bytes per file and 50,000,000 bytes per version, before encoding. The native HTTP request limit is 32 MiB, so about 25,000,000 bytes of linked files can be published; a larger publish request is refused before sending with `report.input-limit`. `MAX_REPORT_BYTES` caps accumulated rich-block and complete HTML at 64 MiB, including embedded media, fonts and runtime. Repeated resolved media is checked before copying payloads; exceeding the budget returns a source-centered `render.output-limit` error, with a block line when available, rather than truncating the report. Recoverable errors stay visible; publication rejects hard source errors. Generated HTML carries the actual `richview/<package-version>` generator, and `_richview` metadata records block/chart counts, offline/runtime presence and chart diagnostics.
 
 Chart treatments use the builtins in the [style reference](#styles-and-motion). `hand-drawn` draws data in greys (story grey, context grey, ink, mid grey) with a paper-to-ink heatmap ramp; its pencil strokes never touch gridlines, axes or data marks, and its chart labels use the bundled Patrick Hand face with browser measurement after fonts load. Axis ink uses the safe `tokens.chart-ink` color token. Compact magnitude suffixes attach directly (`25k`); known `KBD` values above 1,000 display as `MBD`. Values at the author's chosen precision remain available in tooltips and tables.
 
@@ -1238,6 +1284,7 @@ Every code keeps its level; renaming or removing one is a format change (TYP-55)
 | `asset.duration` | error |  | A remote asset's duration is invalid or does not apply. | Set a valid positive `duration`, or remove it where it does not apply. |
 | `asset.dimensions` | error |  | A remote asset's width or height is invalid or does not apply. | Set valid positive `width` and `height`, or remove them where they do not apply. |
 | `style.unresolved` | error |  | A styles file is not in the report folder. | Put the styles file inside the report folder and name it correctly. |
+| `style.limit` | error |  | A report names too many styles, or style files that add up to too many bytes when each is counted as often as it is named. | Name each style once, and name fewer of them. |
 | `style.renamed` | error |  | A style names a builtin that was renamed. | Replace the style name with the one the message names. |
 | `style.print-dark` | warning |  | The style is still dark after the print swap, so the page prints with Air's surfaces and inks. | Give the style light surfaces and dark inks to print in its own colours; otherwise paper uses Air's. |
 | `style.unknown` | error |  | A styles entry names no built-in style. | Use a built-in style name, or a styles file in the report folder. |
@@ -1282,6 +1329,7 @@ Every code keeps its level; renaming or removing one is a format change (TYP-55)
 | `security.class` | warning | yes | Heading classes and attributes from source were dropped. | Remove the classes and attributes from the heading, keeping only `{#id}`. |
 | `image.alt-missing` | warning |  | The header image has no alt text, so it is treated as decorative. | Describe the image in `alt`, or write `alt: ""` to mark it decorative. |
 | `editor.service` | error |  | The editor service could not answer a request. | Retry the request; restart the editor service if it keeps failing. |
+| `editor.render` | error |  | The hosted editor could not render the report it was given. | Fix the errors listed under the source; the last good report stays shown until the source renders again. |
 | `block.nested` | error | yes | A rich block sits inside a list, quote or note. | Move the rich block out of the list, quote or note to the top level. |
 | `code.mark` | warning |  | A code block marks a line past its last line. | Mark only lines the code has, or add the lines you meant. |
 | `block.unknown-tag` | warning | yes | A fence names no rich tag; a close match is suggested. | Change the fence tag to the rich tag the message suggests, or keep the fence as code. |
@@ -1316,8 +1364,14 @@ Every code keeps its level; renaming or removing one is a format change (TYP-55)
 | `columns.stray` | warning | yes | A column marker or text sits outside a column, so the markers stay text and the content renders in one column. | Put every line between `::: columns` and its closing `:::` inside a `::: column`, and open columns before a `::: column`. |
 | `columns.widths` | warning | yes | The widths name a different number of columns than there are, so the columns are equal. | Give `widths` one part per column, such as `2-1` for two columns, or remove it. |
 | `columns.options` | warning | yes | The options after `::: columns` are not a YAML mapping, so the columns take their defaults. | Write the options as a mapping, such as `::: columns {widths: 2-1, gap: large}`. |
-| `slides.tabs` | warning | yes | A slides source has no tabs, so the tabs setting has no effect. | Remove `tabs`, or remove `slides: true` to render the report with its tabs. |
-| `slides.density` | warning | yes | A slide holds more than one screen shows well: too many numbers, figures, words or table rows. | Start a new slide: put a top-level heading, or a `---` line, before the content that does not fit. |
+| `frontmatter.slides` | error | yes | A report still sets `slides`, which went when slides became a format of their own; the source renders as a report. | Write the deck as a `.rslide` file whose first line is `format: rslide/1`; `richview learn slides` is the guide. |
+| `deck.empty` | error | yes | A deck has no slide, or a slide has nothing in it. | Open each slide with a line of `---` and put at least a `title` or a piece in it. |
+| `deck.syntax` | error | yes | A line of a deck is not `key: value`, a key stands twice on a slide, or an indent holds a tab. | Write each setting as `key: value` at the left edge, indent what belongs to a key with spaces, and write each key once. |
+| `deck.key` | warning | yes | A deck's setup or a slide holds a key the format does not read; it is ignored. | Remove the key, or use one the format reads: `title`, `subtitle`, `source`, `footer`, `cols`, `rows`, a slot, or one piece. |
+| `deck.layout` | error | yes | The slots of a slide are not one of the nine layouts, or a slide mixes one piece with slots. | Use the slots of one layout: left and right; top and bottom; left, middle and right; top, middle and bottom; top over bottom-left and bottom-right; bottom under top-left and top-right; left beside top-right and bottom-right; or right beside top-left and bottom-left. |
+| `deck.piece` | error | yes | A slot holds two pieces, a piece that is not text or a chart, metric or table, nothing, or a fenced block in text. | Put text, or one `chart:`, `metric:` or `table:` mapping with its fields indented under it, in each slot. |
+| `deck.span` | error | yes | `cols` or `rows` does not add up to 24, has the wrong number of parts for the layout, or cuts an axis the layout does not. | Write `cols` or `rows` as parts of 24 joined by `-`, one part for each track the layout cuts, such as `9-15` or `8-8-8`. |
+| `slides.density` | warning | yes | A slide holds more than a slot shows well: too many words, table rows or title characters. | Start a new slide for the part that does not fit, or cut the text. |
 | `chart.invalid` | error | yes | A chart block could not be read. | Fix the chart block's fields to match the chart schema. |
 | `chart.failed` | error | yes | A chart failed to draw. | Check the chart's data and encodings, then fix the errors reported with it. |
 | `chart.states-unchecked` | warning | yes | Only the first reader states of a chart were checked. | Nothing to change if the checked states are typical; fewer control values let every state be checked. |
@@ -1365,6 +1419,8 @@ Every code keeps its level; renaming or removing one is a format change (TYP-55)
 | `report.root.unresolved` | error |  | The report folder cannot be inspected. | Check that the report folder exists and is readable. |
 | `scrolly.state` | warning | yes | A scrollytelling step sets a chart control or option the chart does not have. | Use a control id and option value from the chart's `controls`. |
 | `chart.print-height` | warning | yes | A chart is taller on paper than the share of the page it may take. | Show fewer rows or categories, or give the chart a wider `style.ratio`, such as `16:9`, so it prints shorter. |
+| `report.file-limit` | error |  | One report input exceeds the per-file size limit. | Reduce or split this file. |
+| `report.input-limit` | error |  | The inputs of one report version exceed the combined size limit, or its publish request exceeds what the server accepts. | Reduce the inputs or split the report. |
 | `report.asset.remote` | error | yes | An image, audio, video, poster, header image or Markdown image names a remote address. | Download the file into the report folder and reference it by relative path. |
 | `report.asset.escape` | error | yes | An asset path escapes the report folder. | Move the asset into the report folder and reference it by relative path. |
 | `report.asset.missing` | error |  | An asset is missing from the report folder. | Add the missing asset to the report folder or correct its path. |

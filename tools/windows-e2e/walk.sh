@@ -181,7 +181,7 @@ say "send the candidate: the archive, install.ps1 stamped for the machine's loop
 mkdir -p "$RUN/send/release" "$RUN/send/editor"
 cp "$ARCHIVE" "$RUN/send/release/richview-x86_64-pc-windows-msvc.tar.gz"
 git -C "$REPO" show "$COMMIT:scripts/install.ps1" > "$RUN/install-template.ps1"
-node "$HERE/stamp.mjs" "$RUN/install-template.ps1" "$RUN/send/release/richview-x86_64-pc-windows-msvc.tar.gz" "$COMMIT" http://127.0.0.1:8765 "$RUN/send/release/install.ps1" | tee "$RUN/archive.sha256"
+node "$HERE/stamp.mts" "$RUN/install-template.ps1" "$RUN/send/release/richview-x86_64-pc-windows-msvc.tar.gz" "$COMMIT" http://127.0.0.1:8765 "$RUN/send/release/install.ps1" | tee "$RUN/archive.sha256"
 cp "$EDITOR" "$RUN/send/editor/richview-editor.exe"
 git -C "$REPO" archive --format=tar -o "$RUN/send/examples.tar" "$COMMIT" examples/sql-report examples/openai-vs-anthropic
 if [ -n "$SCRIPT" ]; then

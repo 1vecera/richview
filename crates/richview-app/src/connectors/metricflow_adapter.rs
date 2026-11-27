@@ -224,6 +224,7 @@ fn parse_csv(
         .map(|(index, name)| SchemaField {
             name,
             kind: schema_kinds[index].unwrap_or(FieldKind::Null),
+            scale: None,
             nullable: nullable[index] || schema_kinds[index].is_none(),
         })
         .collect();

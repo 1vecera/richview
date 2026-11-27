@@ -309,7 +309,7 @@ pub(super) fn elements_grid() -> String {
                 format!("#{anchor}"),
                 frame(
                     "Typography",
-                    "/docs/gallery/typography/Rendered/typography-sleek.html",
+                    "/docs/gallery/typography/Rendered/typography-sleek",
                 ),
             ),
             "pictures" => (

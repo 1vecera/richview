@@ -21,7 +21,7 @@ WIDTH, HEIGHT = 1200, 630
 # The report draws the cover at most 832 px wide, where one unit here is 0.69 px. Lane names and
 # shares are 23 units, so they read there at the size of the report's captions (15 px).
 
-# A deep card with light type (S27-997), so the cover reads on Sleek's dark page as well as on the
+# A deep card with light type, so the cover reads on Sleek's dark page as well as on the
 # light styles: one image serves every style, since an SVG image cannot follow the page's scheme in
 # every engine (WebKit follows the system's). Every text colour is at least 6.4:1 on all three
 # field colours; the paper centre is a step above Sleek's page, and the rule outlines the card.

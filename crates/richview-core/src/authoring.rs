@@ -23,12 +23,14 @@ const CHART_TYPE_NAMES: [&str; CHART_TYPE_COUNT] = {
 /// registry's `CHART_TYPES`, which is where a new type is added.
 pub const CHART_TYPES: &[&str] = &CHART_TYPE_NAMES;
 
-/// The registry's fields for `tag` (`frontmatter` or a rich tag).
+/// The registry's fields for `tag`: `frontmatter`, a rich tag, or a deck's `deck-setup` and
+/// `deck-slide` (FEA-RP-71), which stand where a rich tag does for the keys of a `.rslide`.
 fn fields_of(tag: &str) -> Option<&'static [Field]> {
-    if tag == "frontmatter" {
-        Some(registry::FRONTMATTER)
-    } else {
-        registry::tag(tag).map(|tag| tag.fields)
+    match tag {
+        "frontmatter" => Some(registry::FRONTMATTER),
+        "deck-setup" => Some(registry::DECK_SETUP),
+        "deck-slide" => Some(registry::DECK_SLIDE),
+        _ => registry::tag(tag).map(|tag| tag.fields),
     }
 }
 
@@ -89,7 +91,7 @@ pub fn authoring_values(tag: &str, path: &[&str]) -> &'static [&'static str] {
         .filter(|s| s.parse::<usize>().is_err())
         .collect();
     let at = path.join(".");
-    if tag == "frontmatter" && at == "styles" {
+    if matches!(tag, "frontmatter" | "deck-setup") && at == "styles" {
         return registry::BUILTIN_STYLES;
     }
     let Some(field) =

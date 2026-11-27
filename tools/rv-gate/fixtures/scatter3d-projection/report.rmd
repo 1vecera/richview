@@ -1,0 +1,36 @@
+---
+title: Scatter3d projection parity
+---
+
+Synthetic measurements exercise the projected axis labels and their collision regions.
+
+```chart
+type: scatter3d
+title: Gentoo penguins stand apart in bill depth and flipper length
+subtitle: Three measurements of 18 penguins, synthetic figures
+data:
+  inline:
+    - {species: Adelie, bill_length: 38.3, bill_depth: 18.8, flipper: 189}
+    - {species: Adelie, bill_length: 40.9, bill_depth: 18.5, flipper: 192}
+    - {species: Adelie, bill_length: 35.4, bill_depth: 16.7, flipper: 186}
+    - {species: Adelie, bill_length: 39.4, bill_depth: 18.7, flipper: 187}
+    - {species: Adelie, bill_length: 38.1, bill_depth: 18.2, flipper: 193}
+    - {species: Adelie, bill_length: 37.2, bill_depth: 18.5, flipper: 192}
+    - {species: Chinstrap, bill_length: 48.6, bill_depth: 17.7, flipper: 198}
+    - {species: Chinstrap, bill_length: 51.7, bill_depth: 18.7, flipper: 197}
+    - {species: Chinstrap, bill_length: 46.9, bill_depth: 17.9, flipper: 202}
+    - {species: Chinstrap, bill_length: 45.0, bill_depth: 16.1, flipper: 198}
+    - {species: Chinstrap, bill_length: 49.3, bill_depth: 18.8, flipper: 204}
+    - {species: Chinstrap, bill_length: 50.7, bill_depth: 18.9, flipper: 186}
+    - {species: Gentoo, bill_length: 44.9, bill_depth: 16.4, flipper: 220}
+    - {species: Gentoo, bill_length: 46.2, bill_depth: 14.6, flipper: 222}
+    - {species: Gentoo, bill_length: 44.7, bill_depth: 14.9, flipper: 216}
+    - {species: Gentoo, bill_length: 45.9, bill_depth: 15.6, flipper: 223}
+    - {species: Gentoo, bill_length: 47.1, bill_depth: 15.2, flipper: 220}
+    - {species: Gentoo, bill_length: 46.6, bill_depth: 14.7, flipper: 217}
+encoding: {x: bill_length, y: bill_depth, z: flipper, color: species}
+axes:
+  x: {label: Bill length (mm)}
+  y: {label: Bill depth (mm)}
+  color: {label: Flipper (mm)}
+```

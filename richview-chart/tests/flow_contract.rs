@@ -3,7 +3,7 @@
 //! the diagnostics of a bad graph, and the shared contract every type meets (FEA-CH-76,
 //! FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::Level;

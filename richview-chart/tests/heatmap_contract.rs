@@ -3,7 +3,7 @@
 //! type shares (FEA-CH-75). Cell texts are in `heatmap_cell_values.rs` and `heatmap_contrast.rs`,
 //! coordinates in `heatmap_coordinates.rs`.
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Geometry, Item, Rgba, Targeting};

@@ -24,7 +24,7 @@ struct OperatorState {
     app: AppState,
 }
 
-fn token_matches(expected: &[u8; 32], token: &str) -> bool {
+pub(super) fn token_matches(expected: &[u8; 32], token: &str) -> bool {
     let actual: [u8; 32] = Sha256::digest(token.as_bytes()).into();
     actual
         .iter()
@@ -173,6 +173,8 @@ fn router(token: &str, app: AppState) -> Result<Router, String> {
                 .into(),
         );
     }
+    let inspections =
+        super::staff_access::router(app.clone(), token, super::staff_access::directory());
     let state = OperatorState {
         token_hash: Sha256::digest(token.as_bytes()).into(),
         app,
@@ -190,7 +192,8 @@ fn router(token: &str, app: AppState) -> Result<Router, String> {
         .route("/operator/mail/{id}/dispatch", post(dispatch_manual))
         .route("/operator/summary", get(summary))
         .route_layer(middleware::from_fn_with_state(state.clone(), authorize))
-        .with_state(state))
+        .with_state(state)
+        .merge(inspections))
 }
 
 /// Bind the operator API to IPv4 loopback only; it is never mounted on the public router.

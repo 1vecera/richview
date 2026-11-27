@@ -96,5 +96,5 @@ axes:
 ## Interactions
 
 - Hover or focus an arrow to read its position, direction and value.
-- Zoom the x axis to look at part of the field; arrows outside the window are not drawn.
+- Zoom a rectangle of the field with a drag, or either axis alone with a drag along it; Ctrl or ⌘ with the wheel zooms around the pointer, Shift-drag pans, and double-click, Escape or Reset zoom returns. Arrows outside the window are not drawn.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

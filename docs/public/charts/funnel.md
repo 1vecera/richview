@@ -58,5 +58,5 @@ axes:
 
 ## Interactions
 
-- Hover or focus a stage to read its value and its share; the pointer picks the band it is inside.
+- Hover or focus a stage to read its value and its share; the pointer picks the band it is inside. A dark outline marks the stage under the pointer.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

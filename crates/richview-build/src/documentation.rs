@@ -42,6 +42,7 @@ const GUIDES: &[(&str, &str)] = &[
     ("backgrounds", "Backgrounds"),
     ("export", "Export HTML & PDF"),
     ("publishing", "Publish: walkthrough"),
+    ("online-editor", "Edit a report online"),
     ("self-hosting", "Run your own server"),
     ("slides", "Slides"),
     ("tools", "CLI & MCP reference"),
@@ -173,12 +174,40 @@ const REPORTS: &[(&str, &[&str])] = &[
         "geyser-waits",
         &["report.rmd", "data/waits.csv", "media/old-faithful.jpg"],
     ),
-    (SLIDES_REPORT, &["report.rmd"]),
+    (
+        SLIDES_REPORT,
+        &["deck.rslide", "data/global-temperature.csv"],
+    ),
 ];
 
-/// The gallery's slides example (FEA-RP-65). Its frame shows the export itself: a
+/// The gallery's slides example (FEA-RP-71). Its frame shows the export itself: a
 /// slide is a screen, so it has no preview page with a style switch.
-pub(crate) const SLIDES_REPORT: &str = "monthly-review";
+pub(crate) const SLIDES_REPORT: &str = "warmest-years";
+
+/// The source file of a gallery entry: the slides example is a deck, every other entry a report.
+fn gallery_source(name: &str) -> &'static str {
+    if name == SLIDES_REPORT {
+        "deck.rslide"
+    } else {
+        "report.rmd"
+    }
+}
+
+/// The page a gallery entry renders to, named after its source file.
+fn gallery_page(name: &str) -> &'static str {
+    if name == SLIDES_REPORT {
+        "deck.html"
+    } else {
+        "report.html"
+    }
+}
+
+/// The address the live site serves a built page at: its file name without `.html`. Cloudflare
+/// answers the file name with a redirect to this address, so a link or frame that names the file
+/// costs a round trip and fails the gate's live comparison (FEA-SF-46).
+fn site_route(file: &str) -> &str {
+    file.strip_suffix(".html").unwrap_or(file)
+}
 
 fn live_report_preview(name: &str) -> bool {
     matches!(name, "blocks" | "typography" | "geyser-waits")
@@ -247,6 +276,7 @@ const HOW_TO: &[&str] = &[
     "backgrounds",
     "export",
     "publishing",
+    "online-editor",
     "self-hosting",
     "slides",
 ];
@@ -389,6 +419,7 @@ pub fn stage(root: &Path, public: &Path, flags: BuildFlags) -> Result<()> {
         fs::copy(root.join("examples/sql-report").join(name), output)?;
     }
     stage_first_report(root, public, &docs)?;
+    stage_publisher_example(root, public, &docs)?;
     stage_report_gallery(root, public, &docs, &charts, flags)?;
     previews::stage(root, &docs, public, &charts, flags)?;
     stage_report_headers(public)?;
@@ -486,13 +517,15 @@ fn stage_report_gallery(
             fs::create_dir_all(target.parent().ok_or("gallery file has no parent")?)?;
             fs::copy(report_source_folder(root, name).join(file), target)?;
         }
-        let file = folder.join("report.rmd");
+        let source_name = gallery_source(name);
+        let file = folder.join(source_name);
         let source = fs::read_to_string(&file)?;
-        let (_, options) = crate::resolve_document_options(&source, &file, &[], public)?;
+        let (_, options, mut inputs) =
+            crate::resolve_document_options(&source, &file, &[], public)?;
         let rendered = richview_core::document::render(&source, &options)
             .map_err(|errors| format!("Gallery {name} failed: {errors:?}"))?;
         ensure_clean(name, &rendered.diagnostics)?;
-        richview_app::resolver::export_report(&file, None, &rendered, &options)?;
+        richview_app::resolver::export_report(&file, None, &rendered, &options, &mut inputs)?;
         if name == "typography" {
             for style in chrome::site_styles() {
                 let mut options = options.clone();
@@ -505,24 +538,47 @@ fn stage_report_gallery(
                     Some(Path::new(&format!("typography-{style}.html"))),
                     &sample,
                     &options,
+                    &mut inputs,
                 )?;
             }
         }
         let title = front_value(&source, "title").ok_or("gallery report needs a title")?;
         let description =
             front_value(&source, "description").ok_or("gallery report needs a description")?;
+        let take_apart = if name == SLIDES_REPORT {
+            format!(
+                "Download the [Rich Slides source](https://richview.ai/docs/gallery/{name}/{source_name}) and the data below into one folder, then run `richview generate {source_name}`. Each slide's source line says where its numbers come from.\n"
+            )
+        } else {
+            format!(
+                "Download the [Rich Markdown source](https://richview.ai/docs/gallery/{name}/{source_name}) and the data below into one folder. Each report keeps its own observations and source notes.\n"
+            )
+        };
         let wrapper = format!(
-            "---\ntitle: {title}\ndescription: {description}\nstyles: [scientific]\n---\n\n{{{{report:{name}}}}}\n\n## Take it apart\n\nDownload the [Rich Markdown source](https://richview.ai/docs/gallery/{name}/report.rmd) and the data below into one folder. Each report keeps its own observations and source notes.\n"
+            "---\ntitle: {title}\ndescription: {description}\nstyles: [scientific]\n---\n\n{{{{report:{name}}}}}\n\n## Take it apart\n\n{take_apart}"
         );
         let mut wrapper = wrapper;
         wrapper.push_str("\n## Credits\n\n");
+        // A deck's credit is the data line of its sources slide, written as a report's source note.
+        let notes: Vec<String> = if name == SLIDES_REPORT {
+            source
+                .lines()
+                .filter_map(|line| line.trim().strip_prefix("- **Data.** "))
+                .map(|data| format!("*Source: {data}*"))
+                .collect()
+        } else {
+            source
+                .lines()
+                .filter(|line| {
+                    line.starts_with("*Source:") || line.contains("NASA audio collection")
+                })
+                .map(str::to_owned)
+                .collect()
+        };
         // A source several figures share is credited once.
         let mut credited = std::collections::BTreeSet::new();
-        for line in source
-            .lines()
-            .filter(|line| line.starts_with("*Source:") || line.contains("NASA audio collection"))
-        {
-            if credited.insert(line) {
+        for line in &notes {
+            if credited.insert(line.as_str()) {
                 wrapper.push_str(line);
                 wrapper.push_str("\n\n");
             }
@@ -539,7 +595,7 @@ fn stage_report_gallery(
                 "Photograph: [{author}]({url}), [Unsplash photo and credit]({page}).\n\n"
             ));
         }
-        for file in files.iter().filter(|file| **file != "report.rmd") {
+        for file in files.iter().filter(|file| **file != source_name) {
             wrapper.push_str(&format!(
                 "\n- [{file}](https://richview.ai/docs/gallery/{name}/{file})\n"
             ));
@@ -636,7 +692,8 @@ fn report_frames(html: &str) -> String {
     for &(name, _) in REPORTS {
         let marker = format!("<p>{{{{report:{name}}}}}</p>");
         let url = format!("/docs/gallery/{name}");
-        let live = format!("{url}/Rendered/report.html");
+        let source_file = gallery_source(name);
+        let live = format!("{url}/Rendered/{}", site_route(gallery_page(name)));
         let preview = if live_report_preview(name) {
             format!(
                 "<iframe loading=\"lazy\" title=\"Live report: {name}\" src=\"{live}\" sandbox=\"allow-scripts allow-downloads\"></iframe>"
@@ -652,13 +709,13 @@ fn report_frames(html: &str) -> String {
                 .map_or(name, |(_, title, _)| title);
             picture(name, title, &live)
         };
-        let open = if name == SLIDES_REPORT {
-            "Open the live deck"
+        let (open, source_label) = if name == SLIDES_REPORT {
+            ("Open the live deck", "Rich Slides source")
         } else {
-            "Open live report"
+            ("Open live report", "Rich Markdown source")
         };
         let frame = format!(
-            "<div class=\"docs-report-preview\">{preview}<div class=\"docs-actions\"><a class=\"docs-button\" href=\"{live}\">{open}</a><a class=\"docs-button docs-button--secondary\" href=\"{url}/report.rmd\">Rich Markdown source</a><a href=\"{url}/\">Data &amp; credits</a></div></div>"
+            "<div class=\"docs-report-preview\">{preview}<div class=\"docs-actions\"><a class=\"docs-button\" href=\"{live}\">{open}</a><a class=\"docs-button docs-button--secondary\" href=\"{url}/{source_file}\">{source_label}</a><a href=\"{url}/\">Data &amp; credits</a></div></div>"
         );
         html = html.replace(&marker, &frame);
     }
@@ -669,7 +726,7 @@ fn report_frames(html: &str) -> String {
 /// that swaps it, as a chart page's style row does. The page so starts one sample's runtime rather
 /// than one per style (`RUNTIME_BUDGET`). Without scripts each style link opens its sample.
 fn typography_switch() -> String {
-    let sample = |style: &str| format!("/docs/gallery/typography/Rendered/typography-{style}.html");
+    let sample = |style: &str| format!("/docs/gallery/typography/Rendered/typography-{style}");
     let first = "sleek";
     let links: String = chrome::site_styles()
         .iter()
@@ -882,7 +939,12 @@ fn unlink_repository_paths(markdown: &str) -> String {
 }
 
 fn front_value(source: &str, key: &str) -> Option<String> {
-    let front = source.strip_prefix("---\n")?.split_once("\n---\n")?.0;
+    // A deck's setup is the lines before its first slide; a report's is its frontmatter.
+    let front = if source.starts_with("format: rslide/") {
+        source.split_once("\n---\n")?.0
+    } else {
+        source.strip_prefix("---\n")?.split_once("\n---\n")?.0
+    };
     front.lines().find_map(|line| {
         line.strip_prefix(key)
             .and_then(|rest| rest.strip_prefix(':'))
@@ -1375,7 +1437,7 @@ fn style_frame(chart: &str) -> String {
         .iter()
         .map(|style| {
             format!(
-                "<a href=\"/docs/previews/{chart}/{style}.html#rv-chart-0\" data-preview-src=\"/docs/previews/{chart}/{style}.html#rv-chart-0\" data-style-link=\"{style}\" data-chart=\"{chart}\">{}</a>",
+                "<a href=\"/docs/previews/{chart}/{style}#rv-chart-0\" data-preview-src=\"/docs/previews/{chart}/{style}#rv-chart-0\" data-style-link=\"{style}\" data-chart=\"{chart}\">{}</a>",
                 chrome::style_label(style)
             )
         })
@@ -1395,14 +1457,14 @@ fn background_frame() -> String {
         .map(|(index, (file, label, ..))| {
             let current = if index == 0 { " aria-current=\"true\"" } else { "" };
             format!(
-                "<a href=\"/docs/previews/backgrounds/{file}.html\" data-preview-src=\"/docs/previews/backgrounds/{file}.html\" data-style-link=\"background-{file}\"{current}>{}</a>",
+                "<a href=\"/docs/previews/backgrounds/{file}\" data-preview-src=\"/docs/previews/backgrounds/{file}\" data-style-link=\"background-{file}\"{current}>{}</a>",
                 escape(label)
             )
         })
         .collect();
     let first = previews::BACKGROUNDS[0].0;
     format!(
-        "<div class=\"docs-styles docs-styles--backgrounds\"><p class=\"docs-styles__label\">The same report on each background</p><nav class=\"docs-styles__links\" aria-label=\"Background\">{links}</nav><iframe class=\"docs-styles__frame\" title=\"A short report on the chosen background\" sandbox=\"allow-scripts allow-downloads\" src=\"/docs/previews/backgrounds/{first}.html\"></iframe></div>"
+        "<div class=\"docs-styles docs-styles--backgrounds\"><p class=\"docs-styles__label\">The same report on each background</p><nav class=\"docs-styles__links\" aria-label=\"Background\">{links}</nav><iframe class=\"docs-styles__frame\" title=\"A short report on the chosen background\" sandbox=\"allow-scripts allow-downloads\" src=\"/docs/previews/backgrounds/{first}\"></iframe></div>"
     )
 }
 
@@ -1534,7 +1596,7 @@ fn render_page_with_options(
             &style_frame("bar")
                 .replace(
                     " hidden></iframe>",
-                    " src=\"/docs/previews/bar/sleek.html#rv-chart-0\"></iframe>",
+                    " src=\"/docs/previews/bar/sleek#rv-chart-0\"></iframe>",
                 )
                 .replacen(
                     "data-style-link=\"sleek\"",
@@ -1560,7 +1622,7 @@ fn render_page_with_options(
         Place::Featured(name) => format!("/docs/charts/{name}.md"),
         Place::ChartType(chart) => format!("/examples/charts/{chart}/report.rmd"),
         Place::Example(name) => format!("/docs/examples/{name}/report.rmd"),
-        Place::Report(name) => format!("/docs/gallery/{name}/report.rmd"),
+        Place::Report(name) => format!("/docs/gallery/{name}/{}", gallery_source(name)),
         Place::Gallery => "/docs/charts.md".into(),
     };
     let source_link = if matches!(
@@ -1599,7 +1661,7 @@ fn render_page_with_options(
         chrome::footer()
     );
     let actions = match place {
-        Place::Report(name) => format!("<div class=\"docs-actions\"><a class=\"docs-button\" href=\"/docs/gallery/{name}/report.rmd\">View source <span aria-hidden=\"true\">↗</span></a></div>"),
+        Place::Report(name) => format!("<div class=\"docs-actions\"><a class=\"docs-button\" href=\"/docs/gallery/{name}/{}\">View source <span aria-hidden=\"true\">↗</span></a></div>", gallery_source(name)),
         Place::Guide("index") if !flags.install_enabled => "<div class=\"docs-actions\"><a class=\"docs-button\" href=\"/playground\">Try in your browser <span aria-hidden=\"true\">↗</span></a><a class=\"docs-button docs-button--secondary\" href=\"/docs/first-report\">Read the first-report guide</a></div>".to_string(),
         Place::Guide("index") => "<div class=\"docs-actions\"><a class=\"docs-button\" href=\"/docs/first-report\">Make your first report <span aria-hidden=\"true\">→</span></a><a class=\"docs-button docs-button--secondary\" href=\"/playground\">Try in your browser <span aria-hidden=\"true\">↗</span></a></div>".to_string(),
         _ => String::new(),
@@ -1931,6 +1993,23 @@ fn sidebar(place: Place, charts: &[ChartPage], flags: BuildFlags) -> String {
     html
 }
 
+/// Build the publishing guide's public-bar example from the real company style, marks and report.
+fn stage_publisher_example(root: &Path, public: &Path, docs: &Path) -> Result<()> {
+    let file = root.join("examples/company-style/report.rmd");
+    let source = fs::read_to_string(&file)?;
+    let (document, options, _) = crate::resolve_document_options(&source, &file, &[], public)?;
+    let report = richview_core::document::render_document(document, &options)
+        .map_err(|errors| format!("Publisher example: {errors:?}"))?;
+    ensure_clean("publisher example", &report.diagnostics)?;
+    let dest = docs.join("example/Rendered");
+    fs::create_dir_all(&dest)?;
+    fs::write(
+        dest.join("publisher.html"),
+        richview_app::server::public_report_example(&report),
+    )?;
+    Ok(())
+}
+
 /// The first report: a downloadable folder that renders clean in every builtin style.
 fn stage_first_report(root: &Path, public: &Path, docs: &Path) -> Result<()> {
     // Explicit tutorial allowlist: never publish the checkout or scratch directory.
@@ -1949,7 +2028,8 @@ fn stage_first_report(root: &Path, public: &Path, docs: &Path) -> Result<()> {
         renders.push((style.to_string(), vec![style.to_string()]));
     }
     for (name, styles) in renders {
-        let options = crate::resolve_document_options(&source, &file, &styles, public)?.1;
+        let (_, options, mut inputs) =
+            crate::resolve_document_options(&source, &file, &styles, public)?;
         let rendered = richview_core::document::render(&source, &options)
             .map_err(|errors| format!("Tutorial {name} failed: {errors:?}"))?;
         ensure_clean(&name, &rendered.diagnostics)?;
@@ -1958,6 +2038,7 @@ fn stage_first_report(root: &Path, public: &Path, docs: &Path) -> Result<()> {
             Some(Path::new(&format!("{name}.html"))),
             &rendered,
             &options,
+            &mut inputs,
         )?;
     }
     Ok(())
@@ -2023,6 +2104,7 @@ fn decorate(source: &str, rendered: &str) -> Result<(String, String)> {
                         "sh" | "bash" => "Shell",
                         "powershell" => "PowerShell",
                         "rmd" => "Rich Markdown",
+                        "rslide" => "Rich Slides",
                         "yaml" => "YAML",
                         "json" => "JSON",
                         "text" if code.contains("\n  ") => "Report folder",
@@ -2191,7 +2273,7 @@ mod tests {
         assert_eq!(runtimes_started(&page(&style_frame("bar"))), 1);
         assert_eq!(
             runtimes_started(&page(
-                "<iframe loading=\"lazy\" src=\"/docs/previews/bar/sleek.html\"></iframe><iframe src=\"https://www.youtube-nocookie.com/embed/x\"></iframe>"
+                "<iframe loading=\"lazy\" src=\"/docs/previews/bar/sleek\"></iframe><iframe src=\"https://www.youtube-nocookie.com/embed/x\"></iframe>"
             )),
             2
         );
@@ -2215,8 +2297,7 @@ mod tests {
         let folder = tempfile::tempdir().unwrap();
         let nested = folder.path().join("guides");
         fs::create_dir_all(&nested).unwrap();
-        let frames =
-            "<iframe src=\"/docs/previews/bar/sleek.html\"></iframe>".repeat(RUNTIME_BUDGET);
+        let frames = "<iframe src=\"/docs/previews/bar/sleek\"></iframe>".repeat(RUNTIME_BUDGET);
         let page = format!(
             "<body data-richview-page=\"docs\"><script src=\"/richview_runtime.js\"></script>{frames}"
         );
@@ -2306,9 +2387,7 @@ mod tests {
     fn block_tours_use_their_complete_export_as_the_preview() {
         for name in ["blocks", "typography"] {
             let html = report_frames(&format!("<p>{{{{report:{name}}}}}</p>"));
-            assert!(html.contains(&format!(
-                "src=\"/docs/gallery/{name}/Rendered/report.html\""
-            )));
+            assert!(html.contains(&format!("src=\"/docs/gallery/{name}/Rendered/report\"")));
             assert!(!html.contains("data-docs-preview"));
         }
     }
@@ -2318,221 +2397,251 @@ mod tests {
         let html = report_frames(&format!("<p>{{{{report:{SLIDES_REPORT}}}}}</p>"));
         assert!(html.contains("<iframe loading=\"lazy\""));
         assert!(html.contains(&format!(
-            " src=\"/docs/gallery/{SLIDES_REPORT}/Rendered/report.html\""
+            " src=\"/docs/gallery/{SLIDES_REPORT}/Rendered/deck\""
         )));
     }
 
+    // One test for each install state, so the three stagings of the whole site run side by side
+    // on separate threads instead of one after the other in a single test.
     #[test]
-    fn documentation_build_renders_both_install_states_and_preserves_gallery_sources() {
+    fn the_private_documentation_build_renders_and_preserves_gallery_sources() {
+        documentation_build_renders_and_preserves_gallery_sources(false, false, "private");
+    }
+
+    #[test]
+    fn the_before_launch_documentation_build_renders_and_preserves_gallery_sources() {
+        documentation_build_renders_and_preserves_gallery_sources(false, true, "before-launch");
+    }
+
+    #[test]
+    fn the_launch_documentation_build_renders_and_preserves_gallery_sources() {
+        documentation_build_renders_and_preserves_gallery_sources(true, true, "launch");
+    }
+
+    fn documentation_build_renders_and_preserves_gallery_sources(
+        enabled: bool,
+        repository_public: bool,
+        folder: &str,
+    ) {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         fs::create_dir_all(root.join("tmp")).unwrap();
         let scratch = tempfile::tempdir_in(root.join("tmp")).unwrap();
-        for (enabled, repository_public, folder) in [
-            (false, false, "private"),
-            (false, true, "before-launch"),
-            (true, true, "launch"),
+        let output = scratch.path().join(folder);
+        fs::create_dir_all(&output).unwrap();
+        for file in [
+            "richview_runtime.js",
+            "richview_runtime_bg.wasm",
+            "richview_runtime_bg.wasm.gz",
         ] {
-            let output = scratch.path().join(folder);
-            fs::create_dir_all(&output).unwrap();
-            for file in [
-                "richview_runtime.js",
-                "richview_runtime_bg.wasm",
-                "richview_runtime_bg.wasm.gz",
-            ] {
-                fs::copy(root.join("dist/web").join(file), output.join(file)).unwrap();
-            }
-            fs::copy(root.join("assets/_headers"), output.join("_headers")).unwrap();
-            stage(
-                &root,
-                &output,
-                BuildFlags {
-                    install_enabled: enabled,
-                    repository_public,
-                    ..Default::default()
-                },
-            )
-            .unwrap();
-            let docs = output.join("docs");
-            // A topic's old address only forwards, and a forward is not a page of the site:
-            // nothing the build writes may lead a reader, or the link crawl, to one.
-            assert_eq!(forward_links(&docs), Vec::<String>::new());
-            let fields = fs::read_to_string(docs.join("reference/charts/line.html")).unwrap();
-            assert!(fields.contains("href=\"/docs/reference#charts\""));
-            let reference = fs::read_to_string(docs.join("reference.html")).unwrap();
-            assert!(reference.contains("<h2 id=\"charts\""));
-            let first = fs::read_to_string(docs.join("first-report.md")).unwrap();
-            let install = fs::read_to_string(docs.join("install.md")).unwrap();
-            if !repository_public {
-                assert!(!first.contains("github.com"));
-                assert!(!install.contains("github.com"));
-            }
-            assert_eq!(
-                first.contains(
-                    "https://github.com/1vecera/richview/releases/latest/download/install.sh"
-                ),
-                enabled
-            );
-            assert_eq!(
-                install.contains("The native release is not available yet."),
-                !enabled
-            );
-            let extension = fs::read_to_string(docs.join("vscode.md")).unwrap();
-            assert!(extension.contains("not on the Visual Studio Marketplace yet"));
-
-            let index = fs::read_to_string(docs.join("index.html")).unwrap();
-            assert!(!index.contains("{{report:"));
-            assert!(index.contains("/docs/gallery/longer-lives/Rendered/report.html"));
-            assert!(index.contains("docs-layout--doors\""));
-            let gallery = fs::read_to_string(docs.join("charts.html")).unwrap();
-            let layout = gallery
-                .find("class=\"docs-layout docs-layout--wide\"")
-                .unwrap();
-            let content = gallery.find("id=\"guide-content\"").unwrap();
-            assert!(
-                layout < content,
-                "the gallery declares its width before its content"
-            );
-            let pages = read_chart_pages(&root).unwrap();
-            // The docs state the registry's number of chart types, the flow chart and the
-            // pivot table included, and no guide keeps the slot the build writes it into.
-            for page in &pages {
-                let name = &page.name;
-                let html = fs::read_to_string(docs.join(format!("charts/{name}.html"))).unwrap();
-                let source =
-                    fs::read_to_string(output.join(format!("examples/charts/{name}/report.rmd")))
-                        .unwrap();
-                let copied = format!(
-                    "<code class=\"language-rmd\">{}</code>",
-                    highlight(&source, "rmd")
-                );
-                assert!(
-                    html.contains(&copied),
-                    "{name}: Copy source must match the playground"
-                );
-            }
-            let count = pages.len();
-            assert_eq!(chart_count(&root).unwrap(), count);
-            if accepted_chart_types(&root).is_none() {
-                assert_eq!(count, richview_core::CHART_TYPES.len());
-            }
-            assert_eq!(count, gallery_charts(&pages).count() + ELEMENT_PAGES.len());
-            let home = fs::read_to_string(docs.join("index.md")).unwrap();
-            assert!(
-                home.contains(&format!("{count} chart types")),
-                "the docs' home states the registry's count"
-            );
-            for &(stem, _) in GUIDES {
-                let page = fs::read_to_string(docs.join(format!("{stem}.html"))).unwrap();
-                assert!(!page.contains(CHART_COUNT), "{stem} keeps the count's slot");
-            }
-            assert_eq!(
-                gallery.matches("data-rv-payload>").count(),
-                gallery_charts(&pages).count() + 3,
-                "the gallery opens with the flagship showcase, a chart to play and a chart to zoom, and keeps every chart type inline after the featured menu"
-            );
-            // A flow chart and a pivot table are elements of their own: the gallery links
-            // their pages and draws neither, and the elements gallery draws both.
-            assert_eq!(
-                gallery_charts(&pages).count(),
-                pages.len() - ELEMENT_PAGES.len()
-            );
-            let live = fs::read_to_string(docs.join("elements.html")).unwrap();
-            for &(chart, _) in ELEMENT_PAGES {
-                let page = pages.iter().find(|page| page.name == chart).unwrap();
-                let heading = format!("<h3 id=\"{}\"", reference::slug(&page.title));
-                assert!(
-                    !gallery.contains(&heading),
-                    "{chart} is in the chart gallery"
-                );
-                assert!(gallery.contains("<h3 id=\"bar-chart\""));
-                assert!(gallery.contains(&format!("href=\"/docs/charts/{chart}\"")));
-                assert!(docs.join(format!("charts/{chart}.html")).is_file());
-                assert!(live.contains(&format!("\"type\":\"{chart}\"")), "{chart}");
-            }
-            let showcase = gallery.find(SHOWCASE_TITLE).unwrap();
-            let invitation = gallery.find("Try it yourself").unwrap();
-            assert!(showcase < invitation);
-            assert!(invitation < gallery.find("docs-featured-grid").unwrap());
-            assert!(gallery.contains("rv-chart rv-chart--full"));
-            for name in [
-                "playfair",
-                "nightingale",
-                "anscombe",
-                "old-faithful",
-                "titanic",
-                "gapminder",
-                "global-temperature",
-                "keeling-curve",
-                "german-electricity",
-            ] {
-                assert!(gallery.contains(&format!("href=\"/docs/charts/{name}\"")));
-                let example = fs::read_to_string(docs.join(format!("charts/{name}.html"))).unwrap();
-                assert_eq!(example.matches("data-rv-payload>").count(), 1);
-                assert!(example.contains("href=\"/docs/charts\""));
-                assert!(example.contains("data-docs-feedback"));
-                assert!(example.contains(&format!("href=\"/examples/charts/{name}/data.csv\"")));
-                assert!(docs.join(format!("charts/{name}.md")).is_file());
-            }
-            let elements = fs::read_to_string(docs.join("elements.md")).unwrap();
-            let tags: std::collections::BTreeSet<_> = richview_core::document::parse(&elements)
-                .unwrap()
-                .blocks
-                .into_iter()
-                .map(|block| block.tag)
-                .collect();
-            for tag in richview_core::RICH_TAGS {
-                assert!(tags.contains(*tag), "elements gallery is missing {tag}");
-            }
-            for &(stem, _) in GUIDES {
-                let html = fs::read_to_string(docs.join(format!("{stem}.html"))).unwrap();
-                assert!(
-                    html.contains("data-docs-feedback"),
-                    "missing feedback on {stem}"
-                );
-            }
-            for &(name, files) in REPORTS {
-                for file in files {
-                    let original = fs::read(report_source_folder(&root, name).join(file)).unwrap();
-                    let expected = if !repository_public
-                        && (file.ends_with(".md") || file.ends_with(".rmd"))
-                    {
-                        public::source(&String::from_utf8(original).unwrap(), BuildFlags::default())
-                            .unwrap()
-                            .into_bytes()
-                    } else {
-                        original
-                    };
-                    assert_eq!(
-                        fs::read(docs.join("gallery").join(name).join(file)).unwrap(),
-                        expected
-                    );
-                }
-                assert!(
-                    docs.join("gallery")
-                        .join(name)
-                        .join("Rendered/report.html")
-                        .is_file()
-                );
-            }
-            let headers = fs::read_to_string(output.join("_headers")).unwrap();
-            assert!(headers.contains("/docs/*\n  Content-Security-Policy:"));
-            assert!(
-                headers
-                    .contains("/docs/gallery/longer-lives/Rendered/*\n  ! Content-Security-Policy")
-            );
-            let styles = fs::read_to_string(docs.join("style-yaml.md")).unwrap();
-            for leaf in richview_core::style_vocabulary() {
-                assert_eq!(
-                    styles.contains(&format!("| `{}` |", leaf.path)),
-                    leaf.mark == richview_core::StyleMark::Safe,
-                    "style reference row for {}",
-                    leaf.path,
-                );
-            }
-            let html = fs::read_to_string(docs.join("style-yaml.html")).unwrap();
-            assert!(html.contains("href=\"#settings\""));
-            assert!(!html.contains("legacy-leaves"));
+            fs::copy(root.join("dist/web").join(file), output.join(file)).unwrap();
         }
+        fs::copy(root.join("assets/_headers"), output.join("_headers")).unwrap();
+        stage(
+            &root,
+            &output,
+            BuildFlags {
+                install_enabled: enabled,
+                repository_public,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        let docs = output.join("docs");
+        let guide = fs::read_to_string(docs.join("publishing.html")).unwrap();
+        // The live site redirects a page's `.html` name, so the guide names the page as it serves it.
+        assert!(guide.contains("/docs/example/Rendered/publisher\""));
+        assert!(!guide.contains("/docs/example/Rendered/publisher.html"));
+        let example = fs::read_to_string(docs.join("example/Rendered/publisher.html")).unwrap();
+        // The fictional company's mark is a wide lockup: shown alone, the name as its alt text.
+        assert!(example.contains(
+            "<span class=\"rv-publisher rv-publisher--lockup\" title=\"Your Company Name Inc.\">"
+        ));
+        assert!(!example.contains("<span class=\"rv-publisher\""));
+        assert!(example.contains("data-rv-payload"));
+        assert!(example.contains(">Sign in</a>"));
+        // A topic's old address only forwards, and a forward is not a page of the site:
+        // nothing the build writes may lead a reader, or the link crawl, to one.
+        assert_eq!(forward_links(&docs), Vec::<String>::new());
+        // The live site redirects a page's file name, so no built page links or frames one.
+        assert_eq!(html_file_links(&docs), Vec::<String>::new());
+        let fields = fs::read_to_string(docs.join("reference/charts/line.html")).unwrap();
+        assert!(fields.contains("href=\"/docs/reference#charts\""));
+        let reference = fs::read_to_string(docs.join("reference.html")).unwrap();
+        assert!(reference.contains("<h2 id=\"charts\""));
+        let first = fs::read_to_string(docs.join("first-report.md")).unwrap();
+        let install = fs::read_to_string(docs.join("install.md")).unwrap();
+        if !repository_public {
+            assert!(!first.contains("github.com"));
+            assert!(!install.contains("github.com"));
+        }
+        assert_eq!(
+            first.contains(
+                "https://github.com/1vecera/richview/releases/latest/download/install.sh"
+            ),
+            enabled
+        );
+        assert_eq!(
+            install.contains("The native release is not available yet."),
+            !enabled
+        );
+        let extension = fs::read_to_string(docs.join("vscode.md")).unwrap();
+        assert!(extension.contains("not on the Visual Studio Marketplace yet"));
+
+        let index = fs::read_to_string(docs.join("index.html")).unwrap();
+        assert!(!index.contains("{{report:"));
+        assert!(index.contains("/docs/gallery/longer-lives/Rendered/report\""));
+        assert!(index.contains("docs-layout--doors\""));
+        let gallery = fs::read_to_string(docs.join("charts.html")).unwrap();
+        let layout = gallery
+            .find("class=\"docs-layout docs-layout--wide\"")
+            .unwrap();
+        let content = gallery.find("id=\"guide-content\"").unwrap();
+        assert!(
+            layout < content,
+            "the gallery declares its width before its content"
+        );
+        let pages = read_chart_pages(&root).unwrap();
+        // The docs state the registry's number of chart types, the flow chart and the
+        // pivot table included, and no guide keeps the slot the build writes it into.
+        for page in &pages {
+            let name = &page.name;
+            let html = fs::read_to_string(docs.join(format!("charts/{name}.html"))).unwrap();
+            let source =
+                fs::read_to_string(output.join(format!("examples/charts/{name}/report.rmd")))
+                    .unwrap();
+            let copied = format!(
+                "<code class=\"language-rmd\">{}</code>",
+                highlight(&source, "rmd")
+            );
+            assert!(
+                html.contains(&copied),
+                "{name}: Copy source must match the playground"
+            );
+        }
+        let count = pages.len();
+        assert_eq!(chart_count(&root).unwrap(), count);
+        if accepted_chart_types(&root).is_none() {
+            assert_eq!(count, richview_core::CHART_TYPES.len());
+        }
+        assert_eq!(count, gallery_charts(&pages).count() + ELEMENT_PAGES.len());
+        let home = fs::read_to_string(docs.join("index.md")).unwrap();
+        assert!(
+            home.contains(&format!("{count} chart types")),
+            "the docs' home states the registry's count"
+        );
+        for &(stem, _) in GUIDES {
+            let page = fs::read_to_string(docs.join(format!("{stem}.html"))).unwrap();
+            assert!(!page.contains(CHART_COUNT), "{stem} keeps the count's slot");
+        }
+        assert_eq!(
+            gallery.matches("data-rv-payload>").count(),
+            gallery_charts(&pages).count() + 3,
+            "the gallery opens with the flagship showcase, a chart to play and a chart to zoom, and keeps every chart type inline after the featured menu"
+        );
+        // A flow chart and a pivot table are elements of their own: the gallery links
+        // their pages and draws neither, and the elements gallery draws both.
+        assert_eq!(
+            gallery_charts(&pages).count(),
+            pages.len() - ELEMENT_PAGES.len()
+        );
+        let live = fs::read_to_string(docs.join("elements.html")).unwrap();
+        for &(chart, _) in ELEMENT_PAGES {
+            let page = pages.iter().find(|page| page.name == chart).unwrap();
+            let heading = format!("<h3 id=\"{}\"", reference::slug(&page.title));
+            assert!(
+                !gallery.contains(&heading),
+                "{chart} is in the chart gallery"
+            );
+            assert!(gallery.contains("<h3 id=\"bar-chart\""));
+            assert!(gallery.contains(&format!("href=\"/docs/charts/{chart}\"")));
+            assert!(docs.join(format!("charts/{chart}.html")).is_file());
+            assert!(live.contains(&format!("\"type\":\"{chart}\"")), "{chart}");
+        }
+        let showcase = gallery.find(SHOWCASE_TITLE).unwrap();
+        let invitation = gallery.find("Try it yourself").unwrap();
+        assert!(showcase < invitation);
+        assert!(invitation < gallery.find("docs-featured-grid").unwrap());
+        assert!(gallery.contains("rv-chart rv-chart--full"));
+        for name in [
+            "playfair",
+            "nightingale",
+            "anscombe",
+            "old-faithful",
+            "titanic",
+            "gapminder",
+            "global-temperature",
+            "keeling-curve",
+            "german-electricity",
+        ] {
+            assert!(gallery.contains(&format!("href=\"/docs/charts/{name}\"")));
+            let example = fs::read_to_string(docs.join(format!("charts/{name}.html"))).unwrap();
+            assert_eq!(example.matches("data-rv-payload>").count(), 1);
+            assert!(example.contains("href=\"/docs/charts\""));
+            assert!(example.contains("data-docs-feedback"));
+            assert!(example.contains(&format!("href=\"/examples/charts/{name}/data.csv\"")));
+            assert!(docs.join(format!("charts/{name}.md")).is_file());
+        }
+        let elements = fs::read_to_string(docs.join("elements.md")).unwrap();
+        let tags: std::collections::BTreeSet<_> = richview_core::document::parse(&elements)
+            .unwrap()
+            .blocks
+            .into_iter()
+            .map(|block| block.tag)
+            .collect();
+        for tag in richview_core::RICH_TAGS {
+            assert!(tags.contains(*tag), "elements gallery is missing {tag}");
+        }
+        for &(stem, _) in GUIDES {
+            let html = fs::read_to_string(docs.join(format!("{stem}.html"))).unwrap();
+            assert!(
+                html.contains("data-docs-feedback"),
+                "missing feedback on {stem}"
+            );
+        }
+        for &(name, files) in REPORTS {
+            for file in files {
+                let original = fs::read(report_source_folder(&root, name).join(file)).unwrap();
+                let expected = if !repository_public
+                    && (file.ends_with(".md")
+                        || file.ends_with(".rmd")
+                        || file.ends_with(".rslide"))
+                {
+                    public::source(&String::from_utf8(original).unwrap(), BuildFlags::default())
+                        .unwrap()
+                        .into_bytes()
+                } else {
+                    original
+                };
+                assert_eq!(
+                    fs::read(docs.join("gallery").join(name).join(file)).unwrap(),
+                    expected
+                );
+            }
+            assert!(
+                docs.join("gallery")
+                    .join(name)
+                    .join("Rendered")
+                    .join(gallery_page(name))
+                    .is_file()
+            );
+        }
+        let headers = fs::read_to_string(output.join("_headers")).unwrap();
+        assert!(headers.contains("/docs/*\n  Content-Security-Policy:"));
+        assert!(
+            headers.contains("/docs/gallery/longer-lives/Rendered/*\n  ! Content-Security-Policy")
+        );
+        let styles = fs::read_to_string(docs.join("style-yaml.md")).unwrap();
+        for leaf in richview_core::style_vocabulary() {
+            assert_eq!(
+                styles.contains(&format!("| `{}` |", leaf.path)),
+                leaf.mark == richview_core::StyleMark::Safe,
+                "style reference row for {}",
+                leaf.path,
+            );
+        }
+        let html = fs::read_to_string(docs.join("style-yaml.html")).unwrap();
+        assert!(html.contains("href=\"#settings\""));
+        assert!(!html.contains("legacy-leaves"));
     }
 
     use super::*;
@@ -2580,6 +2689,71 @@ mod tests {
         found.sort();
         found.dedup();
         found
+    }
+
+    /// Every place a built documentation file links one of the site's own pages by its `.html`
+    /// file name, as `file: address`: the live site redirects that name to the page's address
+    /// (FEA-SF-46), so the link costs a round trip and the gate's live comparison fails on it
+    /// when a route names one. Another site's address and a link within a downloaded folder (a
+    /// relative one) are not the site's routes.
+    fn html_file_links(docs: &Path) -> Vec<String> {
+        fn visit(root: &Path, dir: &Path, found: &mut Vec<String>) {
+            for entry in fs::read_dir(dir).unwrap() {
+                let path = entry.unwrap().path();
+                if path.is_dir() {
+                    visit(root, &path, found);
+                    continue;
+                }
+                // Images, fonts and Wasm hold no links.
+                let Ok(text) = fs::read_to_string(&path) else {
+                    continue;
+                };
+                // `src="` also finds `data-src="` and `data-preview-src="`.
+                for (opening, closing) in [("href=\"", '"'), ("src=\"", '"'), ("](", ')')] {
+                    for (at, _) in text.match_indices(opening) {
+                        let rest = &text[at + opening.len()..];
+                        let address = &rest[..rest.find(closing).unwrap_or(rest.len())];
+                        let page = address.split(['#', '?']).next().unwrap_or_default();
+                        let ours = (page.starts_with('/') && !page.starts_with("//"))
+                            || page.starts_with("https://richview.ai/");
+                        if ours && page.ends_with(".html") {
+                            let file = path.strip_prefix(root).unwrap().display();
+                            found.push(format!("{file}: {address}"));
+                        }
+                    }
+                }
+            }
+        }
+        let mut found = Vec::new();
+        visit(docs, docs, &mut found);
+        found.sort();
+        found.dedup();
+        found
+    }
+
+    #[test]
+    fn a_page_named_by_its_html_file_is_found_wherever_a_built_file_links_it() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::write(
+            dir.path().join("a.html"),
+            "<a href=\"/docs/x.html#part\">x</a><iframe data-preview-src=\"/docs/previews/bar/sleek.html#rv-chart-0\"></iframe>\
+             <a href=\"/docs/x\">ok</a><a href=\"Rendered/sleek.html\">a folder's own file</a>\
+             <a href=\"https://example.com/y.html\">another site</a><a href=\"//cdn.example.com/z.html\">too</a>",
+        )
+        .unwrap();
+        fs::write(
+            dir.path().join("b.md"),
+            "[geyser](https://richview.ai/docs/gallery/geyser-waits/Rendered/report.html) and [fine](https://richview.ai/docs/charts)",
+        )
+        .unwrap();
+        assert_eq!(
+            html_file_links(dir.path()),
+            [
+                "a.html: /docs/previews/bar/sleek.html#rv-chart-0",
+                "a.html: /docs/x.html#part",
+                "b.md: https://richview.ai/docs/gallery/geyser-waits/Rendered/report.html",
+            ]
+        );
     }
 
     #[test]

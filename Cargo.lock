@@ -2299,7 +2299,7 @@ dependencies = [
 
 [[package]]
 name = "richview-app"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "argon2",
  "axum",
@@ -2339,7 +2339,7 @@ dependencies = [
 
 [[package]]
 name = "richview-authoring"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "pulldown-cmark",
  "richview-core",
@@ -2349,7 +2349,7 @@ dependencies = [
 
 [[package]]
 name = "richview-bench"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "csv",
  "richview-app",
@@ -2359,7 +2359,7 @@ dependencies = [
 
 [[package]]
 name = "richview-build"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "base64 0.22.1",
  "cargo-config2",
@@ -2387,7 +2387,7 @@ dependencies = [
 
 [[package]]
 name = "richview-core"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "ammonia",
  "base64 0.22.1",
@@ -2408,7 +2408,7 @@ dependencies = [
 
 [[package]]
 name = "richview-editor"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "richview-app",
  "richview-authoring",
@@ -2419,7 +2419,7 @@ dependencies = [
 
 [[package]]
 name = "richview-publish"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "clap",
  "richview-app",
@@ -2434,7 +2434,7 @@ dependencies = [
 
 [[package]]
 name = "richview-publish-server"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "base64 0.22.1",
  "richview-core",
@@ -2446,7 +2446,7 @@ dependencies = [
 
 [[package]]
 name = "richview-runtime"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "js-sys",
  "richview-chart",
@@ -2460,7 +2460,7 @@ dependencies = [
 
 [[package]]
 name = "richview-share"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "resvg",
  "richview-chart",
@@ -2471,7 +2471,7 @@ dependencies = [
 
 [[package]]
 name = "richview-site"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "base64 0.22.1",
  "js-sys",

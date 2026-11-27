@@ -121,4 +121,4 @@ The supporting explanation.
 
 Readers can use arrow keys, Home and End or a `#tab=detail` deep link. Charts retain their state across tabs. Without the runtime, every panel remains readable. Export includes all panels by default; the supported active-panel option is defined in the [tabs contract](https://richview.ai/docs/reference#tabs).
 
-Use the [full format reference](https://richview.ai/docs/reference) for every block, chart type, field and diagnostic. Its tables are generated from the schema registry that validates the source. To present a report, see the [slides guide](https://richview.ai/docs/slides).
+Use the [full format reference](https://richview.ai/docs/reference) for every block, chart type, field and diagnostic. Its tables are generated from the schema registry that validates the source. To present slides, write a deck instead: a `.rslide` file has its own format, in the [slides guide](https://richview.ai/docs/slides).

@@ -1,5 +1,5 @@
 //! Outgoing observation buffers must not carry data or selection geometry into a new layout.
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::block::ChartBlock;

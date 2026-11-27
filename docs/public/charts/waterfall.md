@@ -67,5 +67,5 @@ axes:
 
 ## Interactions
 
-- Hover or focus a bar to read the step's change and the running total it leads to.
+- Hover or focus a bar to read the step's change and the running total it leads to. A dark outline marks the bar under the pointer.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

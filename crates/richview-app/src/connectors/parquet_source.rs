@@ -180,6 +180,7 @@ pub(super) fn read_table(
         let mut select = Vec::new();
         let mut fields = Vec::new();
         let mut numeric = Vec::new();
+        let mut scales = std::collections::BTreeMap::new();
         for (name, kind) in &columns {
             if !wanted(name) {
                 continue;
@@ -198,6 +199,14 @@ pub(super) fn read_table(
                 Reading::Text { numeric: is } => {
                     select.push(format!("CAST({} AS VARCHAR)", quoted(name)));
                     numeric.push(is);
+                    if let Some(scale) = kind
+                        .strip_prefix("DECIMAL(")
+                        .and_then(|kind| kind.strip_suffix(')'))
+                        .and_then(|args| args.split_once(','))
+                        .and_then(|(_, scale)| scale.trim().parse::<u8>().ok())
+                    {
+                        scales.insert(name, scale);
+                    }
                 }
             }
             fields.push(name.as_str());
@@ -221,6 +230,10 @@ pub(super) fn read_table(
         ));
         text.push_str(",\"fields\":");
         text.push_str(&json(&fields));
+        if !scales.is_empty() {
+            text.push_str(",\"scales\":");
+            text.push_str(&json(&scales));
+        }
         text.push_str(",\"rows\":[");
         let mut non_finite = vec![0u64; fields.len()];
         // DuckDB holds a whole result before its first row comes back, so the rows are asked for

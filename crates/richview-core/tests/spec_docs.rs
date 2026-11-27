@@ -30,7 +30,7 @@ fn check_reference(file: &str, mut expected: Vec<String>) {
             + 1;
         panic!(
             "{file} differs from the schema registry from line {line}. Edit the registry, then run \
-             `RICHVIEW_BLESS=1 cargo test -p richview-core --test spec_docs`."
+             `RICHVIEW_BLESS=1 cargo test -p richview-core --test integration -- spec_docs::`."
         );
     }
     // Every generated table appears exactly once, so none can be dropped or duplicated by hand.

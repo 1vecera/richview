@@ -62,6 +62,6 @@ encoding: { x: region, y: ms }
 
 ## Interactions
 
-- Hover or focus a box to read its derived summary, kept separate from individual outliers.
+- Hover or focus a box to read its derived summary, kept separate from individual outliers. A dark outline marks the box and whiskers under the pointer.
 - Scroll a long readout with the pointer or Page Up and Page Down while the chart has focus.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

@@ -7,4 +7,4 @@ vitest.config.ts
 **/*.ts
 **/*.map
 .gitignore
-extension.cjs
+extension.cts

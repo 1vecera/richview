@@ -1,4 +1,4 @@
-//! What the live example's editor offers at the caret (W3 scene 2, S27-931). Keys, values and a
+//! What the live example's editor offers at the caret (W3 scene 2). Keys, values and a
 //! block's data fields come from `richview_authoring::complete`, the editor service's own
 //! completion, and the tag after a fence from core's registry, so the page never offers what the
 //! check rejects (ARC-09). `browser/complete.rs` shows the list; this part is pure, and its tests

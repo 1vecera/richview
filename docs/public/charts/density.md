@@ -89,7 +89,7 @@ A curve may show one existing recorded density evaluation near its sampled peak,
 
 ## Interactions
 
-- Hover or focus the chart to read the values at the nearest x; the crosshair snaps to the nearest observation.
+- Hover or focus the chart to read the values at the nearest x; the crosshair snaps to the nearest observation, and a ring surrounds the filled dot on each curve, as it does on a line chart.
 - Click a legend entry to toggle a group when the chart has several.
 - Zoom and pan on the x axis with brush, wheel, pinch, keys or double-click; Escape or reset returns to the full range.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

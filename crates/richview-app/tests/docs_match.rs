@@ -542,7 +542,8 @@ fn example_report(example: &Example, dir: &Path) -> Result<Option<String>, Strin
     } else {
         None
     };
-    if language == "rmd" {
+    // A deck is checked as it is published, from its own text and its own file name.
+    if language == "rmd" || language == "rslide" {
         return Ok(Some(example.source.clone()));
     }
     if TAGS.iter().any(|tag| tag.name == language) {
@@ -552,7 +553,16 @@ fn example_report(example: &Example, dir: &Path) -> Result<Option<String>, Strin
         "yaml" | "yml" => {
             richview_core::yaml::from_str(&example.source).map_err(|e| format!("{e:?}"))?;
             match info.get(1).copied() {
-                Some("style") => Ok(Some("Example style.\n".into())),
+                // A documented style reaches the report the way a real one does, as a file the
+                // frontmatter names, so the media it names (a company's logos) are read from the
+                // example's folder and checked.
+                Some("style") => {
+                    std::fs::write(dir.join("example.rstyle.yaml"), &example.source)
+                        .map_err(|e| e.to_string())?;
+                    Ok(Some(
+                        "---\nstyles: [example.rstyle.yaml]\n---\n\nExample style.\n".into(),
+                    ))
+                }
                 Some("frontmatter") => {
                     let body = base.as_deref().ok_or("frontmatter snippet needs a real report context")?
                         .splitn(3, "---").nth(2).ok_or("context must contain frontmatter")?;
@@ -622,18 +632,15 @@ fn check_example(example: &Example) -> Result<(), String> {
     let Some(source) = example_report(example, dir.path())? else {
         return Ok(());
     };
-    let file = dir.path().join("report.rmd");
+    let name = if example.info.split_whitespace().next() == Some("rslide") {
+        "deck.rslide"
+    } else {
+        "report.rmd"
+    };
+    let file = dir.path().join(name);
     std::fs::write(&file, &source).map_err(|e| e.to_string())?;
-    let (document, mut options) =
+    let (document, options) =
         richview_app::resolver::resolve_document_options_policy(&source, &file, &[], false, false)?;
-    if example
-        .info
-        .split_whitespace()
-        .take(2)
-        .eq(["yaml", "style"])
-    {
-        options.styles.push(example.source.clone());
-    }
     let report = richview_core::document::check_document(document, &options)
         .map_err(|e| format!("{e:?}"))?;
     let errors: Vec<_> = report

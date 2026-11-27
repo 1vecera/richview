@@ -83,6 +83,7 @@ pub fn report_resources(document: &crate::Document) -> Vec<ReportResource> {
                 .filter(|b| b.tag == "callout")
                 .filter_map(|b| b.value["body"].as_str()),
         )
+        .chain(document.deck_markdown().into_iter().map(|(text, _)| text))
     {
         for event in pulldown_cmark::Parser::new_ext(markdown, crate::markdown::FLAGS) {
             match event {
@@ -171,7 +172,7 @@ pub fn validate_report_folder(folder: Option<&ReportFolder>) -> Result<(), Vec<D
         || matches!(folder.root.as_str(), "." | "/" | "..")
         || !report_relative_path(&folder.source)
         || folder.source.contains('/')
-        || !folder.source.to_lowercase().ends_with(".rmd")
+        || !is_source_file(&folder.source)
     {
         return fail(
             "report.root.invalid",
@@ -209,12 +210,7 @@ pub fn validate_report_folder(folder: Option<&ReportFolder>) -> Result<(), Vec<D
         if apple_double_sidecar(path) {
             continue;
         }
-        let canonical = path
-            .split('/')
-            .filter(|p| *p != ".")
-            .collect::<Vec<_>>()
-            .join("/");
-        if !files.insert(canonical) {
+        if !files.insert(canonical(path)) {
             return fail(
                 "report.root.shared",
                 Some(path),
@@ -235,10 +231,7 @@ pub fn validate_report_folder(folder: Option<&ReportFolder>) -> Result<(), Vec<D
             ),
         );
     }
-    let sources: Vec<_> = files
-        .iter()
-        .filter(|p| p.to_lowercase().ends_with(".rmd"))
-        .collect();
+    let sources: Vec<_> = files.iter().filter(|p| is_source_file(p)).collect();
     if sources.len() != 1 {
         return fail(
             "report.root.shared",
@@ -257,12 +250,25 @@ pub fn validate_report_folder(folder: Option<&ReportFolder>) -> Result<(), Vec<D
     Ok(())
 }
 
+/// Whether a file of a report folder is its source: a report's `.rmd` or a deck's `.rslide`
+/// (FEA-RP-71). A folder holds one source of either kind.
+pub fn is_source_file(name: &str) -> bool {
+    let name = name.to_lowercase();
+    name.ends_with(".rmd") || name.ends_with(".rslide")
+}
+
 /// A report-relative path without its `.` segments, as the folder inventory compares paths.
 fn canonical(path: &str) -> String {
-    path.split('/')
-        .filter(|part| *part != ".")
-        .collect::<Vec<_>>()
-        .join("/")
+    let mut out = String::with_capacity(path.len());
+    let mut first = true;
+    for part in path.split('/').filter(|part| *part != ".") {
+        if !first {
+            out.push('/');
+        }
+        first = false;
+        out.push_str(part);
+    }
+    out
 }
 
 /// How to fix a style file that cannot be read: the report renders without it (FEA-RP-30).
@@ -318,6 +324,63 @@ pub(crate) fn asset_problem(
     folder: Option<&ReportFolder>,
     path: &str,
 ) -> Option<(&'static str, String)> {
+    asset_problem_in(folder, &std::cell::OnceCell::new(), path)
+}
+
+/// The canonical names of a folder's files, for the many lookups one render makes.
+pub(crate) struct Inventory(std::collections::HashSet<String>);
+
+impl Inventory {
+    fn of(folder: &ReportFolder) -> Self {
+        Self(folder.files.iter().map(|f| canonical(f)).collect())
+    }
+}
+
+std::thread_local! {
+    /// The folder a render is working through, by address, and its file names, built once.
+    static ACTIVE: std::cell::RefCell<Option<(usize, std::rc::Rc<Inventory>)>> =
+        const { std::cell::RefCell::new(None) };
+}
+
+/// Runs `work`, a whole render, with the names of `folder`'s files built once for every lookup it
+/// makes, whichever block or text makes it: a report with thousands of media blocks and a long file
+/// list is not a walk of the list for each of them. The render borrows the folder, so it cannot
+/// change meanwhile; a lookup against another folder builds its own.
+pub(crate) fn with_inventory<T>(folder: Option<&ReportFolder>, work: impl FnOnce() -> T) -> T {
+    struct Restore(Option<(usize, std::rc::Rc<Inventory>)>);
+    impl Drop for Restore {
+        fn drop(&mut self) {
+            ACTIVE.with(|active| *active.borrow_mut() = self.0.take());
+        }
+    }
+    let Some(folder) = folder else {
+        return work();
+    };
+    let built = std::rc::Rc::new(Inventory::of(folder));
+    let key = std::ptr::from_ref(folder) as usize;
+    let _restore = Restore(ACTIVE.with(|active| active.borrow_mut().replace((key, built))));
+    work()
+}
+
+/// The names built for the render in progress, when it is working through `folder`.
+fn active_inventory(folder: &ReportFolder) -> Option<std::rc::Rc<Inventory>> {
+    let key = std::ptr::from_ref(folder) as usize;
+    ACTIVE.with(|active| {
+        active
+            .borrow()
+            .as_ref()
+            .filter(|(at, _)| *at == key)
+            .map(|(_, names)| names.clone())
+    })
+}
+
+/// `asset_problem` for a text that checks many files against one folder: `inventory` holds the
+/// folder's names once built, so each check is a lookup and not a walk of the whole file list.
+pub(crate) fn asset_problem_in(
+    folder: Option<&ReportFolder>,
+    inventory: &std::cell::OnceCell<Inventory>,
+    path: &str,
+) -> Option<(&'static str, String)> {
     let folder = folder?;
     if path.starts_with("data:") {
         return None;
@@ -331,7 +394,14 @@ pub(crate) fn asset_problem(
         ));
     }
     let wanted = canonical(path);
-    (apple_double_sidecar(path) || !folder.files.iter().any(|f| canonical(f) == wanted))
+    let present = match active_inventory(folder) {
+        Some(names) => names.0.contains(&wanted),
+        None => inventory
+            .get_or_init(|| Inventory::of(folder))
+            .0
+            .contains(&wanted),
+    };
+    (apple_double_sidecar(path) || !present)
         .then(|| ("report.asset.missing", missing_message(path)))
 }
 
@@ -415,12 +485,108 @@ pub fn validate_report_document(
         };
         Some(Diagnostic::new("error", code, message, location))
     };
+    let mut found = resource_findings(document, true, problem);
+    found.retain(|finding| {
+        !issues.iter().any(|d| {
+            ASSET_FINDINGS.contains(&d.code.as_str())
+                && d.path == finding.path
+                && d.line == finding.line
+        })
+    });
+    issues.extend(found);
+    if issues.is_empty() {
+        Ok(())
+    } else {
+        Err(issues)
+    }
+}
+
+/// The most references to one oversized file that are looked at to say where it is named.
+const MOST_LOCATED: usize = 1000;
+
+/// Locate a native input-size finding at the same reference the folder validator uses.
+pub fn locate_report_input(document: &crate::Document, finding: &mut Diagnostic) {
+    let Some(file) = finding.file.as_deref() else {
+        return;
+    };
+    let wanted = canonical(file);
+    // A file a report names a million times is located at its first few: the finding is for one
+    // place, and a finding built for each name would hold the request's memory.
+    let matched = std::cell::Cell::new(0usize);
+    // A remote image is a finding of its own kind and no file: none is built for it here, so a
+    // report that has a million of them costs this no more than a million links do.
+    let matches = resource_findings(document, false, |path, _, field| {
+        (matched.get() < MOST_LOCATED && canonical(path) == wanted).then(|| {
+            matched.set(matched.get() + 1);
+            Diagnostic::new("error", "report.file-limit", "", field)
+        })
+    });
+    if let Some(first) = matches.into_iter().find(|d| d.code == "report.file-limit") {
+        finding.line = first.line;
+        finding.column = first.column;
+        finding.tag = first.tag;
+        finding.path = first.path;
+    }
+}
+
+/// Where byte offsets fall in a text, as its line (from 0) and its column (characters from the
+/// line's start, from 0). Offsets asked in rising order are found from the last one, so a text with
+/// many findings is read once, not once for each; an offset that goes back starts again.
+struct Position<'a> {
+    text: &'a str,
+    /// The byte the count has reached, the line it is on and the characters since that line began.
+    at: usize,
+    line: usize,
+    column: usize,
+}
+
+impl<'a> Position<'a> {
+    fn new(text: &'a str) -> Self {
+        Self {
+            text,
+            at: 0,
+            line: 0,
+            column: 0,
+        }
+    }
+
+    fn at(&mut self, offset: usize) -> (usize, usize) {
+        if offset < self.at {
+            *self = Self::new(self.text);
+        }
+        let from = self.at;
+        for (index, c) in self.text[from..].char_indices() {
+            if from + index >= offset {
+                break;
+            }
+            if c == '\n' {
+                self.line += 1;
+                self.column = 0;
+            } else {
+                self.column += 1;
+            }
+            self.at = from + index + c.len_utf8();
+        }
+        (self.line, self.column)
+    }
+}
+
+/// The findings on the files a report names. `remote` says whether a remote image, which is no file,
+/// is a finding too.
+fn resource_findings(
+    document: &crate::Document,
+    remote: bool,
+    problem: impl Fn(&str, bool, String) -> Option<Diagnostic>,
+) -> Vec<Diagnostic> {
     // The findings of a Markdown text's images and file links, each with its byte offset.
     let markdown = |text: &str, location: &str| -> Vec<(Diagnostic, usize)> {
         markdown_files(text)
             .into_iter()
             .filter_map(|(image, path, offset)| {
                 let finding = if image && crate::markdown::remote_media(&path) {
+                    if !remote {
+                        return None;
+                    }
                     crate::markdown::remote_image_finding(&path, location)
                 } else {
                     let found = problem(&path, false, String::new())?;
@@ -432,7 +598,12 @@ pub fn validate_report_document(
     };
     let mut found = vec![];
     if let Some(styles) = document.frontmatter["styles"].as_array() {
-        for (index, style) in styles.iter().enumerate() {
+        // One more than the render allows is enough to say it; the render refuses the list.
+        for (index, style) in styles
+            .iter()
+            .enumerate()
+            .take(crate::MAX_STYLE_REFERENCES + 1)
+        {
             // A style name is checked by the cascade (`style.unknown`), never as a file.
             if let Some(style) = style.as_str().filter(|s| !crate::style::is_style_name(s))
                 && let Some(finding) = problem(style, false, format!("frontmatter.styles[{index}]"))
@@ -462,15 +633,26 @@ pub fn validate_report_document(
     // The body keeps every source line, so a body offset's line is a source line: a fence's
     // placeholder keeps the fence's line count.
     let body = document.body.as_str();
+    let mut position = Position::new(body);
     for (mut finding, offset) in markdown(body, "markdown") {
         if document.body_line > 0 {
-            let before = &body[..offset];
-            let start = before.rfind('\n').map_or(0, |at| at + 1);
-            finding.line = Some(document.body_line + before.matches('\n').count());
-            finding.column = Some(before[start..].chars().count() + 1);
+            let (line, column) = position.at(offset);
+            finding.line = Some(document.body_line + line);
+            finding.column = Some(column + 1);
             finding.tag = Some("markdown".into());
         }
         found.push(finding);
+    }
+    // A deck's texts stand where a report's body does, each at the line it starts on.
+    for (text, first) in document.deck_markdown() {
+        let mut position = Position::new(text);
+        for (mut finding, offset) in markdown(text, "markdown") {
+            let (line, column) = position.at(offset);
+            finding.line = Some(first + line);
+            finding.column = Some(column + 1);
+            finding.tag = Some("markdown".into());
+            found.push(finding);
+        }
     }
     for block in &document.blocks {
         let mut in_block = vec![];
@@ -515,19 +697,7 @@ pub fn validate_report_document(
     // In source order, as the author reads the report; the parse may have named an escaping
     // data path already.
     found.sort_by_key(|finding| finding.line.unwrap_or(usize::MAX));
-    found.retain(|finding| {
-        !issues.iter().any(|d| {
-            ASSET_FINDINGS.contains(&d.code.as_str())
-                && d.path == finding.path
-                && d.line == finding.line
-        })
-    });
-    issues.extend(found);
-    if issues.is_empty() {
-        Ok(())
-    } else {
-        Err(issues)
-    }
+    found
 }
 
 /// Findings on a file the report names that the folder cannot give (missing, outside it, or a
@@ -551,8 +721,13 @@ pub fn attach_asset_findings(
     if let Err(found) = validate_report_document(document, folder) {
         // The document already carries the ones found at parse, such as an escaping path or a
         // block's second data source.
+        // Looked up by what each finding says, not searched for in the whole list: a report that
+        // names a hundred thousand missing files has a hundred thousand of them.
+        let key = |finding: &Diagnostic| serde_json::to_string(finding).ok();
+        let mut seen: std::collections::HashSet<String> =
+            document.diagnostics.iter().filter_map(key).collect();
         for finding in found {
-            if !document.diagnostics.contains(&finding) {
+            if key(&finding).is_none_or(|said| seen.insert(said)) {
                 document.diagnostics.push(finding);
             }
         }

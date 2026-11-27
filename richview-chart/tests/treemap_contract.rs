@@ -1,7 +1,7 @@
 //! Treemaps: areas proportional to values, parents summing their children, and the shared
 //! contract every type meets (FEA-CH-01, FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use serde_json::{Value, json};

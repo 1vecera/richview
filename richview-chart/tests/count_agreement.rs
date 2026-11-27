@@ -1,7 +1,7 @@
 //! A count and the noun and verb beside it agree: one row is "1 row ... is not shown", never
 //! "1 rows ... are not shown" (the notes under a chart and the checks name the same rows).
 
-mod common;
+use super::common;
 
 use common::*;
 use serde_json::{Value, json};

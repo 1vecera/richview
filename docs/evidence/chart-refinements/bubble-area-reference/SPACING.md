@@ -19,6 +19,6 @@ The owner matrix retains 11 unrelated existing label-collision findings; it intr
 To reproduce this additional pair, build `6d7dcf41` and `7c97c1ea` in separate worktrees. Use this supplement's helper from the current packet. It requires the recorded Firefox version and verifies both Wasm hashes, the full source and the exact resulting PNG; it also checks the actual client gap.
 
 ```sh
-env -u DISPLAY -u WAYLAND_DISPLAY node docs/evidence/chart-refinements/bubble-area-reference/spacing-capture.mjs /path/to/original-46 tmp/bubble-spacing-before before
-env -u DISPLAY -u WAYLAND_DISPLAY node docs/evidence/chart-refinements/bubble-area-reference/spacing-capture.mjs /path/to/revised-46 tmp/bubble-spacing-after after
+env -u DISPLAY -u WAYLAND_DISPLAY node docs/evidence/chart-refinements/bubble-area-reference/spacing-capture.ts /path/to/original-46 tmp/bubble-spacing-before before
+env -u DISPLAY -u WAYLAND_DISPLAY node docs/evidence/chart-refinements/bubble-area-reference/spacing-capture.ts /path/to/revised-46 tmp/bubble-spacing-after after
 ```

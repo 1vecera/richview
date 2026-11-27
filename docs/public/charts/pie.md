@@ -45,6 +45,6 @@ encoding: { x: activity, y: hours }
 
 ## Interactions
 
-- Hover or focus a slice, or a key entry, to read its value; the slice moves outward and the others dim.
+- Hover or focus a slice, or a key entry, to read its value; a dark outline traces the slice and the others keep their colour.
 - Tiny and zero shares stay inspectable through the key.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

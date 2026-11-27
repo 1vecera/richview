@@ -27,6 +27,7 @@
             "ReportResource",
             "apple_double_sidecar",
             "attach_asset_findings",
+            "locate_report_input",
             "operation_result",
             "report_relative_path",
             "report_resources",

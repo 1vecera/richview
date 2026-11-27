@@ -1,0 +1,69 @@
+{
+  "id": "drafts-rotate-3d",
+  "title": "Draft card: turning three-dimensional charts",
+  "status": "draft",
+  "summary": "A draft card proposing that a reader turns every three-dimensional chart (surface, 3-D scatter, 3-D bar), written under DEL-06 because the lockdown covers the author's fixed view (FEA-CH-75, the schema's `style.azimuth` and `style.elevation`) and not the reader's turning. DRAFT-29 belongs in part 04a beside FEA-CH-49 (zoom and pan) and FEA-CH-56 (keyboard inspection); it is not in a part file yet.",
+  "items": [
+    {
+      "id": "DRAFT-29",
+      "part": "04a-features-chart",
+      "kind": "feature",
+      "importance": "key",
+      "refId": "F-WEB-CHART-TURN",
+      "component": "C-WEB-CHART-HOST",
+      "group": "Zoom and navigation",
+      "title": "Turning a three-dimensional chart",
+      "question": "Does a reader turn every three-dimensional chart (surface, 3-D scatter and 3-D bar) by dragging it, by a finger and from the keyboard, with the author's angles as the starting view and a way back to it?",
+      "why": "Today the three types draw one fixed view from the author's `style.azimuth` and `style.elevation`, and a reader cannot see the far side of a bar, a dot hidden behind another or the slope behind a ridge. Daniel's words of 25 November, \"all 3d charts need to be rottatable with mouse, else they make no sense\", make turning part of the type, not an extra. FEA-CH-49 and FEA-CH-56 decide drag, double-click and keys for zoom, and say nothing of turning, so without this card the build has no scope for it and the docs and the launch have nothing to describe (INT-49).",
+      "proposed": "**A reader turns every three-dimensional chart.** Every type the schema draws from an angle turns: `surface`, `scatter3d` and `bar3d`.\n\n- **Drag.** With a mouse, a pen or a finger, dragging on the chart turns it as if the box were held: dragging right brings the near side to the right, dragging down looks from higher. Half a degree for each pixel. The azimuth goes round; the elevation stops at 5 and 85 degrees, the schema's range. The picture follows the pointer on every frame.\n- **The author's angles start it.** `style.azimuth` and `style.elevation` are the view a chart opens at and the view Reset returns to; they are not a limit.\n- **Hover, readout and highlight at every angle.** A turned chart is the same layout as the author's view at another angle, so the pointer names the mark drawn on top under it, the readout and the highlight work as before, and the Table and CSV never change. While a drag runs, the selection and the readout let go; they come back where the pointer stops.\n- **Keyboard.** Arrow keys alone step through the marks on every chart, these included (FEA-CH-56). Shift with an arrow key turns the chart by 5 degrees as a drag in that direction would: Shift+← and Shift+→ round the vertical axis, Shift+↑ and Shift+↓ look lower and higher. R returns to the author's view. Home and End keep jumping to the first and last mark, and Escape is unchanged. The chart's accessible name says so, and a turn is announced in words.\n- **Back to the author's view.** The Reset view action, double-click on the chart and R. The action stands in the title row with the others from the start, hidden until the chart is turned, in the place Reset zoom has on a chart that zooms (FEA-CH-43). The glide back takes half a second, and none under reduced motion.\n- **The hint.** A mouse resting on the chart sees \"Drag to turn\" in the row above the chart or in the title row, where FEA-CH-49's hint stands; never over the box, and nothing when neither place is free, the grab cursor saying it alone. Once the reader has turned the chart, the hint stays away for good; the Reset view action is the way back. A finger gets no hint.\n- **One size.** The box and its labels have the same size at every angle, fitted so that no angle leaves the chart: turning never makes the box grow or shrink, and no tick label or title stands outside the chart. The box moves a little to keep its labels inside as they change sides. The cost is that the author's view is drawn smaller than a fit to that view alone would draw it. The vertical axis's tick labels stand further out as the view rises, because the axis is short from above and the surface's corner meets it.\n- **Touch.** A finger dragging on the chart turns it, inline and expanded, so a finger that starts on the chart does not scroll the page; the title row, the legend and the margins of the figure still do. A tap still selects.\n- **The expanded view** opens at the view the inline chart is turned to.\n- **Static outputs keep the author's view.** Print, PDF, the command line's image export and the page without script draw the view the author asked for, whatever the reader did; a reader's turn is never saved in the report. Download PNG in the browser saves the picture on the screen.\n\nWhat it does not do: no roll, no zoom or pan of the box, no wheel turning (the wheel keeps scrolling the page), and no change to the schema: the angles stay `style.azimuth` and `style.elevation`.\n\nIt replaces FEA-CH-56's \"Shift steps ten\" on these three types only: Shift with an arrow turns here and steps ten on every other chart.",
+      "options": [
+        {
+          "label": "Drag, finger and Shift+arrows, as proposed",
+          "detail": "Turning is as direct as on any chart library, the keyboard keeps stepping through marks, and the cost is that a finger starting on a 3-D chart does not scroll the page."
+        },
+        {
+          "label": "As proposed, but a finger turns only in the expanded view",
+          "detail": "The precedent of FEA-CH-49's touch zoom: inline, touch keeps scrolling the page, and a phone reader expands the chart to turn it. The page never traps a finger; the cost is that an inline 3-D chart on a phone looks as fixed as today until it is expanded."
+        },
+        {
+          "label": "Arrow keys alone turn on these types",
+          "detail": "The most direct keys, but the three types would be the only charts whose arrows do not step through marks, which loses the keyboard path to their values (FEA-CH-56)."
+        },
+        {
+          "label": "Keep the fixed view",
+          "detail": "No runtime work, and a bar behind another or a ridge hiding a valley stays hidden. Daniel's request of 25 November is not met."
+        }
+      ],
+      "recommendation": "Drag, finger and Shift+arrows, as proposed: it is the request, FEA-CH-56 stays whole, and a finger on a 3-D chart is a deliberate act.",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "Daniel's request, typed in the lead pane: \"all 3d charts need to be rottatable with mouse, else they make no sense\" (primary checkout, not committed)",
+          "ref": "tmp/team/launch/d16/launch/next25/brief-3d-rotate.md",
+          "date": "2026-11-25"
+        },
+        {
+          "label": "The author's angles and their range (5 to 85 degrees) in the schema",
+          "ref": "crates/richview-core/src/registry.rs:1255",
+          "date": "2026-11-25"
+        },
+        {
+          "label": "The projection, whose header already names turning with the pointer as host work",
+          "ref": "richview-chart/src/layout/project3d.rs",
+          "date": "2026-11-25"
+        },
+        {
+          "label": "Keyboard inspection: arrow keys step through marks, Shift steps ten",
+          "ref": "FEA-CH-56",
+          "date": "2026-10-16"
+        },
+        {
+          "label": "Zoom and pan: drag, double-click and Reset zoom; touch zoom only in the expanded view",
+          "ref": "FEA-CH-49",
+          "date": "2026-10-16"
+        }
+      ],
+      "conflicts": "FEA-CH-56 gives Shift with an arrow key ten steps through marks; here it turns the chart on three types, so a keyboard reader of a 3-D chart steps one mark at a time or with Home and End. FEA-CH-49 keeps inline touch for scrolling the page and zooms by touch only in the expanded view; this card lets a finger turn the chart inline, the second option keeps FEA-CH-49's rule. FEA-CH-75 lists a chart type's pointer and keyboard tests: the three types add tests at every angle."
+    }
+  ]
+}

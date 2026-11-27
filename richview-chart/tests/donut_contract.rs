@@ -1,7 +1,7 @@
 //! A pie with `style.inner` is a donut: the same shares, a hole, and slices that are hit only
 //! on the ring (FEA-CH-08).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::hit;

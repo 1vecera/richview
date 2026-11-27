@@ -1,7 +1,7 @@
 //! Chord diagrams: arcs sized by the flow into and out of a node, ribbons as wide as their flow,
 //! names outside the ring, and the failures that name their cause (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::Level;

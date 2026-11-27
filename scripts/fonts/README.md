@@ -5,7 +5,7 @@
 ```sh
 uv run scripts/fonts/build.py           # download (cached in tmp/fonts-cache), verify, rebuild
 uv run scripts/fonts/build.py --check   # rebuild in memory and fail unless the committed files match
-cargo test -p richview-core --test fonts
+cargo test -p richview-core --test integration -- fonts::
 ```
 
 The script pins fontTools 4.65.0 and brotli 1.2.0 in its inline metadata; with those versions a rebuild is byte-identical. It refuses to run with other versions.

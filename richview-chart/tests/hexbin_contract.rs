@@ -2,7 +2,7 @@
 //! decodes the colour when a count does not fit, outline hits, and the contract every type shares
 //! (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Item, Role};

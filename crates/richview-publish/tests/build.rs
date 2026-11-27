@@ -79,6 +79,23 @@ fn releases_are_reproducible_and_keep_real_report_runtime() {
     assert!(!changed_html.contains("sha256-nWxQi/myYrLiiBIog8kO1qX1eT8vayKLvcCLV3mqUMQ="));
 }
 #[test]
+fn publication_keeps_downloads_and_leaves_email_links_in_the_report() {
+    let f = Fixture::new();
+    f.replace(
+        "Synthetic example.",
+        "Contact <editor@example.org> or read the [transcript](transcript.txt).",
+    );
+    fs::write(f.0.join("items/example/transcript.txt"), "Transcript").unwrap();
+    let release = f.run("out").unwrap();
+    let item = &release.items[0];
+    assert_eq!(
+        object(&f, "out", &item.assets["transcript.txt"]),
+        "Transcript"
+    );
+    assert!(!item.assets.contains_key("editor@example.org"));
+}
+
+#[test]
 fn failed_update_preserves_the_existing_release() {
     let f = Fixture::new();
     let first = f.run("live").unwrap();
@@ -693,15 +710,47 @@ fn more_than_1000_item_folders_fail_and_the_previous_release_stays_live() {
     assert_eq!(live_release(&f), first.id);
 }
 #[test]
-fn an_item_file_over_20_mib_fails_and_the_previous_release_stays_live() {
+fn an_item_file_over_5_000_000_bytes_fails_and_the_previous_release_stays_live() {
     let f = Fixture::new();
     let first = f.run("live").unwrap();
     let path = f.0.join("items/example/report.rmd");
-    let mut source = fs::read_to_string(&path).unwrap();
-    source.push_str(&"x".repeat(21 * 1024 * 1024));
-    fs::write(&path, source).unwrap();
+    let bytes = 21 * 1024 * 1024;
+    fs::File::options()
+        .write(true)
+        .open(path)
+        .unwrap()
+        .set_len(bytes)
+        .unwrap();
     let error = f.run("candidate").unwrap_err();
-    assert!(error.contains("20 MiB"), "{error}");
+    let findings: serde_json::Value = serde_json::from_str(&error).unwrap();
+    assert_eq!(findings[0]["code"], "report.file-limit");
+    assert_eq!(findings[0]["file"], "report.rmd");
+    assert_eq!(
+        findings[0]["message"],
+        format!(
+            "File ‘report.rmd’ is {bytes} bytes. The limit is 5,000,000 bytes. Reduce or split this file."
+        )
+    );
+    assert!(!f.0.join("candidate").exists());
+    assert_eq!(live_release(&f), first.id);
+}
+
+#[test]
+fn an_oversized_runtime_file_fails_and_the_previous_release_stays_live() {
+    let f = Fixture::new();
+    let first = f.run("live").unwrap();
+    let runtime = f.0.join("runtime/richview_runtime_bg.wasm");
+    fs::File::options()
+        .write(true)
+        .open(runtime)
+        .unwrap()
+        .set_len(20 * 1024 * 1024 + 1)
+        .unwrap();
+    let error = f.run("candidate").unwrap_err();
+    assert!(
+        error.contains("richview_runtime_bg.wasm exceeds the 20 MiB file limit"),
+        "{error}"
+    );
     assert!(!f.0.join("candidate").exists());
     assert_eq!(live_release(&f), first.id);
 }
@@ -770,4 +819,46 @@ fn publication_refuses_live_queries_instead_of_materializing_during_the_build() 
         "{error}"
     );
     assert!(!f.0.join("live").exists());
+}
+
+#[test]
+fn input_limits_apply_to_each_report_before_writing_the_release() {
+    let f = Fixture::new();
+    f.replace("Synthetic example.", "[Download](orders.csv)");
+    fs::File::create(f.0.join("items/example/orders.csv"))
+        .unwrap()
+        .set_len(5_000_001)
+        .unwrap();
+    let error = f.run("candidate").unwrap_err();
+    let diagnostics: serde_json::Value = serde_json::from_str(&error).unwrap();
+    assert_eq!(diagnostics[0]["code"], "report.file-limit");
+    assert_eq!(diagnostics[0]["file"], "orders.csv");
+    assert!(!f.0.join("candidate").exists());
+}
+
+#[test]
+fn input_limits_reject_an_oversized_item_with_individually_valid_downloads() {
+    let f = Fixture::new();
+    let dir = f.0.join("items/example");
+    let mut links = String::new();
+    for n in 0..10 {
+        let file = format!("download{n}.bin");
+        fs::File::create(dir.join(&file))
+            .unwrap()
+            .set_len(5_000_000)
+            .unwrap();
+        links.push_str(&format!("[Download]({file})\n\n"));
+    }
+    f.replace("Synthetic example.", &links);
+    let bytes = 50_000_000 + fs::metadata(dir.join("report.rmd")).unwrap().len();
+    let diagnostics: serde_json::Value =
+        serde_json::from_str(&f.run("candidate").unwrap_err()).unwrap();
+    assert_eq!(diagnostics[0]["code"], "report.input-limit");
+    assert!(
+        diagnostics[0]["message"]
+            .as_str()
+            .unwrap()
+            .contains(&bytes.to_string())
+    );
+    assert!(!f.0.join("candidate").exists());
 }

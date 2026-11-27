@@ -39,15 +39,15 @@ Build this branch and a clean checkout of the baseline with `CARGO_BUILD_JOBS=3 
 
 ```sh
 mkdir -p tmp/pie-anchor
-cp docs/evidence/chart-refinements/pie-anchor/*.mjs docs/evidence/chart-refinements/pie-anchor/fixtures.json tmp/pie-anchor/
+cp docs/evidence/chart-refinements/pie-anchor/*.ts docs/evidence/chart-refinements/pie-anchor/fixtures.json tmp/pie-anchor/
 ```
 
-Run each source tree through [capture.mjs](capture.mjs), substituting its path and a separate output directory. The complete matrix uses all five themes and the three viewport widths:
+Run each source tree through [capture.ts](capture.ts), substituting its path and a separate output directory. The complete matrix uses all five themes and the three viewport widths:
 
 ```sh
-node tmp/pie-anchor/capture.mjs --worktree /path/to/source-tree --out /path/to/captures --sources tmp/pie-anchor/fixtures.json --themes sleek,scientific,brutalist,sleek-light,hand-drawn --widths 320,390,720
+node tmp/pie-anchor/capture.ts --worktree /path/to/source-tree --out /path/to/captures --sources tmp/pie-anchor/fixtures.json --themes sleek,scientific,brutalist,sleek-light,hand-drawn --widths 320,390,720
 ```
 
-Run [verify-paths.mjs](verify-paths.mjs) and [verify-native-cli.mjs](verify-native-cli.mjs) for both builds with `--worktree`, `--out` and `--phase before` or `--phase after`. These check actual outlined sectors, native/static/live/export text, pointer/touch/keyboard identity, original Table/CSV rows, and ordinary/reduced motion. They use temporary local servers and separate headless browser contexts; native CLI reports embed their assets and are verified with network requests blocked.
+Run [verify-paths.ts](verify-paths.ts) and [verify-native-cli.ts](verify-native-cli.ts) for both builds with `--worktree`, `--out` and `--phase before` or `--phase after`. These check actual outlined sectors, native/static/live/export text, pointer/touch/keyboard identity, original Table/CSV rows, and ordinary/reduced motion. They use temporary local servers and separate headless browser contexts; native CLI reports embed their assets and are verified with network requests blocked.
 
-Use [verify-matched.mjs](verify-matched.mjs) with `--before <baseline-captures> --after <candidate-captures> --baseline <baseline-tree> --out <result.json>` to compare the complete matrix and direct-API controls. Optional `--facet-before` and `--facet-after` point to the child-SVG supplements for the original campaign captures; the included capture helper records child SVGs in a fresh full run. Run [compare-interfaces.mjs](compare-interfaces.mjs) with `--before <baseline-interface-dir> --after <candidate-interface-dir> --native-before <baseline-native-dir> --native-after <candidate-native-dir> --out <result.json>` to compare source interaction and offline evidence.
+Use [verify-matched.ts](verify-matched.ts) with `--before <baseline-captures> --after <candidate-captures> --baseline <baseline-tree> --out <result.json>` to compare the complete matrix and direct-API controls. Optional `--facet-before` and `--facet-after` point to the child-SVG supplements for the original campaign captures; the included capture helper records child SVGs in a fresh full run. Run [compare-interfaces.ts](compare-interfaces.ts) with `--before <baseline-interface-dir> --after <candidate-interface-dir> --native-before <baseline-native-dir> --native-after <candidate-native-dir> --out <result.json>` to compare source interaction and offline evidence.

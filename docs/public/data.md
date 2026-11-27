@@ -17,9 +17,21 @@ data:
 
 Use `data.json` for a JSON array of flat row objects. Inline, CSV and JSON cells may be text, finite numbers, booleans or null. Nested objects and arrays are not table cells. The [data contract](https://richview.ai/docs/reference#report-folders-local-data-and-output) defines encoding, quoting, trimming, date precision and limits in full.
 
-CSV uses UTF-8, commas and a header row with unique, nonempty names. Empty cells and recognized missing tokens remain missing observations. Leading-zero identifiers remain text. Long decimals and integers that cannot round-trip through binary64 remain source text; chart coordinates still use binary64. Tables and source downloads retain their digits. JSON cannot recover precision its producer already lost.
+CSV uses UTF-8, commas and a header row with unique, nonempty names. Empty cells and recognized missing tokens remain missing observations. Leading-zero identifiers remain text. Long decimals and integers that cannot round-trip through binary64 remain source text; chart coordinates still use binary64. Source downloads retain their digits. A table shows a column's numbers at one scale when `decimals` or the source sets one, and otherwise each at its own three significant digits. JSON cannot recover precision its producer already lost.
 
-A source or one resolved dataset is limited to 16 MiB; complete generated HTML is limited to 64 MiB, including runtime, fonts and media. Reduce the input outside RichView when you need a smaller analytical result. Preserve what you filtered or aggregated in the source note.
+## Report input limits
+
+Each input can be up to **5,000,000 bytes**. All the inputs for one version together can be up to **50,000,000 bytes** for `check` and `generate`; a publish request is limited to 32 MiB, which fits about 25,000,000 bytes of linked files ([publishing](https://richview.ai/docs/publishing#publish-a-folder-with-data-and-pictures)). Run `richview check` on the report folder to check whether its inputs fit. A size error reports the measured bytes.
+
+RichView counts the source, the styles and media it uses, local data files, connector declarations and query files, and linked downloads. A database file, or a Parquet file a connector reads, counts at its size on disk even when a chart uses just a few rows. A Parquet file named in `data.parquet` counts as the table RichView reads from it, because the report carries that table and not the file; a size error then says `table read from` and the file name. The file itself counts only when the report also links it as a download. An external result counts once at the size of its rows as compact JSON, including when it comes from a saved snapshot. Inline rows already count in the source. Unrelated files, caches, generated HTML and older versions are outside this total.
+
+The frontmatter, inline data included, may hold at most 250,000 keys and list items together (a row of ten columns counts as eleven) and 16 MiB of field names, counting each item's name with all that it sits under. A report over that is refused with `yaml.unsupported`, before anything is built from it, and the advice is to put the table in a CSV file.
+
+{{report:geyser-waits}}
+
+In the [live geyser report](https://richview.ai/docs/gallery/geyser-waits/Rendered/report), the chart and the download link use the same CSV. Its bytes count once, alongside the source and the photograph. [Download those three files](https://richview.ai/docs/publishing#publish-a-folder-with-data-and-pictures) and run `richview check geyser-waits`. To see a refusal, link a local download larger than 5,000,000 bytes and check again. The finding names the file and its size.
+
+A resolved dataset has a separate 16 MiB safety limit. Generated HTML, including runtime, fonts and media, has a 64 MiB limit. Accepted charts keep every observation.
 
 ## Read a Parquet file
 

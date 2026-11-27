@@ -39,6 +39,11 @@ fn pointer_path(pointer: &str) -> String {
 /// Parse drafts without requiring publication metadata. Invalid rich blocks remain visible as
 /// source, with precise diagnostics; only resource limits are hard errors.
 pub fn parse(source: &str) -> Result<Document, Vec<Diagnostic>> {
+    // A deck names itself in its first line, so every host that holds only the text reads it as
+    // one (FEA-RP-71).
+    if crate::slides::is_deck(source) {
+        return crate::slides::parse(source);
+    }
     if source.len() > MAX_SOURCE_BYTES {
         return Err(vec![Diagnostic::new(
             "error",
@@ -58,6 +63,7 @@ pub fn parse(source: &str) -> Result<Document, Vec<Diagnostic>> {
         body_line: 1,
         frontmatter_lines: Default::default(),
         frontmatter_columns: Default::default(),
+        deck: None,
     };
     let mut content = source;
     let mut body_line = 1;
@@ -356,6 +362,21 @@ pub(crate) fn place(
     positions: &std::collections::BTreeMap<String, crate::yaml::Pos>,
     offset: usize,
 ) {
+    place_with(
+        diagnostics,
+        root,
+        |field| positions.get(field).copied(),
+        offset,
+    );
+}
+
+/// `place`, for positions that are looked up rather than held in one map.
+fn place_with(
+    diagnostics: &mut [Diagnostic],
+    root: &str,
+    positions: impl Fn(&str) -> Option<crate::yaml::Pos>,
+    offset: usize,
+) {
     for d in diagnostics {
         let row_field = d
             .path
@@ -369,8 +390,8 @@ pub(crate) fn place(
             continue;
         };
         let pos = loop {
-            if let Some(pos) = positions.get(field) {
-                break Some(*pos);
+            if let Some(pos) = positions(field) {
+                break Some(pos);
             }
             match field.rfind(['.', '[']) {
                 Some(cut) => field = &field[..cut],
@@ -389,24 +410,26 @@ pub(crate) fn place(
 
 /// Point each `frontmatter.<field>` diagnostic at its field in the frontmatter (TYP-56).
 pub(crate) fn place_frontmatter(document: &Document, diagnostics: &mut [Diagnostic]) {
-    let positions = document
-        .frontmatter_lines
-        .iter()
-        .map(|(field, line)| {
-            (
-                field.clone(),
-                crate::yaml::Pos {
+    // Looked up where they are kept: the finding that is placed alone, one at a time, must not
+    // pay for a copy of every field the frontmatter has.
+    place_with(
+        diagnostics,
+        "frontmatter",
+        |field| {
+            document
+                .frontmatter_lines
+                .get(field)
+                .map(|line| crate::yaml::Pos {
                     line: *line,
                     column: document
                         .frontmatter_columns
                         .get(field)
                         .copied()
                         .unwrap_or(1),
-                },
-            )
-        })
-        .collect();
-    place(diagnostics, "frontmatter", &positions, 0);
+                })
+        },
+        0,
+    );
 }
 
 /// Place late findings from resolved data and geometry at the unchanged authored YAML.
@@ -452,7 +475,7 @@ pub(crate) fn failed_prefix(block_prefix: &str) -> String {
     block_prefix.replacen("block:", "failed:", 1)
 }
 
-fn unique_placeholder_prefix(source: &str) -> Option<String> {
+pub(crate) fn unique_placeholder_prefix(source: &str) -> Option<String> {
     // The column markers share the namespace (`<!--richview:columns:`), so typing one of
     // either in source moves both to a generated prefix the source does not hold.
     let columns = crate::columns::prefix(BLOCK_PLACEHOLDER_PREFIX);
@@ -584,16 +607,6 @@ pub(crate) fn validate_frontmatter(doc: &mut Document) {
                 .expected("rmd/1"),
             ),
         }
-    }
-    // Slides name the one setting they leave without effect: slides have no tabs to switch
-    // between (FEA-RP-65).
-    if crate::slides::enabled(&doc.frontmatter) && doc.frontmatter.get("tabs").is_some() {
-        doc.diagnostics.push(Diagnostic::new(
-            "warning",
-            "slides.tabs",
-            "Slides have no tabs: frontmatter.tabs has no effect while slides is true",
-            "frontmatter.tabs",
-        ));
     }
     let fm = doc
         .frontmatter

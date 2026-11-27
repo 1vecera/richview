@@ -1,0 +1,65 @@
+{
+ "id": "drafts-legend-outline-flows",
+ "title": "Draft card: Sankey and alluvial outline from the legend",
+ "status": "draft",
+ "summary": "A draft card proposing that picking a series in the legend of a Sankey or alluvial diagram outlines that series' ribbons and nodes with the dark outline of a hovered mark and dims nothing, written under DEL-06 because FEA-CH-52 decides that emphasising a series dims the others on every chart. DRAFT-32 belongs in part 04a beside FEA-CH-52; it amends that card and FEA-CH-33 for the two flow types, and is not in a part file yet.",
+ "items": [
+  {
+   "id": "DRAFT-32",
+   "part": "04a-features-chart",
+   "kind": "feature",
+   "importance": "detail",
+   "refId": "F-CHART-LEGEND-OUTLINE",
+   "component": "C-WEB-CHART-HOST",
+   "group": "Motion",
+   "title": "Sankey and alluvial outline from the legend",
+   "question": "When a reader picks a series in the legend of a Sankey or an alluvial diagram, does the chart outline that series' ribbons and nodes in the dark outline of a hovered mark and dim nothing, while every other chart keeps dimming?",
+   "why": "A Sankey or an alluvial ribbon or node under the pointer already takes the dark outline and the rest of the chart stays as it is (FEA-CH-53). Picking a series in the legend still dims the other series, as on every chart (FEA-CH-52), so the same diagram answers the pointer on its marks by outlining and on its legend by dimming. These two diagrams have no reading in which one series stands apart from the others by losing its neighbours: a ribbon's meaning is where it joins them. Daniel answered the question on 26 November: outline from the legend too, nothing dimmed.",
+   "proposed": "**In a Sankey or an alluvial diagram, pointing at a legend entry, or focusing it from the keyboard, outlines that series' ribbons and nodes and dims nothing.**\n\n- **The outline** is the dark outline a hovered ribbon or node takes (FEA-CH-53): a dark line over a paper line, drawn on the edge of every ribbon and node of the series, and the same on every style, light or dark. It comes in and goes in the timings FEA-CH-52 gives the emphasis, and at once under reduced motion.\n- **Nothing dims.** The other series, their ribbons and nodes and every label keep full strength.\n- **Every input.** Pointer, touch (the series stays outlined while the finger is on the entry) and keyboard focus (a focus ring on the entry, as FEA-CH-56 draws) answer alike; a series the reader has hidden emphasises nothing.\n- **Contrast.** The dark line reads at 4.5:1 or more against the paper line under it in every built-in style and on a dark page.\n- **Every other chart type** keeps FEA-CH-52's legend rule exactly: the other series step back. The exception is one engine rule, `interaction::outlines_from_legend`, that names the two types; a host asks it and draws what `interaction::emphasis` names for the type.\n- **Keyboard focus** on a legend entry emphasises its series on every chart, as FEA-CH-33 says (\"hover or focus\"); a press with the pointer does not.",
+   "options": [
+    {
+     "label": "Outline the series, dim nothing, in Sankey and alluvial",
+     "detail": "The legend answers as the marks do. The cost is one named exception to FEA-CH-52's rule, kept in one engine function."
+    },
+    {
+     "label": "Keep dimming from the legend on every chart",
+     "detail": "One rule for all charts, as FEA-CH-52 decides; a Sankey and an alluvial diagram keep answering the pointer on a ribbon with an outline and the legend with a dimmed chart."
+    },
+    {
+     "label": "Outline the series and dim the rest lightly",
+     "detail": "The series stands out twice, by outline and by the others at about 60%. It needs a second floor for flow charts and tends to dim the ribbons that join the picked series to the rest."
+    }
+   ],
+   "recommendation": "Outline the series, dim nothing, in Sankey and alluvial: it is Daniel's answer of 26 November and it makes the legend answer as the marks already do.",
+   "confidence": "stated",
+   "sources": [
+    {
+     "label": "Daniel's answer to the question whether Sankey and alluvial outline from the legend too: \"Yes, actually\", choosing outline and nothing dimmed",
+     "ref": "tmp/team/launch/d16/launch/next25/brief-legend-outline.md",
+     "date": "2026-11-26"
+    },
+    {
+     "label": "Emphasis dims the others; the legend emphasises a series",
+     "ref": "FEA-CH-52",
+     "date": "2026-10-16"
+    },
+    {
+     "label": "A legend entry emphasises its series on hover or focus; click hides it",
+     "ref": "FEA-CH-33",
+     "date": "2026-10-16"
+    },
+    {
+     "label": "A hovered Sankey or alluvial ribbon or node takes the dark outline and the rest stays",
+     "ref": "FEA-CH-53",
+     "date": "2026-10-16"
+    },
+    {
+     "label": "Focus ring and keys on legend entries",
+     "ref": "FEA-CH-56",
+     "date": "2026-10-16"
+    }
+   ],
+   "conflicts": "FEA-CH-52 says emphasis dims the others on every chart and gives 30%; the engine's floors are 20% for a series and 35% for scatter points, so this card names no figure. FEA-CH-33 says hover or focus emphasises, and no code emphasised from keyboard focus before this change; the card builds it as written."
+  }
+ ]
+}

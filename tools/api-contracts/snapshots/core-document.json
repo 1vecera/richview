@@ -136,6 +136,7 @@
         "kind": "struct",
         "declaration": "# [ derive ( Debug , Clone , Serialize , Deserialize ) ] pub struct RenderedReport",
         "publicFields": [
+          "# [ serde ( skip ) ] pub company : crate : : CompanyBrand",
           "pub html : String",
           "pub diagnostics : Vec < Diagnostic >",
           "pub metadata : Value",
@@ -164,6 +165,11 @@
           "pub line : usize"
         ],
         "privateFields": false
+      },
+      {
+        "name": "SlideSpan",
+        "kind": "use",
+        "declaration": "pub use crate : : slides : : SlideSpan ;"
       },
       {
         "name": "VERSION",
@@ -247,6 +253,31 @@
         ]
       },
       {
+        "name": "impl Document",
+        "kind": "impl",
+        "types": [
+          "Document"
+        ],
+        "declaration": "impl Document",
+        "members": [
+          {
+            "name": "deck_markdown",
+            "kind": "fn",
+            "declaration": "pub fn deck_markdown ( & self ) - > Vec < ( & str , usize ) >"
+          },
+          {
+            "name": "deck_slides",
+            "kind": "fn",
+            "declaration": "pub fn deck_slides ( & self ) - > Vec < SlideSpan >"
+          },
+          {
+            "name": "slide_at_line",
+            "kind": "fn",
+            "declaration": "pub fn slide_at_line ( & self , line : usize ) - > Option < usize >"
+          }
+        ]
+      },
+      {
         "name": "impl Page",
         "kind": "impl",
         "types": [
@@ -267,6 +298,16 @@
         ]
       },
       {
+        "name": "is_deck",
+        "kind": "use",
+        "declaration": "pub use crate : : slides : : is_deck ;"
+      },
+      {
+        "name": "is_source_file",
+        "kind": "use",
+        "declaration": "pub use crate : : folder : : is_source_file ;"
+      },
+      {
         "name": "learn_bundle",
         "kind": "use",
         "declaration": "pub use crate : : knowledge : : learn_bundle ;"
@@ -280,6 +321,11 @@
         "name": "learn_sections",
         "kind": "use",
         "declaration": "pub use crate : : knowledge : : learn_sections ;"
+      },
+      {
+        "name": "locate_report_input",
+        "kind": "use",
+        "declaration": "pub use crate : : folder : : locate_report_input ;"
       },
       {
         "name": "operation_result",
@@ -399,6 +445,11 @@
         "name": "learn_sections",
         "kind": "fn",
         "declaration": "pub fn learn_sections ( ) - > Vec < LearnSection >"
+      },
+      {
+        "name": "locate_report_input",
+        "kind": "fn",
+        "declaration": "pub fn locate_report_input ( document : & crate : : Document , finding : & mut Diagnostic )"
       },
       {
         "name": "operation_result",

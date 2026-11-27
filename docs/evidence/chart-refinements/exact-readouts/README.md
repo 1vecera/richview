@@ -18,4 +18,4 @@ Format checks, native and Wasm Clippy, workspace tests, release packaging, gener
 
 The scope is generic x/y readouts for bar, scatter, pie and non-temporal line/area charts, plus a distinct heatmap color-value field. If a heatmap reuses an X or Y coordinate as its color field, the existing coordinate readout takes priority; it is neither duplicated nor reformatted as a separate value. Temporal Engine formatting and pie aggregation remain unchanged. Original lexical zeros of an unquoted JSON number are unavailable after parsing; authors can retain them with decimal strings. Missing keys remain absent, marker strings remain literal and source Table/CSV values retain no presentation units.
 
-After the normal release build, reproduce the three current captures with `node docs/evidence/chart-refinements/exact-readouts/capture.mjs`. Images are written under `tmp/exact-readouts/reproduced/`.
+After the normal release build, reproduce the three current captures with `node docs/evidence/chart-refinements/exact-readouts/capture.ts`. Images are written under `tmp/exact-readouts/reproduced/`.

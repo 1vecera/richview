@@ -114,12 +114,23 @@ axes:
 - Dots are drawn far to near; without `encoding.size` a nearer dot is larger and more opaque, with it the radius shows the size by area and only the opacity follows depth
 - Up to 80 points stand on a faint line to the floor so their position reads
 - A chart takes at most 5,000 points; above that it is not drawn and `check` raises `chart.limit-exceeded` naming the limit and the count
-- `style.azimuth` (default 35) turns the view round the vertical axis and `style.elevation` (default 28) tilts it, both in degrees
+- `style.azimuth` (default 35) turns the view round the vertical axis and `style.elevation` (default 28) tilts it, both in degrees; they are the view the chart opens at, and a reader turns it from there
 - `axes.x`, `axes.y` and `axes.color` name and format the three axes
 - A row without a coordinate or a group, or with a negative size, is left out and reported
 
 ## Interactions
 
-- Hover or focus a dot to read its three coordinates, its group and its size.
+- Hover or focus a dot to read its three coordinates, its group and its size. The dot grows and takes a ring in its own colour, as a scatter point does.
 - Click a legend entry to remove a group and back.
 - Open the Table view, Download PNG or CSV, or Expand the chart.
+
+## Turn the view
+
+Drag the chart at the top of this page to turn it. The author's `style.azimuth` and `style.elevation` set the view it opens at, and a reader turns it from there.
+
+- Drag with a mouse, a pen or a finger. Dragging right brings the near side to the right and dragging down looks from higher; the elevation stops at 5 and 85 degrees, and the azimuth goes round.
+- Hold Shift and press an arrow key to turn it five degrees from the keyboard. Arrow keys alone still step through the dots.
+- Double-click the chart, press R or choose Reset view to return to the author's view.
+- Hover, focus and the readout work at every angle: the pointer names the dot drawn on top under it.
+- The box keeps one size at every angle, so it does not grow or shrink while it turns, and its labels stay inside the chart; it moves a little to keep them there as they change sides. It is the largest size that fits from every angle, so a chart drawn at one angle is a little smaller than one fitted to that angle alone.
+- Print, PDF, the command line's image export and a page without script always show the author's view. Download PNG saves the picture on the screen.

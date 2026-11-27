@@ -15,9 +15,9 @@ const INSTRUCTIONS: &str = "Call richview_learn before drafting. Read data and s
 
 /// The seven tools of D-MCP-SURFACE plus the Unsplash pair (FEA-RP-62), each twin to a command.
 pub fn tool_definitions() -> Vec<Value> {
-    let input_path = json!({"type":"string","description":"The report's .rmd, saved in its own report folder, or that folder"});
+    let input_path = json!({"type":"string","description":"The report's .rmd or a deck's .rslide, saved in its own report folder, or that folder"});
     // The tools that take every report below a folder, as their commands do (FEA-SF-01).
-    let input_paths = json!({"type":"string","description":"The report's .rmd or the folder holding it; a folder of report folders stands for every report below it, and the result then holds each report's own result in `reports`"});
+    let input_paths = json!({"type":"string","description":"The report's .rmd or a deck's .rslide, or the folder holding it; a folder of report folders stands for every report below it, and the result then holds each report's own result in `reports`"});
     let styles = json!({"type":"array","items":{"type":"string"},"description":"Styles (a builtin name or a file in the report folder) replacing the source's `styles` for this call"});
     let tool = |name: &str,
                 description: &str,
@@ -315,7 +315,7 @@ async fn report_tool(name: &str, args: &Value, input: ops::Input) -> ops::Outcom
             });
             let token = match from_host {
                 Some(token) => token,
-                None => crate::credentials::kept(server)?.ok_or_else(|| {
+                None => crate::credentials::usable(server).await?.ok_or_else(|| {
                         Failure::usage(format!(
                             "No token for {server}: the user runs `richview login --server {server}` once in a terminal, or sets RICHVIEW_TOKEN in the MCP host's environment."
                         ))

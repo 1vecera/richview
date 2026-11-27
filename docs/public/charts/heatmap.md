@@ -56,5 +56,5 @@ encoding: { x: hour, y: weekday, color: deploys }
 
 ## Interactions
 
-- Hover or focus a cell to read its coordinates and value.
+- Hover or focus a cell to read its coordinates and value; a dark outline traces the cell under the pointer.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

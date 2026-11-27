@@ -841,6 +841,18 @@ pub(super) fn read_x(ctx: &Ctx, members: &[usize], field: &str) -> Result<(Vec<O
     Ok((xs, axis))
 }
 
+/// The part of `whole` a zoom `window` shows: the window clipped to the whole, when that is a
+/// narrower one (FEA-CH-49). A window that is not a pair of numbers, or leaves nothing of the
+/// whole, shows all of it.
+pub(super) fn zoom_window(window: Option<[f64; 2]>, whole: [f64; 2]) -> Option<[f64; 2]> {
+    let [a, b] = window?;
+    if !(a.is_finite() && b.is_finite()) {
+        return None;
+    }
+    let shown = [a.max(whole[0]), b.min(whole[1])];
+    (shown[1] > shown[0] && (shown[0] > whole[0] || shown[1] < whole[1])).then_some(shown)
+}
+
 /// One panel of an xy chart: the plot, the y axis and the map from x values to pixels.
 pub(super) struct XyFrame {
     pub plot: Rect,
@@ -880,11 +892,18 @@ pub(super) fn xy_frame(
     let top = outer.y + plan.title_room + lh + 4.0 + lh / 2.0;
     let bottom_room = lh + LABEL_GAP + if x_title.is_some() { lh } else { 0.0 };
     let plot_h = (outer.bottom() - top - bottom_room).max(MIN_PLOT * 0.5);
+    // A chart that zooms each axis on its own window (FEA-CH-49) draws the window along y the
+    // runtime asked for, inside the axis it fixes.
+    let whole_y = match (side.min, side.max) {
+        (Some(lo), Some(hi)) if lo < hi && crate::interaction::zooms_each_axis(ctx.block.kind.name()) => Some([lo, hi]),
+        _ => None,
+    };
+    let window = whole_y.and_then(|whole| zoom_window(ctx.opts.zoom_y, whole));
     let value = axis::value_axis(&ValueSpec {
-        data: side.data,
+        data: window.unwrap_or(side.data),
         zero: side.zero,
-        min: side.min,
-        max: side.max,
+        min: window.map_or(side.min, |w| Some(w[0])),
+        max: window.map_or(side.max, |w| Some(w[1])),
         length: plot_h,
         horizontal: false,
         format: side.format,
@@ -932,6 +951,11 @@ pub(super) fn xy_frame(
             ink,
         )));
     }
+    let y = whole_y.map(|extent| crate::geometry::YSpan {
+        domain: [value.lo, value.hi],
+        extent,
+        range: [plot.bottom(), plot.y],
+    });
     XyFrame {
         plot,
         value,
@@ -941,7 +965,7 @@ pub(super) fn xy_frame(
             extent,
             range: [plot.x, plot.right()],
             calendar,
-            y: None,
+            y,
             least: None,
         },
         items,

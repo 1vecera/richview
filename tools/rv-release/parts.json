@@ -1,0 +1,128 @@
+{
+	"schema": 1,
+	"comment": "DEL-83: the parts of a release in their fixed order. `needs` are other parts whose same stage must have passed first; a part with no need on another never waits for it. Each stage lists kit steps (tools/rv-release/steps/<name>.sh, run through steps/run) and built-in checks (lib/predeploy.mts).",
+	"parts": [
+		{
+			"id": "shared",
+			"title": "Bind the full receipt and the parts",
+			"selectable": false,
+			"always": true,
+			"needs": [],
+			"prepare": [{ "step": "00-bind-full", "args": ["{full}"] }, { "step": "01-select-parts", "args": ["{parts}", "{goDate}"] }]
+		},
+		{
+			"id": "windows",
+			"title": "Windows walk",
+			"selectable": true,
+			"needs": [],
+			"authority": "the Windows ceiling answer on the board, and the go",
+			"gated": ["prepare"],
+			"prepare": [
+				{ "step": "02-select-route", "args": [] },
+				{ "step": "10-cut", "args": ["{route}"] },
+				{ "step": "11-windows", "args": ["site"], "done": "WINDOWS_site" },
+				{ "step": "12-record-walk", "args": [] }
+			],
+			"rollback": { "title": "Nothing to restore: the step terminates and sweeps its own instances", "automatic": false, "command": null, "requires": [] }
+		},
+		{
+			"id": "prod",
+			"title": "Merge private production to the candidate",
+			"selectable": true,
+			"needs": ["windows"],
+			"authority": "the go",
+			"gated": ["deploy"],
+			"prepare": [{ "step": "13-packet", "args": [] }],
+			"deploy": [{ "step": "14-private-prod", "args": [], "outward": "private origin/prod moves to the candidate" }],
+			"rollback": {
+				"title": "Restore private origin/prod to the previous candidate",
+				"automatic": false,
+				"command": "bash steps/run recover-prod restore-private-prod",
+				"words": "private-recovery",
+				"requires": ["PACKET"]
+			}
+		},
+		{
+			"id": "build",
+			"title": "Build the public seed and the macOS and Linux archives",
+			"selectable": false,
+			"implicitFor": ["hosted", "public"],
+			"needs": ["windows"],
+			"prepare": [
+				{ "step": "15-seed", "args": [] },
+				{ "step": "16-macos", "args": [] },
+				{ "step": "17-linux", "args": [] }
+			]
+		},
+		{
+			"id": "site",
+			"title": "richview.ai",
+			"selectable": true,
+			"needs": ["prod"],
+			"authority": "the go",
+			"gated": ["deploy"],
+			"checks": [{ "step": "40-dry-run", "args": [] }, { "builtin": "site-edge" }],
+			"deploy": [
+				{ "step": "41-deploy", "args": [], "outward": "Worker richview-teaser is deployed" },
+				{ "step": "42-verify", "args": [] }
+			],
+			"rollback": {
+				"title": "Restore Worker richview-teaser to the previous version",
+				"automatic": true,
+				"basis": "DEL-48: a rollback to the previous deployment when the checks after a deploy fail",
+				"steps": [{ "step": "recover-worker-history", "args": [] }, { "step": "90-rollback", "args": ["{newWorker}"] }],
+				"command": "bash steps/run recover-worker-history && bash steps/run 90-rollback <new version>",
+				"requires": ["BEFORE_WORKER", "DRY_SHA"]
+			}
+		},
+		{
+			"id": "hosted",
+			"title": "app.richview.ai",
+			"selectable": true,
+			"needs": ["prod", "build"],
+			"authority": "the go",
+			"gated": ["deploy", "closing"],
+			"closingAfter": ["public"],
+			"checks": [{ "step": "49-archive", "args": [] }],
+			"deploy": [
+				{ "step": "49b-preflight", "args": [] },
+				{ "step": "50-mail-window", "args": [], "outward": "sign-up is paused, the host is updated and mail is switched" }
+			],
+			"closing": [{ "step": "reopen-signup-after-privacy", "args": [], "outward": "sign-up is reopened" }],
+			"rollback": {
+				"title": "Roll the host back to the retained previous archive on the same data volume",
+				"automatic": false,
+				"command": "bash steps/run recover-mail-window (needs recovery-go.txt)",
+				"words": "recovery",
+				"requires": ["OLD_SHA256", "H"]
+			}
+		},
+		{
+			"id": "public",
+			"title": "Public source and GitHub release",
+			"selectable": true,
+			"needs": ["windows", "prod", "build"],
+			"authority": "the go",
+			"gated": ["prepare", "deploy"],
+			"prepare": [{ "step": "11-windows", "args": ["bonus"], "done": "WINDOWS_bonus" }],
+			"checks": [{ "step": "18-stage", "args": [] }, { "step": "19-kit", "args": [] }],
+			"deploy": [
+				{ "step": "20-seed", "args": [] },
+				{ "step": "21-push", "args": [], "outward": "one commit is pushed to public main" },
+				{ "step": "29-release-plan", "args": [] },
+				{ "step": "30-release", "args": [], "outward": "the GitHub release is created as latest" },
+				{ "step": "31-downloads", "args": [] },
+				{ "step": "32-installers", "args": [] },
+				{ "step": "32w-public-walk", "args": [] },
+				{ "step": "33-windows", "args": [] }
+			],
+			"rollback": {
+				"title": "Add a revert commit to public main, and mark the previous release latest again",
+				"automatic": false,
+				"command": "bash steps/run recover-source-plan; bash steps/run recover-source-push; bash steps/run recover-latest restore-previous-latest",
+				"words": "recovery and latest-recovery",
+				"requires": ["SEED", "ASSETS_HASH", "NOTES_HASH"]
+			}
+		}
+	]
+}

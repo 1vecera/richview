@@ -124,5 +124,5 @@ axes:
 
 ## Interactions
 
-- Hover or focus a cell to read its x range, its y range and the number of observations.
+- Hover or focus a cell to read its x range, its y range and the number of observations; a dark outline traces the cell under the pointer.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

@@ -206,5 +206,5 @@ axes:
 
 ## Interactions
 
-- Hover or focus a hexagon to read the centre of its x and y and the number of observations.
+- Hover or focus a hexagon to read the centre of its x and y and the number of observations; a dark outline traces the hexagon under the pointer.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

@@ -53,9 +53,11 @@ cargo test --workspace --locked
 node tools/rv-gate/rv-gate.mjs fast      # tests and lints for the crates you changed
 ```
 
+The integration tests of `richview-chart`, `richview-core` and `richview-app` are modules of one `integration` test binary each, with the files left in `tests/`: run one file's tests with `cargo test -p <crate> --test integration -- <name>::`, and add a new file to that crate's `tests/integration.rs` as `#[path = "<name>.rs"] mod <name>;` (and write `use super::common;` where a file needs the crate's `common` module).
+
 `node tools/rv-gate/rv-gate.mjs steps` lists every step of the repository's gate. Performance measurements need an otherwise quiet CPU; their scopes, budgets and reproduction commands are in [PERFORMANCE.md](docs/PERFORMANCE.md).
 
-Browser and editor host checks use Playwright and Node only as test tools: `scripts/verify-*.mjs` and `scripts/verify-*.cjs`. Install the pinned browsers with `npx playwright install chromium firefox webkit`. Functional suites that use `scripts/browser-harness.mjs` accept `RICHVIEW_VERIFY_BROWSER=chromium|firefox|webkit`; Chromium is the default. For example:
+Browser and editor host checks use Playwright and Node only as test tools: `scripts/verify-*.mjs` and `scripts/verify-*.cjs`. Install the pinned browsers with `npx playwright install chromium firefox webkit`. Functional suites that use `scripts/browser-harness.ts` accept `RICHVIEW_VERIFY_BROWSER=chromium|firefox|webkit`; Chromium is the default. For example:
 
 ```sh
 RICHVIEW_VERIFY_BROWSER=firefox node scripts/verify-browser-api.mjs
@@ -80,11 +82,11 @@ Each run records its engine and version in `browser-environment.json`. The fixed
 | Site pages, styles and fonts | `assets/` |
 | Gate, lockdown app | `tools/rv-gate/`, `tools/lockdown-app/` |
 
-Generated `wasm-bindgen` bindings and runtime bootstraps connect Rust to JavaScript hosts. `packages/vscode/extension.cjs` is a thin activation adapter for VS Code APIs, source transport and SecretStorage credentials; it delegates authoring, validation and rendering to a persistent native Rust service. Core and engine stay pure: no filesystem, network, process, environment or clock access. [RUST-ARCHITECTURE.md](docs/RUST-ARCHITECTURE.md) covers extension points, and the [format specification](docs/RMD-SPEC.md) and the schema registry move together.
+Generated `wasm-bindgen` bindings and runtime bootstraps connect Rust to JavaScript hosts. `packages/vscode/extension.cts` is a thin activation adapter for VS Code APIs, source transport and SecretStorage credentials; it delegates authoring, validation and rendering to a persistent native Rust service. Core and engine stay pure: no filesystem, network, process, environment or clock access. [RUST-ARCHITECTURE.md](docs/RUST-ARCHITECTURE.md) covers extension points, and the [format specification](docs/RMD-SPEC.md) and the schema registry move together.
 
 ## Rules the code keeps
 
-- The schema registry (`crates/richview-core/src/registry.rs`) is the one definition of tags, fields, chart types and diagnostic codes. The reference tables in [RMD-SPEC.md](docs/RMD-SPEC.md) are generated from it: edit the registry, then run `RICHVIEW_BLESS=1 cargo test -p richview-core --test spec_docs`. Prose explains the vocabulary but never lists it.
+- The schema registry (`crates/richview-core/src/registry.rs`) is the one definition of tags, fields, chart types and diagnostic codes. The reference tables in [RMD-SPEC.md](docs/RMD-SPEC.md) are generated from it: edit the registry, then run `RICHVIEW_BLESS=1 cargo test -p richview-core --test integration -- spec_docs::`. Prose explains the vocabulary but never lists it.
 - Diagnostics carry level, code, message, path, line and tag, and every surface returns them unchanged.
 - Authors customise only through validated vocabulary: no raw HTML, CSS, JavaScript, engine specs or SVG from any source or style file. Safety is never traded.
 - Readers never get more precision than the author chose.

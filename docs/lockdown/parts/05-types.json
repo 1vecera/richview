@@ -3,7 +3,7 @@
   "order": 8,
   "title": "Format and types",
   "status": "ready",
-  "summary": "This part fixes the exact type system the rewrite implements: the `.rmd` document and its YAML profile, frontmatter, the rich blocks and their fields, chart channels and options, data sources and the report folder, the `.rstyle.yaml` schema, diagnostics, report identity, and the CLI, MCP, HTTP, JavaScript and editor contracts. Rendered behaviour belongs to parts 04a–04d and visual choices to part 06; this part settles names, types, defaults, validation and failure modes. Current behaviour was read at `b4db233` (2026-10-16); evidence marked as reproduced was run with a release build on 2026-10-21 or 2026-10-22.\n\nThe decisions that change the most:\n\n- **Style injection (TYP-51)**: a style file can put a live `<script>` into a report today; every CSS-bound value gets a closed grammar and every sink refuses unsafe characters.\n- **Report identity (TYP-60, TYP-63, TYP-64, TYP-95, TYP-96)**: one ASCII slug function, a content hash over the whole publish request, a conflict error when a version is republished with different content, `latest` by SemVer, and permalinks that are never pruned. The last three reverse dec-73, today's deliberate publication-order `latest` and the June 50-version cap.\n- **Checks in every host (TYP-15, TYP-94)**: missing fields and channels are caught by `validate` in every host, and one table says which operation runs which rule; generating every surface from one schema is ARC-09's decision (TYP-03).\n- **Source order (TYP-25)**: tables, CSV downloads and payloads keep the author's column order.\n- **Required description (TYP-07)**: publishing requires title, description and version, as S27-418 states.\n- **Breaking changes to existing reports (TYP-83)**: `big` becomes `metric` (TYP-09), `suffix` becomes `unit` (TYP-16), currency formats go (TYP-87), `line.smoothing` goes (TYP-17), header-image and style aliases go (TYP-06, TYP-52), camelCase chart style keys become kebab-case (TYP-50), and image `title` and media `alt` move (TYP-29 to TYP-31). Ten of the eleven golden inputs INT-55 names use at least one (all but hello-world); each break fails with a diagnostic that names the fix, and one migration rewrites them (INT-51).\n\nDecide together with: ARC-08 (TYP-53, diagnostic record), ARC-09 (TYP-03), ARC-10 (TYP-69, MCP inputs), ARC-12 (TYP-51, serializer), ARC-14 (TYP-32, blocked embeds), ARC-21 (TYP-63, TYP-64, TYP-96), ARC-34 (TYP-41), ARC-36 (TYP-75, TYP-97), INT-13 (TYP-13), INT-36 and OPN-04 (TYP-67), INT-51 and INT-55 (TYP-83), OPN-39 (dec-18 in TYP-44, dec-65 in TYP-53, dec-73 in TYP-63), and the part 04b cards that add or remove fields (FEA-RP-03 to FEA-RP-05, FEA-RP-12 to FEA-RP-14, FEA-RP-20, FEA-RP-21, FEA-RP-33).\n\nAnswer each card: **accept** keeps the proposal as the rewrite's rule, **edit** replaces it with your text, **reject** drops it from the rewrite, and **defer** leaves it open. Items under Pending format extensions apply only if part 04d keeps the feature. Part 08's cross-part contradiction cards (OPN-50 to OPN-68) decide conflicts involving this part's cards and should be answered first.",
+  "summary": "This part fixes the exact type system the rewrite implements: the `.rmd` document and its YAML profile, frontmatter, the rich blocks and their fields, chart channels and options, data sources and the report folder, the `.rstyle.yaml` schema, diagnostics, report identity, and the CLI, MCP, HTTP, JavaScript and editor contracts. Rendered behaviour belongs to parts 04a–04d and visual choices to part 06; this part settles names, types, defaults, validation and failure modes. Current behaviour was read at `b4db233` (2026-10-16); evidence marked as reproduced was run with a release build on 2026-10-21 or 2026-10-22.\n\nThe decisions that change the most:\n\n- **Style injection (TYP-51)**: a style file can put a live `<script>` into a report today; every CSS-bound value gets a closed grammar and every sink refuses unsafe characters.\n- **Report identity (TYP-60, TYP-63, TYP-64, TYP-95, TYP-96)**: one ASCII slug function, a content hash over the whole publish request, a conflict error when a version is republished with different content, `latest` by SemVer, and permalinks that are never pruned. The last three reverse dec-73, today's deliberate publication-order `latest` and the June 50-version cap.\n- **Checks in every host (TYP-15, TYP-94)**: missing fields and channels are caught by `validate` in every host, and one table says which operation runs which rule; generating every surface from one schema is ARC-09's decision (TYP-03).\n- **Source order (TYP-25)**: tables, CSV downloads and payloads keep the author's column order.\n- **Required description (TYP-07)**: publishing requires title, description and version, as the vNext frontmatter issue states.\n- **Breaking changes to existing reports (TYP-83)**: `big` becomes `metric` (TYP-09), `suffix` becomes `unit` (TYP-16), currency formats go (TYP-87), `line.smoothing` goes (TYP-17), header-image and style aliases go (TYP-06, TYP-52), camelCase chart style keys become kebab-case (TYP-50), and image `title` and media `alt` move (TYP-29 to TYP-31). Ten of the eleven golden inputs INT-55 names use at least one (all but hello-world); each break fails with a diagnostic that names the fix, and one migration rewrites them (INT-51).\n\nDecide together with: ARC-08 (TYP-53, diagnostic record), ARC-09 (TYP-03), ARC-10 (TYP-69, MCP inputs), ARC-12 (TYP-51, serializer), ARC-14 (TYP-32, blocked embeds), ARC-21 (TYP-63, TYP-64, TYP-96), ARC-34 (TYP-41), ARC-36 (TYP-75, TYP-97), INT-13 (TYP-13), INT-36 and OPN-04 (TYP-67), INT-51 and INT-55 (TYP-83), OPN-39 (dec-18 in TYP-44, dec-65 in TYP-53, dec-73 in TYP-63), and the part 04b cards that add or remove fields (FEA-RP-03 to FEA-RP-05, FEA-RP-12 to FEA-RP-14, FEA-RP-20, FEA-RP-21, FEA-RP-33).\n\nAnswer each card: **accept** keeps the proposal as the rewrite's rule, **edit** replaces it with your text, **reject** drops it from the rewrite, and **defer** leaves it open. Items under Pending format extensions apply only if part 04d keeps the feature. Part 08's cross-part contradiction cards (OPN-50 to OPN-68) decide conflicts involving this part's cards and should be answered first.",
   "items": [
     {
       "id": "TYP-01",
@@ -294,7 +294,6 @@
         },
         {
           "label": "Reports carry versions to stay consistent as the format changes; keep raw sources for regeneration",
-          "ref": "S27-413",
           "date": "2026-06-20"
         }
       ],
@@ -458,13 +457,13 @@
       "refId": "D-TYP-DESCRIPTION",
       "group": "Frontmatter",
       "title": "Is `description` required to publish?",
-      "question": "Should publishing require `description` alongside `title` and `version`, as S27-418 and dec-8 state, or stay a warning?",
+      "question": "Should publishing require `description` alongside `title` and `version`, as the vNext frontmatter issue and dec-8 state, or stay a warning?",
       "why": "Today the `publish.description` warning is computed and then discarded by the CLI and the editor, and `validate` never runs the publish rules, so reports publish without a lede and nobody is told. This also settles D-FRONTMATTER.",
       "proposed": "Publishing requires a non-empty `title`, `description` and `version`; a missing one is `publish.metadata` (error) and nothing is stored. Drafts need none of them. `validate --publish` and the MCP `publish` flag run the same rules before any upload, and the server runs them again on receipt. A published story's link preview (Daniel's INT-07 answer) is built from fields that already exist: `description` feeds `og:description` (FEA-RP-51), and the thumbnail its host renders sets the `title` and the byline (`author`) over the lead chart or a header image it can use (FEA-SF-55, ARC-69). INT-07 adds no required field.",
       "options": [
         {
           "label": "Required to publish",
-          "detail": "Matches S27-418 and dec-8; every published report has a lede for listings and link previews."
+          "detail": "Matches the vNext frontmatter issue and dec-8; every published report has a lede for listings and link previews."
         },
         {
           "label": "Warning shown everywhere",
@@ -485,7 +484,6 @@
         },
         {
           "label": "Required title, description and version, starting at 0.0.1",
-          "ref": "S27-418",
           "date": "2026-06-20"
         },
         {
@@ -1134,7 +1132,7 @@
       "group": "Chart block",
       "title": "Chart-local style fields",
       "question": "Which field sets line interpolation: `style.curve` with `style.curvature`, or the `style.line.smoothing` enum that Daniel's 2026-10-13 ticket asks to keep?",
-      "why": "Two fields set interpolation today, mutually exclusive: `style.curve` (`linear`, `monotone`, three step forms) with `style.curvature`, and `style.line.smoothing` (`straight`, `monotone`, `current`), which a style file can also set as `chart.line.smoothing`. S27-635 asks to keep a `line.smoothing` enum so themes can opt in, defaulting to `monotone`. No b4db233 example or builtin style sets either. The palette list also includes the deprecated `editorial`.",
+      "why": "Two fields set interpolation today, mutually exclusive: `style.curve` (`linear`, `monotone`, three step forms) with `style.curvature`, and `style.line.smoothing` (`straight`, `monotone`, `current`), which a style file can also set as `chart.line.smoothing`. The line-curvature request asks to keep a `line.smoothing` enum so themes can opt in, defaulting to `monotone`. No b4db233 example or builtin style sets either. The palette list also includes the deprecated `editorial`.",
       "proposed": "| Field | Type | Rule |\n| --- | --- | --- |\n| `style.palette` | builtin style name (T-STYLE-BUILTINS) | Overrides the report palette for this chart |\n| `style.ratio` | see D-TYP-RATIO-GRAMMAR | |\n| `style.orientation` | `auto`/`vertical`/`horizontal` | Bar, boxplot, interval; histogram `auto`/`vertical` |\n| `style.curve` | `linear`/`monotone`/`step`/`step_before`/`step_after` | Line and area; default `monotone` |\n| `style.curvature` | number 0–1 | Monotone strength; default 1 |\n\nA style file sets the report default as `chart.curve` and `chart.curvature`; the chart's own fields win. `style.line.smoothing` and `chart.line.smoothing` are retired: the migration maps `straight` to `curve: linear`, `monotone` to `curve: monotone` and `current` to `curve: monotone` with `curvature: 0.75` (D-TYP-MIGRATIONS).",
       "options": [
         {
@@ -1142,7 +1140,7 @@
           "detail": "`curve` and `curvature` on charts and in style files; steps sit in the same enum; `line.smoothing` is retired with a migration. Matches FEA-CH-03's wording."
         },
         {
-          "label": "Keep `line.smoothing` (S27-635)",
+          "label": "Keep `line.smoothing`",
           "detail": "`style.line.smoothing` and `chart.line.smoothing` stay, extended with `step`, `step_before` and `step_after`, default `monotone`; `curve` is retired. Matches Daniel's ticket; `smoothing: step` names a non-smooth shape, and `current` names an old treatment."
         }
       ],
@@ -1171,11 +1169,10 @@
         },
         {
           "label": "\"Keep a `style.line.smoothing` enum (`straight` | `monotone` | current) so themes can opt in; default to `monotone`\"",
-          "ref": "S27-635",
           "date": "2026-10-13"
         }
       ],
-      "conflicts": "S27-635 (Daniel, 2026-10-13, still in Brain Dump) asks to keep `style.line.smoothing`; the `curve` option renames it. FEA-CH-03 (D-CURVES) describes the curve behaviour and leaves the field names to this card. Cross-part contradiction: answer OPN-67 first; it decides this card's conflict."
+      "conflicts": "The line-curvature request (Daniel, 2026-10-13, still in Brain Dump) asks to keep `style.line.smoothing`; the `curve` option renames it. FEA-CH-03 (D-CURVES) describes the curve behaviour and leaves the field names to this card. Cross-part contradiction: answer OPN-67 first; it decides this card's conflict."
     },
     {
       "id": "TYP-18",
@@ -1633,7 +1630,7 @@
       "group": "Tables, metrics and callouts",
       "title": "Table block",
       "question": "Is this the table vocabulary, with row mappings as the only data shape?",
-      "why": "S27-580 left a column-oriented \"series\" syntax open; adding it means two data shapes for every table feature, check and editor completion. This settles D-TABLE-SYNTAX from the evidence.",
+      "why": "The table-syntax issue left a column-oriented \"series\" syntax open; adding it means two data shapes for every table feature, check and editor completion. This settles D-TABLE-SYNTAX from the evidence.",
       "proposed": "| Field | Type | Rule |\n| --- | --- | --- |\n| `data` | data source (T-DATA-SOURCE) | Required; rows are mappings |\n| `title` | string | Only if FEA-RP-20 is accepted: `<caption>` and accessible name; otherwise an unknown key |\n| `columns` | list of `{key, label?, format?, unit?, align?, heat?}` | Optional; derived in source order (D-TYP-COLUMN-ORDER); `heat` is `true`, `false`, `sequential` or `diverging`, default `false` (FEA-RP-69) |\n| `heat_scale` | `column` or `table` | Default `column`; `table` puts the heat columns on one scale (FEA-RP-69) |\n| `sort` | `{key, dir}` | `dir` is `asc`/`desc`, default `asc` |\n| `max_rows` | positive integer | Default 20; the rest folds into \"Showing N of M rows\" |\n| `total` | boolean | Default false; sums columns whose cells are all numeric (T-DATA-CSV); FEA-RP-21 would also accept a list of columns |\n| `sortable` | boolean | Default true; `false` keeps the headings plain (FEA-RP-22) |\n| `filter` | `auto`, `true` or `false` | Default `auto`: a filter box for more than 10 rows (FEA-RP-70) |\n| `wide` | boolean | Only if D-TYP-BLOCK-WIDTH is accepted |\n\n`align` is `left`/`center`/`right`. `columns` and `sort` keys must exist (D-TYP-FIELD-CHECKS). A cell that is one whole http(s) URL renders as a link.",
       "options": [
         {
@@ -1670,7 +1667,6 @@
         },
         {
           "label": "Tables \"maybe as series\"; decision pending (status Que)",
-          "ref": "S27-580",
           "date": "2026-10-04"
         }
       ],
@@ -2135,7 +2131,7 @@
       "group": "Data and report folder",
       "title": "Block data source",
       "question": "Is block-local data with exactly one of `inline`, `csv`, `json` or `parquet` the whole data contract?",
-      "why": "It decides where data may come from; S27-579 moved data out of frontmatter into the consuming block, and PR #66 would add connectors.",
+      "why": "It decides where data may come from; the inline-data issue moved data out of frontmatter into the consuming block, and PR #66 would add connectors.",
       "proposed": "| Key | Type | Rule |\n| --- | --- | --- |\n| `data.inline` | list of row mappings | Small data written in the block |\n| `data.csv` | report-relative path | T-DATA-CSV |\n| `data.json` | report-relative path | T-DATA-JSON |\n| `data.parquet` | report-relative path | T-DATA-PARQUET (TYP-102): read by native hosts only |\n| `data.url` | absolute `https` URL | Downloaded by the reader's browser when the report opens, never by a render or check (OPN-63, ARC-11) |\n| `data.sql` | connector and query | Resolved by a RichView server's connector (TYP-79, OPN-63) |\n\nExactly one key; none or several is `data.local` (error). `id`, `url` and `sql` are `data.local` errors today; the rewrite accepts `url` and `sql` (OPN-63) and keeps `id` an error; `headers` and `cache` next to a valid key pass core validation and are rejected only by the public schema adapter, and the rewrite makes them `data.local` errors too. Frontmatter `data` is `frontmatter.data`. Paths follow T-REPORT-FOLDER; whether the key or the file content decides the parser: D-TYP-DATA-FORMAT-SNIFF. Core does no I/O: hosts pass resolved content, and a missing one is `data.unresolved`; a `sql` source resolves only on a RichView server with that connector. What a render draws for a `url` block before the browser fetches it is open (ARC-11). Blocks may share a file.",
       "confidence": "observed",
       "sources": [
@@ -2171,7 +2167,6 @@
         },
         {
           "label": "Chart data lives in the chart's YAML, small inputs inline",
-          "ref": "S27-579",
           "date": "2026-10-04"
         }
       ],
@@ -2352,12 +2347,10 @@
       "sources": [
         {
           "label": "Daniel's ask: \"Parquet data files for large data, and smaller reports with many charts.\"",
-          "ref": "S27-986",
           "date": "2026-11-09"
         },
         {
           "label": "The lead's approval of the design: confined worker, DuckDB's Parquet feature, referenced columns only, the `parquet` connector kind; the Linux kernel limit accepted",
-          "ref": "S27-986",
           "date": "2026-11-19"
         },
         {
@@ -2403,7 +2396,6 @@
         },
         {
           "label": "The lead's ruling: write the lever up as a proposed card with the measured numbers, do not build it before both halves of Parquet are ready",
-          "ref": "S27-986",
           "date": "2026-11-19"
         }
       ]
@@ -2417,7 +2409,7 @@
       "title": "A column from a typed numeric source shows one number of decimals",
       "question": "Should a field from a typed numeric source be shown with one number of decimals across its column, decided by the author or by the source's declared scale?",
       "why": "A value that arrives as a number has no written form, so its trailing zeros are gone. A SQL result or a Parquet column that holds 9.26, 9.00 and 8.98 prints 9.26, 9 and 8.98 in a heatmap, and a table prints 7% among 6.1%. A CSV does the same: `9.00` written in a file prints 9 (checked on the release build of 19 November 2026). The vocabulary sets significant digits (`digits`) and has no way to fix decimal places, so an author cannot repair it. The Parquet example printed it on every page until its queries were changed to return whole numbers and one-decimal averages (the lead's review of 19 November 2026).",
-      "proposed": "Not built.\n\n| Rule | Value |\n| --- | --- |\n| Scope | A field whose values arrive typed as numbers: a `data.sql` result, a `data.parquet` column, a JSON number. Whether a CSV column follows the same rule, with the most decimals written in the column as its declared scale, is part of this question |\n| One scale per column | Every printed value of the field, in a chart's labels and readouts and in a table's cells, shows the same number of decimals |\n| The author decides | A new closed option beside `digits`, a whole number of decimal places from 0 to 6, on a chart, an axis and a table column |\n| Else the source's declared scale | A column the source declares with a fixed scale, such as SQL or Parquet `DECIMAL(12,2)`, shows that scale: 9.00 stays 9.00. The worker passes the scale with the column |\n| Else the data | A column of floats with no declared scale shows the most decimals any of its values needs within the author's significant digits, on every row |\n| Never more than the author chose | The scale never shows a digit beyond the author's `digits` or decimals (FEA-CH-37): padding adds zeros, never precision |\n| Whole numbers | A column whose values are all whole shows no decimals, as today |",
+      "proposed": "Every numeric report-table column with a declared scale has one display scale. The author can set `columns[n].decimals` from 0 to 6. Otherwise a fixed-scale source supplies the scale. For example, SQL or Parquet DECIMAL(12,2) displays 123.45 with both cents digits, and 9 reads 9.00. An explicit coarser significant-digit limit still applies: when the author sets `digits`, each cell is rounded to them first and the scale only pads it with zeros, so neither limit reveals a finer value. A column with a declared scale shows every cell as a plain number at that scale, with thousands separators and the unit, and never with a scale word or an exponent: a DECIMAL(38,2) column of 12345.67, 987.5 and 1234567.89 reads $12,345.67, $987.50 and $1,234,567.89. In a percent column the scale counts after multiplying by 100. A year column prints whole numbers and ignores `decimals`. `format: number_compact` with `decimals` asks for the words outright: every cell is in the same word at those places. A number the scale would print as zero keeps its own digits instead, so 0.04 at one decimal reads 0.04 and 98.77 beside a column in millions reads 98.8; no value is ever printed as zero. A column with no declared scale, whether its numbers are inline, CSV or JSON, or its format is `number`, `number_compact` or `percent` without `decimals`, has no column scale: each cell keeps the precision of its own value at the author's significant digits, three by default, as everywhere else (FEA-CH-37), so 9.26, 9 and 8.98 read 9.26, 9 and 8.98 and 12345.67 beside 987.5 reads 12.3 thousand and 988. Whether such a column should also get one scale, from the most decimals any of its cells needs, is open for Daniel. Heat and reader sorting use the displayed number in source units. Chart labels, readouts, chart Table and CSV keep FEA-CH-37.",
       "options": [
         {
           "label": "One scale per column, from the author or the source",
@@ -2430,11 +2422,19 @@
       ],
       "recommendation": "One scale per column, from the author or the source: a column of measurements is read down, and mixed decimals read as different precision that the data does not have.",
       "confidence": "inferred",
-      "conflicts": "FEA-CH-37 bounds what readers see by the author's precision; this card pads with zeros and never adds a digit. TYP-37 types a CSV cell from its text, and its trailing zeros are lost when the cell becomes a number, so the same reader sees the same mix from a CSV. `digits` stays significant digits; whether the new option may stand beside `digits` on one field or replaces it there is open. The lead ruled on 19 November 2026 that this is proposed and the engine change is not built that night.",
+      "conflicts": "Daniel chose “Use one scale per column, from the author or the source” on 23 November 2026. This applies it to report tables with a declared scale, from the author or the source. A column with neither keeps FEA-CH-37's per-cell precision until he says whether it should also get one scale: the build of 24 November gave it one from its widest cell, which printed $98,765.4 for 98765.4321 and 0.00 million for 98.77, and the release check of FEA-CH-37 failed on it (the lead's ruling of 25 November 2026). TYP-37 types a CSV cell from its text, whose written trailing zeros are lost, so a CSV declares no scale. Whether chart surfaces should follow is open.",
       "sources": [
         {
+          "label": "The lead's ruling after the second review: a declared scale makes every cell a plain number at that scale, never compacted. On 25 November 2026 he ruled that a column with none goes back to each cell's own precision, and that no nonzero number is ever printed as zero",
+          "date": "2026-11-24"
+        },
+        {
+          "label": "Daniel chose “Use one scale per column, from the author or the source” on the project board at 20:03.",
+          "ref": "typ-104-column-decimals (Q41)",
+          "date": "2026-11-23"
+        },
+        {
           "label": "The lead's review of the Parquet example: the heatmap printed 9 and 8 among 9.26 and 8.98, and the table 7% among 6.1%; write the rule up as a card, do not build it",
-          "ref": "S27-986",
           "date": "2026-11-19"
         },
         {
@@ -2444,7 +2444,6 @@
         },
         {
           "label": "A CSV column of 9.26, 9.00 and 8.98 prints 9.26, 9 and 8.98 in a table: `richview generate` with the release build of the branch at b0e709bb",
-          "ref": "S27-986",
           "date": "2026-11-19"
         }
       ]
@@ -2582,7 +2581,6 @@
         },
         {
           "label": "Every report in its own folder; fail fast otherwise (G-REPORT-FOLDER)",
-          "ref": "S27-581",
           "date": "2026-10-04"
         },
         {
@@ -2651,7 +2649,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "`docs/RMD-SPEC.md:323` says external assets are diagnosed and leave `_richview.offline` false. S27-616 (2026-10-10) asks for externally hosted video, pictures and audio; pinned references (TYP-41) answer it. A report with a pinned asset no longer opens completely offline; what its self-contained file and PDF hold is open (TYP-42). Daniel's FEA-RP-62 answer accepts hotlinked Unsplash photos, which are not pinned: a published photo can change or disappear at Unsplash, and a self-contained file shows it only online. A raw HTML `<img>` with a remote URL passes today with an info (T-MARKDOWN-EXT); it falls under this rule unless FEA-RP-14 removes raw HTML."
+      "conflicts": "`docs/RMD-SPEC.md:323` says external assets are diagnosed and leave `_richview.offline` false. The design-and-hosting brief (2026-10-10) asks for externally hosted video, pictures and audio; pinned references (TYP-41) answer it. A report with a pinned asset no longer opens completely offline; what its self-contained file and PDF hold is open (TYP-42). Daniel's FEA-RP-62 answer accepts hotlinked Unsplash photos, which are not pinned: a published photo can change or disappear at Unsplash, and a self-contained file shows it only online. A raw HTML `<img>` with a remote URL passes today with an info (T-MARKDOWN-EXT); it falls under this rule unless FEA-RP-14 removes raw HTML."
     },
     {
       "id": "TYP-41",
@@ -2660,8 +2658,8 @@
       "refId": "D-TYP-ASSET-REF",
       "group": "Data and report folder",
       "title": "Pinned remote asset references",
-      "question": "Do `src` and `data` accept integrity-pinned remote asset references (`url`, `bytes`, `sha256`, `type`, `visibility`), the hosting contract S27-616 asks for, in the form below?",
-      "why": "S27-616 (2026-10-10) asks for externally hosted large datasets, video, pictures and audio \"so authors do not have to embed large payloads inside reports\", with a clear asset reference and loading contract. The `AssetRef` type and the upload commands exist (PR #22), but no `.rmd` field accepts a reference, so nothing consumes them. ARC-34 decides the uploader commands and MCP tools; this card decides only the source type.",
+      "question": "Do `src` and `data` accept integrity-pinned remote asset references (`url`, `bytes`, `sha256`, `type`, `visibility`), the hosting contract the design-and-hosting brief asks for, in the form below?",
+      "why": "The design-and-hosting brief (2026-10-10) asks for externally hosted large datasets, video, pictures and audio \"so authors do not have to embed large payloads inside reports\", with a clear asset reference and loading contract. The `AssetRef` type and the upload commands exist (PR #22), but no `.rmd` field accepts a reference, so nothing consumes them. ARC-34 decides the uploader commands and MCP tools; this card decides only the source type.",
       "proposed": "In the rewrite (INT-31): besides report-relative paths and `data:` URIs (T-REPORT-FOLDER), `src` and `data` accept an `AssetRef` mapping as PR #22's type defines it: `url` (HTTPS), `bytes`, `sha256` (lowercase hex of the whole object), `type` (a media type from each use's allowlist), `visibility` (`public` or `private`), and optional `duration` (audio and video) and `width` and `height` (image and video, to reserve layout). `url` points at RichView's managed hosting (INT-27) or the author's own HTTPS host or S3-compatible bucket; a presigned URL is never a reference. Renders and checks never fetch (ARC-11): they read a verified local copy that the upload keeps (ARC-34, FEA-SF-50), and an explicit download command fetches a missing copy and checks its size and SHA-256; a missing or mismatched copy is an error at the field's line. The published page links the asset and the reader's browser loads it from its host; the runtime checks a dataset's SHA-256 before use. A plain remote URL stays an error (TYP-40).\n\nOpen: what the self-contained file and the PDF hold for a hosted asset (TYP-42); how a private asset reaches its readers, since a presigned URL is never a reference; and where the verified local copy lives (inside the report folder and ignored by Git, or a user cache).",
       "options": [
         {
@@ -2698,11 +2696,10 @@
         },
         {
           "label": "Seamless data and media hosting: externally hosted datasets and media, a clear asset reference and loading contract, an agent-usable upload workflow",
-          "ref": "S27-616",
           "date": "2026-10-10"
         }
       ],
-      "conflicts": "S27-616 is Daniel's latest stated goal for large payloads; this card answers it. ARC-34 and FEA-SF-50 decide the upload commands and MCP tools that produce these references. A report with a pinned asset renders only with its local copy present, and its HTML no longer opens completely offline (TYP-42, INT-04)."
+      "conflicts": "The design-and-hosting brief is Daniel's latest stated goal for large payloads; this card answers it. ARC-34 and FEA-SF-50 decide the upload commands and MCP tools that produce these references. A report with a pinned asset renders only with its local copy present, and its HTML no longer opens completely offline (TYP-42, INT-04)."
     },
     {
       "id": "TYP-42",
@@ -2754,7 +2751,6 @@
         },
         {
           "label": "Output in `Rendered`, default basename plus `.html` (G-RENDERED-OUTPUT)",
-          "ref": "S27-581",
           "date": "2026-10-04"
         },
         {
@@ -2763,7 +2759,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "S27-616 (2026-10-10) asks that large payloads not be embedded inside reports. Daniel's INT-31 answer brings uploads, author-hosted assets and RichView-managed hosting into the rewrite (TYP-41), so a report that references hosted assets no longer opens completely offline from its file. That is an exception to INT-04's self-contained default, and what the file holds instead is Daniel's call.\n\nDaniel's INT-31 answer adds the WebGL renderer to the inline runtime, and his ARC-05 answer requires it to run in recent Safari, Firefox and Chrome, including from a file opened from disk (unproven; DEL-74); without WebGL each chart's frame shows a notice. A PDF's charts are vector output (FEA-RP-43)."
+      "conflicts": "The design-and-hosting brief (2026-10-10) asks that large payloads not be embedded inside reports. Daniel's INT-31 answer brings uploads, author-hosted assets and RichView-managed hosting into the rewrite (TYP-41), so a report that references hosted assets no longer opens completely offline from its file. That is an exception to INT-04's self-contained default, and what the file holds instead is Daniel's call.\n\nDaniel's INT-31 answer adds the WebGL renderer to the inline runtime, and his ARC-05 answer requires it to run in recent Safari, Firefox and Chrome, including from a file opened from disk (unproven; DEL-74); without WebGL each chart's frame shows a notice. A PDF's charts are vector output (FEA-RP-43)."
     },
     {
       "id": "TYP-43",
@@ -2892,7 +2888,7 @@
       "group": "Style files",
       "title": "Style references",
       "question": "Are style references only builtin names and report-local `.rstyle.yaml` paths, with inline YAML available only as a typed API option?",
-      "why": "Today the inline-YAML heuristic (a reference containing `:` or a newline is parsed as YAML) reaches only host and API inputs: `RenderOptions.styles` and CLI `--style` values that contain a newline. A frontmatter entry containing `:` fails as `report.asset.escape`, and core render reports any unresolved non-builtin frontmatter reference as `style.unresolved`. The spec accepts any named `.yaml` or `.yml` file and calls the `.rstyle.yaml` suffix a convention. S27-417 once asked for styles linked by URL.",
+      "why": "Today the inline-YAML heuristic (a reference containing `:` or a newline is parsed as YAML) reaches only host and API inputs: `RenderOptions.styles` and CLI `--style` values that contain a newline. A frontmatter entry containing `:` fails as `report.asset.escape`, and core render reports any unresolved non-builtin frontmatter reference as `style.unresolved`. The spec accepts any named `.yaml` or `.yml` file and calls the `.rstyle.yaml` suffix a convention. The style-files issue once asked for styles linked by URL.",
       "proposed": "A `styles` entry or `--style` value is a builtin name (T-STYLE-BUILTINS) or a report-relative path ending in `.rstyle.yaml`. Change: the spec accepts any `.yaml` or `.yml` file today; every b4db233 style file already ends in `.rstyle.yaml`. Anything else is `style.unknown` (error) listing the builtins. Inline style YAML is a typed API option (`{source}`), never parsed from a string. No URLs. Without any reference the default builtin from part 06 applies.",
       "options": [
         {
@@ -2904,7 +2900,7 @@
           "detail": "No rename for future style files; any YAML file in the folder can be passed as a style."
         },
         {
-          "label": "Also URLs (S27-417)",
+          "label": "Also URLs",
           "detail": "Shared remote styles; breaks offline, reproducible renders."
         }
       ],
@@ -2943,12 +2939,10 @@
         },
         {
           "label": "Cascading style files linked by URL or name",
-          "ref": "S27-417",
           "date": "2026-06-20"
         },
         {
           "label": "Optional styling YAML beside the source (G-OPTIONAL-STYLE)",
-          "ref": "S27-581",
           "date": "2026-10-04"
         }
       ]
@@ -3761,7 +3755,7 @@
       "title": "Version grammar",
       "question": "Is a report version strict SemVer without build metadata?",
       "why": "Leading zeros (`01.02.03`) pass today, build metadata makes `1.0.0+a` and `1.0.0+b` separate stored versions with equal precedence, and `version: 1.0` (a YAML number) is dropped with only a warning.",
-      "proposed": "`version` is a string `MAJOR.MINOR.PATCH` with an optional `-prerelease`, following SemVer 2.0.0 numeric rules (no leading zeros), with no build metadata, at most 64 bytes and no surrounding whitespace. Drafts may omit it; publishing requires it. A YAML number such as `1.0` is `frontmatter.type` with a hint to quote it. New reports start at `0.0.1` (S27-418).",
+      "proposed": "`version` is a string `MAJOR.MINOR.PATCH` with an optional `-prerelease`, following SemVer 2.0.0 numeric rules (no leading zeros), with no build metadata, at most 64 bytes and no surrounding whitespace. Drafts may omit it; publishing requires it. A YAML number such as `1.0` is `frontmatter.type` with a hint to quote it. New reports start at `0.0.1`.",
       "confidence": "inferred",
       "sources": [
         {
@@ -3781,7 +3775,6 @@
         },
         {
           "label": "Versions start at 0.0.1",
-          "ref": "S27-418",
           "date": "2026-06-20"
         }
       ]
@@ -3961,7 +3954,6 @@
         },
         {
           "label": "Versions preserve consistency; keep raw sources for regeneration",
-          "ref": "S27-413",
           "date": "2026-06-20"
         }
       ],
@@ -4080,7 +4072,6 @@
         },
         {
           "label": "Cloudflare selected for richview.ai; Fly host legacy",
-          "ref": "S27-577",
           "date": "2026-10-04"
         }
       ],
@@ -4592,7 +4583,6 @@
         },
         {
           "label": "Multi-tab reports",
-          "ref": "S27-649",
           "date": "2026-10-17"
         }
       ],
@@ -4647,7 +4637,6 @@
         },
         {
           "label": "Playable charts",
-          "ref": "S27-648",
           "date": "2026-10-17"
         }
       ],
@@ -4683,7 +4672,6 @@
         },
         {
           "label": "Flagship and chart polish",
-          "ref": "S27-654",
           "date": "2026-10-18"
         },
         {
@@ -4738,7 +4726,6 @@
         },
         {
           "label": "Data connectors",
-          "ref": "S27-650",
           "date": "2026-10-17"
         }
       ],
@@ -4784,7 +4771,7 @@
         },
         {
           "label": "PR #70 merged into `main` as merge commit 97ac0d0 on 2026-10-26; its branch has no commits outside `main`, and `main` now holds `publications/news/`, `cloudflare/publish/` and `publish.yml`",
-          "ref": "git log origin/main; git rev-list --count origin/main..origin/feat/s27-655-richview-publish (0)",
+          "ref": "git log origin/main; git rev-list --count origin/main..3f5c35f (0)",
           "date": "2026-10-26"
         },
         {
@@ -4799,7 +4786,6 @@
         },
         {
           "label": "RichView Publish",
-          "ref": "S27-655",
           "date": "2026-10-18"
         }
       ],
@@ -4845,6 +4831,82 @@
         }
       ],
       "conflicts": "Daniel's INT-06 answer calls Publish external-facing, and his INT-83 answer gives internal publishing to Cowork, one of the two server forms; `mode: internal` stays only if FEA-BR-45 keeps it for Publish."
+    },
+    {
+      "id": "TYP-105",
+      "kind": "type",
+      "importance": "important",
+      "refId": "T-REPORT-INPUT-LIMITS",
+      "group": "Resource limits",
+      "title": "File and report size limits",
+      "question": "Which bytes count toward the file and report limits when RichView keeps every observation?",
+      "why": "The million-order Parquet example needs 3.54 MB with eleven columns. A 1.61 MB electricity CSV produces 8.77 MB of HTML. The choice changes which reports fit.",
+      "proposed": "Use decimal MB. Allow up to 5,000,000 bytes per input and 50,000,000 bytes across one version’s inputs, inclusive. Count the .rmd, used styles, data including local database files and Parquet files a connector reads, connector declarations and queries, media and linked downloads. Count each distinct report-relative path once, before encoding. Inline rows count inside the source. Count each distinct materialized external result as one input. A file named in data.parquet counts as the table read from it, the text the report carries, not as the file on disk, and every surface says ‘table read from {path}’. Exclude unrelated folder contents, generated output, caches and earlier versions. Check inputs in check, generate, CLI publish and the Publish builder. Count the bytes kept for this version, including downloads and the cover, before writing or sending. The native server checks the decoded inputs it receives before rendering or storing. A publish request is limited to 32 MiB, so publishing takes about 25,000,000 bytes of linked files, not 50,000,000. The client refuses a larger request before sending, with report.input-limit and that ceiling. Keep every observation. report.file-limit: File ‘{path}’ is {bytes} bytes. The limit is 5,000,000 bytes. Reduce or split this file. report.input-limit: This report uses {bytes} bytes of inputs. The limit is 50,000,000 bytes. Reduce the inputs or split the report.",
+      "options": [
+        {
+          "label": "Inputs per version",
+          "detail": "Keep the 64 MiB HTML safety limit, 32 MiB native request limit and 50 MiB hosted organization allowance. On a storage refusal publish.quota gives the bytes needed and available."
+        },
+        {
+          "label": "Delivered version",
+          "detail": "Count generated HTML as another input and apply the file limit to it."
+        },
+        {
+          "label": "Stored report history",
+          "detail": "Count every retained version and its HTML together."
+        }
+      ],
+      "recommendation": "Use inputs per version so authors can check locally and keep every observation. Seed the million-order example with the eleven columns its queries use.",
+      "confidence": "stated",
+      "sources": [
+        {
+          "label": "Daniel: “storing everything, make a file cap at 5mb per file, 50mb total per report”",
+          "ref": "Linear, 16:54",
+          "date": "2026-11-23"
+        },
+        {
+          "label": "Daniel: “Check files in the report folder when generating and publishing”",
+          "ref": "report-size-limits board answer, 20:03",
+          "date": "2026-11-23"
+        }
+      ],
+      "conflicts": "TYP-43 continues to bound requests, decoded datasets and generated HTML. Its 32 MiB request limit leaves about 25,000,000 bytes of linked files for publish, so the 50,000,000-byte total holds for check and generate only. Whether to raise the publish route’s limit is open: it depends on the memory of the hosted instance."
+    },
+    {
+      "id": "TYP-106",
+      "kind": "type",
+      "importance": "key",
+      "refId": "T-RSLIDE",
+      "group": "Rich Slides",
+      "title": "The `.rslide` source and its diagnostics",
+      "question": "Is this the whole syntax of a deck: setup, `---` slides, furniture keys, nine layouts of named slots, `cols` and `rows`, and six diagnostics?",
+      "why": "Daniel rejected TYP-100's frontmatter boolean on 23 November: slides are a format of their own, and the new format's fields and diagnostics need a type card of their own. This is that card. The less syntax a format adds, the less an agent has to learn, and every rule here is one the parser can check by arithmetic before anything renders (INT-13).",
+      "proposed": "`.rslide` is one UTF-8 file of at most 16 MiB (`source.limit`, TYP-43), in a YAML-like syntax of its own that keeps YAML's principles, `key: value` lines and indentation, and drops what slides do not need: no quoting, no anchors, no flow collections outside the blocks. A line at column 0 that starts with `#` before the first line of the setup is a comment, and a source whose first non-comment line is `format: rslide/1` is a deck; a tab in indentation is `deck.syntax`.\n\n**Structure.** The first line is `format: rslide/1` and the text from it to the first `---` line is the setup. Every slide opens with a `---` line, and the line closing the last slide is optional. A slide is a mapping of keys at column 0, in any order: the title first and the setup keys (`cols`, `rows`) last by convention, and order never changes the result. Slides have no ids, and a key written twice in one mapping is `deck.syntax`.\n\n| Where | Key | Value |\n| --- | --- | --- |\n| Setup | `format` | `rslide/1`, the first line; a newer major is `frontmatter.format` |\n| Setup | `title`, `description`, `version`, `slug` | text, as in a report's frontmatter |\n| Setup | `lang` | a language tag, as the frontmatter's `lang` |\n| Setup | `styles` | a list of styles, as the frontmatter's `styles` |\n| Slide | `title`, `subtitle`, `source`, `footer` | text on one line |\n| Slide | `cols`, `rows` | parts of 24 joined by `-`, such as `9-15` or `8-8-8` |\n| Slide | `left`, `right`, `top`, `bottom`, `middle`, `top-left`, `top-right`, `bottom-left`, `bottom-right` | a slot |\n| Slide | `chart`, `metric`, `table`, `text` | the slide's only piece, written as a slot's content |\n\n**Text** is everything after the key's colon on its line and the lines under it indented deeper than the key, with that indent removed, read as Markdown with the report's own reader and the report's checks. A line that opens a fenced block is the error `deck.piece`: a chart, metric or table is written as a mapping. **A slot's content** is text, or a mapping of exactly one `chart`, `metric` or `table`, whose indented lines are that block's YAML as its fence holds it: the registry's fields, validation and diagnostics, with `path` rooted at the block and `line` the deck's own. A mapping that holds anything else, or two pieces, is `deck.piece`.\n\n**Diagnostics.** They carry level, code, message, path, line and tag like every finding (TYP-53); paths read `slides[3].left.chart.encoding.y`, counted from 1 as the guide counts slides.\n\n| Code | Level | When |\n| --- | --- | --- |\n| `deck.empty` | error | The file has no slide. |\n| `frontmatter.format` | error | The first line names a newer major version than this build reads. |\n| `deck.syntax` | error | A line that is not `key: value`, a key twice, or a tab in indentation. |\n| `deck.key` | warning | A key the format does not read, named with the keys it does; it is ignored. `notes` and `reveal` are named as later additions. |\n| `deck.layout` | error | The slots of a slide are not one of the nine layouts; the finding names the slots and the nearest layout. |\n| `deck.piece` | error | A slot holds two pieces, a piece that is not a chart, metric or table, an empty slot, or a fenced block in text. |\n| `deck.span` | error | `cols` or `rows` does not add up to 24, has more or fewer parts than the layout has cuts, or is set on an axis the layout does not cut. |\n| `slides.density` | warning | A slot holds more than its box shows well (FEA-RP-73). |\n| `frontmatter.slides` | error | An `.rmd` still holds `slides` (FEA-RP-72). |\n\n**Tools that edit a deck** use the entry points a report has, on the text: `parse`, `validate`, `check` and `render`, and `is_deck(text)` where a host has no file name. From the document, `deck_slides()` lists each slide's number, its first and last source line, its title and its layout name, and `slide_at_line(line)` names the slide a line belongs to, so an editor keeps its preview on the slide under the caret and the caret on the slide a reader opens. Completion reads the registry as it does for a block: `authoring_keys(\"deck-slide\", [])` and `authoring_keys(\"deck-setup\", [])` list the keys, and a slot's chart, metric or table is completed as in a report. The rendition marks each slide `data-rv-slide=\"N\"` and opens at `#slide=N`, with N counted from 1 as the paths of the diagnostics count.\n\n`slides.tabs` leaves with the frontmatter switch. The chart, metric and table blocks keep every diagnostic they have; a block that fails shows the report's notice in its slot, with the fence as source.",
+      "options": [
+        {
+          "label": "Build as proposed",
+          "detail": "A YAML-like file, text taken as written, blocks in their own vocabulary, six `deck.*` and `slides.*` diagnostics."
+        },
+        {
+          "label": "Strict YAML",
+          "detail": "A multi-document YAML stream; every text containing a colon, a `$` or a leading `*` needs quoting, which Daniel ruled out on 23 November."
+        }
+      ],
+      "recommendation": "Build as proposed: it is the shape Daniel approved on 23 November, with the diagnostics a layout and a grid make checkable.",
+      "confidence": "inferred",
+      "sources": [
+        {
+          "label": "Daniel, 23 November 2026: slides are a separate format with named slots on a 24-column grid, written as a YAML-like file (FEA-RP-65, TYP-100)",
+          "ref": "docs/lockdown/answers/04b-features-report.json",
+          "date": "2026-11-23"
+        },
+        {
+          "label": "Daniel, 24 November 2026: “how they can report combine: they don't, basically. How many rows? 24. The extension should be just .rslide.”",
+          "ref": "Daniel's message of 24 November 2026, relayed by the lead",
+          "date": "2026-11-24"
+        }
+      ],
+      "conflicts": "TYP-100 (rejected) defined `slides: true`; its diagnostics `slides.density` and `slides.tabs` become `slides.density` per slot and nothing, and the frontmatter key becomes the retired `frontmatter.slides` (FEA-RP-72)."
     }
   ]
 }

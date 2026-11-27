@@ -22,6 +22,6 @@ Frozen sibling `7e153a2` composition passes 120 ordinary-motion views and an ind
 Build the source and base in separate worktrees. From this source worktree, set `ZERO_BAR_BASE_WT` to the built base and run these local headless captures; they verify the recorded source and PNG hashes.
 
 ```sh
-node docs/evidence/chart-refinements/zero-bars/capture.mjs . tmp/zero-bars/reproduced-after after
-node docs/evidence/chart-refinements/zero-bars/capture.mjs "$ZERO_BAR_BASE_WT" tmp/zero-bars/reproduced-before before
+node docs/evidence/chart-refinements/zero-bars/capture.ts . tmp/zero-bars/reproduced-after after
+node docs/evidence/chart-refinements/zero-bars/capture.ts "$ZERO_BAR_BASE_WT" tmp/zero-bars/reproduced-before before
 ```

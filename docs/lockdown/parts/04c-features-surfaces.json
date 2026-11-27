@@ -74,8 +74,8 @@
 					"date": "2026-10-22"
 				},
 				{
-					"label": "Linear tag C-CLI-MCP (S27-591, S27-593): documentation uses only real commands and tools",
-					"ref": "docs/lockdown/evidence/linear.md:221",
+					"label": "Linear tag C-CLI-MCP: documentation uses only real commands and tools",
+					"ref": "the Linear evidence (not published)",
 					"date": "2026-10-05"
 				}
 			],
@@ -317,7 +317,6 @@
 				},
 				{
 					"label": "Daniel's brief asks for a readable PDF",
-					"ref": "S27-616",
 					"date": "2026-10-10"
 				},
 				{
@@ -759,7 +758,6 @@
 				},
 				{
 					"label": "Linear tag F-REPORT-VERSIONS: each report has a version; keep raw `.rmd` and style sources",
-					"ref": "S27-413",
 					"date": "2026-06-20"
 				}
 			],
@@ -999,7 +997,7 @@
 			"title": "Private reports and access control",
 			"question": "Where does read protection live: in a basic role set on RichView servers, or only in the self-hoster's own access layer?",
 			"why": "The live home page says each report can be locked down “with access control” and shows a “private” badge, while the server makes every stored report readable by anyone with its address, as `publishing.md` and the privacy page say. Only RichView News protects anything, and only its `/internal` and `/_editor/` paths, through Cloudflare Access; its home page is public. Daniel's INT-06 answer gives RichView's servers a basic role set (reader, author, owner; edit, delete, share) and keeps it out of the core.",
-			"proposed": "Read access belongs to RichView's servers, never to the core: a RichView server's target is a basic role set, reader, author and owner, with rights to edit, delete and share, and readers see what is shared with them (INT-27). The CLI, MCP server and VS Code extension stay free of accounts. Until a server ships that role set, it has no read protection: every stored report is readable by anyone who can reach its address, public pages say so (FEA-SF-30), and the docs show how a self-hoster puts the whole server behind their own access layer, such as Cloudflare Access or an authenticating proxy. Reports move to a separate report origin before read authentication ships (ARC-15). Cowork and Publish are both in the rewrite (INT-31) and get the role set from the server core they share, so `richview server`, Cowork's first cut (FEA-SF-20), gains it there rather than on its own. Open: the identity source, whether sharing is per report or per host, and whether the roles ship in Cowork's first cut or after its host-owner token (INT-83).",
+			"proposed": "Read access belongs to RichView's servers, never to the core: a RichView server's target is a basic role set, reader, author and owner, with rights to edit, delete and share, and readers see what is shared with them (INT-27). The CLI, MCP server and VS Code extension stay free of accounts. Until a server ships that role set, it has no read protection: every stored report is readable by anyone who can reach its address, public pages say so (FEA-SF-30), and the docs show how a self-hoster puts the whole server behind their own access layer, such as Cloudflare Access or an authenticating proxy. Reports move to a separate report origin before read authentication ships (ARC-15). Cowork and Publish are both in the rewrite (INT-31) and get the role set from the server core they share, so `richview server`, Cowork's first cut (FEA-SF-20), gains it there rather than on its own. Open: the identity source, whether sharing is per report or per host, and whether the roles ship in Cowork's first cut or after its host-owner token (INT-83). Proposed hosted staff inspection amendment (Q47): one individually identified inspector can redeem a time-limited, single-use case grant for one artifact in an exact report version, backed by verified written owner permission or a binding order. Record the actor, owner, case, evidence reference, target, purpose, outcome and UTC time outside the inspector’s control before returning bytes. Refuse access if recording fails. The owner can see their entries, subject to a legally required disclosure hold. Keep ordinary tenant rights separate. A public commitment to complete staff history waits for standing host, mail, release, restore and crash-material access to be removed or equivalently recorded and for Daniel’s approval.",
 			"options": [
 				{
 					"label": "Basic roles on RichView servers, proxy meanwhile",
@@ -1386,7 +1384,6 @@
 				},
 				{
 					"label": "Linear tag F-VSCODE: “a real installable VS Code extension” with a “generated VSIX”",
-					"ref": "S27-412",
 					"date": "2026-10-04"
 				},
 				{
@@ -1445,7 +1442,7 @@
 			"group": "VS Code extension",
 			"title": "Syntax highlighting in VS Code",
 			"question": "Does the extension highlight frontmatter, rich fences and Markdown, with its fence list taken from core?",
-			"why": "S27-412's June context records that “the VS Code plugin starts with syntax highlighting”, and the home page advertises it. The hand-written TextMate grammar (scope `text.rmd`) highlights the frontmatter and fence bodies as YAML but knows six tags (`chart`, `table`, `big`, `callout`, `image`, `embed`) while core parses nine: `metric`, `audio` and `video` fences highlight as plain code.",
+			"why": "The VS Code request's June context records that “the VS Code plugin starts with syntax highlighting”, and the home page advertises it. The hand-written TextMate grammar (scope `text.rmd`) highlights the frontmatter and fence bodies as YAML but knows six tags (`chart`, `table`, `big`, `callout`, `image`, `embed`) while core parses nine: `metric`, `audio` and `video` fences highlight as plain code.",
 			"proposed": "Keep a TextMate grammar: frontmatter as YAML, each rich fence with its tag marked and its body as YAML, the rest as Markdown, and unknown fences as ordinary code. Its tag list is generated from core's block tags (ARC-09), so a new block highlights without a grammar edit. The language configuration keeps HTML comments, bracket pairs and auto-closing as today. Highlighting on the site follows ARC-43.",
 			"confidence": "observed",
 			"sources": [
@@ -1466,7 +1463,6 @@
 				},
 				{
 					"label": "June context: “Daniel said the VS Code plugin starts with syntax highlighting, then features like 'add chart' and commands around chart code blocks.”",
-					"ref": "S27-412",
 					"date": "2026-06-20"
 				},
 				{
@@ -1485,7 +1481,7 @@
 			"group": "VS Code extension",
 			"title": "Live preview beside the source",
 			"question": "Does the preview keep rendering unsaved edits and folder changes, and keep the last good render when the source breaks?",
-			"why": "The preview is how a human watches an agent's edits land. It renders the unsaved buffer, follows changes anywhere in the report folder and marks its tab ✓, ▲ or ✕. When rendering fails outright it blanks the panel, so the author loses the picture exactly when something broke. Keeping the last good render extends S27-594's rule for the home-page editor demo, “avoid silently presenting stale output as the latest edit”, to VS Code (inferred).",
+			"why": "The preview is how a human watches an agent's edits land. It renders the unsaved buffer, follows changes anywhere in the report folder and marks its tab ✓, ▲ or ✕. When rendering fails outright it blanks the panel, so the author loses the picture exactly when something broke. Keeping the last good render extends the homepage-motion brief's rule for the home-page editor demo, “avoid silently presenting stale output as the latest edit”, to VS Code (inferred).",
 			"proposed": "Keep “RichView: Open Live Preview”: a webview beside the editor that renders the unsaved source, refreshes on every edit and on any change in the report folder except `Rendered/`, follows the active `.rmd` editor, and shows ✓, ▲ or ✕ in its title. Diagnostics appear in a banner above the report, outside the report's HTML (FEA-RP-31), as in `richview serve` (FEA-SF-08). A failed render keeps the last good render under that banner, and the banner clears on the next success. The preview renders the source as declared: `richview.previewTheme` goes with `theme` (FEA-RP-33). Renders are cancellable and coalesced to the latest edit (ARC-44).",
 			"confidence": "observed",
 			"sources": [
@@ -1521,16 +1517,14 @@
 				},
 				{
 					"label": "Home-page editor demo: “avoid silently presenting stale output as the latest edit”",
-					"ref": "S27-594",
 					"date": "2026-10-05"
 				},
 				{
 					"label": "June baseline: “preview/report-card action”",
-					"ref": "S27-412",
 					"date": "2026-06-20"
 				}
 			],
-			"conflicts": "FEA-RP-31 drops the report card the preview appends today, and S27-412's June baseline asked for a “preview/report-card action”; if FEA-RP-31 is rejected, the preview keeps the card. TYP-98's `richview/preview` returns HTML “with the report card” and changes with FEA-RP-31. If FEA-RP-33 is rejected, `richview.previewTheme` stays as a preview-only setting that never reaches Export (FEA-SF-27).\n\nDaniel's INT-31 answer makes the preview draw charts with WebGL inside the VS Code webview; whether VS Code gives the webview a WebGL context on every supported platform (remote sessions, disabled GPU acceleration) is unproven, and under Daniel's ARC-05 answer a webview without one shows each chart's frame with a notice. DEL-74 checks that the preview mounts WebGL charts on macOS and Linux."
+			"conflicts": "FEA-RP-31 drops the report card the preview appends today, and the VS Code request's June baseline asked for a “preview/report-card action”; if FEA-RP-31 is rejected, the preview keeps the card. TYP-98's `richview/preview` returns HTML “with the report card” and changes with FEA-RP-31. If FEA-RP-33 is rejected, `richview.previewTheme` stays as a preview-only setting that never reaches Export (FEA-SF-27).\n\nDaniel's INT-31 answer makes the preview draw charts with WebGL inside the VS Code webview; whether VS Code gives the webview a WebGL context on every supported platform (remote sessions, disabled GPU acceleration) is unproven, and under Daniel's ARC-05 answer a webview without one shows each chart's frame with a notice. DEL-74 checks that the preview mounts WebGL charts on macOS and Linux."
 		},
 		{
 			"id": "FEA-SF-24",
@@ -1567,7 +1561,6 @@
 				},
 				{
 					"label": "Linear tag F-VSCODE: live semantic diagnostics with useful source ranges",
-					"ref": "S27-412",
 					"date": "2026-10-04"
 				},
 				{
@@ -1587,7 +1580,7 @@
 			"group": "VS Code extension",
 			"title": "Completion, formatting, outline, folding and hover",
 			"question": "Do the four editing aids stay, and does hover join them?",
-			"why": "Completion and formatting were Daniel's October scope for the extension (S27-412); outline and folding came with PR #60. ARC-44 moves them from custom RPC to the Language Server Protocol, which changes the plumbing, not the behaviour. ARC-44 also lists hover, which the extension does not have today and no card specified.",
+			"why": "Completion and formatting were Daniel's October scope for the extension; outline and folding came with PR #60. ARC-44 moves them from custom RPC to the Language Server Protocol, which changes the plumbing, not the behaviour. ARC-44 also lists hover, which the extension does not have today and no card specified.",
 			"proposed": "Keep all four. Completion offers frontmatter and block keys, chart types, enumerated values and data field names from inline or local CSV and JSON data. Format Document normalises YAML spacing only where the decoded values stay identical and leaves prose, comments and unknown fences alone; format-on-save remains the user's own setting. Outline and breadcrumbs follow headings and named blocks; folding covers sections, fences and frontmatter. Hover is new: over a frontmatter or block key, a chart type or an enumerated value it shows that item's one-line description and allowed values from the generated vocabulary (ARC-09), and nothing else. All five work on unsaved, unfinished source and never render.",
 			"confidence": "observed",
 			"sources": [
@@ -1603,7 +1596,6 @@
 				},
 				{
 					"label": "Linear tag F-VSCODE: safe formatting, context-aware completion",
-					"ref": "S27-412",
 					"date": "2026-10-04"
 				},
 				{
@@ -1693,11 +1685,10 @@
 				},
 				{
 					"label": "June baseline: “insert chart block/snippet, validate/diagnose current file, and preview/report-card action”",
-					"ref": "S27-412",
 					"date": "2026-06-20"
 				}
 			],
-			"conflicts": "S27-412's June baseline listed “validate/diagnose current file” among the first three extension affordances; dropping the command keeps the diagnostics but removes the explicit action. If FEA-RP-33 is rejected, `richview.previewTheme` stays and still never reaches Export."
+			"conflicts": "The VS Code request's June baseline listed “validate/diagnose current file” among the first three extension affordances; dropping the command keeps the diagnostics but removes the explicit action. If FEA-RP-33 is rejected, `richview.previewTheme` stays and still never reaches Export."
 		},
 		{
 			"id": "FEA-SF-28",
@@ -1735,7 +1726,6 @@
 				},
 				{
 					"label": "“Reduce the top-level buttons and CTAs substantially”",
-					"ref": "S27-653",
 					"date": "2026-10-18"
 				},
 				{
@@ -1814,7 +1804,6 @@
 				},
 				{
 					"label": "Linear tag F-SITE-EDITOR-DEMO: highlighted editor, auto-render, honest diagnostics, Reset, style controls",
-					"ref": "S27-594",
 					"date": "2026-10-05"
 				}
 			],
@@ -1832,7 +1821,7 @@
 			"group": "Website: home, navigation and signup",
 			"title": "Home-page statements that do not match the product",
 			"question": "Is each of these home-page statements dropped or rewritten as below, in the rewrite and, where marked, on the live page through the legacy hotfix?",
-			"why": "G-HONEST-CLAIMS (INT-65) requires every public statement to describe what ships. Each statement below is live on richview.ai (checked 2026-10-22). All but two are untrue of `main` or break an answered rule: the open-source line states Daniel's direction (S27-594) and changes only its wording (INT-39), and the style names are true but name three of five builtins. OPN-43's legacy hotfix applies this card's wording to the live page for the rows marked “Hotfix”.",
+			"why": "G-HONEST-CLAIMS (INT-65) requires every public statement to describe what ships. Each statement below is live on richview.ai (checked 2026-10-22). All but two are untrue of `main` or break an answered rule: the open-source line states Daniel's direction and changes only its wording (INT-39), and the style names are true but name three of five builtins. OPN-43's legacy hotfix applies this card's wording to the live page for the rows marked “Hotfix”.",
 			"proposed": "| Statement | Reality at b4db233 | Rewrite | Live page |\n| --- | --- | --- | --- |\n| “A menu of your reports. Share, copy and protect each one.”; “get a menu of your finished reports … lock down with access control”; the “private” badge; “Share, copy link, protect.” | No menu, no read protection | Menu wording returns only once FEA-SF-18's menu exists, without “protect”; access-control wording and the badge are removed (FEA-SF-19) | Hotfix |\n| VS Code “snippets for the sleek, scientific and brutalist styles” | Snippets are per block type | “Snippets for every block” | Hotfix |\n| “One shortcut to publish” | A palette command, no key binding | “A publish command” | Hotfix |\n| “The coming release includes the CLI, MCP tools, report server and extension” | Nothing installs before launch; INT-71's install paths and extension listings come with it (INT-41, INT-43) | Removed | Hotfix |\n| “RichView will be fully open source. The source will be published with the release.” | Daniel's direction, worded before INT-39 | INT-39's sentence | Hotfix |\n| “Versions are immutable; the latest address points to the current one.” | A 51st version deletes the oldest; latest follows publication order | Kept only as TYP-64 and TYP-96 make it true | Until the rewrite |\n| “treatments such as sleek, scientific and brutalist”; “Start with sleek, scientific or brutalist” | Five builtins ship; the lines name three | The styles STY-05 keeps, named from core (DEL-18) | Until the rewrite |\n| “Get release updates”, “Release updates”, “release and product updates” and the consent text | No releases | INT-72's wording | Until the rewrite (INT-72) |\n| The flagship verdict quoted in the flagship section | INT-45 keeps findings off the home page | Removed; the section links the report | Until the rewrite |\n| “Every dot behind this page is part of a month of Hacker News comments …” | The dots exist only with the motion layer | Shown only while the page renders the dots (STY-44) | Until the rewrite |\n\nRows marked “Until the rewrite” stay on richview.ai until the rewrite reaches `prod`.",
 			"confidence": "observed",
 			"sources": [
@@ -1888,7 +1877,6 @@
 				},
 				{
 					"label": "“RichView will be fully open source” is Daniel's product direction",
-					"ref": "S27-594",
 					"date": "2026-10-05"
 				},
 				{
@@ -1963,7 +1951,6 @@
 				},
 				{
 					"label": "Linear tag F-SITE-SIGNUP: clear opt-in, honest results, private subscriber data, no emails without permission",
-					"ref": "S27-590",
 					"date": "2026-10-05"
 				},
 				{
@@ -2031,7 +2018,7 @@
 			"group": "Website: home, navigation and signup",
 			"title": "Home-page sections and their order",
 			"question": "Does the home page keep these sections, in this order?",
-			"why": "S27-590 and S27-594 fixed the sequence: “what the product does through the demonstration, What is RichView, five elements, the actual authoring/rendering/publishing workflow, Why RichView later, and coming-soon signup”, with flagship navigation in the marketing surface. `main` and live richview.ai follow it, with the flagship section before the signup. INT-44 leaves sections to part 04, and ARC-39 lists them without deciding them.",
+			"why": "The coming-soon homepage brief and the homepage-motion brief fixed the sequence: “what the product does through the demonstration, What is RichView, five elements, the actual authoring/rendering/publishing workflow, Why RichView later, and coming-soon signup”, with flagship navigation in the marketing surface. `main` and live richview.ai follow it, with the flagship section before the signup. INT-44 leaves sections to part 04, and ARC-39 lists them without deciding them.",
 			"proposed": "| Section | Content | Card |\n| --- | --- | --- |\n| Hero | The mark, INT-01's H1 and INT-02's tagline, “Let your agent present.” with “Designed, reproducible, versioned.” beneath it; no eyebrow, no status | INT-01, INT-02, INT-42 |\n| Live demo | Source beside the rendered report | FEA-SF-29 |\n| How does RichView work? | Under “There’s a better way: RichView.”, which follows the proof cards: “RichView is a CLI that works entirely offline to turn a text specification into a beautiful, interactive HTML file with charts, images and more.” The next sentence lists publishing, the VS Code extension, slides, brand styles and backgrounds. | INT-01, FEA-SF-30 |\n| The product | Six pieces under “RichView is a whole ecosystem.”: Rich Markdown, renderer, styles, backgrounds, VS Code extension, report server; Backgrounds links to its guide | FEA-SF-30, FEA-SF-57, FEA-SF-58 |\n| Workflow | Report folder, styles, render and check, publish, using commands and tools that exist | FEA-SF-01, FEA-SF-09, DEL-18 |\n| Why RichView? | INT-03's three value claims | INT-03 |\n| The flagship report | A link to the report, its styles and its source downloads, without its findings | FEA-SF-36, INT-45 |\n| Updates | The signup and INT-39's open-source sentence | FEA-SF-31, INT-72, INT-39 |\n\nThe flagship section's and the footer's chart links point to `/docs/charts` (FEA-SF-44). The four steps, in order:\n\n- Write a specification — Describe your text, charts and images in a file.\n- Convert it to HTML — Turn your local files into one self-contained HTML file.\n- Send it to a colleague — They can open the file in their browser.\n- Publish it for a link — Sign in to a RichView server and choose who can open the link.\n\n“Everything runs on your computer: no account, no upload, no AI calls of its own. Publishing is optional.” follows the steps, with a link to the installation guide. Section content sits below its heading at every width. Daniel removed slides from v3.0.0 on 23 November at 21:38. The homepage has no slide card, deck preview or guide link. Daniel requested the heading, offline CLI, and four steps on 23 November 2026; Daniel chose variant A on 23 November at 23:13, including the plain mention of slides. On 24 November Daniel moved the proof cards (megabytes of generated HTML beside kilobytes of text and data) up: they belong to the problem and sit under its sentence, before “There’s a better way: RichView.” and the explanation.\n\nNavigation is FEA-SF-28; motion is STY-44.",
 			"confidence": "observed",
 			"sources": [
@@ -2042,12 +2029,10 @@
 				},
 				{
 					"label": "Sequence: demonstration, What is RichView, five elements, workflow, Why RichView, coming-soon signup; flagship navigation in the marketing surface",
-					"ref": "S27-594",
 					"date": "2026-10-05"
 				},
 				{
 					"label": "Linear tag F-SITE-HOMEPAGE: logo and H1, editable source beside the rendered report, “What is RichView?”, five elements, the real workflow, “Why RichView?” later",
-					"ref": "S27-590",
 					"date": "2026-10-05"
 				},
 				{
@@ -2187,7 +2172,7 @@
 			"group": "Website: playground",
 			"title": "Where the playground lives and how people find it",
 			"question": "Does the public playground stay, and how is it reached before and after launch?",
-			"why": "Daniel defined the web surface as a playground, not an editor (S27-416), then removed playground links from the home page on 2026-10-12. Today `/playground` and `/app` serve it, the docs link it twice (top bar and “Try in your browser”) and the legal pages link it from their navigation. INT-43 makes the playground part of the launch try path. This card owns where it is linked; FEA-SF-28 fixes the rest of the header.",
+			"why": "Daniel defined the web surface as a playground, not an editor, then removed playground links from the home page on 2026-10-12. Today `/playground` and `/app` serve it, the docs link it twice (top bar and “Try in your browser”) and the legal pages link it from their navigation. INT-43 makes the playground part of the launch try path. This card owns where it is linked; FEA-SF-28 fixes the rest of the header.",
 			"proposed": "Keep the playground at `/playground`, with `/app` redirecting to it. Before launch it is linked from the docs only: the docs sidebar and the “Try in your browser” button on the docs home page, below the shared header (FEA-SF-28), plus each gallery example's “Open in playground” (FEA-SF-43). At launch it joins the header. It needs no account, uploads nothing and stores nothing on a server (INT-26).",
 			"options": [
 				{
@@ -2204,7 +2189,7 @@
 				},
 				{
 					"label": "Remove",
-					"detail": "One page, its editor code and its browser suites less to maintain; contradicts S27-416's playground scope and INT-43's launch try path."
+					"detail": "One page, its editor code and its browser suites less to maintain; contradicts the scope of the playground request and INT-43's launch try path."
 				}
 			],
 			"recommendation": "Docs now, header at launch.",
@@ -2212,7 +2197,6 @@
 			"sources": [
 				{
 					"label": "Web surface: “a simple playground”, not a full editor or chat",
-					"ref": "S27-416",
 					"date": "2026-06-20"
 				},
 				{
@@ -2249,7 +2233,7 @@
 			"group": "Website: playground",
 			"title": "Playground features",
 			"question": "Is this the playground's feature set?",
-			"why": "S27-416 asked for an example `.rmd`, a style selector, a generated preview and a copy, download or share path. Today's playground has all but sharing, plus a source loader nothing links to and a dead `#example` handler. The evidence file `product.md` wrongly says its style list includes the showcase treatments; it holds the five builtins.",
+			"why": "The playground request asked for an example `.rmd`, a style selector, a generated preview and a copy, download or share path. Today's playground has all but sharing, plus a source loader nothing links to and a dead `#example` handler. The evidence file `product.md` wrongly says its style list includes the showcase treatments; it holds the five builtins.",
 			"proposed": "Keep a source pane with the example report, rendered in the browser after each edit, a preview in an opaque-origin sandboxed iframe, and diagnostics beside the source. A row of STY-08's pills switches among the five styles STY-05 keeps; with no pill chosen, the preview renders the styles the source declares. There is no `<select>`: the extended themes STY-05 keeps stay off the playground (FEA-BR-17). Check runs chart geometry. Copy source, Download `.rmd` and Download report stay; the HTML download explains its refusal when the source links local files. Large sources edit in bounded windows. `?src=<url>` loads a same-origin source whose data and styles resolve beside it (ARC-66), and docs examples link it as “Open in playground”. The dead `#example` handler goes. Share links: FEA-SF-35.",
 			"confidence": "observed",
 			"sources": [
@@ -2284,8 +2268,7 @@
 					"date": "2026-10-21"
 				},
 				{
-					"label": "Requested outcome (S27-416, status Brain Dump): example `.rmd`, style selector, generated preview, copy/download/share path",
-					"ref": "S27-416",
+					"label": "Requested outcome (status Brain Dump): example `.rmd`, style selector, generated preview, copy/download/share path",
 					"date": "2026-06-20"
 				},
 				{
@@ -2307,7 +2290,7 @@
 			"component": "C-WEB-PLAYGROUND",
 			"group": "Website: playground",
 			"title": "Share a playground draft by link",
-			"question": "Does the playground get a “Copy link” that carries the source in the URL, as S27-416 asked?",
+			"question": "Does the playground get a “Copy link” that carries the source in the URL, as the playground request asked?",
 			"why": "Without it, sharing a draft means sending a file. A link that holds the source in the URL fragment needs no server and stores nothing, which keeps INT-26 and INT-27; the cost is long links and a size cap.",
 			"proposed": "Add “Copy link”: the source and the selected style are compressed into the URL fragment, which browsers never send to a server, and opening the link restores them in the playground. When the link would exceed 8,000 characters, the button explains that the source is too large and points to Download `.rmd`. Nothing is uploaded.",
 			"options": [
@@ -2320,12 +2303,11 @@
 					"detail": "Smallest scope; drafts travel as files."
 				}
 			],
-			"recommendation": "Fragment link: it is the share path S27-416 asked for and needs no hosting.",
+			"recommendation": "Fragment link: it is the share path the playground request asked for and needs no hosting.",
 			"confidence": "inferred",
 			"sources": [
 				{
 					"label": "Requested outcome includes a “copy/download/share path”",
-					"ref": "S27-416",
 					"date": "2026-06-20"
 				},
 				{
@@ -2580,8 +2562,8 @@
 					"date": "2026-10-16"
 				},
 				{
-					"label": "Linear tag F-FLAGSHIP (S27-399, S27-573 and later): dated source ledger, citations, source access",
-					"ref": "docs/lockdown/evidence/linear.md:258",
+					"label": "Linear tag F-FLAGSHIP (the flagship-repair issue and later): dated source ledger, citations, source access",
+					"ref": "the Linear evidence (not published)",
 					"date": "2026-10-21"
 				}
 			],
@@ -2672,7 +2654,7 @@
 			"group": "Website: docs",
 			"title": "Documentation guides",
 			"question": "Do the docs keep six task guides, with every reference fact generated from the code?",
-			"why": "S27-591 asked for a short, reliable path for a person or agent to produce a report, with shipped kept apart from planned. The six guides exist, but the sidebar says “RichView v3 alpha” (INT-42 allows only “Coming soon”), the format reference links a raw Markdown file, and several pages document flags and tools this part removes.",
+			"why": "The docs brief asked for a short, reliable path for a person or agent to produce a report, with shipped kept apart from planned. The six guides exist, but the sidebar says “RichView v3 alpha” (INT-42 allows only “Coming soon”), the format reference links a raw Markdown file, and several pages document flags and tools this part removes.",
 			"proposed": "Keep six guides: “Getting started”, “Writing Rich Markdown”, “Themes & styling”, “CLI, MCP & VS Code”, “Export & publishing” and “Troubleshooting”, plus the chart gallery (FEA-SF-43) and a rendered format reference page that replaces today's link to raw `RMD-SPEC.md`. Every table of commands, flags, tools, block keys, chart types and styles is generated from core (ARC-09), and the build fails when prose names something the code lacks (DEL-18). Each page links its Markdown source (`/docs/<guide>.md`). The status label reads “Coming soon” until launch (INT-42). How pages are rendered follows ARC-43.\n\n**The sidebar and the references (Daniel, 16 November 2026).** The sidebar has the groups Gallery, Playground, How to use, Reference and Nitty-gritty. Reference holds the elements gallery and the format reference, each one page, with its parts listed under it as anchors in that page.\n\nThe format reference is one long page, `/docs/reference`, with every topic in the contract's order. A topic's old address is a small page that forwards to its part and is kept out of search and indexes.\n\nThe elements gallery is the overview of what a report is made of, with a way in to each element:\n\n- A card and a part of its own for charts, flow charts, tables, expands, code blocks, type and fonts, and pictures.\n- A compact card for each of the others (metrics, callouts, audio, video, external embeds, scrollytelling, tabs and contents). It opens the guide section that shows it live; a build test fails when that section is missing.",
 			"confidence": "observed",
 			"sources": [
@@ -2688,7 +2670,6 @@
 				},
 				{
 					"label": "Linear tag F-DOCS: short reliable path, real commands, shipped apart from planned",
-					"ref": "S27-591",
 					"date": "2026-10-05"
 				},
 				{
@@ -2716,7 +2697,7 @@
 			"group": "Website: docs",
 			"title": "Downloadable first report",
 			"question": "Do the docs keep a downloadable example folder that renders clean?",
-			"why": "The getting-started guide hands the reader a complete folder (`report.rmd`, `report.rstyle.yaml`, `data/orders.csv`) copied from `examples/first-report` to `/docs/example/` and rendered in five styles. It is the tested minimal example S27-591 asked for. Today the build fails only on `error` diagnostics, so warnings pass.",
+			"why": "The getting-started guide hands the reader a complete folder (`report.rmd`, `report.rstyle.yaml`, `data/orders.csv`) copied from `examples/first-report` to `/docs/example/` and rendered in five styles. It is the tested minimal example the docs brief asked for. Today the build fails only on `error` diagnostics, so warnings pass.",
 			"proposed": "Keep: the docs publish `examples/first-report` as a downloadable folder at `/docs/example/` with its rendered outputs. The release run renders it in every builtin style and fails on any error or on a warning the fixture does not declare, which is new, and runs the guide's commands against it from a clean directory (DEL-60, DEL-81).",
 			"confidence": "observed",
 			"sources": [
@@ -2742,7 +2723,6 @@
 				},
 				{
 					"label": "Linear tag F-DOCS: tested minimal example from a clean environment",
-					"ref": "S27-591",
 					"date": "2026-10-05"
 				},
 				{
@@ -2777,12 +2757,10 @@
 				},
 				{
 					"label": "“a browsable index of ALL actually supported chart types, each clickable into a focused chart example”; “The gallery is not one long end-to-end report.”",
-					"ref": "S27-653",
 					"date": "2026-10-18"
 				},
 				{
 					"label": "Review: real charts “with matching source and functioning relevant interactions for every supported type”",
-					"ref": "S27-653",
 					"date": "2026-10-18"
 				},
 				{
@@ -2797,7 +2775,6 @@
 				},
 				{
 					"label": "Harness r4: Expand present 36/36, focus in the modal 27/36; r5: modal 0/36 and SVG export 0/36 because no `[data-expand]` or `[data-action=svg]` was found",
-					"ref": "S27-653",
 					"date": "2026-10-18"
 				},
 				{
@@ -2845,7 +2822,7 @@
 					"date": "2026-10-21"
 				}
 			],
-			"conflicts": "S27-572 (2026-10-02) asked for an “exceptional time-series showcase”, which this page is; S27-653 (2026-10-18) moved the chart gallery into the docs, which is what the drop rests on. ARC-40 owns the drop. PRF-23 and PRF-33 already measure the playground and the docs gallery instead of this page; PRF-33 returns here if ARC-40 is rejected.",
+			"conflicts": "The Rust chart library brief (2026-10-02) asked for an “exceptional time-series showcase”, which this page is; the site-round brief (2026-10-18) moved the chart gallery into the docs, which is what the drop rests on. ARC-40 owns the drop. PRF-23 and PRF-33 already measure the playground and the docs gallery instead of this page; PRF-33 returns here if ARC-40 is rejected.",
 			"images": [
 				"docs/lockdown/screenshots/product/charts/charts-desktop-viewport.jpg",
 				"docs/lockdown/screenshots/product/charts/charts-desktop-edit-this-chart.jpg"
@@ -2896,7 +2873,6 @@
 				},
 				{
 					"label": "Kickoff: “make a dynamic 15-second motion graphics video …”; output “a recorded 15-second motion showcase with editable source”",
-					"ref": "S27-398",
 					"date": "2026-10-02"
 				},
 				{
@@ -3400,7 +3376,7 @@
 			"group": "Asset upload",
 			"title": "Asset upload commands and tools",
 			"question": "Do the asset upload commands and tools return in the rewrite, uploading to RichView's managed hosting or the author's own store?",
-			"why": "The commands and tools upload large data and media to an S3-compatible bucket and print integrity-pinned references (added 2026-10-11 for S27-616), but report sources cannot read those references yet, so nothing consumes the result. Daniel's INT-31 answer keeps uploads and author-hosted assets and adds RichView-managed hosting for large data and media; ARC-34 decides the component and TYP-41 the source type.",
+			"why": "The commands and tools upload large data and media to an S3-compatible bucket and print integrity-pinned references (added 2026-10-11 for the design-and-hosting brief), but report sources cannot read those references yet, so nothing consumes the result. Daniel's INT-31 answer keeps uploads and author-hosted assets and adds RichView-managed hosting for large data and media; ARC-34 decides the component and TYP-41 the source type.",
 			"proposed": "Kept and finished in the rewrite (INT-31, ARC-34). The `asset` command keeps `put` (resumable multipart upload with a journal; `--to`, `--public`, `--type`), `verify` (`--to`, `--hash`) and `abort` (`--to`), each with `--stores` and `--format`, and exit codes 2 (invalid input or profile), 3 (transfer failed) and 4 (verification mismatch); `richview_asset_put`, `richview_asset_verify` and the MCP progress notifications return with it (FEA-SF-09). An upload goes to a store profile: RichView's managed hosting for large data and media (INT-27) or the author's own S3-compatible store. It prints a pinned reference (`url`, `bytes`, `sha256`, `type`, `visibility`) that `src` and `data` accept (TYP-41), and keeps a verified local copy, so renders and checks never fetch (ARC-11); a download subcommand fetches and verifies a missing local copy. Uploads are private by default, and public delivery is an explicit `--public` (INT-79). Store credentials come only from the host environment or the credentials file a profile names, never from the profile itself, `.rmd`, frontmatter or MCP tool arguments, and are redacted from every output (ARC-23). The docs gain an asset section and the design (content-addressed keys, pinned references, store profiles) moves from a later option into the guide. Open: the download subcommand's name and where the local copy lives (the report folder or a cache), how an author signs in to RichView's managed hosting, and its quotas (INT-27).",
 			"confidence": "observed",
 			"sources": [
@@ -3436,7 +3412,6 @@
 				},
 				{
 					"label": "Linear tag F-ASSET-HOSTING: externally hosted data and media with resumable upload",
-					"ref": "S27-616",
 					"date": "2026-10-10"
 				},
 				{
@@ -3450,7 +3425,7 @@
 					"date": "2026-10-22"
 				}
 			],
-			"conflicts": "S27-616 (2026-10-10) asked for data and media hosting; Daniel's INT-31 answer keeps uploads and author-hosted assets and adds RichView-managed hosting, so this card no longer drops the uploader. FEA-SF-01 and FEA-SF-09 list the command and tools again. The managed hosting's pricing, quotas and provider are open (INT-27, INT-30, INT-48)."
+			"conflicts": "The design-and-hosting brief (2026-10-10) asked for data and media hosting; Daniel's INT-31 answer keeps uploads and author-hosted assets and adds RichView-managed hosting, so this card no longer drops the uploader. FEA-SF-01 and FEA-SF-09 list the command and tools again. The managed hosting's pricing, quotas and provider are open (INT-27, INT-30, INT-48)."
 		},
 		{
 			"id": "FEA-SF-62",
@@ -3486,7 +3461,6 @@
 				},
 				{
 					"label": "Agents merge into dev; Daniel merges dev into prod",
-					"ref": "S27-677",
 					"date": "2026-10-21"
 				},
 				{
@@ -3578,12 +3552,16 @@
 			"title": "The reader's bar above a hosted report",
 			"question": "Does the report host put anything of its own around a report, and what may it say?",
 			"why": "A reader who opens a shared report cannot tell whose it is, who else can open it or where to find it again, and its author has no way from the report back to its page. Reports are served as stored (FEA-SF-14, ARC-21), so anything the host adds is new scope. A public report's response is cached for everyone (FEA-SF-14), so whatever the host adds to it is the same for every reader, and who may see which report follows FEA-SF-19 and OPN-54.",
-			"proposed": "*The report host shows one slim bar above a report and nothing else around it.* It is 44px tall, static at the top (it scrolls away and never covers or overlays the report), in the site's paper and ink, and has four states: the author's own report (its badge, \"Shared with N people\", a Share button back to its page); a report shared with the reader by name (\"Shared with you · by {owner} · {organization}\", \"Find it again under Shared with me\"); a report the reader's organization can open (\"From {organization} · every member can open it\", \"All reports\"); and a public link opened without signing in (\"Published with RichView · anyone with the link can open it\", \"Sign in\"), which names no person and no organization and is the one bar every reader of a public report gets, its author included, because that response is cached for everyone. The server inserts it at serve time like the preview tags, with every value escaped; the report's own HTML and its CSP stay as they are (its policy already allows inline styles). Mock-ups: `mockups/host-*.html`.",
+			"proposed": "*The report host shows one slim bar above a report and nothing else around it.* It is 44px tall, static at the top (it scrolls away and never covers or overlays the report), in the site's paper and ink, and has four states: the author's own report (its badge, \"Shared with N people\", a Share button back to its page); a report shared with the reader by name (\"Shared with you · by {owner} · {organization}\", \"Find it again under Shared with me\"); a report the reader's organization can open (\"From {organization} · every member can open it\", \"All reports\"); and a public report (\"anyone with the link can open it\", \"Sign in\"). Every reader of a public version sees the same bar, including its author. When a new version's published style declares company.name, put that name and its optional validated company.logo before the access message. The mark fills the bar's height (24px, 20px under 640px) and its width follows its shape, up to 180px (120px under 640px). A mark wider than 2.5 times its height is a lockup that carries the name: show it alone, with the name as its alt text. A squarer mark keeps the mark and the name side by side; on a phone the name stays on one line in the bar's own text size and ends in an ellipsis when it does not fit, and never pushes the primary action out. The class is decided when the version is published, from the stored image's dimensions; the browser measures nothing. Use company.logo-dark on dark reports when available, otherwise give the standard mark a light backing. Keep the name and primary action readable on phones. The hosted screen shows the mark once. Print and standalone exports retain the report's title treatment. Store the credit with that version. Existing versions and versions without a name keep the previous bar, including \"Published with RichView\" on public links. Only the published style supplies public attribution. Personal accounts and sharing records supply no credit. The host owns the HTML and CSS, escapes the name and accepts only still PNG, JPEG or WebP marks within STY-72's validated size limits. Access rules, controls and caching follow FEA-SF-19, OPN-54 and FEA-SF-14. The server inserts it at serve time like the preview tags, with every value escaped; the report's own HTML and its CSP stay as they are (its policy already allows inline styles). Mock-ups: `mockups/host-*.html`.",
 			"confidence": "stated",
 			"sources": [
 				{
+					"label": "Daniel selected the report's style file as the source of its hosted publishing credit",
+					"ref": "Q54, hosted report header",
+					"date": "2026-11-23"
+				},
+				{
 					"label": "The card as proposed to Daniel by the hosted pages stream, with the bar's first build on `dev` (commit 4769b7a4)",
-					"ref": "S27-1018",
 					"date": "2026-11-13"
 				},
 				{

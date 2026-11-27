@@ -1,4 +1,4 @@
-/// The source operations live in their own pure crate, which the site's Wasm shares (S27-931);
+/// The source operations live in their own pure crate, which the site's Wasm shares;
 /// the editor's paths to them stay as they were.
 pub use richview_authoring as authoring;
 pub mod lsp;

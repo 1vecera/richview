@@ -179,7 +179,7 @@ pub(super) fn finish(docs: &Path, flags: BuildFlags, revision: &str) -> Result<(
             continue;
         }
         let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("");
-        if !["html", "md", "rmd"].contains(&extension) {
+        if !["html", "md", "rmd", "rslide"].contains(&extension) {
             continue;
         }
         let raw = fs::read_to_string(&path)?;

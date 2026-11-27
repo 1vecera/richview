@@ -85,7 +85,7 @@ axes:
 
 ## Interactions
 
-- Hover or focus a point to read its value, quantile and rank.
+- Hover or focus a point to read its value, quantile and rank. The point grows and takes a ring in its own colour, as a scatter point does.
 - Click a legend entry to toggle a group when the chart has several.
 - Zoom and pan on the x axis with brush, wheel, pinch, keys or double-click; Escape or reset returns to the full range.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

@@ -1,0 +1,15 @@
+/* Only versions with a publisher in their style receive these rules (FEA-SF-66, host_bar.rs). */
+.rv-host-bar .rv-publisher { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 32ch; }
+.rv-host-bar .rv-publisher strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rv-host-bar .rv-publisher img { display: block; flex: none; width: auto; height: 24px; max-width: 180px; object-fit: contain; object-position: left center; }
+.rv-host-bar .rv-publisher .rv-credit-plate { box-sizing: content-box; background: white; border-radius: 2px; padding: 2px; }
+.rv-host-bar .rv-publisher.rv-publisher--lockup { max-width: none; }
+@media (max-width: 639px) {
+  .rv-host-bar .rv-publisher img { height: 20px; max-width: 120px; }
+}
+@media screen {
+  .rv-report__logo { display: none; }
+}
+@media print {
+  .rv-host-bar { display: none; }
+}

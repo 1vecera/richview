@@ -1,0 +1,30 @@
+{
+	"compilerOptions": {
+		"target": "ES2024",
+		"module": "NodeNext",
+		"moduleDetection": "auto",
+		"lib": ["ES2024", "DOM", "DOM.Iterable"],
+		"types": ["node"],
+		"strict": true,
+		"noEmit": true,
+		"allowImportingTsExtensions": true,
+		"erasableSyntaxOnly": true,
+		"verbatimModuleSyntax": true,
+		"allowJs": true,
+		"checkJs": false,
+		"skipLibCheck": true
+	},
+	"include": [
+		"*.ts", "*.mts", "*.cts",
+		"assets/**/*.ts", "assets/**/*.mts",
+		"benchmarks/**/*.ts", "benchmarks/**/*.mts", "benchmarks/**/*.cts",
+		"cloudflare/**/*.ts", "cloudflare/**/*.mts", "cloudflare/**/*.cts",
+		"crates/**/*.ts", "crates/**/*.mts", "crates/**/*.cts",
+		"docs/**/*.ts", "docs/**/*.mts", "docs/**/*.cts",
+		"examples/**/*.ts", "examples/**/*.mts", "examples/**/*.cts",
+		"packages/**/*.ts", "packages/**/*.mts", "packages/**/*.cts",
+		"scripts/**/*.ts", "scripts/**/*.mts", "scripts/**/*.cts",
+		"tools/**/*.ts", "tools/**/*.mts", "tools/**/*.cts"
+	],
+	"exclude": ["**/node_modules", "**/dist", "**/target", "**/fixtures"]
+}

@@ -2613,7 +2613,7 @@ async fn a_new_account_made_through_a_provider_gets_no_notice_mail_but_a_join_to
 }
 
 #[tokio::test]
-async fn a_back_address_longer_than_256_bytes_is_ignored() {
+async fn a_back_address_longer_than_512_bytes_is_ignored() {
     let fx = Fixture::new().await;
     fx.person(ADA, "Ada").await;
     fx.joined(ADA, P::GitHub, ADA_AT_PROVIDER).await;
@@ -2621,9 +2621,10 @@ async fn a_back_address_longer_than_256_bytes_is_ignored() {
         let base = "/r/ab123456/q3?x=";
         format!("{base}{}", "a".repeat(length - base.len()))
     };
-    // 256 bytes is kept (a hosted report's address becomes its page here) ...
+    // 512 bytes is kept (a hosted report's address becomes its page here; so does the page a
+    // command line sends its person to) ...
     let mut b = Browser::new();
-    let (_, kept) = fx.sign_in_with(&mut b, P::GitHub, Some(&at(256))).await;
+    let (_, kept) = fx.sign_in_with(&mut b, P::GitHub, Some(&at(512))).await;
     assert_eq!(
         kept.refresh().as_deref(),
         Some("/reports/ab123456/q3"),
@@ -2632,7 +2633,7 @@ async fn a_back_address_longer_than_256_bytes_is_ignored() {
     );
     // ... and one byte more is ignored, as if there were none.
     let mut c = Browser::new();
-    let (_, long) = fx.sign_in_with(&mut c, P::GitHub, Some(&at(257))).await;
+    let (_, long) = fx.sign_in_with(&mut c, P::GitHub, Some(&at(513))).await;
     assert!(long.opens_a_session(), "{}", long.body);
     assert_eq!(long.refresh().as_deref(), Some("/"));
 }

@@ -22,20 +22,20 @@ npm install --prefix "$RICHVIEW_EVIDENCE/reference" --save-exact --ignore-script
 ## Run
 
 ```sh
-node benchmarks/compare/run.mjs --richview "$RICHVIEW_BIN"          # every type
-node benchmarks/compare/run.mjs --richview "$RICHVIEW_BIN" --types bar,line --styles sleek,air
-node --test benchmarks/compare/test/*.test.mjs                       # adapter unit tests
+node benchmarks/compare/run.ts --richview "$RICHVIEW_BIN"          # every type
+node benchmarks/compare/run.ts --richview "$RICHVIEW_BIN" --types bar,line --styles sleek,air
+node --test benchmarks/compare/test/*.test.ts                       # adapter unit tests
 ```
 
 Options: `--evidence` (default `$RICHVIEW_EVIDENCE`), `--out` (default `<evidence>/arc64/<name of the build folder>`), `--types` (ids or types), `--styles` (default `sleek,air`: RichView is captured once per style; the first keeps the image key `richview`, the others are `richview-<style>`; the style is passed as `richview generate --style <name>`; `--style` takes one), `--keep` (keep the work folder with the generated reports and pages).
 
 ## What it does
 
-1. `corpus.mjs` reads the chart blocks and their CSV or inline rows; a repeated type gets `-2`.
+1. `corpus.ts` reads the chart blocks and their CSV or inline rows; a repeated type gets `-2`.
 2. `types.json` maps each RichView type to the Highcharts series type and module and the ECharts series type, with the documentation URL, or `null` and the reason.
-3. `adapter.mjs` turns block and rows into Highcharts options and an ECharts option.
-4. `run.mjs` renders a one-chart report per type and width with `richview generate --style <style>` once per style (Sleek is dark, Air is light, as are the references), draws the two libraries from static pages loading the local install, and captures all three in headless Chromium with reduced motion once settled at 720 x 440 and 390 x 440 (1x). RichView's figure gets `wide: true` and a `style.ratio` calibrated so the whole figure is as tall as the reference charts; its viewport is the width plus the page margins so the figure is exactly 720 or 390 px wide. The measured figure size is in the manifest.
-5. `sheet.mjs` composes one sheet per type (RichView Sleek, RichView Air, Highcharts, ECharts; two widths) and the contact sheet.
+3. `adapter.ts` turns block and rows into Highcharts options and an ECharts option.
+4. `run.ts` renders a one-chart report per type and width with `richview generate --style <style>` once per style (Sleek is dark, Air is light, as are the references), draws the two libraries from static pages loading the local install, and captures all three in headless Chromium with reduced motion once settled at 720 x 440 and 390 x 440 (1x). RichView's figure gets `wide: true` and a `style.ratio` calibrated so the whole figure is as tall as the reference charts; its viewport is the width plus the page margins so the figure is exactly 720 or 390 px wide. The measured figure size is in the manifest.
+5. `sheet.ts` composes one sheet per type (RichView Sleek, RichView Air, Highcharts, ECharts; two widths) and the contact sheet.
 
 Types neither library defines are listed with the reason and not rendered.
 

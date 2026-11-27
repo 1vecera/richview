@@ -1,7 +1,7 @@
 //! Dumbbell charts: two values joined by a line, the signed change, groups, orientation and the
 //! contract every type shares (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Item, Shape};

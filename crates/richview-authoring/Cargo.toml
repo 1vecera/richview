@@ -7,7 +7,7 @@ license.workspace = true
 publish = false
 
 # The editor's source operations, pure so the site can run them in Wasm too: the editor service
-# and the home page's editor offer the same completions and diagnostics (S27-931, ARC-09).
+# and the home page's editor offer the same completions and diagnostics (ARC-09).
 [dependencies]
 richview-core = { path = "../richview-core" }
 serde_json = "1"

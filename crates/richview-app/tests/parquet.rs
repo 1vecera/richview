@@ -248,6 +248,7 @@ fn parquet_types_decide_each_value() {
             null, 7, -0.25, 1.5, null, null, false, "123", null, null, null, null, 1.0, null
         ])
     );
+    assert_eq!(table["scales"], json!({"money": 2, "wide": 6}));
     // The table holds the decimal as written, not as the nearest double's digits.
     assert!(read.text.contains("10.50"), "{:.300}", read.text);
     assert!(read.text.contains(",0.1,"), "{:.300}", read.text);
@@ -334,6 +335,108 @@ fn more_than_a_dataset_may_hold_is_a_limit_finding_that_names_sql() {
             .all(|(index, row)| row[0] == json!(index)),
         "file order"
     );
+}
+
+/// The HTML of a table over `prices.parquet`, read through the SQL worker (`{sql: ...}`) or
+/// directly (`{parquet: ...}`) and rendered with the report's own table code.
+fn prices_table(dir: &Path, data: &str, columns: &str) -> String {
+    use richview_app::connectors::{Registry, duckdb_adapter::DuckDbConnector};
+    let mut registry = Registry::new(dir.join("cache"));
+    registry.register(
+        "prices",
+        DuckDbConnector::parquet(dir.join("prices.parquet"), Some(WORKER.into())),
+    );
+    let path = report(
+        dir,
+        &format!("```table\ndata: {data}\ncolumns: {columns}\n```"),
+    );
+    let source = fs::read_to_string(&path).unwrap();
+    let (doc, options) = if data.starts_with("{parquet:") {
+        // In this integration test the worker is beside the CLI, not the test executable.
+        let table =
+            read(&dir.join("prices.parquet"), None).unwrap_or_else(|r| panic!("{}", r.message));
+        let options = richview_core::document::RenderOptions {
+            data: [("prices.parquet".into(), table.text)].into(),
+            report_folder: Some(richview_app::resolver::report_folder(&path).unwrap()),
+            ..Default::default()
+        };
+        (richview_core::document::parse(&source).unwrap(), options)
+    } else {
+        richview_app::resolver::resolve_document_options_full(
+            &source,
+            &path,
+            &[],
+            false,
+            false,
+            Some(&registry),
+        )
+        .unwrap()
+    };
+    let rendered = richview_core::document::render_document(doc, &options).unwrap();
+    assert!(
+        !rendered.diagnostics.iter().any(|d| d.level == "error"),
+        "{:?}",
+        rendered.diagnostics
+    );
+    rendered.html
+}
+
+const SQL_DATA: &str = "{sql: {connector: prices, inline: SELECT * FROM prices}}";
+const PARQUET_DATA: &str = "{parquet: prices.parquet}";
+
+#[test]
+fn a_sql_table_formats_decimal_strings_and_leaves_varchar_alone() {
+    let dir = tempfile::tempdir().unwrap();
+    write_parquet(
+        &dir.path().join("prices.parquet"),
+        "SELECT price, price AS coarse, '009' AS code FROM (VALUES (123.45::DECIMAL(12,2)), (9)) AS t(price)",
+    );
+    for data in [SQL_DATA, PARQUET_DATA] {
+        let html = prices_table(
+            dir.path(),
+            data,
+            "[{key: price, format: number, unit: $}, {key: coarse, format: number, digits: 2}, {key: code}]",
+        );
+        for cell in [
+            "data-rv-sort-value=\"123.45\">$123.45</td>",
+            "data-rv-sort-value=\"9\">$9.00</td>",
+            "data-rv-sort-value=\"120\">120.00</td>",
+            ">009</td>",
+        ] {
+            assert!(html.contains(cell), "{data} missing {cell}");
+        }
+    }
+}
+
+#[test]
+fn a_decimal_column_that_crosses_ten_thousand_stays_plain_at_its_declared_scale() {
+    // A declared scale makes every cell a plain number at that scale, with separators: never a
+    // scale word, however large, and never more places than the source declares.
+    for (values, expected) in [
+        (
+            "(12345.67::DECIMAL(38,2)), (987.5::DECIMAL(38,2))",
+            ["12345.67\">12,345.67</td>", "987.5\">987.50</td>"],
+        ),
+        (
+            "(1234567.89::DECIMAL(38,2)), (500.5::DECIMAL(38,2))",
+            ["1234567.89\">1,234,567.89</td>", "500.5\">500.50</td>"],
+        ),
+    ] {
+        let dir = tempfile::tempdir().unwrap();
+        write_parquet(
+            &dir.path().join("prices.parquet"),
+            &format!("SELECT price FROM (VALUES {values}) AS t(price)"),
+        );
+        for data in [SQL_DATA, PARQUET_DATA] {
+            let html = prices_table(dir.path(), data, "[{key: price}]");
+            for cell in expected {
+                assert!(
+                    html.contains(&format!("data-rv-sort-value=\"{cell}")),
+                    "{data} {values} missing {cell}"
+                );
+            }
+        }
+    }
 }
 
 #[test]

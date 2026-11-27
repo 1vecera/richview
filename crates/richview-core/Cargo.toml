@@ -6,6 +6,7 @@ edition = "2024"
 license = "MIT"
 description = "Pure Rust Rich Markdown parser, report renderer, styles and authoring diagnostics"
 publish = false
+autotests = false
 
 [lib]
 crate-type = ["rlib"]
@@ -29,3 +30,7 @@ richview-chart = { path = "../../richview-chart" }
 
 [dev-dependencies]
 regex = "1"
+
+[[test]]
+name = "integration"
+path = "tests/integration.rs"

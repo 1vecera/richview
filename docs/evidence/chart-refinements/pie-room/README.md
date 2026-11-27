@@ -24,7 +24,7 @@ All required local checks pass: format, workspace tests, native and Wasm Clippy,
 To inspect the seven-category example with the repository's capture workflow after building:
 
 ```sh
-node scripts/design-review/capture.mjs --out tmp/pie-review --cases craft-pie-05 --themes scientific,hand-drawn --widths 720,390,320
+node scripts/design-review/capture.ts --out tmp/pie-review --cases craft-pie-05 --themes scientific,hand-drawn --widths 720,390,320
 ```
 
 For the dense example, copy `dense-report.rmd` into a scratch report folder and run `target/release/richview generate <folder>/report.rmd --style sleek`; the generated report is self-contained. The complete local matrix and interface checks are recorded under `tmp/pie-room/current-main/` in the implementation worktree.

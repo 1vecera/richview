@@ -1,7 +1,7 @@
 //! Histograms: bins that touch, densities whose areas are the authored probabilities, values on
 //! an edge in their exact bin, and the contract every type shares (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use serde_json::{Value, json};
 

@@ -18,6 +18,6 @@ The deliberately constrained 60 px chart retains inherited crowded axes as an ex
 After building this source and the base in separate worktrees, run the helper from this worktree. Set `SCATTER_BASE_WT` to the built base; both commands use local headless browsers and private temporary report stores. They assert source and PNG hashes using the recorded browser/fonts/builds.
 
 ```sh
-node docs/evidence/chart-refinements/scatter-padding/capture.mjs . tmp/scatter-padding/reproduced-after after
-node docs/evidence/chart-refinements/scatter-padding/capture.mjs "$SCATTER_BASE_WT" tmp/scatter-padding/reproduced-before before
+node docs/evidence/chart-refinements/scatter-padding/capture.ts . tmp/scatter-padding/reproduced-after after
+node docs/evidence/chart-refinements/scatter-padding/capture.ts "$SCATTER_BASE_WT" tmp/scatter-padding/reproduced-before before
 ```

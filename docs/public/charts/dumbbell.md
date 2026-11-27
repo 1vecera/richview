@@ -51,6 +51,6 @@ axes:
 
 ## Interactions
 
-- Hover or focus a dumbbell to read its start, end and signed change.
+- Hover or focus a dumbbell to read its start, end and signed change. A dark ring marks the dumbbell's dots under the pointer.
 - Click a legend entry to toggle a series when the chart has several.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

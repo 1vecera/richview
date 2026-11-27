@@ -177,7 +177,7 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
         .fold(ctx.wanted().size.unwrap_or(0.0), f64::max);
     let sized = size_field.is_some();
     let reach = (if sized { BUBBLE_MAX } else { POINT_RADIUS * 1.3 }) + 1.0;
-    let view = View::of(block);
+    let view = View::of(ctx);
     let scene = project3d::fit(ctx, view, &axes, inner, reach);
     let boxed = project3d::draw_box(ctx, &scene, &axes, Some(figure));
     for (text, reason, rect) in boxed.dropped {
@@ -213,12 +213,19 @@ pub(super) fn layout(ctx: &mut Ctx, facets: &Facets) -> Painted {
     // Dots are painted far to near. Near ties jump with the data, so the exact rows decide the
     // order (TYP-36). The observations keep the source order, so a dot's readout is its own
     // whatever the painting order, and a mark points at its observation.
-    let depth_order: Vec<usize> = ctx.derive(0, "scatter3d.depth", || {
+    // The record is the order seen from the author's view. A reader's turned view has no record to
+    // replay and records none, so the next angle never reads this one's order.
+    let by_depth = || {
         let mut all: Vec<usize> = (0..dots.len()).collect();
         let exact_at = |d: &Dot| scene.at([lx.t(d.p[0]), ly.t(d.p[1]), lz.t(d.p[2])]);
         all.sort_by(|a, b| exact_at(&dots[*a]).depth.total_cmp(&exact_at(&dots[*b]).depth));
         all
-    });
+    };
+    let depth_order: Vec<usize> = if ctx.opts.view.is_some() {
+        by_depth()
+    } else {
+        ctx.derive(0, "scatter3d.depth", by_depth)
+    };
     let mut rank: Vec<Option<usize>> = vec![None; dots.len()];
     let shown = (0..dots.len()).filter(|j| !ctx.is_hidden(dots[*j].group));
     for (r, j) in shown.enumerate() {

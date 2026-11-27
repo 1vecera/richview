@@ -3,7 +3,7 @@ Render the report and return every diagnostic and each chart's geometry
 Usage: richview check [OPTIONS] <INPUT>
 
 Arguments:
-  <INPUT>  The report's `.rmd` or the folder holding it; a folder of report folders stands for every report below it
+  <INPUT>  The report's `.rmd` or a deck's `.rslide`, or the folder holding it; a folder of report folders stands for every report below it
 
 Options:
       --style <STYLES>             Style (a builtin name or a file in the report folder) replacing the source's `styles` for this call; repeatable

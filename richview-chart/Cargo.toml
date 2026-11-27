@@ -7,6 +7,7 @@ license = "MIT"
 description = "The chart engine behind RichView chart blocks: one geometry model per chart, drawn as SVG and by the browser runtime."
 repository = "https://github.com/richview-universe/richview-v3"
 publish = false
+autotests = false
 
 [lib]
 crate-type = ["rlib"]
@@ -17,3 +18,7 @@ serde_json = "1"
 
 [dev-dependencies]
 roxmltree = "0.21.1"
+
+[[test]]
+name = "integration"
+path = "tests/integration.rs"

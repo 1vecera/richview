@@ -1,4 +1,4 @@
-//! The pure part of the live example's scene (W3 scene 2, S27-931), which `browser/writing.rs`
+//! The pure part of the live example's scene (W3 scene 2), which `browser/writing.rs`
 //! drives: the blocks of a source, and how far the scroll has written each of them. The site check
 //! at the end pins the report structure the scene reveals: the anchor report renders its head and
 //! then one top-level block for each block of its source, in the same order.
@@ -196,7 +196,7 @@ mod tests {
         assert_eq!(lines_written(&block, 1.0), 4);
     }
 
-    /// The site check of S27-931: the report the scene reveals has the head and then, under
+    /// The site check: the report the scene reveals has the head and then, under
     /// `main`, one block for each source block after the front matter, in order, with a chart and
     /// its note kept together in one `rv-keep`. The scene relies on exactly this, so a renderer
     /// change that breaks it fails here first.

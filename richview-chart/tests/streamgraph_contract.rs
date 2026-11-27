@@ -2,7 +2,7 @@
 //! value axis, a name inside each stream that has room, gaps disclosed and the failures that name
 //! their cause (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Geometry, Item, Role};

@@ -141,7 +141,8 @@ impl Hosted {
                 ("origin", "https://app.test"),
                 ("content-type", "application/x-www-form-urlencoded"),
             ],
-            &format!("csrf={csrf}&code={code}&decision={decision}"),
+            // The page names the organization it will sign in to, and the answer carries it back.
+            &format!("csrf={csrf}&code={code}&decision={decision}&org=aaaa0001"),
         )
     }
 
@@ -213,10 +214,17 @@ struct Login {
 }
 
 impl Login {
-    /// Starts `richview login` and reads what it says until it has shown the page to confirm on.
+    /// Starts `richview login` for Ada, whose sign-in nobody at its terminal could confirm, and
+    /// reads what it says until it has shown the page to confirm on.
     fn start(config: &Path, server: &str) -> Self {
+        Self::start_with(config, server, &["--expect-account", "ada@example.test"])
+    }
+
+    /// The same with the arguments given.
+    fn start_with(config: &Path, server: &str, more: &[&str]) -> Self {
         let mut child = richview(config)
             .args(["login", "--server", server])
+            .args(more)
             .spawn()
             .unwrap();
         let mut errors = BufReader::new(child.stderr.take().unwrap());
@@ -522,6 +530,107 @@ fn the_confirm_page_says_what_is_asked_in_each_state() {
         ] {
             std::fs::write(folder.join(format!("cli-{name}.html")), page).unwrap();
         }
+    }
+}
+
+#[test]
+fn a_sign_in_nobody_can_confirm_is_ended_and_not_kept() {
+    // No terminal to ask, and no address that the sign-in must be for: a short code shown in a log
+    // can be confirmed by anyone who reads it, so whoever does is not trusted with this computer.
+    let hosted = Hosted::start();
+    let desk = tempfile::tempdir().unwrap();
+    let login = Login::start_with(desk.path(), &hosted.base, &[]);
+    let code = login.code.clone();
+    assert_eq!(hosted.decide(&code, "allow", CSRF).0, 200);
+    let (exit, printed) = login.finish();
+    assert_eq!(exit, Some(2), "{printed}");
+    assert!(
+        printed.contains("nothing was kept") && printed.contains("--expect-account"),
+        "{printed}"
+    );
+    assert!(
+        printed.contains("The sign-in was ended on the server."),
+        "{printed}"
+    );
+    assert!(kept_token(desk.path(), &hosted.base).is_none());
+}
+
+#[test]
+fn a_sign_in_for_another_account_than_the_one_expected_is_ended_and_not_kept() {
+    let hosted = Hosted::start();
+    let desk = tempfile::tempdir().unwrap();
+    let login = Login::start_with(
+        desk.path(),
+        &hosted.base,
+        &["--expect-account", "grace@example.test"],
+    );
+    let code = login.code.clone();
+    assert_eq!(hosted.decide(&code, "allow", CSRF).0, 200);
+    let (exit, printed) = login.finish();
+    assert_eq!(exit, Some(2), "{printed}");
+    assert!(
+        printed.contains("ada@example.test") && printed.contains("not as grace@example.test"),
+        "{printed}"
+    );
+    assert!(kept_token(desk.path(), &hosted.base).is_none());
+    // The expected address is matched whatever its case.
+    let desk = tempfile::tempdir().unwrap();
+    let login = Login::start_with(
+        desk.path(),
+        &hosted.base,
+        &["--expect-account", "Ada@Example.Test"],
+    );
+    let code = login.code.clone();
+    assert_eq!(hosted.decide(&code, "allow", CSRF).0, 200);
+    let (exit, printed) = login.finish();
+    assert_eq!(exit, Some(0), "{printed}");
+    assert!(kept_token(desk.path(), &hosted.base).is_some());
+}
+
+#[test]
+fn a_sign_in_for_another_organization_than_the_one_expected_is_ended_and_not_kept() {
+    let hosted = Hosted::start();
+    let attempt = |flag: &str, organization: &str| {
+        let desk = tempfile::tempdir().unwrap();
+        let login = Login::start_with(
+            desk.path(),
+            &hosted.base,
+            &["--expect-account", "ada@example.test", flag, organization],
+        );
+        let code = login.code.clone();
+        assert_eq!(hosted.decide(&code, "allow", CSRF).0, 200);
+        let (exit, printed) = login.finish();
+        let kept = kept_token(desk.path(), &hosted.base).is_some();
+        (exit, printed, kept)
+    };
+    // The right account in another organization is not what was asked for, and is ended.
+    let (exit, printed, kept) = attempt("--expect-organization", "Grace Industries");
+    assert_eq!(exit, Some(2), "{printed}");
+    assert!(
+        printed.contains("for Ada Analytics, and not for the organization Grace Industries")
+            && printed.contains("The sign-in was ended on the server."),
+        "{printed}"
+    );
+    assert!(!kept);
+    // The organization is named by its name as the server writes it, whole, or by its stable id.
+    for (flag, named) in [
+        ("--expect-organization", "Ada Analytics"),
+        ("--expect-organization-id", "aaaa0001"),
+    ] {
+        let (exit, printed, kept) = attempt(flag, named);
+        assert_eq!(exit, Some(0), "{named}: {printed}");
+        assert!(kept, "{named}");
+    }
+    // A flag looks at its own field alone: an id given as a name, a name given as an id and a
+    // name in another case are all another organization.
+    for (flag, named) in [
+        ("--expect-organization", "aaaa0001"),
+        ("--expect-organization-id", "Ada Analytics"),
+        ("--expect-organization", "ada analytics"),
+    ] {
+        let (exit, printed, kept) = attempt(flag, named);
+        assert_eq!(exit, Some(2), "{flag} {named}: {printed}");
+        assert!(!kept, "{flag} {named}");
     }
 }
 

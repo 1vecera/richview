@@ -2,7 +2,7 @@
 //! categories coloured by the first dimension, rows added up and marked as derived, and the
 //! failures that name their cause (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::Level;

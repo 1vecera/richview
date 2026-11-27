@@ -177,6 +177,16 @@ fn render_internal(
 }
 
 fn render_document_internal(
+    doc: crate::Document,
+    options: &RenderOptions,
+    retain_document: bool,
+) -> Result<(RenderedReport, Vec<Value>, Option<crate::Document>), Vec<Diagnostic>> {
+    crate::folder::with_inventory(options.report_folder.as_ref(), || {
+        render_document_in_scope(doc, options, retain_document)
+    })
+}
+
+fn render_document_in_scope(
     mut doc: crate::Document,
     options: &RenderOptions,
     retain_document: bool,
@@ -199,6 +209,12 @@ fn render_document_internal(
                 .fix("Set every chart width to a finite number from 240 through 4096"),
             ]);
         }
+    }
+    // The list of styles is bounded before any of it is copied, parsed or reported on.
+    if let Some(problem) = style::style_list_problem(&doc.frontmatter, |name| {
+        options.data.get(name).map(String::len)
+    }) {
+        return Err(vec![problem]);
     }
     crate::folder::render_blockers(&mut doc, options.report_folder.as_ref())?;
     // Findings a host attached before the render, such as the folder check's.
@@ -336,6 +352,21 @@ fn render_document_internal(
                 markdown: false,
             }),
     );
+    let deck_texts = doc
+        .deck
+        .as_ref()
+        .map(|deck| deck.texts())
+        .unwrap_or_default();
+    scans.extend(
+        deck_texts
+            .iter()
+            .map(|(text, line, role)| style::checks::GlyphScan {
+                text,
+                first_line: *line,
+                role,
+                markdown: true,
+            }),
+    );
     let glyphs = style::checks::glyphs(&resolved, &scans);
     doc.diagnostics.extend(glyphs);
     let print = style::print_style(&refs, &resolved);
@@ -398,7 +429,7 @@ fn render_document_internal(
         },
         ..theme.clone()
     };
-    let on_slides = crate::slides::enabled(&doc.frontmatter);
+    let on_slides = doc.deck.is_some();
     let slide_theme = on_slides.then(|| wide(&chart_theme));
     let slide_print = print_theme.as_ref().filter(|_| on_slides).map(wide);
     let figure_context = figure::Context {
@@ -480,7 +511,7 @@ fn render_document_internal(
         .clone()
         .unwrap_or_else(|| crate::parser::BLOCK_PLACEHOLDER_PREFIX.to_owned());
     // Slides (FEA-RP-65) show everything a slide holds, so a slides source folds no section.
-    let slides = crate::slides::enabled(&doc.frontmatter);
+    let slides = doc.deck.is_some();
     let collapsed: Vec<(usize, &str)> = if slides {
         Vec::new()
     } else {
@@ -509,17 +540,11 @@ fn render_document_internal(
         placeholder: &placeholder,
         lang: &lang,
     };
-    // Slides (FEA-RP-65): a chart is laid out for its place on the stage, which the body's cut
-    // into slides decides, so the body is read once here before its blocks render. The findings
-    // of this reading are the later one's, and are not kept twice.
-    let slide_charts = if slides {
-        let body = crate::slides::without_columns(
-            &markdown::markdown_html(&doc.body, options, &body_context, &mut Vec::new()),
-            &placeholder,
-        );
-        crate::slides::Deck::cut(&body, &placeholder, &doc.blocks).chart_boxes(&doc.blocks)
-    } else {
-        Vec::new()
+    // Slides (FEA-RP-71): a chart is laid out for the box its slot has on the stage, which the
+    // slide's layout and cuts decide.
+    let slide_charts = match &doc.deck {
+        Some(deck) => deck.chart_boxes(&doc.blocks),
+        None => Vec::new(),
     };
     let frame_inset = style::frame_inset_px(&resolved.document, pdf);
     let mut bodies = Vec::with_capacity(doc.blocks.len());
@@ -858,20 +883,20 @@ fn render_document_internal(
     let footer = format!("<footer class=\"rv-report__footer\">{colophon}</footer>");
     // How many slides the rendition has, its title slide included; 0 for a report.
     let mut slide_count = 0;
-    let body = if slides {
-        let flat = crate::slides::without_columns(&markdown_body, &placeholder);
-        let deck = crate::slides::Deck::cut(&flat, &placeholder, &doc.blocks);
+    let body = if let Some(deck) = &doc.deck {
         slide_count = deck.len();
-        let lines = if body_line > 0 {
-            crate::slides::cut_lines(&doc.body, body_line)
-        } else {
-            Vec::new()
+        // The colophon closes the last slide.
+        let compose = crate::slides::Compose {
+            options,
+            lang: &lang,
+            prefix: &placeholder,
+            colophon: if colophon.is_empty() { "" } else { &footer },
         };
-        doc.diagnostics
-            .extend(deck.density(&placeholder, &doc.blocks, &bodies, &lines));
-        // The colophon closes the last slide; a source with no body has only its title slide.
-        let composed = deck.html(&doc.blocks, &bodies, &footer);
-        expand_blocks(&composed, &placeholder, &bodies, &[])
+        let mut found = Vec::new();
+        let composed = deck.html(&compose, &doc.blocks, &bodies, &mut found);
+        doc.diagnostics.extend(found);
+        expand_blocks(&composed, &failed_prefix, &failed, &[])
+            .and_then(|composed| expand_blocks(&composed, &placeholder, &bodies, &[]))
     } else {
         expand_blocks(&markdown_body, &placeholder, &bodies, &keep)
     }
@@ -909,7 +934,11 @@ fn render_document_internal(
         .frontmatter
         .get("title")
         .and_then(Value::as_str)
-        .unwrap_or("Untitled report");
+        .unwrap_or(if doc.deck.is_some() {
+            "Untitled deck"
+        } else {
+            "Untitled report"
+        });
     let mut header = String::new();
     if let Some(error) = unreadable_frontmatter(&doc.diagnostics) {
         // The title block is lost with the frontmatter that held it (FEA-RP-58).
@@ -1149,17 +1178,11 @@ fn render_document_internal(
             .saturating_add(1024)
             .min(crate::MAX_REPORT_BYTES),
     );
-    // The header of a slides rendition is its first slide, and the colophon closed the last one.
+    // A deck has no header: its first slide is its cover. Its page keeps the title as a heading
+    // the stage hides, and the colophon closed the last slide.
     let (header, footer) = if slides {
         (
-            format!(
-                "<section class=\"rv-slide rv-slide--title\" data-rv-slide=\"1\" aria-roledescription=\"slide\" aria-label=\"Slide 1 of {slide_count}\"><div class=\"rv-slide__stage\"><div class=\"rv-slide__body\"><header class=\"rv-report__header\">{header}</header>{}</div></div></section>",
-                if slide_count == 1 {
-                    footer.as_str()
-                } else {
-                    ""
-                }
-            ),
+            format!("<h1 class=\"rv-slides__title\">{escaped_title}</h1>"),
             String::new(),
         )
     } else {
@@ -1211,6 +1234,7 @@ fn render_document_internal(
     let retained = if retain_document { Some(doc) } else { None };
     Ok((
         RenderedReport {
+            company,
             html,
             diagnostics,
             metadata,
@@ -2290,7 +2314,7 @@ const TABLE_LABEL_CSS: &str = "@media screen{.rv-table[data-rv-labels=line] td.l
 /// Rules every report carries beyond its style. On screen a number cell never breaks inside its
 /// value, as a date or an id never does: a table too wide for its column scrolls in its own box
 /// (a Markdown table's wrapper, a table block, a chart's Table). On paper a number may wrap so
-/// that the table fits the page, which does not scroll (S27-879).
+/// that the table fits the page, which does not scroll.
 const EXTRA_CSS: &str = r#"
 .rv-print-only{display:none}
 .rv-report__body :is(th,td),.rv-chart-dialog :is(th,td){vertical-align:baseline}.rv-report__body td:is(.date,.id){white-space:nowrap}@media screen{.rv-report__body td.num,.rv-chart-dialog td.num{white-space:nowrap}}

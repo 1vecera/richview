@@ -26,7 +26,7 @@ impl HighlightLanguage {
     pub fn from_name(name: &str) -> Self {
         match name.trim().to_ascii_lowercase().as_str() {
             "rmd" | "md" | "markdown" | "richmarkdown" => Self::RichMarkdown,
-            "yaml" | "yml" | "rstyle" => Self::Yaml,
+            "yaml" | "yml" | "rstyle" | "rslide" => Self::Yaml,
             "sh" | "shell" | "bash" | "console" => Self::Shell,
             "sql" => Self::Sql,
             _ => Self::Plain,
@@ -643,7 +643,7 @@ mod tests {
     #[test]
     fn rich_blocks_get_yaml_tokens() {
         // The opening of the home page's former iris example, so these tokens stay put when the
-        // landing's example changes (S27-931).
+        // landing's example changes.
         let source = "---\ntitle: Three iris species, 150 flowers\n---\n\n```chart\ntype: bar\ndata:\n  inline:\n    - { species: Setosa, petal: 1.46 }\n```\n\nEach species has **50 flowers**.\n";
         let html = highlight_html(source, HighlightLanguage::RichMarkdown);
         assert!(html.contains("<span class=\"hl-fm\">---</span>"));

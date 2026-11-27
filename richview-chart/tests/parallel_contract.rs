@@ -1,7 +1,7 @@
 //! Parallel coordinates: an axis for each dimension scaled to its own range, a line for each row,
 //! and the failures that name their cause (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::Level;

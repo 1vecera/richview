@@ -35,7 +35,7 @@
 .hl-val,
 .hl-code { color: var(--ink); }
 
-/* ------------------------------------------------------------- completion (W3 scene 2, S27-931) */
+/* ------------------------------------------------------------- completion (W3 scene 2) */
 
 /* A small, light list under the caret while the reader types a key, a value, a block's tag or a
    data field. The site runtime places it and the text area keeps the focus: the arrows move, Enter

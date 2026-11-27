@@ -111,5 +111,5 @@ axes:
 
 ## Interactions
 
-- Hover or focus a day to read its date and value.
+- Hover or focus a day to read its date and value; a dark outline traces the day under the pointer.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

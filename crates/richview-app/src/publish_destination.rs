@@ -130,8 +130,18 @@ pub(crate) fn save_private<T: serde::Serialize>(path: &Path, value: &T) -> Resul
     let mut file =
         tempfile::NamedTempFile::new_in(dir).map_err(|e| Failure::host(e.to_string()))?;
     serde_json::to_writer(&mut file, value).map_err(|e| Failure::host(e.to_string()))?;
+    // On disk before it replaces the old file, and the replacement on disk before this returns:
+    // a sign-in that has just been renewed must not come back as the one it replaced after a
+    // crash or a power cut.
+    file.as_file()
+        .sync_all()
+        .map_err(|e| Failure::host(format!("Cannot save {}: {e}", path.display())))?;
     file.persist(path)
         .map_err(|e| Failure::host(format!("Cannot save {}: {}", path.display(), e.error)))?;
+    #[cfg(unix)]
+    std::fs::File::open(dir)
+        .and_then(|folder| folder.sync_all())
+        .map_err(|e| Failure::host(format!("Cannot save {}: {e}", path.display())))?;
     Ok(())
 }
 

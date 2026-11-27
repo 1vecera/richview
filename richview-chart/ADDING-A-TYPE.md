@@ -38,7 +38,7 @@ The pattern `waterfall` sets (FEA-CH-75). Read `src/layout/waterfall.rs`, `src/l
 7. **types.md**: change the type's tier cell to `done`.
 8. **Docs page** (FEA-SF-43): `docs/public/charts/<type>.md`, same shape as `line.md`, from the example.
 
-Check with `cargo test -p richview-chart --locked` and `cargo test -p richview-core --locked --test chart_types`
+Check with `cargo test -p richview-chart --locked` and `cargo test -p richview-core --locked --test integration -- chart_types::`
 in your own `CARGO_TARGET_DIR` (the shared one is for the gate), then `cargo fmt --all` and
 `cargo clippy -p richview-chart -p richview-core --all-targets --locked -- -D warnings`.
 
@@ -48,4 +48,4 @@ Rebases conflict in `layout/types.rs` (one `use super::<module>;` line and one r
 `authoring.rs` and `types.md`: keep every side's lines once, and check for duplicate lines. Never push while `git status` says a rebase is in progress or any `<<<<<<<` remains.
 The shared target can hand you another checkout's stale artifacts: `git ls-files -z '*.rs' '*Cargo.toml' | xargs
 -0 touch` before a manual build. After the rebase run `cargo test -p richview-chart --locked` and `cargo test -p
-richview-core --locked --test chart_types` (the fast gate runs only library tests), then the gate, then push.
+richview-core --locked --test integration -- chart_types::` (the fast gate runs only library tests), then the gate, then push.

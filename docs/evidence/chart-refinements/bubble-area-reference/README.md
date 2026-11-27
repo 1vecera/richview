@@ -19,9 +19,9 @@ The original introduction’s independent review accepted its main and frozen si
 
 The reference makes the existing local scale explicit; it does not make different facet scales comparable or supply graduated area estimates. Deliberately tiny requested heights retain earlier axis collisions and clipping. Expanding the viewport removes some old clipping findings without repairing that layout. The full evidence records these limits and retained failed setup/oracle checks.
 
-To reproduce these four original images, build the recorded baseline and original `8c26556` candidate in separate worktrees, then run this directory’s unchanged [capture helper](capture.mjs) with the selected worktree, output directory and `before` or `after`. Do not use the revised branch head as that helper’s candidate: it deliberately pins the original native-renderer Wasm, browser Wasm and PNG hashes. The recorded Chromium and fonts are required for identical pixels. Use the supplement’s separate helper for the final spacing pair.
+To reproduce these four original images, build the recorded baseline and original `8c26556` candidate in separate worktrees, then run this directory’s unchanged [capture helper](capture.ts) with the selected worktree, output directory and `before` or `after`. Do not use the revised branch head as that helper’s candidate: it deliberately pins the original native-renderer Wasm, browser Wasm and PNG hashes. The recorded Chromium and fonts are required for identical pixels. Use the supplement’s separate helper for the final spacing pair.
 
 ```sh
-node docs/evidence/chart-refinements/bubble-area-reference/capture.mjs /path/to/baseline tmp/bubble-reference-before before
-node docs/evidence/chart-refinements/bubble-area-reference/capture.mjs /path/to/candidate tmp/bubble-reference-after after
+node docs/evidence/chart-refinements/bubble-area-reference/capture.ts /path/to/baseline tmp/bubble-reference-before before
+node docs/evidence/chart-refinements/bubble-area-reference/capture.ts /path/to/candidate tmp/bubble-reference-after after
 ```

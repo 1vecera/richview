@@ -115,6 +115,6 @@ axes:
 
 ## Interactions
 
-- Hover or focus a point to read its value, category and row.
+- Hover or focus a point to read its value, category and row. The point grows and takes a ring in its own colour, as a scatter point does.
 - Click a legend entry to toggle a group when the chart has several.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

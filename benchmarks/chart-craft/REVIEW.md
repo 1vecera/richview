@@ -1,6 +1,6 @@
 # Chart craft review — 5 October 2026
 
-Prepared for review. This follow-up implements Daniel's chart feedback in the existing Rust renderer and browser runtime. It does not claim complete parity, select new fonts or deploy a release. The earlier S27-582 PR is already merged; this is a separate review branch based on `8a0ec09f3814923fd4173116f1fa6f8cb7836800`.
+Prepared for review. This follow-up implements Daniel's chart feedback in the existing Rust renderer and browser runtime. It does not claim complete parity, select new fonts or deploy a release. The earlier Highcharts visual-review PR is already merged; this is a separate review branch based on `8a0ec09f3814923fd4173116f1fa6f8cb7836800`.
 
 The live comparison uses Highcharts 13.1.1, Apache ECharts 6.1.0, Plotly 4.1.1 and ggplot2 4.0.3 with R 4.6.1. It covers 50 reports across line, area, bar, scatter/bubble, pie and heatmap, with the same resolved rows and complete widget dimensions. Reports own their folders and inline YAML data/loading definitions. The local reference installation and 125 distinct official gallery pictures remain under `/home/vecera/tmp/chart-design-evidence/reference`; its corpus index records URLs, image paths, dimensions, chart states, hashes and capture provenance.
 
@@ -27,6 +27,6 @@ Verification passed: Cargo formatting, native/Wasm Clippy with warnings denied, 
 
 Remaining gaps: font selection is still open; native font bounds remain estimates while settled browser glyph bounds are measured. Static SVG end-label typography can differ slightly from live browser labels. Narrow category charts shorten or skip visible labels while retaining full labels in hover, tables and source. Locale support is a bounded convention set, not full ICU or local-time support. Numeric zoom is real but viewport transitions are less refined than mature engines. Categorical bars, pies and heatmaps do not expose continuous-axis zoom controls. ggplot2 is static. Zero diagnostic findings are not proof of equal aesthetic quality. “Escapism” and “Where to Render” remain unclarified wording.
 
-S27-578's report/data/editor worktree and S27-577's teaser session were left untouched. This branch adds only a bounded `axes.x.locale` field, theme aliases/tokens and palette inheritance at their shared schema boundary; the active authoring PR remains a separate review branch. No reference library enters the production engine.
+The report/data/editor worktree and the teaser session were left untouched. This branch adds only a bounded `axes.x.locale` field, theme aliases/tokens and palette inheritance at their shared schema boundary; the active authoring PR remains a separate review branch. No reference library enters the production engine.
 
 Browse the final paired views and recordings at http://127.0.0.1:8093/evidence/index.html, run the live comparison at http://127.0.0.1:8093/craft/index.html, and inspect the official contact sheet at http://127.0.0.1:8093/reference/index.html. Absolute evidence root: `/home/vecera/tmp/chart-design-evidence`.

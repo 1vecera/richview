@@ -16,4 +16,4 @@ Choose a builtin style to compare the same observations. Keep the original value
 
 Export your source and generated HTML through the playground controls. The draft belongs to this browser session; download it before closing or moving to another machine. A share link, when offered, carries the draft in its URL fragment, so treat it as shared content and avoid confidential data.
 
-For a durable folder workflow, use [the native command](https://richview.ai/docs/first-report). Publishing to a report server is a separate operation.
+For a durable folder workflow, use [the native command](https://richview.ai/docs/first-report). Publishing to a report server is a separate operation. To change a report that is already on the hosted app, use the [online editor](https://richview.ai/docs/online-editor); it edits the same way and saves a new version.

@@ -32,8 +32,8 @@ An earlier gutter-inset proposal was rejected because it could replace daily dat
 Build isolated baseline/current worktrees with [the pinned build instructions](../../../../CLAUDE.md), npm dependencies and `/usr/bin/chromium`. From this checkout run:
 
 ```sh
-node docs/evidence/chart-refinements/scientific-axis/capture.mjs /absolute/built/baseline tmp/scientific-axis-before before
-node docs/evidence/chart-refinements/scientific-axis/capture.mjs /absolute/built/current tmp/scientific-axis-after after
+node docs/evidence/chart-refinements/scientific-axis/capture.ts /absolute/built/baseline tmp/scientific-axis-before before
+node docs/evidence/chart-refinements/scientific-axis/capture.ts /absolute/built/current tmp/scientific-axis-after after
 ```
 
 The helper uses bundled fonts, reduced motion and device scale 2, and asserts each image hash. Full matrices and retained failure logs stay in the campaign's local scratch record.

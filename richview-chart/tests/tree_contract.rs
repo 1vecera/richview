@@ -2,7 +2,7 @@
 //! an optional value that is only read out, and the shared contract every type meets
 //! (FEA-CH-01, FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Cmd, Item};

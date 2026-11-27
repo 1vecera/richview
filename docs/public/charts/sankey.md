@@ -64,7 +64,8 @@ axes:
 
 ## Interactions
 
-- Hover or focus a node to read its size, what enters and leaves it and its share of the column.
+- Hover or focus a node to read its size, what enters and leaves it and its share of the column. The node or ribbon under the pointer takes a dark outline, and the rest of the chart stays as it is.
 - Hover or focus a ribbon to read its value and its share of its source and of its target.
+- Point at a legend entry, or focus it with the keyboard, to outline that source's ribbons and nodes in the same dark outline. Nothing dims, where every other chart dims the other series: try it on the diagram above.
 - Click a legend entry to remove a source and what it feeds, and back.
 - Open the Table view, Download PNG or CSV, or Expand the chart.

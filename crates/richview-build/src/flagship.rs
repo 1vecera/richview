@@ -436,7 +436,7 @@ fn render_one(
     id: &str,
     styles: &[String],
 ) -> Result<()> {
-    let options = crate::resolve_document_options(source, staged, styles, public)?.1;
+    let (_, options, mut inputs) = crate::resolve_document_options(source, staged, styles, public)?;
     let report = richview_core::document::render(source, &options)
         .map_err(|errors| format!("Flagship in {id} failed: {errors:?}"))?;
     richview_app::resolver::export_report(
@@ -444,6 +444,7 @@ fn render_one(
         Some(Path::new(&format!("{id}.html"))),
         &report,
         &options,
+        &mut inputs,
     )?;
     Ok(())
 }

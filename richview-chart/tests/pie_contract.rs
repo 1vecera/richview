@@ -3,7 +3,7 @@
 //! the contract every type shares (FEA-CH-75). Share labels are in `pie_share_labels.rs` and rings
 //! in `donut_contract.rs`.
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::Targeting;

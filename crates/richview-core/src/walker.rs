@@ -383,6 +383,7 @@ fn fits(ty: &Ty, value: &Value) -> bool {
         Ty::Text | Ty::Markdown | Ty::Column | Ty::File => value.is_string(),
         Ty::Number => value.as_f64().is_some_and(f64::is_finite),
         Ty::Integer => value.is_i64() || value.is_u64(),
+        Ty::Decimals => value.as_u64().is_some_and(|n| n <= 6),
         Ty::Digits => value.as_u64().is_some_and(|n| (2..=6).contains(&n)),
         Ty::Bool => value.is_boolean(),
         Ty::OneOf(words) => value.as_str().is_some_and(|word| words.contains(&word)),
@@ -413,6 +414,7 @@ pub(crate) fn expected(ty: &Ty) -> String {
         Ty::Markdown => "inline Markdown text".into(),
         Ty::Number => "a number".into(),
         Ty::Integer => "a whole number".into(),
+        Ty::Decimals => "a whole number of decimal places from 0 to 6".into(),
         Ty::Digits => "a whole number of significant digits from 2 to 6".into(),
         Ty::Bool => "true or false".into(),
         Ty::OneOf(words) => {

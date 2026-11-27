@@ -75,8 +75,9 @@ pub use style::{
     Grammar as StyleGrammar, Leaf as StyleLeaf, Mark as StyleMark, ResolvedStyle, brand_font_files,
     builtin_style_names, builtin_style_source, custom_properties_to_css, is_retired_style_name,
     is_style_name, report_background_layer, resolve_styles, resolve_styles_compat,
-    style_vocabulary,
+    style_list_problem, style_vocabulary,
 };
+pub(crate) use style::{MAX_STYLE_BYTES, MAX_STYLE_REFERENCES};
 
 /// Top, side and bottom page margins in millimetres.
 pub(crate) const PAGE_MARGINS_MM: [f64; 3] = [20.0, 18.0, 22.0];

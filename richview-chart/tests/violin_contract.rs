@@ -1,7 +1,7 @@
 //! Violin charts: kernel-density shapes mirrored about each category, the quartiles and median
 //! inside, one density scale, edge samples and the contract every type shares (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Item, Role};

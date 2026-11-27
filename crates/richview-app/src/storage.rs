@@ -176,6 +176,12 @@ pub struct StoredReport {
     pub content_sha256: String,
 }
 
+/// A single version's requested artifact and, on the hosted HTML route, its publisher credit.
+pub(crate) struct ReportContent {
+    pub body: String,
+    pub publisher: Option<String>,
+}
+
 /// What a publication's identity covers: its data and styles files, and its linked files kept
 /// apart from them. Reports without linked files hash as before.
 fn identity_files(
@@ -381,8 +387,18 @@ impl FsStorage {
     /// The server serializes this list, publication, and the ownership claim together.
     pub fn put_version_for_owner(
         &self,
+        report: StoredReport,
+        owned_slugs: &[String],
+    ) -> Result<(StoredReport, bool), PublishError> {
+        self.put_publication(report, owned_slugs, None)
+    }
+
+    /// Commit the server-rendered publisher fragment with its immutable version, including its bytes in quotas.
+    pub(crate) fn put_publication(
+        &self,
         mut report: StoredReport,
         owned_slugs: &[String],
+        publisher: Option<&str>,
     ) -> Result<(StoredReport, bool), PublishError> {
         report.version = report.version.trim().to_string();
         self.locked(|| {
@@ -422,7 +438,7 @@ impl FsStorage {
                 &serde_json::json!({"styles": report.styles, "data": report.data,"files": report.files,"reportFolder":report.report_folder}),
             )
             .map_err(|e| e.to_string())?;
-            let needed = (report.source.len() + report.html.len() + meta.len() + assets.len()) as u64;
+            let needed = (report.source.len() + report.html.len() + meta.len() + assets.len() + publisher.map_or(0, str::len)) as u64;
             if let Some(limit) = self.quota {
                 let used = dir_bytes(&self.dir)?;
                 if used.saturating_add(needed) > limit {
@@ -501,6 +517,9 @@ impl FsStorage {
                 write_synced(&staging.join("rendered.html"), report.html.as_bytes())?;
                 write_synced(&staging.join("meta.json"), &meta)?;
                 write_synced(&staging.join("assets.json"), &assets)?;
+                if let Some(credit) = publisher {
+                    write_synced(&staging.join("publisher.html"), credit.as_bytes())?;
+                }
                 fs::rename(&staging, slug_dir.join(&report.version)).map_err(|e| e.to_string())?;
                 Ok::<_, String>(())
             })();
@@ -758,14 +777,37 @@ impl FsStorage {
         version: Option<&str>,
         raw: bool,
     ) -> Result<Option<String>, String> {
+        Ok(self
+            .read_page(slug, version, raw, false)?
+            .map(|page| page.body))
+    }
+
+    /// Resolve latest once for both files. Old versions and unnamed styles have no publisher fragment.
+    pub(crate) fn read_page(
+        &self,
+        slug: &str,
+        version: Option<&str>,
+        raw: bool,
+        include_publisher: bool,
+    ) -> Result<Option<ReportContent>, String> {
         let Some((_, path)) = self.report_directory(slug, version)? else {
             return Ok(None);
         };
         let file = path.join(if raw { "source.rmd" } else { "rendered.html" });
         reject_symlink(&file)?;
-        fs::read_to_string(file)
-            .map(Some)
-            .map_err(|e| e.to_string())
+        let body = fs::read_to_string(file).map_err(|error| error.to_string())?;
+        let publisher = if include_publisher && !raw {
+            let file = path.join("publisher.html");
+            reject_symlink(&file)?;
+            match fs::read_to_string(file) {
+                Ok(credit) => Some(credit),
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
+                Err(error) => return Err(error.to_string()),
+            }
+        } else {
+            None
+        };
+        Ok(Some(ReportContent { body, publisher }))
     }
 
     /// List/report-info only need small metadata, not rendered HTML or resolved source assets.
@@ -775,7 +817,7 @@ impl FsStorage {
             .map(|(summary, _)| summary))
     }
 
-    /// Read the latest summary and the stored bytes in its four fixed files.
+    /// Read the latest summary and the stored bytes in its version files.
     pub(crate) fn summary_with_size(
         &self,
         slug: &str,
@@ -784,14 +826,21 @@ impl FsStorage {
             return Ok(None);
         };
         let mut bytes = Some(0u64);
-        for name in ["source.rmd", "rendered.html", "meta.json", "assets.json"] {
+        for name in [
+            "source.rmd",
+            "rendered.html",
+            "meta.json",
+            "assets.json",
+            "publisher.html",
+        ] {
             let file = path.join(name);
             match fs::symlink_metadata(&file) {
                 Ok(meta) if meta.file_type().is_file() => {
                     bytes = bytes.map(|total| total.saturating_add(meta.len()));
                 }
                 Err(error)
-                    if name == "assets.json" && error.kind() == std::io::ErrorKind::NotFound => {}
+                    if matches!(name, "assets.json" | "publisher.html")
+                        && error.kind() == std::io::ErrorKind::NotFound => {}
                 _ => bytes = None,
             }
         }
@@ -889,12 +938,38 @@ impl FsStorage {
         path: &str,
     ) -> Result<Option<Vec<u8>>, String> {
         use base64::Engine;
+        self.read_asset_entry(slug, version, "files", path)?
+            .map(|value| {
+                base64::engine::general_purpose::STANDARD
+                    .decode(value)
+                    .map_err(|e| e.to_string())
+            })
+            .transpose()
+    }
+
+    /// Read exactly one stored data value for a case scoped to that entry.
+    pub(crate) fn read_data_entry(
+        &self,
+        slug: &str,
+        version: &str,
+        path: &str,
+    ) -> Result<Option<String>, String> {
+        self.read_asset_entry(slug, version, "data", path)
+    }
+
+    fn read_asset_entry(
+        &self,
+        slug: &str,
+        version: &str,
+        field: &str,
+        path: &str,
+    ) -> Result<Option<String>, String> {
         use serde::de::{DeserializeSeed, IgnoredAny, MapAccess, Visitor};
 
         // The immutable assets file combines files and data; stream past everything except the
         // requested file so a missing attachment cannot allocate a whole report's resources.
         struct FindFile<'a>(&'a str);
-        struct Assets<'a>(&'a str);
+        struct Assets<'a>(&'a str, &'a str);
         impl<'de> DeserializeSeed<'de> for FindFile<'_> {
             type Value = Option<String>;
             fn deserialize<D: serde::Deserializer<'de>>(
@@ -933,7 +1008,7 @@ impl FsStorage {
             fn visit_map<M: MapAccess<'de>>(self, mut map: M) -> Result<Self::Value, M::Error> {
                 let mut found = None;
                 while let Some(key) = map.next_key::<String>()? {
-                    if key == "files" {
+                    if key == self.1 {
                         found = map.next_value_seed(FindFile(self.0))?;
                     } else {
                         map.next_value::<IgnoredAny>()?;
@@ -954,16 +1029,11 @@ impl FsStorage {
             return Ok(None);
         };
         let mut deserializer = serde_json::Deserializer::from_reader(std::io::BufReader::new(file));
-        let encoded = serde::Deserializer::deserialize_map(&mut deserializer, Assets(path))
-            .ok()
-            .flatten();
-        encoded
-            .map(|value| {
-                base64::engine::general_purpose::STANDARD
-                    .decode(value)
-                    .map_err(|e| e.to_string())
-            })
-            .transpose()
+        Ok(
+            serde::Deserializer::deserialize_map(&mut deserializer, Assets(path, field))
+                .ok()
+                .flatten(),
+        )
     }
 
     /// Keeps the runtime a stored report links to, once, under its content id. A version is
@@ -978,9 +1048,24 @@ impl FsStorage {
             let path = dir.join(&name);
             reject_symlink(&path)?;
             if !path.exists() {
-                let staging = dir.join(format!(".{name}.{}", std::process::id()));
-                write_synced(&staging, bytes)?;
-                fs::rename(&staging, &path).map_err(|e| e.to_string())?;
+                // A staging file of its own for each call: two publishes that find the runtime
+                // missing at once both write it, and what each writes is the same bytes.
+                let mut nonce = [0u8; 8];
+                getrandom::fill(&mut nonce).map_err(|e| e.to_string())?;
+                let staging = dir.join(format!(
+                    ".{name}.{}.{:016x}",
+                    std::process::id(),
+                    u64::from_be_bytes(nonce)
+                ));
+                let installed = write_synced(&staging, bytes)
+                    .and_then(|()| fs::rename(&staging, &path).map_err(|e| e.to_string()));
+                if installed.is_err() {
+                    let _ = fs::remove_file(&staging);
+                    // Where a rename cannot replace a file, the other publish's copy stands.
+                    if !path.is_file() {
+                        return installed;
+                    }
+                }
             }
         }
         Ok(())
@@ -1221,6 +1306,56 @@ fn write_synced(path: &Path, bytes: &[u8]) -> Result<(), String> {
     file.write_all(bytes)
         .and_then(|_| file.sync_all())
         .map_err(|e| e.to_string())
+}
+
+#[cfg(test)]
+mod runtime_install_tests {
+    use super::*;
+
+    #[test]
+    fn publishes_that_find_the_runtime_missing_together_all_keep_it() {
+        let dir = tempfile::tempdir().unwrap();
+        let storage = std::sync::Arc::new(FsStorage::new(dir.path()).unwrap());
+        let (js, wasm) = ("export default 1;".repeat(4096), vec![7u8; 200_000]);
+        let start = std::sync::Arc::new(std::sync::Barrier::new(8));
+        let kept: Vec<_> = (0..8)
+            .map(|_| {
+                let (storage, start) = (storage.clone(), start.clone());
+                let (js, wasm) = (js.clone(), wasm.clone());
+                std::thread::spawn(move || {
+                    start.wait();
+                    storage.keep_runtime("0123456789abcdef", &js, &wasm)
+                })
+            })
+            .collect();
+        for one in kept {
+            one.join().unwrap().unwrap();
+        }
+        assert_eq!(
+            storage
+                .runtime_file("0123456789abcdef.js")
+                .unwrap()
+                .unwrap(),
+            js.as_bytes()
+        );
+        assert_eq!(
+            storage
+                .runtime_file("0123456789abcdef_bg.wasm")
+                .unwrap()
+                .unwrap(),
+            wasm
+        );
+        // No staging file is left beside them.
+        let left: Vec<_> = fs::read_dir(dir.path().join("_runtime"))
+            .unwrap()
+            .map(|entry| entry.unwrap().file_name())
+            .collect();
+        assert_eq!(left.len(), 2, "{left:?}");
+        // Keeping it again changes nothing.
+        storage
+            .keep_runtime("0123456789abcdef", &js, &wasm)
+            .unwrap();
+    }
 }
 
 #[cfg(test)]

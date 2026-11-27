@@ -110,6 +110,7 @@ pub fn parse_schema(name: &str, mut value: Value) -> Result<Value, Vec<Diagnosti
                 frontmatter_lines: Default::default(),
                 frontmatter_columns: Default::default(),
                 failed: vec![],
+                deck: None,
             };
             doc.diagnostics.extend(crate::walker::check(
                 crate::walker::Root::Frontmatter,

@@ -120,7 +120,7 @@ richview publish first-report/report.rmd --slug first-report
 
 With no server chosen, the command asks where to publish:
 
-- **Hosted by RichView.** Sign in at [app.richview.ai](https://app.richview.ai). If you need an account, check whether [sign-up](https://app.richview.ai/sign-up) is open. The command signs this computer in once: it shows a short code that you confirm in the browser, or asks for a CLI token from that page where the server has no such sign-in. A script sets `RICHVIEW_SERVER=https://app.richview.ai` and `RICHVIEW_TOKEN` instead. Publishing uploads the report's source and linked files, and new reports are private to you until you share them. Each publish request is limited to 32 MiB, including the encoded source and files; an organization can store up to 50 MiB in total.
+- **Hosted by RichView.** Sign in at [app.richview.ai](https://app.richview.ai). If you need an account, check whether [sign-up](https://app.richview.ai/sign-up) is open. The command signs this computer in once: it opens your browser, you sign in and choose Allow, and the terminal finishes by itself (on a computer with no browser, it shows a short code to confirm on any device), or it asks for a CLI token from that page where the server has no such sign-in. A script sets `RICHVIEW_SERVER=https://app.richview.ai` and `RICHVIEW_TOKEN` instead. Publishing uploads the report's source and linked files, and new reports are private to you until you share them. Each publish request is limited to 32 MiB, including the encoded source and files; an organization can store up to 50 MiB in total.
 - **Your own server.** [Run RichView on your machine](https://richview.ai/docs/self-hosting), sign in as its first admin and publish to it.
 
 Follow the [hosted walkthrough](https://richview.ai/docs/publishing#publish-to-the-hosted-server) or [try it on your own computer](https://richview.ai/docs/publishing#try-your-own-server-on-this-computer). [Publishing and access](https://richview.ai/docs/access) covers permissions, pinning and deletion.
@@ -130,7 +130,7 @@ Follow the [hosted walkthrough](https://richview.ai/docs/publishing#publish-to-t
 - [Install](https://richview.ai/docs/install) and [your first report](https://richview.ai/docs/first-report)
 - [Authoring guide](https://richview.ai/docs/authoring), [styles](https://richview.ai/docs/styles) and the [chart gallery](https://richview.ai/docs/charts), with live examples and copyable source for every chart type
 - [CLI](https://richview.ai/docs/cli), [MCP](https://richview.ai/docs/mcp) and [VS Code](https://richview.ai/docs/vscode)
-- [HTML and PDF export](https://richview.ai/docs/export), [publishing](https://richview.ai/docs/publishing), [self-hosting](https://richview.ai/docs/self-hosting) and [slides](https://richview.ai/docs/slides)
+- [HTML and PDF export](https://richview.ai/docs/export), [publishing](https://richview.ai/docs/publishing), [editing a report online](https://richview.ai/docs/online-editor), [self-hosting](https://richview.ai/docs/self-hosting) and [slides](https://richview.ai/docs/slides)
 - [The `.rmd` format specification](docs/RMD-SPEC.md)
 - [Examples](examples/) in this repository: [`first-report`](examples/first-report/report.rmd) is a small starter with a CSV, [`every-block`](examples/every-block/report.rmd) uses every block and chart type, and [`openai-vs-anthropic`](examples/openai-vs-anthropic/README.md) is a larger sourced research report.
 

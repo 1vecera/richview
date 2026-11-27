@@ -39,7 +39,7 @@
 				},
 				{
 					"label": "PR #70 merged into `main` as merge commit 97ac0d0 on 2026-10-26; its branch has no commits outside `main`, and `main` now holds `publications/news/`, `cloudflare/publish/` and `publish.yml`",
-					"ref": "git log origin/main; git rev-list --count origin/main..origin/feat/s27-655-richview-publish (0)",
+					"ref": "git log origin/main; git rev-list --count origin/main..3f5c35f (0)",
 					"date": "2026-10-26"
 				},
 				{
@@ -53,8 +53,8 @@
 					"date": "2026-10-21"
 				},
 				{
-					"label": "`task/s27-653-site` at 7b23a22 deployed as Worker version 7f3bef0d… to richview.ai and the workers.dev address at about 02:32 CEST; rollback target 9582ef8a-f49f-4726-b584-e74a7a046a4a",
-					"ref": "S27-653 deploy receipt in the October coordination root on Claw Mini",
+					"label": "The site-round branch at 7b23a22 deployed as Worker version 7f3bef0d… to richview.ai and the workers.dev address at about 02:32 CEST; rollback target 9582ef8a-f49f-4726-b584-e74a7a046a4a",
+					"ref": "Site-round deploy receipt in the October coordination root on Claw Mini",
 					"date": "2026-10-19"
 				},
 				{
@@ -64,7 +64,7 @@
 				},
 				{
 					"label": "The uncommitted `landing.rs` edit in #69's worktree was last saved at 03:12 CEST, after the deploy",
-					"ref": "worktree s27-653-site (file time)",
+					"ref": "site-round worktree (file time)",
 					"date": "2026-10-22"
 				},
 				{
@@ -119,11 +119,10 @@
 				},
 				{
 					"label": "Agents merge into dev; only Daniel merges dev into prod",
-					"ref": "S27-677",
 					"date": "2026-10-21"
 				}
 			],
-			"conflicts": "Daniel did not accept #69's published result on 2026-10-18 16:03 (mobile scroll \"jumpy/weird with visible ticking\", S27-653); merging records production, it does not approve the design (OPN-13). PR #58 removed the landing animation on the 2026-10-12 feedback and #69 restored it on the 2026-10-18 brief; whether the landing animates is STY-44 (D-LANDING-MOTION). The `landing.rs` edit left in #69's worktree was saved after the deploy, so the baseline is the pushed branch, not that worktree (inferred); OPN-15 preserves the edit.",
+			"conflicts": "Daniel did not accept #69's published result on 2026-10-18 16:03 (mobile scroll \"jumpy/weird with visible ticking\"); merging records production, it does not approve the design (OPN-13). PR #58 removed the landing animation on the 2026-10-12 feedback and #69 restored it on the 2026-10-18 brief; whether the landing animates is STY-44 (D-LANDING-MOTION). The `landing.rs` edit left in #69's worktree was saved after the deploy, so the baseline is the pushed branch, not that worktree (inferred); OPN-15 preserves the edit.",
 			"images": [
 				"docs/lockdown/screenshots/live/richview-home-desktop-01-hero.jpg"
 			]
@@ -181,12 +180,10 @@
 				},
 				{
 					"label": "\"all the changes on the richview.ai should be published right away\"",
-					"ref": "S27-653",
 					"date": "2026-10-18"
 				},
 				{
 					"label": "Rewrite from scratch; agents merge into dev, Daniel merges into prod",
-					"ref": "S27-677",
 					"date": "2026-10-21"
 				},
 				{
@@ -291,7 +288,6 @@
 				},
 				{
 					"label": "The 2026-10-18 site round shipped before review: \"not accepted yet\"",
-					"ref": "S27-653",
 					"date": "2026-10-18"
 				}
 			],
@@ -346,7 +342,7 @@
 				},
 				{
 					"label": "Each deploy lands on richview.ai and the workers.dev address",
-					"ref": "S27-653 deploy receipt in the October coordination root on Claw Mini",
+					"ref": "Site-round deploy receipt in the October coordination root on Claw Mini",
 					"date": "2026-10-19"
 				},
 				{
@@ -402,7 +398,7 @@
 				},
 				{
 					"label": "PR #70 merged into `main` as merge commit 97ac0d0 on 2026-10-26; its branch has no commits outside `main`, and `main` now holds `publications/news/`, `cloudflare/publish/` and `publish.yml`",
-					"ref": "git log origin/main; git rev-list --count origin/main..origin/feat/s27-655-richview-publish (0)",
+					"ref": "git log origin/main; git rev-list --count origin/main..3f5c35f (0)",
 					"date": "2026-10-26"
 				},
 				{
@@ -779,7 +775,7 @@
 			"refId": "D-CONTROLS-PR62",
 			"group": "Open draft PRs #62–#70",
 			"title": "PR #62 playable charts: fold into the spec, do not merge",
-			"question": "Merge, fold or abandon draft PR #62 (playable charts and chart-version selectors, S27-648)?",
+			"question": "Merge, fold or abandon draft PR #62 (playable charts and chart-version selectors)?",
 			"why": "#62 is the largest chart-engine change in flight. Merging adds 2,751 lines to code the rewrite replaces; abandoning loses a worked contract and examples.",
 			"proposed": "#62 is closed unmerged; its code stays reachable through the PR. Its features enter the rewrite: Daniel's FEA-BR-01 answer keeps all four kinds of controls (playback, filter, metric and variant), and his FEA-BR-08 note says #62 enters. The rewrite builds them on its own engine from FEA-BR-01 to FEA-BR-07, FEA-BR-31 to FEA-BR-34 and FEA-BR-36, with TYP-77 as the format. The branch's `controls:` contract, its `rv:control` and `rv:control-set` events (internal, FEA-BR-07), the reduced-motion floor and the Gapminder and indicator examples are input, and those examples become fixtures.",
 			"options": [
@@ -810,7 +806,7 @@
 					"date": "2026-10-26"
 				},
 				{
-					"label": "Draft, `feat/s27-648-playable-charts` @a703897, 13 commits ahead of b4db233, 0 behind, 14 files, +2,751/−6",
+					"label": "Draft, @a703897, 13 commits ahead of b4db233, 0 behind, 14 files, +2,751/−6",
 					"ref": "PR #62",
 					"date": "2026-10-18"
 				},
@@ -831,7 +827,6 @@
 				},
 				{
 					"label": "Playable charts and selectors brief",
-					"ref": "S27-648",
 					"date": "2026-10-17"
 				},
 				{
@@ -845,7 +840,7 @@
 					"date": "2026-10-21"
 				}
 			],
-			"conflicts": "A supervisor returned the work once because variants and dropdown defaults were missing (S27-648 comment, 2026-10-18 07:22); composed chart groups are still not implemented (stated)."
+			"conflicts": "A supervisor returned the work once because variants and dropdown defaults were missing (comment on the playable-charts brief, 2026-10-18 07:22); composed chart groups are still not implemented (stated)."
 		},
 		{
 			"id": "OPN-07",
@@ -854,7 +849,7 @@
 			"refId": "D-TABS-PR63",
 			"group": "Open draft PRs #62–#70",
 			"title": "PR #63 multi-tab reports: fold, do not merge",
-			"question": "Merge, fold or abandon draft PR #63 (multi-tab reports, S27-649)?",
+			"question": "Merge, fold or abandon draft PR #63 (multi-tab reports)?",
 			"why": "Tabs change the report format (frontmatter `tabs`, heading anchors). Merging unverified format changes into legacy creates a contract the rewrite must then honour or break.",
 			"proposed": "#63 is closed unmerged. Tabs enter the rewrite (Daniel's FEA-BR-08 answer), built on the new core from FEA-BR-08 to FEA-BR-10, FEA-BR-35, FEA-BR-38 to FEA-BR-40 and FEA-BR-48, with TYP-76 as the format. The branch is unverified work in progress: every gate in its body is unchecked. Its design (frontmatter `tabs` with panels sliced at `## Title {#id}` anchors, `export: all|active`, deep links and keyboard focus) is input to those cards.",
 			"options": [
@@ -880,7 +875,7 @@
 					"date": "2026-10-26"
 				},
 				{
-					"label": "Draft titled WIP, `feat/s27-649-multi-tab-reports` @f1cb254, 6 commits, 10 files, +781/−2; all gate checkboxes unchecked",
+					"label": "Draft titled WIP, @f1cb254, 6 commits, 10 files, +781/−2; all gate checkboxes unchecked",
 					"ref": "PR #63",
 					"date": "2026-10-18"
 				},
@@ -896,7 +891,6 @@
 				},
 				{
 					"label": "Multi-tab reports brief",
-					"ref": "S27-649",
 					"date": "2026-10-17"
 				},
 				{
@@ -915,7 +909,7 @@
 					"date": "2026-10-21"
 				}
 			],
-			"conflicts": "Linear S27-649 says To Review while the PR is marked WIP with no gate run. Its spec promises that every panel is visible without JavaScript, but the branch writes non-default panels as `hidden`, so without the runtime only the default panel shows (FEA-BR-09)."
+			"conflicts": "Linear shows the multi-tab brief as To Review while the PR is marked WIP with no gate run. Its spec promises that every panel is visible without JavaScript, but the branch writes non-default panels as `hidden`, so without the runtime only the default panel shows (FEA-BR-09)."
 		},
 		{
 			"id": "OPN-08",
@@ -924,9 +918,9 @@
 			"refId": "D-DASHBOARD-PR64",
 			"group": "Open draft PRs #62–#70",
 			"title": "PR #64 voice dashboard: close and keep as a reference demo",
-			"question": "Merge, fold or abandon draft PR #64, the voice-to-dashboard sibling demo (S27-651)?",
+			"question": "Merge, fold or abandon draft PR #64, the voice-to-dashboard sibling demo?",
 			"why": "It is a separate product with private-data dependencies and a JavaScript front end; merging it puts a second product into legacy code before scope is decided.",
-			"proposed": "#64 is closed unmerged and leaves this repository: the voice-to-dashboard demo lives outside RichView, possibly in a repository of its own (Daniel's INT-34 answer). Nothing from `origin/s27-651-voice-dashboard:crates/richview-voice-dashboard` (axum server, 347-line `app.js`, Okurka MetricFlow and ElevenLabs Scribe adapters) is carried into the rewrite. If Daniel keeps the demo, its branch is pushed to the repository he names, then deleted here with the other closed branches (OPN-29); FEA-BR-11 records what it built. Whether dashboards ever join RichView is INT-33.",
+			"proposed": "#64 is closed unmerged and leaves this repository: the voice-to-dashboard demo lives outside RichView, possibly in a repository of its own (Daniel's INT-34 answer). Nothing from PR #64's `crates/richview-voice-dashboard` (axum server, 347-line `app.js`, Okurka MetricFlow and ElevenLabs Scribe adapters) is carried into the rewrite. If Daniel keeps the demo, its branch is pushed to the repository he names, then deleted here with the other closed branches (OPN-29); FEA-BR-11 records what it built. Whether dashboards ever join RichView is INT-33.",
 			"options": [
 				{
 					"label": "Move out of this repository",
@@ -955,7 +949,7 @@
 					"date": "2026-10-18"
 				},
 				{
-					"label": "`s27-651-voice-dashboard` @81110e0, 9 commits, 18 files, +3,174; `assets/app.js` 347 lines",
+					"label": "@81110e0, 9 commits, 18 files, +3,174; `assets/app.js` 347 lines",
 					"ref": "PR #64",
 					"date": "2026-10-18"
 				},
@@ -966,12 +960,10 @@
 				},
 				{
 					"label": "\"not dashboards, not generic BI, not a full chat/web-editor product\"",
-					"ref": "S27-420",
 					"date": "2026-06-20"
 				},
 				{
 					"label": "Voice-to-dashboard brief",
-					"ref": "S27-651",
 					"date": "2026-10-17"
 				},
 				{
@@ -985,7 +977,7 @@
 					"date": "2026-10-21"
 				}
 			],
-			"conflicts": "Settled by INT-34. Where the demo goes, its own repository or another, is Daniel's call; until he names it, the branch stays here so nothing is lost. S27-420 (2026-06-20) kept RichView to data stories and ruled out dashboards and chat; the 2026-10-17 briefs started this demo \"despite older August scope locks\"."
+			"conflicts": "Settled by INT-34. Where the demo goes, its own repository or another, is Daniel's call; until he names it, the branch stays here so nothing is lost. The 2026-06-20 voice dump kept RichView to data stories and ruled out dashboards and chat; the 2026-10-17 briefs started this demo \"despite older August scope locks\"."
 		},
 		{
 			"id": "OPN-09",
@@ -994,7 +986,7 @@
 			"refId": "D-GALLERIES-PR65",
 			"group": "Open draft PRs #62–#70",
 			"title": "PR #65 galleries: close; reuse the famous-chart content",
-			"question": "Merge, fold or abandon draft PR #65 (typography, chart and famous-chart galleries, S27-647)?",
+			"question": "Merge, fold or abandon draft PR #65 (typography, chart and famous-chart galleries)?",
 			"why": "Its pages were deployed and then replaced by #69's docs gallery; merging would reintroduce pages production no longer serves, and it conflicts with #69.",
 			"proposed": "#65 is closed unmerged; its content enters the rewrite (Daniel's FEA-BR-08 note: #65 enters), built on the new core: the famous-chart recreations (Gapminder, Playfair's trade balance, Rosling's income mountains, Snow's cholera map, Nightingale's rose) in the forms FEA-BR-12 keeps, the sourced chart-type examples (FEA-BR-41), the typography specimen (FEA-BR-13) and the style choice behaviour (FEA-BR-42). Its standalone gallery pages stay out (ARC-60): the content lives in the docs (FEA-SF-43), and the dead routes are handled by OPN-19.",
 			"options": [
@@ -1020,7 +1012,7 @@
 					"date": "2026-10-26"
 				},
 				{
-					"label": "\"Deployed under this ticket's explicit public-publication authorization\"; `s27-647-publish-galleries` @850032b, 4 commits, 8 files, +1,142",
+					"label": "\"Deployed under this ticket's explicit public-publication authorization\"; @850032b, 4 commits, 8 files, +1,142",
 					"ref": "PR #65",
 					"date": "2026-10-17"
 				},
@@ -1041,7 +1033,7 @@
 				},
 				{
 					"label": "\"Replace the mistaken chart-gallery-as-report interpretation\"; gallery moved into docs",
-					"ref": "S27-653 brief",
+					"ref": "Site-round brief",
 					"date": "2026-10-18"
 				},
 				{
@@ -1059,7 +1051,7 @@
 			"refId": "D-CONNECTORS-PR66",
 			"group": "Open draft PRs #62–#70",
 			"title": "PR #66 data connectors: close; its contract informs Publish's connectors",
-			"question": "Merge, fold or abandon draft PR #66 (SQL, cached-data and dbt MetricFlow connectors, S27-650)?",
+			"question": "Merge, fold or abandon draft PR #66 (SQL, cached-data and dbt MetricFlow connectors)?",
 			"why": "It reverses today's rule that report data is local (`sql` is an error on main) and adds a heavy native dependency; the contract matters more than the code.",
 			"proposed": "#66 is closed unmerged; its work enters the rewrite's connector core, which RichView builds and every RichView server, Cowork and Publish, local and hosted, offers (OPN-63, ARC-59). Its contract (chart-local `data.sql`, `data.metricflow` and `data.cache`; queries resolved by a trusted host; results snapshotted and reused offline; credentials only in trusted host configuration, never in source or HTML) is the spec for that core (FEA-BR-14 to FEA-BR-16, FEA-BR-43, FEA-BR-50, TYP-79), and its code is ported where it meets the accepted cards (INT-49). Whether its DuckDB and MetricFlow adapters back the connector core is the agents' technical choice (OPN-63). The live tests that need an Okurka MetricFlow environment are not carried, and nothing enters `richview-core`, which stays pure (ARC-02).",
 			"options": [
@@ -1105,7 +1097,7 @@
 					"date": "2026-10-26"
 				},
 				{
-					"label": "`feat/s27-650-data-connectors` @4ecef05, 6 commits, 24 files, +2,731/−14, of which Cargo.lock +708/−5",
+					"label": "@4ecef05, 6 commits, 24 files, +2,731/−14, of which Cargo.lock +708/−5",
 					"ref": "PR #66",
 					"date": "2026-10-18"
 				},
@@ -1126,7 +1118,6 @@
 				},
 				{
 					"label": "Connectors brief",
-					"ref": "S27-650",
 					"date": "2026-10-17"
 				},
 				{
@@ -1164,7 +1155,7 @@
 			"refId": "D-CHART-POLISH-PR67",
 			"group": "Open draft PRs #62–#70",
 			"title": "PR #67 chart polish: fold Daniel's chart calls, do not finish in legacy",
-			"question": "Merge, fold or abandon draft PR #67 (flagship and chart polish, S27-654, unfinished)?",
+			"question": "Merge, fold or abandon draft PR #67 (flagship and chart polish, unfinished)?",
 			"why": "#67 holds Daniel's latest dictated chart decisions, but its code is incomplete, its executor stopped on 2026-10-19 and it conflicts with #63 and #69.",
 			"proposed": "#67 is closed unmerged; its features enter the rewrite (Daniel's FEA-BR-08 note) through the items that decide them, since its behaviours are Daniel's latest chart calls: years printed as years (FEA-CH-21), a lighter tooltip (FEA-CH-42, STY-41), labelled chart actions (FEA-CH-43, STY-42), one Expand modal (FEA-CH-44), a PNG and SVG Download menu (FEA-CH-46, FEA-CH-47), five style pills plus Other styles (FEA-BR-17), sparse scatter labels with `encoding.highlight` priorities (FEA-CH-28, TYP-78) and opt-in wide blocks (FEA-BR-18, TYP-89). Its unfinished work (header infographic, tooltip stability, series cues, Playfair density) enters only where a card decides it (INT-49). Its unpushed commit and uncommitted edit are preserved first (OPN-15).",
 			"options": [
@@ -1190,13 +1181,13 @@
 					"date": "2026-10-26"
 				},
 				{
-					"label": "Title \"(in progress)\", `task/s27-654-chart-polish` @47d8848, 12 commits, 9 files, +340/−56",
+					"label": "Title \"(in progress)\", @47d8848, 12 commits, 9 files, +340/−56",
 					"ref": "PR #67",
 					"date": "2026-10-19"
 				},
 				{
 					"label": "Local branch is one commit ahead (ba394dd, adds sleek-light and hand-drawn to the showcase themes) and its locked worktree has an uncommitted `charts.rs` edit",
-					"ref": "git branch -vv; worktree s27-654-chart-polish",
+					"ref": "git branch -vv; chart-polish worktree",
 					"date": "2026-10-21"
 				},
 				{
@@ -1206,7 +1197,6 @@
 				},
 				{
 					"label": "Dictated chart corrections",
-					"ref": "S27-654",
 					"date": "2026-10-18"
 				},
 				{
@@ -1220,7 +1210,7 @@
 					"date": "2026-10-21"
 				}
 			],
-			"conflicts": "S27-632 asked for an Expand/Contract toggle, shipped by #60 on 2026-10-16; S27-654 replaces it with one modal two days later, and main still has the toggle and \"Inspect chart\". The five-pill selector cannot fill two pills because main's `themes.json` lacks sleek-light and hand-drawn; only the unpushed commit adds them. Daniel's FEA-BR-08 note is the only evidence that #67 enters as a whole; the header infographic, tooltip stability, series cues and Playfair density have no card, so under INT-49 they are dropped unless Daniel names them."
+			"conflicts": "The expand-toggle request asked for an Expand/Contract toggle, shipped by #60 on 2026-10-16; the chart-polish brief replaces it with one modal two days later, and main still has the toggle and \"Inspect chart\". The five-pill selector cannot fill two pills because main's `themes.json` lacks sleek-light and hand-drawn; only the unpushed commit adds them. Daniel's FEA-BR-08 note is the only evidence that #67 enters as a whole; the header infographic, tooltip stability, series cues and Playfair density have no card, so under INT-49 they are dropped unless Daniel names them."
 		},
 		{
 			"id": "OPN-12",
@@ -1229,9 +1219,9 @@
 			"refId": "D-HARNESS-PR68",
 			"group": "Open draft PRs #62–#70",
 			"title": "PR #68 development harness: fold its rules into the gates",
-			"question": "Merge, fold or abandon draft PR #68 (end-to-end development harness, S27-652)?",
+			"question": "Merge, fold or abandon draft PR #68 (end-to-end development harness)?",
 			"why": "Its rules answer real failures (a shared Cargo target served a build from another worktree), but the rewrite's gates are designed in part 02.",
-			"proposed": "#68 is closed unmerged; its rules enter the rewrite (Daniel's FEA-BR-08 note) as part 02 gates (ARC-61): one build lock for a shared target (DEL-42), artifacts identified by hash before a build is trusted (DEL-13), evidence kept outside the worktree (DEL-20), and a controlled failure-and-recovery drill (FEA-BR-20). `origin/feat/s27-652-development-harness:docs/architecture-current.md` is evidence. Nothing is merged into legacy `main`.",
+			"proposed": "#68 is closed unmerged; its rules enter the rewrite (Daniel's FEA-BR-08 note) as part 02 gates (ARC-61): one build lock for a shared target (DEL-42), artifacts identified by hash before a build is trusted (DEL-13), evidence kept outside the worktree (DEL-20), and a controlled failure-and-recovery drill (FEA-BR-20). PR #68's `docs/architecture-current.md` is evidence. Nothing is merged into legacy `main`.",
 			"options": [
 				{
 					"label": "Fold into part 02",
@@ -1251,7 +1241,7 @@
 					"date": "2026-10-26"
 				},
 				{
-					"label": "`feat/s27-652-development-harness` @bba45ab, 4 commits, 7 files, +946/−8",
+					"label": "@bba45ab, 4 commits, 7 files, +946/−8",
 					"ref": "PR #68",
 					"date": "2026-10-18"
 				},
@@ -1267,7 +1257,6 @@
 				},
 				{
 					"label": "History audit and harness brief",
-					"ref": "S27-652",
 					"date": "2026-10-18"
 				},
 				{
@@ -1290,7 +1279,7 @@
 			"refId": "D-SITE-PR69",
 			"group": "Open draft PRs #62–#70",
 			"title": "PR #69 site repair: merge as the record of production",
-			"question": "Merge, fold or abandon draft PR #69, the site round that richview.ai already serves (S27-653)?",
+			"question": "Merge, fold or abandon draft PR #69, the site round that richview.ai already serves?",
 			"why": "richview.ai runs #69's code while main does not contain it. Merging is the only way to make the repository equal production without changing the public site.",
 			"proposed": "#69 is merged into `main` as it stands, before the rewrite starts (OPN-01). The merge records production. Its features enter the rewrite (Daniel's FEA-BR-08 note), each in the form its own card decides: the landing motion (STY-44, with FEA-BR-21's bar), the three-link nav (FEA-SF-28), the docs chart gallery (FEA-SF-43, FEA-BR-22), and the chart chrome #69 also carries in 52d07db: visible action labels (FEA-CH-43, STY-42), a more transparent runtime tooltip (STY-41) and the rect clamp (FEA-BR-19). Its unfinished mobile-motion work is not continued in legacy code.",
 			"options": [
@@ -1316,7 +1305,7 @@
 					"date": "2026-10-26"
 				},
 				{
-					"label": "`task/s27-653-site` @5e69843, 6 commits, 9 files, +650/−24; deploy checklist still unchecked although deployed",
+					"label": "@5e69843, 6 commits, 9 files, +650/−24; deploy checklist still unchecked although deployed",
 					"ref": "PR #69",
 					"date": "2026-10-19"
 				},
@@ -1332,12 +1321,12 @@
 				},
 				{
 					"label": "\"not accepted yet\"; mobile scroll \"jumpy/weird with visible ticking\"",
-					"ref": "S27-653 (review 2026-10-18 16:03)",
+					"ref": "Site-round issue (review 2026-10-18 16:03)",
 					"date": "2026-10-18"
 				},
 				{
 					"label": "Its locked worktree holds an uncommitted `landing.rs` edit",
-					"ref": "worktree s27-653-site",
+					"ref": "site-round worktree",
 					"date": "2026-10-21"
 				},
 				{
@@ -1347,11 +1336,10 @@
 				},
 				{
 					"label": "Docs gallery charts have no Expand or SVG download (r5)",
-					"ref": "S27-653",
 					"date": "2026-10-19"
 				}
 			],
-			"conflicts": "PR #58 (2026-10-13) removed the landing animation on Daniel's 2026-10-12 feedback; #69 restores it on the 2026-10-18 brief. Docs gallery charts have no Expand or SVG download (S27-653, r5). Daniel's FEA-BR-08 note is the only evidence that #69's features enter; STY-44 still proposes a static landing until FEA-BR-21's bar is met.",
+			"conflicts": "PR #58 (2026-10-13) removed the landing animation on Daniel's 2026-10-12 feedback; #69 restores it on the 2026-10-18 brief. Docs gallery charts have no Expand or SVG download (r5). Daniel's FEA-BR-08 note is the only evidence that #69's features enter; STY-44 still proposes a static landing until FEA-BR-21's bar is met.",
 			"images": [
 				"docs/lockdown/screenshots/live/richview-home-desktop-01-hero.jpg"
 			]
@@ -1363,7 +1351,7 @@
 			"refId": "D-PUBLISH-PR70",
 			"group": "Open draft PRs #62–#70",
 			"title": "PR #70 RichView Publish: merged into `main` as it is; the rewrite carries over its behaviour",
-			"question": "Merge, fold or abandon draft PR #70 (RichView Publish and RichView News, S27-655), which news.richview.ai already runs?",
+			"question": "Merge, fold or abandon draft PR #70 (RichView Publish and RichView News), which news.richview.ai already runs?",
 			"why": "#70 is Publish's first implementation (about 4,000 lines of JavaScript gateway and editor, 1,000 lines of Rust), live from its branch until Daniel's INT-35 answer merged it into `main` on 2026-10-26 (merge commit 97ac0d0). His INT-31 answer builds Publish in the rewrite and makes News one instance of it, and his INT-52 answer merges #70 as it is, so the News work lands and continues, while the rewrite carries over what Publish strives for, not its code.",
 			"proposed": "#70 is merged into `main` as it is, JavaScript included, on 2026-10-26, so the RichView News session's work lands and continues there (INT-35, INT-52, INT-74). It is not the rewrite's base: the rewrite builds Publish on the new core and the server core it shares with Cowork (INT-31, INT-35, ARC-57) and carries over what Publish strives for, its behaviour and decisions, not its code; #70's JavaScript is ported to the Rust target when the rewrite reaches Publish (INT-49, INT-52). Its spec stays recorded in FEA-BR-23 to FEA-BR-30, FEA-BR-44 to FEA-BR-46 and FEA-BR-49, with TYP-80 and TYP-81 for its formats, as requirements of the rewrite's Publish. When the rewrite's Publish can serve News, News moves onto it as its first instance with its content migrated (INT-51), and #70's JavaScript gateway and desk retire. With `main` renamed `prod` (DEL-02), #70's code is part of the state `prod` and `dev` start from (OPN-01). Open: which branch News deploys from now that #70's branch is fully merged (DEL-40's table, which Daniel's answer keeps for News, still names it and `publish/news`), how ARC-03's allowlist check treats #70's JavaScript until the port, and when News cuts over.",
 			"options": [
@@ -1390,7 +1378,7 @@
 				},
 				{
 					"label": "PR #70 merged into `main` as merge commit 97ac0d0 on 2026-10-26; its branch has no commits outside `main`, and `main` now holds `publications/news/`, `cloudflare/publish/` and `publish.yml`",
-					"ref": "git log origin/main; git rev-list --count origin/main..origin/feat/s27-655-richview-publish (0)",
+					"ref": "git log origin/main; git rev-list --count origin/main..3f5c35f (0)",
 					"date": "2026-10-26"
 				},
 				{
@@ -1424,7 +1412,7 @@
 					"date": "2026-10-23"
 				},
 				{
-					"label": "`feat/s27-655-richview-publish` @3f5c35f, 26 commits, 52 files, +7,243/−8 (3,998 lines `.mjs`, 1,031 lines Rust)",
+					"label": "@3f5c35f, 26 commits, 52 files, +7,243/−8 (3,998 lines `.mjs`, 1,031 lines Rust)",
 					"ref": "PR #70",
 					"date": "2026-10-19"
 				},
@@ -1450,7 +1438,6 @@
 				},
 				{
 					"label": "Name \"RichView Publish\" and the News demo",
-					"ref": "S27-655",
 					"date": "2026-10-18"
 				},
 				{
@@ -1464,7 +1451,7 @@
 					"date": "2026-10-21"
 				}
 			],
-			"conflicts": "The Rust migration brief (2026-10-04) made Rust own all product behaviour, with JavaScript only for unavoidable host APIs; #70's gateway and editor are JavaScript. S27-420 (2026-06-20) ruled out \"a full chat/web-editor product\"; Publish adds a browser editorial desk; Daniel's INT-26 answer keeps only its publication approval and an author's quick source edit in an embedded code editor (FEA-BR-27), while #70's desk also creates drafts and edits `site.yaml`. Improving #70's JavaScript code now carries over as behaviour, not code; News's content, design and the News session's findings carry over too. Daniel's DEL-02 answer renames `main` to `prod`, so #70's code enters `prod` and `dev` with the rest of `main`; DEL-40's table still deploys News from the #70 branch and `publish/news`.",
+			"conflicts": "The Rust migration brief (2026-10-04) made Rust own all product behaviour, with JavaScript only for unavoidable host APIs; #70's gateway and editor are JavaScript. The 2026-06-20 voice dump ruled out \"a full chat/web-editor product\"; Publish adds a browser editorial desk; Daniel's INT-26 answer keeps only its publication approval and an author's quick source edit in an embedded code editor (FEA-BR-27), while #70's desk also creates drafts and edits `site.yaml`. Improving #70's JavaScript code now carries over as behaviour, not code; News's content, design and the News session's findings carry over too. Daniel's DEL-02 answer renames `main` to `prod`, so #70's code enters `prod` and `dev` with the rest of `main`; DEL-40's table still deploys News from the #70 branch and `publish/news`.",
 			"images": [
 				"docs/lockdown/screenshots/live/news-home-desktop-full.jpg"
 			]
@@ -1478,7 +1465,7 @@
 			"title": "Unpushed and uncommitted work in task worktrees is preserved, then removed",
 			"question": "What happens to work left in the locked task worktrees when their executors stopped?",
 			"why": "Two PRs have local work that GitHub does not show. Deleting worktrees or branches without a rule either loses it or leaves stale checkouts for agents to stumble on.",
-			"proposed": "Before any branch or worktree is removed, the chief of staff preserves local-only work as pushed tags, never on an open PR branch: `wip/s27-653-site` holds a commit of that worktree's modified `landing.rs` on top of 5e69843, and `wip/s27-654-chart-polish` holds ba394dd plus a commit of the modified `charts.rs`. Untracked scratch is discarded. The four task worktrees are then unlocked and removed. The primary checkout, at the TypeScript-era commit 5ceb7d4 and 354 commits behind, is fast-forwarded now and kept on `dev` once it exists, so no parent-directory instruction file describes an older product. Any RichView checkout on Lenovo is checked and cleaned the same way. Nothing from them is merged.",
+			"proposed": "Before any branch or worktree is removed, the chief of staff preserves local-only work as pushed tags, never on an open PR branch: a `wip/` tag for the site round holds a commit of that worktree's modified `landing.rs` on top of 5e69843, and one for the chart polish holds ba394dd plus a commit of the modified `charts.rs`. Untracked scratch is discarded. The four task worktrees are then unlocked and removed. The primary checkout, at the TypeScript-era commit 5ceb7d4 and 354 commits behind, is fast-forwarded now and kept on `dev` once it exists, so no parent-directory instruction file describes an older product. Any RichView checkout on Lenovo is checked and cleaned the same way. Nothing from them is merged.",
 			"options": [
 				{
 					"label": "Preserve, then remove",
@@ -1497,17 +1484,17 @@
 			"confidence": "observed",
 			"sources": [
 				{
-					"label": "`s27-653-site` (locked): modified `crates/richview-web/src/browser/landing.rs`, untracked `scripts/_diag.mjs`",
+					"label": "The site-round worktree (locked): modified `crates/richview-web/src/browser/landing.rs`, untracked `scripts/_diag.mjs`",
 					"ref": "git worktree list; git status",
 					"date": "2026-10-21"
 				},
 				{
-					"label": "`s27-654-chart-polish` (locked): unpushed ba394dd (2026-10-19 03:11 CEST) and modified `crates/richview-web/src/browser/charts.rs`",
+					"label": "The chart-polish worktree (locked): unpushed ba394dd (2026-10-19 03:11 CEST) and modified `crates/richview-web/src/browser/charts.rs`",
 					"ref": "git worktree list; git status",
 					"date": "2026-10-21"
 				},
 				{
-					"label": "`s27-650-data-connectors` (locked, clean); `richview-quality-sprint` (branch merged into main, untracked `output/`)",
+					"label": "The data-connectors worktree (locked, clean); `richview-quality-sprint` (branch merged into main, untracked `output/`)",
 					"ref": "git worktree list; git status",
 					"date": "2026-10-21"
 				},
@@ -1517,8 +1504,8 @@
 					"date": "2026-10-21"
 				},
 				{
-					"label": "Executors of S27-653 and S27-654 stopped with a revoked or missing sign-in",
-					"ref": "S27-653, S27-654 comments",
+					"label": "Executors of the site-round and chart-polish briefs stopped with a revoked or missing sign-in",
+					"ref": "Comments on the site-round and chart-polish issues",
 					"date": "2026-10-19"
 				},
 				{
@@ -1734,7 +1721,7 @@
 				},
 				{
 					"label": "Three-link nav (\"Reduce the top-level buttons and CTAs substantially\")",
-					"ref": "S27-653; PR #69",
+					"ref": "Site-round brief; PR #69",
 					"date": "2026-10-18"
 				},
 				{
@@ -1757,7 +1744,7 @@
 			"group": "Defects found during mining",
 			"title": "Old gallery routes redirect only where their content lives",
 			"question": "What do the old gallery routes (`/chart-gallery/`, `/famous-charts/`, `/typography/`, and `/charts/` once ARC-40 drops it) do, now and in the rewrite?",
-			"why": "Three of them return 404 today, yet the live docs chart gallery links to them; `/charts/` still serves the standalone examples page ARC-40 drops. S27-653 asked to keep sensible redirects for existing gallery routes. ARC-40, ARC-60, FEA-SF-46, FEA-BR-12 and FEA-BR-13 point here for the old routes.",
+			"why": "Three of them return 404 today, yet the live docs chart gallery links to them; `/charts/` still serves the standalone examples page ARC-40 drops. The site-round brief asked to keep sensible redirects for existing gallery routes. ARC-40, ARC-60, FEA-SF-46, FEA-BR-12 and FEA-BR-13 point here for the old routes.",
 			"proposed": "Now: nothing changes; the live site keeps these dead links until the rewrite reaches `prod` (FEA-SF-30). In the rewrite, `/chart-gallery/` and `/charts/` redirect to `/docs/charts` (FEA-SF-46); `/famous-charts/` redirects to `/docs/famous-charts` only if FEA-BR-12 keeps that page and otherwise stays 404; `/typography/` stays 404 (FEA-BR-13). No page links a route that returns 404 (FEA-SF-43).",
 			"options": [
 				{
@@ -1793,7 +1780,6 @@
 				},
 				{
 					"label": "\"Retain sensible redirects/links for existing public gallery routes\"",
-					"ref": "S27-653",
 					"date": "2026-10-18"
 				},
 				{
@@ -1867,7 +1853,6 @@
 				},
 				{
 					"label": "\"Coming soon\", never \"beta\"",
-					"ref": "S27-590",
 					"date": "2026-10-05"
 				},
 				{
@@ -1925,13 +1910,13 @@
 					"date": "2026-10-16"
 				},
 				{
-					"label": "Added with S27-578's authoring work; absent from CLAUDE.md's nine Node checks",
+					"label": "Added with the authoring-feedback work; absent from CLAUDE.md's nine Node checks",
 					"ref": "https://github.com/1vecera/richview/commit/dd61040; PR #15; https://github.com/1vecera/richview/blob/b4db233/CLAUDE.md#L36-L52",
 					"date": "2026-10-05"
 				},
 				{
 					"label": "Theme changes must change real output; \"A selector label or changed option alone is insufficient evidence.\"",
-					"ref": "S27-578, S27-581",
+					"ref": "Authoring-feedback and report-folder issues",
 					"date": "2026-10-04"
 				},
 				{
@@ -1945,7 +1930,7 @@
 					"date": "2026-10-21"
 				}
 			],
-			"conflicts": "S27-578's handoff reported the theme-switch proof as verified when PR #15 added this script (2026-10-05); neither CLAUDE.md's nine checks nor CI list it, so 39b301f broke it on 2026-10-15 without anyone noticing."
+			"conflicts": "The authoring-feedback issue's handoff reported the theme-switch proof as verified when PR #15 added this script (2026-10-05); neither CLAUDE.md's nine checks nor CI list it, so 39b301f broke it on 2026-10-15 without anyone noticing."
 		},
 		{
 			"id": "OPN-22",
@@ -2000,8 +1985,8 @@
 					"date": "2026-10-21"
 				},
 				{
-					"label": "Landing font subset missing a space glyph (S27-593; current status unknown)",
-					"ref": "docs/lockdown/evidence/linear.md:335",
+					"label": "Landing font subset missing a space glyph (coming-soon carousel issue; current status unknown)",
+					"ref": "the Linear evidence (not published)",
 					"date": "2026-10-05"
 				},
 				{
@@ -2056,7 +2041,7 @@
 			"sources": [
 				{
 					"label": "Agents merge into dev; only Daniel merges dev into prod",
-					"ref": "Daniel, 2026-10-21 brief; S27-677",
+					"ref": "Daniel, 2026-10-21 brief",
 					"date": "2026-10-21"
 				},
 				{
@@ -2066,7 +2051,7 @@
 				},
 				{
 					"label": "The pre-migration Linear project named Steven as lead; the workspace-935 project has no lead",
-					"ref": "Linear project RichView (old workspace, via Notion connector search); P-S27-32",
+					"ref": "Linear project RichView (old workspace, via Notion connector search)",
 					"date": "2026-10-21"
 				},
 				{
@@ -2396,7 +2381,6 @@
 				},
 				{
 					"label": "No releases in the dev/prod model",
-					"ref": "S27-677",
 					"date": "2026-10-21"
 				},
 				{
@@ -2415,7 +2399,7 @@
 			"title": "Delete merged and closed branches after the PR decisions",
 			"question": "Which of the 77 non-main branches stay?",
 			"why": "Stale branches mislead agents about what is in flight; the origin holds 77 besides `main`, and `delete_branch_on_merge` is off. INT-50 deletes merged PR heads and leaves open PR branches to this part.",
-			"proposed": "Once the PR items are answered, every branch whose work is merged or whose PR is closed is deleted: the 52 already contained in `main` (renamed `prod`, DEL-02), the 5 heads of PRs merged as single commits (#15, #16, #18, #58, #59), the 4 `review/validation-*` branches, `feat/visual-feedback-styling` (closed #3), the 5 `publish-edit/*` branches, and each open PR's branch when its PR closes. #64's branch stays only until it is pushed to the repository Daniel names for the voice demo (INT-34, OPN-08), then goes with the others. #70's branch `feat/s27-655-richview-publish` has no commit outside `main` since its merge on 2026-10-26 (97ac0d0); whether it stays while DEL-40's table still names it as a News deploy source or goes with the other merged heads is open (OPN-03). Closed PRs keep their code reachable on GitHub. `publish/news` stays while News runs, and the `wip/*` tags from OPN-15 stay until the rewrite reaches `prod`. Delete-branch-on-merge is switched on. Agents delete these branches without asking (DEL-05).",
+			"proposed": "Once the PR items are answered, every branch whose work is merged or whose PR is closed is deleted: the 52 already contained in `main` (renamed `prod`, DEL-02), the 5 heads of PRs merged as single commits (#15, #16, #18, #58, #59), the 4 `review/validation-*` branches, `feat/visual-feedback-styling` (closed #3), the 5 `publish-edit/*` branches, and each open PR's branch when its PR closes. #64's branch stays only until it is pushed to the repository Daniel names for the voice demo (INT-34, OPN-08), then goes with the others. #70's branch has no commit outside `main` since its merge on 2026-10-26 (97ac0d0); whether it stays while DEL-40's table still names it as a News deploy source or goes with the other merged heads is open (OPN-03). Closed PRs keep their code reachable on GitHub. `publish/news` stays while News runs, and the `wip/*` tags from OPN-15 stay until the rewrite reaches `prod`. Delete-branch-on-merge is switched on. Agents delete these branches without asking (DEL-05).",
 			"options": [
 				{
 					"label": "Delete after the PR decisions",
@@ -2450,7 +2434,7 @@
 				},
 				{
 					"label": "PR #70 merged into `main` as merge commit 97ac0d0 on 2026-10-26; its branch has no commits outside `main`, and `main` now holds `publications/news/`, `cloudflare/publish/` and `publish.yml`",
-					"ref": "git log origin/main; git rev-list --count origin/main..origin/feat/s27-655-richview-publish (0)",
+					"ref": "git log origin/main; git rev-list --count origin/main..3f5c35f (0)",
 					"date": "2026-10-26"
 				},
 				{
@@ -2480,7 +2464,7 @@
 				},
 				{
 					"label": "21 commits on the #70 branch are not on `publish/news`, among them e7807f3 (redirect policy for GitHub requests) and the 2026-10-19 launch documentation; `publish/news` has 5 of its own",
-					"ref": "git rev-list --left-right --count origin/feat/s27-655-richview-publish...origin/publish/news",
+					"ref": "git rev-list --left-right --count 3f5c35f...origin/publish/news",
 					"date": "2026-10-22"
 				}
 			]
@@ -2493,8 +2477,8 @@
 			"group": "Stale agent guidance, automation and docs",
 			"title": "The October supervisor, its deploy authority and the executor delegations are retired",
 			"question": "What happens to the paused October automation that still carries richview.ai deploy authority?",
-			"why": "Daniel paused all RichView executors, the supervisor cadence and the News publisher on 2026-10-20; nothing was removed. A Codex automation set to run every 30 minutes is paused with a prompt saying \"New scoped richview.ai publication is explicitly authorized\". A launch agent that resumed the supervisor every 30 minutes is disabled but installed. The supervisor's scope file still makes S27-653 the sole richview.ai deploy owner and gives S27-655 News publication, and the October briefs keep their \"Publication authorization\" sections. In Linear, S27-653 and S27-654 are Working on, and S27-647 to S27-655 are still delegated to executor apps. Unpausing any of these restarts pre-lockdown agents with deploy authority, against OPN-02, DEL-05 and DEL-40.",
-			"proposed": "On Daniel's go, before the rewrite starts: the Codex automation `richview-supervisor-30m` and the launch agent `dev.daniel.richview-supervisor-recovery` are deleted, keeping their state and logs as evidence; the supervisor's scope file and the October briefs get a note that the lockdown supersedes them and that they grant no authority; the app delegations on S27-647 to S27-655 are removed, S27-653 and S27-654 move to To Review, and S27-647, S27-653 and S27-655 get a comment that their deploy authority ended on 2026-10-20; the Lenovo oversight timer is checked and removed. From then on only DEL-40 authorizes deploys.",
+			"why": "Daniel paused all RichView executors, the supervisor cadence and the News publisher on 2026-10-20; nothing was removed. A Codex automation set to run every 30 minutes is paused with a prompt saying \"New scoped richview.ai publication is explicitly authorized\". A launch agent that resumed the supervisor every 30 minutes is disabled but installed. The supervisor's scope file still makes the site-round issue the sole richview.ai deploy owner and gives the RichView Publish issue News publication, and the October briefs keep their \"Publication authorization\" sections. In Linear, the site-round and chart-polish issues are Working on, and the nine October issues are still delegated to executor apps. Unpausing any of these restarts pre-lockdown agents with deploy authority, against OPN-02, DEL-05 and DEL-40.",
+			"proposed": "On Daniel's go, before the rewrite starts: the Codex automation `richview-supervisor-30m` and the launch agent `dev.daniel.richview-supervisor-recovery` are deleted, keeping their state and logs as evidence; the supervisor's scope file and the October briefs get a note that the lockdown supersedes them and that they grant no authority; the app delegations on the nine October issues are removed, the site-round and chart-polish issues move to To Review, and the galleries, site-round and RichView Publish issues get a comment that their deploy authority ended on 2026-10-20; the Lenovo oversight timer is checked and removed. From then on only DEL-40 authorizes deploys.",
 			"options": [
 				{
 					"label": "Retire now",
@@ -2519,7 +2503,7 @@
 					"date": "2026-10-22"
 				},
 				{
-					"label": "Scope revision `richview-20261018-review-publish-v2`: S27-653 sole publication owner, S27-655 News owner, worker nudges on for S27-653 and S27-654",
+					"label": "Scope revision `richview-20261018-review-publish-v2`: site-round issue sole publication owner, RichView Publish issue News owner, worker nudges on for the site-round and chart-polish issues",
 					"ref": "Supervisor scope file on Claw Mini",
 					"date": "2026-10-22"
 				},
@@ -2530,12 +2514,11 @@
 				},
 				{
 					"label": "\"Publication authorization\": \"Do not invent another website deploy approval gate\"",
-					"ref": "S27-653",
 					"date": "2026-10-18"
 				},
 				{
-					"label": "S27-653 and S27-654 Working on, delegated to Claude Claw Mini; S27-647 to S27-651 delegated to Claude Claw Mini, S27-652 and S27-655 to Codex Claw Mini",
-					"ref": "Linear project RichView (P-S27-32)",
+					"label": "Site-round and chart-polish issues Working on, delegated to Claude Claw Mini; galleries, playable-charts, multi-tab, data-connectors and voice-dashboard issues delegated to Claude Claw Mini, development-harness and RichView Publish issues to Codex Claw Mini",
+					"ref": "Linear project RichView",
 					"date": "2026-10-22"
 				},
 				{
@@ -2603,8 +2586,8 @@
 					"date": "2026-10-16"
 				},
 				{
-					"label": "No AGENTS.md on main; S27-652 and S27-655 ran as Codex Claw Mini",
-					"ref": "git ls-tree origin/main; S27-652; S27-655",
+					"label": "No AGENTS.md on main; the development-harness and RichView Publish issues ran as Codex Claw Mini",
+					"ref": "git ls-tree origin/main",
 					"date": "2026-10-22"
 				},
 				{
@@ -2808,12 +2791,11 @@
 				},
 				{
 					"label": "October work ran through Linear-dispatched Codex and Claude apps with a coordination root",
-					"ref": "docs/lockdown/evidence/linear.md (Execution rules)",
+					"ref": "the Linear evidence (not published), Execution rules",
 					"date": "2026-10-21"
 				},
 				{
 					"label": "\"Prefer existing mechanisms over another orchestrator framework.\"",
-					"ref": "S27-652",
 					"date": "2026-10-18"
 				},
 				{
@@ -2837,7 +2819,7 @@
 			"group": "Stale agent guidance, automation and docs",
 			"title": "Guidance outside the repository follows the lockdown",
 			"question": "Do the agent context file and the Notion pages that describe RichView's earlier plan change once the lockdown is answered?",
-			"why": "Agent sessions on Daniel's machines load his agent context, whose RichView entry still reads \"Focused August 2026 public release: lock architecture, polish one end-to-end example, publish a try path. Icebox stays closed until that ships. Steven leads the project.\" That contradicts S27-677 and INT-41, and possibly OPN-48. The Notion pages \"richview.ai\" and \"Launching richview.ai\" describe shipping richview.ai with onboarding and a publish flow, last edited on 2026-09-05. OPN-30 to OPN-34 cover only repository files and OPN-41 only Linear.",
+			"why": "Agent sessions on Daniel's machines load his agent context, whose RichView entry still reads \"Focused August 2026 public release: lock architecture, polish one end-to-end example, publish a try path. Icebox stays closed until that ships. Steven leads the project.\" That contradicts Daniel's 2026-10-21 lockdown brief and INT-41, and possibly OPN-48. The Notion pages \"richview.ai\" and \"Launching richview.ai\" describe shipping richview.ai with onboarding and a publish flow, last edited on 2026-09-05. OPN-30 to OPN-34 cover only repository files and OPN-41 only Linear.",
 			"proposed": "After the lockdown is answered, the RichView entry in the agent context file is rewritten from accepted items (the rewrite, the `dev`, `pre-prod` and `prod` branches under DEL-81, installation and the extension listings under INT-71, and Daniel as RichView's only lead under OPN-48, replacing “Steven leads the project”, since Steven was an agent persona) through that repository's normal change path; any other agent context that names Steven as RichView's lead is corrected the same way (OPN-48). The Notion pages \"richview.ai\" and \"Launching richview.ai\" get a dated note that the lockdown supersedes their plan, written under the vault's rules.",
 			"options": [
 				{
@@ -2883,7 +2865,7 @@
 				},
 				{
 					"label": "Rewrite with dev and prod; no releases",
-					"ref": "S27-677; docs/lockdown/parts/01-intent.json (INT-41)",
+					"ref": "docs/lockdown/parts/01-intent.json (INT-41)",
 					"date": "2026-10-21"
 				}
 			],
@@ -3292,7 +3274,6 @@
 				},
 				{
 					"label": "Mining old review tickets under HC-2",
-					"ref": "S27-411",
 					"date": "2026-06-20"
 				},
 				{
@@ -3311,7 +3292,7 @@
 			"title": "Reconcile Linear with reality before it guides the rewrite",
 			"question": "How does the chief of staff bring the RichView project's 65 issues and project record in line with what was delivered?",
 			"why": "No issue in the project is Done, merged work still says To Review or Brain Dump, and the project record still describes the August launch. Linear cannot be the rewrite's tracker in that state.",
-			"proposed": "After Daniel's answers, the chief of staff (not executing agents) reconciles Linear as below; new rewrite issues come only from accepted lockdown items (DEL-44). Executor delegations go earlier, under OPN-47. Work folded into the lockdown closes as Duplicate with the item linked, because Nah means Daniel rejected the work (DEL-44). DIR-121 gets the same supersession note as S27-401.\n\n| Issues | Now | Becomes |\n| --- | --- | --- |\n| S27-398, 399, 430, 572, 573, 577, 578, 582, 590, 591, 594 | To Review | Done (PRs merged 4 to 11 Oct) |\n| S27-412, 579, 580, 581 | Que | Done (PR #15; the table-syntax choice moves to part 05) |\n| S27-632, 633, 634, 635, 637 | Brain Dump | Done (PR #60; S27-632 later superseded by the one-modal decision) |\n| S27-616 | Working on | Done for PR #22; the rest of its scope lives in the lockdown: uploads, RichView-managed hosting and scrollytelling are in the rewrite and the carousel is dropped (INT-31) |\n| S27-647 to 650, 652, 654 | To Review, Working on | Duplicate, linked to the items through which its PR's features enter the rewrite (OPN-06, OPN-07, OPN-09 to OPN-12; Daniel's FEA-BR-08 note) |\n| S27-651 | To Review | Leaves the RichView project: the voice demo lives outside RichView, possibly in a repository of its own (INT-34, OPN-08); it moves with the demo once Daniel names its home, and is not Nah, since he did not reject the work |\n| S27-653 | Working on | To Review until STY-44, FEA-SF-28 and FEA-SF-43 are answered, then Duplicate linked to them; #69's merge does not make it Done (OPN-13) |\n| S27-655 | To Review | Duplicate linked to INT-35 and FEA-BR-23 to FEA-BR-30: Daniel's INT-31 answer keeps Publish in the rewrite |\n| S27-400, 401 | Que | Nah (August scope superseded by S27-677) |\n| S27-402 to 411, 413 to 429, 431 to 433 | Brain Dump | Nah; surviving intent is in the lockdown |\n| S27-593 | To Review | Nah: the carousel was never posted, and posts wait for launch (INT-42, INT-43) |\n| S27-677 | Working on | unchanged; it tracks this lockdown |\n| Project RichView | August reset text, target 2026-08-31, no lead | rewrite summary, no target date, since launch is Daniel's word alone (INT-43); Daniel as lead (OPN-48) |\n| Old-workspace RichView project | Steven, an agent persona (OPN-48), as lead; linked from the current description | left as history; the rewritten description no longer links it |",
+			"proposed": "After Daniel's answers, the chief of staff (not executing agents) reconciles Linear as below; new rewrite issues come only from accepted lockdown items (DEL-44). Executor delegations go earlier, under OPN-47. Work folded into the lockdown closes as Duplicate with the item linked, because Nah means Daniel rejected the work (DEL-44). Daniel's 2026-08-08 life-review voice note gets the same supersession note as the August launch issue.\n\n| Issues | Now | Becomes |\n| --- | --- | --- |\n| The eleven issues of the 2 to 11 October rounds (kickoff, flagship repair, teaser, docs, authoring feedback and homepage) | To Review | Done (PRs merged 4 to 11 Oct) |\n| The four authoring-feedback follow-ups (VS Code extension, inline data, table syntax, report folder) | Que | Done (PR #15; the table-syntax choice moves to part 05) |\n| The five chart-feedback issues (expand toggle, ink alignment, bar rounding, line curvature, flagship imagery) | Brain Dump | Done (PR #60; the expand toggle later superseded by the one-modal decision) |\n| The design-and-hosting brief | Working on | Done for PR #22; the rest of its scope lives in the lockdown: uploads, RichView-managed hosting and scrollytelling are in the rewrite and the carousel is dropped (INT-31) |\n| The galleries, playable-charts, multi-tab, data-connectors, development-harness and chart-polish briefs | To Review, Working on | Duplicate, linked to the items through which their PRs' features enter the rewrite (OPN-06, OPN-07, OPN-09 to OPN-12; Daniel's FEA-BR-08 note) |\n| The voice-dashboard brief | To Review | Leaves the RichView project: the voice demo lives outside RichView, possibly in a repository of its own (INT-34, OPN-08); it moves with the demo once Daniel names its home, and is not Nah, since he did not reject the work |\n| The site-round brief | Working on | To Review until STY-44, FEA-SF-28 and FEA-SF-43 are answered, then Duplicate linked to them; #69's merge does not make it Done (OPN-13) |\n| The RichView Publish brief | To Review | Duplicate linked to INT-35 and FEA-BR-23 to FEA-BR-30: Daniel's INT-31 answer keeps Publish in the rewrite |\n| The two August scope issues (architecture mapping and the launch surface) | Que | Nah (August scope superseded by the lockdown issue) |\n| The 30 older Brain Dump issues from the 2026-10-12 migration | Brain Dump | Nah; surviving intent is in the lockdown |\n| The coming-soon carousel issue | To Review | Nah: the carousel was never posted, and posts wait for launch (INT-42, INT-43) |\n| The lockdown issue | Working on | unchanged; it tracks this lockdown |\n| Project RichView | August reset text, target 2026-08-31, no lead | rewrite summary, no target date, since launch is Daniel's word alone (INT-43); Daniel as lead (OPN-48) |\n| Old-workspace RichView project | Steven, an agent persona (OPN-48), as lead; linked from the current description | left as history; the rewritten description no longer links it |",
 			"confidence": "observed",
 			"sources": [
 				{
@@ -3341,12 +3322,11 @@
 				},
 				{
 					"label": "65 issues: 19 To Review, 4 Working on, 6 Que, 35 Brain Dump, 1 Duplicate; none Done",
-					"ref": "Linear project RichView (P-S27-32)",
+					"ref": "Linear project RichView",
 					"date": "2026-10-21"
 				},
 				{
-					"label": "Summary \"Focused August launch…\", description \"Current reset · August 8, 2026\" linking old-workspace issues VEN-4470 and VEN-56, target 2026-08-31, no lead",
-					"ref": "P-S27-32",
+					"label": "Summary \"Focused August launch…\", description \"Current reset · August 8, 2026\" linking two old-workspace issues, target 2026-08-31, no lead",
 					"date": "2026-10-21"
 				},
 				{
@@ -3356,17 +3336,15 @@
 				},
 				{
 					"label": "Linear lags code and live deployments",
-					"ref": "docs/lockdown/evidence/linear.md (Open vs done state)",
+					"ref": "the Linear evidence (not published), Open vs done state",
 					"date": "2026-10-21"
 				},
 				{
 					"label": "Same August launch definition outside the project",
-					"ref": "DIR-121",
 					"date": "2026-08-08"
 				},
 				{
 					"label": "\"not accepted yet\" (review 2026-10-18 16:03)",
-					"ref": "S27-653",
 					"date": "2026-10-18"
 				},
 				{
@@ -3390,7 +3368,7 @@
 			"title": "Unclarified dictation is not a requirement",
 			"question": "What happens to dictated phrases that were never clarified?",
 			"why": "Briefs carried them as open questions; an agent guessing their meaning builds the wrong thing, as when the chart gallery was first built as one long report.",
-			"proposed": "These phrases are not requirements, and agents do not implement guesses (INT-62): \"Escapism\" and \"Where to Render\" (S27-582), the \"Big view\" tagline (S27-590), the praised \"red nose\" example (S27-654), the remembered Rust alternative to Remotion and a second design resource (S27-616), and the intended dbt Charts reference (S27-650). Each becomes a requirement only if Daniel restates it in a lockdown answer. One has been restated: Daniel's INT-12 answer (2026-10-27) names Mluva as his own polish bar, so the Mlouva reference of S27-430 is settled by INT-12 and no longer unclarified.",
+			"proposed": "These phrases are not requirements, and agents do not implement guesses (INT-62): \"Escapism\" and \"Where to Render\", the \"Big view\" tagline, the praised \"red nose\" example, the remembered Rust alternative to Remotion and a second design resource, and the intended dbt Charts reference. Each becomes a requirement only if Daniel restates it in a lockdown answer. One has been restated: Daniel's INT-12 answer (2026-10-27) names Mluva as his own polish bar, so the Mlouva reference of Daniel's 2026-10-04 night review is settled by INT-12 and no longer unclarified.",
 			"confidence": "stated",
 			"sources": [
 				{
@@ -3400,37 +3378,33 @@
 				},
 				{
 					"label": "Unclarified dictation listed as minor wording decisions",
-					"ref": "docs/lockdown/evidence/linear.md (Open decisions for Daniel)",
+					"ref": "the Linear evidence (not published), Open decisions for Daniel",
 					"date": "2026-10-21"
 				},
 				{
 					"label": "\"Escapism\", \"Where to Render\"",
-					"ref": "S27-582",
 					"date": "2026-10-04"
 				},
 				{
 					"label": "\"Big view\" tagline",
-					"ref": "S27-590",
 					"date": "2026-10-05"
 				},
 				{
 					"label": "\"Mlouva\" polish reference; probably Mluva (INT-12)",
-					"ref": "S27-430; docs/lockdown/evidence/linear.md:77",
+					"ref": "the Linear evidence (not published)",
 					"date": "2026-10-04"
 				},
 				{
 					"label": "Praised \"red nose\" example, identity unknown",
-					"ref": "S27-654; docs/lockdown/evidence/linear.md:295",
+					"ref": "the Linear evidence (not published)",
 					"date": "2026-10-18"
 				},
 				{
 					"label": "Remembered Rust alternative to Remotion and a second design resource",
-					"ref": "S27-616",
 					"date": "2026-10-10"
 				},
 				{
 					"label": "Intended dbt Charts reference",
-					"ref": "S27-650",
 					"date": "2026-10-17"
 				},
 				{
@@ -3486,7 +3460,7 @@
 				},
 				{
 					"label": "Agents merge freely into `dev`; only Daniel merges `dev` into `prod`; he reviews design-quality and feature decisions in batches, after fixes and regressions",
-					"ref": "Daniel, 2026-10-21 brief; S27-677",
+					"ref": "Daniel, 2026-10-21 brief",
 					"date": "2026-10-21"
 				}
 			],
@@ -3541,7 +3515,7 @@
 				},
 				{
 					"label": "Agents merge freely into `dev`; only Daniel merges `dev` into `prod`; he reviews design-quality and feature decisions in batches, after fixes and regressions",
-					"ref": "Daniel, 2026-10-21 brief; S27-677",
+					"ref": "Daniel, 2026-10-21 brief",
 					"date": "2026-10-21"
 				}
 			],
@@ -3602,7 +3576,7 @@
 				},
 				{
 					"label": "Agents merge freely into `dev`; only Daniel merges `dev` into `prod`; he reviews design-quality and feature decisions in batches, after fixes and regressions",
-					"ref": "Daniel, 2026-10-21 brief; S27-677",
+					"ref": "Daniel, 2026-10-21 brief",
 					"date": "2026-10-21"
 				}
 			],
@@ -3658,7 +3632,7 @@
 				},
 				{
 					"label": "Agents merge freely into `dev`; only Daniel merges `dev` into `prod`; he reviews design-quality and feature decisions in batches, after fixes and regressions",
-					"ref": "Daniel, 2026-10-21 brief; S27-677",
+					"ref": "Daniel, 2026-10-21 brief",
 					"date": "2026-10-21"
 				}
 			],
@@ -3709,7 +3683,7 @@
 				},
 				{
 					"label": "Repository moved to private `1vecera/richview`; ask before deploying or publishing",
-					"ref": "Daniel, 2026-10-21 brief; S27-677",
+					"ref": "Daniel, 2026-10-21 brief",
 					"date": "2026-10-21"
 				}
 			]
@@ -3804,7 +3778,7 @@
 				},
 				{
 					"label": "Rewrite RichView from scratch, guided by an exact description of all features, intents, styles and types; Daniel reviews feature and design decisions",
-					"ref": "Daniel, 2026-10-21 brief; S27-677",
+					"ref": "Daniel, 2026-10-21 brief",
 					"date": "2026-10-21"
 				},
 				{
@@ -3849,7 +3823,7 @@
 				},
 				{
 					"label": "Agents merge freely into `dev`; only Daniel merges `dev` into `prod`; he reviews design-quality and feature decisions in batches, after fixes and regressions",
-					"ref": "Daniel, 2026-10-21 brief; S27-677",
+					"ref": "Daniel, 2026-10-21 brief",
 					"date": "2026-10-21"
 				}
 			]
@@ -3904,7 +3878,7 @@
 				},
 				{
 					"label": "Rewrite RichView from scratch, guided by an exact description of all features, intents, styles and types; Daniel reviews feature and design decisions",
-					"ref": "Daniel, 2026-10-21 brief; S27-677",
+					"ref": "Daniel, 2026-10-21 brief",
 					"date": "2026-10-21"
 				}
 			]
@@ -3964,7 +3938,7 @@
 				},
 				{
 					"label": "Agents merge freely into `dev`; only Daniel merges `dev` into `prod`; he reviews design-quality and feature decisions in batches, after fixes and regressions",
-					"ref": "Daniel, 2026-10-21 brief; S27-677",
+					"ref": "Daniel, 2026-10-21 brief",
 					"date": "2026-10-21"
 				}
 			],
@@ -4041,7 +4015,7 @@
 					"detail": "Today's name; suggests a filled panel the variant does not draw."
 				}
 			],
-			"recommendation": "`rule` (STY-33, FEA-RP-23): Daniel's S27-616 (2026-10-10) warns against \"indiscriminate rounded cards\", and a variant named `card` invites agents to draw one.",
+			"recommendation": "`rule` (STY-33, FEA-RP-23): Daniel's design-and-hosting brief (2026-10-10) warns against \"indiscriminate rounded cards\", and a variant named `card` invites agents to draw one.",
 			"confidence": "inferred",
 			"sources": [
 				{
@@ -4061,7 +4035,6 @@
 				},
 				{
 					"label": "Avoid \"generic gradient panels, indiscriminate rounded cards, arbitrary shadows\"",
-					"ref": "S27-616",
 					"date": "2026-10-10"
 				}
 			]
@@ -4106,7 +4079,7 @@
 				},
 				{
 					"label": "Agents merge freely into `dev`; only Daniel merges `dev` into `prod`; he reviews design-quality and feature decisions in batches, after fixes and regressions",
-					"ref": "Daniel, 2026-10-21 brief; S27-677",
+					"ref": "Daniel, 2026-10-21 brief",
 					"date": "2026-10-21"
 				}
 			]
@@ -4165,7 +4138,6 @@
 				},
 				{
 					"label": "Connectors brief",
-					"ref": "S27-650",
 					"date": "2026-10-17"
 				},
 				{
@@ -4175,7 +4147,7 @@
 				},
 				{
 					"label": "Rewrite RichView from scratch, guided by an exact description of all features, intents, styles and types; Daniel reviews feature and design decisions",
-					"ref": "Daniel, 2026-10-21 brief; S27-677",
+					"ref": "Daniel, 2026-10-21 brief",
 					"date": "2026-10-21"
 				}
 			],
@@ -4266,7 +4238,7 @@
 				},
 				{
 					"label": "Repository moved to private `1vecera/richview`; ask before deploying or publishing",
-					"ref": "Daniel, 2026-10-21 brief; S27-677",
+					"ref": "Daniel, 2026-10-21 brief",
 					"date": "2026-10-21"
 				}
 			]
@@ -4335,7 +4307,7 @@
 				},
 				{
 					"label": "Agents merge freely into `dev`; only Daniel merges `dev` into `prod`; he reviews design-quality and feature decisions in batches, after fixes and regressions",
-					"ref": "Daniel, 2026-10-21 brief; S27-677",
+					"ref": "Daniel, 2026-10-21 brief",
 					"date": "2026-10-21"
 				}
 			],
@@ -4380,7 +4352,7 @@
 				},
 				{
 					"label": "Rewrite RichView from scratch, guided by an exact description of all features, intents, styles and types; Daniel reviews feature and design decisions",
-					"ref": "Daniel, 2026-10-21 brief; S27-677",
+					"ref": "Daniel, 2026-10-21 brief",
 					"date": "2026-10-21"
 				}
 			]
@@ -4420,7 +4392,7 @@
 				},
 				{
 					"label": "Rewrite RichView from scratch, guided by an exact description of all features, intents, styles and types; Daniel reviews feature and design decisions",
-					"ref": "Daniel, 2026-10-21 brief; S27-677",
+					"ref": "Daniel, 2026-10-21 brief",
 					"date": "2026-10-21"
 				},
 				{

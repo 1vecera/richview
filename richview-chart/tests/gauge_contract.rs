@@ -1,7 +1,7 @@
 //! Gauge charts: one value on an arc, bands and a needle or a filled arc, a key that names the
 //! bands, and the failures that name their cause (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Geometry, Item, Role};

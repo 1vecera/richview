@@ -29,7 +29,7 @@ const FONT_CATALOG: &str = "richview-fonts.css";
 /// The repository to stage. `cargo run -p richview-build` names the checkout it runs from in
 /// `CARGO_MANIFEST_DIR`. That path wins over the one compiled in: with one Cargo target shared by
 /// several checkouts, a binary built in another checkout would otherwise stage that checkout's
-/// files (S27-708). A value that does not point into a RichView checkout, such as one inherited
+/// files. A value that does not point into a RichView checkout, such as one inherited
 /// from a parent `cargo` for `richview-chart`, is ignored.
 fn repo_root(runtime: Option<PathBuf>, compiled: &Path) -> Result<PathBuf> {
     let candidate = runtime
@@ -75,7 +75,7 @@ fn main() -> Result<()> {
         &root,
         "node",
         &[
-            "scripts/third-party-notices.mjs",
+            "scripts/third-party-notices.ts",
             "--generate",
             "tmp/THIRD-PARTY-NOTICES.txt",
         ],
@@ -277,10 +277,6 @@ fn main() -> Result<()> {
             "richview_runtime",
         ],
     )?;
-    fs::write(
-        public.join("report-runtime.js"),
-        "(()=>{let leaving=false;addEventListener('pagehide',()=>{leaving=true},{once:true});richview_runtime({module_or_path: '/richview_runtime_bg.wasm'}).catch(error=>{if(!leaving||error?.name!=='AbortError')throw error;});})();\n",
-    )?;
     // Offline native exports reuse these exact compressed runtimes. They are rebuilt only when
     // bindings are generated; consumers validate them against the raw module before trusting it.
     for name in ["richview_site", "richview_runtime", "richview_docs"] {
@@ -304,18 +300,8 @@ fn main() -> Result<()> {
         root.join("assets/fonts-math.css"),
         public.join("fonts-math.css"),
     )?;
-    // Docs pages, and the install page for its Copy buttons, start the docs module.
-    fs::write(
-        public.join("bootstrap.js"),
-        "{const docs=document.body?.dataset.richviewPage==='docs'||document.body?.classList.contains('install-page');(docs?richview_docs:wasm_bindgen)({module_or_path:docs?'/richview_docs_bg.wasm':'/richview_site_bg.wasm'});}\n",
-    )?;
-    fs::write(
-        public.join("worker.js"),
-        format!(
-            "importScripts('/richview_site.js');\nconst ready=Promise.all([wasm_bindgen({{module_or_path:'/richview_site_bg.wasm'}}),fetch('/{FONT_CATALOG}').then(r=>r.ok?r.text():'',()=>'')]).then(([,fonts])=>{{if(fonts)wasm_bindgen.provide_font_catalog(fonts);}});\nonmessage=async({{data}})=>{{try{{await ready;postMessage({{id:data.id,result:wasm_bindgen.worker_request(data.source,data.options)}});}}catch(error){{postMessage({{id:data.id,error:String(error)}});}}}};\n"
-        ),
-    )?;
     stage_assets(&root, &public, install_enabled)?;
+    stage_browser_scripts(&root, &public)?;
     agents::stage(&root, &public, install_enabled)?;
     stage_reports(&root, &public)?;
     documentation::stage(
@@ -528,7 +514,11 @@ fn stage_report_manifests(directory: &Path) -> Result<()> {
         let entry = entry?;
         if entry.file_type()?.is_dir() {
             stage_report_manifests(&entry.path())?;
-        } else if entry.path().extension().is_some_and(|ext| ext == "rmd") {
+        } else if entry
+            .file_name()
+            .to_str()
+            .is_some_and(richview_core::document::is_source_file)
+        {
             let mut folder = richview_app::resolver::report_folder(&entry.path())?;
             folder.root = directory
                 .file_name()
@@ -649,7 +639,7 @@ fn bundle_extension(editor: &Path) -> Result<()> {
         "node",
         &[
             "../../node_modules/esbuild/bin/esbuild",
-            "extension.cjs",
+            "extension.cts",
             "--bundle",
             "--platform=node",
             "--format=cjs",
@@ -662,7 +652,7 @@ fn bundle_extension(editor: &Path) -> Result<()> {
         editor,
         "node",
         &[
-            "../../scripts/vscode-notices.cjs",
+            "../../scripts/vscode-notices.ts",
             "dist/bundle-meta.json",
             "dist/THIRD-PARTY-NOTICES.txt",
         ],
@@ -763,7 +753,7 @@ fn stage_assets(root: &Path, public: &Path, install_enabled: bool) -> Result<()>
     copy_tree(&root.join("assets/share"), &public.join("share"))?;
     stage_home_share(root, public, install_enabled)?;
     // The live example's tabs and its pre-rendered page come from the hero's report folder, so
-    // the page shows one report from the hero to the live example (S27-931).
+    // the page shows one report from the hero to the live example.
     let escape = |text: String| {
         text.replace('&', "&amp;")
             .replace('<', "&lt;")
@@ -807,6 +797,37 @@ fn stage_assets(root: &Path, public: &Path, install_enabled: bool) -> Result<()>
     )?));
     fs::write(public.join("playground.html"), &playground)?;
     stage_public_examples(&root.join("examples"), &public.join("examples"))?;
+    Ok(())
+}
+
+/// Compile each handwritten host script into its existing classic browser entrypoint.
+fn stage_browser_scripts(root: &Path, public: &Path) -> Result<()> {
+    let font_catalog_url = format!("--define:FONT_CATALOG_URL=\"/{FONT_CATALOG}\"");
+    for (source, destination) in [
+        ("assets/browser/landing.ts", "landing/bootstrap.js"),
+        ("assets/browser/bootstrap.ts", "bootstrap.js"),
+        ("assets/browser/report-runtime.ts", "report-runtime.js"),
+        ("assets/browser/worker.ts", "worker.js"),
+    ] {
+        let output = public.join(destination);
+        let output = output
+            .to_str()
+            .ok_or("Invalid browser script output path")?;
+        run(
+            root,
+            "node",
+            &[
+                "node_modules/esbuild/bin/esbuild",
+                source,
+                "--format=iife",
+                "--target=es2020",
+                "--minify-whitespace",
+                "--log-level=warning",
+                &font_catalog_url,
+                &format!("--outfile={output}"),
+            ],
+        )?;
+    }
     Ok(())
 }
 
@@ -946,7 +967,7 @@ fn static_landing(page: &str) -> String {
 fn demo_check_json(root: &Path, public: &Path) -> Result<String> {
     let demo_file = root.join("assets/landing/anchor/report.rmd");
     let demo_source = fs::read_to_string(&demo_file)?;
-    let (document, options) = resolve_document_options(&demo_source, &demo_file, &[], public)?;
+    let (document, options, _) = resolve_document_options(&demo_source, &demo_file, &[], public)?;
     let checked = richview_core::document::check_document(document, &options)
         .map_err(|errors| format!("Demo check failed: {errors:?}"))?;
     let json = serde_json::to_string_pretty(&checked)?;
@@ -1115,12 +1136,12 @@ fn resolve_document_options(
 ) -> Result<(
     richview_core::document::Document,
     richview_core::document::RenderOptions,
+    richview_app::input_limits::InputSizes,
 )> {
-    let (document, mut options) = richview_app::resolver::resolve_document_options_policy(
-        source, path, styles, false, false,
-    )?;
+    let (document, mut options, inputs) =
+        richview_app::resolver::resolve_version(source, path, styles, false, false, None)?;
     runtime::load(public, &mut options)?;
-    Ok((document, options))
+    Ok((document, options, inputs))
 }
 
 #[cfg(test)]

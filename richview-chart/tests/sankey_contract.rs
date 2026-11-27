@@ -1,7 +1,7 @@
 //! Sankey diagrams: columns by longest path, node heights and ribbon widths proportional to flow,
 //! cycles left out with a finding, and the failures that name their cause (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::Level;

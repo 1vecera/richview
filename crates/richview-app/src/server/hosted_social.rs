@@ -41,7 +41,7 @@ use serde::Deserialize;
 use std::sync::Arc;
 
 /// The longest `back` address a flow keeps, in bytes.
-const MAX_BACK: usize = 256;
+const MAX_BACK: usize = 512;
 
 /// An invitation to an address that has an account does not take a provider: the link is not
 /// proof enough to give the account a lasting new way in.
@@ -139,7 +139,7 @@ fn add_cookie(response: &mut Response, cookie: &str) {
 
 /// A page that sends the browser on after the moment it takes to read, by the `Refresh` header and
 /// by a link. See the module's third detail for why it is not a redirect.
-fn moving_on(title: &str, message: &str, target: &str) -> Response {
+pub(super) fn moving_on(title: &str, message: &str, target: &str) -> Response {
     let mut response = hosted_page(title, &hosted_pages::continue_on(title, message, target));
     if let Ok(value) = HeaderValue::try_from(format!("0; url={target}")) {
         response

@@ -90,6 +90,16 @@ impl Fade {
         }
     }
 
+    /// The series the host outlines now, and how far the outline has come in, 0 to 1 (a chart
+    /// that outlines from its legend; every other chart dims, in [`Fade::state`]).
+    pub(super) fn outlined(&self) -> Option<(usize, f64)> {
+        let Some(Focus::Outline(series)) = self.focus else {
+            return None;
+        };
+        let level = f64::from(self.level(now()));
+        (level > 0.0).then_some((series, level))
+    }
+
     /// What the mesh draws now.
     pub(super) fn state(&self) -> State {
         let at = now();
@@ -465,17 +475,22 @@ pub(super) fn zoom_to_window(
     zoom: Option<[f64; 2]>,
     y: Option<[f64; 2]>,
 ) {
-    let span = {
+    let (span, each) = {
         let v = view.borrow();
-        v.geometry
-            .panels
-            .first()
-            .and_then(|p| p.x.as_ref())
-            .and_then(|s| s.y)
+        let scale = v.geometry.panels.first().and_then(|p| p.x.as_ref());
+        (
+            scale.and_then(|s| s.y),
+            scale.is_some_and(|s| v.chart.zooms_each_axis(s)),
+        )
     };
     // The window along y settles with the zoom along x: it is the chart's from here on, and
-    // each frame of the glide replaces it with the window of the moment.
+    // each frame of the glide replaces it with the window of the moment. A chart that zooms
+    // each axis on its own window stops it at the grid's limit first (TYP-36).
     let y = span.and(zoom).and(y);
+    let y = match span {
+        Some(span) if each => y.and_then(|w| view.borrow().chart.clamp_zoom_y(w, &span)),
+        _ => y,
+    };
     let before = std::mem::replace(&mut view.borrow_mut().chart.zoom_y, y);
     let zoom = {
         let v = view.borrow();

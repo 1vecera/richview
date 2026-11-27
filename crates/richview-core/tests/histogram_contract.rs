@@ -1,4 +1,4 @@
-mod common;
+use super::common;
 
 use richview_core::document::{RenderOptions, ReportFolder, render};
 use richview_core::{authoring_keys, authoring_values, parse_schema};

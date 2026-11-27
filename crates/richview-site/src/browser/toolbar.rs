@@ -19,7 +19,7 @@ const REST_MS: i32 = 400;
 const SLICE_MS: f64 = 12.0;
 /// How near the example comes to the screen, in screens, before the report-face catalog is
 /// requested. The catalog is what the core measures labels with, so the answer waits for it, and a
-/// first visit does not download it (S27-927, PRF-36).
+/// first visit does not download it (PRF-36).
 const NEAR: f64 = 1.5;
 
 #[derive(Default)]

@@ -6,6 +6,24 @@ use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 use std::{borrow::Cow, cell::OnceCell, cmp::Ordering, sync::OnceLock};
 
+/// Field names in source order, and the decimal scales the source declared for its columns.
+#[derive(Default)]
+struct SourceColumns {
+    names: Vec<String>,
+    declared: BTreeMap<String, u8>,
+}
+
+impl SourceColumns {
+    fn attach(self, block: &mut RichBlock) {
+        if !self.names.is_empty() {
+            block.value["data"]["columns"] = json!(self.names);
+        }
+        if block.tag == "table" && !self.declared.is_empty() {
+            block.value["_decimalScales"] = json!(self.declared);
+        }
+    }
+}
+
 pub(crate) fn resolve_data(
     block: &mut RichBlock,
     _frontmatter: &Value,
@@ -49,7 +67,7 @@ pub(crate) fn resolve_data(
         .iter()
         .find_map(|key| data.get(*key).and_then(Value::as_str).map(|r| (*key, r)));
     let mut csv_numeric_text = false;
-    let mut columns = Vec::new();
+    let mut columns = SourceColumns::default();
     let rows = if let Some((content, (kind, reference))) =
         source.and_then(|source| options.data.get(source.1).map(|content| (content, source)))
     {
@@ -100,9 +118,9 @@ pub(crate) fn resolve_data(
         data.insert("inline".into(), Value::Array(rows));
         // The source column order, from a CSV header or the JSON rows' keys, which chart payloads,
         // Table views, CSV downloads and derived table columns keep (TYP-25).
-        if keeps_order && !columns.is_empty() {
-            data.insert("columns".into(), json!(columns));
-        }
+    }
+    if keeps_order {
+        columns.attach(block);
     }
     // Persist actual CSV typing for header-click sorting after the resolved bytes are gone.
     // JSON text cells keep their authored type, even when a reference uses the CSV label.
@@ -389,7 +407,7 @@ fn parsed_data(
     block: &RichBlock,
     diagnostics: &mut Vec<Diagnostic>,
     csv_numeric_text: &mut bool,
-    columns: &mut Vec<String>,
+    columns: &mut SourceColumns,
 ) -> Vec<Value> {
     let file = DataFile {
         kind,
@@ -416,13 +434,14 @@ fn parsed_data(
 /// A Parquet data file as the native host read it (TYP-102). Core never reads Parquet bytes
 /// (ARC-02): the host passes a table of the file's column names in file order (`columns`), the
 /// names of the columns the report's blocks read (`fields`), and one list of scalars per row,
-/// in the order of `fields`. Parquet's own types decided each value's type. `columns` lists
+/// in the order of `fields`. Optional `scales` names projected DECIMAL columns and their source
+/// scales. Parquet's own types decided each value's type. `columns` lists
 /// every column, read or not, so a misspelt field is answered with the file's real names.
 fn parse_table(
     content: &str,
     file: &DataFile,
     diagnostics: &mut Vec<Diagnostic>,
-    columns: &mut Vec<String>,
+    columns: &mut SourceColumns,
 ) -> Vec<Value> {
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
@@ -430,12 +449,18 @@ fn parse_table(
         columns: Vec<String>,
         fields: Vec<String>,
         rows: Vec<Vec<Value>>,
+        #[serde(default)]
+        scales: BTreeMap<String, u8>,
     }
     let table = serde_json::from_str::<Table>(content).ok().filter(|table| {
         table
             .fields
             .iter()
             .all(|field| table.columns.contains(field))
+            && table
+                .scales
+                .iter()
+                .all(|(field, scale)| *scale <= 38 && table.fields.contains(field))
             && table.rows.iter().all(|row| {
                 row.len() == table.fields.len()
                     && !row.iter().any(|cell| cell.is_array() || cell.is_object())
@@ -452,7 +477,8 @@ fn parse_table(
             diagnostics,
         );
     };
-    *columns = table.columns;
+    columns.names = table.columns;
+    columns.declared = table.scales;
     table
         .rows
         .into_iter()
@@ -465,7 +491,7 @@ fn parse_json(
     content: &str,
     file: &DataFile,
     diagnostics: &mut Vec<Diagnostic>,
-    columns: &mut Vec<String>,
+    columns: &mut SourceColumns,
 ) -> Vec<Value> {
     let reference = file.reference;
     let fail = |message: String, offset: usize, diagnostics: &mut Vec<Diagnostic>| {
@@ -516,7 +542,7 @@ fn parse_json(
             diagnostics,
         );
     }
-    *columns = key_order(&mut serde_json::Deserializer::from_str(content), &[]);
+    columns.names = key_order(&mut serde_json::Deserializer::from_str(content), &[]);
     rows
 }
 
@@ -526,7 +552,7 @@ fn parse_csv(
     file: &DataFile,
     diagnostics: &mut Vec<Diagnostic>,
     csv_numeric_text: &mut bool,
-    columns: &mut Vec<String>,
+    columns: &mut SourceColumns,
 ) -> Vec<Value> {
     let reference = file.reference;
     // A CSV position is a record's first line; its column is the line's start.
@@ -551,7 +577,7 @@ fn parse_csv(
         let header = at(headers.position()).or(Some((1, 1)));
         return file.error("data.csv.header", message, header, diagnostics);
     }
-    columns.extend(headers.iter().map(str::to_owned));
+    columns.names.extend(headers.iter().map(str::to_owned));
     let mut rows = Vec::new();
     for record in reader.records() {
         match record {
@@ -1070,10 +1096,10 @@ fn render_big(big: &Value) -> String {
 struct Column {
     key: String,
     label: String,
-    format: Option<String>,
-    unit: Option<String>,
-    digits: Option<u8>,
-    lang: Option<String>,
+    format: numbers::Format,
+    /// How every number in the column prints: one notation at one scale (TYP-104).
+    scale: numbers::ColumnScale,
+    numeric_text: bool,
     /// `left`, `center` or `right` when the author set it.
     align: Option<String>,
     /// Every cell is a number, so the column is right-aligned unless `align` says otherwise.
@@ -1139,21 +1165,6 @@ pub fn render_table(table: &Value) -> String {
 }
 
 fn table_columns(table: &Value, rows: &[&Value], csv: bool) -> Vec<Column> {
-    let numeric = |key: &str| {
-        let mut any = false;
-        for row in rows {
-            let value = &row[key];
-            // A missing cell is neither a number nor a reason to call the column text (TYP-91).
-            if richview_chart::rows::is_missing(value) {
-                continue;
-            }
-            if table_number(value, csv).is_none() {
-                return false;
-            }
-            any = true;
-        }
-        any
-    };
     let keys: Vec<(String, Option<&Value>)> =
         if let Some(columns) = table.get("columns").and_then(Value::as_array) {
             columns
@@ -1186,21 +1197,60 @@ fn table_columns(table: &Value, rows: &[&Value], csv: bool) -> Vec<Column> {
     keys.into_iter()
         .map(|(key, spec)| {
             let text = |name: &str| spec.and_then(|c| c.get(name)).and_then(Value::as_str);
+            let declared = table["_decimalScales"][&key]
+                .as_u64()
+                .map(|v| v.min(38) as usize);
+            let numeric_text = csv || declared.is_some();
+            let author = spec
+                .and_then(|c| c["decimals"].as_u64())
+                .map(|n| n.min(6) as usize);
+            let kind = text("format")
+                .and_then(numbers::Kind::parse)
+                .unwrap_or_default();
+            let digits = spec.and_then(|c| ValueFormat::of(c, None).digits);
+            // A declared scale keeps every digit a cell has. `number_compact` is the author's own
+            // choice of words, which reads at the default digits whatever the source declared.
+            let keeps_digits =
+                author.is_some() || (declared.is_some() && kind != numbers::Kind::NumberCompact);
+            let format = numbers::Format {
+                kind,
+                unit: text("unit").map(str::to_owned),
+                digits: digits.unwrap_or(if keeps_digits {
+                    numbers::MAX_DIGITS
+                } else {
+                    numbers::DEFAULT_DIGITS
+                }),
+                locale: table["_lang"]
+                    .as_str()
+                    .map(numbers::Locale::from_tag)
+                    .unwrap_or_default(),
+            };
+            let mut values = Vec::new();
+            let mut numeric = false;
+            for row in rows {
+                let value = &row[&key];
+                if richview_chart::rows::is_missing(value) {
+                    continue;
+                }
+                let Some(n) = table_number(value, numeric_text) else {
+                    numeric = false;
+                    values.clear();
+                    break;
+                };
+                numeric = true;
+                values.push(n);
+            }
+            let scale =
+                numbers::ColumnScale::of(&values, &format, author, declared, digits.is_some());
             Column {
                 label: text("label").unwrap_or(&key).to_owned(),
-                format: text("format").map(str::to_owned),
-                unit: text("unit").map(str::to_owned),
-                digits: spec
-                    .map(|c| ValueFormat::of(c, None))
-                    .and_then(|f| f.digits),
-                lang: table
-                    .get("_lang")
-                    .and_then(Value::as_str)
-                    .map(str::to_owned),
+                format,
+                scale,
+                numeric_text,
                 align: text("align")
                     .filter(|s| matches!(*s, "left" | "right" | "center"))
                     .map(str::to_owned),
-                numeric: numeric(&key),
+                numeric,
                 heat: match spec.and_then(|c| c.get("heat")) {
                     Some(Value::Bool(true)) => Some(Heat::Sequential),
                     Some(Value::String(scale)) if scale == "sequential" => Some(Heat::Sequential),
@@ -1220,7 +1270,7 @@ fn column_weights(columns: &[Column], rows: &[&Value]) -> Vec<usize> {
         .map(|c| {
             let widest = rows
                 .iter()
-                .map(|row| format_value(&row[&c.key], &c.spec()))
+                .map(|row| c.cell(&row[&c.key]).0)
                 .map(|shown| shown.chars().count())
                 .max()
                 .unwrap_or(0);
@@ -1247,7 +1297,6 @@ fn total_row(
     table: &Value,
     columns: &[Column],
     rows: &[&Value],
-    csv: bool,
     diagnostics: &mut Vec<Diagnostic>,
     line: usize,
 ) -> Option<String> {
@@ -1260,7 +1309,8 @@ fn total_row(
     };
     let summed: Vec<bool> = match table.get("total") {
         Some(Value::Bool(true)) => {
-            let unsummed = |c: &Column| matches!(c.format.as_deref(), Some("percent" | "year"));
+            let unsummed =
+                |c: &Column| matches!(c.format.kind, numbers::Kind::Percent | numbers::Kind::Year);
             let skipped: Vec<&Column> = columns
                 .iter()
                 .filter(|c| c.numeric && unsummed(c))
@@ -1268,7 +1318,11 @@ fn total_row(
             if !skipped.is_empty() {
                 let kinds: Vec<&str> = ["percent", "year"]
                     .into_iter()
-                    .filter(|kind| skipped.iter().any(|c| c.format.as_deref() == Some(kind)))
+                    .filter(|kind| {
+                        skipped
+                            .iter()
+                            .any(|c| Some(c.format.kind) == numbers::Kind::parse(kind))
+                    })
                     .collect();
                 let keys: Vec<&str> = skipped.iter().map(|c| c.key.as_str()).collect();
                 warn(
@@ -1316,7 +1370,7 @@ fn total_row(
             let value = if *summed {
                 let sum: f64 = rows
                     .iter()
-                    .filter_map(|row| table_number(&row[&c.key], csv))
+                    .filter_map(|row| table_number(&row[&c.key], c.numeric_text))
                     .sum();
                 // The sum shows no more decimals than the cells it adds (FEA-CH-37).
                 let places = rows
@@ -1337,7 +1391,8 @@ fn total_row(
                 } else {
                     json!(sum)
                 };
-                format_value(&sum, &c.spec())
+                // Then in the column's own format, including a declared scale's places.
+                c.cell(&sum).0
             } else if i == 0 {
                 "Total".into()
             } else {
@@ -1390,14 +1445,15 @@ fn table_html(
             .at(line, "table"),
         );
     }
-    let heat = heat_ranges(table, &columns, &rows, csv);
+    let heat = heat_ranges(table, &columns, &rows);
     let sortable = table.get("sortable").and_then(Value::as_bool) != Some(false);
     let sorted_by = table.pointer("/sort/key").and_then(Value::as_str);
     if let Some(key) = sorted_by {
         // Missing cells sort last in both directions (TYP-91).
+        let numeric_text = csv || table["_decimalScales"].get(key).is_some();
         let (mut present, missing): (Vec<_>, Vec<_>) = rows
             .iter()
-            .map(|&row| (row, TableSortKey::new(&row[key], csv)))
+            .map(|&row| (row, TableSortKey::new(&row[key], numeric_text)))
             .partition(|(_, key)| !matches!(key, TableSortKey::Missing));
         present.sort_by(|(_, left), (_, right)| left.compare(right));
         if table.pointer("/sort/dir").and_then(Value::as_str) == Some("desc") {
@@ -1447,8 +1503,8 @@ fn table_html(
         };
         format!("<thead{class}><tr>{cells}</tr></thead>")
     };
-    let visible = table_rows(&rows[..rows.len().min(limit)], &columns, &heat, print, csv);
-    let totals = total_row(table, &columns, &rows, csv, diagnostics, line);
+    let visible = table_rows(&rows[..rows.len().min(limit)], &columns, &heat, print);
+    let totals = total_row(table, &columns, &rows, diagnostics, line);
     let caption = table
         .get("title")
         .and_then(Value::as_str)
@@ -1497,7 +1553,7 @@ fn table_html(
         })
         .collect::<String>();
     let min = format!(" style=\"min-width:{}ch\"", sum + 2 * columns.len());
-    let rest = table_rows(&rows[limit..], &columns, &heat, false, csv);
+    let rest = table_rows(&rows[limit..], &columns, &heat, false);
     let total = totals
         .map(|row| {
             format!("<table class=\"rv-table__part rv-table__total\"{min}><colgroup>{cols}</colgroup><tbody>{row}</tbody></table>")
@@ -1596,12 +1652,22 @@ impl<'a> TableSortKey<'a> {
     }
 }
 impl Column {
-    fn spec(&self) -> ValueFormat<'_> {
-        ValueFormat {
-            format: self.format.as_deref(),
-            unit: self.unit.as_deref(),
-            digits: self.digits,
-            lang: self.lang.as_deref(),
+    fn number(&self, value: &Value) -> Option<numbers::DisplayNumber> {
+        let number = table_number(value, self.numeric_text)?;
+        Some(numbers::DisplayNumber::for_column(
+            number,
+            &self.format,
+            self.scale,
+        ))
+    }
+
+    fn cell(&self, value: &Value) -> (String, Option<f64>) {
+        match self.number(value) {
+            Some(n) => (
+                n.text(&self.format, self.scale.places_of(&n)),
+                n.source_value(),
+            ),
+            None => (text(value), None),
         }
     }
 }
@@ -1613,8 +1679,11 @@ fn column_class(c: &Column) -> &'static str {
         Some(_) => "",
         None if c.numeric
             || matches!(
-                c.format.as_deref(),
-                Some("percent" | "number" | "number_compact" | "year")
+                c.format.kind,
+                numbers::Kind::Percent
+                    | numbers::Kind::Number
+                    | numbers::Kind::NumberCompact
+                    | numbers::Kind::Year
             ) =>
         {
             "num"
@@ -1624,19 +1693,12 @@ fn column_class(c: &Column) -> &'static str {
 }
 /// The range each heat column's shades span, from the values its cells show; with
 /// `heat_scale: table` the columns of one kind share a range, so the table reads as a matrix.
-fn heat_ranges(
-    table: &Value,
-    columns: &[Column],
-    rows: &[&Value],
-    csv: bool,
-) -> Vec<Option<HeatRange>> {
+fn heat_ranges(table: &Value, columns: &[Column], rows: &[&Value]) -> Vec<Option<HeatRange>> {
     let range = |c: &Column| -> Option<HeatRange> {
         let kind = c.heat?;
-        let shown = rows.iter().filter_map(|row| {
-            sort_value(&row[&c.key], csv, &c.spec())?
-                .parse::<f64>()
-                .ok()
-        });
+        let shown = rows
+            .iter()
+            .filter_map(|row| c.number(&row[&c.key])?.source_value());
         let (low, high) = shown.fold((f64::INFINITY, f64::NEG_INFINITY), |(low, high), v| {
             (low.min(v), high.max(v))
         });
@@ -1668,7 +1730,6 @@ fn table_rows(
     columns: &[Column],
     heat: &[Option<HeatRange>],
     print: bool,
-    csv: bool,
 ) -> String {
     rows.iter()
         .map(|row| {
@@ -1681,55 +1742,15 @@ fn table_rows(
                         let value = &row[&c.key];
                         // Numbers take the format and the three-digit rule; text, identifiers
                         // such as `001` and inline strings are shown as written (TYP-23).
-                        let shown = if table_number(value, csv).is_some() {
-                            format_value(value, &c.spec())
-                        } else {
-                            text(value)
-                        };
-                        // A shade comes from the value the cell shows, never a finer one
-                        // (FEA-CH-37): cells that show the same number share a shade.
-                        let sort = sort_value(value, csv, &c.spec());
-                        let shade = heat
-                            .and_then(|range| range.of(sort.as_deref()?.parse::<f64>().ok()?));
+                        let (shown, sort) = c.cell(value);
+                        let shade = heat.and_then(|range| range.of(sort?));
+                        let sort = sort.map(|n| n.to_string());
                         table_cell(&shown, c, print, sort.as_deref(), shade)
                     })
                     .collect::<String>()
             )
         })
         .collect()
-}
-
-/// The value a numeric cell sorts by in the report runtime, as decimal text: the number the cell
-/// shows (`45%`, `$1,200`, `1.2 million`, or `1.23` under the three-digit rule), at the precision
-/// it displays and never finer, so the page carries no digit the reader cannot see (FEA-CH-37,
-/// FEA-RP-22). Cells that show the same value tie, and the runtime keeps the author's order for
-/// them. Text and empty cells have none, and neither has a number the cell cannot show: a
-/// percent too large to print as one shows `inf%`, so such cells sort as that text, tie, and
-/// take no shade, whatever finite fractions they came from.
-fn sort_value(value: &Value, csv: bool, spec: &ValueFormat) -> Option<String> {
-    let TableSortKey::Number { number, .. } = TableSortKey::new(value, csv) else {
-        return None;
-    };
-    let kind = spec
-        .format
-        .and_then(numbers::Kind::parse)
-        .unwrap_or_default();
-    let shown = numbers::shown(
-        number,
-        &numbers::Format {
-            kind,
-            unit: None,
-            digits: spec.digits.unwrap_or(numbers::DEFAULT_DIGITS),
-            locale: numbers::Locale::default(),
-        },
-    );
-    // A percent prints its fraction times a hundred, which can leave what a number holds.
-    let printed = if kind == numbers::Kind::Percent {
-        shown * 100.0
-    } else {
-        shown
-    };
-    printed.is_finite().then(|| format!("{shown}"))
 }
 
 /// One body cell. A value that is a whole web address links with its host as the text, and the

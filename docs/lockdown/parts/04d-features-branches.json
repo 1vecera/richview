@@ -3,7 +3,7 @@
   "order": 7,
   "title": "Features only on open PR branches",
   "status": "ready",
-  "summary": "This part decides which features that existed only on the nine draft PRs (#62 to #70) enter the rewrite, and in what form; #70 has since been merged into `main` as it is (2026-10-26, INT-52), and the other eight are still open. Daniel's FEA-BR-01 and FEA-BR-08 answers bring controls and tabs in, and his FEA-BR-08 note says PRs #62, #63, #65, #66, #67, #68 and #69 all enter the rewrite. Each card states the feature as the rewrite would build it; what the branch does, and where it falls short, sits under sources and conflicts. The branches themselves are part 08 (OPN-06 to OPN-14) and their formats part 05 (TYP-76 to TYP-81). Branch features another part already decides are not repeated: Daniel's #67 chart calls (one modal, labelled actions, PNG and SVG downloads, years as years, sparse labels, a lighter tooltip) are part 04a (FEA-CH-21, FEA-CH-28, FEA-CH-42 to FEA-CH-44, FEA-CH-46, FEA-CH-47), #69's navigation and docs gallery content are part 04c (FEA-SF-28, FEA-SF-43), and #67's style selector and measure key are recorded here only as pointers (FEA-BR-17, FEA-BR-18) to STY-05, STY-07, STY-08, STY-30, TYP-89 and FEA-SF-36.\n\nThe decisions that matter most:\n\n- **Playable charts** (FEA-BR-01 to FEA-BR-07, FEA-BR-31 to FEA-BR-34, FEA-BR-36): whether authored controls enter the format, with the smooth transitions and fixed axes #62 lacks. Built and run, #62's controls work on the scatter but not on the line chart.\n- **Multi-tab reports** (FEA-BR-08 to FEA-BR-10, FEA-BR-35, FEA-BR-38 to FEA-BR-40, FEA-BR-48): whether tabs enter the format, with every panel readable without the runtime, which the branch breaks.\n- **Checks** (FEA-BR-20, FEA-BR-33, FEA-BR-37, FEA-BR-47): every reachable control state, browser suites for controls and tabs, and where #68's harness lands. They run per batch in the release run on `pre-prod`, not on every `dev` merge (DEL-81).\n- **Site round** (FEA-BR-21, FEA-BR-22, FEA-BR-41): the bar the restored landing motion must clear, one docs page per chart type (answer with FEA-SF-43 and FEA-SF-46), and #65's sourced examples for those pages.\n- **Famous charts** (FEA-BR-12): rendered, only Gapminder keeps the original's form.\n- **RichView Publish** (FEA-BR-23 to FEA-BR-30, FEA-BR-44 to FEA-BR-46, FEA-BR-49): Daniel's INT-31 answer builds Publish in the rewrite, on a server core it shares with RichView Cowork, and makes RichView News one Publish instance; these cards are its requirements, and #70's code is evidence, not a base (INT-49). FEA-BR-30 reverses S27-655's dashboard pages.\n- **Out, or Publish's secondary path** (FEA-BR-11, FEA-BR-14 to FEA-BR-16, FEA-BR-43): the voice dashboard stays a reference record (INT-34); data connectors are the secondary live-data path every RichView server offers (INT-24, OPN-63; the core never queries data, INT-08), recorded as the rules any engine must meet. FEA-BR-14 records that #66's SQL path can read files on the host.\n\nAccepting some cards changes cards in other parts: TYP-77 gains `all` on filters (FEA-BR-03); TYP-16 gains a log scale (FEA-BR-12); FEA-RP-18 and TYP-34 follow FEA-BR-48 on `{#id}`; FEA-RP-10 gains per-panel notes (FEA-BR-40); FEA-CH-45 gains an exception for charts with controls (FEA-BR-32); TYP-79 gains MetricFlow's `group_by`, `where`, `order_by` and `limit` and SQL `params` (FEA-BR-15, FEA-BR-43); TYP-80 drops `dashboard` (FEA-BR-30); DEL-15 gains two suites and the worker-reply hold (FEA-BR-37, FEA-BR-47); FEA-SF-36's conflict about kept chart state no longer applies (FEA-BR-17).\n\nHow to answer: **accept** keeps the proposal as the rewrite's rule; **edit** replaces it with your text; **reject** drops the feature from the rewrite; **defer** leaves it open. Branch facts were read at each PR's head (#62 `a703897`, #63 `f1cb254`, #64 `81110e0`, #65 `850032b`, #66 `4ecef05`, #67 `47d8848`, #68 `bba45ab`, #69 `5e69843`, #70 `3f5c35f`) and are marked by confidence. On 2026-10-22 #62 and #63 were built and their examples run in headless Chromium, #65's pages were rendered with `main`'s build, and news.richview.ai and richview.ai were checked live; the #65-shell screenshot is that run's own capture, and #64's own captures stay local because they show business metrics from a demo dataset. Screenshots are in `screenshots/branches/`. Part 08's cross-part contradiction cards (OPN-50 to OPN-68) decide conflicts involving this part's cards and should be answered first.",
+  "summary": "This part decides which features that existed only on the nine draft PRs (#62 to #70) enter the rewrite, and in what form; #70 has since been merged into `main` as it is (2026-10-26, INT-52), and the other eight are still open. Daniel's FEA-BR-01 and FEA-BR-08 answers bring controls and tabs in, and his FEA-BR-08 note says PRs #62, #63, #65, #66, #67, #68 and #69 all enter the rewrite. Each card states the feature as the rewrite would build it; what the branch does, and where it falls short, sits under sources and conflicts. The branches themselves are part 08 (OPN-06 to OPN-14) and their formats part 05 (TYP-76 to TYP-81). Branch features another part already decides are not repeated: Daniel's #67 chart calls (one modal, labelled actions, PNG and SVG downloads, years as years, sparse labels, a lighter tooltip) are part 04a (FEA-CH-21, FEA-CH-28, FEA-CH-42 to FEA-CH-44, FEA-CH-46, FEA-CH-47), #69's navigation and docs gallery content are part 04c (FEA-SF-28, FEA-SF-43), and #67's style selector and measure key are recorded here only as pointers (FEA-BR-17, FEA-BR-18) to STY-05, STY-07, STY-08, STY-30, TYP-89 and FEA-SF-36.\n\nThe decisions that matter most:\n\n- **Playable charts** (FEA-BR-01 to FEA-BR-07, FEA-BR-31 to FEA-BR-34, FEA-BR-36): whether authored controls enter the format, with the smooth transitions and fixed axes #62 lacks. Built and run, #62's controls work on the scatter but not on the line chart.\n- **Multi-tab reports** (FEA-BR-08 to FEA-BR-10, FEA-BR-35, FEA-BR-38 to FEA-BR-40, FEA-BR-48): whether tabs enter the format, with every panel readable without the runtime, which the branch breaks.\n- **Checks** (FEA-BR-20, FEA-BR-33, FEA-BR-37, FEA-BR-47): every reachable control state, browser suites for controls and tabs, and where #68's harness lands. They run per batch in the release run on `pre-prod`, not on every `dev` merge (DEL-81).\n- **Site round** (FEA-BR-21, FEA-BR-22, FEA-BR-41): the bar the restored landing motion must clear, one docs page per chart type (answer with FEA-SF-43 and FEA-SF-46), and #65's sourced examples for those pages.\n- **Famous charts** (FEA-BR-12): rendered, only Gapminder keeps the original's form.\n- **RichView Publish** (FEA-BR-23 to FEA-BR-30, FEA-BR-44 to FEA-BR-46, FEA-BR-49): Daniel's INT-31 answer builds Publish in the rewrite, on a server core it shares with RichView Cowork, and makes RichView News one Publish instance; these cards are its requirements, and #70's code is evidence, not a base (INT-49). FEA-BR-30 reverses the RichView Publish brief's dashboard pages.\n- **Out, or Publish's secondary path** (FEA-BR-11, FEA-BR-14 to FEA-BR-16, FEA-BR-43): the voice dashboard stays a reference record (INT-34); data connectors are the secondary live-data path every RichView server offers (INT-24, OPN-63; the core never queries data, INT-08), recorded as the rules any engine must meet. FEA-BR-14 records that #66's SQL path can read files on the host.\n\nAccepting some cards changes cards in other parts: TYP-77 gains `all` on filters (FEA-BR-03); TYP-16 gains a log scale (FEA-BR-12); FEA-RP-18 and TYP-34 follow FEA-BR-48 on `{#id}`; FEA-RP-10 gains per-panel notes (FEA-BR-40); FEA-CH-45 gains an exception for charts with controls (FEA-BR-32); TYP-79 gains MetricFlow's `group_by`, `where`, `order_by` and `limit` and SQL `params` (FEA-BR-15, FEA-BR-43); TYP-80 drops `dashboard` (FEA-BR-30); DEL-15 gains two suites and the worker-reply hold (FEA-BR-37, FEA-BR-47); FEA-SF-36's conflict about kept chart state no longer applies (FEA-BR-17).\n\nHow to answer: **accept** keeps the proposal as the rewrite's rule; **edit** replaces it with your text; **reject** drops the feature from the rewrite; **defer** leaves it open. Branch facts were read at each PR's head (#62 `a703897`, #63 `f1cb254`, #64 `81110e0`, #65 `850032b`, #66 `4ecef05`, #67 `47d8848`, #68 `bba45ab`, #69 `5e69843`, #70 `3f5c35f`) and are marked by confidence. On 2026-10-22 #62 and #63 were built and their examples run in headless Chromium, #65's pages were rendered with `main`'s build, and news.richview.ai and richview.ai were checked live; the #65-shell screenshot is that run's own capture, and #64's own captures stay local because they show business metrics from a demo dataset. Screenshots are in `screenshots/branches/`. Part 08's cross-part contradiction cards (OPN-50 to OPN-68) decide conflicts involving this part's cards and should be answered first.",
   "items": [
     {
       "id": "FEA-BR-01",
@@ -45,7 +45,6 @@
         },
         {
           "label": "Brief and acceptance: playback, chart-local versions, selector defaults",
-          "ref": "S27-648",
           "date": "2026-10-17"
         },
         {
@@ -74,7 +73,7 @@
           "date": "2026-10-22"
         }
       ],
-      "conflicts": "Daniel's 17 October request authorized the October tracks (S27-647 to S27-651) despite older August scope locks (S27-648), and INT-31 builds core only; chart-local controls fit inside core, dashboards do not (INT-33). The Gapminder fixture's data are invented; FEA-BR-12 proposes an animated recreation from World Bank data. In a build of `a703897` the controls work on the scatter and the variant fixture but not on the indicator line: playback and metric changes leave its values unchanged and stack another drawing on each change (FEA-BR-02, FEA-BR-04).",
+      "conflicts": "Daniel's 17 October request authorized the October tracks (galleries, playable charts, multi-tab reports, data connectors and the voice dashboard) despite older August scope locks, and INT-31 builds core only; chart-local controls fit inside core, dashboards do not (INT-33). The Gapminder fixture's data are invented; FEA-BR-12 proposes an animated recreation from World Bank data. In a build of `a703897` the controls work on the scatter and the variant fixture but not on the indicator line: playback and metric changes leave its values unchanged and stack another drawing on each change (FEA-BR-02, FEA-BR-04).",
       "images": [
         "docs/lockdown/screenshots/branches/pr62-gapminder-scientific-initial.jpg"
       ]
@@ -88,12 +87,12 @@
       "group": "PR #62 · Playable charts and selectors",
       "title": "Playback",
       "question": "How does a playable chart step through its frames (for example years), and do its marks glide smoothly between frames, which PR #62 does not do?",
-      "why": "Fixes what readers see when a chart animates and what a still, print or PDF shows. S27-648 asked for “sensible frame seeking and restart behavior, a clearly visible current value and smooth transitions with stable mark identity” and to “Handle changing membership, missing values, interrupted playback and reduced motion intentionally”. The branch redraws the whole chart on every change and leaves frame order, restart and missing rows to accident, so most of the rules below are new work.",
+      "why": "Fixes what readers see when a chart animates and what a still, print or PDF shows. The playable-charts brief asked for “sensible frame seeking and restart behavior, a clearly visible current value and smooth transitions with stable mark identity” and to “Handle changing membership, missing values, interrupted playback and reduced motion intentionally”. The branch redraws the whole chart on every change and leaves frame order, restart and missing rows to accident, so most of the rules below are new work.",
       "proposed": "`kind: playback` steps through the values of one field. Frames are its distinct values, ascending for numbers and dates and in first-appearance order for text; rows without a value for the field belong to no frame. Above the chart sit previous, play/pause and next, a scrubber and the current value, announced to screen readers; ← and → step, and Space plays or pauses. Playback starts only when the reader presses play. Speed defaults to 800 ms per frame. Playback stops on the last frame; pressing play there starts again from the first. Older sources may still set `loop`, which has no effect. Changing another control, dragging the scrubber or stepping pauses playback. Line and area charts reveal the series up to the frame; other charts show the frame's rows. Marks keep their identity and glide between real positions; a mark whose row is missing in a frame fades out and returns with its row, and readouts, labels, Table and CSV never show a value between frames. Axes follow FEA-BR-31. The chart opens on the authored `initial` frame, else the last, and PDF export shows that frame and names it; browser print shows the frame on screen and names it (FEA-CH-67). Without JavaScript or WebGL the chart's frame shows ARC-05's notice; no static frame is drawn. Under reduced motion, play advances one frame per press and marks move without gliding.",
       "options": [
         {
           "label": "Glide between frames",
-          "detail": "What S27-648 asked for (“smooth transitions with stable mark identity”); new work, since the branch redraws the whole chart on every change."
+          "detail": "What the playable-charts brief asked for (“smooth transitions with stable mark identity”); new work, since the branch redraws the whole chart on every change."
         },
         {
           "label": "Step redraw, as on the branch",
@@ -140,7 +139,6 @@
         },
         {
           "label": "“smooth transitions with stable mark identity”; “Keep static rendering/export deliberate and legible”",
-          "ref": "S27-648",
           "date": "2026-10-17"
         },
         {
@@ -184,7 +182,7 @@
           "date": "2026-10-22"
         }
       ],
-      "conflicts": "Observed in a build of `a703897` on 2026-10-22: on the Gapminder scatter every frame and filter change refits both axes and the size key's reference value and redraws the chart. On the indicator line, neither playback nor the metric switch changes the plotted values in the browser; each change stacks another identical drawing, visible as a doubled “2020” label. The branch's browser check drives only the scatter and a bar/variant fixture (`origin/feat/s27-648-playable-charts:scripts/verify-playable-controls.mjs`). The browser opens on the last frame, while the static `initial_state` sets no frame without `initial` (`rmd_controls.rs:72-75`), so a scatter playback without `initial` draws every frame's rows at once in static output. Frames come in first-appearance order (`charts.rs:1414-1436`); with `loop: false` play stops at the end and does not restart, while previous and next wrap around. The playback type lacks the `as` rename (`spec.rs:341`): on line and area charts `as:` fails parsing because the controls pass into the engine spec (`rmd.rs:270-275`), while on scatter, bar and pie the resolver skips the whole dimension silently (`rmd_controls.rs:43-48`) and the browser still draws its chrome from the raw `controls` (`charts.rs:935-947`).",
+      "conflicts": "Observed in a build of `a703897` on 2026-10-22: on the Gapminder scatter every frame and filter change refits both axes and the size key's reference value and redraws the chart. On the indicator line, neither playback nor the metric switch changes the plotted values in the browser; each change stacks another identical drawing, visible as a doubled “2020” label. The branch's browser check drives only the scatter and a bar/variant fixture (PR #62's `scripts/verify-playable-controls.mjs`). The browser opens on the last frame, while the static `initial_state` sets no frame without `initial` (`rmd_controls.rs:72-75`), so a scatter playback without `initial` draws every frame's rows at once in static output. Frames come in first-appearance order (`charts.rs:1414-1436`); with `loop: false` play stops at the end and does not restart, while previous and next wrap around. The playback type lacks the `as` rename (`spec.rs:341`): on line and area charts `as:` fails parsing because the controls pass into the engine spec (`rmd.rs:270-275`), while on scatter, bar and pie the resolver skips the whole dimension silently (`rmd_controls.rs:43-48`) and the browser still draws its chrome from the raw `controls` (`charts.rs:935-947`).",
       "images": [
         "docs/lockdown/screenshots/branches/pr62-gapminder-scientific-initial.jpg",
         "docs/lockdown/screenshots/branches/pr62-indicator-scientific-index.jpg"
@@ -199,7 +197,7 @@
       "group": "PR #62 · Playable charts and selectors",
       "title": "Axes during playback",
       "question": "During playback, do the axes stay fitted to all frames, or refit to each frame as on #62?",
-      "why": "Fixed axes are what make Gapminder-style motion readable: a mark that moves right got richer. On #62 the scatter refits both axes and the size key's reference value on every change, so a mark can move while its value stays put. S27-648 asked that “selectors, playback and whole-chart variants cooperate without stale axes, broken state or duplicate implementations”.",
+      "why": "Fixed axes are what make Gapminder-style motion readable: a mark that moves right got richer. On #62 the scatter refits both axes and the size key's reference value on every change, so a mark can move while its value stays put. The playable-charts brief asked that “selectors, playback and whole-chart variants cooperate without stale axes, broken state or duplicate implementations”.",
       "proposed": "During playback the value axes, the size scale and the colour scale are fitted once to the rows of all frames under the current filter, metric and variant, and do not change between frames. They refit only when another control changes. `axes.*.min` and `max` still pin a range.",
       "options": [
         {
@@ -231,7 +229,6 @@
         },
         {
           "label": "“cooperate without stale axes, broken state or duplicate implementations”",
-          "ref": "S27-648",
           "date": "2026-10-17"
         }
       ],
@@ -311,7 +308,6 @@
         },
         {
           "label": "“Preserve correct values, units, scales and source meaning across every frame and variant”",
-          "ref": "S27-648",
           "date": "2026-10-17"
         },
         {
@@ -335,7 +331,7 @@
       "group": "PR #62 · Playable charts and selectors",
       "title": "Metric switch",
       "question": "Does a metric switch change the measured field together with its whole value axis, using RichView's own format names?",
-      "why": "Fixes how absolute, per-capita or indexed views of one series are offered (FEA-CH-16 routes rebasing here). S27-648 asked for “metric/unit/absolute-versus-relative alternatives with correct labels, scales, values and tooltips”. Keeps d3 format strings out of the format.",
+      "why": "Fixes how absolute, per-capita or indexed views of one series are offered (FEA-CH-16 routes rebasing here). The playable-charts brief asked for “metric/unit/absolute-versus-relative alternatives with correct labels, scales, values and tooltips”. Keeps d3 format strings out of the format.",
       "proposed": "`kind: metric` switches the measured field. Each option names its `field` and carries its own value-axis fragment with the T-CHART-AXES fields (`label`, `unit`, `format`, `min`, `max`; TYP-16, TYP-77), so plotted values, ticks, axis title and readouts change together and never drift apart. Tick decimals stay automatic (FEA-CH-23, TYP-86). Formats use the T-VALUE-FORMAT names (TYP-23), never d3 strings. The value axis refits on each switch. Series names, colours and marks stay; only the measure changes. `initial` picks the starting option, else the first; the chart opens on it, and PDF export shows it and names it. Table and CSV follow FEA-BR-32.",
       "confidence": "inferred",
       "sources": [
@@ -381,7 +377,6 @@
         },
         {
           "label": "“metric/unit/absolute-versus-relative alternatives with correct labels, scales, values and tooltips”",
-          "ref": "S27-648",
           "date": "2026-10-17"
         }
       ],
@@ -399,8 +394,8 @@
       "component": "C-RICHVIEW-CHART",
       "group": "PR #62 · Playable charts and selectors",
       "title": "Chart variants",
-      "question": "Can an author give readers named alternative views of one chart (for example bars or a share pie of the same rows), without the composed groups that switch several charts at once, which S27-648 also asked for?",
-      "why": "Variants let one block offer, say, bars and a share-of-total pie of the same data. S27-648 asked for “named variants that replace a whole chart specification or a composed group of charts”; composed groups, swapping several charts together, were never built and would need state shared across charts.",
+      "question": "Can an author give readers named alternative views of one chart (for example bars or a share pie of the same rows), without the composed groups that switch several charts at once, which the playable-charts brief also asked for?",
+      "why": "Variants let one block offer, say, bars and a share-of-total pie of the same data. The playable-charts brief asked for “named variants that replace a whole chart specification or a composed group of charts”; composed groups, swapping several charts together, were never built and would need state shared across charts.",
       "proposed": "`kind: variant` offers named alternative views. Each option carries a partial chart that replaces the base chart's keys one by one (`type`, `encoding`, `axes`, `data` and so on); `controls` itself cannot be replaced. The base chart and every merged option are validated as charts when the report is checked, so a broken view is an authoring error at its source line, not a broken page; the branch does not do this. The variant applies first; playback, filter and metric then apply to the chosen view. The chart opens on the initial view, and PDF export shows it and names it. Swapping several charts at once (composed groups) is not part of the rewrite. A variant fixture, bars and a share-of-total pie of the same rows, joins the golden inputs (INT-55).",
       "options": [
         {
@@ -409,7 +404,7 @@
         },
         {
           "label": "Variants and composed groups",
-          "detail": "Matches the S27-648 wording; a group swap is cross-chart state, which INT-33 keeps out."
+          "detail": "Matches the wording of the playable-charts brief; a group swap is cross-chart state, which INT-33 keeps out."
         }
       ],
       "recommendation": "Variants without composed groups: a group swap changes several charts at once, which is the cross-chart state INT-33 leaves to dashboards, and nobody built it.",
@@ -432,7 +427,6 @@
         },
         {
           "label": "Status: composed chart groups not implemented",
-          "ref": "S27-648",
           "date": "2026-10-18"
         },
         {
@@ -456,7 +450,7 @@
           "date": "2026-10-18"
         }
       ],
-      "conflicts": "On the branch `apply_variant` overlays the option's keys without validating the result (`rmd_controls.rs:147-167`). No example report has a variant; the only variant fixture is inline in `origin/feat/s27-648-playable-charts:scripts/verify-playable-controls.mjs`. Rendered as a report with a build of `a703897`, its base view fails (“Cannot draw these bars / Repeated observations”, `chart.ambiguous-bar-slot`: two years per country), and its Share view draws a pie that sums both years. PR #62's body lists composed groups as out of scope.",
+      "conflicts": "On the branch `apply_variant` overlays the option's keys without validating the result (`rmd_controls.rs:147-167`). No example report has a variant; the only variant fixture is inline in PR #62's `scripts/verify-playable-controls.mjs`. Rendered as a report with a build of `a703897`, its base view fails (“Cannot draw these bars / Repeated observations”, `chart.ambiguous-bar-slot`: two years per country), and its Share view draws a pie that sums both years. PR #62's body lists composed groups as out of scope.",
       "images": [
         "docs/lockdown/screenshots/branches/pr62-variant-buttons-and-dropdown.jpg",
         "docs/lockdown/screenshots/branches/pr62-variant-share.jpg"
@@ -471,7 +465,7 @@
       "group": "PR #62 · Playable charts and selectors",
       "title": "Selector presentation",
       "question": "Is Daniel's default presentation the rule: the first selector as visible buttons, further selectors as dropdowns, overridable per selector?",
-      "why": "Fixes the chrome above every chart with controls. Daniel asked for “one visible group of option buttons above the chart, not a dropdown”, with further selectors as dropdowns, and to “Keep author control where cardinality or narrow screens make a different presentation necessary” (S27-648); a supervisor returned #62 until the defaults matched.",
+      "why": "Fixes the chrome above every chart with controls. Daniel asked for “one visible group of option buttons above the chart, not a dropdown”, with further selectors as dropdowns, and to “Keep author control where cardinality or narrow screens make a different presentation necessary”; a supervisor returned #62 until the defaults matched.",
       "proposed": "Playback always has its own chrome (FEA-BR-02) and is not a selector. The first other dimension in author order renders as one visible group of option buttons above the chart, with the active option pressed. Every further dimension renders as a labelled dropdown. `as: buttons` or `as: dropdown` overrides the default for one selector. Controls sit above the plot, wrap on narrow screens, are reachable by keyboard and touch, never form a single toggle whose state is ambiguous, and look as FEA-BR-34 describes.",
       "confidence": "observed",
       "sources": [
@@ -482,12 +476,10 @@
         },
         {
           "label": "Daniel: button-group selectors, “not a dropdown and not a single ambiguous toggle”",
-          "ref": "S27-648",
           "date": "2026-10-17"
         },
         {
           "label": "Supervisor returned the work for missing variants and dropdown defaults",
-          "ref": "S27-648",
           "date": "2026-10-18"
         },
         {
@@ -556,7 +548,7 @@
       "group": "PR #62 · Playable charts and selectors",
       "title": "Control state events",
       "question": "Are #62's `data-rvc-controls` envelope and its `rv:control` and `rv:control-set` DOM events a public interface of the rewrite, or internal to the runtime?",
-      "why": "A public interface must stay stable for every host page. S27-648 asked the track to “Publish a small stable control interface in your handoff so the gallery and dashboard agents can consume it”; ARC-60 and INT-33 drop both consumers.",
+      "why": "A public interface must stay stable for every host page. The playable-charts brief asked the track to “Publish a small stable control interface in your handoff so the gallery and dashboard agents can consume it”; ARC-60 and INT-33 drop both consumers.",
       "proposed": "Control state is internal to the report runtime. No chart attribute or DOM event is documented or promised to host pages, and host pages cannot set a chart's state. A public interface is decided with the first consumer that needs it, such as a dashboard product (INT-33); Publish, which the rewrite builds (INT-31), shows each item in a sandboxed frame and does not drive its charts (FEA-BR-25).",
       "options": [
         {
@@ -598,11 +590,10 @@
         },
         {
           "label": "“Publish a small stable control interface in your handoff so the gallery and dashboard agents can consume it”",
-          "ref": "S27-648",
           "date": "2026-10-17"
         }
       ],
-      "conflicts": "Keeping the state internal reverses S27-648's request for a stable interface; it was built for galleries and dashboards, which the rewrite does not have. PR #63's tab controller signals hidden and shown panels to charts with `rv:panel-hidden` and `rv:panel-shown` (FEA-BR-10); that coupling stays inside the runtime either way."
+      "conflicts": "Keeping the state internal reverses the playable-charts brief's request for a stable interface; it was built for galleries and dashboards, which the rewrite does not have. PR #63's tab controller signals hidden and shown panels to charts with `rv:panel-hidden` and `rv:panel-shown` (FEA-BR-10); that coupling stays inside the runtime either way."
     },
     {
       "id": "FEA-BR-32",
@@ -672,7 +663,7 @@
       "group": "PR #62 · Playable charts and selectors",
       "title": "Every reachable state is checked",
       "question": "Do `richview check` and the render diagnostics cover every state a reader can reach on a chart with controls, not only the initial one?",
-      "why": "A state nobody rendered can be broken at launch. On #62 `richview check` reports the variant fixture's broken Bars view only while Bars is the initial view; with `initial: share` the same report checks clean, and readers can still press Bars. S27-648 asked for “meaningful behavior checks”.",
+      "why": "A state nobody rendered can be broken at launch. On #62 `richview check` reports the variant fixture's broken Bars view only while Bars is the initial view; with `initial: share` the same report checks clean, and readers can still press Bars. The playable-charts brief asked for “meaningful behavior checks”.",
       "proposed": "`richview check` and the render diagnostics resolve every reachable state of a chart with controls: every combination of selector options and playback frames, up to 1,000 states per chart. A state that fails, draws nothing or drops a label carries the usual diagnostic plus the state's name (“View: Bars”). Beyond 1,000 states the chart gets one warning saying how many states went unchecked. Golden inputs with controls must check clean in every state in the release run (DEL-81).",
       "confidence": "inferred",
       "sources": [
@@ -688,7 +679,6 @@
         },
         {
           "label": "“meaningful behavior checks and visual evidence of actual motion and selection”",
-          "ref": "S27-648",
           "date": "2026-10-17"
         }
       ],
@@ -755,7 +745,6 @@
       "sources": [
         {
           "label": "Acceptance: coherent views, no migration, deep links, keyboard, idle hidden charts, explicit export and no-script behaviour",
-          "ref": "S27-649",
           "date": "2026-10-17"
         },
         {
@@ -789,7 +778,7 @@
           "date": "2026-10-22"
         }
       ],
-      "conflicts": "#63 is marked WIP and its PR body leaves every gate unchecked, while its handoff reports contract tests and eight Chromium checks (S27-649). Built and run for this lockdown (`f1cb254`, 2026-10-22), the runtime tabs work; the no-script output fails FEA-BR-09. The branch spec lists only `frontmatter.tabs` and `tabs.anchor-missing` (`docs/RMD-SPEC.md:79`); `tabs.order` exists only in code (`render.rs:988-996`). The example's last panel also holds its closing “Verification” section, because a panel runs to the end of the body.",
+      "conflicts": "#63 is marked WIP and its PR body leaves every gate unchecked, while its handoff reports contract tests and eight Chromium checks. Built and run for this lockdown (`f1cb254`, 2026-10-22), the runtime tabs work; the no-script output fails FEA-BR-09. The branch spec lists only `frontmatter.tabs` and `tabs.anchor-missing` (`docs/RMD-SPEC.md:79`); `tabs.order` exists only in code (`render.rs:988-996`). The example's last panel also holds its closing “Verification” section, because a panel runs to the end of the body.",
       "images": [
         "docs/lockdown/screenshots/branches/pr63-tabs-desktop.jpg",
         "docs/lockdown/screenshots/branches/pr63-tabs-desktop-sales.jpg"
@@ -860,7 +849,7 @@
       "group": "PR #63 · Multi-tab reports",
       "title": "Tabs without the runtime, in print and in export",
       "question": "Is every panel readable without JavaScript and in print, with `export: active` limited to print and PDF and always naming what it leaves out?",
-      "why": "S27-649 asked to “Make export and no-script/static behavior explicit so important content is not silently omitted” and ruled that tabs “must not silently hide material content from exports”. The branch spec promises every panel without scripts, but its HTML hides every non-default panel until the runtime runs, and `export: active` strips panels from every output, the HTML included. The answer fixes what a file opened without scripts, a feed reader or a crawler sees.",
+      "why": "The multi-tab brief asked to “Make export and no-script/static behavior explicit so important content is not silently omitted” and ruled that tabs “must not silently hide material content from exports”. The branch spec promises every panel without scripts, but its HTML hides every non-default panel until the runtime runs, and `export: active` strips panels from every output, the HTML included. The answer fixes what a file opened without scripts, a feed reader or a crawler sees.",
       "proposed": "Before the runtime mounts or without it, the HTML shows every panel in order, each under its label (option below). With the runtime, the tab row takes the place of the first panel's label, so the default panel does not move, and the other panels leave the flow. Print and PDF show every panel under its label unless `tabs.export: active` is set; then they keep the panel active at export (the default panel for PDF export) and print a notice naming the panels left out and linking the live report when it has a URL, such as “Showing Overview, 1 of 3 views. Sales and Customers are in the live report: <URL>.” The HTML report always carries every panel. No panel is ever left out without that notice, and FEA-RP-39 applies to every panel. Charts inside panels follow ARC-05: without JavaScript or WebGL each chart's frame shows its notice, while the panel's text stays readable. DEL-57's drill and FEA-BR-37's suite check this.",
       "confidence": "observed",
       "sources": [
@@ -891,7 +880,6 @@
         },
         {
           "label": "“Make export and no-script/static behavior explicit so important content is not silently omitted”; tabs “must not silently hide material content from exports”",
-          "ref": "S27-649",
           "date": "2026-10-17"
         },
         {
@@ -970,7 +958,6 @@
         },
         {
           "label": "Acceptance: state kept when switching back; hidden-tab charts run no wasteful animation",
-          "ref": "S27-649",
           "date": "2026-10-17"
         },
         {
@@ -1059,13 +1046,12 @@
       "group": "PR #63 · Multi-tab reports",
       "title": "Tabs in the editor and playground",
       "question": "If tabs stay, do the editor and the playground support them as fully as the report: schema completion, diagnostics at the source line and a preview that keeps the active tab?",
-      "why": "S27-649 asked for tabs in “the authored report format, parser/schema, renderer and relevant browser/editor surfaces”. #63 changed no editor or playground code, nobody checked its tabs in either preview, and its tab warnings point at `frontmatter.tabs` rather than a line.",
+      "why": "The multi-tab brief asked for tabs in “the authored report format, parser/schema, renderer and relevant browser/editor surfaces”. #63 changed no editor or playground code, nobody checked its tabs in either preview, and its tab warnings point at `frontmatter.tabs` rather than a line.",
       "proposed": "The VS Code preview and the playground render tabs with the report runtime, so switching, deep links and print behave as in the report, and a re-render keeps the active tab. The schema gives `tabs` completion and hover, and every tab diagnostic carries the line of the offending panel entry or heading.",
       "confidence": "inferred",
       "sources": [
         {
           "label": "“parser/schema, renderer and relevant browser/editor surfaces”",
-          "ref": "S27-649",
           "date": "2026-10-17"
         },
         {
@@ -1084,13 +1070,12 @@
       "group": "PR #63 · Multi-tab reports",
       "title": "One style across every tab",
       "question": "When the report's style or light/dark appearance changes, does every panel change with it, including hidden panels and their charts?",
-      "why": "S27-649 asked to “Keep theme changes coherent throughout all tabs”. #63's PR body defers two styles' tab treatments, and no chart handles the panel events (FEA-BR-10), so nothing makes a chart in a hidden panel repaint for a change made while it was hidden.",
+      "why": "The multi-tab brief asked to “Keep theme changes coherent throughout all tabs”. #63's PR body defers two styles' tab treatments, and no chart handles the panel events (FEA-BR-10), so nothing makes a chart in a hidden panel repaint for a change made while it was hidden.",
       "proposed": "A style or appearance change applies to the whole report at once: the tab row, every panel and every chart, shown or hidden. A chart in a hidden panel repaints for the new style when its panel is shown, before it becomes visible, and never shows the previous style. Each style's visual checks include the tabs example.",
       "confidence": "inferred",
       "sources": [
         {
           "label": "“Keep theme changes coherent throughout all tabs”",
-          "ref": "S27-649",
           "date": "2026-10-17"
         },
         {
@@ -1191,7 +1176,6 @@
         },
         {
           "label": "Acceptance and reported limits",
-          "ref": "S27-651",
           "date": "2026-10-17"
         },
         {
@@ -1216,7 +1200,6 @@
         },
         {
           "label": "The run's own captures: six tiles; four unavailable after a cross-selection",
-          "ref": "S27-651",
           "date": "2026-10-18"
         },
         {
@@ -1225,7 +1208,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "Daniel's INT-34 answer settles that nothing here enters RichView; only the record's accuracy is open. `planner.rs:11` advertises an optional LLM planner (`RVD_PLANNER=anthropic`) that no code implements; the README describes only the rule-based planner and names two adapters where the code has three. S27-651 asked follow-ups to change the window, metric or segment; the planner handles the window and one segment only (`planner.rs:343-366`). Intents are keyword matches (`planner.rs:86-107`), and the discovered vocabulary feeds only the “Discovered 70 metrics” note (`planner.rs:77-82`). The run's own screenshots show the headline revenue bars in non-chronological month order (Jul 26, Apr 26, Dec 25, …) and black strokes beside the lines of both plan comparisons; after a cross-selection four of six tiles read “Unavailable from this adapter”. Scribe was tested on a generated audio file (S27-651).",
+      "conflicts": "Daniel's INT-34 answer settles that nothing here enters RichView; only the record's accuracy is open. `planner.rs:11` advertises an optional LLM planner (`RVD_PLANNER=anthropic`) that no code implements; the README describes only the rule-based planner and names two adapters where the code has three. The voice-dashboard brief asked follow-ups to change the window, metric or segment; the planner handles the window and one segment only (`planner.rs:343-366`). Intents are keyword matches (`planner.rs:86-107`), and the discovered vocabulary feeds only the “Discovered 70 metrics” note (`planner.rs:77-82`). The run's own screenshots show the headline revenue bars in non-chronological month order (Jul 26, Apr 26, Dec 25, …) and black strokes beside the lines of both plan comparisons; after a cross-selection four of six tiles read “Unavailable from this adapter”. Scribe was tested on a generated audio file.",
       "images": []
     },
     {
@@ -1250,7 +1233,7 @@
         },
         {
           "label": "Gapminder and Playfair",
-          "detail": "Adds the plate behind Daniel's motion note (S27-654); its band between imports and exports becomes two overlapping areas, and it shows two of the plate's four series."
+          "detail": "Adds the plate behind Daniel's motion note; its band between imports and exports becomes two overlapping areas, and it shows two of the plate's four series."
         },
         {
           "label": "All five, redrawn",
@@ -1291,12 +1274,10 @@
         },
         {
           "label": "Acceptance: analytical point, copyable source, provenance, labelled simplifications",
-          "ref": "S27-647",
           "date": "2026-10-17"
         },
         {
           "label": "Playfair: years as years; “Preserve the animation Daniel liked”",
-          "ref": "S27-654",
           "date": "2026-10-18"
         },
         {
@@ -1335,7 +1316,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "Rendered with `main` (`b4db233`) from `850032b`'s source on 2026-10-22. Rosling's fence fails YAML parsing on its unquoted subtitle colon (`block.yaml`, line 93) and stays on the page as source text; with the subtitle quoted it fails with `block.schema` (“histogram encoding.y is unsupported”), because its data are eight pre-binned counts and a histogram bins raw observations. Gapminder renders on a linear axis from −25k: `main` accepts the fence's `scale: log` silently, as it accepts any unknown axis key on a scatter, T-CHART-AXES has no log scale (TYP-16), and an unquoted comma cuts the axis title to “GDP per capita (US$ PPP”; the static pass drops ten country labels. Playfair draws two overlapping areas to zero and prints years as “1.70k” (FEA-CH-21). S27-654 asks to “Preserve the animation Daniel liked” in the Playfair example; its only motion is the FEA-CH-51 draw-in (inferred), which FEA-CH-51 keeps as a fixture. The praised “red nose” example is unidentified (OPN-42). None of the five datasets was re-checked against its source. FEA-BR-01's card text says “exact values” and calls ARC-05's fallback open: read “the author's values at the author's precision (FEA-CH-37)” and “the frame and a notice (ARC-05)”.",
+      "conflicts": "Rendered with `main` (`b4db233`) from `850032b`'s source on 2026-10-22. Rosling's fence fails YAML parsing on its unquoted subtitle colon (`block.yaml`, line 93) and stays on the page as source text; with the subtitle quoted it fails with `block.schema` (“histogram encoding.y is unsupported”), because its data are eight pre-binned counts and a histogram bins raw observations. Gapminder renders on a linear axis from −25k: `main` accepts the fence's `scale: log` silently, as it accepts any unknown axis key on a scatter, T-CHART-AXES has no log scale (TYP-16), and an unquoted comma cuts the axis title to “GDP per capita (US$ PPP”; the static pass drops ten country labels. Playfair draws two overlapping areas to zero and prints years as “1.70k” (FEA-CH-21). The chart-polish brief asks to “Preserve the animation Daniel liked” in the Playfair example; its only motion is the FEA-CH-51 draw-in (inferred), which FEA-CH-51 keeps as a fixture. The praised “red nose” example is unidentified (OPN-42). None of the five datasets was re-checked against its source. FEA-BR-01's card text says “exact values” and calls ARC-05's fallback open: read “the author's values at the author's precision (FEA-CH-37)” and “the frame and a notice (ARC-05)”.",
       "images": [
         "docs/lockdown/screenshots/branches/pr65-famous-gapminder.jpg",
         "docs/lockdown/screenshots/branches/pr65-famous-playfair.jpg",
@@ -1353,7 +1334,7 @@
       "group": "PR #65 · Standalone galleries",
       "title": "Sourced examples for the chart-type pages",
       "question": "Do the chart-type docs pages (FEA-SF-43, FEA-BR-22) use #65's sourced real-data examples, fixed where they fail, instead of #69's invented ones?",
-      "why": "S27-647 asked for examples with an analytical point, a copyable source and provenance. #65's chart gallery has nine: seven from public statistics (Destatis, Eurostat, UNDP with the Global Carbon Budget, Ember, the IHO, the NYC Taxi & Limousine Commission, the Czech Statistical Office with the CNB) and two labelled synthetic. The live docs gallery (#69) uses invented data with no source line, such as “Monthly company mentions”.",
+      "why": "The galleries brief asked for examples with an analytical point, a copyable source and provenance. #65's chart gallery has nine: seven from public statistics (Destatis, Eurostat, UNDP with the Global Carbon Budget, Ember, the IHO, the NYC Taxi & Limousine Commission, the Czech Statistical Office with the CNB) and two labelled synthetic. The live docs gallery (#69) uses invented data with no source line, such as “Monthly company mentions”.",
       "proposed": "Each chart-type page uses #65's example for its type, with its source line and point: Germany's nominal GDP (line), EU car exports (bar), human development against CO₂ per capita (scatter), EU electricity generation (area), ocean area by basin (pie), New York taxi tips by hour and weekday (heatmap), marathon finishing times (histogram, synthetic and labelled), response times by region (boxplot, synthetic and labelled) and Czech inflation with forecast intervals (interval). Two need fixing first: the bar example puts the values on x and the countries on y, so `main` draws no bars (it needs `x: country`, `y: cars_bn_eur` and `style.orientation: horizontal`, FEA-CH-06), and the interval example's axis label `CPI, % year-on-year` is unquoted inside a flow mapping, so YAML parsing fails. Each dataset is re-checked against its source before it ships. #65 covers only today's nine types; each type Daniel's FEA-CH-01 answer adds, and the map and flow elements, gets a new sourced example with a point before its page ships.",
       "options": [
         {
@@ -1399,7 +1380,6 @@
         },
         {
           "label": "Acceptance: analytical point, copyable source, provenance",
-          "ref": "S27-647",
           "date": "2026-10-17"
         }
       ],
@@ -1417,7 +1397,7 @@
       "group": "PR #65 · Standalone galleries",
       "title": "Typography specimen as a style fixture",
       "question": "Does PR #65's typography specimen survive as a golden input rendered in every accepted style, after the edits it needs, with no public page?",
-      "why": "S27-647 asked for three pages, one of them a typography specimen; S27-653 then moved the chart gallery into the docs, asking to “Retain sensible redirects/links for existing public gallery routes” and “preserve useful famous examples without confusing the two”. Part 06's styles have no page that exercises every text shape, and today's golden inputs (INT-55) have none.",
+      "why": "The galleries brief asked for three pages, one of them a typography specimen; the site-round brief then moved the chart gallery into the docs, asking to “Retain sensible redirects/links for existing public gallery routes” and “preserve useful famous examples without confusing the two”. Part 06's styles have no page that exercises every text shape, and today's golden inputs (INT-55) have none.",
       "proposed": "The typography specimen (headings from h1 to h5, prose at the measure, aligned numerics, inline and block code, lists, a table, a chart in the flow, callouts, footnotes and source links) joins the golden inputs after two edits: the sentences about switching identities “in the header above” go, since only #65's gallery shell had that header, and the reading-density chart, a line drawn through five unordered styles, becomes a bar chart whose figures are measured or labelled illustrative. It renders in every accepted style with no error diagnostics and is the page that style reviews and visual checks compare. It is not linked from the site, and `/typography/` stays 404 (OPN-19).",
       "confidence": "observed",
       "sources": [
@@ -1438,12 +1418,10 @@
         },
         {
           "label": "Three pages, one a typography specimen",
-          "ref": "S27-647",
           "date": "2026-10-17"
         },
         {
           "label": "“Retain sensible redirects/links for existing public gallery routes”; “preserve useful famous examples without confusing the two”",
-          "ref": "S27-653",
           "date": "2026-10-18"
         },
         {
@@ -1503,7 +1481,6 @@
         },
         {
           "label": "The run's check: “Hash fragment #brutalist restores the brutalist identity on first paint”",
-          "ref": "S27-647",
           "date": "2026-10-18"
         },
         {
@@ -1587,7 +1564,6 @@
         },
         {
           "label": "Acceptance: bounded read-only queries; credentials only in the trusted host",
-          "ref": "S27-650",
           "date": "2026-10-17"
         },
         {
@@ -1627,7 +1603,7 @@
       "group": "PR #66 · Data connectors",
       "title": "Query parameters (Publish, secondary)",
       "question": "If a RichView server's live SQL path takes report parameters, are they bound as typed values, never spliced into SQL text?",
-      "why": "S27-650 asked for “parameters”. The branch reads `data.sql.params` and hashes them into the snapshot fingerprint, but runs every statement with nothing bound (`statement.query([])`), so a query with placeholders fails and parameters without placeholders only change the cache key.",
+      "why": "The data-connectors brief asked for “parameters”. The branch reads `data.sql.params` and hashes them into the snapshot fingerprint, but runs every statement with nothing bound (`statement.query([])`), so a query with placeholders fails and parameters without placeholders only change the cache key.",
       "proposed": "In the connector core every RichView server offers (OPN-63), whichever engine serves SQL: parameters map names to scalar values (string, number, boolean, date), bound by the engine's driver to named placeholders; values are never interpolated into SQL text. A placeholder without a value, or a value without a placeholder, is an error at the block or binding that declared it. Bound values are part of the snapshot fingerprint and appear in the provenance note. They sit in `data.sql.params`, PR #66's shape (TYP-79).",
       "confidence": "inferred",
       "sources": [
@@ -1663,7 +1639,6 @@
         },
         {
           "label": "“parameters, result schema/field mapping, useful failures and a cache/refresh contract”",
-          "ref": "S27-650",
           "date": "2026-10-17"
         }
       ],
@@ -1678,7 +1653,7 @@
       "group": "PR #66 · Data connectors",
       "title": "dbt MetricFlow connector (Publish, secondary)",
       "question": "If RichView's servers support a semantic layer, is dbt MetricFlow one of the connector core's sources, served through the chosen third-party engine?",
-      "why": "Decides whether RichView knows any semantic layer at all; each supported layer is an outside tool the connector core must keep working with. Daniel's INT-24 answer takes live connectors from an existing third-party engine and his OPN-63 answer makes them standard on every RichView server; MetricFlow is both a possible source and, in OPN-63, an engine candidate. S27-650 asked to “define metrics, dimensions, time grain and filters through the semantic API rather than silently replacing it with arbitrary SQL”.",
+      "why": "Decides whether RichView knows any semantic layer at all; each supported layer is an outside tool the connector core must keep working with. Daniel's INT-24 answer takes live connectors from an existing third-party engine and his OPN-63 answer makes them standard on every RichView server; MetricFlow is both a possible source and, in OPN-63, an engine candidate. The data-connectors brief asked to “define metrics, dimensions, time grain and filters through the semantic API rather than silently replacing it with arbitrary SQL”.",
       "proposed": "Whether a MetricFlow adapter is part of the connector core every RichView server offers is the agents' technical choice (OPN-63). If it is, a MetricFlow source names one or more `metrics`, with optional `group_by`, `where`, `order_by` and `limit`. The runtime, dbt project and environment come only from the server's configuration, managed by named people with access granted per person (OPN-63), and credentials never reach the report, its output or agent context (ARC-23). `where` filters are validated, never passed through as raw SQL. Results carry freshness and provenance (FEA-BR-16) that record the metrics and the query. RichView adds no semantic layer, metric definitions or query language of its own. PR #66's adapter, which runs the host's `mf query` and reads its CSV, enters the connector core if the agents keep MetricFlow (OPN-63); its key is `data.metricflow` (TYP-79).",
       "options": [
         {
@@ -1755,7 +1730,6 @@
         },
         {
           "label": "“define metrics, dimensions, time grain and filters through the semantic API rather than silently replacing it with arbitrary SQL”",
-          "ref": "S27-650",
           "date": "2026-10-17"
         }
       ],
@@ -1770,7 +1744,7 @@
       "group": "PR #66 · Data connectors",
       "title": "Snapshots, freshness and provenance (Publish, secondary)",
       "question": "If a RichView server serves stories from live data, do query results travel as snapshots with explicit freshness and a provenance note readers can see?",
-      "why": "Decides how a story that uses live data stays reproducible, and what a reader learns about where the numbers came from and when. Daniel's INT-24 answer keeps exported data the default for every report and makes live data a secondary path, which his OPN-63 answer extends to every RichView server. S27-650 asked for “parameters, result schema/field mapping, useful failures and a cache/refresh contract with explicit freshness”; `ttl`, `freshness` and `refresh` set a cache lifetime, not a refresh schedule (INT-33).",
+      "why": "Decides how a story that uses live data stays reproducible, and what a reader learns about where the numbers came from and when. Daniel's INT-24 answer keeps exported data the default for every report and makes live data a secondary path, which his OPN-63 answer extends to every RichView server. The data-connectors brief asked for “parameters, result schema/field mapping, useful failures and a cache/refresh contract with explicit freshness”; `ttl`, `freshness` and `refresh` set a cache lifetime, not a refresh schedule (INT-33).",
       "proposed": "On every RichView server, Cowork and Publish, local and hosted (OPN-63), every connector result is stored by the server as a snapshot, keyed by a SHA-256 fingerprint of connector, query and bound parameters, with a schema giving each field's name, kind (integer, number, string, boolean, date, timestamp or null, as on the branch) and nullability, the row count, capture time and source. A source may set freshness as `ttl` (a duration), `freshness` (a time until which the snapshot stays fresh) or `refresh: true`; a stale snapshot is refreshed by the server or reported as a warning, never used silently. Rendering reads snapshots only, so each published version reproduces from stored data, and a self-contained HTML file carries the data it was rendered from and never queries live data (OPN-63); if TYP-79 keeps `data.cache`, `{key}` reads the snapshot stored under that key. Each chart and table shows a provenance note (connector, query or metrics, capture time) that readers can open.",
       "confidence": "inferred",
       "sources": [
@@ -1811,7 +1785,6 @@
         },
         {
           "label": "Acceptance: explicit freshness, deterministic offline snapshots, no leakage between connections",
-          "ref": "S27-650",
           "date": "2026-10-17"
         },
         {
@@ -1836,7 +1809,6 @@
         },
         {
           "label": "“parameters, result schema/field mapping, useful failures and a cache/refresh contract with explicit freshness”",
-          "ref": "S27-650",
           "date": "2026-10-17"
         },
         {
@@ -1856,7 +1828,7 @@
       "group": "PR #67 · Chart and flagship polish",
       "title": "Showcase style pills: decided elsewhere",
       "question": "Is #67's style-pill change recorded here only, with the showcase's style selector decided by STY-05, STY-07, STY-08 and FEA-SF-36?",
-      "why": "#67 changed only the pills: its head shows five in canonical order, of which three can render without the unpushed `ba394dd` (OPN-15). It never built the “Other styles” dropdown Daniel asked for on 2026-10-18 (S27-654): the select still reads “All styles” and lists every treatment under “House styles” and “Design explorations” (`showcase.rs:320-333`), although the comment above it describes the dropdown (`showcase.rs:308-311`).",
+      "why": "#67 changed only the pills: its head shows five in canonical order, of which three can render without the unpushed `ba394dd` (OPN-15). It never built the “Other styles” dropdown Daniel asked for on 2026-10-18: the select still reads “All styles” and lists every treatment under “House styles” and “Design explorations” (`showcase.rs:320-333`), although the comment above it describes the dropdown (`showcase.rs:308-311`).",
       "proposed": "This card records #67's pill change only. Which styles exist is STY-05, their names and order STY-07, how the selector looks STY-08, and the flagship page's switching and `?theme=` FEA-SF-36. Daniel's STY-05 answer keeps the studio variants as extended themes outside the normal style menus, so the flagship page gets one secondary dropdown after the five pills, closed by default, that lists them (STY-08, ARC-41); it is new work, since #67 never built the “Other styles” dropdown. No other surface offers it.",
       "confidence": "observed",
       "sources": [
@@ -1882,7 +1854,6 @@
         },
         {
           "label": "“Expose all five basic styles at the top of the style selector; place additional styles behind an Other styles dropdown”",
-          "ref": "S27-654",
           "date": "2026-10-18"
         },
         {
@@ -1946,7 +1917,6 @@
         },
         {
           "label": "One measure including tables and headings; full-width artwork explicit",
-          "ref": "S27-654",
           "date": "2026-10-18"
         },
         {
@@ -1995,16 +1965,14 @@
         },
         {
           "label": "Live site: the three negative-rect warnings gone after the clamp",
-          "ref": "S27-653",
           "date": "2026-10-19"
         },
         {
           "label": "Three negative-rect warnings on the landing demo's bar chart at desktop width, initial paint",
-          "ref": "S27-654",
           "date": "2026-10-18"
         }
       ],
-      "conflicts": "Both branches clamp five sites defensively: pane clip paths, the context-row clip path, the band overlay, the heatmap cell and the plot-window clip (`1d209a8`). The commit names the cause, a “figure measured at 0 width, pane with zero plot height” in narrow or mid-transition layouts, and S27-654's comment of 2026-10-18 18:13 UTC located three warnings on the landing demo's bar chart at desktop width during initial paint.\n\nOn `main` the invariant is about emitted SVG; under INT-31 it moves to the geometry model, so both renderers inherit it."
+      "conflicts": "Both branches clamp five sites defensively: pane clip paths, the context-row clip path, the band overlay, the heatmap cell and the plot-window clip (`1d209a8`). The commit names the cause, a “figure measured at 0 width, pane with zero plot height” in narrow or mid-transition layouts, and the chart-polish brief's comment of 2026-10-18 18:13 UTC located three warnings on the landing demo's bar chart at desktop width during initial paint.\n\nOn `main` the invariant is about emitted SVG; under INT-31 it moves to the geometry model, so both renderers inherit it."
     },
     {
       "id": "FEA-BR-20",
@@ -2015,7 +1983,7 @@
       "group": "PR #68 · Development harness",
       "title": "#68 development harness: what the rewrite carries",
       "question": "Is this where each piece of PR #68's harness lands, with nothing carried as a separate harness?",
-      "why": "S27-652 asked for “meaningful functional and visual end-to-end verification” and to “show a controlled regression failing then recovery passing where safe”. Part 02 now carries #68's drill (DEL-57); this card records where every other piece lands, so nothing is lost or built twice.",
+      "why": "The development-harness brief asked for “meaningful functional and visual end-to-end verification” and to “show a controlled regression failing then recovery passing where safe”. Part 02 now carries #68's drill (DEL-57); this card records where every other piece lands, so nothing is lost or built twice.",
       "proposed": "| #68 piece | On the branch | Carried by |\n| --- | --- | --- |\n| No-JS completeness | With JavaScript disabled, one example at 320, 390 and 1440 px under both motion preferences must show one sentence, “Orders increased from 120 to 180” (`journey.mjs:53`) | DEL-57: all text, every table row and tab panel, and each chart's frame with ARC-05's notice, for every golden input |\n| Runtime-missing self-test | The interactive assertion must fail with `HARNESS_RUNTIME_MISSING`, then the normal journey must pass | DEL-57 |\n| First-report journey | Source, CSV and style to an offline export, opened at three widths | DEL-15 (`verify-docs.mjs`); no separate suite |\n| Build provenance | Showed a shared Cargo target running another worktree's builder | DEL-13, DEL-22 (the one shared target stamps sources before building, so it never builds the wrong checkout), DEL-42 |\n| Evidence outside worktrees | One evidence directory per run | DEL-20 |\n| Worker-reply hold | The playground check holds a real worker reply instead of a 1,200 ms timer (`41946e3`) | FEA-BR-47 |\n\nNothing else from #68 is carried.",
       "confidence": "observed",
       "sources": [
@@ -2071,7 +2039,6 @@
         },
         {
           "label": "“show a controlled regression failing then recovery passing where safe”",
-          "ref": "S27-652",
           "date": "2026-10-18"
         },
         {
@@ -2153,7 +2120,6 @@
         },
         {
           "label": "Review: “not accepted yet”; mobile scroll jumpy with visible ticking",
-          "ref": "S27-653",
           "date": "2026-10-18"
         },
         {
@@ -2168,7 +2134,6 @@
         },
         {
           "label": "r5: WebKit desktop ends on the wrong chapter after a resize cycle; programmatic scroll only, no physical phone",
-          "ref": "S27-653",
           "date": "2026-10-19"
         },
         {
@@ -2244,12 +2209,10 @@
         },
         {
           "label": "Brief: an index of every type, each clickable into a focused example, not one long report",
-          "ref": "S27-653",
           "date": "2026-10-18"
         },
         {
           "label": "r4: actions on every figure, Expand modal opened on 27/36; r5: “0/36”, contradicted by the live page",
-          "ref": "S27-653",
           "date": "2026-10-19"
         },
         {
@@ -2268,7 +2231,7 @@
           "date": "2026-10-22"
         }
       ],
-      "conflicts": "FEA-SF-43 fixes the pages' content and checks, and FEA-SF-46 lists `/docs/charts/<type>` as a row conditional on this card; answer the three together. The live `/docs/charts` shows Table, SVG, CSV and Expand on every figure (nine `data-expand` markers in the served page), and a headless Chromium probe opened Expand on all nine with no console errors (2026-10-22). The S27-653 runs disagree: r4 (2026-10-18 23:07 UTC) found the actions on every figure and opened the Expand modal on 27 of 36 checks, while r5 (2026-10-19 00:46 UTC) reported 0 of 36, explaining that the docs decorator does not attach the actions, which the live page contradicts.",
+      "conflicts": "FEA-SF-43 fixes the pages' content and checks, and FEA-SF-46 lists `/docs/charts/<type>` as a row conditional on this card; answer the three together. The live `/docs/charts` shows Table, SVG, CSV and Expand on every figure (nine `data-expand` markers in the served page), and a headless Chromium probe opened Expand on all nine with no console errors (2026-10-22). The site-round runs disagree: r4 (2026-10-18 23:07 UTC) found the actions on every figure and opened the Expand modal on 27 of 36 checks, while r5 (2026-10-19 00:46 UTC) reported 0 of 36, explaining that the docs decorator does not attach the actions, which the live page contradicts.",
       "images": [
         "docs/lockdown/screenshots/live/richview-docs-chart-gallery-desktop-full-part1of2.jpg",
         "docs/lockdown/screenshots/live/richview-docs-chart-gallery-mobile-full-part1of2.jpg"
@@ -2283,7 +2246,7 @@
       "group": "PR #70 · RichView Publish and News",
       "title": "Publication layouts and themes (Publish)",
       "question": "In the rewrite's Publish, are two layouts and two themes, set in one `site.yaml`, its whole presentation range?",
-      "why": "Fixes how far a publication can be styled without growing a template language; S27-655 asked for at least two genuinely distinct layouts and “not a new YAML programming language”.",
+      "why": "Fixes how far a publication can be styled without growing a template language; the RichView Publish brief asked for at least two genuinely distinct layouts and “not a new YAML programming language”.",
       "proposed": "Built with Publish in the rewrite (INT-31, INT-35, ARC-57): a publication is one Git folder with one `site.yaml` (TYP-81) and one folder per item. Front page, sections, archive, search, item and static pages come from two layouts, Broadsheet (an asymmetric lead hierarchy) and Dispatch (horizontal editorial rows), and two themes for the publication's own pages: Paper, which uses the configured six-digit accent, and Ink, which uses a contrast-adjusted version of it. A site has at most 20 sections, 12 navigation links and 4 lead items; unknown keys fail. Items render through the RichView report renderer, with no second rendering path (ARC-20). Paper and Ink style only the publication's own pages; each item keeps the RichView style its frontmatter names (`styles:`) and is shown in a frame on that page. An item with an `embed` block fails the build: hosted embedded services do not belong in an offline publication, and authors link a sourced page instead.",
       "confidence": "stated",
       "sources": [
@@ -2309,7 +2272,6 @@
         },
         {
           "label": "Acceptance: one site YAML, two distinct layouts, no new YAML language",
-          "ref": "S27-655",
           "date": "2026-10-18"
         },
         {
@@ -2368,7 +2330,7 @@
       "group": "PR #70 · RichView Publish and News",
       "title": "Stable links, renames and corrections (Publish)",
       "question": "In the rewrite's Publish, does every item keep a permanent id and working old URLs, with corrections dated on the item?",
-      "why": "S27-655 asked for “stable IDs/slugs” and “corrections and link-preserving updates”. A renamed or corrected story must not break the links readers already have.",
+      "why": "The RichView Publish brief asked for “stable IDs/slugs” and “corrections and link-preserving updates”. A renamed or corrected story must not break the links readers already have.",
       "proposed": "Built with Publish in the rewrite (INT-31, INT-35): every item has a permanent `id`, and `/r/<id>` always redirects to its current route. Renaming adds the former slug to `aliases`, and the old URL redirects permanently (308) to the new one. A material correction adds `{date, note}` under `corrections`, shown on the item under “Corrections & updates”, and updates `updated`; the id and aliases stay. Deleting an item removes it from discovery and denies its old routes from the next activation.",
       "confidence": "observed",
       "sources": [
@@ -2394,7 +2356,6 @@
         },
         {
           "label": "“stable IDs/slugs … corrections and link-preserving updates”",
-          "ref": "S27-655",
           "date": "2026-10-18"
         }
       ],
@@ -2409,7 +2370,7 @@
       "group": "PR #70 · RichView Publish and News",
       "title": "Public-only feeds, sitemap and search (Publish)",
       "question": "In the rewrite's Publish, do RSS, the sitemap and search list public, published items only?",
-      "why": "Feeds and search are where restricted or withdrawn items usually leak. S27-655 asked to “exclude drafts and restricted material from public search, feeds and metadata”.",
+      "why": "Feeds and search are where restricted or withdrawn items usually leak. The RichView Publish brief asked to “exclude drafts and restricted material from public search, feeds and metadata”.",
       "proposed": "Built with Publish in the rewrite (INT-31, INT-35): `/feed.xml`, `/sitemap.xml` and the search index (`/search.json`) cover only items that are published and public, even when a signed-in reader requests them. Restricted, draft and hidden items never appear in them, and an urgently hidden item drops out at once (FEA-BR-28). These routes, `/archive`, `/search`, `/internal`, `/sections`, `/robots.txt` and every path starting with `/_` are reserved and cannot be item slugs or aliases. Member reading is FEA-BR-25.",
       "confidence": "observed",
       "sources": [
@@ -2440,7 +2401,6 @@
         },
         {
           "label": "“exclude drafts and restricted material from public search, feeds and metadata”",
-          "ref": "S27-655",
           "date": "2026-10-18"
         }
       ],
@@ -2499,7 +2459,6 @@
         },
         {
           "label": "Acceptance: three roles, delegated identity, content-level protection",
-          "ref": "S27-655",
           "date": "2026-10-18"
         },
         {
@@ -2519,11 +2478,10 @@
         },
         {
           "label": "“Access control must protect the actual content and data, not just menus”",
-          "ref": "S27-655",
           "date": "2026-10-18"
         }
       ],
-      "conflicts": "Human sign-in and independent human review were never exercised; the launch used temporary service identities (S27-655). After the repository transfer the GitHub bridge is almost certainly broken (OPN-03). Checked live on 2026-10-22: `/internal` redirects to Cloudflare Access, and a report frame carries `sandbox=\"allow-scripts allow-downloads\"` with a matching CSP. Daniel's OPN-54 answer splits Publish authors into editors, whose own publish lands private until they make it public, and authors who aren't editors, whose submission goes public once an editor approves it (FEA-BR-26); how #70's Editor and Super editor map onto those two is open, with the rest of FEA-SF-19's roles."
+      "conflicts": "Human sign-in and independent human review were never exercised; the launch used temporary service identities. After the repository transfer the GitHub bridge is almost certainly broken (OPN-03). Checked live on 2026-10-22: `/internal` redirects to Cloudflare Access, and a report frame carries `sandbox=\"allow-scripts allow-downloads\"` with a matching CSP. Daniel's OPN-54 answer splits Publish authors into editors, whose own publish lands private until they make it public, and authors who aren't editors, whose submission goes public once an editor approves it (FEA-BR-26); how #70's Editor and Super editor map onto those two is open, with the rest of FEA-SF-19's roles."
     },
     {
       "id": "FEA-BR-45",
@@ -2534,7 +2492,7 @@
       "group": "PR #70 · RichView Publish and News",
       "title": "External and internal publications (Publish)",
       "question": "Does the rewrite's Publish serve external publications with per-item audiences, leaving a wholly internal publication to RichView Cowork?",
-      "why": "S27-655 asked to “Support both an external publication and an internal publication using the same product, with explicit per-item audience where useful”.",
+      "why": "The RichView Publish brief asked to “Support both an external publication and an internal publication using the same product, with explicit per-item audience where useful”.",
       "proposed": "Built with Publish in the rewrite (INT-31, INT-35): a Publish publication is external. It serves explicitly public items to everyone and restricted items only to readers entitled to their audience; the member edition of an external site is a convenience view, never the boundary (FEA-BR-25). An item goes public through OPN-54's workflow: an editor's own publish lands private until the editor makes it public, and a submission from an author who isn't an editor goes public once an editor approves it. A wholly internal publication, with membership required for every page, asset and feed, is the job of RichView Cowork, the internal-facing server that shares Publish's server core (INT-31, INT-83). Open: whether Publish also keeps #70's `mode: internal` on the shared server core (membership on every page, asset and feed, a `robots.txt` that asks crawlers to index nothing, and its own deployment from a private repository), or `mode` leaves `site.yaml` (TYP-81).",
       "confidence": "stated",
       "sources": [
@@ -2575,11 +2533,10 @@
         },
         {
           "label": "“Support both an external publication and an internal publication using the same product”",
-          "ref": "S27-655",
           "date": "2026-10-18"
         }
       ],
-      "conflicts": "Settled by ARC-22 for News: its amended answer makes news.richview.ai is RichView's own Publish server and always public, as its `mode: external` publication already is. No internal deployment was checked for this lockdown. S27-655 asked for an external and an internal publication “using the same product”; Daniel's INT-31 answer makes the internal-facing server its own product, RichView Cowork, sharing Publish's server core, so “the same product” becomes the same server core."
+      "conflicts": "Settled by ARC-22 for News: its amended answer makes news.richview.ai is RichView's own Publish server and always public, as its `mode: external` publication already is. No internal deployment was checked for this lockdown. The RichView Publish brief asked for an external and an internal publication “using the same product”; Daniel's INT-31 answer makes the internal-facing server its own product, RichView Cowork, sharing Publish's server core, so “the same product” becomes the same server core."
     },
     {
       "id": "FEA-BR-26",
@@ -2621,7 +2578,6 @@
         },
         {
           "label": "Acceptance: PR, validation, protected preview, approval, merge, automatic publish",
-          "ref": "S27-655",
           "date": "2026-10-18"
         },
         {
@@ -2641,7 +2597,7 @@
       "group": "PR #70 · RichView Publish and News",
       "title": "Browser editorial desk (Publish)",
       "question": "In the rewrite's Publish, does its browser desk offer only the two actions Daniel's INT-26 answer allows: approving or rejecting a pending change, and an item's author making a quick source edit in an embedded code editor?",
-      "why": "Daniel asked for a desk in S27-655 (“A small browser editorial surface must make quick source/text/metadata edits, adjustments and hiding practical”), while INT-26 rules out a browser editor for RichView core.",
+      "why": "Daniel asked for a desk in the RichView Publish brief (“A small browser editorial surface must make quick source/text/metadata edits, adjustments and hiding practical”), while INT-26 rules out a browser editor for RichView core.",
       "proposed": "Publish, built in the rewrite (INT-31, INT-35), has a browser desk that offers two actions and nothing more (INT-26):\n\n- **Approve:** an editor opens a pending change with its protected preview and clicks yes or no on that exact head: a yes on a submission from an author who isn't an editor publishes it publicly, and a yes on the editor's own private item makes it public (FEA-BR-26, OPN-54).\n- **Quick source edit:** signed in as an item's author, Edit opens the item's Rich Markdown source at an explicit commit in an embedded VS Code-style code editor with syntax highlighting (library open, ARC-03). Before saving, the server validates and renders the edited report through the core; if either fails, it refuses the save and shows the diagnostics at their source lines. A saved edit becomes an attributed pull request and goes through the same approval.\n\nThe desk is never WYSIWYG and keeps no content of its own. It refuses a public repository, detects a publication branch that moved since opening, and keeps unsaved text on conflict. Creating items or drafts, editing `site.yaml` and editing other people's items are not browser actions: they happen in Git through the author's editor and agent. The desk's rules, validation and rendering run in Rust on the server core Publish shares with RichView Cowork, which offers the same two actions (INT-26, INT-83), behind a thin host adapter, such as a Worker adapter if Publish runs on Cloudflare (INT-52, ARC-03; where Publish runs is open in INT-35); the embedded editor is the only browser JavaScript it adds, and #70's JavaScript desk is not carried.",
       "options": [
         {
@@ -2687,7 +2643,6 @@
         },
         {
           "label": "Acceptance: a small browser desk whose edits become attributed commits or PRs",
-          "ref": "S27-655",
           "date": "2026-10-18"
         },
         {
@@ -2701,7 +2656,7 @@
           "date": "2026-10-22"
         }
       ],
-      "conflicts": "S27-655 asked that \"A small browser editorial surface must make quick source/text/metadata edits, adjustments and hiding practical\", and #70's desk also creates drafts and lets super editors edit `site.yaml`; Daniel's INT-26 answer narrows the browser to approval and the author's own source edit, so those go. Urgent hide is a browser action INT-26 does not name (FEA-BR-28). #70's desk is 1,036 lines of `.mjs` (`editor.mjs` 513, `editor-ui.mjs` 523) inside 2,329 lines of JavaScript runtime with the gateway, auth, policy and repository modules, plus 741 test lines and 928 script lines, 3,998 in all; INT-52 (D-RUNTIME) allows JavaScript only for generated bindings, thin host adapters and the site's animation layer. ARC-03 adds the embedded editor, on server pages for signed-in authors only."
+      "conflicts": "The RichView Publish brief asked that \"A small browser editorial surface must make quick source/text/metadata edits, adjustments and hiding practical\", and #70's desk also creates drafts and lets super editors edit `site.yaml`; Daniel's INT-26 answer narrows the browser to approval and the author's own source edit, so those go. Urgent hide is a browser action INT-26 does not name (FEA-BR-28). #70's desk is 1,036 lines of `.mjs` (`editor.mjs` 513, `editor-ui.mjs` 523) inside 2,329 lines of JavaScript runtime with the gateway, auth, policy and repository modules, plus 741 test lines and 928 script lines, 3,998 in all; INT-52 (D-RUNTIME) allows JavaScript only for generated bindings, thin host adapters and the site's animation layer. ARC-03 adds the embedded editor, on server pages for signed-in authors only."
     },
     {
       "id": "FEA-BR-28",
@@ -2733,11 +2688,10 @@
         },
         {
           "label": "Acceptance: immediate on all delivery routes even if a build fails; audited; reconciled to Git",
-          "ref": "S27-655",
           "date": "2026-10-18"
         }
       ],
-      "conflicts": "Daniel's INT-26 answer names only two browser actions on a RichView server, approving a pending change and an author's quick source edit, while S27-655 wanted hiding practical from the browser desk. A hide button in the browser needs Daniel's go as a third action; otherwise an editor hides through the CLI or an authenticated call to the Publish host (#70's JavaScript gateway is not carried, FEA-BR-27)."
+      "conflicts": "Daniel's INT-26 answer names only two browser actions on a RichView server, approving a pending change and an author's quick source edit, while the RichView Publish brief wanted hiding practical from the browser desk. A hide button in the browser needs Daniel's go as a third action; otherwise an editor hides through the CLI or an authenticated call to the Publish host (#70's JavaScript gateway is not carried, FEA-BR-27)."
     },
     {
       "id": "FEA-BR-29",
@@ -2748,7 +2702,7 @@
       "group": "PR #70 · RichView Publish and News",
       "title": "Immutable releases and rollback (Publish)",
       "question": "In the rewrite's Publish, are releases immutable and atomically activated, with rollback that keeps current access limits?",
-      "why": "Fixes how a publication changes and recovers. S27-655 asked that “A failed or superseded build must not replace the last good release; an older job finishing late must not overwrite a newer publication”.",
+      "why": "Fixes how a publication changes and recovers. The RichView Publish brief asked that “A failed or superseded build must not replace the last good release; an older job finishing late must not overwrite a newer publication”.",
       "proposed": "Built with Publish in the rewrite (INT-31, INT-35): every build produces an immutable release from pinned source and toolchain, and activation switches one pointer atomically; a stale job is rejected. Rollback reactivates an earlier release but keeps current access floors: a deletion, a narrower audience or an urgent hide still applies to old versions. The builder fetches nothing from the network. Size limits are FEA-BR-49 and build time PRF-18.",
       "confidence": "stated",
       "sources": [
@@ -2774,7 +2728,6 @@
         },
         {
           "label": "Acceptance: immutable releases, no late build over a newer one, repeatable rollback",
-          "ref": "S27-655",
           "date": "2026-10-18"
         },
         {
@@ -2783,7 +2736,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "#70 rebuilds every item on each change, a bounded full build (`README.md:45`), while PRF-18 requires that a one-item update not rebuild unchanged items; S27-655 accepted a full build for the first version and preferred dependency-aware work “where justified”."
+      "conflicts": "#70 rebuilds every item on each change, a bounded full build (`README.md:45`), while PRF-18 requires that a one-item update not rebuild unchanged items; the RichView Publish brief accepted a full build for the first version and preferred dependency-aware work “where justified”."
     },
     {
       "id": "FEA-BR-49",
@@ -2830,7 +2783,7 @@
       "group": "PR #70 · RichView Publish and News",
       "title": "Release status endpoint (Publish)",
       "question": "In the rewrite's Publish, does `/_status` report the live release and its source commit, as the one check that a change is live?",
-      "why": "S27-655 asked for “a clear status from source commit to build to live release” and evidence “against the deployed commit”. #70's operations guide makes `/_status` the delivery check (`operations.md:106`).",
+      "why": "The RichView Publish brief asked for “a clear status from source commit to build to live release” and evidence “against the deployed commit”. #70's operations guide makes `/_status` the delivery check (`operations.md:106`).",
       "proposed": "Built with Publish in the rewrite (INT-31, INT-35): `/_status` answers with the live release id, its source commit, the activation generation and whether publishing is paused, and nothing about items. A change counts as delivered when `/_status` shows its commit, never because a build or upload succeeded.",
       "confidence": "observed",
       "sources": [
@@ -2856,7 +2809,6 @@
         },
         {
           "label": "“Provide a clear status from source commit to build to live release”",
-          "ref": "S27-655",
           "date": "2026-10-18"
         }
       ]
@@ -2917,7 +2869,6 @@
         },
         {
           "label": "“Publish a real dashboard through the current dashboard artifact/runtime contract …”; “A dashboard page must show a working dashboard”",
-          "ref": "S27-655",
           "date": "2026-10-18"
         },
         {
@@ -2926,7 +2877,7 @@
           "date": "2026-10-21"
         }
       ],
-      "conflicts": "This reverses S27-655, which asked Publish to “Publish a real dashboard through the current dashboard artifact/runtime contract, with a clear distinction between a published snapshot and a live-data dashboard” and said “A dashboard page must show a working dashboard, not merely a placeholder link”. TYP-80 as written keeps `kind (report/dashboard/page)`; accepting this card removes `dashboard` there. The live trading-desk page fills the area around its revenue-trend and EBITDA lines with black wedges and titles an axis “plan gap lo” (capture 2026-10-21); part 04a traces both to chart SVG that relies on report CSS (FEA-CH-66) and to an interval axis titled from its column name (FEA-CH-13).",
+      "conflicts": "This reverses the RichView Publish brief, which asked Publish to “Publish a real dashboard through the current dashboard artifact/runtime contract, with a clear distinction between a published snapshot and a live-data dashboard” and said “A dashboard page must show a working dashboard, not merely a placeholder link”. TYP-80 as written keeps `kind (report/dashboard/page)`; accepting this card removes `dashboard` there. The live trading-desk page fills the area around its revenue-trend and EBITDA lines with black wedges and titles an axis “plan gap lo” (capture 2026-10-21); part 04a traces both to chart SVG that relies on report CSS (FEA-CH-66) and to an interval axis titled from its column name (FEA-CH-13).",
       "images": [
         "docs/lockdown/screenshots/live/news-dashboard-trading-desk-desktop-full.jpg"
       ]

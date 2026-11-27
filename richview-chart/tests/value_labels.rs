@@ -1,5 +1,5 @@
 //! Automatic values print the defined readout measure without sacrificing marks or series identity.
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::geometry::{Face, Geometry, Item, Role, Text};

@@ -7,7 +7,7 @@
 
 #[cfg(target_arch = "wasm32")]
 use super::View;
-use crate::mesh::{DIM_FLOOR, FLOW_DIM_FLOOR, Focus, POINT_DIM_FLOOR, connected, layer_at};
+use crate::mesh::{DIM_FLOOR, FLOW_DIM_FLOOR, Focus, POINT_DIM_FLOOR, layer_at};
 use richview_chart::geometry::{
     Cmd, Fill, Geometry, Item, Path, Rect, Rgba, Role, Shape, Targeting,
 };
@@ -21,8 +21,6 @@ const RING_GAP: f64 = 2.0;
 const RING_WIDTH: f64 = 2.0;
 /// The mark's filled radius at full size.
 const DOT_REACH: f64 = 6.0;
-/// A streamgraph layer has no hover dot: the ring marks the selected point on it.
-const LAYER_POINT_REACH: f64 = 4.0;
 /// The frame ring's width, the room it keeps from text, and where it sits by default: its
 /// outer edge 6 px outside the frame, so it starts 4 px out.
 const FRAME_RING: f64 = 2.0;
@@ -74,7 +72,7 @@ pub(super) fn ring(v: &View) -> Vec<Item> {
         let drawn = super::contour::items(kind, panel, t.observation, clear, 1.0, false, false);
         drawn_outlines(&drawn.unwrap_or_default())
     } else {
-        outlines(kind, &v.geometry, t, v.pointer, contoured)
+        outlines(kind, &v.geometry, t, contoured)
     };
     let growth = super::contour::point_growth(kind, v.chart.block.encoding.size.is_some());
     for outline in &mut outlines {
@@ -760,16 +758,10 @@ fn to_segment(a: [f64; 2], b: [f64; 2], p: [f64; 2]) -> f64 {
     dist(p, [a[0] + t * dx, a[1] + t * dy])
 }
 
-/// The outlines the mark ring follows: each hover dot on a nearest-x chart, otherwise the
-/// selected observation's contour. Families the contour does not draw yet follow what the
-/// feedback draws for them: the ring of a point, the box of a cell.
-fn outlines(
-    kind: &str,
-    geometry: &Geometry,
-    t: Target,
-    pointer: Option<[f64; 2]>,
-    contoured: bool,
-) -> Vec<Outline> {
+/// The outlines the mark ring follows: the selected observation's contour. Families the
+/// contour does not draw yet follow what the feedback draws for them: the ring of a point, the
+/// box of a cell. A line-based chart has none: its dots take the ring in the overlay.
+fn outlines(kind: &str, geometry: &Geometry, t: Target, contoured: bool) -> Vec<Outline> {
     let Some(panel) = geometry.panels.get(t.panel) else {
         return Vec::new();
     };
@@ -779,16 +771,9 @@ fn outlines(
     let circle = |center, radius| Outline::Circle { center, radius };
     if !contoured {
         match panel.targeting {
-            Targeting::NearestX if kind == "streamgraph" => {
-                return pointer
-                    .map(|at| circle(at, LAYER_POINT_REACH))
-                    .into_iter()
-                    .collect();
-            }
-            Targeting::NearestX if o.dots.is_empty() => return vec![circle(o.at, DOT_REACH)],
-            Targeting::NearestX => {
-                return o.dots.iter().map(|d| circle(d.at, DOT_REACH)).collect();
-            }
+            // A line-based chart's hover dot takes the ring in the overlay, for the pointer
+            // and the keyboard alike (`crisp_target`), so it never asks for an outline here.
+            Targeting::NearestX => return Vec::new(),
             // The keyboard ring surrounds the grown marker.
             Targeting::Radius => return vec![circle(o.at, o.radius.max(4.0) * 1.25)],
             // A contour chart's grid node answers with a dot like a hover dot's.
@@ -1102,7 +1087,50 @@ pub(super) fn of(v: &View, target: Option<Target>) -> Option<(Focus, f32)> {
         return keyboard_series(&v.geometry, target?, v.pointer?)
             .map(|s| (Focus::Series(s), DIM_FLOOR));
     }
-    select(v.chart.block.kind.name(), &v.geometry, v.pointer, target)
+    let kind = v.chart.block.kind.name();
+    if v.chart.block.stack
+        && let Some(focus) = stacked(kind, &v.geometry, v.pointer, target)
+    {
+        return Some(focus);
+    }
+    select(kind, &v.geometry, v.pointer, target)
+}
+
+/// Whether the pointer picks a layer of this chart as it moves within one observation: a
+/// streamgraph and a stacked area.
+#[cfg(target_arch = "wasm32")]
+pub(super) fn layered(v: &View) -> bool {
+    richview_chart::interaction::layered(v.chart.block.kind.name(), v.chart.block.stack)
+}
+
+/// A stacked chart picks out a whole series, which a reader follows across the stacks: the
+/// series of the hovered or selected segment of a bar, the layer under the pointer of an area.
+fn stacked(
+    kind: &str,
+    geometry: &Geometry,
+    pointer: Option<[f64; 2]>,
+    target: Option<Target>,
+) -> Option<(Focus, f32)> {
+    let t = target?;
+    let panel = geometry.panels.get(t.panel)?;
+    if geometry.series.len() < 2 {
+        return None;
+    }
+    match kind {
+        "bar" => {
+            let series = panel.observations.get(t.observation)?.series?;
+            Some((
+                Focus::SeriesOf {
+                    series,
+                    panel: t.panel,
+                    observation: t.observation,
+                },
+                DIM_FLOOR,
+            ))
+        }
+        "area" => layer_at(panel, pointer?).map(|series| (Focus::Series(series), DIM_FLOOR)),
+        _ => None,
+    }
 }
 
 #[cfg(any(target_arch = "wasm32", test))]
@@ -1128,14 +1156,8 @@ fn select(
     let panel = geometry.panels.get(t.panel)?;
     let o = panel.observations.get(t.observation)?;
     match kind {
-        // A flow keeps the hovered ribbon or node and everything it connects.
-        "sankey" | "alluvial" => Some((
-            Focus::Marks {
-                panel: t.panel,
-                keep: connected(panel, t.observation),
-            },
-            FLOW_DIM_FLOOR,
-        )),
+        // A Sankey or alluvial ribbon or node takes the dark outline and the rest stays as
+        // it is (`interaction::emphasis`); a flow chart keeps its hovered card.
         "flow"
             if !panel.items.iter().any(|item| {
                 matches!(item,
@@ -1154,15 +1176,6 @@ fn select(
         }
         // Keep the selected parallel-coordinate line while its neighbours step back.
         "parallel" => Some((
-            Focus::Marks {
-                panel: t.panel,
-                keep: vec![t.observation],
-            },
-            DIM_FLOOR,
-        )),
-        // One wedge among its siblings. A sunburst's rings are a hierarchy, where a wedge's
-        // parents and children are read with it: nothing steps back there.
-        "pie" | "rose" if panel.observations.len() > 1 => Some((
             Focus::Marks {
                 panel: t.panel,
                 keep: vec![t.observation],
@@ -1299,6 +1312,79 @@ mod tests {
                 matches!(line, Item::Line { obs: Some(0), .. })
             );
         }
+    }
+
+    #[test]
+    fn a_stacked_bar_segment_keeps_its_series_across_the_stacks() {
+        let g = chart(
+            r#"{"spec":{"type":"bar","title":"T","stack":true,"encoding":{"x":"m","y":"v","color":"s"}},"rows":[{"m":"Jul","v":28,"s":"Enterprise"},{"m":"Jul","v":11,"s":"Mid-market"},{"m":"Aug","v":34,"s":"Enterprise"},{"m":"Aug","v":16,"s":"Mid-market"}]}"#,
+        );
+        let panel = &g.panels[0];
+        let observation = panel
+            .observations
+            .iter()
+            .position(|o| o.series == Some(1))
+            .expect("a segment of the second series");
+        let target = Some(Target {
+            panel: 0,
+            observation,
+        });
+        let (focus, floor) =
+            stacked("bar", &g, None, target).expect("a stacked bar follows its series");
+        assert_eq!(floor, DIM_FLOOR);
+        let segments: Vec<_> = panel
+            .items
+            .iter()
+            .filter(|item| {
+                matches!(
+                    item,
+                    Item::Rect {
+                        role: Role::Mark,
+                        obs: Some(_),
+                        ..
+                    }
+                )
+            })
+            .collect();
+        assert_eq!(segments.len(), 4);
+        for segment in segments {
+            let Item::Rect { series, .. } = segment else {
+                unreachable!()
+            };
+            assert_eq!(focus.keeps(0, segment), *series == Some(1));
+        }
+        // Bars that are not stacked take the ring alone, and one series has nothing to follow.
+        assert_eq!(select("bar", &g, None, target), None);
+        let alone = chart(
+            r#"{"spec":{"type":"bar","title":"T","stack":true,"encoding":{"x":"m","y":"v"}},"rows":[{"m":"Jul","v":28},{"m":"Aug","v":34}]}"#,
+        );
+        assert_eq!(stacked("bar", &alone, None, target), None);
+    }
+
+    #[test]
+    fn a_stacked_area_keeps_the_layer_under_the_pointer() {
+        let g = chart(
+            r#"{"spec":{"type":"area","title":"T","stack":true,"encoding":{"x":"d","y":"v","color":"s"}},"rows":[{"d":1,"v":30,"s":"free"},{"d":2,"v":10,"s":"free"},{"d":3,"v":30,"s":"free"},{"d":1,"v":20,"s":"paid"},{"d":2,"v":10,"s":"paid"},{"d":3,"v":25,"s":"paid"}]}"#,
+        );
+        let panel = &g.panels[0];
+        let target = Some(Target {
+            panel: 0,
+            observation: 1,
+        });
+        let x = panel.observations[1].at[0];
+        for series in 0..2 {
+            let top = crate::mesh::layer_top(panel, series, x).expect("the layer's edge");
+            assert_eq!(
+                stacked("area", &g, Some([x, top + 3.0]), target),
+                Some((Focus::Series(series), DIM_FLOOR))
+            );
+        }
+        // Over no layer, and from the keyboard, every layer keeps its strength.
+        assert_eq!(
+            stacked("area", &g, Some([x, panel.plot.y + 2.0]), target),
+            None
+        );
+        assert_eq!(stacked("area", &g, None, target), None);
     }
 
     #[test]
@@ -1522,13 +1608,7 @@ mod tests {
             panel: 0,
             observation: index,
         };
-        let outlines = outlines(
-            kind,
-            &g,
-            t,
-            panel.observations[index].dots.first().map(|d| d.at),
-            contoured,
-        );
+        let outlines = outlines(kind, &g, t, contoured);
         assert_eq!(outlines.len(), expect, "{kind}: {outlines:?}");
         let link = Rgba([0.1, 0.2, 0.9, 1.0]);
         let items = mark_ring(&ring_lines(&outlines), link, 1.0);
@@ -1694,7 +1774,7 @@ mod tests {
                 panel: 0,
                 observation,
             };
-            let outlines = outlines("bar3d", g, t, None, true);
+            let outlines = outlines("bar3d", g, t, true);
             let [Outline::Parts(parts)] = outlines.as_slice() else {
                 panic!("bar3d {observation}: one traced outline, {outlines:?}")
             };
@@ -1764,7 +1844,7 @@ mod tests {
                 panel: 0,
                 observation,
             };
-            let outlines = outlines("bar3d", &g, t, None, true);
+            let outlines = outlines("bar3d", &g, t, true);
             let [Outline::Parts(parts)] = outlines.as_slice() else {
                 panic!("bar3d {observation}: one traced outline, {outlines:?}")
             };
@@ -1838,7 +1918,7 @@ mod tests {
             panel: 0,
             observation: index,
         };
-        let outlines = outlines("ohlc", &g, t, None, true);
+        let outlines = outlines("ohlc", &g, t, true);
         let [Outline::Parts(parts)] = outlines.as_slice() else {
             panic!("one ring around the glyph's parts: {outlines:?}")
         };
@@ -1975,21 +2055,17 @@ mod tests {
         };
         let link = Rgba([0.1, 0.2, 0.9, 1.0]);
         for (kind, contoured) in [
-            ("band", false),
-            ("ecdf", false),
             ("strip", true),
             ("dotplot", true),
             ("candlestick", true),
             ("combo", true),
         ] {
             let g = chart(&fixture(kind));
-            let panel = &g.panels[0];
             let t = Target {
                 panel: 0,
                 observation: 0,
             };
-            let pointer = panel.observations[0].dots.first().map(|d| d.at);
-            let outlines = outlines(kind, &g, t, pointer, contoured);
+            let outlines = outlines(kind, &g, t, contoured);
             let rings = mark_ring(&ring_lines(&outlines), link, 1.0);
             assert!(!rings.is_empty(), "{kind}: the first mark has a ring");
             for ring in rings {
@@ -2036,10 +2112,46 @@ mod tests {
         ring_clears("bar3d", &fixture("bar3d"), true, 1);
         ring_clears("surface", &fixture("surface"), true, 1);
         ring_clears("contour", &fixture("contour"), false, 1);
-        let band = chart(&fixture("band"));
-        let observations = &band.panels[0].observations;
-        let dots = observations[observations.len() / 2].dots.len();
-        ring_clears("band", &fixture("band"), false, dots.max(1));
+    }
+
+    #[test]
+    fn nearest_x_targeting_belongs_to_the_line_based_types_alone() {
+        // The overlay draws one dot and ring for every nearest-x chart by the engine's rule, so
+        // a chart that reads at the nearest x and is no line-based type would take no answer.
+        use richview_chart::interaction::{LINE_BASED, is_line_based};
+        let dir = format!(
+            "{}/../../richview-chart/tests/fixtures/types",
+            env!("CARGO_MANIFEST_DIR")
+        );
+        let mut line_based = Vec::new();
+        for entry in std::fs::read_dir(dir).unwrap() {
+            let path = entry.unwrap().path();
+            let kind = path.file_stem().unwrap().to_str().unwrap().to_owned();
+            let g = chart(&std::fs::read_to_string(&path).unwrap());
+            for panel in &g.panels {
+                assert_eq!(
+                    panel.targeting == Targeting::NearestX,
+                    is_line_based(&kind),
+                    "{kind}"
+                );
+            }
+            if is_line_based(&kind) {
+                line_based.push(kind);
+            }
+        }
+        // A line and an area have no fixture of their own.
+        let rows = r#"[{"d":1,"v":30,"s":"free"},{"d":2,"v":10,"s":"free"},{"d":1,"v":20,"s":"paid"},{"d":2,"v":10,"s":"paid"}]"#;
+        for kind in ["line", "area"] {
+            let g = chart(&format!(
+                r#"{{"spec":{{"type":"{kind}","title":"T","encoding":{{"x":"d","y":"v","color":"s"}}}},"rows":{rows}}}"#
+            ));
+            assert_eq!(g.panels[0].targeting, Targeting::NearestX, "{kind}");
+            line_based.push(kind.to_owned());
+        }
+        line_based.sort();
+        let mut named = LINE_BASED.map(String::from).to_vec();
+        named.sort();
+        assert_eq!(line_based, named, "every line-based type was laid out");
     }
 
     #[test]

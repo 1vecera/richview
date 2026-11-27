@@ -50,7 +50,7 @@
       "checks": [
         "rust-tests:richview-core tests/hostile.rs",
         "hostile",
-        "hostile:scripts/verify-hostile-browser.mjs"
+        "hostile:scripts/verify-hostile-browser.ts"
       ]
     },
     "ARC-18": {
@@ -69,7 +69,7 @@
     "ARC-40": {
       "checks": [
         "rust-tests:richview-build src/documentation.rs::time_series_examples_ship_copyable_sources_and_the_frozen_observations",
-        "chromium:scripts/verify-browser.mjs /charts/ redirects to the docs chart gallery"
+        "chromium:scripts/verify-browser.ts /charts/ redirects to the docs chart gallery"
       ],
       "partial": "The docs stager checks all three copyable .rmd examples, complete frozen CSV observations, rendered rows, missing CPI values and negative power prices. Browser checks cover retired /charts/ staging/redirect configuration and a live docs gallery. Native benchmark workloads still omit these time-series datasets, and the docs-gallery cold-mount measurement is not implemented. No performance parity claim."
     },
@@ -98,7 +98,7 @@
     },
     "DEL-04": {
       "checks": [
-        "tool-tests:tools/rv-gate/test/hotfix-promotion.test.mjs"
+        "tool-tests:tools/rv-gate/test/hotfix-promotion.test.mts"
       ],
       "partial": "The tests enforce a recorded go and a matching production receipt; Daniel's actual authorization remains a human judgment."
     },
@@ -293,8 +293,8 @@
     "DEL-56": {
       "checks": [
         "hostile",
-        "hostile:scripts/verify-hostile-browser.mjs",
-        "tool-tests:tools/rv-gate/test/hostile-browser.test.mjs"
+        "hostile:scripts/verify-hostile-browser.ts",
+        "tool-tests:tools/rv-gate/test/hostile-browser.test.mts"
       ],
       "partial": "Native checks cover the indexed corpus in every builtin style and screen/print mode. Live Chromium audits each emitted default-style report and the explicit native asset refusals, with six actual malicious/benign controls. This finite corpus is not a proof against unknown injection classes or across every browser and style combination."
     },
@@ -586,7 +586,7 @@
         "chromium:chart-interaction",
         "chromium:chart-keyboard",
         "webkit",
-        "chart-type-keyboard:scripts/verify-chart-type-keyboard.mjs"
+        "chart-type-keyboard:scripts/verify-chart-type-keyboard.ts"
       ]
     },
     "FEA-CH-40": {
@@ -701,14 +701,14 @@
         "rust-tests:richview-chart tests/geometry_rules.rs",
         "geometry",
         "chromium:chart-keyboard",
-        "chart-type-keyboard:scripts/verify-chart-type-keyboard.mjs"
+        "chart-type-keyboard:scripts/verify-chart-type-keyboard.ts"
       ]
     },
     "FEA-CH-56": {
       "checks": [
         "chromium:chart-keyboard",
-        "chromium:scripts/verify-chart-readouts.mjs",
-        "tool-tests:tools/rv-gate/test/chart-readouts.test.mjs"
+        "chromium:scripts/verify-chart-readouts.ts",
+        "tool-tests:tools/rv-gate/test/chart-readouts.test.mts"
       ]
     },
     "FEA-CH-58": {
@@ -787,11 +787,11 @@
     "FEA-RP-43": {
       "checks": [
         "exports",
-        "chart-type-pdf:scripts/verify-chart-type-pdf.mjs",
-        "tool-tests:tools/rv-gate/test/chart-type-evidence.test.mjs",
+        "chart-type-pdf:scripts/verify-chart-type-pdf.ts",
+        "tool-tests:tools/rv-gate/test/chart-type-evidence.test.mts",
         "rust-tests:richview-core tests/contracts.rs::pdf_hatches_are_clipped_vector_strokes_with_unique_figure_resources"
       ],
-      "partial": "All compiled types are checked at print width in every builtin, A4/default state/every-block (one instance per type, two heatmaps): vector paints/controls/clips/order, no raster in chart frames, independent SVG selectable-word inventory (non-space characters for arbitrary rotation), and exact embedded chart font bytes. Native and Wasm share engine source and Chrome serialization. Poppler text geometry has six-decimal coordinates and integer font-size metadata; independent engine correctness, PDF numeric-label truth at author precision against source data or Table values, other paper sizes/states/custom fonts/platforms and physical VoiceOver remain unproven. System-font portability defects outside chart fonts remain separate owned work. This is partial coverage, not whole-card acceptance. Separate 2026-10-30 S27-793 probes of native Air build 51c9db0e, SHA-256 3f3c388d7d1d8b4a9190823a30c8d951cd168621e774c8d9690807ece6c4cd84, page 31 (retained evidence: ~/tmp/richview-rewrite/reviews/s27-793-original-readers/report.md), verify six whole labels with macOS 26.3 PDFKit (build 1451.3.3) find and PDFium 156.0.8076.0 whole-word Find/selection ranges; pdf.js core 5.6.205 extracts six whole items. Chrome 156.0.8078.76 text-fragment find plus trusted selection verifies five labels; Sales target disambiguation and Firefox viewer UI remain unproved. pdftotext 26.04.0 fragments the six labels into 19 word boxes while preserving all 43 non-space characters. These are scoped reader observations, not recurring step assertions or all-style reader coverage; Acrobat/Evince/Okular UI is untested."
+      "partial": "All compiled types are checked at print width in every builtin, A4/default state/every-block (one instance per type, two heatmaps): vector paints/controls/clips/order, no raster in chart frames, independent SVG selectable-word inventory (non-space characters for arbitrary rotation), and exact embedded chart font bytes. Native and Wasm share engine source and Chrome serialization. Poppler text geometry has six-decimal coordinates and integer font-size metadata; independent engine correctness, PDF numeric-label truth at author precision against source data or Table values, other paper sizes/states/custom fonts/platforms and physical VoiceOver remain unproven. System-font portability defects outside chart fonts remain separate owned work. This is partial coverage, not whole-card acceptance. Separate 2026-10-30 probes of native Air build 51c9db0e, SHA-256 3f3c388d7d1d8b4a9190823a30c8d951cd168621e774c8d9690807ece6c4cd84, page 31 (retained evidence on the build host), verify six whole labels with macOS 26.3 PDFKit (build 1451.3.3) find and PDFium 156.0.8076.0 whole-word Find/selection ranges; pdf.js core 5.6.205 extracts six whole items. Chrome 156.0.8078.76 text-fragment find plus trusted selection verifies five labels; Sales target disambiguation and Firefox viewer UI remain unproved. pdftotext 26.04.0 fragments the six labels into 19 word boxes while preserving all 43 non-space characters. These are scoped reader observations, not recurring step assertions or all-style reader coverage; Acrobat/Evince/Okular UI is untested."
     },
     "FEA-RP-46": {
       "judged": "review: no carousel output exists in the CLI, the renderer, the MCP tools or the scripts; the report HTML and its PDF are the only outputs"
@@ -841,7 +841,28 @@
         "rust-tests:crates/richview-app/tests/sign_in_browser.rs::the_routes_anyone_may_call_are_bounded_and_open_nothing_else",
         "rust-tests:crates/richview-app/src/access/cli_sign_in.rs::a_confirmed_sign_in_hands_over_one_token_once",
         "rust-tests:crates/richview-app/src/access/cli_sign_in.rs::a_sign_in_expires_and_a_refused_one_gives_no_token",
-        "rust-tests:crates/richview-app/src/access/cli_sign_in.rs::starting_collecting_and_guessing_are_bounded"
+        "rust-tests:crates/richview-app/src/access/cli_sign_in.rs::starting_collecting_and_guessing_are_bounded",
+        "rust-tests:crates/richview-app/tests/cli_oauth.rs::the_command_line_signs_in_through_the_browser_on_its_own_computer_and_signs_out_again",
+        "rust-tests:crates/richview-app/tests/cli_oauth.rs::saying_no_in_the_browser_keeps_nothing_and_says_so_in_the_terminal",
+        "rust-tests:crates/richview-app/tests/cli_oauth.rs::only_the_browser_that_was_sent_can_answer_the_listener_and_a_wrong_answer_is_just_refused",
+        "rust-tests:crates/richview-app/tests/cli_oauth.rs::a_code_trades_once_with_its_verifier_and_nothing_else_signs_in",
+        "rust-tests:crates/richview-app/tests/cli_oauth.rs::an_address_that_is_not_a_command_lines_own_is_refused_before_anything_is_sent",
+        "rust-tests:crates/richview-app/tests/cli_oauth.rs::over_ssh_or_on_request_the_short_code_is_used_and_it_renews_too",
+        "rust-tests:crates/richview-app/tests/sign_in.rs::a_sign_in_that_is_over_is_renewed_once_before_it_is_used_and_one_that_ended_asks_again",
+        "rust-tests:crates/richview-app/src/access/cli_oauth.rs::a_code_can_only_be_sent_to_a_loopback_port_of_this_computer",
+        "rust-tests:crates/richview-app/src/access/cli_oauth.rs::the_authorize_address_has_one_spelling_and_only_it_is_a_place_to_return_to",
+        "rust-tests:crates/richview-app/src/access/cli_oauth.rs::a_code_is_traded_once_for_a_token_that_refreshes",
+        "rust-tests:crates/richview-app/src/access/cli_oauth.rs::a_wrong_verifier_redirect_or_clock_spends_the_code_and_gives_nothing",
+        "rust-tests:crates/richview-app/src/access/cli_oauth.rs::using_a_replaced_refresh_token_ends_the_whole_sign_in",
+        "rust-tests:crates/richview-app/src/access/cli_oauth.rs::a_sign_in_nobody_used_for_ninety_days_or_that_lost_its_place_is_over",
+        "rust-tests:crates/richview-app/src/credentials.rs::a_token_with_time_left_is_used_as_it_is_and_an_unreachable_server_changes_nothing",
+        "rust-tests:crates/richview-app/src/sign_in_loopback.rs::nobody_answering_ends_the_wait_and_frees_the_port",
+        "rust-tests:crates/richview-app/tests/cli_oauth.rs::allow_answers_for_the_organization_the_page_named_and_for_no_other",
+        "rust-tests:crates/richview-app/tests/sign_in.rs::a_token_the_server_refuses_is_renewed_once_and_the_request_goes_again",
+        "rust-tests:crates/richview-app/src/access/cli_oauth.rs::a_refresh_whose_answer_never_arrived_is_asked_again_within_ten_minutes_only",
+        "rust-tests:crates/richview-app/src/access/cli_oauth.rs::a_token_nobody_issued_is_refused_without_writing_the_store",
+        "rust-tests:crates/richview-app/src/access/cli_oauth.rs::the_check_code_is_eight_plain_letters_and_follows_every_part_of_the_request",
+        "rust-tests:crates/richview-app/src/credentials.rs::keeping_and_forgetting_wait_for_a_command_that_renews"
       ]
     },
     "FEA-SF-13": {
@@ -854,14 +875,14 @@
       "checks": [
         "rust-tests:richview-app tests/native_contract.rs::first_publish_creates_and_later_versions_keep_the_address",
         "rust-tests:richview-app tests/sign_in.rs::publishing_the_same_file_to_a_changed_address_requires_intent_to_create_again",
-        "host:scripts/verify-native.mjs"
+        "host:scripts/verify-native.ts"
       ]
     },
     "FEA-SF-62": {
       "checks": [
-        "host:scripts/verify-native.mjs",
-        "chromium:scripts/verify-docs.mjs nativePhase",
-        "site:scripts/verify-site.mjs"
+        "host:scripts/verify-native.ts",
+        "chromium:scripts/verify-docs.ts nativePhase",
+        "site:scripts/verify-site.ts"
       ],
       "partial": "The publication journey checks first publish, an unintended address change, an unchanged republish and a conflicting revision. The site suite checks routes, links and page layout."
     },
@@ -884,7 +905,7 @@
     },
     "INT-75": {
       "checks": [
-        "exports:scripts/verify-exports.mjs imageFonts"
+        "exports:scripts/verify-exports.ts imageFonts"
       ],
       "partial": "Checked: the cover's bytes match the digest its image ledger row records, and it declares its embedded fonts (verify-exports). That its two numbers and its lanes read at the report's width, on a phone and in every style is judged on real-page sheets at 1280 and 390 px, and that it follows the active style or prints well is not asserted."
     },
@@ -892,7 +913,7 @@
       "checks": [
         "chromium:flagship",
         "rust-tests:richview-build src/flagship.rs::a_phones_menu_lists_the_styles_then_the_extended_themes",
-        "site:scripts/verify-site.mjs"
+        "site:scripts/verify-site.ts"
       ],
       "partial": "Checked: the five pills and the extended themes swap the frame to that style's render and set ?theme=, ←/→ step through the pills, a shared address opens its style, the source is published beside the page (verify-flagship), and up to 640 px one menu offers the same styles and switches the report (verify-site, the menu's build test). Keeping the reading position across a switch is not asserted."
     },
@@ -900,7 +921,7 @@
       "checks": [
         "rust-tests:richview-build src/flagship.rs::the_hash_changes_with_data_and_ledger_but_not_with_renders",
         "rust-tests:richview-build src/flagship.rs::the_count_is_spelled_for_five",
-        "site:scripts/verify-site.mjs"
+        "site:scripts/verify-site.ts"
       ],
       "partial": "Checked: the content hash changes with the source, data and ledger and not with renders, the style count is generated, and from 641 px the note under the report shows while up to 640 px nothing stands under it (verify-site). The page's wording, that no finding is stated and that the extended themes are not counted, are not asserted."
     },
@@ -909,7 +930,7 @@
         "rust-tests:richview-build src/chrome.rs::the_header_has_the_docs_the_gallery_the_repository_and_sign_in_but_no_signup",
         "rust-tests:richview-build src/chrome.rs::the_footer_links_the_about_page_before_the_legal_pages",
         "rust-tests:richview-build src/chrome.rs::every_marker_is_replaced_once",
-        "site:scripts/verify-site.mjs"
+        "site:scripts/verify-site.ts"
       ],
       "partial": "Checked: one header and one footer from one place, their links in order, every page with a header and the same header and footer look on every page but the flagship (verify-site), and on a phone the flagship keeps the header and shows no footer. The header follows Daniel's 9 Nov links (Docs, Gallery, the repository, Sign in), not the card's three; that the footer's links all resolve is FEA-SF-62's check."
     },
@@ -978,7 +999,9 @@
     "OPN-27": {
       "checks": [
         "rust-tests:richview-build src/documentation/public.rs::tests::private_site_hides_repository_links_but_keeps_other_navigation",
-        "rust-tests:richview-build src/documentation.rs::tests::documentation_build_renders_both_install_states_and_preserves_gallery_sources"
+        "rust-tests:richview-build src/documentation.rs::tests::the_private_documentation_build_renders_and_preserves_gallery_sources",
+        "rust-tests:richview-build src/documentation.rs::tests::the_before_launch_documentation_build_renders_and_preserves_gallery_sources",
+        "rust-tests:richview-build src/documentation.rs::tests::the_launch_documentation_build_renders_and_preserves_gallery_sources"
       ],
       "partial": "Checks staged private site and documentation; the separate News deployment is not covered."
     },
@@ -1014,13 +1037,13 @@
       "checks": [
         "perf"
       ],
-      "partial": "Size regressions are measured and advisory until launch (S27-980); instruction and memory regression margins remain binding."
+      "partial": "Size regressions are measured and advisory until launch; instruction and memory regression margins remain binding."
     },
     "PRF-30": {
       "checks": [
         "perf"
       ],
-      "partial": "The size budget is measured and advisory until launch (S27-980)."
+      "partial": "The size budget is measured and advisory until launch."
     },
     "PRF-40": {
       "checks": [
@@ -1916,7 +1939,28 @@
         "rust-tests:crates/richview-app/tests/sign_in_browser.rs::the_routes_anyone_may_call_are_bounded_and_open_nothing_else",
         "rust-tests:crates/richview-app/src/access/cli_sign_in.rs::a_confirmed_sign_in_hands_over_one_token_once",
         "rust-tests:crates/richview-app/src/access/cli_sign_in.rs::a_sign_in_expires_and_a_refused_one_gives_no_token",
-        "rust-tests:crates/richview-app/src/access/cli_sign_in.rs::starting_collecting_and_guessing_are_bounded"
+        "rust-tests:crates/richview-app/src/access/cli_sign_in.rs::starting_collecting_and_guessing_are_bounded",
+        "rust-tests:crates/richview-app/tests/cli_oauth.rs::the_command_line_signs_in_through_the_browser_on_its_own_computer_and_signs_out_again",
+        "rust-tests:crates/richview-app/tests/cli_oauth.rs::saying_no_in_the_browser_keeps_nothing_and_says_so_in_the_terminal",
+        "rust-tests:crates/richview-app/tests/cli_oauth.rs::only_the_browser_that_was_sent_can_answer_the_listener_and_a_wrong_answer_is_just_refused",
+        "rust-tests:crates/richview-app/tests/cli_oauth.rs::a_code_trades_once_with_its_verifier_and_nothing_else_signs_in",
+        "rust-tests:crates/richview-app/tests/cli_oauth.rs::an_address_that_is_not_a_command_lines_own_is_refused_before_anything_is_sent",
+        "rust-tests:crates/richview-app/tests/cli_oauth.rs::over_ssh_or_on_request_the_short_code_is_used_and_it_renews_too",
+        "rust-tests:crates/richview-app/tests/sign_in.rs::a_sign_in_that_is_over_is_renewed_once_before_it_is_used_and_one_that_ended_asks_again",
+        "rust-tests:crates/richview-app/src/access/cli_oauth.rs::a_code_can_only_be_sent_to_a_loopback_port_of_this_computer",
+        "rust-tests:crates/richview-app/src/access/cli_oauth.rs::the_authorize_address_has_one_spelling_and_only_it_is_a_place_to_return_to",
+        "rust-tests:crates/richview-app/src/access/cli_oauth.rs::a_code_is_traded_once_for_a_token_that_refreshes",
+        "rust-tests:crates/richview-app/src/access/cli_oauth.rs::a_wrong_verifier_redirect_or_clock_spends_the_code_and_gives_nothing",
+        "rust-tests:crates/richview-app/src/access/cli_oauth.rs::using_a_replaced_refresh_token_ends_the_whole_sign_in",
+        "rust-tests:crates/richview-app/src/access/cli_oauth.rs::a_sign_in_nobody_used_for_ninety_days_or_that_lost_its_place_is_over",
+        "rust-tests:crates/richview-app/src/credentials.rs::a_token_with_time_left_is_used_as_it_is_and_an_unreachable_server_changes_nothing",
+        "rust-tests:crates/richview-app/src/sign_in_loopback.rs::nobody_answering_ends_the_wait_and_frees_the_port",
+        "rust-tests:crates/richview-app/tests/cli_oauth.rs::allow_answers_for_the_organization_the_page_named_and_for_no_other",
+        "rust-tests:crates/richview-app/tests/sign_in.rs::a_token_the_server_refuses_is_renewed_once_and_the_request_goes_again",
+        "rust-tests:crates/richview-app/src/access/cli_oauth.rs::a_refresh_whose_answer_never_arrived_is_asked_again_within_ten_minutes_only",
+        "rust-tests:crates/richview-app/src/access/cli_oauth.rs::a_token_nobody_issued_is_refused_without_writing_the_store",
+        "rust-tests:crates/richview-app/src/access/cli_oauth.rs::the_check_code_is_eight_plain_letters_and_follows_every_part_of_the_request",
+        "rust-tests:crates/richview-app/src/credentials.rs::keeping_and_forgetting_wait_for_a_command_that_renews"
       ]
     },
     "ARC-24": {
@@ -2099,10 +2143,12 @@
     },
     "INT-43": {
       "checks": [
-        "site:scripts/verify-site.mjs",
+        "site:scripts/verify-site.ts",
         "rust-tests:richview-build src/distribution.rs::tests::install_page_does_not_stage_hosted_downloads",
         "rust-tests:richview-build src/agents.rs::tests::install_reference_follows_the_launch_switch",
-        "rust-tests:richview-build src/documentation.rs::tests::documentation_build_renders_both_install_states_and_preserves_gallery_sources"
+        "rust-tests:richview-build src/documentation.rs::tests::the_private_documentation_build_renders_and_preserves_gallery_sources",
+        "rust-tests:richview-build src/documentation.rs::tests::the_before_launch_documentation_build_renders_and_preserves_gallery_sources",
+        "rust-tests:richview-build src/documentation.rs::tests::the_launch_documentation_build_renders_and_preserves_gallery_sources"
       ],
       "partial": "Checks the install switch, conditional routes and matching archive. Other coming-soon labels and Daniel's explicit launch go remain for the launch packet."
     },
@@ -2111,25 +2157,25 @@
     },
     "DEL-81": {
       "checks": [
-        "tool-tests:tools/rv-gate/test/fast.test.mjs",
-        "tool-tests:tools/rv-gate/test/gate.test.mjs",
-        "tool-tests:tools/rv-gate/test/impact.test.mjs",
-        "tool-tests:tools/rv-gate/test/release.test.mjs"
+        "tool-tests:tools/rv-gate/test/fast.test.mts",
+        "tool-tests:tools/rv-gate/test/gate.test.mts",
+        "tool-tests:tools/rv-gate/test/impact.test.mts",
+        "tool-tests:tools/rv-gate/test/release.test.mts"
       ]
     },
     "PRF-31": {
       "checks": [
         "perf:report-runtime.payload",
-        "tool-tests:tools/rv-gate/test/perf.test.mjs"
+        "tool-tests:tools/rv-gate/test/perf.test.mts"
       ],
-      "partial": "The size budget is measured and advisory until launch (S27-980)."
+      "partial": "The size budget is measured and advisory until launch."
     },
     "PRF-32": {
       "checks": [
         "perf",
-        "tool-tests:tools/rv-gate/test/perf.test.mjs"
+        "tool-tests:tools/rv-gate/test/perf.test.mts"
       ],
-      "partial": "Raw fixture HTML excluding embedded runtime and media is measured and advisory until launch (S27-980). Per-font160KiB, flagship offline5MiB and hosted first-load2304KiB budgets are not yet implemented."
+      "partial": "Raw fixture HTML excluding embedded runtime and media is measured and advisory until launch. Per-font160KiB, flagship offline5MiB and hosted first-load2304KiB budgets are not yet implemented."
     },
     "PRF-35": {
       "judged": "Review the layout-shift entries and first-load filmstrips for chart docs and the gallery at desktop and phone widths.",
@@ -2150,7 +2196,8 @@
     "FEA-BR-49": {
       "checks": [
         "rust-tests:richview-publish tests/build.rs::more_than_1000_item_folders_fail_and_the_previous_release_stays_live",
-        "rust-tests:richview-publish tests/build.rs::an_item_file_over_20_mib_fails_and_the_previous_release_stays_live"
+        "rust-tests:richview-publish tests/build.rs::an_item_file_over_5_000_000_bytes_fails_and_the_previous_release_stays_live",
+        "rust-tests:richview-publish tests/build.rs::an_oversized_runtime_file_fails_and_the_previous_release_stays_live"
       ]
     },
     "FEA-BR-14": {
@@ -2188,9 +2235,9 @@
     "ARC-46": {
       "checks": [
         "build",
-        "tool-tests:tools/rv-gate/test/build-manifest.test.mjs",
+        "tool-tests:tools/rv-gate/test/build-manifest.test.mts",
         "rust-tests:richview-build manifest",
-        "tool-tests:tools/rv-gate/test/install-retention.test.mjs"
+        "tool-tests:tools/rv-gate/test/install-retention.test.mts"
       ]
     },
     "FEA-RP-10": {
@@ -2236,7 +2283,7 @@
     "FEA-RP-17": {
       "checks": [
         "rust-tests:richview-core tests/markdown_ext.rs::fenced_code_preserves_source_and_highlights_only_supported_languages",
-        "exports:scripts/verify-exports.mjs analyze"
+        "exports:scripts/verify-exports.ts analyze"
       ]
     },
     "FEA-RP-18": {
@@ -2469,7 +2516,7 @@
     "FEA-BR-36": {
       "checks": [
         "perf",
-        "tool-tests:tools/rv-gate/test/perf.test.mjs"
+        "tool-tests:tools/rv-gate/test/perf.test.mts"
       ],
       "partial": "Control response for two golden inputs at desktop and phone4x; quiet integrated release execution pending. Whole-page moving-surface proof is separate."
     },
@@ -2496,21 +2543,21 @@
     },
     "ARC-01": {
       "checks": [
-        "tool-tests:tools/rv-gate/test/layers.test.mjs",
-        "tool-tests:tools/rv-gate/test/impact.test.mjs",
+        "tool-tests:tools/rv-gate/test/layers.test.mts",
+        "tool-tests:tools/rv-gate/test/impact.test.mts",
         "tool-tests:tools/dependency-rules/test/policy.test.mjs",
         "tool-tests:tools/dependency-rules/test/graph.test.mjs",
         "tool-tests:tools/dependency-rules/test/indirect.test.mjs",
         "tool-tests:tools/dependency-rules/test/check.test.mjs",
         "arch",
-        "tool-tests:tools/rv-gate/test/interfaces.test.mjs"
+        "tool-tests:tools/rv-gate/test/interfaces.test.mts"
       ],
       "partial": "Current registered API/resource contracts are checked freshly before the actual Cargo and indirect dependency policy. Whole-core root/nested utility coverage is still incomplete; affected-dependent Rust checks are unchanged."
     },
     "ARC-50": {
       "checks": [
         "tool-tests:tools/rv-gate/test/ci.test.mjs",
-        "tool-tests:tools/rv-gate/test/impact.test.mjs"
+        "tool-tests:tools/rv-gate/test/impact.test.mts"
       ]
     },
     "ARC-07": {
@@ -2531,19 +2578,19 @@
     },
     "FEA-SF-27": {
       "checks": [
-        "tool-tests:packages/vscode/test/export.test.cjs dirty and new untitled reports refuse export before requesting a saved-file operation",
-        "tool-tests:packages/vscode/test/export.test.cjs saved export sends only its file URI and offers Reveal for the service-selected output",
-        "tool-tests:packages/vscode/test/export.test.cjs Explorer export targets the chosen report instead of the active editor",
-        "tool-tests:packages/vscode/test/export.test.cjs export outside a RichView document does not ask the service or reveal a file",
-        "tool-tests:packages/vscode/test/export.test.cjs a refused native export surfaces the failure without a success notice or Reveal",
-        "tool-tests:packages/vscode/test/export.test.cjs the contributed file commands match activation, have no Validate, and are restricted to rmd contexts",
+        "tool-tests:packages/vscode/test/export.test.cts dirty and new untitled reports refuse export before requesting a saved-file operation",
+        "tool-tests:packages/vscode/test/export.test.cts saved export sends only its file URI and offers Reveal for the service-selected output",
+        "tool-tests:packages/vscode/test/export.test.cts Explorer export targets the chosen report instead of the active editor",
+        "tool-tests:packages/vscode/test/export.test.cts export outside a RichView document does not ask the service or reveal a file",
+        "tool-tests:packages/vscode/test/export.test.cts a refused native export surfaces the failure without a success notice or Reveal",
+        "tool-tests:packages/vscode/test/export.test.cts the contributed file commands match activation, have no Validate, and are restricted to rmd contexts",
         "rust-tests:richview-editor tests/lsp.rs::export_refuses_unsaved_document_uris_before_rendering",
-        "host:scripts/verify-editor.cjs"
+        "host:scripts/verify-editor.cts"
       ]
     },
     "FEA-RP-01": {
       "checks": [
-        "host:scripts/verify-editor.cjs"
+        "host:scripts/verify-editor.cts"
       ],
       "partial": "The host journey checks exact exported HTML bytes, chosen output and unchanged saved source against the same-build CLI after preview configuration. PDF parity and unchanged external data/style bytes remain separate gaps."
     },
@@ -2556,19 +2603,19 @@
     },
     "FEA-RP-35": {
       "checks": [
-        "report-motion:scripts/verify-report-motion.mjs"
+        "report-motion:scripts/verify-report-motion.ts"
       ],
       "partial": "Dynamic entrances, reduced-motion changes and chart/image scrolly are exercised in all five styles at desktop/phone plus no-JS. Stored focused proof uses the coherent d40 CLI/runtime pair; newer combined-head execution and visual/motion quality review remain separate."
     },
     "FEA-RP-36": {
       "checks": [
-        "report-motion:scripts/verify-report-motion.mjs"
+        "report-motion:scripts/verify-report-motion.ts"
       ],
       "partial": "Dynamic entrances, reduced-motion changes and chart/image scrolly are exercised in all five styles at desktop/phone plus no-JS. Stored focused proof uses the coherent d40 CLI/runtime pair; newer combined-head execution and visual/motion quality review remain separate."
     },
     "FEA-RP-48": {
       "checks": [
-        "report-motion:scripts/verify-report-motion.mjs"
+        "report-motion:scripts/verify-report-motion.ts"
       ],
       "partial": "Dynamic entrances, reduced-motion changes and chart/image scrolly are exercised in all five styles at desktop/phone plus no-JS. Stored focused proof uses the coherent d40 CLI/runtime pair; newer combined-head execution and visual/motion quality review remain separate."
     },
@@ -2721,7 +2768,7 @@
       "checks": [
         "rust-tests:richview-app tests/report_folders.rs::portable_export_keeps_source_style_and_data_and_places_required_links_inside_rendered",
         "rust-slow:richview-app tests/report_folders.rs::pdf_export_keeps_the_output_boundary_and_preserves_previous_output_on_failure",
-        "host:scripts/verify-editor.cjs",
+        "host:scripts/verify-editor.cts",
         "rust-tests:crates/richview-app/tests/docs_match.rs::time_series_example_downloads_do_not_create_a_second_report_source"
       ],
       "partial": "Portable output boundary/content and actual editor/CLI byte parity are covered. No chart-runtime offline-browser proof in the portable fixture, exhaustive unlinked-file absence, hosted-asset/Unsplash offline behavior or successful vector-PDF parity follows from the failed-browser PDF test."
@@ -2813,21 +2860,45 @@
         "rust-tests:richview-core tests/data_typing.rs",
         "rust-tests:richview-app tests/parquet.rs",
         "rust-tests:richview-app connectors",
-        "tool-tests:tools/rv-gate/test/connectors.test.mjs"
+        "tool-tests:tools/rv-gate/test/connectors.test.mts"
       ]
     },
     "TYP-103": {
       "judged": "review: a proposal only, not built (the lead, 19 November 2026); it has no behaviour to check until Daniel decides it"
     },
     "TYP-104": {
-      "judged": "review: a proposal only, not built (the lead, 19 November 2026); it has no behaviour to check until Daniel decides it"
+      "checks": [
+        "rust-tests:richview-app tests/parquet.rs::a_sql_table_formats_decimal_strings_and_leaves_varchar_alone",
+        "rust-tests:richview-core tests/table_tools.rs::explicit_places_respect_significant_digits_and_override_source_scale",
+        "rust-tests:richview-chart src/numbers.rs::tests::column_rounding_promotes_the_magnitude_and_keeps_sort_values_in_source_units",
+        "rust-tests:richview-core tests/table_tools.rs::an_undeclared_column_prints_each_cell_on_its_own_and_decimals_set_one_scale",
+        "rust-tests:richview-core tests/table_tools.rs::a_declared_scale_survives_source_parsing_and_percent_conversion",
+        "rust-tests:richview-core tests/table_tools.rs::an_undeclared_column_prints_each_cell_as_it_would_alone",
+        "rust-tests:richview-core tests/table_tools.rs::a_declared_column_is_plain_at_its_scale_and_an_undeclared_one_keeps_each_cell_in_its_own_notation",
+        "rust-tests:richview-core tests/table_tools.rs::a_number_is_never_printed_as_zero",
+        "rust-tests:richview-chart src/numbers.rs::tests::a_declared_column_is_plain_at_its_scale_and_an_undeclared_one_prints_cell_by_cell",
+        "rust-tests:richview-chart src/numbers.rs::tests::a_number_the_scale_would_round_to_zero_keeps_its_own_digits",
+        "rust-tests:richview-chart src/numbers.rs::tests::no_number_prints_as_zero_in_any_notation",
+        "rust-tests:richview-core tests/table_tools.rs::decimals_on_a_year_column_do_not_change_the_year",
+        "rust-tests:richview-app tests/parquet.rs::a_decimal_column_that_crosses_ten_thousand_stays_plain_at_its_declared_scale"
+      ]
+    },
+    "TYP-105": {
+      "checks": [
+        "rust-tests:richview-app tests/native_contract.rs::input_limits_are_identical_for_local_commands_mcp_and_received_files",
+        "rust-tests:richview-app tests/native_contract.rs::input_limits_count_only_referenced_paths_and_the_source_once",
+        "rust-tests:richview-app tests/report_folders.rs::growing_download_checks_the_resolved_version_before_replacing_any_output",
+        "rust-tests:richview-app tests/connectors_e2e.rs::input_limits_measure_compact_external_rows_when_a_snapshot_is_read",
+        "rust-tests:richview-publish tests/build.rs::input_limits_reject_an_oversized_item_with_individually_valid_downloads",
+        "docs-match:richview-core tests/spec_docs.rs"
+      ]
     },
     "TYP-99": {
       "checks": [
         "rust-tests:richview-core tests/contracts.rs::styles_define_one_type_scale_with_phone_values_and_true_italics_only",
         "rust-tests:richview-core tests/contracts.rs::an_unknown_chart_key_is_reported",
         "rust-tests:richview-core tests/contracts.rs::retired_chart_leaves_leave_the_supported_palette_in_place",
-        "site:scripts/verify-site.mjs"
+        "site:scripts/verify-site.ts"
       ],
       "partial": "Native checks cover phone properties, representative chart properties and unknown-key exclusion. Actual shipped Wasm guard proves customPropertiesToCss absent. Complete generated schema-to-CSS mapping is NOT BUILT: the fixed chart-property mapping and steering-token exceptions are handwritten; no exhaustive generated mapping proof is claimed."
     },
@@ -2836,7 +2907,7 @@
         "rust-tests:richview-editor tests/lsp.rs::diagnostics_equal_validate_and_follow_unsaved_edits",
         "rust-tests:richview-app tests/access.rs::validate_and_check_answer_the_cli_envelopes_over_http_and_store_nothing",
         "rust-tests:richview-app tests/native_contract.rs::validate_passes_over_a_warehouse_block_and_still_reports_everything_else",
-        "host:scripts/verify-editor.cjs"
+        "host:scripts/verify-editor.cts"
       ],
       "partial": "Actual stdio diagnostics/ranges, HTTP envelope/no-store, deliberate warehouse pass-over and extension export/CLI parity are covered. No exhaustive operation-rule lattice or identical CLI/MCP/HTTP/JS/editor/Publish-server diagnostic matrix is established. HTTP shape checks are not byte-for-byte CLI equality."
     },
@@ -2956,7 +3027,7 @@
       "checks": [
         "rust-tests:richview-site src/lib.rs::validate_reports_every_finding_in_the_shared_envelope",
         "rust-tests:richview-core tests/registry.rs::core_public_exports_match_the_reviewed_snapshot",
-        "site:scripts/verify-site.mjs"
+        "site:scripts/verify-site.ts"
       ],
       "partial": "Reviewed Rust surface and actual site validation remain covered; the shipped Wasm guard proves 15 retired roots absent, three generated constant values and five live operations. Complete registry-generated TypeScript declarations and camelCase JS options/envelopes are NOT BUILT. Separate report runtime ABI coverage is not supplied by the site guard."
     },
@@ -2967,7 +3038,7 @@
         "rust-tests:richview-editor tests/lsp.rs::an_oversized_frame_is_refused_and_the_service_stops",
         "rust-tests:richview-editor tests/lsp.rs::the_trusted_editor_runtime_is_external_only_for_preview",
         "rust-slow:richview-editor tests/lsp.rs::preview_renders_the_open_text_and_unsaved_documents_get_a_save_message",
-        "host:scripts/verify-editor.cjs"
+        "host:scripts/verify-editor.cts"
       ],
       "partial": "Actual stdio/unsaved source/frame bound/trusted preview and extension export/CLI parity are guarded. Protocol deliberately retains richview/snippets and trusted runtimeUrl under ARC-07, with no public_dir. Successful credentialed publication, every custom-result DTO and the full paper/output matrix remain unproved."
     },
@@ -3051,7 +3122,7 @@
         "rust-tests:richview-core tests/registry.rs::learn_teaches_every_chart_type_and_every_tag",
         "docs-match:richview-app tests/docs_match.rs::docs_count_the_vocabularies_the_build_has",
         "docs-match:richview-app tests/docs_match.rs::public_docs_name_only_commands_and_tools_that_exist",
-        "site:scripts/verify-site.mjs"
+        "site:scripts/verify-site.ts"
       ],
       "judged": "Review the guidance and storytelling advice in skill/SKILL.md; a syntax check cannot establish that a report argues well. The file directs authors to generated learn/tool/reference vocabulary rather than maintaining its own inventories."
     },
@@ -3059,7 +3130,7 @@
       "checks": [
         "rust-tests:richview-core tests/registry.rs::learn_teaches_every_chart_type_and_every_tag",
         "docs-match:richview-app tests/docs_match.rs::docs_count_the_vocabularies_the_build_has",
-        "site:scripts/verify-site.mjs"
+        "site:scripts/verify-site.ts"
       ],
       "partial": "The core vocabulary producer and actual llms.txt route/MIME/no-HTML-fallback are covered. build::agents stages dist/web/llms.txt from app::reference::llms_text; absence of a tracked root llms.txt is intentional. An independent assertion that the complete generated llms summary names exactly the current registry/tool vocabulary is still missing in the app-owned generator."
     },
@@ -3069,8 +3140,8 @@
         "rust-tests:richview-app src/reference.rs::tests::the_cli_reference_keeps_nested_commands_and_their_own_flags",
         "docs-match:richview-app tests/docs_match.rs::public_docs_name_only_commands_and_tools_that_exist",
         "docs-match:richview-core tests/spec_docs.rs",
-        "chromium:scripts/verify-docs.mjs",
-        "site:scripts/verify-site.mjs"
+        "chromium:scripts/verify-docs.ts",
+        "site:scripts/verify-site.ts"
       ],
       "partial": "Native checks cover generated CLI/MCP arguments, spec tables and public command/tool vocabulary; browser suite checks guide navigation, source code fidelity, source links and served routes. This does not independently establish that every prose tag/style/flag mention is valid or judge guide usefulness."
     },
@@ -3088,7 +3159,7 @@
       "checks": [
         "docs-match:richview-app tests/docs_match.rs::docs_count_the_vocabularies_the_build_has",
         "docs-match:richview-app tests/docs_match.rs::public_docs_name_only_commands_and_tools_that_exist",
-        "site:scripts/verify-site.mjs"
+        "site:scripts/verify-site.ts"
       ],
       "judged": "Review skill/SKILL.md workflow and judgment guidance; syntax cannot establish storytelling quality.",
       "partial": "Actual /skill/SKILL.md and /llms.txt route status/MIME/non-HTML fallback are checked. The complete generated llms vocabulary needs its independent app-owned summary guard (held e4d675a3 is not landed evidence). No hosted production-route claim."
@@ -3104,22 +3175,22 @@
     },
     "FEA-SF-43": {
       "checks": [
-        "chromium:scripts/docs-chart-checks.mjs checkChartPage",
-        "site:scripts/verify-site.mjs"
+        "chromium:scripts/docs-chart-checks.ts checkChartPage",
+        "site:scripts/verify-site.ts"
       ],
       "partial": "Actual gallery type pages are exercised at 1440 and 390 widths for keyboard/pointer-or-tap/legend/zoom plus Table, CSV, PNG and Expand where supported. Source fidelity and links are checked. This maps existing strict checks; it does not assert the latest combined run passed or replace manual judgment of guidance."
     },
     "FEA-SF-42": {
       "checks": [
-        "golden:tools/rv-gate/golden.mjs sampleCommands",
-        "golden:tools/rv-gate/golden.mjs",
-        "site:scripts/verify-site.mjs"
+        "golden:tools/rv-gate/golden.mts sampleCommands",
+        "golden:tools/rv-gate/golden.mts",
+        "site:scripts/verify-site.ts"
       ],
       "partial": "Golden executes the guide commands and copied first-report from a clean temporary directory; site checks every builtin style with no errors or warnings and crawls staged routes. Site currently rejects all warnings, stricter than an undeclared-warning allowlist. Hosted publication and visual judgment are not established by these locators."
     },
     "FEA-SF-23": {
       "checks": [
-        "host:scripts/verify-editor.cjs",
+        "host:scripts/verify-editor.cts",
         "rust-slow:richview-editor tests/lsp.rs::preview_renders_the_open_text_and_unsaved_documents_get_a_save_message",
         "rust-slow:richview-editor tests/lsp.rs::a_failed_preview_keeps_the_last_good_render_under_a_banner",
         "vscode:scripts/verify-vscode.cjs"
@@ -3132,8 +3203,8 @@
         "rust-tests:richview-editor tests/snippets.rs::chart_snippets_compile_as_actual_source",
         "rust-tests:richview-editor tests/snippets.rs::every_block_tag_has_a_snippet_that_renders_clean",
         "rust-tests:richview-editor tests/snippets.rs::committed_snippets_match_the_generator",
-        "golden:tools/rv-gate/golden.mjs",
-        "host:scripts/verify-editor.cjs",
+        "golden:tools/rv-gate/golden.mts",
+        "host:scripts/verify-editor.cts",
         "vscode:scripts/verify-vscode.cjs"
       ],
       "partial": "Catalog/schema exact-one and all-style render checks cover every block/chart; actual native picker covers Table while stdio covers Table/heatmap/histogram. This does not judge snippet readability for every type."
@@ -3148,54 +3219,54 @@
     },
     "FEA-SF-60": {
       "checks": [
-        "site:scripts/verify-site.mjs",
-        "chromium:scripts/verify-docs.mjs",
-        "chromium:scripts/verify-browser.mjs",
-        "webkit:scripts/verify-browser.mjs",
-        "firefox:scripts/verify-browser.mjs"
+        "site:scripts/verify-site.ts",
+        "chromium:scripts/verify-docs.ts",
+        "chromium:scripts/verify-browser.ts",
+        "webkit:scripts/verify-browser.ts",
+        "firefox:scripts/verify-browser.ts"
       ],
-      "partial": "Site suites apply the staged _headers with the build's inline preview hash and retain strict policy/console assertions. On S27-954's local build, Chromium and WebKit browser suites passed, including cookie-gated previews; Firefox passed that preview check twice but its wider suite timed out at Race C in both attempts (S27-844). The earlier 0b3 WebKit failure at canonical /playground did not recur in this run. Slash-suffixed /playground/ is not covered by the current header matcher, and production hosted headers are unverified."
+      "partial": "Site suites apply the staged _headers with the build's inline preview hash and retain strict policy/console assertions. On the local build of that change, Chromium and WebKit browser suites passed, including cookie-gated previews; Firefox passed that preview check twice but its wider suite timed out at Race C in both attempts. The earlier 0b3 WebKit failure at canonical /playground did not recur in this run. Slash-suffixed /playground/ is not covered by the current header matcher, and production hosted headers are unverified."
     },
     "DEL-21": {
       "checks": [
-        "tool-tests:tools/rv-gate/test/pre-prod.test.mjs",
-        "tool-tests:tools/rv-gate/test/gate.test.mjs"
+        "tool-tests:tools/rv-gate/test/pre-prod.test.mts",
+        "tool-tests:tools/rv-gate/test/gate.test.mts"
       ],
       "judged": "Compare status claims with the immutable receipt, exact source and explicit failures/unrun reasons.",
       "partial": "Promotion rejects failed, incomplete or mismatched full evidence and receipts are immutable. Automated checks cannot establish that every agent status report is candid."
     },
     "DEL-42": {
       "checks": [
-        "tool-tests:tools/rv-gate/test/fast-hold.test.mjs",
-        "tool-tests:tools/rv-gate/test/gate-hold.test.mjs",
-        "tool-tests:tools/rv-gate/test/release.test.mjs"
+        "tool-tests:tools/rv-gate/test/fast-hold.test.mts",
+        "tool-tests:tools/rv-gate/test/gate-hold.test.mts",
+        "tool-tests:tools/rv-gate/test/release.test.mts"
       ],
       "judged": "Review worktree ownership, grants, ledger/mailbox use and owner-controlled cleanup at handoff.",
       "partial": "Target holds, ownership and private snapshots have executable regressions; these do not prove every stream obeys the coordination/worktree lifecycle."
     },
     "DEL-62": {
       "checks": [
-        "tool-tests:tools/rv-gate/test/full.test.mjs",
-        "tool-tests:tools/rv-gate/test/quiet.test.mjs",
-        "tool-tests:tools/rv-gate/test/perf.test.mjs"
+        "tool-tests:tools/rv-gate/test/full.test.mts",
+        "tool-tests:tools/rv-gate/test/quiet.test.mts",
+        "tool-tests:tools/rv-gate/test/perf.test.mts"
       ],
       "judged": "Review actual host memory/disk/load records and stream independence before increasing concurrency.",
       "partial": "Bounded command admission, browser quiet admission and load disclosure are checked. No ten-minute whole-full or arbitrary stream-count capacity claim follows."
     },
     "DEL-52": {
       "checks": [
-        "cross-style:tools/rv-gate/cross-style.mjs",
-        "label-truth:tools/rv-gate/label-truth.mjs",
-        "exports:scripts/verify-exports.mjs"
+        "cross-style:tools/rv-gate/cross-style.mts",
+        "label-truth:tools/rv-gate/label-truth.mts",
+        "exports:scripts/verify-exports.ts"
       ],
       "partial": "Existing golden style/width and supported readout/Table/CSV/PNG checks are mapped, with PDF checks in exports. Exact fixture coverage and failures remain in the receipt; intermediate animation frames and unrepresented data are not established."
     },
     "DEL-80": {
       "checks": [
-        "cross-style:tools/rv-gate/cross-style.mjs",
-        "label-truth:tools/rv-gate/label-truth.mjs",
-        "chromium:scripts/verify-temporal-decimals.mjs",
-        "exports:scripts/verify-exports.mjs",
+        "cross-style:tools/rv-gate/cross-style.mts",
+        "label-truth:tools/rv-gate/label-truth.mts",
+        "chromium:scripts/verify-temporal-decimals.ts",
+        "exports:scripts/verify-exports.ts",
         "disclosure-probe"
       ],
       "partial": "Author precision is exercised by golden/temporal fixtures. Pure bounded layout coordinates without a data scale use the accepted six-significant-digit rule. Exhaustive raw-source/stored-record and arbitrary-coordinate disclosure remains a separate card/owner judgment."
@@ -3203,8 +3274,8 @@
     "INT-79": {
       "checks": [
         "hostile",
-        "hostile:scripts/verify-hostile-browser.mjs",
-        "tool-tests:tools/rv-gate/test/hostile-browser.test.mjs",
+        "hostile:scripts/verify-hostile-browser.ts",
+        "tool-tests:tools/rv-gate/test/hostile-browser.test.mts",
         "rust-tests:richview-app tests/access.rs::every_route_refuses_a_stranger_and_an_anonymous_caller_without_revealing_the_report",
         "rust-tests:richview-app tests/access.rs::hostile_input_reaches_no_report_and_no_secret_in_a_url",
         "rust-tests:richview-app tests/access.rs::a_cookie_session_needs_the_csrf_header_and_the_same_origin",
@@ -3251,48 +3322,48 @@
     },
     "STY-28": {
       "checks": [
-        "site:scripts/verify-site.mjs",
+        "site:scripts/verify-site.ts",
         "rust-tests:richview-build src/site_fonts.rs::no_site_family_carries_a_reserved_name"
       ]
     },
     "STY-46": {
       "checks": [
-        "site:scripts/verify-site.mjs"
+        "site:scripts/verify-site.ts"
       ],
       "judged": "review: one paper look across home, docs, gallery, playground and legal pages is judged on their captures at 320, 390 and 1440 px against STY-46 (STY-68, INT-67)"
     },
     "STY-47": {
       "checks": [
-        "site:scripts/verify-site.mjs"
+        "site:scripts/verify-site.ts"
       ]
     },
     "STY-48": {
       "checks": [
-        "site:scripts/verify-site.mjs"
+        "site:scripts/verify-site.ts"
       ],
       "judged": "review: the demo sheets' one soft shadow and the opaque surfaces are judged on the landing captures against STY-48 (STY-68, INT-67)"
     },
     "STY-49": {
       "checks": [
-        "site:scripts/verify-site.mjs"
+        "site:scripts/verify-site.ts"
       ],
       "judged": "review: heading-led sections, overlapping text and clipped labels are judged on the site captures at 320, 390 and 1440 px (DEL-27, INT-67)",
       "partial": "sitePolicy refuses eyebrow, overline, kicker and badge class names only. Letter-spaced capital labels that look like them (READ IT IN A STYLE, SOURCE AND PROVENANCE, WORK WITH IT, STYLE, EDITABLE) pass on their class names and are judged by review (first quality review of 4bf44f33); whether they stay is the lead's call."
     },
     "STY-59": {
       "checks": [
-        "site:scripts/verify-site.mjs"
+        "site:scripts/verify-site.ts"
       ],
       "judged": "review: the highlighting palette on the code panels is judged on the landing and docs captures against STY-59 (STY-68, INT-67)"
     },
     "STY-66": {
       "checks": [
-        "site:scripts/verify-site.mjs"
+        "site:scripts/verify-site.ts"
       ]
     },
     "STY-44": {
       "checks": [
-        "site:scripts/verify-site.mjs"
+        "site:scripts/verify-site.ts"
       ],
       "partial": "The static landing is checked until Daniel accepts the scroll story; the story's motion has no check and no review yet (design work paused)."
     },
@@ -3309,29 +3380,29 @@
     "STY-60": {
       "checks": [
         "rust-tests:richview-build src/flagship.rs::the_frame_takes_the_styles_tokens",
-        "site:scripts/verify-site.mjs"
+        "site:scripts/verify-site.ts"
       ],
       "partial": "Token mapping and frame size are checked; the page turning dark under Sleek Dark in a browser is not asserted."
     },
     "PRF-06": {
       "checks": [
         "perf",
-        "tool-tests:tools/rv-gate/test/perf.test.mjs",
-        "tool-tests:tools/rv-gate/test/build-manifest.test.mjs"
+        "tool-tests:tools/rv-gate/test/perf.test.mts",
+        "tool-tests:tools/rv-gate/test/build-manifest.test.mts"
       ],
       "partial": "The perf receipt retains budgets, load, source-linked build artifacts, control source hashes/browser metadata and measured cases. Sampling follows Daniel’s 29 October decision: at most ten repetitions after one warmup. The older twenty/hundred-sample proposal is superseded; this does not establish every legacy integrity check or complete before/during/after outside-CPU and hardware metadata."
     },
     "PRF-11": {
       "checks": [
-        "perf:tools/rv-gate/perf.mjs measureTiming",
-        "tool-tests:tools/rv-gate/test/perf.test.mjs"
+        "perf:tools/rv-gate/perf.mts measureTiming",
+        "tool-tests:tools/rv-gate/test/perf.test.mts"
       ],
       "partial": "Measures process-cold offline generate p95 for the three pinned fixtures at Daniel’s 29 October 300/500/800 ms limits, ten samples after one warmup. Separate check/validate process-cold endpoints in the older proposal are not measured by this step."
     },
     "PRF-20": {
       "checks": [
-        "perf:tools/rv-gate/control-response.mjs measureControlResponse",
-        "chromium:scripts/verify-chart-feedback.mjs"
+        "perf:tools/rv-gate/control-response.mts measureControlResponse",
+        "chromium:scripts/verify-chart-feedback.ts"
       ],
       "partial": "Current perf captures control layout and two-frame response on golden inputs at desktop and phone4x under the benchmark hold, with the 29 October 100 ms layout budget. Chart feedback separately exercises zoom behavior. These are not a claim that the older separate dense-grid hundred-keyboard-zoom timing endpoint is measured."
     },
@@ -3342,7 +3413,7 @@
         "rust-tests:richview-chart tests/geometry_rules.rs::area_names_stand_inside_the_plot_and_leave_the_margins_to_the_axis",
         "rust-tests:richview-chart tests/geometry_rules.rs::stacked_area_names_stand_inside_their_own_bands",
         "rust-tests:richview-chart tests/stack_contract.rs::line_ends_that_read_the_same_value_keep_series_order",
-        "visual-matrix:scripts/verify-chart-review.mjs",
+        "visual-matrix:scripts/verify-chart-review.ts",
         "rust-tests:richview-chart tests/highlight_mute.rs::a_line_chart_mutes_the_series_the_highlight_leaves_out"
       ],
       "partial": "Existing modern paths cover series naming, tie order and keyboard hide/restore. The complete leader-trigger/final-value/ambiguous-cue matrix is not established; visual naming craft still requires review."
@@ -3386,20 +3457,20 @@
         "rust-tests:richview-chart tests/every_type.rs::every_new_type_has_a_golden_fixture_that_meets_the_contract",
         "rust-tests:richview-core tests/chart_types.rs::every_type_example_draws_and_keeps_its_rows",
         "rust-tests:richview-core tests/geometry_invariants.rs::every_chart_has_finite_nonnegative_geometry_in_real_styles_from_zero_width_up",
-        "geometry:scripts/verify-geometry.mjs",
-        "chart-type-keyboard:scripts/verify-chart-type-keyboard.mjs",
-        "chart-type-pdf:scripts/verify-chart-type-pdf.mjs",
-        "tool-tests:tools/rv-gate/test/chart-type-evidence.test.mjs",
+        "geometry:scripts/verify-geometry.ts",
+        "chart-type-keyboard:scripts/verify-chart-type-keyboard.ts",
+        "chart-type-pdf:scripts/verify-chart-type-pdf.ts",
+        "tool-tests:tools/rv-gate/test/chart-type-evidence.test.mts",
         "rust-tests:richview-core tests/contracts.rs::pdf_hatches_are_clipped_vector_strokes_with_unique_figure_resources"
       ],
-      "partial": "Current fixture and geometry checks cover the compiled type cohort. Actual Chromium Tab traversal, computed accessible names and exact accessible live announcements now cover every compiled type in every-block. Physical VoiceOver, independent motion/export/resource evidence and library-comparison/design judgments remain separate gaps; this is not full-card acceptance. All compiled types are checked at print width in every builtin, A4/default state/every-block (one instance per type, two heatmaps): vector paints/controls/clips/order, no raster in chart frames, independent SVG selectable-word inventory (non-space characters for arbitrary rotation), and exact embedded chart font bytes. Native and Wasm share engine source and Chrome serialization. Poppler text geometry has six-decimal coordinates and integer font-size metadata; independent engine correctness, PDF numeric-label truth at author precision against source data or Table values, other paper sizes/states/custom fonts/platforms and physical VoiceOver remain unproven. System-font portability defects outside chart fonts remain separate owned work. This is partial coverage, not whole-card acceptance. Separate 2026-10-30 S27-793 probes of native Air build 51c9db0e, SHA-256 3f3c388d7d1d8b4a9190823a30c8d951cd168621e774c8d9690807ece6c4cd84, page 31 (retained evidence: ~/tmp/richview-rewrite/reviews/s27-793-original-readers/report.md), verify six whole labels with macOS 26.3 PDFKit (build 1451.3.3) find and PDFium 156.0.8076.0 whole-word Find/selection ranges; pdf.js core 5.6.205 extracts six whole items. Chrome 156.0.8078.76 text-fragment find plus trusted selection verifies five labels; Sales target disambiguation and Firefox viewer UI remain unproved. pdftotext 26.04.0 fragments the six labels into 19 word boxes while preserving all 43 non-space characters. These are scoped reader observations, not recurring step assertions or all-style reader coverage; Acrobat/Evince/Okular UI is untested."
+      "partial": "Current fixture and geometry checks cover the compiled type cohort. Actual Chromium Tab traversal, computed accessible names and exact accessible live announcements now cover every compiled type in every-block. Physical VoiceOver, independent motion/export/resource evidence and library-comparison/design judgments remain separate gaps; this is not full-card acceptance. All compiled types are checked at print width in every builtin, A4/default state/every-block (one instance per type, two heatmaps): vector paints/controls/clips/order, no raster in chart frames, independent SVG selectable-word inventory (non-space characters for arbitrary rotation), and exact embedded chart font bytes. Native and Wasm share engine source and Chrome serialization. Poppler text geometry has six-decimal coordinates and integer font-size metadata; independent engine correctness, PDF numeric-label truth at author precision against source data or Table values, other paper sizes/states/custom fonts/platforms and physical VoiceOver remain unproven. System-font portability defects outside chart fonts remain separate owned work. This is partial coverage, not whole-card acceptance. Separate 2026-10-30 probes of native Air build 51c9db0e, SHA-256 3f3c388d7d1d8b4a9190823a30c8d951cd168621e774c8d9690807ece6c4cd84, page 31 (retained evidence on the build host), verify six whole labels with macOS 26.3 PDFKit (build 1451.3.3) find and PDFium 156.0.8076.0 whole-word Find/selection ranges; pdf.js core 5.6.205 extracts six whole items. Chrome 156.0.8078.76 text-fragment find plus trusted selection verifies five labels; Sales target disambiguation and Firefox viewer UI remain unproved. pdftotext 26.04.0 fragments the six labels into 19 word boxes while preserving all 43 non-space characters. These are scoped reader observations, not recurring step assertions or all-style reader coverage; Acrobat/Evince/Okular UI is untested."
     },
     "FEA-CH-33": {
       "checks": [
         "rust-tests:richview-core tests/figures.rs::series_identity_is_drawn_once_at_every_width",
         "rust-tests:richview-core tests/figures.rs::each_reference_width_reserves_its_own_legend",
-        "visual-matrix:scripts/verify-chart-review.mjs",
-        "chromium:scripts/verify-chart-feedback.mjs"
+        "visual-matrix:scripts/verify-chart-review.ts",
+        "chromium:scripts/verify-chart-feedback.ts"
       ],
       "partial": "Current tests cover names, legend reservation, keyboard hide/restore and emphasis restoration. Full-state axis extents follow TYP-36. The complete phone folding/+N/strike/opacity/decal-swatch visual matrix remains a separate gap and craft review."
     },
@@ -3413,22 +3484,22 @@
     "FEA-RP-49": {
       "checks": [
         "a11y",
-        "chromium:scripts/verify-chart-keyboard.mjs"
+        "chromium:scripts/verify-chart-keyboard.ts"
       ],
       "partial": "Automated accessibility and actual keyboard checks cover the builtins in their current width matrix. The recorded candidate screen-reader pass remains an explicit VoiceOver standing gap; these checks do not establish every assistive-technology or WebGL mark-contrast combination."
     },
     "FEA-RP-59": {
       "checks": [
         "engines-smoke",
-        "firefox:scripts/verify-browser.mjs",
-        "webkit:scripts/verify-browser.mjs",
-        "no-js:scripts/verify-no-js.mjs"
+        "firefox:scripts/verify-browser.ts",
+        "webkit:scripts/verify-browser.ts",
+        "no-js:scripts/verify-no-js.ts"
       ],
       "partial": "The release runs actual three-engine report/runtime behavior and no-JS/no-WebGL fallback checks. Exact failures remain in the receipt. Separate Edge and physical Android/iOS devices, and a dated Baseline feature inventory at prod merge, are not established by desktop engine automation."
     },
     "FEA-BR-41": {
       "checks": [
-        "chromium:scripts/verify-docs.mjs",
+        "chromium:scripts/verify-docs.ts",
         "rust-tests:richview-build src/documentation.rs::tests::time_series_examples_ship_copyable_sources_and_the_frozen_observations"
       ],
       "partial": "PRODUCT GAP: current per-type originals still contain invented examples; their Source heading means copyable RMD, not dataset provenance. Docs interaction/code fidelity and three separate frozen NOAA/CPI/DE-power extras are related checks only. The nine legacy sourced-example migrations and every added type’s source, point and source recheck remain missing. The three extras do not replace those originals."
@@ -3448,7 +3519,7 @@
         "rust-tests:richview-core tests/provenance.rs::trusted_provenance_survives_the_worker_boundary_as_a_safe_reader_disclosure",
         "rust-tests:richview-core tests/provenance.rs::stale_provenance_is_named_in_the_closed_summary_and_missing_stale_means_current"
       ],
-      "partial": "S27-783 connector snapshot/cache/provenance code and these actual-worker, cache, core disclosure and offline Publish-builder tests ARE landed (0b3a20db, plus core ce478ba5). They prove private report-scoped stores, source-bound identities, named/fingerprint cache reads with the source/config removed, TTL/freshness validation, explicit stale warnings/refresh, escaped openable chart/table notes, and deterministic local Publish builds from an explicitly seeded stored fingerprint while refusing live SQL. They do not freeze the resolved rows/options into an immutable published-version replay carrier: rebuilding that version after mutable cache/source changes remains an app-owned gap. Browser no-live-query instrumentation, per-person connector grants, hosted connector execution and a complete cross-engine freshness contract are not established by these fixtures. The Publish test seeds a store directly and repeats builds against that unchanged store; it is not an end-to-end engine materialization or cache-mutation replay test."
+      "partial": "The connector snapshot/cache/provenance code and these actual-worker, cache, core disclosure and offline Publish-builder tests ARE landed (0b3a20db, plus core ce478ba5). They prove private report-scoped stores, source-bound identities, named/fingerprint cache reads with the source/config removed, TTL/freshness validation, explicit stale warnings/refresh, escaped openable chart/table notes, and deterministic local Publish builds from an explicitly seeded stored fingerprint while refusing live SQL. They do not freeze the resolved rows/options into an immutable published-version replay carrier: rebuilding that version after mutable cache/source changes remains an app-owned gap. Browser no-live-query instrumentation, per-person connector grants, hosted connector execution and a complete cross-engine freshness contract are not established by these fixtures. The Publish test seeds a store directly and repeats builds against that unchanged store; it is not an end-to-end engine materialization or cache-mutation replay test."
     },
     "FEA-BR-50": {
       "checks": [
@@ -3464,39 +3535,39 @@
         "rust-tests:richview-app tests/connectors_e2e.rs::named_snapshots_remain_readable_when_the_source_is_offline",
         "rust-tests:richview-app tests/connectors_e2e.rs::connector_provenance_is_openable_escaped_and_keeps_private_parameters_out_of_the_report"
       ],
-      "partial": "Local DuckDB conformance only: native real-worker parameter injection-as-value, row/output/memory bounds, wall-clock kill and fail-closed helper discovery; OS sandbox denies undeclared reads/writes/network plus read_text/read_csv/COPY/ATTACH/INSTALL/LOAD/URL reads even with DuckDB external access and extension settings enabled. Focused platform proof exists on macOS and native Linux ARM; Linux x86_64 and installed hosted-worker execution are not certified. duckdb_settings() host-path metadata disclosure and misleading generic error categories remain open S27-771 findings. Report route authorization is not per-person connector authorization; no connector-grant test is claimed. MetricFlow parser/filter unit checks do not establish live engine conformance; its ignored external-runtime case is unrun when required variables are absent. Credentials across every output/log/context, browser no-live-query behavior, declared-URL-only fetching and immutable published-version offline replay remain incomplete. No hosted SQL enablement or full per-engine adoption claim."
+      "partial": "Local DuckDB conformance only: native real-worker parameter injection-as-value, row/output/memory bounds, wall-clock kill and fail-closed helper discovery; OS sandbox denies undeclared reads/writes/network plus read_text/read_csv/COPY/ATTACH/INSTALL/LOAD/URL reads even with DuckDB external access and extension settings enabled. Focused platform proof exists on macOS and native Linux ARM; Linux x86_64 and installed hosted-worker execution are not certified. duckdb_settings() host-path metadata disclosure and misleading generic error categories remain open review findings. Report route authorization is not per-person connector authorization; no connector-grant test is claimed. MetricFlow parser/filter unit checks do not establish live engine conformance; its ignored external-runtime case is unrun when required variables are absent. Credentials across every output/log/context, browser no-live-query behavior, declared-URL-only fetching and immutable published-version offline replay remain incomplete. No hosted SQL enablement or full per-engine adoption claim."
     },
     "DEL-72": {
       "checks": [
         "geometry",
         "contract",
-        "chromium:scripts/verify-report-runtime.mjs"
+        "chromium:scripts/verify-report-runtime.ts"
       ],
       "partial": "The geometry oracle checks model bounds and actual canvas ink/color at the registered widths and styles; the cross-surface contract and live runtime suites exercise the same named geometry hook. This is not a claim that every external connector or every interaction and motion state is independently covered by the geometry step alone."
     },
     "PRF-07": {
       "checks": [
         "perf",
-        "tool-tests:tools/rv-gate/test/perf.test.mjs"
+        "tool-tests:tools/rv-gate/test/perf.test.mts"
       ],
       "partial": "Current pinned small, flagship and dense HTML/CLI fixtures and desktop/phone4x control measurements retain their source identities. Per-type timing is disclosure only under Daniel’s 29 October decision. The separate grid/gallery cold-mount and memory endpoints, Slow-4G phone profile and complete all-style timing matrix are not established; the additional frozen time-series docs sources are not yet all wired into benchmark workloads."
     },
     "DEL-57": {
       "checks": [
-        "no-js:scripts/verify-no-js.mjs"
+        "no-js:scripts/verify-no-js.ts"
       ],
       "partial": "The enumerated report cohort runs at both widths with live runtime, JavaScript disabled and WebGL blocked, including readable text/tables/tabs, chart notices and the named missing-runtime refusal/recovery drill. This step does not itself establish that the entire separate DEL-26 mutation set reruns after every gate edit."
     },
     "DEL-59": {
       "checks": [
-        "site:scripts/verify-site.mjs",
-        "chromium:scripts/verify-docs.mjs"
+        "site:scripts/verify-site.ts",
+        "chromium:scripts/verify-docs.ts"
       ],
       "partial": "Checks the locally staged site routes, status/layout assertions at the registered widths and desktop/phone docs interactions. This does not certify post-deploy live-host checks or human visual quality."
     },
     "FEA-SF-06": {
       "checks": [
-        "exports:scripts/verify-exports.mjs",
+        "exports:scripts/verify-exports.ts",
         "rust-slow:crates/richview-app/tests/report_folders.rs::pdf_export_keeps_the_output_boundary_and_preserves_previous_output_on_failure",
         "rust-slow:crates/richview-app/tests/pdf_startup.rs"
       ],
@@ -3504,7 +3575,7 @@
     },
     "FEA-RP-44": {
       "checks": [
-        "exports:scripts/verify-exports.mjs"
+        "exports:scripts/verify-exports.ts"
       ],
       "partial": "The actual invalid-image export fixture requires a nonzero exit, export.image-failed diagnostics and byte-identical previous PDF preservation. It covers that error class; it does not comprehensively prove refusal for every source/validation error, every surface, warnings-only success, or absence of a newly created PDF in all failure modes. The separate missing-browser fixture proves output preservation on browser failure, not source-error refusal."
     },
@@ -3516,16 +3587,16 @@
     },
     "ARC-36": {
       "checks": [
-        "site:scripts/verify-site.mjs"
+        "site:scripts/verify-site.ts"
       ],
       "partial": "The actual shipped site Wasm rejects 15 retired compatibility roots, preserves the three generated constants and exercises five retained rendering/checking operations. This scoped guard does not establish the report runtime ABI, complete generated registry declarations or camelCase options/envelopes."
     },
     "DEL-77": {
       "checks": [
-        "tool-tests:tools/rv-gate/test/hosted-smoke.test.mjs",
-        "tool-tests:tools/rv-gate/test/hosted-smoke-adapter.test.mjs",
-        "hosted-smoke:tools/rv-gate/hosted-smoke.mjs",
-        "tool-tests:tools/rv-gate/test/late-outputs.test.mjs"
+        "tool-tests:tools/rv-gate/test/hosted-smoke.test.mts",
+        "tool-tests:tools/rv-gate/test/hosted-smoke-adapter.test.mts",
+        "hosted-smoke:tools/rv-gate/hosted-smoke.mts",
+        "tool-tests:tools/rv-gate/test/late-outputs.test.mts"
       ],
       "partial": "Local loopback native server and actual Publish Worker/Wasm only. Deployed DNS/TLS/Cloudflare Access, live-service probe accounts/cross-account limits, managed data/media lifecycle, hosted-store restore drills, post-deploy/scheduled execution, rollback/incident wiring and positive shared-story link-preview thumbnail delivery remain unrun. No deployed acceptance or operational wiring is established."
     },
@@ -3555,10 +3626,10 @@
     "INT-71": {
       "checks": [
         "build",
-        "tool-tests:tools/rv-gate/test/install.test.mjs",
-        "tool-tests:tools/rv-gate/test/install-retention.test.mjs",
-        "tool-tests:tools/rv-gate/test/install-windows.test.mjs",
-        "tool-tests:tools/rv-gate/test/assemble-release.test.mjs"
+        "tool-tests:tools/rv-gate/test/install.test.mts",
+        "tool-tests:tools/rv-gate/test/install-retention.test.mts",
+        "tool-tests:tools/rv-gate/test/install-windows.test.mts",
+        "tool-tests:tools/rv-gate/test/assemble-release.test.mts"
       ],
       "partial": "Local-only native macOS/GNU Linux archive, checksum/prefix install and uninstall controls. Real macOS arm64 CLI/MCP proof is retained separately. The Windows installer's install and uninstall controls run in PowerShell 7 where it is installed and skip elsewhere; no Windows executable is started. Public hosting/prod publication, other-platform execution, non-GNU installers, source/agent install prompt, Marketplace/Open VSX listings and configured Publish deployment remain unrun. Manifest-bound private snapshots and lease-protected retained installer identity are also guarded; this adds no deployed or other-platform verdict."
     },
@@ -3571,7 +3642,7 @@
     },
     "INT-02": {
       "checks": [
-        "site:scripts/verify-site.mjs",
+        "site:scripts/verify-site.ts",
         "rust-tests:richview-build src/chrome.rs::tests::the_header_has_no_motto"
       ],
       "partial": "The site gate checks the home page's headline, 'Let your agent present.', and the line under it, which ends 'Designed, reproducible, versioned.'; the Rust test checks the header every page shares carries no motto. The hero's look is judged from the landing captures."
@@ -3579,16 +3650,26 @@
     "INT-03": {
       "judged": "review: the three value claims (consistent design, inspectable handoff, the workflow you know) are a statement of intent with no single executable check; whether the site and the product show them is judged from the home page and report captures in the release packet. The 11 Nov 2026 change redacts earlier wordings in the answer log and keeps Daniel's edited paragraph; it changes no product behaviour."
     },
+    "DEL-83": {
+      "checks": [
+        "tool-tests:tools/rv-release/test/parts.test.mjs",
+        "tool-tests:tools/rv-release/test/go.test.mjs",
+        "tool-tests:tools/rv-release/test/run.test.mjs",
+        "tool-tests:tools/rv-release/test/edge.test.mjs",
+        "tool-tests:tools/rv-release/test/kit.test.mjs"
+      ],
+      "partial": "The release command is tested end to end with every outward step stubbed: the fixed order, one go that binds each part to its own evidence, a part that fails or is refused without stopping an independent part, the automatic Worker rollback, and the pre-deploy check of the staged site on a local edge, which refuses the redirect that release 31's live comparison found. The kit's bash steps are parsed and linted against parts.json but their outward effects were not exercised here: they run for the first time at the next candidate, after Daniel's go."
+    },
     "DEL-82": {
       "checks": [
-        "tool-tests:tools/rv-gate/test/phase.test.mjs",
-        "tool-tests:tools/rv-gate/test/rerun.test.mjs",
-        "tool-tests:tools/rv-gate/test/prelaunch-execution.test.mjs",
-        "tool-tests:tools/rv-gate/test/check-process.test.mjs",
-        "tool-tests:tools/rv-gate/test/step-time.test.mjs",
-        "tool-tests:tools/rv-gate/test/pre-prod.test.mjs",
-        "tool-tests:tools/rv-gate/test/value.test.mjs",
-        "tool-tests:tools/rv-gate/test/fast-phase.test.mjs"
+        "tool-tests:tools/rv-gate/test/phase.test.mts",
+        "tool-tests:tools/rv-gate/test/rerun.test.mts",
+        "tool-tests:tools/rv-gate/test/prelaunch-execution.test.mts",
+        "tool-tests:tools/rv-gate/test/check-process.test.mts",
+        "tool-tests:tools/rv-gate/test/step-time.test.mts",
+        "tool-tests:tools/rv-gate/test/pre-prod.test.mts",
+        "tool-tests:tools/rv-gate/test/value.test.mts",
+        "tool-tests:tools/rv-gate/test/fast-phase.test.mts"
       ],
       "partial": "Prelaunch behavior is tested through shipping execution/process boundaries, phase-bound immutable receipts, two-failure and launch controls, the dated fresh-agent quota exception with expiry and historical audit controls, visible deterministic rotation, promotion guards, queue-free work timing, and the value ledger. The production rotation list requires lead approval and measured eligibility; no unmeasured historical queue span qualifies a step. A complete integrated full under the latched policy and the ten-minute wall-clock target remain unrun until normal release evidence exists."
     },
@@ -3625,7 +3706,7 @@
         "rust-tests:richview-core tests/chart_types.rs::core_completes_exactly_the_engine_types",
         "rust-tests:richview-core tests/flow_chart.rs::a_flow_written_as_cards_renders_with_its_table_rows"
       ],
-      "partial": "Covers the flow element of Daniel's answer: the flow type is written as cards and edges and drawn by the native layered layout (S27-986). The map and pivot elements and the full list of chart types have their own cards."
+      "partial": "Covers the flow element of Daniel's answer: the flow type is written as cards and edges and drawn by the native layered layout. The map and pivot elements and the full list of chart types have their own cards."
     },
     "FEA-CH-76": {
       "checks": [
@@ -3649,17 +3730,65 @@
     "FEA-RP-65": {
       "checks": [
         "rust-tests:richview-core tests/slides.rs",
-        "rust-tests:richview-core src/slides.rs::the_slides_keep_region_order_and_fit_each_number_by_its_characters",
+        "rust-tests:richview-core src/slides.rs::the_nine_layouts_are_the_slots_a_slide_uses",
         "rust-tests:richview-runtime tests/slide_text.rs",
         "chromium:slides",
         "docs-match:richview-core tests/spec_docs.rs"
       ],
-      "partial": "FEA-RP-65 is an open proposal. verify-slides covers the stage at 1280, 1440 and 1920, keys, the address, reduced motion, the phone stack, no-JS, browser print and `generate --to pdf`. A publication's fallback to the report is not built. The lead judges the look from the sheet at 1920, 1440 and 390."
+      "partial": "FEA-RP-65 is an open proposal, built as FEA-RP-71 to 74 and TYP-106 propose. verify-slides covers the stage at 1280, 1440 and 1920, keys, the address, reduced motion, the phone stack, no-JS, browser print and `generate --to pdf`. The lead judges the look from the sheet at 1920, 1440 and 390."
+    },
+    "FEA-RP-71": {
+      "checks": [
+        "rust-tests:richview-core tests/slides.rs::a_deck_is_one_slide_a_screen_in_the_order_written",
+        "rust-tests:richview-core tests/slides.rs::a_slide_places_each_slot_on_the_grid_and_its_regions_come_in_one_order",
+        "rust-tests:richview-core src/slides.rs::a_slots_box_is_its_tracks_of_the_content_region",
+        "rust-tests:richview-core src/slides.rs::a_deck_names_itself_by_its_first_line",
+        "rust-tests:richview-core tests/slides.rs::the_demo_deck_is_made_of_real_data_and_renders_clean_in_every_style",
+        "rust-tests:richview-core tests/slides.rs::a_report_only_layout_is_not_read_in_a_deck",
+        "rust-tests:richview-core src/slides.rs::a_table_counts_its_rows_and_the_widest_cell_of_each_column",
+        "rust-tests:richview-core src/slides.rs::an_editor_finds_the_slide_under_a_line",
+        "rust-tests:richview-core tests/slides.rs::an_editor_asks_the_document_for_the_slide_under_a_line",
+        "chromium:slides"
+      ],
+      "partial": "FEA-RP-71 is an open proposal. The lead judges the look of the head, the content and the foot in every style from the sheet at 1920, 1440 and 390."
+    },
+    "FEA-RP-72": {
+      "checks": [
+        "rust-tests:richview-core tests/slides.rs::a_report_that_still_says_slides_true_is_told_what_to_write",
+        "rust-tests:richview-core tests/slides.rs::a_deck_and_a_report_never_combine"
+      ]
+    },
+    "FEA-RP-73": {
+      "checks": [
+        "rust-tests:richview-core tests/slides.rs::paper_is_one_slide_a_page_at_sixteen_to_nine",
+        "rust-tests:richview-core tests/slides.rs::a_slide_that_holds_too_much_is_named_with_its_line",
+        "rust-tests:richview-core tests/slides.rs::a_deck_publishes_through_the_path_a_report_does",
+        "rust-tests:richview-app tests/sign_in.rs::a_deck_is_published_by_the_command_as_a_report_is",
+        "rust-tests:richview-app tests/native_contract.rs::a_deck_publishes_through_the_path_a_report_does_and_is_served_as_the_deck",
+        "chromium:slides"
+      ],
+      "partial": "FEA-RP-73 is an open proposal. A deck's publication is proved in the core and the folder checks, through the `richview publish` command against a fake server, and through the server in a release test, which needs the staged runtime like the other publish tests of native_contract.rs."
+    },
+    "FEA-RP-74": {
+      "checks": [
+        "rust-tests:richview-build src/documentation.rs::the_slides_preview_loads_the_complete_deck",
+        "docs-match:richview-app tests/docs_match.rs"
+      ],
+      "partial": "FEA-RP-74 is an open proposal. The lead judges the Slides page and the demo deck."
+    },
+    "TYP-106": {
+      "checks": [
+        "rust-tests:richview-core src/slides.rs::a_deck_reads_into_slides_slots_and_blocks",
+        "rust-tests:richview-core src/slides.rs::mistakes_in_the_file_are_findings_not_failures",
+        "rust-tests:richview-core src/slides.rs::a_deck_with_no_slide_or_a_newer_format_is_an_error",
+        "rust-tests:richview-core tests/slides.rs::slots_that_are_not_a_layout_are_an_error_that_names_the_nearest",
+        "rust-tests:richview-core tests/slides.rs::a_span_that_does_not_fit_its_layout_is_named_with_its_line",
+        "docs-match:richview-core tests/spec_docs.rs"
+      ]
     },
     "TYP-100": {
       "checks": [
-        "rust-tests:richview-core tests/slides.rs::a_source_without_the_field_is_the_report_it_was",
-        "rust-tests:richview-core tests/slides.rs::a_deck_within_the_rules_renders_without_a_slides_diagnostic",
+        "rust-tests:richview-core tests/slides.rs::a_report_that_still_says_slides_true_is_told_what_to_write",
         "rust-tests:richview-core tests/slides.rs::a_slide_that_holds_too_much_is_named_with_its_line"
       ]
     },

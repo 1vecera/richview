@@ -80,7 +80,7 @@ impl ReadArgs {
 /// The one report `serve` and `publish` read.
 #[derive(Args, Clone)]
 struct ReportArgs {
-    /// The report's `.rmd`, saved in its own folder (a folder holding one `.rmd` also works)
+    /// The report's `.rmd` or a deck's `.rslide`, saved in its own folder (a folder holding one of them also works)
     #[arg(value_parser = one_report)]
     input: PathBuf,
     #[command(flatten)]
@@ -90,7 +90,7 @@ struct ReportArgs {
 /// The report, or the folder of reports, that `generate` and `check` read.
 #[derive(Args, Clone)]
 struct ReportsArgs {
-    /// The report's `.rmd` or the folder holding it; a folder of report folders stands for every report below it
+    /// The report's `.rmd` or a deck's `.rslide`, or the folder holding it; a folder of report folders stands for every report below it
     #[arg(value_parser = report_target)]
     input: Target,
     #[command(flatten)]
@@ -166,8 +166,8 @@ impl ReportCommand {
 enum Command {
     /// Write the self-contained report, or a PDF, into the report folder's Rendered/
     ///
-    /// A source with `slides: true` in its frontmatter is written as slides: one screen for the
-    /// title and one for each top-level heading or `---`, and a PDF of one 16:9 page a slide.
+    /// A deck, a `.rslide` file, is written as slides: one screen for each slide, and a PDF of one
+    /// 16:9 page a slide.
     #[command(alias = "g")]
     Generate {
         #[command(flatten)]
@@ -192,7 +192,7 @@ enum Command {
     },
     /// Check the structure of a report without rendering it
     Validate {
-        /// The report's `.rmd` or the folder holding it; a folder of report folders stands for every report below it
+        /// The report's `.rmd` or a deck's `.rslide`, or the folder holding it; a folder of report folders stands for every report below it
         #[arg(value_parser = report_target)]
         input: Target,
         /// Also apply the publish rules: title, description, version and a valid slug
@@ -263,7 +263,19 @@ enum Command {
         /// Read a CLI token from standard input instead of signing in through the browser
         #[arg(long)]
         with_token: bool,
-        /// Print the page to confirm on without opening a browser (or set RICHVIEW_NO_BROWSER)
+        /// Sign in with a short code you confirm on any device, not in this computer's browser
+        #[arg(long)]
+        device: bool,
+        /// The account's address that the sign-in must be for; needed when nobody is at the terminal to confirm whose it is
+        #[arg(long, value_name = "ADDRESS")]
+        expect_account: Option<String>,
+        /// The organization the sign-in must be for, by its name as the server writes it
+        #[arg(long, value_name = "NAME")]
+        expect_organization: Option<String>,
+        /// The organization the sign-in must be for, by its id, which a rename does not change
+        #[arg(long, value_name = "ID")]
+        expect_organization_id: Option<String>,
+        /// Open no browser: print a short code and a page address to confirm on any device (or set RICHVIEW_NO_BROWSER)
         #[arg(long)]
         no_browser: bool,
         #[command(flatten)]
@@ -566,6 +578,15 @@ async fn server_command(args: ServerArgs) -> Result<(), String> {
         if !crate::runtime::docs_available() {
             return Err("Hosted mode needs the staged docs runtime embedded in the binary".into());
         }
+        if !crate::runtime::editor_available() {
+            return Err(
+                "Hosted mode needs the staged site runtime embedded in the binary: the online editor loads it"
+                    .into(),
+            );
+        }
+        // The editor page's policy names the preview module by hash; computing it now keeps the
+        // first person to open the editor from waiting for it.
+        let _ = crate::runtime::preview_script_hash();
     }
     let storage = FsStorage::new(args.data_dir)?
         .with_quota(args.quota_bytes)
@@ -1176,26 +1197,37 @@ async fn execute(command: Command) -> Result<(), Failure> {
         Command::Login {
             server,
             with_token,
+            device,
+            expect_account,
+            expect_organization,
+            expect_organization_id,
             no_browser,
             format,
         } => {
             let server = crate::publish_destination::resolve(server, false, format.format)?;
             crate::remote::server_url(&server).map_err(Failure::usage)?;
             let asks = matches!(format.format, OutputFormat::Pretty) && crate::sign_in::can_ask();
+            let expected = crate::sign_in::Expected {
+                account: expect_account,
+                organization_name: expect_organization,
+                organization_id: expect_organization_id,
+            };
             let browser = if with_token {
                 None
             } else {
-                crate::sign_in::in_browser(
-                    &server,
-                    asks && !no_browser && crate::sign_in::may_open_browser(),
-                )
-                .await?
+                let way = crate::sign_in::Way {
+                    expect: expected.clone(),
+                    device,
+                    open: asks && !no_browser && crate::sign_in::may_open_browser(),
+                    terminal: asks,
+                };
+                crate::sign_in::in_browser(&server, way).await?
             };
             let signed_in = match browser {
                 Some(signed_in) => signed_in,
                 None if with_token || asks => {
                     let token = crate::sign_in::read_token(&server)?;
-                    crate::sign_in::keep_token(&server, &token).await?
+                    crate::sign_in::keep_token(&server, &token, &expected).await?
                 }
                 None => {
                     return Err(Failure::usage(format!(
@@ -1224,11 +1256,12 @@ async fn execute(command: Command) -> Result<(), Failure> {
                 })?,
             };
             // A file that cannot be used is still forgotten; only its token cannot be revoked.
-            let kept = crate::credentials::kept(&server).ok().flatten();
-            let was = crate::credentials::forget(&server)?;
+            // What is revoked is what was kept when the sign-out took the file's lock, so a
+            // renewal that finished first is revoked in its new tokens.
+            let (was, kept) = crate::credentials::forget(&server)?;
             use crate::sign_in::Revoked;
             let revoked = match &kept {
-                Some(token) => crate::sign_in::revoke(&server, token).await,
+                Some(kept) => crate::sign_in::revoke(&server, kept).await,
                 None => Revoked::NotAsked,
             };
             let result = ops::envelope(
@@ -1248,7 +1281,7 @@ async fn execute(command: Command) -> Result<(), Failure> {
                     "Signed out of {server} on this computer. This server does not revoke tokens from the command line, so the token still works until it is revoked on the server, or, if it is the server's own token, changed in its settings."
                 ),
                 (true, Revoked::NotAsked) => format!(
-                    "Signed out of {server} on this computer. The token itself works until you revoke it on the server's CLI tokens page."
+                    "Signed out of {server} on this computer, but the server could not be asked to end the sign-in, so it still works until it expires or you revoke it on the server's CLI tokens page."
                 ),
             };
             finish(&result, summary, format.format, Path::new(""));
@@ -1272,7 +1305,7 @@ async fn token_for(
             if std::env::var("RICHVIEW_SERVER")
                 .unwrap_or_default()
                 .is_empty()
-                && let Some(kept) = crate::credentials::kept(server)?
+                && let Some(kept) = crate::credentials::usable(server).await?
             {
                 eprintln!(
                     "richview: RICHVIEW_TOKEN was not used because RICHVIEW_SERVER is not set; this computer's sign-in to {} was.",
@@ -1285,7 +1318,7 @@ async fn token_for(
         return Ok(token);
     }
     crate::remote::server_url(server).map_err(Failure::usage)?;
-    if let Some(kept) = crate::credentials::kept(server)? {
+    if let Some(kept) = crate::credentials::usable(server).await? {
         return Ok(kept);
     }
     if matches!(format, OutputFormat::Pretty) && crate::sign_in::can_ask() {
@@ -1319,6 +1352,27 @@ pub async fn publish_as(
     new: bool,
     visibility: Option<&str>,
 ) -> Result<Value, String> {
+    send_publication(
+        source,
+        (options, None),
+        server,
+        token,
+        slug,
+        new,
+        visibility,
+    )
+    .await
+}
+
+pub(crate) async fn send_publication(
+    source: &str,
+    (options, inputs): (&RenderOptions, Option<&mut crate::input_limits::InputSizes>),
+    server: &str,
+    token: &str,
+    slug: Option<&str>,
+    new: bool,
+    visibility: Option<&str>,
+) -> Result<Value, String> {
     if token.is_empty() {
         return Err("Missing API token".into());
     }
@@ -1326,21 +1380,40 @@ pub async fn publish_as(
     if hard_error(&publish_diagnostics) {
         return Err(diag_error(publish_diagnostics));
     }
-    richview_core::document::validate_report_document(
-        &richview_core::document::parse(source).map_err(diag_error)?,
-        options.report_folder.as_ref(),
-    )
-    .map_err(diag_error)?;
-    let request = richview_core::create_publish_request(source, slug).map_err(diag_error)?;
-    // The files the source links to travel with it, so the links work once published (FEA-SF-52).
     let document = richview_core::document::parse(source).map_err(diag_error)?;
-    let files = match options
+    richview_core::document::validate_report_document(&document, options.report_folder.as_ref())
+        .map_err(diag_error)?;
+    let request = richview_core::create_publish_request(source, slug).map_err(diag_error)?;
+    let files = if let Some(folder) = options
         .report_folder
         .as_ref()
-        .map(|f| PathBuf::from(&f.root))
+        .filter(|f| Path::new(&f.root).is_dir())
     {
-        Some(root) if root.is_dir() => resolver::read_linked_files(&root, &document)?,
-        _ => Default::default(),
+        let root = Path::new(&folder.root);
+        if let Some(inputs) = inputs {
+            inputs.encoded_downloads(root, &document)?
+        } else {
+            let files = resolver::read_linked_files(root, &document)?;
+            // Callers supplying their own render options can attest only the bytes they send.
+            crate::server::received_inputs(
+                Some(&document),
+                source,
+                Some(folder),
+                &options.styles,
+                &options.data,
+                &files,
+            )
+            .map_err(|e| {
+                if e.diagnostics().is_empty() {
+                    e.message()
+                } else {
+                    serde_json::to_string(e.diagnostics()).unwrap()
+                }
+            })?;
+            files
+        }
+    } else {
+        Default::default()
     };
     // The author's absolute path stays on the author's machine: the server gets the folder's name
     // and its inventory (TYP-65).
@@ -1361,6 +1434,7 @@ pub async fn publish_as(
         data: options.data.clone(),
         files,
         new,
+        create_only: false,
         visibility: visibility
             .map(|text| {
                 crate::access::Visibility::parse(text).ok_or("Visibility is private, org or public")
@@ -1415,7 +1489,11 @@ pub async fn publish_as(
 
 pub fn read_source(path: &Path) -> Result<String, String> {
     resolver::report_folder(path)?;
-    String::from_utf8(resolver::bounded_read(path)?).map_err(|e| e.to_string())
+    String::from_utf8(crate::input_limits::read_input(
+        path,
+        &path.file_name().unwrap_or_default().to_string_lossy(),
+    )?)
+    .map_err(|e| e.to_string())
 }
 /// `RICHVIEW_TOKEN` belongs to `RICHVIEW_SERVER` and goes nowhere else (FEA-SF-12): another server
 /// needs its own token, passed with `--token`.

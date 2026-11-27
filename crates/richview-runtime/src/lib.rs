@@ -3,6 +3,8 @@
 //! ARC-18). Reading, inspection and the chart actions run here too. The modules outside `web`
 //! are pure and tested natively; `web` holds the browser glue.
 
+#[cfg(any(target_arch = "wasm32", test))]
+mod borrow;
 pub mod data;
 pub mod mesh;
 pub mod payload;

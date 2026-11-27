@@ -861,7 +861,7 @@ For each of the 41 part 03 component cards, the features (`F-`) whose items in p
 | C-WEB-SHOWCASE | Showcase | 5 | F-WEB-SHOWCASE-CITATION, F-WEB-SHOWCASE-FLAGSHIP, F-WEB-SHOWCASE-INSPECT, F-WEB-SHOWCASE-SHELL, F-WEB-SHOWCASE-STYLE-PICKER | D-SHOWCASE-CONTROLS |
 | C-WEB-WASM-API | Wasm JavaScript API | 2 | F-WEB-CONTROL-EVENTS, F-WEB-SETTLE-HOOK |  |
 
-## IDs without a defining item (60)
+## IDs without a defining item (59)
 
 These appear in part text, the guide or the lockdown files, but no item defines them. Most are names from the evidence files or Linear; use the lockdown ID they resolve to. FEA-SF-62 defines no entity. F-CORE-CODE-HIGHLIGHT and F-CORE-PARSE are also evidence names, listed again in the next table.
 
@@ -884,11 +884,11 @@ These appear in part text, the guide or the lockdown files, but no item defines 
 | F-ASSET-HOSTING | FEA-SF-50 sources | Linear tag; F-APP-ASSET-PUT (FEA-SF-50) cites it |
 | F-CORE-CODE-HIGHLIGHT | FEA-RP-17 conflicts; guide components/core.md | `evidence/product.md` feature; F-CODE-BLOCKS (FEA-RP-17) decides highlighting |
 | F-CORE-PARSE | guide components/core.md | `evidence/product.md` feature and FEA-RP-01's draft refId; FEA-RP-01 is F-REPRODUCIBLE-RENDER, and TYP-01, TYP-02 and TYP-10 decide parsing |
-| G-ARTIFACT-PROOF | DEL-13, TYP-42; guide delivery.md | `evidence/linear.md` rule; enforced by G-BUILD (DEL-13) |
-| G-DEV-HARNESS | none in the current files | `evidence/linear.md` goal; the gate is G-DEV-GATE (DEL-08) |
-| G-REPORT-FOLDER | TYP-39 sources; guide delivery.md | `evidence/linear.md` rule; T-REPORT-FOLDER (TYP-39) |
-| G-RENDERED-OUTPUT | TYP-42 sources; guide delivery.md | `evidence/linear.md` rule; T-RENDERED-OUTPUT (TYP-42) |
-| G-OPTIONAL-STYLE | TYP-45 sources; guide delivery.md | `evidence/linear.md` rule; T-STYLE-REF (TYP-45) |
+| G-ARTIFACT-PROOF | DEL-13, TYP-42; guide delivery.md | The Linear evidence (not published) rule; enforced by G-BUILD (DEL-13) |
+| G-DEV-HARNESS | none in the current files | The Linear evidence (not published) goal; the gate is G-DEV-GATE (DEL-08) |
+| G-REPORT-FOLDER | TYP-39 sources; guide delivery.md | The Linear evidence (not published) rule; T-REPORT-FOLDER (TYP-39) |
+| G-RENDERED-OUTPUT | TYP-42 sources; guide delivery.md | The Linear evidence (not published) rule; T-RENDERED-OUTPUT (TYP-42) |
+| G-OPTIONAL-STYLE | TYP-45 sources; guide delivery.md | The Linear evidence (not published) rule; T-STYLE-REF (TYP-45) |
 | G-BROWSER-WEBKIT | DEL-33; guide delivery.md | `evidence/checks-performance.md` check; the WebKit loop inside G-PROD-CANDIDATE (DEL-33) |
 | G-WASM-SIZE | DEL-51; guide delivery.md | `evidence/checks-performance.md` check; the Wasm size check inside G-PERF-BUDGETS (DEL-51), budgeted by P-WASM-GZIP (PRF-30) and P-RUNTIME-DELIVERY (PRF-31) |
 | D-RMD-TAGS | TYP-09 | `evidence/history-prs.md` decision; settled by T-RICH-FENCE (TYP-09) |
@@ -908,7 +908,6 @@ These appear in part text, the guide or the lockdown files, but no item defines 
 | P-EDIT-SMALL | PRF-23 | Replaced by P-EDIT (PRF-23) |
 | P-EDIT-DENSE | PRF-29 | Replaced by P-EDIT-LARGE (PRF-29) |
 | P-WASM-SIZE | PRF-30 | Replaced by P-WASM-GZIP (PRF-30) |
-| P-S27-32 | OPN-41 sources, OPN-47 sources, OPN-48 sources | Linear project identifier, not an entity |
 | OPN-23 | 08 summary | Withdrawn item; its number stays a gap because other parts cite OPN items by number, and INT-50 (D-REPO-SPLIT) decides the rewrite's repository and history |
 
 ## Evidence names (113)
@@ -997,7 +996,7 @@ Entity names from the evidence files that 7 component pages of the guide cite in
 | F-EXAMPLES-HOMEPAGE-DEMO | Homepage demo source | product.md:373 | ARC-54 (C-EXAMPLES), INT-55 (D-EXAMPLES-CARRY), FEA-SF-29 (F-WEB-LANDING-LIVE-DEMO), FEA-SF-36 (F-WEB-SHOWCASE-FLAGSHIP), FEA-SF-42 (F-DOCS-TUTORIAL-EXAMPLE) | guide components/web.md |
 | F-EXAMPLES-TUTORIALS | Example set | product.md:372 | ARC-54 (C-EXAMPLES), INT-55 (D-EXAMPLES-CARRY), FEA-SF-29 (F-WEB-LANDING-LIVE-DEMO), FEA-SF-36 (F-WEB-SHOWCASE-FLAGSHIP), FEA-SF-42 (F-DOCS-TUTORIAL-EXAMPLE) | guide components/web.md |
 | F-GALLERY-CHARTS | `/chart-gallery/` | product.md:424 | ARC-60 (C-GALLERIES), FEA-BR-12 (D-FAMOUS-SIMPLIFICATIONS), FEA-BR-41 (D-DOCS-CHART-EXAMPLES), OPN-19 (D-GALLERY-ROUTES) | guide components/web.md |
-| F-GALLERY-FAMOUS | `/famous-charts/` | product.md:425, linear.md:252 | ARC-60 (C-GALLERIES), FEA-BR-12 (D-FAMOUS-SIMPLIFICATIONS), FEA-BR-41 (D-DOCS-CHART-EXAMPLES), OPN-19 (D-GALLERY-ROUTES) | guide components/web.md |
+| F-GALLERY-FAMOUS | `/famous-charts/` | product.md:425; the Linear evidence (not published) | ARC-60 (C-GALLERIES), FEA-BR-12 (D-FAMOUS-SIMPLIFICATIONS), FEA-BR-41 (D-DOCS-CHART-EXAMPLES), OPN-19 (D-GALLERY-ROUTES) | guide components/web.md |
 | F-LLMS-TXT-SUMMARY | llms.txt | product.md:370 | ARC-53 (C-LLMS-TXT), FEA-SF-48 (F-SKILL-AGENT-GUIDE) | guide components/build.md |
 | F-PKG-CHARTS-API | `@richview/charts` | product.md:353 | ARC-48 (C-PKG-CORE), ARC-49 (C-PKG-CHARTS), FEA-SF-49 (F-PKG-CORE-API) | guide components/build.md |
 | F-PUBLISH-MEMBER-EDITION | Member edition | product.md:480 | FEA-BR-25 (F-PUBLISH-ACCESS), FEA-BR-45 (F-PUBLISH-MODE) | guide components/cloud.md |

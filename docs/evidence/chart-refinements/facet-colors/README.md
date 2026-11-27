@@ -18,8 +18,8 @@ This is limited to bar/scatter facets. Line/area and temporal identity remain un
 To reproduce the four images, build isolated baseline/current worktrees using [the pinned build instructions](../../../../CLAUDE.md), with npm dependencies and `/usr/bin/chromium` available. From this checkout run:
 
 ```sh
-node docs/evidence/chart-refinements/facet-colors/capture.mjs /absolute/built/baseline tmp/facet-colors-before before
-node docs/evidence/chart-refinements/facet-colors/capture.mjs /absolute/built/current tmp/facet-colors-after after
+node docs/evidence/chart-refinements/facet-colors/capture.ts /absolute/built/baseline tmp/facet-colors-before before
+node docs/evidence/chart-refinements/facet-colors/capture.ts /absolute/built/current tmp/facet-colors-after after
 ```
 
 The helper uses bundled fonts and device scale 2, waits for ordinary motion to settle, and asserts exact image hashes. Full fixture matrices, interface runners and first failure logs remain in the campaign's local scratch record.

@@ -259,6 +259,12 @@ impl DuckDbConnector {
                 .map(|(index, name)| SchemaField {
                     name,
                     kind: schema_kinds[index].unwrap_or(FieldKind::Null),
+                    scale: match column_types[index] {
+                        DataType::Decimal32(_, scale)
+                        | DataType::Decimal64(_, scale)
+                        | DataType::Decimal128(_, scale) => u8::try_from(scale).ok(),
+                        _ => None,
+                    },
                     nullable: nullable[index] || schema_kinds[index].is_none(),
                 })
                 .collect();
@@ -847,6 +853,20 @@ mod tests {
                 .rows[0]["n"],
             7
         );
+    }
+
+    #[test]
+    fn sql_decimal_scale_survives_a_whole_valued_result() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("decimal.duckdb");
+        drop(Connection::open(&path).unwrap());
+        let snapshot = query(
+            &DuckDbConnector::new(path),
+            "SELECT 9::DECIMAL(12,2) AS price",
+            serde_json::json!({}),
+        )
+        .unwrap();
+        assert_eq!(snapshot.schema[0].scale, Some(2));
     }
 
     #[test]

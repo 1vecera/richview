@@ -59,3 +59,7 @@ operator -X POST "$OPERATOR_URL/operator/mail/$REQUEST_ID/dispatch" > "$PRIVATE_
 ```
 
 Select `REQUEST_ID` from `manualRequests` after verifying the recipient and kind. Dispatch only the intended request once. If the response reports an uncertain outcome, inspect the pending state and audit before any retry. A failed response, expired request, exhausted budget or rate limit does not mean a message was sent: do not use a partial response or invent a link. Handle private files and delivery records so a message is not sent twice.
+
+## Proposed staff inspection procedure
+
+The shared maintenance credential does not grant access to report bytes. The [staff inspection proposal](operations/staff-access.md) describes individual enrollment, one-case authorization, the owner's history and the host controls required before rollout.

@@ -509,6 +509,44 @@ async fn first_publish_creates_and_later_versions_keep_the_address() {
 
 #[tokio::test]
 #[ignore = "release: needs the real embedded report runtime staged by richview-build (ARC-07)"]
+async fn a_deck_publishes_through_the_path_a_report_does_and_is_served_as_the_deck() {
+    let f = Fixture::new();
+    let app = f.app(Some("token"));
+    let deck = "format: rslide/1\ntitle: Deck\ndescription: A fixture deck\nversion: 0.0.1\n---\ntitle: Cover\nsubtitle: One\n---\nmetric:\n  value: 42\n  label: Things\n";
+    let folder = json!({"root":"deck","source":"deck.rslide","files":["deck.rslide"]});
+    let (status, text) = request(
+        &app,
+        "POST",
+        "/api/reports",
+        json!({"slug":"deck","source":deck,"reportFolder":folder}),
+        Some("token"),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{text}");
+    // The version pins the deck's own text, and its page is the deck: one section a slide.
+    let stored = f.storage.get("deck", None).unwrap().unwrap();
+    assert_eq!(stored.source, deck);
+    assert_eq!(stored.html.matches("<section class=\"rv-slide ").count(), 2);
+    let (status, page) = request(&app, "GET", "/r/deck", json!({}), None).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(page.contains(" data-rv-slides") && page.contains("rv-slide--hero"));
+    // A deck with an error is refused as a report with one is, and nothing is stored.
+    let broken = "format: rslide/1\ntitle: Broken\ndescription: D\nversion: 0.0.1\n---\ntitle: One\nleft: a\nbottom: b\n";
+    let (status, text) = request(
+        &app,
+        "POST",
+        "/api/reports",
+        json!({"slug":"broken","source":broken,"reportFolder":{"root":"broken","source":"deck.rslide","files":["deck.rslide"]}}),
+        Some("token"),
+    )
+    .await;
+    assert!(status.is_client_error(), "{status} {text}");
+    assert!(text.contains("deck.layout"), "{text}");
+    assert!(f.storage.get("broken", None).unwrap().is_none());
+}
+
+#[tokio::test]
+#[ignore = "release: needs the real embedded report runtime staged by richview-build (ARC-07)"]
 async fn styles_and_external_data_are_retained_for_regeneration() {
     let f = Fixture::new();
     let app = f.app(Some("token"));
@@ -765,9 +803,8 @@ fn resolver_enforces_source_directory_and_resolves_chart_local_data() {
 #[test]
 fn combined_resource_budget_includes_styles_and_unique_data() {
     let f = Fixture::new();
-    let mib = 1024 * 1024;
     let mut csv = String::from("x,y\nA,1\n");
-    csv.extend(std::iter::repeat_n(' ', 20 * mib - csv.len()));
+    csv.extend(std::iter::repeat_n(' ', 4_500_000 - csv.len()));
     for name in ["a.csv", "b.csv", "c.csv"] {
         fs::write(f.root.join(name), &csv).unwrap();
     }
@@ -779,12 +816,12 @@ fn combined_resource_budget_includes_styles_and_unique_data() {
     assert_eq!(options.data.len(), 3);
     drop(options);
     let mut style = String::from("colors:\n  brand: '#123456'\n# ");
-    style.extend(std::iter::repeat_n(' ', 8 * mib - style.len()));
+    style.extend(std::iter::repeat_n(' ', 5_000_000 - style.len()));
     fs::write(f.root.join("large.rstyle.yaml"), style).unwrap();
     let error = resolver::resolve_document_options_policy(
         source,
         &path,
-        &["large.rstyle.yaml".into()],
+        &vec!["large.rstyle.yaml".into(); 11],
         false,
         false,
     )
@@ -802,7 +839,7 @@ fn combined_resource_budget_includes_styles_and_unique_data() {
 #[test]
 fn chart_local_references_reuse_resolved_bytes_without_charging_again() {
     let f = Fixture::new();
-    let size = 24 * 1024 * 1024;
+    let size = 5_000_000;
     let mut csv = String::from("x,y\nA,1\n");
     csv.extend(std::iter::repeat_n(' ', size - csv.len()));
     fs::write(f.root.join("shared.csv"), csv).unwrap();
@@ -822,14 +859,15 @@ fn chart_local_references_reuse_resolved_bytes_without_charging_again() {
 #[test]
 fn combined_resource_budget_counts_media_base64_expansion() {
     let f = Fixture::new();
-    let size = 13 * 1024 * 1024;
+    let size = 5_000_000;
     let end = "</desc></svg>";
     let mut svg = String::from("<svg xmlns='http://www.w3.org/2000/svg'><desc>");
     svg.extend(std::iter::repeat_n(' ', size - svg.len() - end.len()));
     svg.push_str(end);
     let mut source = String::new();
-    for name in ["a.svg", "b.svg", "c.svg", "d.svg"] {
-        fs::write(f.root.join(name), &svg).unwrap();
+    fs::write(f.root.join("a.svg"), &svg).unwrap();
+    for index in 0..11 {
+        let name = format!("{}a.svg", "./".repeat(index));
         source.push_str(&format!(
             "```image\nsrc: {name}\nalt: Budget fixture\n```\n\n"
         ));
@@ -843,13 +881,13 @@ fn combined_resource_budget_counts_media_base64_expansion() {
         false,
     )
     .unwrap_err();
-    // Four legal 13 MiB files total only 52 MiB raw, but their retained data URIs exceed64 MiB.
+    // Each spelling is a separate data URI in the renderer, but they name one input file.
     assert!(
         error.contains("64 MiB combined data/media/style budget"),
         "{error}"
     );
     assert!(
-        error.contains("d.svg") && error.contains("base64 expansion"),
+        error.contains("a.svg") && error.contains("base64 expansion"),
         "{error}"
     );
 }
@@ -1574,4 +1612,206 @@ async fn serve_answers_the_preview_its_thumbnail_and_nothing_else_and_starts_on_
         .unwrap();
     assert_eq!(&bytes[..8], &[137, 80, 78, 71, 13, 10, 26, 10]);
     assert_eq!(&bytes[16..24], &[0, 0, 4, 176, 0, 0, 2, 118], "1200 x 630");
+}
+
+async fn local_limit_finding(path: &std::path::Path, code: &str) -> Value {
+    let expected = cli_limit_finding(path, code);
+    for tool in ["richview_check", "richview_render"] {
+        let result = mcp::dispatch_tool(tool, &json!({"inputPath": path})).await;
+        assert_eq!(
+            result["structuredContent"]["diagnostics"][0], expected,
+            "{tool}: {result}"
+        );
+    }
+    expected
+}
+
+/// The finding `check`, `generate` and `publish` give the same report, which must be one.
+fn cli_limit_finding(path: &std::path::Path, code: &str) -> Value {
+    let mut expected = Value::Null;
+    for command in ["check", "generate", "publish"] {
+        let mut cli = std::process::Command::new(env!("CARGO_BIN_EXE_richview"));
+        cli.arg(command).arg(path).args(["--format", "json"]);
+        if command == "publish" {
+            cli.args([
+                "--server",
+                "http://127.0.0.1:1",
+                "--token",
+                "local-test",
+                "--new",
+            ]);
+        }
+        let output = cli.output().unwrap();
+        assert!(!output.status.success(), "{command}");
+        let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+        let d = &json["diagnostics"][0];
+        assert_eq!(d["code"], code, "{command}: {json}");
+        if expected.is_null() {
+            expected = d.clone();
+        }
+        assert_eq!(d, &expected);
+    }
+    assert!(!path.parent().unwrap().join("Rendered/report.html").exists());
+    expected
+}
+
+#[tokio::test]
+async fn input_limits_are_identical_for_local_commands_mcp_and_received_files() {
+    use base64::{Engine, engine::general_purpose::STANDARD};
+    let f = Fixture::new();
+    let path = f.root.join("report.rmd");
+    let source = source("1.0.0", "Inputs") + "\n[Download](orders.csv)\n";
+    fs::write(&path, &source).unwrap();
+    fs::File::create(f.root.join("orders.csv"))
+        .unwrap()
+        .set_len(5_000_001)
+        .unwrap();
+    let expected = local_limit_finding(&path, "report.file-limit").await;
+    assert_eq!(
+        expected["message"],
+        "File ‘orders.csv’ is 5000001 bytes. The limit is 5,000,000 bytes. Reduce or split this file."
+    );
+    let app = f.app(Some("test-token"));
+    let bytes = vec![b'x'; 5_000_001];
+    for (route, body) in [
+        (
+            "/api/check",
+            json!({"source": source, "data":{"orders.csv": std::str::from_utf8(&bytes).unwrap()}}),
+        ),
+        (
+            "/api/reports",
+            json!({"source": source, "slug":"limit", "new":true, "reportFolder":{"source":"report.rmd","root":"inputs","files":["report.rmd","orders.csv"]}, "files":{"orders.csv":STANDARD.encode(&bytes)}}),
+        ),
+    ] {
+        let (status, body) = request(&app, "POST", route, body, Some("test-token")).await;
+        assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "{body}");
+        let json: Value = serde_json::from_str(&body).unwrap();
+        assert_eq!(json["diagnostics"][0], expected, "{route}");
+    }
+    assert!(f.storage.get("limit", None).unwrap().is_none());
+}
+
+#[tokio::test]
+async fn a_direct_parquet_table_is_counted_by_its_text_on_every_surface() {
+    use duckdb::Connection;
+    use richview_app::connectors::parquet_source::read_columns;
+    let f = Fixture::new();
+    let file = f.root.join("big.parquet");
+    // 300,000 rows of two numbers are about 1 MB on disk and over 5,000,000 bytes as the table
+    // text a report carries. Counting the file would pass it on the client and fail the server.
+    Connection::open_in_memory()
+        .unwrap()
+        .execute_batch(&format!(
+            "COPY (SELECT i AS id, i * 1.5 AS v FROM range(300000) t(i)) TO '{}' (FORMAT parquet, COMPRESSION zstd)",
+            file.display()
+        ))
+        .unwrap();
+    assert!(fs::metadata(&file).unwrap().len() < 5_000_000);
+    let path = f.root.join("report.rmd");
+    let source = source("1.0.0", "Table")
+        + "\n```table\ndata: {parquet: big.parquet}\ncolumns: [{key: id}, {key: v}]\n```\n";
+    fs::write(&path, &source).unwrap();
+    let expected = cli_limit_finding(&path, "report.file-limit");
+    let message = expected["message"].as_str().unwrap();
+    assert!(
+        message.starts_with("File ‘table read from big.parquet’ is ")
+            && message
+                .ends_with(" bytes. The limit is 5,000,000 bytes. Reduce or split this file."),
+        "{message}"
+    );
+    assert_eq!(expected["file"], "big.parquet");
+    // The server receives that table, not the file, and answers with the same finding.
+    let names = ["id".to_owned(), "v".to_owned()];
+    let table = read_columns(
+        &file,
+        "big.parquet",
+        Some(std::path::Path::new(env!(
+            "CARGO_BIN_EXE_richview-sql-worker"
+        ))),
+        Some(&names),
+    )
+    .unwrap_or_else(|refusal| panic!("{}", refusal.message));
+    let app = f.app(Some("test-token"));
+    for (route, body) in [
+        (
+            "/api/check",
+            json!({"source": source, "data":{"big.parquet": table.text}}),
+        ),
+        (
+            "/api/reports",
+            json!({"source": source, "slug":"table", "new":true, "data":{"big.parquet": table.text}}),
+        ),
+    ] {
+        let (status, body) = request(&app, "POST", route, body, Some("test-token")).await;
+        assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "{body}");
+        let json: Value = serde_json::from_str(&body).unwrap();
+        assert_eq!(json["diagnostics"][0], expected, "{route}");
+    }
+}
+
+#[tokio::test]
+async fn input_limits_count_only_referenced_paths_and_the_source_once() {
+    let f = Fixture::new();
+    let mut text = String::from("```table\ndata: {inline: [{v: 1}]}\n```\n");
+    for index in 0..10 {
+        let name = format!("file{index}.bin");
+        fs::File::create(f.root.join(&name))
+            .unwrap()
+            .set_len(5_000_000)
+            .unwrap();
+        text.push_str(&format!("\n[Download]({name})\n"));
+    }
+    text.push_str("\n[Same download](./file0.bin)\n");
+    fs::File::create(f.root.join("unrelated.bin"))
+        .unwrap()
+        .set_len(51_000_000)
+        .unwrap();
+    let source = f.root.join("report.rmd");
+    fs::write(&source, &text).unwrap();
+    let last = fs::OpenOptions::new()
+        .write(true)
+        .open(f.root.join("file9.bin"))
+        .unwrap();
+    let remainder = 5_000_000 - text.len() as u64;
+    let check = || resolver::resolve_document_options_policy(&text, &source, &[], false, false);
+    last.set_len(remainder).unwrap();
+    assert!(check().is_ok());
+    last.set_len(remainder + 1).unwrap();
+    let issues: Value = serde_json::from_str(&check().unwrap_err()).unwrap();
+    assert_eq!(issues[0]["code"], "report.input-limit");
+    assert_eq!(
+        issues[0]["message"],
+        "This report uses 50000001 bytes of inputs. The limit is 50,000,000 bytes. Reduce the inputs or split the report."
+    );
+    assert_eq!(issues[0]["file"], "report.rmd");
+    assert_eq!(
+        local_limit_finding(&source, "report.input-limit").await,
+        issues[0]
+    );
+}
+
+#[test]
+fn input_limits_measure_a_local_database_before_the_query_runs() {
+    let f = Fixture::new();
+    fs::write(
+        f.root.join("report.connectors.yaml"),
+        "connectors:\n  sales: {kind: duckdb, database: sales.db}\n",
+    )
+    .unwrap();
+    fs::File::create(f.root.join("sales.db"))
+        .unwrap()
+        .set_len(5_000_001)
+        .unwrap();
+    let text = "```table\ndata: {sql: {connector: sales, inline: SELECT 1}}\n```\n";
+    let error = resolver::resolve_document_options_policy(
+        text,
+        &f.root.join("report.rmd"),
+        &[],
+        false,
+        false,
+    )
+    .unwrap_err();
+    let issues: Value = serde_json::from_str(&error).unwrap();
+    assert_eq!(issues[0]["file"], "sales.db");
+    assert_eq!(issues[0]["code"], "report.file-limit");
 }

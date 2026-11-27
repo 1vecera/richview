@@ -1,4 +1,4 @@
-mod common;
+use super::common;
 
 use richview_core::document::{RenderOptions, ReportFolder, render};
 use serde_json::json;

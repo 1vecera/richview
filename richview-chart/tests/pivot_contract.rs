@@ -1,7 +1,7 @@
 //! Pivot tables: sums by row and column with computed totals, right-aligned numbers, the caps on
 //! wide matrices with the rest reported, and the failures that name their cause (FEA-CH-75).
 
-mod common;
+use super::common;
 
 use common::*;
 use richview_chart::Level;

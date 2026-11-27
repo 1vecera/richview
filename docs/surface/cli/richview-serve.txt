@@ -3,7 +3,7 @@ Preview the report in a browser and reload it when the folder changes
 Usage: richview serve [OPTIONS] <INPUT>
 
 Arguments:
-  <INPUT>  The report's `.rmd`, saved in its own folder (a folder holding one `.rmd` also works)
+  <INPUT>  The report's `.rmd` or a deck's `.rslide`, saved in its own folder (a folder holding one of them also works)
 
 Options:
       --style <STYLES>           Style (a builtin name or a file in the report folder) replacing the source's `styles` for this call; repeatable

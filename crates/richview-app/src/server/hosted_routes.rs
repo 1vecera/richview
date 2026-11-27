@@ -99,7 +99,7 @@ versioned!(report_bundle, reports::report_bundle);
 pub async fn regenerate(
     State(state): State<AppState>,
     headers: HeaderMap,
-    admission: Option<Extension<std::sync::Arc<tokio::sync::OwnedSemaphorePermit>>>,
+    admission: Option<Extension<std::sync::Arc<crate::access::Admission>>>,
     Path((org, slug, version)): Path<(String, String, String)>,
 ) -> Response {
     let key = match key(&state, &org, &slug) {
